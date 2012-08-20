@@ -13,6 +13,7 @@
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/flow_graph.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
@@ -34,6 +35,7 @@ DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
+DEFINE_FLAG(bool, local_cse, true, "Do local subexpression elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
@@ -132,7 +134,7 @@ static bool CompileParsedFunctionHelper(
   LongJump bailout_jump;
   isolate->set_long_jump_base(&bailout_jump);
   if (setjmp(*bailout_jump.Set()) == 0) {
-    GrowableArray<BlockEntryInstr*> block_order;
+    FlowGraph* flow_graph = NULL;
     // TimerScope needs an isolate to be properly terminated in case of a
     // LongJump.
     {
@@ -156,35 +158,51 @@ static bool CompileParsedFunctionHelper(
               ExtractTypeFeedbackArray(unoptimized_code));
         }
       }
-      FlowGraphBuilder graph_builder(parsed_function);
-      graph_builder.BuildGraph(optimized, use_ssa);
 
-      // The non-optimizing compiler compiles blocks in reverse postorder,
-      // because it is a 'natural' order for the human reader of the
-      // generated code.
-      intptr_t length = graph_builder.postorder_block_entries().length();
-      for (intptr_t i = length - 1; i >= 0; --i) {
-        block_order.Add(graph_builder.postorder_block_entries()[i]);
+      // Build the flow graph.
+      FlowGraphBuilder builder(parsed_function);
+      flow_graph = builder.BuildGraph();
+
+      // Transform to SSA.
+      if (optimized && use_ssa) flow_graph->ComputeSSA();
+
+      if (FLAG_print_flow_graph) {
+        OS::Print("Before Optimizations\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
       }
+      if (Dart::flow_graph_writer() != NULL) {
+        // Write flow graph to file.
+        FlowGraphVisualizer printer(*flow_graph);
+        printer.PrintFunction();
+      }
+
       if (optimized) {
-        FlowGraphOptimizer optimizer(block_order);
+        FlowGraphOptimizer optimizer(*flow_graph, use_ssa);
         optimizer.ApplyICData();
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(parsed_function, block_order);
+        FlowGraphTypePropagator propagator(*flow_graph, optimized && use_ssa);
         propagator.PropagateTypes();
 
-        // Do optimizations that depend on the propagated type information.
-        optimizer.OptimizeComputations();
 
         if (use_ssa) {
+          // Do optimizations that depend on the propagated type information.
+          optimizer.OptimizeComputations();
+
+          if (FLAG_local_cse) {
+            LocalCSE local_cse(*flow_graph);
+            local_cse.Optimize();
+          }
+
           // Perform register allocation on the SSA graph.
-          FlowGraphAllocator allocator(block_order, &graph_builder);
+          FlowGraphAllocator allocator(*flow_graph);
           allocator.AllocateRegisters();
         }
+
         if (FLAG_print_flow_graph) {
           OS::Print("After Optimizations:\n");
-          FlowGraphPrinter printer(Function::Handle(), block_order);
+          FlowGraphPrinter printer(*flow_graph);
           printer.PrintBlocks();
         }
       }
@@ -192,14 +210,13 @@ static bool CompileParsedFunctionHelper(
 
     bool is_leaf = false;
     if (optimized) {
-      FlowGraphAnalyzer analyzer(block_order);
+      FlowGraphAnalyzer analyzer(*flow_graph);
       analyzer.Analyze();
       is_leaf = analyzer.is_leaf();
     }
     Assembler assembler;
     FlowGraphCompiler graph_compiler(&assembler,
-                                     parsed_function,
-                                     block_order,
+                                     *flow_graph,
                                      optimized,
                                      optimized && use_ssa,
                                      is_leaf);

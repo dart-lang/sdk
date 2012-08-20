@@ -11,7 +11,7 @@
 #source('../../../../corelib/src/bool.dart');
 #source('../../../../corelib/src/collection.dart');
 #source('../../../../corelib/src/comparable.dart');
-#source('../../../../corelib/unified/core/date.dart');
+#source('../../../../corelib/src/date.dart');
 #source('../../../../corelib/src/double.dart');
 #source('../../../../corelib/src/duration.dart');
 #source('../../../../corelib/src/exceptions.dart');

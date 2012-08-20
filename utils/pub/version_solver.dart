@@ -73,7 +73,7 @@ class VersionSolver {
   VersionSolver(SourceRegistry sources, this._root, this.lockFile)
       : _sources = sources,
         _pubspecs = new PubspecCache(sources),
-        _packages = <Dependency>{},
+        _packages = <String, Dependency>{},
         _work = new Queue<WorkItem>();
 
   Future<List<PackageId>> solve() {
@@ -236,12 +236,13 @@ class ChangeVersion implements WorkItem {
       Version version) {
     // If there is no version, it means no package, so no dependencies.
     if (version == null) {
-      return new Future<Map<String, PackageRef>>.immediate(<PackageRef>{});
+      return
+          new Future<Map<String, PackageRef>>.immediate(<String, PackageRef>{});
     }
 
     var id = new PackageId(source, version, description);
     return solver._pubspecs.load(id).transform((pubspec) {
-      var dependencies = <PackageRef>{};
+      var dependencies = <String, PackageRef>{};
       for (var dependency in pubspec.dependencies) {
         dependencies[dependency.name] = dependency;
       }
@@ -470,7 +471,7 @@ class Dependency {
   }
 
   Dependency(this.name)
-      : _refs = <PackageRef>{};
+      : _refs = <String, PackageRef>{};
 
   /**
    * Places [ref] as a constraint from [package] onto this.

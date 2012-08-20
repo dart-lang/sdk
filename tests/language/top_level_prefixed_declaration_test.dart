@@ -11,7 +11,7 @@ lib11.Library11 variable = null;
 
 lib11.Library11 function() => null;
 
-lib11.Library11 get getter() => null;
+lib11.Library11 get getter => null;
 
 main() {
   Expect.isTrue(variable == null);

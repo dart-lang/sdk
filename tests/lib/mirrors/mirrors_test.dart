@@ -21,9 +21,9 @@ class Class {
 testFieldAccess(mirrors) {
   var instance = new Class();
 
-  var libMirror = mirrors.libraries()["MirrorsTest.dart"];
-  var classMirror = libMirror.classes()["Class"];
-  var instMirror = mirrors.mirrorOf(instance);
+  var libMirror = mirrors.libraries["MirrorsTest.dart"];
+  var classMirror = libMirror.classes["Class"];
+  var instMirror = reflect(instance);
 
   libMirror.setField('topLevelField', 42);
   var future = libMirror.getField('topLevelField');
@@ -50,12 +50,12 @@ testFieldAccess(mirrors) {
 testClosureMirrors(mirrors) {
   var closure = (x, y, z) { return x + y + z; };
   
-  var mirror = mirrors.mirrorOf(closure);
+  var mirror = reflect(closure);
   expect(mirror is ClosureMirror, equals(true));
   
   var funcMirror = mirror.function();
   expect(funcMirror is MethodMirror, equals(true));
-  expect(funcMirror.parameters().length, equals(3));
+  expect(funcMirror.parameters.length, equals(3));
 
   var future = mirror.apply([2, 4, 8]);
   future.then(expectAsync1((resultMirror) {
@@ -64,8 +64,8 @@ testClosureMirrors(mirrors) {
 }
 
 testInvokeConstructor(mirrors) {
-  var libMirror = mirrors.libraries()["MirrorsTest.dart"];
-  var classMirror = libMirror.classes()["Class"];
+  var libMirror = mirrors.libraries["MirrorsTest.dart"];
+  var classMirror = libMirror.classes["Class"];
   
   var future = classMirror.newInstance('', []);
   future.then(expectAsync1((resultMirror) {

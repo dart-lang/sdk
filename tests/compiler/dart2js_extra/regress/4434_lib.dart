@@ -6,5 +6,5 @@
 
 class A {
   x(A a) => a._x;
-  get _x() => null;
+  get _x => null;
 }

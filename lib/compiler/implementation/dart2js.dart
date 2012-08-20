@@ -151,7 +151,7 @@ void compile(List<String> argv) {
     helpAndFail('Error: Extra arguments: ${Strings.join(extra, " ")}');
   }
 
-  Map<String, SourceFile> sourceFiles = <SourceFile>{};
+  Map<String, SourceFile> sourceFiles = <String, SourceFile>{};
   int dartBytesRead = 0;
 
   Future<String> provider(Uri uri) {

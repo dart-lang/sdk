@@ -303,6 +303,7 @@ class SnapshotReader : public BaseReader {
   friend class TypeArguments;
   friend class TypeParameter;
   friend class UnresolvedClass;
+  friend class WeakProperty;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 

@@ -83,6 +83,15 @@ class Parser {
     }
   }
 
+  Token parseFormalParametersOpt(Token token) {
+    if (optional('(', token)) {
+      return parseFormalParameters(token);
+    } else {
+      listener.handleNoFormalParameters(token);
+      return token;
+    }
+  }
+
   Token parseFormalParameters(Token token) {
     Token begin = token;
     listener.beginFormalParameters(begin);
@@ -363,7 +372,7 @@ class Parser {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
       final String value = token.stringValue;
-      if (value === '(') {
+      if ((value === '(') || (value === '{') || (value === '=>')) {
         isField = false;
         break;
       } else if ((value === '=') || (value === ';') || (value === ',')) {
@@ -390,7 +399,7 @@ class Parser {
       expectSemicolon(token);
       listener.endTopLevelFields(fieldCount, start, token);
     } else {
-      token = parseFormalParameters(token);
+      token = parseFormalParametersOpt(token);
       token = parseFunctionBody(token, false);
       listener.endTopLevelMethod(start, getOrSet, token);
     }
@@ -603,7 +612,8 @@ class Parser {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
       final String value = token.stringValue;
-      if ((value === '(') || (value === '.')) {
+      if ((value === '(') || (value === '.') || (value === '{') ||
+          (value === '=>')) {
         isField = false;
         break;
       } else if ((value === '=') || (value === ';') || (value === ',')) {
@@ -634,7 +644,7 @@ class Parser {
       listener.endFields(fieldCount, start, token);
     } else {
       token = parseQualifiedRestOpt(token);
-      token = parseFormalParameters(token);
+      token = parseFormalParametersOpt(token);
       token = parseInitializersOpt(token);
       token = parseFunctionBody(token, false);
       listener.endMethod(getOrSet, start, token);
@@ -696,7 +706,7 @@ class Parser {
     }
     token = parseQualifiedRestOpt(token);
     listener.endFunctionName(token);
-    token = parseFormalParameters(token);
+    token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
     token = parseFunctionBody(token, false);
     listener.endFunction(getOrSet, token);

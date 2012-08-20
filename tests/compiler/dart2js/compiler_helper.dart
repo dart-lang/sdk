@@ -7,6 +7,7 @@
 
 #import("dart:uri");
 #import("../../../lib/compiler/implementation/leg.dart", prefix: "leg");
+#import("../../../lib/compiler/implementation/js_backend/js_backend.dart", prefix: "js");
 #import("../../../lib/compiler/implementation/elements/elements.dart", prefix: "lego");
 #import('../../../lib/compiler/implementation/source_file.dart');
 #import("../../../lib/compiler/implementation/ssa/ssa.dart", prefix: "ssa");
@@ -19,7 +20,8 @@ String compile(String code, [String entry = 'main']) {
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;
   compiler.processQueue(compiler.enqueuer.resolution, element);
-  leg.WorkItem work = new leg.WorkItem(element, null);
+  var context = new js.JavaScriptItemCompilationContext();
+  leg.WorkItem work = new leg.WorkItem(element, null, context);
   work.run(compiler, compiler.enqueuer.codegen);
   return compiler.enqueuer.codegen.lookupCode(element);
 }

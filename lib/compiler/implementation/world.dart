@@ -29,20 +29,26 @@ class World {
   }
 
   /**
-   * Returns a [MemberSet] that contains the possible targets of a
-   * selector named [member] on a receiver whose type is [type].
+   * Returns a [MemberSet] that contains the possible targets of the given
+   * [selector] on a receiver with the given [type]. This includes all sub
+   * types.
    */
-  MemberSet _memberSetFor(Type type, SourceString member) {
+  MemberSet _memberSetFor(Type type, Selector selector) {
     assert(compiler !== null);
     ClassElement cls = type.element;
-    MemberSet result = new MemberSet(member);
-    Element element = cls.lookupMember(member);
+    SourceString name = selector.name;
+    LibraryElement library = selector.library;
+    MemberSet result = new MemberSet(name);
+    Element element = cls.lookupSelector(selector);
     if (element !== null) result.add(element);
 
+    bool isPrivate = name.isPrivate();
     Set<ClassElement> subtypesOfCls = subtypes[cls];
     if (subtypesOfCls !== null) {
       for (ClassElement sub in subtypesOfCls) {
-        element = sub.lookupLocalMember(member);
+        // Private members from a different library are not visible.
+        if (isPrivate && sub.getLibrary() != library) continue;
+        element = sub.lookupLocalMember(name);
         if (element !== null) result.add(element);
       }
     }
@@ -50,29 +56,27 @@ class World {
   }
 
   /**
-   * Returns the single field with the given name, if such a field
-   * exists. If there are multple fields, or none, return null.
+   * Returns the field in [type] described by the given [selector].
+   * If no such field exists, or a subclass overrides the field
+   * returns [:null:].
    */
-  VariableElement locateSingleField(Type type, SourceString member) {
-    MemberSet memberSet = _memberSetFor(type, member);
-    int fieldCount = 0;
-    int nonFieldCount = 0;
-    VariableElement field;
-    memberSet.elements.forEach((Element element) {
-      if (element.isField()) {
-        field = element;
-        fieldCount++;
-      } else {
-        nonFieldCount++;
-      }
-    });
-    return (fieldCount == 1 && nonFieldCount == 0) ? field : null;
+  VariableElement locateSingleField(Type type, Selector selector) {
+    MemberSet memberSet = _memberSetFor(type, selector);
+    ClassElement cls = type.element;
+    Element result = cls.lookupSelector(selector);
+    if (result == null) return null;
+    if (!result.isField()) return null;
+
+    // Verify that no subclass overrides the field.
+    if (memberSet.elements.length != 1) return null;
+    assert(memberSet.elements.contains(result));
+    return result;
   }
 
   Set<ClassElement> findNoSuchMethodHolders(Type type) {
     Set<ClassElement> result = new Set<ClassElement>();
-    MemberSet memberSet = _memberSetFor(type, Compiler.NO_SUCH_METHOD);
     Selector noSuchMethodSelector = new Selector.noSuchMethod();
+    MemberSet memberSet = _memberSetFor(type, noSuchMethodSelector);
     for (Element element in memberSet.elements) {
       ClassElement holder = element.getEnclosingClass();
       if (holder !== compiler.objectClass &&

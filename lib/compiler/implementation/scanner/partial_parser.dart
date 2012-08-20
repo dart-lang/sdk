@@ -41,7 +41,7 @@ class PartialParser extends Parser {
           // Handle cases like this:
           // class Foo {
           //   var map;
-          //   Foo() : map = <Foo>{};
+          //   Foo() : map = <String, Foo>{};
           // }
           BeginGroupToken begin = token.next;
           token = (begin.endGroup !== null) ? begin.endGroup : token;

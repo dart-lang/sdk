@@ -36,6 +36,11 @@ public interface FunctionType extends Type {
   boolean hasRest();
 
   /**
+   * @return "optional" parameter types.
+   */
+  Map<String, Type> getOptionalParameterTypes();
+  
+  /**
    * @return "named" parameter types.
    */
   Map<String, Type> getNamedParameterTypes();

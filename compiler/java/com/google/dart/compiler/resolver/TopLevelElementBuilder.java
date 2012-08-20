@@ -244,7 +244,7 @@ public class TopLevelElementBuilder {
         // final top-level fields are implicitly compile-time constants.
         modifiers = modifiers.makeConstant();
       }
-      node.setElement(Elements.fieldFromNode(node, library, node.getMetadata(), modifiers));
+      node.setElement(Elements.fieldFromNode(node, library, node.getObsoleteMetadata(), modifiers));
       return null;
     }
   }

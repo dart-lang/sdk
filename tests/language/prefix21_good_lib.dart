@@ -8,6 +8,6 @@ int goodFunction(int x) {
   return x;
 }
 
-Function get getValue() {
+Function get getValue {
   return goodFunction;
 }

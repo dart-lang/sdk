@@ -355,7 +355,7 @@ public class MemberBuilder {
       }
       FieldNodeElement fieldElement = fieldNode.getElement();
       if (fieldElement == null) {
-        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getMetadata(),
+        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getObsoleteMetadata(),
             modifiers);
         addField(currentHolder, fieldElement);
       } else {
@@ -439,7 +439,7 @@ public class MemberBuilder {
       }
 
       if (fieldElement == null) {
-        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getMetadata(),
+        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getObsoleteMetadata(),
             fieldNode.getModifiers());
         addField(currentHolder, fieldElement);
       }

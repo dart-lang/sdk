@@ -399,21 +399,21 @@ class CompilationUnitOverrideElement extends Element {
 }
 
 class LibraryElement extends ScopeContainerElement {
+  final Uri uri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const EmptyLink<CompilationUnitElement>();
-
   Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
   ScriptTag libraryTag;
   bool canUseNative = false;
   LibraryElement patch = null;
 
-  LibraryElement(Script script)
-    : super(new SourceString(script.name), ElementKind.LIBRARY, null) {
+  LibraryElement(Script script, [Uri uri])
+    : this.uri = ((uri === null) ? script.uri : uri),
+      super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElement(script, this);
   }
 
-  Uri get uri() => entryCompilationUnit.script.uri;
 
   bool get isPatched() => patch !== null;
 
@@ -469,6 +469,8 @@ class LibraryElement extends ScopeContainerElement {
   }
 
   Scope buildEnclosingScope() => new TopScope(this);
+
+  bool get isPlatformLibrary => uri.scheme == "dart";
 }
 
 class PrefixElement extends Element {
@@ -491,21 +493,37 @@ class PrefixElement extends Element {
 }
 
 class TypedefElement extends Element implements TypeDeclarationElement {
-  Type cachedType;
   Typedef cachedNode;
+  TypedefType cachedType;
+  Type alias;
+
+  bool isResolved = false;
+  bool isBeingResolved = false;
 
   TypedefElement(SourceString name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
 
-  Type computeType(Compiler compiler) {
+  /**
+   * Function signature for a typedef of a function type. The signature is
+   * kept to provide full information about parameter names through the mirror
+   * system.
+   *
+   * The [functionSignature] is not available until the typedef element has been
+   * resolved.
+   */
+  FunctionSignature functionSignature;
+
+  TypedefType computeType(Compiler compiler) {
     if (cachedType !== null) return cachedType;
-    cachedType = new FunctionType(null, null, this);
-    cachedType.initializeFrom(
-        compiler.computeFunctionType(this, compiler.resolveTypedef(this)));
+    Typedef node = parseNode(compiler);
+    Link<Type> parameters =
+        TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
+    cachedType = new TypedefType(this, parameters);
+    compiler.resolveTypedef(this);
     return cachedType;
   }
 
-  Link<Type> get typeVariables() => const EmptyLink<Type>();
+  Link<Type> get typeVariables() => cachedType.typeArguments;
 
   Scope buildScope() =>
       new TypeDeclarationScope(enclosingElement.buildScope(), this);
@@ -658,7 +676,7 @@ class VariableListElement extends Element {
   VariableListElement cloneTo(Element enclosing, DiagnosticListener listener) {
     VariableListElement result;
     if (cachedNode !== null) {
-      result = new VariableListElement(cachedNode, kind, enclosing);
+      result = new VariableListElement.node(cachedNode, kind, enclosing);
     } else {
       result = new VariableListElement(kind, modifiers, enclosing);
     }
@@ -836,8 +854,7 @@ class FunctionElement extends Element {
 
   bool isInstanceMember() {
     return isMember()
-           && kind != ElementKind.GENERATIVE_CONSTRUCTOR
-           && !modifiers.isFactory()
+           && !isConstructor()
            && !modifiers.isStatic();
   }
 
@@ -1027,6 +1044,9 @@ class ClassElement extends ScopeContainerElement
 
   Link<Type> allSupertypes;
 
+  // Lazily applied patch of class members.
+  ClassElement patch = null;
+
   ClassElement(SourceString name, Element enclosing, this.id)
     : super(name, ElementKind.CLASS, enclosing);
 
@@ -1039,6 +1059,8 @@ class ClassElement extends ScopeContainerElement
     }
     return type;
   }
+
+  bool get isPatched() => patch != null;
 
   Link<Type> get typeVariables() => type.arguments;
 
@@ -1059,13 +1081,22 @@ class ClassElement extends ScopeContainerElement
   }
 
   /**
-  * Lookup super members for the class. This will ignore constructors.
+   * Lookup super members for the class. This will ignore constructors.
    */
   Element lookupSuperMember(SourceString memberName) {
+    return lookupSuperMemberInLibrary(memberName, getLibrary());
+  }
+
+  /**
+   * Lookup super members for the class that is accessible in [library].
+   * This will ignore constructors.
+   */
+  Element lookupSuperMemberInLibrary(SourceString memberName,
+                                     LibraryElement library) {
     bool isPrivate = memberName.isPrivate();
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
-      if (isPrivate && getLibrary() !== s.getLibrary()) continue;
+      if (isPrivate && library !== s.getLibrary()) continue;
       Element e = s.lookupLocalMember(memberName);
       if (e === null) continue;
       // Static members are not inherited.
@@ -1091,6 +1122,24 @@ class ClassElement extends ScopeContainerElement
       return e;
     }
     return null;
+  }
+
+  /**
+   * Find the first member in the class chain with the given [selector].
+   *
+   * This method is NOT to be used for resolving
+   * unqualified sends because it does not implement the scoping
+   * rules, where library scope comes before superclass scope.
+   */
+  Element lookupSelector(Selector selector) {
+    SourceString memberName = selector.name;
+    LibraryElement library = selector.library;
+    Element localMember = lookupLocalMember(memberName);
+    if (localMember != null &&
+        (!memberName.isPrivate() || getLibrary() == library)) {
+      return localMember;
+    }
+    return lookupSuperMemberInLibrary(memberName, library);
   }
 
   /**
@@ -1284,8 +1333,16 @@ class Elements {
   }
 
   static bool isStaticOrTopLevel(Element element) {
+    // TODO(ager): This should not be necessary when patch support has
+    // been reworked.
+    if (element != null
+        && element.modifiers != null
+        && element.modifiers.isStatic()) {
+      return true;
+    }
     return (element != null)
            && !element.isInstanceMember()
+           && !element.isPrefix()
            && element.enclosingElement !== null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
@@ -1454,7 +1511,7 @@ class TypeVariableElement extends Element {
 
   TypeVariableElement cloneTo(Element enclosing, DiagnosticListener listener) {
     TypeVariableElement result =
-        new TypeVariableElement(name, enclosing, node, type, bound);
+        new TypeVariableElement(name, enclosing, cachedNode, type, bound);
     return result;
   }
 }

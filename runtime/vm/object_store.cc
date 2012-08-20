@@ -59,6 +59,7 @@ ObjectStore::ObjectStore()
     external_float64_array_class_(Class::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
+    weak_property_class_(Class::null()),
     true_value_(Bool::null()),
     false_value_(Bool::null()),
     symbol_table_(Array::null()),

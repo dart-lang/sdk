@@ -76,6 +76,9 @@ class Listener {
   void endFormalParameter(Token token, Token thisKeyword) {
   }
 
+  void handleNoFormalParameters(Token token) {
+  }
+
   void beginFormalParameters(Token token) {
   }
 
@@ -547,6 +550,13 @@ class ElementListener extends Listener {
     return node;
   }
 
+  bool allowScriptTags() {
+    // Script tags are only allowed in the library file itself, not in
+    // sourced files.
+    LibraryElement library = compilationUnitElement.getLibrary();
+    return library.entryCompilationUnit == compilationUnitElement;
+  }
+
   void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
     StringNode prefix = null;
     Identifier argumentName = null;
@@ -556,14 +566,13 @@ class ElementListener extends Listener {
     }
     StringNode firstArgument = popLiteralString();
     Identifier tag = popNode();
-    LibraryElement library = compilationUnitElement.getLibrary();
-    if (library.entryCompilationUnit != compilationUnitElement) {
+    if (!allowScriptTags()) {
       // Only allow script tags in the entry compilation unit.
       listener.cancel("script tags not allowed here", node: tag);
     }
     ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
                                         prefix, beginToken, endToken);
-    library.addTag(scriptTag, listener);
+    addScriptTag(scriptTag);
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -792,6 +801,10 @@ class ElementListener extends Listener {
     compilationUnitElement.addMember(element, listener);
   }
 
+  void addScriptTag(ScriptTag tag) {
+    compilationUnitElement.getLibrary().addTag(tag, listener);
+  }
+
   void pushNode(Node node) {
     nodes = nodes.prepend(node);
     if (VERBOSE) log("push $nodes");
@@ -978,6 +991,10 @@ class NodeListener extends ElementListener {
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
+  }
+
+  void handleNoFormalParameters(Token token) {
+    pushNode(null);
   }
 
   void endArguments(int count, Token beginToken, Token endToken) {

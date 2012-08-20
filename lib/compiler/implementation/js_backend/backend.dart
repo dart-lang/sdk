@@ -7,14 +7,14 @@ class InvocationInfo {
   List<HType> providedTypes;
   List<Element> compiledFunctions;
 
-  InvocationInfo(HInvoke node)
+  InvocationInfo(HInvoke node, HTypeMap types)
       : compiledFunctions = new List<Element>() {
     assert(node != null);
     // Gather the type information provided. If the types contains no useful
     // information there is no need to actually store them.
     bool allUnknown = true;
     for (int i = 1; i < node.inputs.length; i++) {
-      if (node.inputs[i].propagatedType != HType.UNKNOWN) {
+      if (types[node.inputs[i]] != HType.UNKNOWN) {
         allUnknown = false;
         break;
       }
@@ -22,7 +22,7 @@ class InvocationInfo {
     if (!allUnknown) {
       providedTypes = new List<HType>(node.inputs.length - 1);
       for (int i = 0; i < providedTypes.length; i++) {
-        providedTypes[i] = node.inputs[i + 1].propagatedType;
+        providedTypes[i] = types[node.inputs[i + 1]];
       }
       parameterCount = providedTypes.length;
     }
@@ -30,7 +30,7 @@ class InvocationInfo {
 
   InvocationInfo.unknownTypes();
 
-  void update(HInvoke node, var recompile) {
+  void update(HInvoke node, HTypeMap types, var recompile) {
     // If we don't know anything useful about the types adding more
     // information will not help.
     if (!hasTypeInformation) return;
@@ -39,7 +39,7 @@ class InvocationInfo {
     bool typesChanged = false;
     bool allUnknown = true;
     for (int i = 0; i < providedTypes.length; i++) {
-      HType newType = providedTypes[i].union(node.inputs[i + 1].propagatedType);
+      HType newType = providedTypes[i].union(types[node.inputs[i + 1]]);
       if (newType != providedTypes[i]) {
         typesChanged = true;
         providedTypes[i] = newType;
@@ -61,9 +61,46 @@ class InvocationInfo {
   addCompiledFunction(FunctionElement function) =>
       compiledFunctions.add(function);
 
-  void clearTypeInformation() => providedTypes = null;
+  void clearTypeInformation() { providedTypes = null; }
   bool get hasTypeInformation() => providedTypes != null;
 
+}
+
+class ReturnInfo {
+  HType returnType;
+  List<Element> compiledFunctions;
+
+  ReturnInfo(HType this.returnType)
+      : compiledFunctions = new List<Element>();
+
+  ReturnInfo.unknownType()
+      : this.returnType = null,
+        compiledFunctions = new List<Element>();
+
+  void update(HType type, var recompile) {
+    HType newType = returnType != null ? returnType.union(type) : type;
+    if (newType != returnType) {
+      if (returnType == null && newType === HType.UNKNOWN) {
+        // If the first actual piece of information is not providing any type
+        // information there is no need to recompile callers.
+        compiledFunctions.clear();
+      }
+      returnType = newType;
+      if (recompile != null) {
+        compiledFunctions.forEach(recompile);
+      }
+      compiledFunctions.clear();
+    }
+  }
+
+  addCompiledFunction(FunctionElement function) =>
+      compiledFunctions.add(function);
+}
+
+class JavaScriptItemCompilationContext extends ItemCompilationContext {
+  final HTypeMap types;
+
+  JavaScriptItemCompilationContext() : types = new HTypeMap();
 }
 
 class JavaScriptBackend extends Backend {
@@ -77,6 +114,7 @@ class JavaScriptBackend extends Backend {
 
   final Map<Element, InvocationInfo> staticInvocationInfo;
   final Map<SourceString, Map<Selector, InvocationInfo>> invocationInfo;
+  final Map<Element, ReturnInfo> returnInfo;
 
   final List<Element> invalidateAfterCodegen;
 
@@ -91,11 +129,16 @@ class JavaScriptBackend extends Backend {
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
         invocationInfo = new Map<SourceString, Map<Selector, InvocationInfo>>(),
         staticInvocationInfo = new Map<Element, InvocationInfo>(),
+        returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
+  }
+
+  JavaScriptItemCompilationContext createItemCompilationContext() {
+    return new JavaScriptItemCompilationContext();
   }
 
   void enqueueHelpers(Enqueuer world) {
@@ -195,7 +238,7 @@ class JavaScriptBackend extends Backend {
       // of the field is determined by the assignments in the constructor
       // body.
       var constructors = classElement.constructors;
-      if (constructors.head !== null && constructors.tail === null) {
+      if (constructors.head !== null && constructors.tail.isEmpty()) {
         return fieldConstructorSetters[classElement][field];
       } else {
         return HType.UNKNOWN;
@@ -239,7 +282,9 @@ class JavaScriptBackend extends Backend {
    *  Register a dynamic invocation and collect the provided types for the
    *  named selector.
    */
-  void registerDynamicInvocation(HInvokeDynamicMethod node, Selector selector) {
+  void registerDynamicInvocation(HInvokeDynamicMethod node,
+                                 Selector selector,
+                                 HTypeMap types) {
     Map<Selector, InvocationInfo> invocationInfos =
         invocationInfo.putIfAbsent(node.name,
                                    () => new Map<Selector, InvocationInfo>());
@@ -251,9 +296,9 @@ class JavaScriptBackend extends Backend {
         }
       }
 
-      info.update(node, recompile);
+      info.update(node, types, recompile);
     } else {
-      invocationInfos[selector] = new InvocationInfo(node);
+      invocationInfos[selector] = new InvocationInfo(node, types);
     }
   }
 
@@ -261,7 +306,7 @@ class JavaScriptBackend extends Backend {
    *  Register a static invocation and collect the provided types for the
    *  named selector.
    */
-  void registerStaticInvocation(HInvokeStatic node) {
+  void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
     InvocationInfo info = staticInvocationInfo[node.element];
     if (info != null) {
       recompile(Element element) {
@@ -269,9 +314,9 @@ class JavaScriptBackend extends Backend {
           invalidateAfterCodegen.add(element);
         }
       }
-      info.update(node, recompile);
+      info.update(node, types, recompile);
     } else {
-      staticInvocationInfo[node.element] = new InvocationInfo(node);
+      staticInvocationInfo[node.element] = new InvocationInfo(node, types);
     }
   }
 
@@ -339,5 +384,37 @@ class JavaScriptBackend extends Backend {
       }
       return null;
     }
+  }
+
+  void registerReturnType(FunctionElement element, HType returnType) {
+    ReturnInfo info = returnInfo[element];
+    if (info != null) {
+      recompile(Element element) {
+        if (compiler.phase == Compiler.PHASE_COMPILING) {
+          invalidateAfterCodegen.add(element);
+        }
+      }
+
+      info.update(returnType, recompile);
+    } else {
+      returnInfo[element] = new ReturnInfo(returnType);
+    }
+  }
+
+  /**
+   * Retreive the return type of the function [callee]. The type is optimistic
+   * in the sense that is is based on the compilation of [callee]. If [callee]
+   * is recompiled the return type might change to someting broader. For that
+   * reason [caller] is registered for recompilation if this happens. If the
+   * function [callee] has not yet been compiled the returned type is [null].
+   */
+  HType optimisticReturnTypesWithRecompilationOnTypeChange(
+      FunctionElement caller, FunctionElement callee) {
+    returnInfo.putIfAbsent(callee, () => new ReturnInfo.unknownType());
+    ReturnInfo info = returnInfo[callee];
+    if (info.returnType != HType.UNKNOWN && caller != null) {
+      info.addCompiledFunction(caller);
+    }
+    return info.returnType;
   }
 }

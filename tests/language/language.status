@@ -44,15 +44,12 @@ closure_with_super_send_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
 parameter_initializer6_negative_test: Fail # Issue 3502
 
-prefix_core_test: Fail # Issue 3638.
-
 fauxverride_test/none: Fail # Issue 3778.
 
 bad_override_test/01: Fail # Issue 3859.
 bad_override_test/02: Fail # Issue 3859.
 
 setter_no_getter_call_test/01: Crash # Issue 4360
-
 
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
@@ -73,7 +70,6 @@ class_literal_test/04 : Fail # language change 1031
 class_literal_test/09 : Fail # language change 1031
 class_literal_test/16 : Fail # language change 1031
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-const_var_test : Fail # Issue 3550
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
@@ -128,12 +124,11 @@ type_variable_static_context_negative_test: Fail # language change 1031
 
 
 [ $compiler == none && $runtime == drt ]
-# TODO: These need to be retriaged.
-disable_privacy_test: Skip
-richards_test: Fail
-string_escape1_negative_test: Skip
 gc_test: Skip # Issue 1487
+import_core_no_prefix_test: Fail # Issue 4607
 
+[ $runtime == dartium ]
+import_core_no_prefix_test: Fail # Issue 4607
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
@@ -149,7 +144,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $browser ]
-prefix_core_test: Fail # Issue 2264.
+
 
 [ $arch == simarm ]
 *: Skip
@@ -158,6 +153,12 @@ prefix_core_test: Fail # Issue 2264.
 *: Skip
 
 [ $compiler == dart2dart ]
+implicit_this_test/03: Fail # TODO(ahe): Handle abstract getters.
+implicit_this_test/04: Fail # TODO(ahe): Handle abstract getters.
+property_field_override_test: Fail # TODO(ahe): Handle abstract getters.
+
+const_var_test: Fail # Map literals take 2 type arguments.
+map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 field1_negative_test: Fail, OK # Bad test: assumes eager loading.
 field6_negative_test: Fail, OK # Bad test: assumes eager loading.
@@ -247,7 +248,6 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 gc_test: Fail
-prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
@@ -255,7 +255,3 @@ super_first_constructor_test: Fail
 disable_privacy_test: Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
-# Should be triaged.
-field_optimization2_test: Fail
-field_optimization_test: Fail
-library5_test: Fail

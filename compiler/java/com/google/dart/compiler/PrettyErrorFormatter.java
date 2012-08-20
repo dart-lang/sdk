@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -91,7 +91,7 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
             escapePipe(event.getErrorCode().getErrorSeverity().toString()),
             escapePipe(event.getErrorCode().getSubSystem().toString()),
             escapePipe(event.getErrorCode().toString()),
-            escapePipe(sourceFile.getName()),
+            escapePipe(getSourceName(sourceFile)),
             event.getLineNumber(),
             1 + col,
             length,
@@ -152,6 +152,13 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
         Closeables.closeQuietly(reader);
       }
     }
+  }
+  
+  private static String getSourceName(Source source) {
+    if (source instanceof UrlDartSource) {
+      return source.getUri().toString();
+    }
+    return source.getName();
   }
 
   private String escapePipe(String input) {

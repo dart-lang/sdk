@@ -81,6 +81,25 @@ class _HttpHeaders implements HttpHeaders {
     _updateHostHeader();
   }
 
+  Date get ifModifiedSince() {
+    List<String> values = _headers["if-modified-since"];
+    if (values != null) {
+      try {
+        return _HttpUtils.parseDate(values[0]);
+      } catch (Exception e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  void set ifModifiedSince(Date ifModifiedSince) {
+    _checkMutable();
+    // Format "ifModifiedSince" header with date in Greenwich Mean Time (GMT).
+    String formatted = _HttpUtils.formatDate(ifModifiedSince.toUtc());
+    _set("if-modified-since", formatted);
+  }
+
   Date get date() {
     List<String> values = _headers["date"];
     if (values != null) {
@@ -96,7 +115,7 @@ class _HttpHeaders implements HttpHeaders {
   void set date(Date date) {
     _checkMutable();
     // Format "Date" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(expires.toUtc());
+    String formatted = _HttpUtils.formatDate(date.toUtc());
     _set("date", formatted);
   }
 
@@ -151,6 +170,14 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
+    } else if (name.toLowerCase() == "if-modified-since") {
+      if (value is Date) {
+        ifModifiedSince = value;
+      } else if (value is String) {
+        _set("if-modified-since", value);
+      } else {
+        throw new HttpException("Unexpected type for header named $name");
+      }
     } else if (name.toLowerCase() == "host") {
       int pos = value.indexOf(":");
       if (pos == -1) {
@@ -182,7 +209,11 @@ class _HttpHeaders implements HttpHeaders {
         values = new List<String>();
         _headers[name] = values;
       }
-      values.add(value.toString());
+      if (value is Date) {
+        values.add(_HttpUtils.formatDate(value));
+      } else {
+        values.add(value.toString());
+      }
     }
   }
 

@@ -442,7 +442,9 @@ class LiteralExpression extends Expression {
     for (Expression expr in inputs) expr.accept(visitor);
   }
 
-  int get precedenceLevel() => EXPRESSION;
+  // Code that uses JS must take care of operator precedences, and
+  // put parenthesis if needed.
+  int get precedenceLevel() => PRIMARY;
 }
 
 /**

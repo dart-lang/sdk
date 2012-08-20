@@ -181,7 +181,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
-    private final boolean memberWarningForInferredTypes;
+    private final boolean typeChecksForInferredTypes;
     private final Map<DartBlock, VariableElementsRestorer> restoreOnBlockExit = Maps.newHashMap();
 
     /**
@@ -208,7 +208,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
-      this.memberWarningForInferredTypes = compilerOptions.memberWarningForInferredTypes();
+      this.typeChecksForInferredTypes = compilerOptions.typeChecksForInferredTypes();
     }
 
     @VisibleForTesting
@@ -561,8 +561,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return null;
       }
       Member member = itype.lookupMember(methodName);
-      if (member == null) {
-        if (memberWarningForInferredTypes || !receiver.isInferred()) {
+      if (member == null && problemTarget != null) {
+        if (typeChecksForInferredTypes || !receiver.isInferred()) {
           typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
               methodName);
         }
@@ -860,8 +860,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       // ignore inferred types, treat them as Dynamic
-      if (t.isInferred() || s.isInferred()) {
-        return true;
+      if (!typeChecksForInferredTypes) {
+        if (t.isInferred() || s.isInferred()) {
+          return true;
+        }
       }
       // do check and report error
       if (!types.isAssignable(t, s)) {
@@ -926,7 +928,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         default:
-          if (memberWarningForInferredTypes || !receiver.isInferred()) {
+          if (typeChecksForInferredTypes || !receiver.isInferred()) {
             typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
           }
           return dynamicType;
@@ -985,6 +987,29 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
 
+      // Check optional parameters.
+      // TODO(scheglov) currently this block does not work,
+      // because we handle all optional parameter as named
+      {
+        Map<String, Type> optionalParameterTypes = ftype.getOptionalParameterTypes();
+        Iterator<Entry<String, Type>> optionalParameterTypesIterator =
+            optionalParameterTypes.entrySet().iterator();
+        while (optionalParameterTypesIterator.hasNext()
+            && argumentTypes.hasNext()) {
+          Entry<String, Type> namedEntry = optionalParameterTypesIterator.next();
+          Type optionalType = namedEntry.getValue();
+          optionalType.getClass(); // quick null check
+          Type argumentType = argumentTypes.next();
+          argumentType.getClass(); // quick null check
+          DartExpression argumentNode = argumentNodes.get(argumentIndex);
+          argumentNode.setInvocationParameterId(argumentIndex);
+          if (checkAssignable(argumentNode, optionalType, argumentType)) {
+            inferFunctionLiteralParametersTypes(argumentNode, optionalType);
+          }
+          argumentIndex++;
+        }
+      }
+      
       // Check named parameters.
       {
         Set<String> usedNamedParametersPositional = Sets.newHashSet();
@@ -1019,6 +1044,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression argumentNode = namedExpression.getExpression();
           // Prepare parameter name.
           String parameterName = namedExpression.getName().getName();
+          namedExpression.setInvocationParameterId(parameterName);
           argumentNode.setInvocationParameterId(parameterName);
           if (usedNamedParametersPositional.contains(parameterName)) {
             onError(namedExpression, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);
@@ -1162,13 +1188,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * @return a non-null type
      */
     private Type nonVoidTypeOf(DartNode node) {
-      if (node != null) {
-        ElementKind kind = ElementKind.of(node.getElement());
-        if (kind == ElementKind.CLASS || kind == ElementKind.FUNCTION_TYPE_ALIAS || kind == ElementKind.TYPE_VARIABLE) {
-          // We have already created an error in this case.
-          return dynamicType;
-        }
-      }
       Type type = typeOf(node);
       return checkNonVoid(node, type);
     }
@@ -1265,16 +1284,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getFunctionName().isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
         return dynamicType;
       }
+      DartNode target = node.getTarget();
       DartIdentifier nameNode = node.getFunctionName();
       String name = node.getFunctionNameString();
       Element element = node.getElement();
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
+        typeOf(target);
         node.setElement(element);
         checkDeprecated(nameNode, element);
         return checkInvocation(node, nameNode, name, element.getType());
       }
-      DartNode target = node.getTarget();
       Type receiver = nonVoidTypeOf(target);
       Member member = lookupMember(receiver, name, nameNode);
       if (member != null) {
@@ -1615,6 +1635,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
           break;
 
+        case CLASS:
+          return element.getType();
+          
         case FIELD:
           type = typeAsMemberOf(element, currentClass);
           // try to resolve as getter/setter
@@ -1709,7 +1732,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       // The Map literal has an implicit key type of String, so only one parameter is
       // specified <V> where V is the type of the value.
-      checkAssignable(node, type, defaultLiteralMapType);
+      checkAssignable(node, defaultLiteralMapType, type);
 
       // Check the map literal entries against the return type.
       Type valueType = type.getArguments().get(1);
@@ -2030,7 +2053,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        if (memberWarningForInferredTypes || !receiver.isInferred()) {
+        if (typeChecksForInferredTypes || !receiver.isInferred()) {
           typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
         }
         return dynamicType;
@@ -2162,11 +2185,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
             continue;
           }
           Type caseType = nonVoidTypeOf(caseExpr);
-          // should be "int" or "String"
-          if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, stringType)) {
-            onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, caseType);
-            continue;
-          }
           // all "case expressions" should be same type
           if (sameCaseType == null) {
             sameCaseType = caseType;
@@ -2177,6 +2195,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           // compatibility of "switch expression" and "case expression" types
           checkAssignable(caseExpr, switchType, caseType);
+          // should not have "operator =="
+          {
+            Member operator = lookupMember(caseType, methodNameForBinaryOperator(Token.EQ), null);
+            if (operator != null) {
+              onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_TYPE_SHOULD_NOT_HAVE_EQUALS, caseType);
+            }
+          }
         }
       }
       return voidType;
@@ -2858,7 +2883,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Collection<Element> overridden = superMembers.removeAll(name);
           Elements.setOverridden(method, ImmutableSet.copyOf(overridden));
           // Check for invalid @override metadata.
-          if (overridden.isEmpty() && node.getMetadata().isOverride()) {
+          if (overridden.isEmpty() && node.getObsoleteMetadata().isOverride()) {
             typeError(node.getName(), ResolverErrorCode.INVALID_OVERRIDE_METADATA);
           }
           // Check that override is valid.

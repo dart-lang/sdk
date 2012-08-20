@@ -27,7 +27,7 @@ class Foo<T> {
 
   static
   Foo<T> /// 04: dynamic type error
-  get f() { return new Foo<String>(); }
+  get f { return new Foo<String>(); }
 
   static void set f(
                     Foo<T> /// 05: dynamic type error

@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This test should fail to load because we are importing two libraries
-// which define the same top level name.  This is an error even if the
-// variable 'foo' is never referred to.
+// which define the same top level name foo, and we are referring to the name.
 
 #library("Library1NegativeTest.dart");
 #import("library1.dart");  // Defines top level variable 'foo'
@@ -12,5 +11,5 @@
 
 
 main() {
-  Expect.equals(0, foo1); // This uses 'foo1' on purpose instead of 'foo'
+  Expect.equals(0, foo); // Reference ambiguous name 'foo'
 }

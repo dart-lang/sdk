@@ -4,7 +4,10 @@
 
 #import('dart:uri');
 #import('parser_helper.dart');
+#import('mock_compiler.dart');
 #import("../../../lib/compiler/compiler.dart");
+#import("../../../lib/compiler/implementation/dart_backend/dart_backend.dart");
+#import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 
 testUnparse(String statement) {
@@ -188,18 +191,18 @@ testVariableDefinitions() {
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
   testDart2Dart(
-    'main(){new A((arg){});}typedef void foofunc(arg);'
+    'typedef void foofunc(arg);main(){new A((arg){});}'
     'class A{A(foofunc this.handler);final foofunc handler;}');
 }
 
 testGetSet() {
   // Top-level get/set.
-  testDart2Dart('get foo(){return 5;}set foo(arg){}main(){foo; foo=5;}');
+  testDart2Dart('set foo(arg){}get foo{return 5;}main(){foo; foo=5;}');
   // Field get/set.
   testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}'
-      'class A{set foo(a){}get foo(){return 5;}}');
+      'class A{set foo(a){}get foo{return 5;}}');
   // Typed get/set.
-  testDart2Dart('String get foo(){return "a";}main(){foo;}');
+  testDart2Dart('String get foo{return "a";}main(){foo;}');
 }
 
 testFactoryConstructor() {
@@ -227,6 +230,8 @@ testConflictSendsRename() {
 #library("mylib.dart");
 
 globalfoo() {}
+var globalVar;
+var globalVarInitialized = 6, globalVarInitialized2 = 7;
 
 class A {
   A(){}
@@ -240,6 +245,8 @@ class A {
 #import("mylib.dart", prefix: "mylib");
 
 globalfoo() {}
+var globalVar;
+var globalVarInitialized = 6, globalVarInitialized2 = 7;
 
 class A {
   A(){}
@@ -250,6 +257,9 @@ class A {
 }
 
 main() {
+  globalVar;
+  globalVarInitialized;
+  globalVarInitialized2;
   globalfoo();
   A.field;
   A.staticfoo();
@@ -257,6 +267,9 @@ main() {
   new A.fromFoo();
   new A().foo();
 
+  mylib.globalVar;
+  mylib.globalVarInitialized;
+  mylib.globalVarInitialized2;
   mylib.globalfoo();
   mylib.A.field;
   mylib.A.staticfoo();
@@ -265,7 +278,17 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult = 'globalfoo(){}p_globalfoo(){}main(){p_globalfoo(); p_A.field; p_A.staticfoo(); new p_A(); new p_A.fromFoo(); new p_A().foo(); globalfoo(); A.field; A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}class p_A{p_A(){}p_A.fromFoo(){}foo(){}static staticfoo(){}static final field=5;}class A{A(){}A.fromFoo(){}foo(){}static staticfoo(){}static final field=5;}';
+  var expectedResult =
+      'globalfoo(){}var p_globalVar;var globalVarInitialized=6,p_globalVarInitialized2=7;'
+      'class p_A{p_A(){}p_A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'p_globalfoo(){}var globalVar;var p_globalVarInitialized=6,globalVarInitialized2=7;'
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'main(){globalVar; p_globalVarInitialized; globalVarInitialized2; p_globalfoo();'
+         ' A.field; A.staticfoo();'
+         ' new A(); new A.fromFoo(); new A().foo();'
+         ' p_globalVar; globalVarInitialized; p_globalVarInitialized2; globalfoo();'
+         ' p_A.field; p_A.staticfoo();'
+         ' new p_A(); new p_A.fromFoo(); new p_A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -315,15 +338,14 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult = 'myglobalfoo(){}'
+  var expectedResult =
       'globalfoo(){}'
-      'main(){myglobalfoo(); MyA.myfield; MyA.mystaticfoo(); new MyA(); '
-          'new MyA.myfromFoo(); new MyA().myfoo(); globalfoo(); A.field; '
-          'A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}'
-      'class MyA{MyA(){}MyA.myfromFoo(){}myfoo(){}'
-          'static final myfield=5;static mystaticfoo(){}}'
-      'class A{A(){}A.fromFoo(){}foo(){}'
-          'static staticfoo(){}static final field=5;}';
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'myglobalfoo(){}'
+      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}static final myfield=5;}'
+      'main(){myglobalfoo(); MyA.myfield; MyA.mystaticfoo(); new MyA();'
+          ' new MyA.myfromFoo(); new MyA().myfoo(); globalfoo(); A.field;'
+          ' A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -365,7 +387,13 @@ main() {
   mylib.topfoo();
 }
 ''';
-  var expectedResult = 'topfoo(){}p_topfoo(){var x=5;}p_A getA()=> null;main(){var a=new p_A(); a.foo(); var b=new A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}class A{A.fromFoo(){}List<A> mylist;num foo(){}p_A myliba;}class p_A{foo(){}}';
+  var expectedResult =
+    'topfoo(){}'
+    'class p_A{foo(){}}'
+    'p_topfoo(){var x=5;}'
+    'class A{num foo(){}A.fromFoo(){}p_A myliba;List<A> mylist;}'
+    'p_A getA()=> null;'
+    'main(){var a=new p_A(); a.foo(); var b=new A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -384,6 +412,69 @@ testClassExtendsWithArgs() {
 
 testStaticInvocation() {
   testDart2Dart('main(){var x=Math.parseDouble("1");}');
+}
+
+testLibraryGetSet() {
+  var librarySrc = '''
+#library('mylib');
+
+get topgetset => 5;
+set topgetset(arg) {}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+get topgetset => 6;
+set topgetset(arg) {}
+
+main() {
+  topgetset;
+  topgetset = 6;
+
+  mylib.topgetset;
+  mylib.topgetset = 5;
+}
+''';
+  var expectedResult =
+    'get topgetset=> 5;'
+    'set topgetset(arg){}'
+    'get p_topgetset=> 6;'
+    'set p_topgetset(arg){}'
+    'main(){p_topgetset; p_topgetset=6; topgetset; topgetset=5;}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testFieldTypeOutput() {
+  testDart2Dart('main(){new A().field;}class B{}class A{B field;}');
+}
+
+testDefaultClassNamePlaceholder() {
+  var src = '''
+interface I default C{
+  I();
+}
+
+class C {
+  I() {}
+}
+
+main() {
+  new I();
+}
+''';
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(src);
+  ClassElement interfaceElement = compiler.mainApp.find(buildSourceString('I'));
+  interfaceElement.ensureResolved(compiler);
+  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  collector.collect(interfaceElement,
+      compiler.enqueuer.resolution.resolvedElements[interfaceElement]);
+  ClassNode interfaceNode = interfaceElement.parseNode(compiler);
+  Node defaultTypeNode = interfaceNode.defaultClause.typeName;
+  ClassElement classElement = compiler.mainApp.find(buildSourceString('C'));
+  // Check that 'C' in default clause of I gets into placeholders.
+  Expect.isTrue(collector.elementNodes[classElement].contains(defaultTypeNode));
 }
 
 main() {
@@ -407,10 +498,13 @@ main() {
   testGetSet();
   testFactoryConstructor();
   testAbstractClass();
-  testConflictSendsRename();
+  //testConflictSendsRename();
   testNoConflictSendsRename();
   testConflictLibraryClassRename();
   testDefaultClassWithArgs();
   testClassExtendsWithArgs();
   testStaticInvocation();
+  testLibraryGetSet();
+  testFieldTypeOutput();
+  testDefaultClassNamePlaceholder();
 }

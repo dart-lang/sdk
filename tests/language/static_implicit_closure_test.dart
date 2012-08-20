@@ -7,7 +7,7 @@
 
 class First {
   First() {}
-  static int get a() {
+  static int get a {
     return 10;
   }
   static var b;

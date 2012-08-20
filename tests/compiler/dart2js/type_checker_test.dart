@@ -444,7 +444,9 @@ analyze(String text, [expectedWarnings]) {
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
-  TreeElements elements = compiler.resolveNodeStatement(node, compiler.mainApp);
+  Element function = new Element(
+      buildSourceString(''), ElementKind.FUNCTION, compiler.mainApp);
+  TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
@@ -461,6 +463,7 @@ analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
+  classElement.ensureResolved(compiler);
   TreeElements elements = compiler.resolveNodeStatement(node, classElement);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);

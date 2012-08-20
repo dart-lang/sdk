@@ -206,7 +206,7 @@ class Parser : ValueObject {
   void ExpectToken(Token::Kind token_expected);
   void ExpectSemicolon();
   void UnexpectedToken();
-  String* ExpectTypeIdentifier(const char* msg);
+  String* ExpectClassIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
 
@@ -482,11 +482,30 @@ class Parser : ValueObject {
                                 AstNode** node);
   static const bool kResolveLocally = true;
   static const bool kResolveIncludingImports = false;
-  AstNode* ResolveIdentInLibraryScope(const Library& lib,
-                                      const QualIdent& qual_ident,
-                                      bool resolve_locally);
-  AstNode* ResolveIdentInLibraryPrefixScope(const LibraryPrefix& lib_prefix,
-                                            const QualIdent& qual_ident);
+
+  // Resolve a primary identifier in the libary or prefix scope and
+  // generate the corresponding AstNode.
+  AstNode* ResolveIdentInPrefixScope(intptr_t ident_pos,
+                                     const LibraryPrefix& prefix,
+                                     const String& ident);
+  AstNode* ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
+                                             const String& ident);
+
+  // Find class with the given name in the library or prefix scope.
+  RawClass* ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
+                                              const String& name);
+  RawClass* ResolveClassInPrefixScope(intptr_t ident_pos,
+                                      const LibraryPrefix& prefix,
+                                      const String& name);
+
+  // Find name in the library or prefix scope and return the corresponding
+  // object (field, class, function etc).
+  RawObject* ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
+                                              const String& ident);
+  RawObject* ResolveNameInPrefixScope(intptr_t ident_pos,
+                                      const LibraryPrefix& prefix,
+                                      const String& name);
+
   AstNode* ResolveIdent(intptr_t ident_pos,
                         const String& ident,
                         bool allow_closure_names);

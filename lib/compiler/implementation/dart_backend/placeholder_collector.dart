@@ -40,7 +40,11 @@ class SendVisitor extends ResolvedVisitor {
     }
     // We don't want to rename non top-level element access
     // unless it's a local variable.
-    if (!element.isTopLevel()) {
+    if (element.isPrefix()) {
+      // Node is prefix part in case of source 'lib.somesetter = 5;'
+      collector.makeNullPlaceholder(node);
+      return;
+    } else if (!element.isTopLevel()) {
       // May get FunctionExpression here in selector
       // in case of A(int this.f());
       if (node.selector is Identifier) {
@@ -72,6 +76,10 @@ class SendVisitor extends ResolvedVisitor {
       // Hack: putting null into map overrides receiver of original node.
       collector.makeNullPlaceholder(node.receiver);
     }
+  }
+
+  internalError(String reason, [Node node]) {
+    collector.internalError(reason, node);
   }
 
   tryRenamePrivateSelector(Send node) {
@@ -175,9 +183,18 @@ class PlaceholderCollector extends AbstractVisitor {
           internalError('Unreachable case');
         }
       }
+    } else if (element.isTopLevel()) {
+      Node fieldNode = element.parseNode(compiler);
+      if (fieldNode is Identifier) {
+        makeElementPlaceholder(fieldNode, element);
+      } else if (fieldNode is SendSet) {
+        makeElementPlaceholder(fieldNode.selector, element);
+      } else {
+        internalError('Unreachable case');
+      }
     }
   }
-  
+
   void collect(Element element, TreeElements elements) {
     treeElements = elements;
     Node elementNode;
@@ -190,6 +207,8 @@ class PlaceholderCollector extends AbstractVisitor {
       // variable list element twice, better merge this with emitter logic.
       currentElement = (element as VariableElement).variables;
       elementNode = currentElement.parseNode(compiler);
+      // We don't collect other elements from the same variable lists
+      // if they are not used. http://dartbug.com/4536
       collectFieldDeclarationPlaceholders(element, elementNode);
     } else if (element is ClassElement || element is TypedefElement) {
       currentElement = element;
@@ -284,6 +303,9 @@ class PlaceholderCollector extends AbstractVisitor {
     if (element !== null) {
       if (element.isInstanceMember()) {
         tryMakePrivateIdentifier(send.selector.asIdentifier());
+      } else if (element.isTopLevel()) {
+        assert(element is VariableElement || element.isSetter());
+        makeElementPlaceholder(send.selector, element);
       } else {
         assert(send.selector is Identifier);
         tryMakeLocalPlaceholder(element, send.selector);
@@ -308,47 +330,37 @@ class PlaceholderCollector extends AbstractVisitor {
   visitTypeAnnotation(TypeAnnotation node) {
     // Poor man generic variables resolution.
     // TODO(antonm): get rid of it once resolver can deal with it.
-    if (isPlainTypeName(node)) {
-      String name = node.typeName.asIdentifier().source.slowToString();
-      if (currentElement is TypedefElement) {
-        TypedefElement typedefElement = currentElement;
-        NodeList typeParameters = typedefElement.cachedNode.typeParameters;
-        if (typeParameters !== null) {
-          for (TypeVariable typeVariable in typeParameters) {
-            Identifier typeVariableName = typeVariable.name;
-            // If names are equal, then it's a variable and sholdn't be renamed.
-            if (typeVariableName.source.slowToString() == name) return;
-          }
-        }
-      }
-      if (currentElement is ClassElement) {
-        ClassElement classElement = currentElement;
-        String typeName = node.typeName.asIdentifier().source.slowToString();
-        for (TypeVariableType argument in classElement.type.arguments) {
-          // If names are equal, then it's a variable and sholdn't be renamed.
-          if (argument.name.slowToString() == typeName) return;
+    if (isPlainTypeName(node) && currentElement is TypeDeclarationElement) {
+      SourceString name = node.typeName.asIdentifier().source;
+      TypeDeclarationElement typeElement = currentElement;
+      for (TypeVariableType parameter in typeElement.typeVariables) {
+        if (parameter.name == name) {
+          // type annotation matches one of parameters, shouldn't be renamed.
+          return;
         }
       }
     }
     final type = compiler.resolveTypeAnnotation(currentElement, node);
-    if (type is !InterfaceType) return null;
-    var target = node.typeName;
-    if (node.typeName is Send) {
-      final element = treeElements[node];
-      if (element !== null) {
-        final send = node.typeName.asSend();
-        Identifier receiver = send.receiver;
-        Identifier selector = send.selector;
-        final hasPrefix = element.lookupConstructor(
-            receiver.source, selector.source) === null;
-        if (!hasPrefix) target = send.receiver;
+    if (type is InterfaceType || type is TypedefType) {
+      var target = node.typeName;
+      if (node.typeName is Send) {
+        final element = treeElements[node];
+        if (element !== null) {
+          final send = node.typeName.asSend();
+          Identifier receiver = send.receiver;
+          Identifier selector = send.selector;
+          final hasPrefix = element is TypedefElement ||
+              element.lookupConstructor(receiver.source, selector.source)
+                  === null;
+          if (!hasPrefix) target = send.receiver;
+        }
       }
-    }
-    // TODO(antonm): is there a better way to detect unresolved types?
-    if (type !== compiler.types.dynamicType) {
-      makeTypePlaceholder(target, type);
-    } else {
-      if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+      // TODO(antonm): is there a better way to detect unresolved types?
+      if (type !== compiler.types.dynamicType) {
+        makeTypePlaceholder(target, type);
+      } else {
+        if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+      }
     }
     node.visitChildren(this);
   }
@@ -400,6 +412,20 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitClassNode(ClassNode node) {
     assert(currentElement is ClassElement);
+    makeElementPlaceholder(node.name, currentElement);
+    node.visitChildren(this);
+    if (node.defaultClause !== null) {
+      // Can't just visit class node's default clause because of the bug in the
+      // resolver, it just crashes when it meets type variable.
+      Type defaultType = (currentElement as ClassElement).defaultClass;
+      assert(defaultType !== null);
+      makeTypePlaceholder(node.defaultClause.typeName, defaultType);
+      visit(node.defaultClause.typeArguments);
+    }
+  }
+
+  visitTypedef(Typedef node) {
+    assert(currentElement is TypedefElement);
     makeElementPlaceholder(node.name, currentElement);
     node.visitChildren(this);
   }

@@ -54,7 +54,7 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 
 void StackmapTableBuilder::AddEntry(intptr_t pc_offset,
                                     BitmapBuilder* bitmap) {
-  stack_map_ = Stackmap::New(pc_offset, bitmap);
+  stack_map_ = Stackmap::New(pc_offset, entry_length_in_bits_, bitmap);
   list_.Add(stack_map_);
 }
 
@@ -64,8 +64,8 @@ bool StackmapTableBuilder::Verify() {
   Stackmap& map1 = Stackmap::Handle();
   Stackmap& map2 = Stackmap::Handle();
   for (intptr_t i = 1; i < num_entries; i++) {
-    map1 = Map(i - 1);
-    map2 = Map(i);
+    map1 = MapAt(i - 1);
+    map2 = MapAt(i);
     // Ensure there are no duplicates and the entries are sorted.
     if (map1.PC() >= map2.PC()) {
       return false;
@@ -78,12 +78,12 @@ bool StackmapTableBuilder::Verify() {
 RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
   ASSERT(Verify());
   intptr_t num_entries = Length();
-  uword entry_point = code.EntryPoint();
   if (num_entries == 0) {
     return Object::empty_array();
   }
+  uword entry_point = code.EntryPoint();
   for (intptr_t i = 0; i < num_entries; i++) {
-    stack_map_ = Map(i);
+    stack_map_ = MapAt(i);
     stack_map_.SetPC(entry_point + stack_map_.PC());
     stack_map_.SetCode(code);
   }
@@ -91,7 +91,7 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
 }
 
 
-RawStackmap* StackmapTableBuilder::Map(int index) const {
+RawStackmap* StackmapTableBuilder::MapAt(int index) const {
   Stackmap& map = Stackmap::Handle();
   map ^= list_.At(index);
   return map.raw();

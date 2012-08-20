@@ -12,7 +12,7 @@ class A {
   var _g = 0;
   var gGetCount = 0;
   var gSetCount = 0;
-  get g() {
+  get g {
     gGetCount++;
     return _g;
   }
@@ -25,7 +25,7 @@ class A {
 
 class B {
   B() : _a = new A(), count = 0 {}
-  get a() {
+  get a {
     count++;
     return _a;
   }

@@ -11,7 +11,7 @@ class B {
 }
 
 class A {
-  get _m() => new B();
+  get _m => new B();
   opshl(n) {
     // 'n' must be a number, but we are not allowed throw throw before we have
     // evaluated _m << 499.

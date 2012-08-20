@@ -21,10 +21,10 @@ class ListObjectLiterals {
     var l = const [1,2,3];
     var m = const <int>[1,2,3];
     var n = <int>[1,2,3];
-     
+
     var o = const {};
-    var p = const <int>{};
-    var q = <int>{};
+    var p = const <String, int>{};
+    var q = <String, int>{};
     var r = const {'a':1, 'b':2, 'c':3};
     var s = const <int> {'a':1, 'b':2, 'c':3 };
     var t = {'a':1, 'b':2, 'c':3};

@@ -13,14 +13,10 @@
 Compiler applyPatch(String script, String patch) {
   String core = "$DEFAULT_CORELIB\n$script";
   MockCompiler compiler = new MockCompiler(coreSource: core);
-
   var uri = new Uri("core.dartp");
-  var patchScript = new Script(uri, new MockFile(patch));
-  var patchLibrary = new LibraryElement(patchScript);
-
-  compiler.patchParser.scanLibraryElements(patchLibrary);
-  compiler.applyLibraryPatch(compiler.coreLibrary, patchLibrary);
-
+  compiler.sourceFiles[uri.toString()] = new MockFile(patch);
+  compiler.patchParser.patchLibrary(uri, compiler.coreLibrary);
+  compiler.applyClassPatches(compiler.coreLibrary);
   return compiler;
 }
 

@@ -181,6 +181,7 @@ _html_event_names = {
   'touchmove': 'touchMove',
   'touchstart': 'touchStart',
   'unload': 'unload',
+  'upgradeneeded': 'upgradeNeeded',
   'unmute': 'unmute',
   'updateready': 'updateReady',
   'versionchange': 'versionChange',
@@ -250,6 +251,7 @@ _html_element_constructors = {
   'CanvasElement':
     ElementConstructorInfo(tag='canvas',
                            opt_params=[('int', 'width'), ('int', 'height')]),
+  'DataListElement': 'datalist',
   'DListElement': 'dl',
   'DetailsElement': 'details',
   'DivElement': 'div',

@@ -96,7 +96,7 @@ void main() {
   diff = new HtmlDiff();
   diff.run();
 
-  final renamed = <String>{};
+  final renamed = <String, String>{};
   diff.domToHtml.forEach((MemberMirror domMember,
                           Set<MemberMirror> htmlMembers) {
     maybeAddRename(renamed, domMember, htmlMembers);

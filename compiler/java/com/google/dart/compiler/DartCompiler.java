@@ -29,7 +29,6 @@ import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
-import com.google.dart.compiler.resolver.CompileTimeConstantResolver;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
@@ -605,12 +604,6 @@ public class DartCompiler {
           }
         }
 
-        // Perform resolution on compile-time constant expressions.
-        for (LibraryUnit lib : getLibrariesToProcess()) {
-          for (DartUnit unit : lib.getUnits()) {
-            new CompileTimeConstantResolver().exec(unit, context, getTypeProvider());
-          }
-        }
       } finally {
         Tracer.end(logEvent);
       }
@@ -1277,8 +1270,8 @@ public class DartCompiler {
     librariesToResolve.put(topLibUnit.getSource().getUri(), topLibUnit);
     
     DartCompilationPhase[] phases = {
-        new CompileTimeConstantAnalyzer.Phase(),
         new Resolver.Phase(),
+        new CompileTimeConstantAnalyzer.Phase(),
         new TypeAnalyzer()};
     Map<URI, LibraryUnit> newLibraries = Maps.newHashMap();
     for (Entry<URI, LibraryUnit> entry : librariesToResolve.entrySet()) {

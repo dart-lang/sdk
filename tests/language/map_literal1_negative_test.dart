@@ -7,7 +7,7 @@
 
 main() {
   try {
-    var m = const <String>{"a": 0};  // 0 is not a String.
+    var m = const <String, String>{"a": 0};  // 0 is not a String.
   } catch (TypeError error) {
     // not a catchable error
   }

@@ -123,6 +123,11 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
   public boolean hasRest() {
     return false;
   }
+  
+  @Override
+  public Map<String, Type> getOptionalParameterTypes() {
+    return null;
+  }
 
   @Override
   public Map<String, Type> getNamedParameterTypes() {

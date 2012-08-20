@@ -36,7 +36,7 @@ class ScannerTask extends CompilerTask {
     }
 
     LinkBuilder<ScriptTag> imports = new LinkBuilder<ScriptTag>();
-    Uri base = library.uri;
+    Uri base = library.entryCompilationUnit.script.uri;
     for (ScriptTag tag in library.tags.reverse()) {
       StringNode argument = tag.argument;
       // TODO(lrn): Support interpolations here. We need access to the
@@ -69,27 +69,48 @@ class ScannerTask extends CompilerTask {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
     }
+
+    // Apply patch, if any.
+    if (library.uri.scheme == 'dart') {
+      compiler.patchDartLibrary(library, library.uri.path);
+    }
+
+    // Now that we have processed all the source tags, it is safe to
+    // start loading other libraries.
+
     // TODO(ahe): During Compiler.scanBuiltinLibraries,
     // compiler.coreLibrary is null. Clean this up when there is a
     // better way to access "dart:core".
     bool implicitlyImportCoreLibrary = compiler.coreLibrary !== null;
+
     for (ScriptTag tag in imports.toLink()) {
-      // Now that we have processed all the source tags, it is safe to
-      // start loading other libraries.
-      StringNode argument = tag.argument;
-      Uri resolved = base.resolve(argument.dartString.slowToString());
-      if (resolved.toString() == "dart:core") {
+      Uri resolvedUri =
+          importLibraryFromTag(tag, library.entryCompilationUnit);
+      if (resolvedUri.toString() == "dart:core") {
         implicitlyImportCoreLibrary = false;
-      }
-      LibraryElement importedLibrary = loadLibrary(resolved, argument);
-      importLibrary(library, importedLibrary, tag);
-      if (resolved.scheme == "dart") {
-        compiler.patchDartLibrary(importedLibrary, resolved.path);
       }
     }
     if (implicitlyImportCoreLibrary) {
       importLibrary(library, compiler.coreLibrary, null);
     }
+  }
+
+  /**
+   * Handle an import script tag by importing the referenced library into the
+   * current library.
+   * Returns the resolved library [Uri].
+   */
+  Uri importLibraryFromTag(ScriptTag tag,
+                           CompilationUnitElement compilationUnit) {
+    Uri base = compilationUnit.script.uri;
+    StringNode argument = tag.argument;
+    Uri resolved = base.resolve(argument.dartString.slowToString());
+    LibraryElement importedLibrary = loadLibrary(resolved, argument, resolved);
+    importLibrary(compilationUnit.getLibrary(),
+                  importedLibrary,
+                  tag,
+                  compilationUnit);
+    return resolved;
   }
 
   void scanElements(CompilationUnitElement compilationUnit) {
@@ -111,13 +132,13 @@ class ScannerTask extends CompilerTask {
     compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 
-  LibraryElement loadLibrary(Uri uri, Node node) {
+  LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri) {
     bool newLibrary = false;
     LibraryElement library =
       compiler.libraries.putIfAbsent(uri.toString(), () {
           newLibrary = true;
           Script script = compiler.readScript(uri, node);
-          LibraryElement element = new LibraryElement(script);
+          LibraryElement element = new LibraryElement(script, canonicalUri);
           native.maybeEnableNative(compiler, element, uri);
           return element;
         });
@@ -131,7 +152,7 @@ class ScannerTask extends CompilerTask {
   }
 
   void importLibrary(LibraryElement library, LibraryElement imported,
-                     ScriptTag tag, [CompilationUnitElement override]) {
+                     ScriptTag tag, [CompilationUnitElement compilationUnit]) {
     if (!imported.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
         compiler.reportError(tag === null ? null : tag.argument,
@@ -143,11 +164,10 @@ class ScannerTask extends CompilerTask {
           new SourceString(tag.prefix.dartString.slowToString());
       Element e = library.find(prefix);
       if (e === null) {
-        Element enclosing = library;
-        if (override !== null) {
-          enclosing = new CompilationUnitOverrideElement(override, library);
+        if (compilationUnit === null) {
+          compilationUnit = library.entryCompilationUnit;
         }
-        e = new PrefixElement(prefix, enclosing, tag.getBeginToken());
+        e = new PrefixElement(prefix, compilationUnit, tag.getBeginToken());
         library.addToScope(e, compiler);
       }
       if (e.kind !== ElementKind.PREFIX) {

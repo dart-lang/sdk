@@ -14,13 +14,21 @@ final bool REPORT_EXCESS_RESOLUTION = false;
  */
 final bool REPORT_PASS2_OPTIMIZATIONS = false;
 
+/**
+ * Contains backend-specific data that is used throughout the compilation of
+ * one work item.
+ */
+class ItemCompilationContext {
+}
+
 class WorkItem {
+  final ItemCompilationContext compilationContext;
   final Element element;
   TreeElements resolutionTree;
   bool allowSpeculativeOptimization = true;
   List<HTypeGuard> guards = const <HTypeGuard>[];
 
-  WorkItem(this.element, this.resolutionTree);
+  WorkItem(this.element, this.resolutionTree, this.compilationContext);
 
   bool isAnalyzed() => resolutionTree !== null;
 
@@ -49,6 +57,10 @@ class Backend {
                                      Collection<LibraryElement> libraries);
   abstract void assembleProgram();
   abstract List<CompilerTask> get tasks();
+
+  ItemCompilationContext createItemCompilationContext() {
+    return new ItemCompilationContext();
+  }
 }
 
 class Compiler implements DiagnosticListener {
@@ -324,7 +336,7 @@ class Compiler implements DiagnosticListener {
     closureClass = lookupSpecialClass(const SourceString('Closure'));
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
-    types = new Types(dynamicClass);
+    types = new Types(this, dynamicClass);
     if (!coreLibValid) {
       cancel('core library does not contain required classes');
     }
@@ -358,51 +370,31 @@ class Compiler implements DiagnosticListener {
 
     initializeSpecialClasses();
 
-    patchDartLibrary(coreLibrary, 'core');
-    patchDartLibrary(coreImplLibrary, 'coreimpl');
+    //patchDartLibrary(coreLibrary, 'core');
+    //patchDartLibrary(coreImplLibrary, 'coreimpl');
   }
 
   void patchDartLibrary(LibraryElement library, String dartLibraryPath) {
     if (library.isPatched) return;
     Uri patchUri = resolvePatchUri(dartLibraryPath);
     if (patchUri !== null) {
-      LibraryElement patchLibrary =
-          patchParser.loadPatchLibrary(patchUri);
+       patchParser.patchLibrary(patchUri, library);
       // We allow foreign functions in patched libraries.
       addForeignFunctions(library);  // Is safe even if already added.
-      applyLibraryPatch(library, patchLibrary);
+      // TODO(lrn): Make this lazy.
+      applyClassPatches(library);
     }
   }
 
-  void applyLibraryPatch(LibraryElement original, LibraryElement patch) {
-    Link<Element> patches = patch.localMembers;
-    applyContainerPatch(original, patches);
-
-    // Copy imports from patch to original library.
-    Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
-    Uri patchBase = patch.uri;
-    for (ScriptTag tag in patch.tags.reverse()) {
-      if (tag.isImport()) {
-        StringNode argument = tag.argument;
-        Uri resolved = patchBase.resolve(argument.dartString.slowToString());
-        LibraryElement importedLibrary =
-            scanner.loadLibrary(resolved, argument);
-        scanner.importLibrary(original, importedLibrary, tag,
-                              patch.entryCompilationUnit);
-        if (resolved.scheme == "dart") {
-          delayedPatches[resolved.path] = importedLibrary;
+  void applyClassPatches(LibraryElement library) {
+    for (Element element in library.localMembers) {
+      if (element.isClass()) {
+        ClassElement classElement = element;
+        if (classElement.isPatched) {
+          applyClassPatch(classElement, classElement.patch);
         }
       }
     }
-
-    // Mark library as already patched.
-    original.patch = patch;
-
-    // We patch imported libraries after marking the current library as
-    // patched, to avoid problems with cyclic dependencies.
-    delayedPatches.forEach((String path, LibraryElement importedLibrary) {
-      patchDartLibrary(importedLibrary, path);
-    });
   }
 
   void applyContainerPatch(ScopeContainerElement original,
@@ -571,7 +563,7 @@ class Compiler implements DiagnosticListener {
 
   void runCompiler(Uri uri) {
     scanBuiltinLibraries();
-    mainApp = scanner.loadLibrary(uri, null);
+    mainApp = scanner.loadLibrary(uri, null, uri);
     final Element main = mainApp.find(MAIN);
     if (main === null) {
       reportFatalError('Could not find $MAIN', mainApp);
@@ -779,9 +771,9 @@ class Compiler implements DiagnosticListener {
         () => resolver.resolveFunctionExpression(element, node));
   }
 
-  FunctionSignature resolveTypedef(TypedefElement element) {
-    return withCurrentElement(element,
-                              () => resolver.resolveTypedef(element));
+  void resolveTypedef(TypedefElement element) {
+    withCurrentElement(element,
+                       () => resolver.resolveTypedef(element));
   }
 
   FunctionType computeFunctionType(Element element,
@@ -920,7 +912,7 @@ class Tracer {
 
   const Tracer();
 
-  void traceCompilation(String methodName) {
+  void traceCompilation(String methodName, ItemCompilationContext context) {
   }
 
   void traceGraph(String name, var graph) {

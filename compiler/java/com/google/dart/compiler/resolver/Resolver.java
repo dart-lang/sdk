@@ -184,6 +184,7 @@ public class Resolver {
     private EnclosingElement currentHolder;
     private EnclosingElement enclosingElement;
     private MethodElement currentMethod;
+    private boolean inInstanceVariableInitializer;
     private boolean inInitializer;
     private MethodElement innermostFunction;
     private ResolutionContext context;
@@ -662,7 +663,12 @@ public class Resolver {
       boolean isStatic = modifiers.isStatic();
 
       if (expression != null) {
-        resolve(expression);
+        inInstanceVariableInitializer = !isTopLevel;
+        try {
+          resolve(expression);
+        } finally {
+          inInstanceVariableInitializer = false;
+        }
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getElement();
         Type expressionType = expression.getType();
@@ -1095,9 +1101,12 @@ public class Resolver {
                                             String name, Element element) {
       switch (element.getKind()) {
         case FIELD:
-          if (inStaticContext(currentMethod) && !inStaticContext(element)) {
-            onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
-                name);
+          if (!inStaticContext(element)) {
+            if (inInstanceVariableInitializer) {
+              onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
+            } else if (inStaticContext(currentMethod)) {
+              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
+            }
           }
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;
@@ -1634,6 +1643,7 @@ public class Resolver {
             case CLASS:
               onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, name,
                       classOrLibrary.getName());
+              node.getFunctionName().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
               break;
             case LIBRARY:
               onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_LIBRARY, name,
@@ -1897,15 +1907,15 @@ public class Resolver {
           new DartIdentifier("String"));
       switch (originalTypeArgs.size()) {
         case 1:
+          // Old (pre spec 0.11) map specification
           typeArgs.add(implicitKey);
-          typeArgs.addAll(originalTypeArgs);
+          typeArgs.add(originalTypeArgs.get(0));
+          // TODO(scheglov) enable this warning
+//          topLevelContext.onError(originalTypeArgs.get(0), ResolverErrorCode.DEPRECATED_MAP_LITERAL_SYNTAX);
           break;
         case 2:
-          // Old (pre spec 0.6) map specification
-          // TODO(zundel): remove this case after a while (added on 24 Jan 2012)
-          typeArgs.add(implicitKey);
+          typeArgs.add(originalTypeArgs.get(0));
           typeArgs.add(originalTypeArgs.get(1));
-          topLevelContext.onError(originalTypeArgs.get(0), ResolverErrorCode.DEPRECATED_MAP_LITERAL_SYNTAX);
           break;
         default:
           topLevelContext.onError(node, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
@@ -2098,6 +2108,7 @@ public class Resolver {
       if (classElement != null && methodElement != null
           && !classElement.isInterface()
           && !classElement.getModifiers().isNative()
+          && !methodElement.getModifiers().isExternal()
           && !methodElement.getModifiers().isRedirectedConstructor()) {
         for (Element member : classElement.getMembers()) {
           switch (ElementKind.of(member)) {
@@ -2150,8 +2161,8 @@ public class Resolver {
     }
 
     private boolean inStaticContext(Element element) {
-      return element == null || Elements.isTopLevel(element)
-          || element.getModifiers().isStatic() || element.getModifiers().isFactory();
+      return element == null || Elements.isTopLevel(element) || element.getModifiers().isStatic()
+          || element.getModifiers().isConstant() || element.getModifiers().isFactory();
     }
 
     @Override

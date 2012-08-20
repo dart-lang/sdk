@@ -6,12 +6,12 @@
 
 class Super {
   int superX = "super";
-  get x() => superX;
+  get x => superX;
 }
 
 class Sub extends Super {
   var subX = "sub";
-  get x() => subX;
+  get x => subX;
 
   buildClosures() => [() => x, () => this.x, () => super.x];
 }

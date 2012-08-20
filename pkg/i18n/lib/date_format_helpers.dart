@@ -125,10 +125,12 @@ class _Stream {
    * Assuming that the contents are characters, read as many digits as we
    * can see and then return the corresponding integer. Advance the stream.
    */
+  var digitMatcher = const RegExp(@'\d');
   int nextInteger() {
-    var validDigits = '0123456789';
+    // Doing this with a regular expression is slightly slower on the VM,
+    // but makes a moderate difference in Javascript right now.
     var digits = [];
-    while (!atEnd() && (validDigits.contains(peek()))) {
+    while (!atEnd() && (digitMatcher.hasMatch(peek()))) {
       digits.add(next().charCodeAt(0));
     }
     return Math.parseInt(new String.fromCharCodes(digits));

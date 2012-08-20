@@ -94,7 +94,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
     if (value != NULL) {
       const AbstractType& type = AbstractType::Handle(value->CompileType());
       if (!type.IsNull()) {
-        compile_type_name = String::Handle(type.UserVisibleName()).ToCString();
+        compile_type_name = String::Handle(type.Name()).ToCString();
       }
     }
     Parser::PrintMessage(script, token_pos, "",
@@ -103,7 +103,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                          eliminated ? "Eliminated" : "Generated",
                          compile_type_name,
                          eliminated ? "more" : "not more",
-                         String::Handle(dst_type.UserVisibleName()).ToCString(),
+                         String::Handle(dst_type.Name()).ToCString(),
                          dst_name.ToCString());
 }
 
@@ -318,11 +318,11 @@ void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
 
 
 void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
-  for (int i = 0; i < ElementCount(); ++i) {
+  for (int i = 0; i < ArgumentCount(); ++i) {
     if (i != 0) f->Print(", ");
-    ElementAt(i)->PrintTo(f);
+    ArgumentAt(i)->value()->PrintTo(f);
   }
-  if (ElementCount() > 0) f->Print(", ");
+  if (ArgumentCount() > 0) f->Print(", ");
   element_type()->PrintTo(f);
 }
 
@@ -436,7 +436,13 @@ static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
     name = AbstractType::Handle(def.PropagatedType()).Name();
     f->Print(" {PT: %s}", name.ToCString());
   }
+  if (def.has_propagated_cid()) {
+    const Class& cls = Class::Handle(
+        Isolate::Current()->class_table()->At(def.propagated_cid()));
+    f->Print(" {PCid: %s}", String::Handle(cls.Name()).ToCString());
+  }
 }
+
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- phi(", ssa_temp_index());

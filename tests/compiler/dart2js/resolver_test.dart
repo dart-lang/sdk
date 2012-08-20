@@ -75,6 +75,7 @@ main() {
   testTypeVariables();
   testToString();
   testIndexedOperator();
+  testIncrementsAndDecrements();
 }
 
 testTypeVariables() {
@@ -222,7 +223,7 @@ testLocalsTwo() {
   Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.scope;
+  MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
 
@@ -236,7 +237,7 @@ testLocalsThree() {
   Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.scope;
+  MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(3, map(visitor).length);
   List<Element> elements = map(visitor).getValues();
@@ -249,7 +250,7 @@ testLocalsFour() {
   Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.scope;
+  MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
   List<Element> elements = map(visitor).getValues();
@@ -262,7 +263,7 @@ testLocalsFive() {
   If tree = parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.scope;
+  MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(6, map(visitor).length);
 
@@ -308,7 +309,7 @@ testFor() {
   For tree = parseStatement("for (int i = 0; i < 10; i = i + 1) { i = 5; }");
   visitor.visit(tree);
 
-  BlockScope scope = visitor.scope;
+  MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(10, map(visitor).length);
 
@@ -735,17 +736,23 @@ compileScript(String source) {
   return compiler;
 }
 
+checkMemberResolved(compiler, className, memberName) {
+  Element memberElement = findElement(compiler, className)
+      .lookupLocalMember(memberName);
+  Expect.isNotNull(memberElement);
+  Expect.isNotNull(
+      compiler.enqueuer.resolution.getCachedElements(memberElement));
+}
+
 testToString() {
   final script = @"class C { toString() => 'C'; } main() { '${new C()}'; }";
   final compiler = compileScript(script);
 
-  Element toStringMethod = findElement(compiler, 'C')
-      .lookupLocalMember(buildSourceString('toString'));
-  Expect.isNotNull(toStringMethod);
-
-  Expect.isNotNull(
-      compiler.enqueuer.resolution.getCachedElements(toStringMethod));
+  checkMemberResolved(compiler, 'C', buildSourceString('toString'));
 }
+
+operatorName(op) => Elements.constructOperatorName(
+    const SourceString('operator'), new SourceString(op));
 
 testIndexedOperator() {
   final script = @"""
@@ -753,21 +760,33 @@ testIndexedOperator() {
         operator[](ix) => ix;
         operator[]=(ix, v) {}
       }
-      main() { var c = new C(); c[0]++ ; }""";
+      main() { var c = new C(); c[0]++; }""";
   final compiler = compileScript(script);
 
-  operatorName(op) => Elements.constructOperatorName(
-      const SourceString('operator'), new SourceString(op));
+  checkMemberResolved(compiler, 'C', operatorName('[]'));
+  checkMemberResolved(compiler, 'C', operatorName('[]='));
+}
 
-  Element indexedOperator = findElement(compiler, 'C')
-      .lookupLocalMember(operatorName('[]'));
-  Expect.isNotNull(indexedOperator);
-  Expect.isNotNull(
-      compiler.enqueuer.resolution.getCachedElements(indexedOperator));
+testIncrementsAndDecrements() {
+  final script = @"""
+      class A { operator+(o)=>null; }
+      class B { operator+(o)=>null; }
+      class C { operator-(o)=>null; }
+      class D { operator-(o)=>null; }
+      main() {
+        var a = new A();
+        a++;
+        var b = new B();
+        ++b;
+        var c = new C();
+        c--;
+        var d = new D();
+        --d;
+      }""";
+  final compiler = compileScript(script);
 
-  Element indexedSetOperator = findElement(compiler, 'C')
-      .lookupLocalMember(operatorName('[]='));
-  Expect.isNotNull(indexedOperator);
-  Expect.isNotNull(
-      compiler.enqueuer.resolution.getCachedElements(indexedSetOperator));
+  checkMemberResolved(compiler, 'A', operatorName('+'));
+  checkMemberResolved(compiler, 'B', operatorName('+'));
+  checkMemberResolved(compiler, 'C', operatorName('-'));
+  checkMemberResolved(compiler, 'D', operatorName('-'));
 }

@@ -20,8 +20,8 @@ class CommentMap {
   Map<String, String> _libraryComments;
 
   CommentMap()
-    : _comments = <Map<int, String>>{},
-      _libraryComments = <String>{};
+    : _comments = <String, Map<int, String>>{},
+      _libraryComments = <String, String>{};
 
   /** Finds the doc comment preceding the given source span, if there is one. */
   String find(Location span) {

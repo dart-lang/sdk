@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -19,6 +22,7 @@ import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -43,9 +47,6 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -276,15 +277,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * It is a compile-time error if the values of the case expressions do not all have the same type.
+   * It is a compile-time error if the values of the case expressions are not compile-time
+   * constants.
    * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3528
+   * http://code.google.com/p/dart/issues/detail?id=4553
    */
-  public void test_switchExpression_case_notIntString() throws Exception {
+  public void test_switchExpression_case_anyConst() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var v = 1;",
+        "class A {",
+        "  const A();",
+        "}",
+        "final A CONST_1 = const A();",
+        "final A CONST_2 = const A();",
+        "foo(var v) {",
         "  switch (v) {",
         "    case 0: break;",
         "  }",
@@ -294,11 +300,59 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  switch (v) {",
         "    case 0.0: break;",
         "  }",
+        "  switch (v) {",
+        "    case CONST_1: break;",
+        "    case CONST_2: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * It is a compile-time error if the values of the case expressions are not compile-time
+   * constants.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4553
+   */
+  public void test_switchExpression_case_notConst() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "foo(var v) {",
+        "  A notConst = new A();",
+        "  switch (v) {",
+        "    case notConst: break;",
+        "  }",
         "}",
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, 11, 10, 3));
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 10, 8));
+  }
+  
+  /**
+   * It is a compile-time error if the class C implements the operator ==.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4553
+   */
+  public void test_switchExpression_case_hasOperatorEquals() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {",
+        "  const C();",
+        "  operator equals(other) => false;",
+        "}",
+        "const C CONST = const C();",
+        "foo(var v) {",
+        "  switch (v) {",
+        "    case CONST: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CASE_EXPRESSION_TYPE_SHOULD_NOT_HAVE_EQUALS, 9, 10, 5));
   }
 
   /**
@@ -309,8 +363,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_switchExpression_case_differentTypes() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var v = 1;",
+        "foo(var v) {",
         "  switch (v) {",
         "    case 0: break;",
         "    case 'a': break;",
@@ -319,7 +372,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 6, 10, 3));
+        errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 5, 10, 3));
   }
 
   /**
@@ -1701,6 +1754,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertTrue(message.contains("'bool'"));
     }
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4394
+   */
+  public void test_conditionalExpressionType_genericInterface() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Collection<int> test = true ? new Set<int>() : const [null];",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
 
   public void test_typeVariableBoundsMismatch() throws Exception {
     AnalyzeLibraryResult result =
@@ -1758,8 +1825,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   public void test_inferredTypes_noMemberWarnings() throws Exception {
-    // report by default
+    // disabled by default
     {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B extends A {",
+          "  var f;",
+          "  m() {}",
+          "}",
+          "foo(A a) {",
+          "  var v = a;",
+          "  v.f = 0;",
+          "  v.m();",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+    }
+    // use CompilerConfiguration to enable
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean typeChecksForInferredTypes() {
+          return true;
+        }
+      });
       AnalyzeLibraryResult result = analyzeLibrary(
           "// filler filler filler filler filler filler filler filler filler filler",
           "class A {}",
@@ -1778,29 +1868,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
           errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
     }
-    // use CompilerConfiguration to suppress
-    {
-      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
-        @Override
-        public boolean memberWarningForInferredTypes() {
-          return false;
-        }
-      });
-      AnalyzeLibraryResult result = analyzeLibrary(
-          "// filler filler filler filler filler filler filler filler filler filler",
-          "class A {}",
-          "class B extends A {",
-          "  var f;",
-          "  m() {}",
-          "}",
-          "foo(A a) {",
-          "  var v = a;",
-          "  v.f = 0;",
-          "  v.m();",
-          "}",
-          "");
-      assertErrors(result.getErrors());
-    }
   }
 
   /**
@@ -1812,7 +1879,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_inferredTypes_noMemberWarnings_forInLoop() throws Exception {
       compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
         @Override
-        public boolean memberWarningForInferredTypes() {
+        public boolean typeChecksForInferredTypes() {
           return false;
         }
       });
@@ -1827,6 +1894,45 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "}",
           "");
       assertErrors(result.getErrors());
+  }
+
+  public void test_inferredTypes_whenInvocationArgument_checkAssignable() throws Exception {
+    // disabled by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B {}",
+          "foo(A a) {}",
+          "main() {",
+          "  var v = new B();",
+          "  foo(v);",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+    }
+    // use CompilerConfiguration to enable
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean typeChecksForInferredTypes() {
+          return true;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B {}",
+          "foo(A a) {}",
+          "main() {",
+          "  var v = new B();",
+          "  foo(v);",
+          "}",
+          "");
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 7, 1));
+    }
   }
 
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
@@ -2507,6 +2613,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * should not do this to completely satisfy specification.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3223
+   * <p>
+   * This feature was requested by users, so we introduce it again, but disabled to command line.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4518
    */
   public void test_typesPropagation_noExtraWarnings() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
@@ -3509,6 +3619,68 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, 4, 3, 12));
   }
+  
+  /**
+   * Every {@link DartExpression} should have {@link Type} set. Just to don't guess this type at
+   * many other points in the Editor.
+   */
+  public void test_typeForEveryExpression_variable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "process(x) {}",
+        "main() {",
+        "  A aaa = new A();",
+        "  process(aaa);",
+        "}");
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    unit.accept(new ASTVisitor<Void>() {
+      public Void visitIdentifier(DartIdentifier node) {
+        // ignore declaration
+        if (node.getParent() instanceof DartDeclaration) {
+          return null;
+        }
+        // check "aaa"
+        if (node.toString().equals("aaa")) {
+          Type type = node.getType();
+          assertNotNull(type);
+          assertEquals("A", type.toString());
+        }
+        return null;
+      }
+    });
+  }
+  
+  /**
+   * Every {@link DartExpression} should have {@link Type} set. Just to don't guess this type at
+   * many other points in the Editor.
+   */
+  public void test_typeForEveryExpression_typeNode() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class AAA {",
+        "  static foo() {}",
+        "}",
+        "main() {",
+        "  AAA.foo();",
+        "}");
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    unit.accept(new ASTVisitor<Void>() {
+      public Void visitIdentifier(DartIdentifier node) {
+        // ignore declaration
+        if (node.getParent() instanceof DartDeclaration) {
+          return null;
+        }
+        // check "AAA"
+        if (node.toString().equals("AAA")) {
+          Type type = node.getType();
+          assertNotNull(type);
+          assertEquals("AAA", type.toString());
+        }
+        return null;
+      }
+    });
+  }
 
   /**
    * <p>
@@ -3531,6 +3703,109 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 5, 5, 12),
         errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 10, 5, 12));
+  }
+  
+  private abstract static class ArgumentsBindingTester {
+    static List<DartExpression> arguments;
+    void doTest(DartUnit unit) {
+      unit.accept(new ASTVisitor<Void>() {
+        int invocationIndex = 0;
+        @Override
+        public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
+          arguments = node.getArguments();
+          checkArgs(invocationIndex++);
+          return super.visitUnqualifiedInvocation(node);
+        }
+      });
+    }
+    abstract void checkArgs(int invocationIndex);
+    void assertId(int index, Object expected) {
+      DartExpression argument = arguments.get(index);
+      assertEquals(expected, argument.getInvocationParameterId());
+    }
+  }
+
+  public void test_formalParameters_positional_optional() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method(var a, var b, [var c = 3, var d = 4]) {}",
+        "main() {",
+        "  method(10, 20);",
+        "  method(10, 20, 30);",
+        "  method(10, 20, 30, 40);",
+        "}");
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    new ArgumentsBindingTester() {
+      @Override
+      void checkArgs(int invocationIndex) {
+        switch (invocationIndex) {
+          case 0: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            break;
+          }
+          case 1: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, Integer.valueOf(2));
+            break;
+          }
+          case 3: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, Integer.valueOf(2));
+            assertId(3, Integer.valueOf(3));
+            break;
+          }
+        }
+      }
+    }.doTest(unit);
+  }
+  
+  public void test_formalParameters_positional_named() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method(var a, var b, {var c : 3, var d : 4}) {}",
+        "main() {",
+        "  method(10, 20);",
+        "  method(10, 20, c: 30);",
+        "  method(10, 20, d: 40);",
+        "  method(10, 20, d: 40, c: 30);",
+        "}");
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    new ArgumentsBindingTester() {
+      @Override
+      void checkArgs(int invocationIndex) {
+        switch (invocationIndex) {
+          case 0: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            break;
+          }
+          case 1: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, "c");
+            break;
+          }
+          case 2: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, "d");
+            break;
+          }
+          case 3: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, "d");
+            assertId(3, "c");
+            break;
+          }
+        }
+      }
+    }.doTest(unit);
   }
 
   private static <T extends DartNode> T findNode(

@@ -158,11 +158,8 @@ testRoundTripParsing(String localeName, Date date) {
       DateFormat.YEAR_MONTH];
   for(int i = 0; i < formatsToTest.length; i++) {
     var skeleton = formatsToTest[i];
-    var format = new DateFormat(skeleton, localeName);
-    var badPatterns = badSkeletons.map(
-        (x) => new DateFormat(x, format.locale).pattern);
-
-    if (!badPatterns.some((x) => x == format.pattern)) {
+    if (!badSkeletons.some((x) => x == skeleton)) {
+      var format = new DateFormat(skeleton, localeName);
       var actualResult = format.format(date);
       var parsed = format.parse(actualResult);
       var thenPrintAgain = format.format(parsed);
@@ -173,7 +170,7 @@ testRoundTripParsing(String localeName, Date date) {
 
 main() {
   test('Basic date format parsing', () {
-    var date_format = new DateFormat();
+    var date_format = new DateFormat("d");
     expect(
         date_format.parsePattern("hh:mm:ss").map((x) => x.pattern),
         orderedEquals(["hh",":", "mm",":","ss"]));

@@ -377,11 +377,6 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
     if info.declared_name != info.name:
       native_string = " '%s'" % info.declared_name
 
-    native_body = dom_dart2js_native_bodies.get(
-        self._interface.id + '.' + info.name, '')
-    if native_body:
-      native_string = " '''" + native_body + "'''"
-
     self._members_emitter.Emit(
         '\n'
         '  $TYPE $NAME($PARAMS) native$NATIVESTRING;\n',

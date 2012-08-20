@@ -57,6 +57,12 @@ module html {
     [CallWith=ScriptArguments|CallStack] void assertCondition(boolean condition);
   };
 
+  interface HTMLCanvasElement {
+    [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
+    [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
+
+  };
+
   [Supplemental]
   interface HTMLOptionsCollection {
     [Suppressed] void add([Optional] in HTMLOptionElement element, [Optional] in long before);

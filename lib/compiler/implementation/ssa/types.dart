@@ -762,3 +762,19 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
     return super.intersection(other);
   }
 }
+
+class HTypeMap {
+  Map<HInstruction, HType> _map;
+
+  HTypeMap() : _map = new Map<HInstruction, HType>();
+
+  operator [](HInstruction instruction) {
+    HType result = _map[instruction];
+    if (result == null) return instruction.guaranteedType;
+    return result;
+  }
+
+  operator []=(HInstruction instruction, HType value) {
+    _map[instruction] = value;
+  }
+}

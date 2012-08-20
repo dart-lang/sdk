@@ -9,9 +9,9 @@ class A {
 }
 
 class B extends A {
-  get __PROTO__() => 42;
-  get constructor() => 3;
-  get prototype() => 4;
+  get __PROTO__ => 42;
+  get constructor => 3;
+  get prototype => 4;
 }
 
 main() {

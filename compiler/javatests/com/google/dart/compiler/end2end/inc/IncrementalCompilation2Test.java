@@ -1173,6 +1173,30 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     ErrorExpectation.assertErrors(errors);
   }
+  
+  /**
+   * Investigation of failing "language/ct_const4_test".
+   */
+  public void test_useConstFromLib() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            "final B = 1;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library application;",
+            "import 'A.dart' as mylib;",
+            "final A = mylib.B;",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
+  }
 
   private void assertAppBuilt() {
     didWrite(APP, EXTENSION_DEPS);

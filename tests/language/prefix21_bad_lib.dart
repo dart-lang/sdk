@@ -8,6 +8,6 @@ int badFunction(int x) {
   return x<<1;
 }
 
-Function get getValue() {
+Function get getValue {
   return badFunction;
 }

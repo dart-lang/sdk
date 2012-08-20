@@ -22,7 +22,6 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/_XMLHttpRequestUtils.dart');
 #source('$AUXILIARY_DIR/../../html/src/shared_FactoryProviders.dart');
 #source('$AUXILIARY_DIR/../../html/src/dartium_FactoryProviders.dart');
-#source('$AUXILIARY_DIR/../../html/src/IDBOpenDBRequest.dart');
 #source('$AUXILIARY_DIR/../../html/src/Isolates.dart');
 #source('$AUXILIARY_DIR/../../html/src/Measurement.dart');
 #source('$AUXILIARY_DIR/../../html/src/Device.dart');

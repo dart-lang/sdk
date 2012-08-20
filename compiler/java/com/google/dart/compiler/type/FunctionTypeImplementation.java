@@ -17,16 +17,19 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
   private final ClassElement classElement;
   private final List<Type> parameterTypes;
   private final Type returnType;
+  private final Map<String, Type> optionalParameterTypes;
   private final Map<String, Type> namedParameterTypes;
   private final Type rest;
 
   private FunctionTypeImplementation(ClassElement element,
                                      List<Type> parameterTypes,
+                                     Map<String, Type> optionalParameterTypes,
                                      Map<String, Type> namedParameterTypes,
                                      Type rest,
                                      Type returnType) {
     this.classElement = element;
     this.parameterTypes = parameterTypes;
+    this.optionalParameterTypes = optionalParameterTypes == null ? EMPTY_MAP : optionalParameterTypes;
     this.namedParameterTypes = namedParameterTypes == null ? EMPTY_MAP : namedParameterTypes;
     this.rest = rest;
     this.returnType = returnType;
@@ -36,21 +39,34 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
   public Type subst(List<Type> arguments,
                     List<Type> parameters) {
     List<Type> substitutedParameterTypes = Types.subst(getParameterTypes(), arguments, parameters);
+
+    Map<String, Type> substitutedOptionalParameterTypes = null;
+    if (!getOptionalParameterTypes().isEmpty()) {
+      substitutedOptionalParameterTypes = new LinkedHashMap<String, Type>();
+      for (Map.Entry<String, Type> entry : getOptionalParameterTypes().entrySet()) {
+        substitutedOptionalParameterTypes.put(entry.getKey(),
+                                           entry.getValue().subst(arguments, parameters));
+      }
+    }
+    
     Map<String, Type> substitutedNamedParameterTypes = null;
     if (!getNamedParameterTypes().isEmpty()) {
       substitutedNamedParameterTypes = new LinkedHashMap<String, Type>();
       for (Map.Entry<String, Type> entry : getNamedParameterTypes().entrySet()) {
         substitutedNamedParameterTypes.put(entry.getKey(),
-                                           entry.getValue().subst(arguments, parameters));
+            entry.getValue().subst(arguments, parameters));
       }
     }
+
     Type substitutedRest = null;
     if (getRest() != null) {
       substitutedRest = getRest().subst(arguments, parameters);
     }
     Type substitutedReturnType = getReturnType().subst(arguments, parameters);
     return new FunctionTypeImplementation(getElement(),
-                                          substitutedParameterTypes, substitutedNamedParameterTypes,
+                                          substitutedParameterTypes,
+                                          substitutedOptionalParameterTypes,
+                                          substitutedNamedParameterTypes,
                                           substitutedRest, substitutedReturnType);
   }
 
@@ -74,6 +90,10 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
     return TypeKind.FUNCTION;
   }
 
+  public Map<String, Type> getOptionalParameterTypes() {
+    return optionalParameterTypes;
+  }
+  
   @Override
   public Map<String, Type> getNamedParameterTypes() {
     return namedParameterTypes;
@@ -166,9 +186,11 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
    * interface Function in the core library.
    */
   static FunctionType of(ClassElement element, List<Type> parameterTypes,
-                         Map<String, Type> namedParameterTypes, Type rest, Type returnType) {
+                         Map<String, Type> optionalParameterTypes,
+                         Map<String, Type> namedParameterTypes,
+                         Type rest, Type returnType) {
     assert element.isDynamic() || element.getName().equals("Function");
-    return new FunctionTypeImplementation(element, parameterTypes, namedParameterTypes, rest,
-                                          returnType);
+    return new FunctionTypeImplementation(element, parameterTypes, optionalParameterTypes,
+        namedParameterTypes, rest, returnType);
   }
 }

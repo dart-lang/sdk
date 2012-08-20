@@ -20,7 +20,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLabel;
-import com.google.dart.compiler.ast.DartMetadata;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
@@ -221,7 +221,7 @@ public class Elements {
 
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,
-                                                  DartMetadata metadata,
+                                                  DartObsoleteMetadata metadata,
                                                   Modifiers modifiers) {
     return FieldElementImplementation.fromNode(node, holder, metadata, modifiers);
   }
@@ -768,5 +768,30 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
+
+  public static boolean hasClassMember(ClassElement clazz, String name) {
+    if (clazz.lookupLocalElement(name) != null) {
+      return true;
+    }
+    for (InterfaceType interfaceType : clazz.getInterfaces()) {
+      if (hasClassMember(interfaceType.getElement(), name)) {
+        return true;
+      }
+    }
+    if (clazz.getSupertype() != null) {
+      if (hasClassMember(clazz.getSupertype().getElement(), name)) {
+        return true;
+      }
+    }
+    return false;
+  }
   
+  /**
+   * @return <code>true</code> if given {@link FieldElement} is explicitly declared static, or is
+   *         static implicitly.
+   */
+  public static boolean isStaticField(FieldElement field) {
+    Modifiers modifiers = field.getModifiers();
+    return modifiers.isStatic() || modifiers.isConstant();
+  }
 }

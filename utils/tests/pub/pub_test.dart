@@ -93,7 +93,7 @@ installCommand() {
   test('checks out a package from the SDK', () {
     dir(sdkPath, [
       file('revision', '1234'),
-      dir('lib', [
+      dir('pkg', [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
         ])

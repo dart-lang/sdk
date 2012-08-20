@@ -5,17 +5,17 @@
 // Test that hidden native class names are not used by generated code.
 
 class A native "*B" {
-  get name() => 'A';
+  get name => 'A';
   static A create() => makeA();
 }
 
 class B native "*C" {
-  get name() => 'B';
+  get name => 'B';
   static B create() => makeB();
 }
 
 class C {  // Ordinary class with name clashing with native class.
-  get name() => 'C';
+  get name => 'C';
   static C create() => new C();
 }
 

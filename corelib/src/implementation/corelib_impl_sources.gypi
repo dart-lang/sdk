@@ -6,6 +6,7 @@
   'sources': [
     'arrays.dart',
     'collections.dart',
+    'date.dart',
     'dual_pivot_quicksort.dart',
     'duration_implementation.dart',
     'exceptions.dart',

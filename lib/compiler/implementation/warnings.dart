@@ -213,6 +213,12 @@ class MessageKind {
   static final BAD_ARITY_OVERRIDE_CONT = const MessageKind(
       "Info: this is the method whose parameters do not match.");
 
+  static final MISSING_FORMALS = const MessageKind(
+      "Error: Formal parameters are missing.");
+
+  static final EXTRA_FORMALS = const MessageKind(
+      "Error: Formal parameters not allowed here.");
+
   static final COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
@@ -237,11 +243,11 @@ Please include the following information:
 
   toString() => template;
 
-  Message message([List<Type> arguments = const <Type>[]]) {
+  Message message([List arguments = const []]) {
     return new Message(this, arguments);
   }
 
-  CompilationError error([List<Type> arguments = const <Type>[]]) {
+  CompilationError error([List arguments = const []]) {
     return new CompilationError(this, arguments);
   }
 }

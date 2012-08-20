@@ -18,6 +18,7 @@ public enum Token {
   EOS(null, 0),
 
   /* Punctuators. */
+  AT("@", 0),
   LPAREN("(", 0),
   RPAREN(")", 0),
   LBRACK("[", 0),

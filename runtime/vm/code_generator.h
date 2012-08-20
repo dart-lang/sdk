@@ -77,6 +77,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptNoTypeFeedback) \
   V(DeoptSAR) \
   V(DeoptUnaryOp) \
+  V(DeoptCheckClass)
 
 enum DeoptReasonId {
 #define DEFINE_ENUM_LIST(name) k##name,

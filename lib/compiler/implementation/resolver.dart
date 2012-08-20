@@ -36,13 +36,7 @@ class TreeElementMapping implements TreeElements {
 }
 
 class ResolverTask extends CompilerTask {
-  // Caches the elements of analyzed constructors to make them available
-  // for inlining in later tasks.
-  Map<FunctionElement, TreeElements> constructorElements;
-
-  ResolverTask(Compiler compiler)
-    : super(compiler),
-      constructorElements = new Map<FunctionElement, TreeElements>();
+  ResolverTask(Compiler compiler) : super(compiler);
 
   String get name() => 'Resolver';
 
@@ -112,10 +106,11 @@ class ResolverTask extends CompilerTask {
   TreeElements resolveMethodElement(FunctionElement element) {
     return compiler.withCurrentElement(element, () {
       bool isConstructor = element.kind === ElementKind.GENERATIVE_CONSTRUCTOR;
-      if (constructorElements.containsKey(element)) {
+      TreeElements elements =
+          compiler.enqueuer.resolution.getCachedElements(element);
+      if (elements !== null) {
         assert(isConstructor);
-        TreeElements elements = constructorElements[element];
-        if (elements !== null) return elements;
+        return elements;
       }
       FunctionExpression tree = element.parseNode(compiler);
       if (isConstructor) {
@@ -139,9 +134,6 @@ class ResolverTask extends CompilerTask {
       }
       visitBody(visitor, tree.body);
 
-      if (isConstructor) {
-        constructorElements[element] = visitor.mapping;
-      }
       return visitor.mapping;
     });
   }
@@ -376,12 +368,20 @@ class ResolverTask extends CompilerTask {
       compiler, node.parameters, node.returnType, element));
   }
 
-  FunctionSignature resolveTypedef(TypedefElement element) {
+  void resolveTypedef(TypedefElement element) {
+    if (element.isResolved || element.isBeingResolved) return;
+    element.isBeingResolved = true;
     return compiler.withCurrentElement(element, () {
-      Typedef node =
+      measure(() {
+        Typedef node =
           compiler.parser.measure(() => element.parseNode(compiler));
-      return measure(() => SignatureResolver.analyze(
-          compiler, node.formals, node.returnType, element));
+        TypedefResolverVisitor visitor =
+          new TypedefResolverVisitor(compiler, element);
+        visitor.visit(node);
+
+        element.isBeingResolved = false;
+        element.isResolved = true;
+      });
     });
   }
 
@@ -429,6 +429,14 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
+  void checkForDuplicateInitializers(SourceString name, Node init) {
+    if (initialized.containsKey(name)) {
+      error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
+      warning(initialized[name], MessageKind.ALREADY_INITIALIZED, [name]);
+    }
+    initialized[name] = init;
+  }
+
   void resolveFieldInitializer(FunctionElement constructor, SendSet init) {
     // init is of the form [this.]field = value.
     final Node selector = init.selector;
@@ -449,12 +457,8 @@ class InitializerResolver {
       error(init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
     }
     visitor.useElement(init, target);
-    // Check for duplicate initializers.
-    if (initialized.containsKey(name)) {
-      error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
-      warning(initialized[name], MessageKind.ALREADY_INITIALIZED, [name]);
-    }
-    initialized[name] = init;
+    visitor.world.registerStaticUse(target);
+    checkForDuplicateInitializers(name, init);
     // Resolve initializing value.
     visitor.visitInStaticContext(init.arguments.head);
   }
@@ -466,7 +470,7 @@ class InitializerResolver {
     ResolverTask resolver = visitor.compiler.resolver;
     visitor.inStaticContext(() {
       visitor.resolveSelector(call);
-      visitor.visitArguments(call.argumentsNode);
+      visitor.resolveArguments(call.argumentsNode);
     });
     Selector selector = visitor.mapping.getSelector(call);
     bool isSuperCall = Initializers.isSuperConstructorCall(call);
@@ -474,6 +478,7 @@ class InitializerResolver {
     Element result = resolveSuperOrThis(
         constructor, isSuperCall, false, constructorName, selector, call);
     visitor.useElement(call, result);
+    visitor.world.registerStaticUse(result);
     return result;
   }
 
@@ -515,7 +520,7 @@ class InitializerResolver {
     ResolverTask resolver = visitor.compiler.resolver;
     final SourceString className = lookupTarget.name;
     result = lookupTarget.lookupConstructor(className, constructorName);
-    if (result === null) {
+    if (result === null || !result.isGenerativeConstructor()) {
       String classNameString = className.slowToString();
       String constructorNameString = constructorName.slowToString();
       String name = (constructorName === const SourceString(''))
@@ -552,6 +557,17 @@ class InitializerResolver {
    */
   FunctionElement resolveInitializers(FunctionElement constructor,
                                       FunctionExpression functionNode) {
+    // Keep track of all "this.param" parameters specified for constructor so
+    // that we can ensure that fields are initialized only once.
+    FunctionSignature functionParameters =
+        constructor.computeSignature(visitor.compiler);
+    functionParameters.forEachParameter((Element element) {
+      if (element.kind === ElementKind.FIELD_PARAMETER) {
+        checkForDuplicateInitializers(element.name,
+                                      element.parseNode(visitor.compiler));
+      }
+    });
+
     if (functionNode.initializers === null) {
       initializers = const EmptyLink<Node>();
     } else {
@@ -815,7 +831,19 @@ class TypeResolver {
           type = new InterfaceType(cls, arguments);
         }
       } else if (element.isTypedef()) {
-        type = element.computeType(compiler);
+        TypedefElement typdef = element;
+        // TODO(ahe): Should be [ensureResolved].
+        compiler.resolveTypedef(typdef);
+        typdef.computeType(compiler);
+        Link<Type> arguments = resolveTypeArguments(
+            node, typdef.typeVariables,
+            scope, onFailure, whenResolved);
+        if (typdef.typeVariables.isEmpty() && arguments.isEmpty()) {
+          // Return the canonical type if it has no type parameters.
+          type = typdef.computeType(compiler);
+        } else {
+          type = new TypedefType(typdef, arguments);
+        }
       } else if (element.isTypeVariable()) {
         type = element.computeType(compiler);
       } else {
@@ -962,26 +990,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element useElement(Node node, Element element) {
     if (element === null) return null;
-    mapping[node] = element;
-    if (element.isTopLevel() || element.isMember()) {
-      if (element.isInstanceMember()) {
-        var send = node.asSend();
-        if (send !== null) {
-          Selector selector = mapping.getSelector(send);
-          if (selector !== null) {
-            world.registerDynamicInvocation(element.name, selector);
-          }
-        }
-      } else {
-        if (!element.isPrefix() &&
-            !element.isClass() &&
-            !element.isTypedef() &&
-            !element.isTypeVariable()) {
-          world.registerStaticUse(element);
-        }
-      }
-    }
-    return element;
+    return mapping[node] = element;
   }
 
   Type useType(TypeAnnotation annotation, Type type) {
@@ -997,7 +1006,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
-    Link<Node> parameterNodes = node.parameters.nodes;
+    Link<Node> parameterNodes = (node.parameters === null)
+        ? const EmptyLink<Node>() : node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
         NodeList nodes = parameterNodes.head;
@@ -1185,7 +1195,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   static Selector computeSendSelector(Send node, LibraryElement library) {
     // First determine if this is part of an assignment.
-    bool isSet = node is SendSet;
+    bool isSet = node.asSendSet() !== null;
 
     if (node.isIndex) {
       return isSet ? new Selector.indexSet() : new Selector.index();
@@ -1193,12 +1203,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     if (node.isOperator) {
       SourceString source = node.selector.asOperator().source;
-      switch (source.stringValue) {
-        case '!'  : case '&&' : case '||':
-        case 'is' : case 'as' :
-        case '===': case '!==':
-        case '>>>':
-          return null;
+      String string = source.stringValue;
+      if (string === '!'   || string === '&&'  || string == '||' ||
+          string === 'is'  || string === 'as'  ||
+          string === '===' || string === '!==' ||
+          string === '>>>') {
+        return null;
       }
       return node.arguments.isEmpty()
           ? new Selector.unaryOperator(source)
@@ -1220,17 +1230,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         !link.isEmpty();
         link = link.tail) {
       Expression argument = link.head;
-      if (argument.asNamedArgument() != null) {
-        named.add((argument as NamedArgument).name.source);
+      NamedArgument namedArgument = argument.asNamedArgument();
+      if (namedArgument !== null) {
+        named.add(namedArgument.name.source);
       }
       arity++;
     }
 
-    // If we're invoking a closure, we do not have an identifier. In
-    // that case, we create a wildcard selector that can call any
-    // method that may have been closurized.
-    return (identifier == null)
-        ? new Selector.callAny(arity, named)
+    // If we're invoking a closure, we do not have an identifier.
+    return (identifier === null)
+        ? new Selector.callClosure(arity, named)
         : new Selector.call(identifier.source, library, arity, named);
   }
 
@@ -1241,7 +1250,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return selector;
   }
 
-  void visitArguments(NodeList list) {
+  void resolveArguments(NodeList list) {
+    if (list === null) return;
     bool seenNamedArgument = false;
     for (Link<Node> link = list.nodes; !link.isEmpty(); link = link.tail) {
       Expression argument = link.head;
@@ -1256,42 +1266,41 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitSend(Send node) {
     Element target = resolveSend(node);
-    if (node.isOperator) {
-      Operator op = node.selector.asOperator();
-      if (op.source.stringValue === 'is' || op.source.stringValue === 'as') {
-        resolveTypeTest(node.arguments.head);
-        assert(node.arguments.tail.isEmpty());
-      } else if (node.arguments.isEmpty()) {
-        assert(op.token.kind !== PLUS_TOKEN);
-      } else {
-        visit(node.argumentsNode);
-      }
-    } else if (node.isIndex) {
-      visit(node.argumentsNode);
-      assert(node.arguments.tail.isEmpty());
-    } else if (node.isPropertyAccess) {
-      // Nothing to do here.
-    } else {
-      visitArguments(node.argumentsNode);
-    }
-
     if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
     }
+
+    bool resolvedArguments = false;
+    if (node.isOperator) {
+      String operatorString = node.selector.asOperator().source.stringValue;
+      if (operatorString === 'is' || operatorString === 'as') {
+        assert(node.arguments.tail.isEmpty());
+        resolveTypeTest(node.arguments.head);
+        resolvedArguments = true;
+      }
+    }
+
+    if (!resolvedArguments) {
+      resolveArguments(node.argumentsNode);
+    }
+
+    // If the selector is null, it means that we will not be generating
+    // code for this as a send.
+    Selector selector = mapping.getSelector(node);
+    if (selector === null) return;
+
+    // If we don't know what we're calling or if we are calling a getter,
+    // we need to register that fact that we may be calling a closure
+    // with the same arguments.
     if (node.isCall &&
         (target === null ||
          target.isGetter() ||
          Elements.isClosureSend(node, target))) {
-      Selector selector = mapping.getSelector(node);
-      Selector call = new Selector.call(
-          compiler.namer.CLOSURE_INVOCATION_NAME,
-          selector.library,
-          selector.argumentCount,
-          selector.namedArguments);
-      world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                      call);
+      Selector call = new Selector.callClosureFrom(selector);
+      world.registerDynamicInvocation(call.name, call);
     }
+
     // TODO(ngeoffray): We should do the check in
     // visitExpressionStatement instead.
     if (target === compiler.assertMethod && !node.isCall) {
@@ -1301,83 +1310,80 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       target = null;
     }
+
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
     useElement(node, target);
-    if (target === null) registerDynamicSend(node);
-    if (node.isPropertyAccess) return target;
+    registerSend(selector, target);
+    return node.isPropertyAccess ? target : null;
   }
 
   visitSendSet(SendSet node) {
     Element target = resolveSend(node);
-    Element setter = null;
-    Element getter = null;
+    Element setter = target;
+    Element getter = target;
     if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       setter = field.setter;
       getter = field.getter;
-    } else {
-      setter = target;
-      getter = target;
     }
-    // TODO(ngeoffray): Check if the target can be assigned.
-    Identifier identifier = node.assignmentOperator;
-    bool compoundAssignment = identifier.source.stringValue !== '=';
-    if (compoundAssignment) {
-      useElement(node.selector, getter);
-    }
+
     visit(node.argumentsNode);
+
+    // TODO(ngeoffray): Check if the target can be assigned.
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
-    registerDynamicSend(node);
+
+    Selector selector = mapping.getSelector(node);
+    String source = node.assignmentOperator.source.stringValue;
+    bool isComplex = source !== '=';
+    if (isComplex) {
+      if (selector.isSetter()) {
+        useElement(node.selector, getter);
+        registerSend(new Selector.getterFrom(selector), getter);
+      } else {
+        // TODO(kasperl): If [getter] is resolved, it will actually
+        // refer to the []= operator which isn't the one we want to
+        // register here. We should consider using some notion of
+        // abstract indexable element that we can resolve to so we can
+        // distinguish the two.
+        assert(selector.isIndexSet());
+        registerSend(new Selector.index(), null);
+      }
+
+      // Make sure we include the + and - operators if we are using
+      // the ++ and -- ones.
+      void registerBinaryOperator(SourceString name) {
+        Selector binop = new Selector.binaryOperator(name);
+        world.registerDynamicInvocation(binop.name, binop);
+      }
+      if (source === '++') registerBinaryOperator(const SourceString('+'));
+      if (source === '--') registerBinaryOperator(const SourceString('-'));
+    }
+
+    registerSend(selector, setter);
     return useElement(node, setter);
   }
 
-  registerDynamicSend(Send node) {
-    Identifier id = node.selector.asIdentifier();
-    if (id === null) return;
-    SourceString name = node.selector.asIdentifier().source;
-    if (node.isIndex && node is SendSet) {
-      name = Elements.constructOperatorName(
-          const SourceString('operator'),
-          const SourceString('[]='));
-    } else if (node.selector.asOperator() != null) {
-      switch (name.stringValue) {
-        case '===':
-        case '!==':
-        case '!':
-        case '&&':
-        case '||':
-        case 'is':
-        case 'as':
-        case '>>>':
-          return null;
+  void registerSend(Selector selector, Element target) {
+    if (target === null || target.isInstanceMember()) {
+      if (selector.isGetter()) {
+        world.registerDynamicGetter(selector.name, selector);
+      } else if (selector.isSetter()) {
+        world.registerDynamicSetter(selector.name, selector);
+      } else {
+        world.registerDynamicInvocation(selector.name, selector);
       }
-      name = Elements.constructOperatorName(
-          const SourceString('operator'),
-          name,
-          node.argumentsNode is Prefix);
+    } else if (Elements.isStaticOrTopLevel(target)) {
+      // TODO(kasperl): It seems like we're not supposed to register
+      // the use of classes. Wouldn't it be simpler if we just did?
+      if (!target.isClass()) world.registerStaticUse(target);
     }
-    Selector selector = mapping.getSelector(node);
-    if (selector.isGetter()) {
-      world.registerDynamicGetter(name, selector);
-    } else if (selector.isSetter()) {
-      world.registerDynamicSetter(name, selector);
-      // Also register the getter for compound assignments.
-      LibraryElement library = enclosingElement.getLibrary();
-      Selector getter = new Selector.getter(name, library);
-      world.registerDynamicGetter(name, getter);
-    } else {
-      if (selector.isIndexSet()) {
-        // Also register the index selector for compound assignments.
-        Selector index = new Selector.index();
-        world.registerDynamicInvocation(index.name, index);
-      }
-      world.registerDynamicInvocation(name, selector);
-    }
+
+    // TODO(kasperl): Pass the selector directly.
     var interceptor = new Interceptors(compiler).getStaticInterceptor(
-        name,
-        node.argumentCount());
+        selector.name,
+        selector.argumentCount);
     if (interceptor !== null) {
       world.registerStaticUse(interceptor);
     }
@@ -1442,7 +1448,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     FunctionElement constructor = resolveConstructor(node);
     resolveSelector(node.send);
-    visitArguments(node.send.argumentsNode);
+    resolveArguments(node.send.argumentsNode);
     if (constructor === null) return null;
     // TODO(karlklose): handle optional arguments.
     if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
@@ -1451,6 +1457,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // List constructor.
     }
     useElement(node.send, constructor);
+    world.registerStaticUse(constructor);
     compiler.withCurrentElement(constructor, () {
       FunctionExpression tree = constructor.parseNode(compiler);
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
@@ -1620,7 +1627,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitLabeledStatement(LabeledStatement node) {
     Statement body = node.statement;
     TargetElement targetElement = getOrCreateTargetElement(body);
-    Map<String, LabelElement> labelElements = <LabelElement>{};
+    Map<String, LabelElement> labelElements = <String, LabelElement>{};
     for (Label label in node.labels) {
       String labelName = label.slowToString();
       if (labelElements.containsKey(labelName)) continue;
@@ -1660,7 +1667,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     node.expression.accept(this);
 
     TargetElement breakElement = getOrCreateTargetElement(node);
-    Map<String, LabelElement> continueLabels = <LabelElement>{};
+    Map<String, LabelElement> continueLabels = <String, LabelElement>{};
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty()) {
       SwitchCase switchCase = cases.head;
@@ -1807,6 +1814,27 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
       typeLink = typeLink.tail;
     }
     assert(typeLink.isEmpty());
+  }
+}
+
+class TypedefResolverVisitor extends TypeDefinitionVisitor {
+  TypedefElement get element() => super.element;
+
+  TypedefResolverVisitor(Compiler compiler, TypedefElement typedefElement)
+      : super(compiler, typedefElement);
+
+  visitTypedef(Typedef node) {
+    TypedefType type = element.computeType(compiler);
+    scope = new TypeDeclarationScope(scope, element);
+    resolveTypeVariableBounds(node.typeParameters);
+
+    element.functionSignature = SignatureResolver.analyze(
+        compiler, node.formals, node.returnType, element);
+
+    element.alias = compiler.computeFunctionType(
+        element, element.functionSignature);
+
+    // TODO(johnniwinther): Check for cyclic references in the typedef alias.
   }
 }
 
@@ -2241,14 +2269,35 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                    Node returnNode,
                                    Element element) {
     SignatureResolver visitor = new SignatureResolver(compiler, element);
-    LinkBuilder<Element> parametersBuilder =
+    Link<Element> parameters = const EmptyLink<Element>();
+    int requiredParameterCount = 0;
+    if (formalParameters === null) {
+      if (!element.isGetter()) {
+        compiler.reportMessage(compiler.spanFromElement(element),
+                               MessageKind.MISSING_FORMALS.error([]),
+                               api.Diagnostic.ERROR);
+      }
+    } else {
+      if (element.isGetter()) {
+        if (!element.getLibrary().isPlatformLibrary) {
+          // TODO(ahe): Remove the isPlatformLibrary check.
+          if (formalParameters.getEndToken().next.stringValue !== 'native') {
+            // TODO(ahe): Remove the check for native keyword.
+            compiler.reportMessage(compiler.spanFromNode(formalParameters),
+                                   MessageKind.EXTRA_FORMALS.error([]),
+                                   api.Diagnostic.WARNING);
+          }
+        }
+      }
+      LinkBuilder<Element> parametersBuilder =
         visitor.analyzeNodes(formalParameters.nodes);
-    Link<Element> parameters = parametersBuilder.toLink();
-    Type returnType =
-        compiler.resolveTypeAnnotation(element, returnNode);
+      requiredParameterCount  = parametersBuilder.length;
+      parameters = parametersBuilder.toLink();
+    }
+    Type returnType = compiler.resolveTypeAnnotation(element, returnNode);
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
-                                 parametersBuilder.length,
+                                 requiredParameterCount,
                                  visitor.optionalParameterCount,
                                  returnType);
   }

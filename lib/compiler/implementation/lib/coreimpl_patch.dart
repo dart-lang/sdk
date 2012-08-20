@@ -28,6 +28,13 @@ patch class DateImplementation {
     Primitives.lazyAsJsDate(this);
   }
 
+  patch static int _brokenDownDateToMillisecondsSinceEpoch(
+      int years, int month, int day, int hour, int minute, int second,
+      int millisecond, bool isUtc) {
+    return Primitives.valueFromDecomposedDate(
+        years, month, day, hour, minute, second, millisecond, isUtc);
+  }
+
   patch String get timeZoneName() {
     if (isUtc) return "UTC";
     return Primitives.getTimeZoneName(this);

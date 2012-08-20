@@ -74,7 +74,7 @@ class ProcessInfoList {
     BOOL success = RegisterWaitForSingleObject(
         &wait_handle,
         handle,
-        reinterpret_cast<WAITORTIMERCALLBACK>(ExitCodeCallback),
+        &ExitCodeCallback,
         reinterpret_cast<void*>(pid),
         INFINITE,
         WT_EXECUTEONLYONCE);
@@ -128,7 +128,7 @@ class ProcessInfoList {
  private:
   // Callback called when an exit code is available from one of the
   // processes in the list.
-  static void ExitCodeCallback(void* data, bool timed_out) {
+  static void CALLBACK ExitCodeCallback(PVOID data, BOOLEAN timed_out) {
     if (timed_out) return;
     DWORD pid = reinterpret_cast<DWORD>(data);
     HANDLE handle;

@@ -386,6 +386,7 @@ void Object::RegisterSingletonClassNames() {
   Class& cls = Class::Handle();
   String& str = String::Handle();
 
+  // Set up names for all VM singleton classes.
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(null, Null);
   SET_CLASS_NAME(dynamic, Dynamic);
@@ -417,6 +418,15 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(language_error, LanguageError);
   SET_CLASS_NAME(unhandled_exception, UnhandledException);
   SET_CLASS_NAME(unwind_error, UnwindError);
+
+  // Set up names for object array and one byte string class which are
+  // pre-allocated in the vm isolate also.
+  cls = Dart::vm_isolate()->object_store()->array_class();
+  str = Symbols::ObjectArray();
+  cls.set_name(str);
+  cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
+  str = Symbols::OneByteString();
+  cls.set_name(str);
 }
 
 
@@ -432,20 +442,18 @@ RawClass* Object::CreateAndRegisterInterface(const char* cname,
 
 
 void Object::RegisterClass(const Class& cls,
-                           const char* cname,
+                           const String& name,
                            const Library& lib) {
-  const String& name = String::Handle(Symbols::New(cname));
   cls.set_name(name);
   lib.AddClass(cls);
 }
 
 
 void Object::RegisterPrivateClass(const Class& cls,
-                                  const char* public_class_name,
+                                  const String& public_class_name,
                                   const Library& lib) {
   String& str = String::Handle();
-  str = Symbols::New(public_class_name);
-  str = lib.PrivateName(str);
+  str = lib.PrivateName(public_class_name);
   cls.set_name(str);
   lib.AddClass(cls);
 }
@@ -513,89 +521,113 @@ RawError* Object::Init(Isolate* isolate) {
   const Script& impl_script = Script::Handle(
       Bootstrap::LoadCoreImplScript(false));
 
+  String& name = String::Handle();
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
-  RegisterClass(cls, "IntegerImplementation", core_impl_lib);
+  name = Symbols::IntegerImplementation();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
-  RegisterClass(cls, "Smi", core_impl_lib);
+  name = Symbols::Smi();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
-  RegisterClass(cls, "Mint", core_impl_lib);
+  name = Symbols::Mint();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
-  RegisterClass(cls, "Bigint", core_impl_lib);
+  name = Symbols::Bigint();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
-  RegisterClass(cls, "Double", core_impl_lib);
+  name = Symbols::Double();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-  RegisterClass(cls, "Bool", core_impl_lib);
+  name = Symbols::Bool();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
-  RegisterClass(cls, "ObjectArray", core_impl_lib);
+  name = Symbols::ObjectArray();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterClass(cls, "GrowableObjectArray", core_impl_lib);
+  name = Symbols::GrowableObjectArray();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  RegisterClass(cls, "ImmutableArray", core_impl_lib);
+  name = Symbols::ImmutableArray();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
-  RegisterClass(cls, "OneByteString", core_impl_lib);
+  name = Symbols::OneByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
-  RegisterClass(cls, "TwoByteString", core_impl_lib);
+  name = Symbols::TwoByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
-  RegisterClass(cls, "FourByteString", core_impl_lib);
+  name = Symbols::FourByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
-  RegisterClass(cls, "ExternalOneByteString", core_impl_lib);
+  name = Symbols::ExternalOneByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
-  RegisterClass(cls, "ExternalTwoByteString", core_impl_lib);
+  name = Symbols::ExternalTwoByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
-  RegisterClass(cls, "ExternalFourByteString", core_impl_lib);
+  name = Symbols::ExternalFourByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, "Stacktrace", core_impl_lib);
+  name = Symbols::Stacktrace();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
-  RegisterClass(cls, "JSSyntaxRegExp", core_impl_lib);
+  name = Symbols::JSSyntaxRegExp();
+  RegisterClass(cls, name, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<WeakProperty>();
+  object_store->set_weak_property_class(cls);
+  name = Symbols::WeakProperty();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -606,7 +638,8 @@ RawError* Object::Init(Isolate* isolate) {
   // non-interface classes in the core library.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
-  cls.set_name(String::Handle(Symbols::New("Object")));
+  name = Symbols::Object();
+  cls.set_name(name);
   cls.set_script(script);
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
@@ -616,83 +649,103 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_Int8Array", core_lib);
+  name = Symbols::_Int8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint8Array", core_lib);
+  name = Symbols::_Uint8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_Int16Array", core_lib);
+  name = Symbols::_Int16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint16Array>();
   object_store->set_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint16Array", core_lib);
+  name = Symbols::_Uint16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Int32Array>();
   object_store->set_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_Int32Array", core_lib);
+  name = Symbols::_Int32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint32Array>();
   object_store->set_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint32Array", core_lib);
+  name = Symbols::_Uint32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Int64Array>();
   object_store->set_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_Int64Array", core_lib);
+  name = Symbols::_Int64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint64Array", core_lib);
+  name = Symbols::_Uint64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_Float32Array", core_lib);
+  name = Symbols::_Float32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Float64Array>();
   object_store->set_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_Float64Array", core_lib);
+  name = Symbols::_Float64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt8Array>();
   object_store->set_external_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt8Array", core_lib);
+  name = Symbols::_ExternalInt8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint8Array", core_lib);
+  name = Symbols::_ExternalUint8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt16Array", core_lib);
+  name = Symbols::_ExternalInt16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint16Array>();
   object_store->set_external_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint16Array", core_lib);
+  name = Symbols::_ExternalUint16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt32Array>();
   object_store->set_external_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt32Array", core_lib);
+  name = Symbols::_ExternalInt32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint32Array>();
   object_store->set_external_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint32Array", core_lib);
+  name = Symbols::_ExternalUint32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt64Array>();
   object_store->set_external_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt64Array", core_lib);
+  name = Symbols::_ExternalInt64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint64Array", core_lib);
+  name = Symbols::_ExternalUint64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat32Array", core_lib);
+  name = Symbols::_ExternalFloat32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat64Array", core_lib);
+  name = Symbols::_ExternalFloat64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -976,6 +1029,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
+
+  cls = Class::New<WeakProperty>();
+  object_store->set_weak_property_class(cls);
 
   // Allocate pre-initialized values.
   Bool& bool_value = Bool::Handle();
@@ -1500,56 +1556,85 @@ void Class::Finalize() const {
 }
 
 
+static const char* FormatPatchError(const char* format, const Object& obj) {
+  const char* msg = obj.ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, msg) + 1;
+  char* result = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(result, len, format, msg);
+  return result;
+}
+
+
 // Apply the members from the patch class to the original class.
-void Class::ApplyPatch(const Class& patch) const {
+const char* Class::ApplyPatch(const Class& patch) const {
   ASSERT(!is_finalized());
+  // Shared handles used during the iteration.
+  String& member_name = String::Handle();
+
   const Script& patch_script = Script::Handle(patch.script());
   const PatchClass& patch_class = PatchClass::Handle(
       PatchClass::New(*this, patch_script));
 
-  const Array& orig_functions = Array::Handle(functions());
-  intptr_t orig_len = orig_functions.Length();
-
-  const Array& patch_functions = Array::Handle(patch.functions());
-  intptr_t patch_len = patch_functions.Length();
+  Array& orig_list = Array::Handle(functions());
+  intptr_t orig_len = orig_list.Length();
+  Array& patch_list = Array::Handle(patch.functions());
+  intptr_t patch_len = patch_list.Length();
 
   // TODO(iposva): Verify that only patching existing methods and adding only
-  // new private methods. Currently we prepend all patch class members to the
-  // members lists which makes them override the orignals.
+  // new private methods.
   Function& func = Function::Handle();
-  const Array& new_functions = Array::Handle(Array::New(patch_len + orig_len));
+  Function& orig_func = Function::Handle();
+  const GrowableObjectArray& new_functions = GrowableObjectArray::Handle(
+      GrowableObjectArray::New(orig_len));
+  for (intptr_t i = 0; i < orig_len; i++) {
+    orig_func ^= orig_list.At(i);
+    member_name = orig_func.name();
+    func = patch.LookupFunction(member_name);
+    if (func.IsNull()) {
+      // Non-patched function is preserved, all patched functions are added in
+      // the loop below.
+      new_functions.Add(orig_func);
+    } else if (!func.HasCompatibleParametersWith(orig_func)) {
+      return FormatPatchError("mismatched parameters: %s", member_name);
+    }
+  }
   for (intptr_t i = 0; i < patch_len; i++) {
-    func ^= patch_functions.At(i);
+    func ^= patch_list.At(i);
     func.set_owner(patch_class);
-    new_functions.SetAt(i, func);
+    new_functions.Add(func);
   }
-  for (intptr_t i = 0; i < orig_len; i++) {
-    func ^= orig_functions.At(i);
-    new_functions.SetAt(patch_len + i, func);
-  }
-  SetFunctions(new_functions);
+  Array& new_list = Array::Handle(Array::MakeArray(new_functions));
+  SetFunctions(new_list);
 
-  const Array& orig_fields = Array::Handle(fields());
-  orig_len = orig_fields.Length();
+  // Merge the two list of fields. Raise an error when duplicates are found or
+  // when a public field is being added.
+  orig_list = fields();
+  orig_len = orig_list.Length();
+  patch_list = patch.fields();
+  patch_len = patch_list.Length();
 
-  const Array& patch_fields = Array::Handle(patch.fields());
-  patch_len = patch_fields.Length();
-
-  // TODO(iposva): Verify that no duplicate fields are entered. Currently we
-  // prepend all patch class members to the members lists which makes them
-  // override the orignals.
   Field& field = Field::Handle();
-  const Array& new_fields = Array::Handle(Array::New(patch_len + orig_len));
+  Field& orig_field = Field::Handle();
+  new_list = Array::New(patch_len + orig_len);
   for (intptr_t i = 0; i < patch_len; i++) {
-    field ^= patch_fields.At(i);
+    field ^= patch_list.At(i);
     field.set_owner(*this);
-    new_fields.SetAt(i, field);
+    member_name = field.name();
+    // TODO(iposva): Verify non-public fields only.
+
+    // Verify no duplicate additions.
+    orig_field = LookupField(member_name);
+    if (!orig_field.IsNull()) {
+      return FormatPatchError("duplicate field: %s", member_name);
+    }
+    new_list.SetAt(i, field);
   }
   for (intptr_t i = 0; i < orig_len; i++) {
-    field ^= orig_fields.At(i);
-    new_fields.SetAt(patch_len + i, field);
+    field ^= orig_list.At(i);
+    new_list.SetAt(patch_len + i, field);
   }
-  SetFields(new_fields);
+  SetFields(new_list);
+  return NULL;
 }
 
 
@@ -1682,7 +1767,7 @@ RawClass* Class::NewSignatureClass(const String& name,
 
 
 RawClass* Class::GetClass(intptr_t class_id, bool is_signature_class) {
-  if (class_id >= kIntegerCid && class_id <= kJSRegExpCid) {
+  if (class_id >= kIntegerCid && class_id <= kWeakPropertyCid) {
     return Isolate::Current()->class_table()->At(class_id);
   }
   if (class_id >= kNumPredefinedCids) {
@@ -1838,7 +1923,12 @@ bool Class::TypeTest(
   // Check for NullType, which is not a subtype of any type, but is more
   // specific than any type.
   if (IsNullClass()) {
-    return test_kind == kIsMoreSpecificThan;
+    // User code cannot refer to class Null, therefore, we can only encounter
+    // NullType here as the type of the null constant, which must be treated
+    // separately in 'instance of' checks. Therefore, the NullType can only
+    // be encountered here during optimizations in 'more specific than' tests.
+    ASSERT(test_kind == kIsMoreSpecificThan);
+    return true;
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
@@ -5527,7 +5617,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
          obj.IsFunction() ||
          obj.IsField() ||
          obj.IsLibraryPrefix());
-  ASSERT((LookupObject(name) == Object::null()) ||
+  ASSERT((LookupLocalObject(name) == Object::null()) ||
          ((obj.IsLibraryPrefix() ||
            (obj.IsClass() &&
             Class::CheckedHandle(obj.raw()).IsCanonicalSignatureClass())) &&
@@ -5571,29 +5661,18 @@ RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   *index = name.Hash() % dict_size;
 
   Object& entry = Object::Handle(isolate);
-  Class& cls = Class::Handle(isolate);
-  Function& func = Function::Handle(isolate);
-  Field& field = Field::Handle(isolate);
-  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate);
   String& entry_name = String::Handle(isolate);
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
-    // TODO(hausner): find a better way to handle this polymorphism.
-    // Either introduce a common base class for Class, Function, Field
-    // and LibraryPrefix or make the name() function virtual in Object.
     if (entry.IsClass()) {
-      cls ^= entry.raw();
-      entry_name = cls.Name();
+      entry_name = Class::Cast(entry).Name();
     } else if (entry.IsFunction()) {
-      func ^= entry.raw();
-      entry_name = func.name();
+      entry_name = Function::Cast(entry).name();
     } else if (entry.IsField()) {
-      field ^= entry.raw();
-      entry_name = field.name();
+      entry_name = Field::Cast(entry).name();
     } else if (entry.IsLibraryPrefix()) {
-      library_prefix ^= entry.raw();
-      entry_name = library_prefix.name();
+      entry_name = LibraryPrefix::Cast(entry).name();
     } else {
       UNREACHABLE();
     }
@@ -5858,8 +5937,7 @@ RawFunction* Library::LookupLocalFunction(const String& name) const {
 }
 
 
-RawObject* Library::LookupObjectFiltered(const String& name,
-                                         const Library& filter_lib) const {
+RawObject* Library::LookupObject(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull()) {
@@ -5870,128 +5948,12 @@ RawObject* Library::LookupObjectFiltered(const String& name,
   Library& import_lib = Library::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
     import_lib ^= imports.At(j);
-    // Skip over the library that we need to filter out.
-    if (!filter_lib.IsNull() && import_lib.raw() == filter_lib.raw()) {
-      continue;
-    }
     obj = import_lib.LookupLocalObject(name);
     if (!obj.IsNull()) {
       return obj.raw();
     }
   }
   return Object::null();
-}
-
-
-RawObject* Library::LookupObject(const String& name) const {
-  return LookupObjectFiltered(name, Library::Handle());
-}
-
-
-RawLibrary* Library::LookupObjectInImporter(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& imported_into_libs = Array::Handle(isolate,
-                                                  this->imported_into());
-  Library& lib = Library::Handle(isolate, Library::null());
-  Object& obj = Object::Handle(isolate, Object::null());
-  for (intptr_t i = 0; i < this->num_imported_into(); i++) {
-    lib ^= imported_into_libs.At(i);
-    obj = lib.LookupObjectFiltered(name, *this);
-    if (!obj.IsNull()) {
-      // If the object found is a class, field or function extract the
-      // library in which it is defined as it might be defined in one of
-      // the imported libraries.
-      Class& cls = Class::Handle(isolate, Class::null());
-      Function& func = Function::Handle(isolate, Function::null());
-      Field& field = Field::Handle(isolate, Field::null());
-      if (obj.IsClass()) {
-        cls ^= obj.raw();
-        lib ^= cls.library();
-      } else if (obj.IsFunction()) {
-        func ^= obj.raw();
-        cls ^= func.Owner();
-        lib ^= cls.library();
-      } else if (obj.IsField()) {
-        field ^= obj.raw();
-        cls ^= field.owner();
-        lib ^= cls.library();
-      }
-      return lib.raw();
-    }
-  }
-  return Library::null();
-}
-
-
-RawString* Library::DuplicateDefineErrorString(const String& entry_name,
-                                               const Library& conflict) const {
-  String& errstr = String::Handle();
-  Array& array = Array::Handle(Array::New(7));
-  errstr = String::New("'");
-  array.SetAt(0, errstr);
-  array.SetAt(1, entry_name);
-  errstr = String::New("' is defined in '");
-  array.SetAt(2, errstr);
-  errstr = url();
-  array.SetAt(3, errstr);
-  errstr = String::New("' and '");
-  array.SetAt(4, errstr);
-  errstr = conflict.url();
-  array.SetAt(5, errstr);
-  errstr = String::New("'");
-  array.SetAt(6, errstr);
-  errstr = String::ConcatAll(array);
-  return errstr.raw();
-}
-
-
-RawString* Library::FindDuplicateDefinition() const {
-  DictionaryIterator it(*this);
-  Object& obj = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  String& entry_name = String::Handle();
-  String& error_message = String::Handle();
-  Library& conflicting_lib = Library::Handle();
-  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-  while (it.HasNext()) {
-    obj = it.GetNext();
-    ASSERT(!obj.IsNull());
-    if (obj.IsClass()) {
-      cls ^= obj.raw();
-      if (cls.IsCanonicalSignatureClass()) {
-        continue;
-      }
-      entry_name = cls.Name();
-    } else if (obj.IsFunction()) {
-      func ^= obj.raw();
-      entry_name = func.name();
-    } else if (obj.IsField()) {
-      field ^= obj.raw();
-      entry_name = field.name();
-    } else if (obj.IsLibraryPrefix()) {
-      // For library prefix objects we check to make sure there are no
-      // duplicate definitions within the libraries imported using this
-      // prefix.
-      lib_prefix ^= obj.raw();
-      error_message = lib_prefix.CheckForDuplicateDefinition();
-      if (!error_message.IsNull()) {
-        return error_message.raw();
-      }
-      // We don't check library prefixes defined in this library for
-      // conflicts because they are not visible in the importing scope and
-      // hence cannot cause any duplicate definitions.
-      continue;
-    } else {
-      UNREACHABLE();
-    }
-    conflicting_lib = LookupObjectInImporter(entry_name);
-    if (!conflicting_lib.IsNull()) {
-      return this->DuplicateDefineErrorString(entry_name, conflicting_lib);
-    }
-  }
-  return String::null();
 }
 
 
@@ -6118,21 +6080,6 @@ void Library::AddImport(const Library& library) const {
   intptr_t index = num_imports();
   imports.SetAt(index, library);
   set_num_imports(index + 1);
-  library.AddImportedInto(*this);
-}
-
-
-void Library::AddImportedInto(const Library& library) const {
-  Array& imported_into = Array::Handle(this->imported_into());
-  intptr_t capacity = imported_into.Length();
-  if (num_imported_into() == capacity) {
-    capacity = capacity + kImportedIntoCapacityIncrement;
-    imported_into = Array::Grow(imported_into, capacity);
-    StorePointer(&raw_ptr()->imported_into_, imported_into.raw());
-  }
-  intptr_t index = num_imported_into();
-  imported_into.SetAt(index, library);
-  set_num_imported_into(index + 1);
 }
 
 
@@ -6153,14 +6100,6 @@ void Library::InitImportList() const {
       Array::Handle(Array::New(kInitialImportsCapacity, Heap::kOld));
   StorePointer(&raw_ptr()->imports_, imports.raw());
   raw_ptr()->num_imports_ = 0;
-}
-
-
-void Library::InitImportedIntoList() const {
-  const Array& imported_into =
-      Array::Handle(Array::New(kInitialImportedIntoCapacity, Heap::kOld));
-  StorePointer(&raw_ptr()->imported_into_, imported_into.raw());
-  raw_ptr()->num_imported_into_ = 0;
 }
 
 
@@ -6191,7 +6130,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->index_ = -1;
   result.InitClassDictionary();
   result.InitImportList();
-  result.InitImportedIntoList();
   if (import_core_lib) {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
@@ -6301,26 +6239,6 @@ RawLibrary* Library::LookupLibrary(const String &url) {
     }
   }
   return Library::null();
-}
-
-
-RawString* Library::CheckForDuplicateDefinition() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  ObjectStore* object_store = isolate->object_store();
-  ASSERT(object_store != NULL);
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(object_store->libraries());
-  Library& lib = Library::Handle();
-  String& error_message = String::Handle();
-  for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    error_message = lib.FindDuplicateDefinition();
-    if (!error_message.IsNull()) {
-      return error_message.raw();
-    }
-  }
-  return String::null();
 }
 
 
@@ -6515,55 +6433,6 @@ const char* LibraryPrefix::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, prefix.ToCString());
   return chars;
-}
-
-
-RawString* LibraryPrefix::CheckForDuplicateDefinition() const {
-  Library& lib = Library::Handle();
-  Library& conflicting_lib = Library::Handle();
-  Object& obj = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  String& entry_name = String::Handle();
-
-  for (intptr_t i = 0; i < num_libs(); i++) {
-    lib = GetLibrary(i);
-    ASSERT(!lib.IsNull());
-    DictionaryIterator it(lib);
-    while (it.HasNext()) {
-      obj = it.GetNext();
-      ASSERT(!obj.IsNull());
-      if (obj.IsClass()) {
-        cls ^= obj.raw();
-        if (cls.IsCanonicalSignatureClass()) {
-          continue;
-        }
-        entry_name = cls.Name();
-      } else if (obj.IsFunction()) {
-        func ^= obj.raw();
-        entry_name = func.name();
-      } else if (obj.IsField()) {
-        field ^= obj.raw();
-        entry_name = field.name();
-      } else {
-        // We don't check library prefixes defined in this library for
-        // conflicts because they are not visible in the importing scope and
-        // hence cannot cause any duplicate definitions.
-        continue;
-      }
-      for (intptr_t j = i + 1; j < num_libs(); j++) {
-        conflicting_lib = GetLibrary(j);
-        ASSERT(!conflicting_lib.IsNull());
-        // Check if name is found in the local scope of the library.
-        obj = conflicting_lib.LookupLocalObject(entry_name);
-        if (!obj.IsNull()) {
-          return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
-        }
-      }
-    }
-  }
-  return String::null();
 }
 
 
@@ -6876,30 +6745,38 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
+RawStackmap* Stackmap::New(intptr_t pc_offset,
+                           intptr_t length_in_bits,
+                           BitmapBuilder* bmap) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
-  intptr_t size = bmap->SizeInBytes();
-  if (size < 0 || size > kMaxElements) {
+  intptr_t length_in_bytes =
+      Utils::RoundUp(length_in_bits, kBitsPerByte) / kBitsPerByte;
+  if (length_in_bytes < 0 || length_in_bytes > kMaxLengthInBytes) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in PcDescriptors::New: invalid size %ld\n", size);
+    FATAL1("Fatal error in Stackmap::New: invalid length %" PRIdPTR "\n",
+           length_in_bytes);
   }
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
     RawObject* raw = Object::Allocate(Stackmap::kClassId,
-                                      Stackmap::InstanceSize(size),
+                                      Stackmap::InstanceSize(length_in_bytes),
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.set_bitmap_size_in_bytes(size);
+    result.set_bitmap_size_in_bytes(length_in_bytes);
   }
+  // When constructing a stackmap we store the pc offset in the stackmap's
+  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // address.
+  ASSERT(pc_offset >= 0);
   result.SetPC(pc_offset);
-  intptr_t bound = bmap->SizeInBits();
-  for (intptr_t i = 0; i < bound; i++) {
+  for (intptr_t i = 0; i < length_in_bits; i++) {
     result.SetBit(i, bmap->Get(i));
   }
+  ASSERT(bmap->Maximum() < length_in_bits);
   result.SetMinBitIndex(bmap->Minimum());
   result.SetMaxBitIndex(bmap->Maximum());
   return result.raw();
@@ -6919,15 +6796,15 @@ const char* Stackmap::ToCString() const {
   } else {
     // Guard against integer overflow, though it is highly unlikely.
     if (MaximumBitIndex() > kIntptrMax / 4) {
-      FATAL1("MaximumBitIndex() is unexpectedly large (%ld)",
+      FATAL1("MaximumBitIndex() is unexpectedly large (%" PRIdPTR ")",
              MaximumBitIndex());
     }
-    intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
+    intptr_t index = OS::SNPrint(NULL, 0, "0x%" PRIxPTR " { ", PC());
     intptr_t alloc_size =
         index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
     char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
-    index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
+    index = OS::SNPrint(chars, alloc_size, "0x%" PRIxPTR " { ", PC());
     for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
       index += OS::SNPrint((chars + index),
                            (alloc_size - index),
@@ -11228,6 +11105,26 @@ const char* JSRegExp::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
+}
+
+
+RawWeakProperty* WeakProperty::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->weak_property_class()
+         != Class::null());
+  WeakProperty& result = WeakProperty::Handle();
+  {
+    RawObject* raw = Object::Allocate(WeakProperty::kClassId,
+                                      WeakProperty::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  return result.raw();
+}
+
+
+const char* WeakProperty::ToCString() const {
+  return "WeakProperty";
 }
 
 }  // namespace dart

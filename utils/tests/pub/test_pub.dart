@@ -126,12 +126,12 @@ Future _closeServer() {
  * serve.
  */
 void servePackages(String host, int port, List<String> pubspecs) {
-  var packages = <Map<String, String>>{};
+  var packages = <String, Map<String, String>>{};
   pubspecs.forEach((spec) {
     var parsed = loadYaml(spec);
     var name = parsed['name'];
     var version = parsed['version'];
-    packages.putIfAbsent(name, () => <String>{})[version] = spec;
+    packages.putIfAbsent(name, () => <String, String>{})[version] = spec;
   });
 
   serve(host, port, [

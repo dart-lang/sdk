@@ -23,7 +23,7 @@ class Second extends First {
   void set instance_a(int value) {
     a_ = a_ + value;
   }
-  int get instance_a() {
+  int get instance_a {
     return a_;
   }
 
@@ -31,7 +31,7 @@ class Second extends First {
     Second.c = value;
   }
 
-  static int get static_d() {
+  static int get static_d {
     return Second.c;
   }
 }

@@ -986,6 +986,7 @@ void FlowGraphCompiler::CompileGraph() {
     AstPrinter::PrintFunctionScope(parsed_function());
   }
 
+  ASSERT(!block_order().is_empty());
   VisitBlocks();
 
   __ int3();

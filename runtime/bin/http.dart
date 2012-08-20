@@ -286,15 +286,21 @@ interface HttpHeaders default _HttpHeaders {
 
   /**
    * Gets and sets the date. The value of this property will
-   * reflect the "Date" header
+   * reflect the "Date" header.
    */
   Date date;
 
   /**
    * Gets and sets the expiry date. The value of this property will
-   * reflect the "Expires" header
+   * reflect the "Expires" header.
    */
   Date expires;
+
+  /**
+   * Gets and sets the 'if-modified-since' date. The value of this property will
+   * reflect the "if-modified-since" header.
+   */
+  Date ifModifiedSince;
 
   /**
    * Gets and sets the host part of the "Host" header for the

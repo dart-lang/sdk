@@ -355,10 +355,10 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
                                               const Script& script,
                                               const Library& lib);
   static void RegisterClass(const Class& cls,
-                            const char* cname,
+                            const String& name,
                             const Library& lib);
   static void RegisterPrivateClass(const Class& cls,
-                                   const char* cname,
+                                   const String& name,
                                    const Library& lib);
 
   cpp_vtable* vtable_address() const {
@@ -674,7 +674,7 @@ class Class : public Object {
 
   void Finalize() const;
 
-  void ApplyPatch(const Class& patch) const;
+  const char* ApplyPatch(const Class& patch) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -2063,11 +2063,8 @@ class Library : public Object {
     raw_ptr()->debuggable_ = value;
   }
 
-  RawString* DuplicateDefineErrorString(const String& entry_name,
-                                        const Library& conflicting_lib) const;
   static RawLibrary* LookupLibrary(const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
-  static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
@@ -2088,33 +2085,20 @@ class Library : public Object {
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
-  static const int kInitialImportedIntoCapacity = 1;
-  static const int kImportedIntoCapacityIncrement = 2;
   static RawLibrary* New();
 
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
-  intptr_t num_imported_into() const { return raw_ptr()->num_imported_into_; }
-  void set_num_imported_into(intptr_t value) const {
-    raw_ptr()->num_imported_into_ = value;
-  }
   RawArray* imports() const { return raw_ptr()->imports_; }
-  RawArray* imported_into() const { return raw_ptr()->imported_into_; }
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
   void InitImportList() const;
-  void InitImportedIntoList() const;
   void GrowDictionary(const Array& dict, intptr_t dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
-  void AddImportedInto(const Library& library) const;
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
-  RawObject* LookupObjectFiltered(const String& name,
-                                  const Library& filter_lib) const;
-  RawLibrary* LookupObjectInImporter(const String& name) const;
-  RawString* FindDuplicateDefinition() const;
 
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
@@ -2134,7 +2118,6 @@ class LibraryPrefix : public Object {
   RawLibrary* GetLibrary(int index) const;
   void AddLibrary(const Library& library) const;
   RawClass* LookupLocalClass(const String& class_name) const;
-  RawString* CheckForDuplicateDefinition() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
@@ -2368,19 +2351,20 @@ class Stackmap : public Object {
   // Return the index of the lowest stack slot that has an object.
   intptr_t MinimumBitIndex() const { return raw_ptr()->min_set_bit_index_; }
 
-  static const intptr_t kBytesPerElement = kWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawStackmap) + (len * kBytesPerElement));
+  static intptr_t InstanceSize(intptr_t length_in_bytes) {
+    ASSERT(length_in_bytes >= 0);
+    ASSERT(length_in_bytes <= kMaxLengthInBytes);
+    return RoundedAllocationSize(sizeof(RawStackmap) + length_in_bytes);
   }
-  static RawStackmap* New(uword pc, BitmapBuilder* bmap);
+  static RawStackmap* New(intptr_t pc_offset,
+                          intptr_t length_in_bits,
+                          BitmapBuilder* bmap);
 
  private:
   inline intptr_t SizeInBits() const;
@@ -5406,6 +5390,41 @@ class JSRegExp : public Instance {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
+  friend class Class;
+};
+
+
+class WeakProperty : public Instance {
+ public:
+  RawObject* key() const {
+    return raw_ptr()->key_;
+  }
+
+  void set_key(const Object& key) const {
+    StorePointer(&raw_ptr()->key_, key.raw());
+  }
+
+  RawObject* value() const {
+    return raw_ptr()->value_;
+  }
+
+  void set_value(const Object& value) const {
+    StorePointer(&raw_ptr()->value_, value.raw());
+  }
+
+  static RawWeakProperty* New(Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawWeakProperty));
+  }
+
+  static void Clear(RawWeakProperty* raw_weak) {
+    raw_weak->ptr()->key_ = Object::null();
+    raw_weak->ptr()->value_ = Object::null();
+  }
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
   friend class Class;
 };
 

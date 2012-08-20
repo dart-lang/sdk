@@ -124,7 +124,7 @@ abstract class TypeTestCase extends TestCase {
 
   static FunctionType ftype(ClassElement element, Type returnType,
                             Map<String, Type> namedParameterTypes, Type rest, Type... arguments) {
-    return FunctionTypeImplementation.of(element, Arrays.asList(arguments), namedParameterTypes,
+    return FunctionTypeImplementation.of(element, Arrays.asList(arguments), null, namedParameterTypes,
                                          rest, returnType);
   }
 

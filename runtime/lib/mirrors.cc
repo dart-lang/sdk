@@ -56,12 +56,6 @@ static Dart_Handle MapAdd(Dart_Handle map, Dart_Handle key, Dart_Handle value) {
 }
 
 
-static Dart_Handle MapGet(Dart_Handle map, Dart_Handle key) {
-  Dart_Handle args[] = { key };
-  return Dart_Invoke(map, Dart_NewString("[]"), ARRAY_SIZE(args), args);
-}
-
-
 static Dart_Handle MirrorLib() {
   Dart_Handle mirror_lib_name = Dart_NewString("dart:mirrors");
   return Dart_LookupLibrary(mirror_lib_name);
@@ -212,7 +206,7 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
     return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   } else {
     ASSERT(Dart_IsClass(target) || Dart_IsInterface(target));
-    Dart_Handle cls_name = Dart_NewString("_LazyInterfaceMirror");
+    Dart_Handle cls_name = Dart_NewString("_LazyClassMirror");
     Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
 
     Dart_Handle lib = Dart_ClassGetLibrary(target);
@@ -262,12 +256,12 @@ static Dart_Handle CreateImplementsList(Dart_Handle intf) {
 static Dart_Handle CreateMemberMap(Dart_Handle owner);
 
 
-static Dart_Handle CreateInterfaceMirror(Dart_Handle intf,
-                                         Dart_Handle intf_name,
-                                         Dart_Handle lib,
-                                         Dart_Handle lib_mirror) {
+static Dart_Handle CreateClassMirror(Dart_Handle intf,
+                                     Dart_Handle intf_name,
+                                     Dart_Handle lib,
+                                     Dart_Handle lib_mirror) {
   ASSERT(Dart_IsClass(intf) || Dart_IsInterface(intf));
-  Dart_Handle cls_name = Dart_NewString("_LocalInterfaceMirrorImpl");
+  Dart_Handle cls_name = Dart_NewString("_LocalClassMirrorImpl");
   Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
   if (Dart_IsError(cls)) {
     return cls;
@@ -459,7 +453,7 @@ static Dart_Handle AddMemberClasses(Dart_Handle map,
       return intf;
     }
     Dart_Handle intf_mirror =
-        CreateInterfaceMirror(intf, intf_name, owner, owner_mirror);
+        CreateClassMirror(intf, intf_name, owner, owner_mirror);
     if (Dart_IsError(intf_mirror)) {
       return intf_mirror;
     }
@@ -626,14 +620,11 @@ static Dart_Handle CreateIsolateMirror() {
   if (Dart_IsError(cls)) {
     return cls;
   }
-
-  Dart_Handle args[] = { Dart_DebugName() };
-  Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
-  if (Dart_IsError(mirror)) {
-    return mirror;
-  }
-
-  return mirror;
+  Dart_Handle args[] = {
+    Dart_DebugName(),
+    CreateLazyMirror(Dart_RootLibrary()),
+  };
+  return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
 }
 
 
@@ -649,15 +640,7 @@ static Dart_Handle CreateMirrorSystem() {
     return libraries;
   }
 
-  // Lookup the root_lib_mirror from the library list to canonicalize it.
-  Dart_Handle root_lib_name = Dart_LibraryName(Dart_RootLibrary());
-  Dart_Handle root_lib_mirror = MapGet(libraries, root_lib_name);
-  if (Dart_IsError(root_lib_mirror)) {
-    return root_lib_mirror;
-  }
-
   Dart_Handle args[] = {
-    root_lib_mirror,
     libraries,
     CreateIsolateMirror(),
   };
@@ -723,6 +706,8 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
       return func;
     }
     Dart_Handle func_name = Dart_NewString("call");
+    // TODO(turnidge): Passing in 'mirror' here as the method owner
+    // seems wrong to me.  Investigate.
     Dart_Handle func_mirror = CreateMethodMirror(func, func_name, mirror);
     if (Dart_IsError(func_mirror)) {
       return func_mirror;
@@ -909,7 +894,7 @@ void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
 }
 
 
-void NATIVE_ENTRY_FUNCTION(LocalInterfaceMirrorImpl_invokeConstructor)(
+void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
     Dart_NativeArguments args) {
   Dart_Handle klass_mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle constructor_name = Dart_GetNativeArgument(args, 1);

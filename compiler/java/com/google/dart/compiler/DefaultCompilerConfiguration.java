@@ -56,8 +56,8 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   @Override
   public List<DartCompilationPhase> getPhases() {
     List<DartCompilationPhase> phases = new ArrayList<DartCompilationPhase>();
-    phases.add(new CompileTimeConstantAnalyzer.Phase());
     phases.add(new Resolver.Phase());
+    phases.add(new CompileTimeConstantAnalyzer.Phase());
     phases.add(new TypeAnalyzer());
     return phases;
   }

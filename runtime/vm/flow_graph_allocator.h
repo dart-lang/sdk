@@ -12,15 +12,14 @@ namespace dart {
 
 class AllocationFinger;
 class BlockInfo;
-class FlowGraphBuilder;
+class FlowGraph;
 class LiveRange;
 class UseInterval;
 class UsePosition;
 
 class FlowGraphAllocator : public ValueObject {
  public:
-  FlowGraphAllocator(const GrowableArray<BlockEntryInstr*>& block_order,
-                     FlowGraphBuilder* builder);
+  explicit FlowGraphAllocator(const FlowGraph& flow_graph);
 
   void AllocateRegisters();
 
@@ -174,10 +173,7 @@ class FlowGraphAllocator : public ValueObject {
 
   void PrintLiveRanges();
 
-  // TODO(vegorov): this field is used only to call Bailout. Remove when
-  // all bailouts are gone.
-  FlowGraphBuilder* builder_;
-
+  const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
   const GrowableArray<BlockEntryInstr*>& postorder_;
 

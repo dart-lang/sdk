@@ -878,7 +878,7 @@ static RawFunction* InlineCacheMissHandler(
     ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
                              target_function);
   } else {
-    GrowableArray<intptr_t> class_ids;
+    GrowableArray<intptr_t> class_ids(args.length());
     ASSERT(ic_data.num_args_tested() == args.length());
     for (intptr_t i = 0; i < args.length(); i++) {
       class_ids.Add(Class::Handle(args[i]->clazz()).id());
@@ -907,7 +907,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 1) {
   ASSERT(arguments.Count() ==
       kInlineCacheMissHandlerOneArgRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  GrowableArray<const Instance*> args;
+  GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
       Function::Handle(InlineCacheMissHandler(isolate, args));
@@ -926,7 +926,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
       kInlineCacheMissHandlerTwoArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const Instance& other = Instance::CheckedHandle(arguments.At(1));
-  GrowableArray<const Instance*> args;
+  GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
   const Function& result =

@@ -18,6 +18,14 @@ request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not impl
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
+[ $compiler == dart2js && $runtime == drt && $system == windows]
+audiocontext_test: Fail # Issue 4517
+audioelement_test: Fail # Issue 4517
+blob_constructor_test: Fail # Issue 4517
+css_test: Fail # Issue 4517
+htmlaudioelement_test: Fail # Issue 4517
+indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
 
@@ -60,6 +68,7 @@ callbacks_test: Fail
 canvas_test: Fail
 canvas_using_html_test: Fail
 css_test: Fail
+datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
 exceptions_test: Fail
 hidden_dom_1_test: Fail
@@ -73,6 +82,7 @@ js_interop_1_test: Fail
 js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
+js_interop_func_passing_test: Fail
 measurement_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
@@ -117,6 +127,7 @@ indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 inner_frame_test: Skip
 js_interop_3_test: Fail
 js_interop_4_test: Fail
+js_interop_func_passing_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
@@ -172,12 +183,7 @@ unknownelement_test: Fail # Issue 4189
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js ]
-svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 transferables_test: Skip # until isInstance works in dart2js
-
-[ $compiler == dart2js && $runtime == d8 ]
-# Should investigate why this test succeeds on d8.
-svgelement2_test: Pass
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.

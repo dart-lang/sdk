@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -30,6 +31,7 @@ import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 
 import java.util.List;
@@ -915,6 +917,71 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD, 3, 3);
   }
 
+  public void test_localVariable_const() {
+    DartUnit unit = parseUnit("constVar.dart", makeCode(
+        "main() {",
+        "  const v = 1;",
+        "}"));
+    assertNotNull(unit);
+    DartNode firstNode = unit.getTopLevelNodes().get(0);
+    assertTrue(firstNode instanceof DartMethodDefinition);
+    DartStatement statement = ((DartMethodDefinition) firstNode).getFunction().getBody().getStatements().get(0);
+    assertTrue(((DartVariableStatement) statement).getModifiers().isConstant());
+  }
+
+  public void test_metadata_identifier() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const int annotation = 0;",
+        "class A {",
+        "  m0() {}",
+        "  @annotation",
+        "  m1() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    DartClass classA = (DartClass) unit.getTopLevelNodes().get(1);
+
+    DartMethodDefinition method0 = (DartMethodDefinition) classA.getMembers().get(0);
+    assertEquals("m0", method0.getName().toSource());
+    assertEquals(0, method0.getMetadata().size());
+
+    DartMethodDefinition method1 = (DartMethodDefinition) classA.getMembers().get(1);
+    assertEquals("m1", method1.getName().toSource());
+    assertEquals(1, method1.getMetadata().size());
+    DartAnnotation metadata = method1.getMetadata().get(0);
+    assertNotNull(metadata);
+    DartExpression name = metadata.getName();
+    assertTrue(name instanceof DartIdentifier);
+    assertEquals("annotation", name.toSource());
+    assertEquals(0, metadata.getArguments().size());
+  }
+
+  public void test_metadata_constructor() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const A();",
+        "}",
+        "",
+        "class B {",
+        "  m0() {}",
+        "  @A()",
+        "  m1() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    DartClass classB = (DartClass) unit.getTopLevelNodes().get(1);
+
+    DartMethodDefinition method0 = (DartMethodDefinition) classB.getMembers().get(0);
+    assertEquals("m0", method0.getName().toSource());
+    assertEquals(0, method0.getMetadata().size());
+
+    DartMethodDefinition method1 = (DartMethodDefinition) classB.getMembers().get(1);
+    assertEquals("m1", method1.getName().toSource());
+    assertEquals(1, method1.getMetadata().size());
+  }
+
   public void test_metadata_deprecated() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -932,13 +999,13 @@ public class SyntaxTest extends AbstractParserTest {
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
         assertEquals("m0", method.getName().toSource());
-        assertEquals(false, method.getMetadata().isDeprecated());
+        assertEquals(false, method.getObsoleteMetadata().isDeprecated());
       }
       // m1()
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
         assertEquals("m1", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isDeprecated());
+        assertEquals(true, method.getObsoleteMetadata().isDeprecated());
       }
     }
   }
@@ -968,21 +1035,21 @@ public class SyntaxTest extends AbstractParserTest {
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
         assertEquals("m0", method.getName().toSource());
-        assertEquals(false, method.getMetadata().isOverride());
+        assertEquals(false, method.getObsoleteMetadata().isOverride());
         assertNull(method.getDartDoc());
       }
       // m1()
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
         assertEquals("m1", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isOverride());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
         assertNull(method.getDartDoc());
       }
       // m2()
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(2);
         assertEquals("m2", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isOverride());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
         {
           DartComment dartDoc = method.getDartDoc();
           assertNotNull(dartDoc);
@@ -993,7 +1060,7 @@ public class SyntaxTest extends AbstractParserTest {
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(3);
         assertEquals("m3", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isOverride());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
         {
           DartComment dartDoc = method.getDartDoc();
           assertNotNull(dartDoc);
@@ -1064,6 +1131,15 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.VOID_FIELD, 2, 1,
             ParserErrorCode.VOID_PARAMETER, 4, 10,
             ParserErrorCode.VOID_FIELD, 5, 3);
+  }
+
+  public void test_topLevelVariable_const() {
+    DartUnit unit = parseUnit("constVar.dart", "const v = 1;");
+    assertNotNull(unit);
+    DartNode firstNode = unit.getTopLevelNodes().get(0);
+    assertTrue(firstNode instanceof DartFieldDefinition);
+    DartField field = ((DartFieldDefinition) firstNode).getFields().get(0);
+    assertTrue(field.getModifiers().isConstant());
   }
 
   public void test_unexpectedTypeArgument() throws Exception {
@@ -1142,6 +1218,73 @@ public class SyntaxTest extends AbstractParserTest {
             "  for (var foo, bar in a) { }",
             "}"),
             ParserErrorCode.FOR_IN_WITH_MULTIPLE_VARIABLES, 2, 17);
+  }
+
+  public void test_formalParameters_named() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method({var a : 1, var b : 2}) {",
+            "}"));
+  }
+
+  public void test_formalParameters_named_missingRightBracket() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method({var a : 1) {",
+            "}"),
+            ParserErrorCode.MISSING_NAMED_PARAMETER_END, 1, 18);
+  }
+
+  public void test_formalParameters_named_wrongSeparator() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method({var a = 1}) {",
+            "}"),
+            ParserErrorCode.INVALID_SEPARATOR_FOR_NAMED, 1, 13);
+  }
+
+  public void test_formalParameters_optional() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method([var a = 1, var b = 2]) {",
+            "}"));
+  }
+
+  public void test_formalParameters_optional_missingRightBrace() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method([var a = 1) {",
+            "}"),
+            ParserErrorCode.MISSING_OPTIONAL_PARAMETER_END, 1, 18);
+  }
+
+  public void test_formalParameters_optional_wrongSeparator() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method([var a : 1]) {",
+            "}"),
+            ParserErrorCode.INVALID_SEPARATOR_FOR_OPTIONAL, 1, 13);
+  }
+
+  public void test_formalParameters_positional() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method(var a, var b) {",
+            "}"));
+  }
+
+  public void test_formalParameters_positional_named() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method(var a, var b, {var c : 3, var d : 4}) {",
+            "}"));
+  }
+
+  public void test_formalParameters_positional_optional() throws Exception {
+    parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "method(var a, var b, [var c = 3, var d = 4]) {",
+            "}"));
   }
 
   public void test_forVariableInitializer() throws Exception {

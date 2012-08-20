@@ -38,8 +38,15 @@ def run_cmd(cmd, stdin=None):
 
 def parse_args():
   parser = optparse.OptionParser()
-  parser.add_option('--firefox', '-f', dest='firefox', help='Install Firefox',
+  parser.add_option('--firefox', '-f', dest='firefox', help="Don't install "
+      "Firefox", action='store_true', default=False)
+  parser.add_option('--chromedriver', '-c', dest='chromedriver', help="Don't "
+      "install chromedriver.", action='store_true', default=False)
+  parser.add_option('--seleniumrc', '-s', dest='seleniumrc', help="Don't "
+      "install the Selenium RC server (used for Safari and Opera tests).",
       action='store_true', default=False)
+  parser.add_option('--python', '-p', dest='python', help="Don't "
+      "install Selenium python bindings.", action='store_true', default=False)
   parser.add_option('--buildbot', '-b', dest='buildbot', action='store_true',
       help='Perform a buildbot selenium setup (buildbots have a different' + \
       'location for their python executable).', default=False)
@@ -264,14 +271,17 @@ class SeleniumBindingsInstaller(object):
 
 def main():
   args = parse_args()
-  SeleniumBindingsInstaller(args.buildbot).run()
-  GoogleCodeInstaller('chromedriver', find_depot_tools_location(args.buildbot),
-      lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
-  if 'win32' not in sys.platform and 'cygwin' not in sys.platform:
+  if not args.python:
+    SeleniumBindingsInstaller(args.buildbot).run()
+  if not args.chromedriver:
+    GoogleCodeInstaller('chromedriver',
+        find_depot_tools_location(args.buildbot),
+        lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
+  if not args.seleniumrc:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),
         lambda x: 'selenium-server-standalone-%(version)s.jar' % x).run()
 
-  if args.firefox:
+  if not args.firefox:
     FirefoxInstaller().run()
 
 if __name__ == '__main__':

@@ -65,7 +65,7 @@ void setterNoFeedback() {
 class X {
   int pField = 0;
   set field(v) { pField = v; }
-  get field() => 10;
+  get field => 10;
 }
 
 void sameNotImplicitSetter() {
@@ -116,7 +116,7 @@ multiImplicitSetter() {
 class Z {
   int pField = 0;
   set field(v) { pField = v; }
-  get field() => 10;
+  get field => 10;
 }
 
 multiNotImplicitSetter() {

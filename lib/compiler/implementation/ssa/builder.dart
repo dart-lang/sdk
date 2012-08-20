@@ -197,7 +197,7 @@ class SsaBuilderTask extends CompilerTask {
         } else {
           name = "${element.name.slowToString()}";
         }
-        compiler.tracer.traceCompilation(name);
+        compiler.tracer.traceCompilation(name, work.compilationContext);
         compiler.tracer.traceGraph('builder', graph);
       }
       return graph;
@@ -939,6 +939,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     buildInitializers(constructor, constructors, fieldValues);
     elements = oldElements;
   }
+
   /**
    * Run through the initializers and inline all field initializers. Recursively
    * inlines super initializers.
@@ -1033,8 +1034,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    final Map<FunctionElement, TreeElements> constructorElements =
-        compiler.resolver.constructorElements;
     List<FunctionElement> constructors = <FunctionElement>[functionElement];
 
     // Analyze the constructor and all referenced constructors and collect
@@ -2165,7 +2164,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);
-      Selector selector = new Selector.callAny(0);
+      Selector selector = new Selector.callClosure(0);
       push(new HInvokeClosure(selector, <HInstruction>[pop()]));
     } else {
       // Call a helper method from the isolate library.
@@ -2205,7 +2204,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = compiler.namer.closureInvocationName(
-        new Selector.callAny(params.requiredParameterCount));
+        new Selector.callClosure(params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),
                       inputs));
@@ -2365,7 +2364,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      pushWithPosition(new HInvokeStatic(inputs), node);
+      HInvokeStatic instruction = new HInvokeStatic(inputs);
+      HType returnType =
+          builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
+              work.element, element);
+      if (returnType != null) instruction.guaranteedType = returnType;
+      pushWithPosition(instruction, node);
     } else {
       if (element.kind == ElementKind.GETTER) {
         target = new HInvokeStatic(inputs);
@@ -2421,7 +2425,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       var inputs = <HInstruction>[target, context];
       addDynamicSendArgumentsToList(node, inputs);
-      push(new HInvokeSuper(inputs));
+      if (node.assignmentOperator.source.stringValue !== '=') {
+        compiler.unimplemented('complex super assignment',
+                               node: node.assignmentOperator);
+      }
+      push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(op.source.stringValue === '=');
@@ -3224,7 +3232,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           } else {
             // TODO(aprelev@gmail.com): Once old catch syntax is removed
             // "if" condition above and this "else" branch should be deleted as
-            // type of declared variable won't matter for the catch 
+            // type of declared variable won't matter for the catch
             // condition
             Type type = elements.getType(declaration.type);
             if (type == null) {

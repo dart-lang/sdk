@@ -42,6 +42,12 @@ arithmetic_test: Fail
 assertion_test: Fail
 
 [ $compiler == dart2js ]
+implicit_this_test/03: Fail # TODO(ahe): Handle abstract getters.
+implicit_this_test/04: Fail # TODO(ahe): Handle abstract getters.
+property_field_override_test: Fail # TODO(ahe): Handle abstract getters.
+
+getter_declaration_negative_test: Fail # This will be fixed when dart2js reject old getter syntax.
+
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 
@@ -52,6 +58,8 @@ function_type_alias6_test: Crash, Fail
 static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
+const_var_test: Fail # Map literals take 2 type arguments.
+map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
 constructor6_test: Fail # Closures inside initializers not implemented.
@@ -59,7 +67,7 @@ default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
 factory3_test: Fail # internal error: visitIs for type variables not implemented
 function_literals2_test: Fail # Closures inside initializers not implemented.
-function_syntax_test: Fail # Closures inside initializers not implemented.
+function_syntax_test/none: Fail # Closures inside initializers not implemented.
 function_test: Fail # internal error: Closures inside initializers not implemented
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
@@ -67,6 +75,7 @@ function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
+function_type_alias6_test: Fail # visitIs for typedefs not implemented.
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
@@ -77,7 +86,6 @@ generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
 getter_no_setter_test/01: Crash # Internal error: NullPointerException : method: 'get:enclosingElement'
-getters_setters_test: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 implicit_scope_test: Fail # duplicate definition of a="bar"
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
@@ -160,7 +168,6 @@ const_syntax_test/01: Fail # Negative language test.
 const_syntax_test/02: Fail # Negative language test.
 const_syntax_test/03: Fail # Negative language test.
 constructor2_negative_test: Fail # Negative language test.
-constructor_duplicate_initializers_test/02: Fail # Negative language test.
 constructor_negative_test: Pass # For the wrong reason.
 constructor_return_negative_test: Fail # Negative language test.
 constructor_return_with_arrow_negative_test: Fail # Negative language test.
@@ -183,7 +190,6 @@ field7a_negative_test: Fail # Negative language test.
 final_for_in_variable_test/01: Fail # Negative language test
 final_param_negative_test: Fail # Negative language test.
 final_var_negative_test: Fail # Negative language test.
-getter_declaration_negative_test: Fail # Negative language test.
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 interface_factory3_negative_test: Fail # Negative language test.
 interface_factory_constructor_negative_test: Fail # Negative language test.

@@ -184,7 +184,7 @@ public class NegativeParserTest extends CompilerTestCase {
   public void test_missingEndOfOptionalParameters() {
     parseExpectErrors(
         "class A {void m(var p1, [var p2 = const []) {} }",
-        errEx(ParserErrorCode.MISSING_NAMED_PARAMETER_END, 1, 43, 1));
+        errEx(ParserErrorCode.MISSING_OPTIONAL_PARAMETER_END, 1, 43, 1));
   }
 
   public void test_namedParameterValue_inOperator() {

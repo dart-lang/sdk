@@ -81,7 +81,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
-      "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
+      "Deprecated Map literal syntax. Both String (as key) and value type arguments required."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATE_INITIALIZATION("Duplicate initialization of '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),

@@ -23,13 +23,13 @@ class LockFile {
   LockFile._(this.packages);
 
   LockFile.empty()
-    : packages = <PackageId>{};
+    : packages = <String, PackageId>{};
 
   /**
    * Parses the lockfile whose text is [contents].
    */
   factory LockFile.parse(String contents, SourceRegistry sources) {
-    var packages = <PackageId>{};
+    var packages = <String, PackageId>{};
 
     if (contents.trim() == '') return new LockFile.empty();
 
@@ -82,7 +82,7 @@ class LockFile {
    * Returns the serialized YAML text of the lock file.
    */
   String serialize() {
-    var packagesObj = <Map>{};
+    var packagesObj = <String, Map>{};
     packages.forEach((name, id) {
       packagesObj[name] = {
         'version': id.version.toString(),

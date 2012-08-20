@@ -6,7 +6,7 @@ var foo;
 bar() => foo(3, 99);
 gee(f) => foo(fun: f);
 
-get foo2() => foo;
+get foo2 => foo;
 bar2() => foo2(3, 99);
 gee2(f) => foo2(fun: f);
 
@@ -31,7 +31,7 @@ class A {
   static bar() => foo(3, 99);
   static gee(f) => foo(fun: f);
 
-  static get foo2() => foo;
+  static get foo2 => foo;
   static bar2() => foo2(3, 99);
   static gee2(f) => foo2(fun: f);
 }

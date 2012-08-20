@@ -23,10 +23,13 @@ void renamePlaceholders(
   String renamePrivateIdentifier(LibraryElement library, String id) =>
       getName(library, id, () => '_${privateNameCounter++}${id}');
 
+  Generator topLevelGenerator =
+      true ? conservativeGenerator : new MinifyingGenerator('ABCD').generate;
   String generateUniqueName(name) {
-    while (usedTopLevelIdentifiers.contains(name)) name = 'p_$name';
-    usedTopLevelIdentifiers.add(name);
-    return name;
+    String newName = topLevelGenerator(
+        name, usedTopLevelIdentifiers.contains);
+    usedTopLevelIdentifiers.add(newName);
+    return newName;
   }
 
   String renameElement(Element element) {
@@ -35,7 +38,8 @@ void renamePlaceholders(
     // local identifiers.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
-    if (library === compiler.coreLibrary) return originalName;
+    if (library === compiler.coreLibrary
+        || element == compiler.mainApp.find(Compiler.MAIN)) return originalName;
     if (isDartCoreLib(compiler, library)) {
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
@@ -45,9 +49,6 @@ void renamePlaceholders(
     return getName(library, originalName,
                    () => generateUniqueName(originalName));
   }
-
-  // Rename main() right now so that nobody takes its place.
-  renameElement(compiler.mainApp.find(Compiler.MAIN));
 
   placeholderCollector.nullNodes.forEach((Node node) {
     renames[node] = '';
@@ -79,4 +80,51 @@ void renamePlaceholders(
               renamePrivateIdentifier(library, node.source.slowToString());
         });
   });
+}
+
+typedef String Generator(String originalName, bool isForbidden(String name));
+
+/** Always tries to return original identifier name unless it is forbidden. */
+String conservativeGenerator(
+    String originalName, bool isForbidden(String name)) {
+  String newName = originalName;
+  while (isForbidden(newName)) {
+    newName = 'p_$newName';
+  }
+  return newName;
+}
+
+/** Always tries to generate the most compact identifier. */
+class MinifyingGenerator {
+  final String alphabet;
+  int nextIdIndex;
+
+  MinifyingGenerator(this.alphabet) : nextIdIndex = 0;
+
+  String generate(String originalName, bool isForbidden(String name)) {
+    String newName;
+    do {
+      newName = getNextId();
+    } while(isForbidden(newName));
+    return newName;
+  }
+
+  /**
+   * Generates next mini ID with current index and alphabet.
+   * Advances current index.
+   * In other words, it converts index to visual representation
+   * as if digits are given characters.
+   */
+  String getNextId() {
+    // It's like converting index in decimal to [chars] radix.
+    int index = nextIdIndex++;
+    int length = alphabet.length;
+    StringBuffer resultBuilder = new StringBuffer();
+    while (index >= length) {
+      resultBuilder.add(alphabet[index % length]);
+      index ~/= length;
+    }
+    resultBuilder.add(alphabet[index]);
+    return resultBuilder.toString();
+  }
 }

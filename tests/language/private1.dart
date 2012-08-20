@@ -80,8 +80,10 @@ void testPrivateClasses() {
   expectCatch(() => LibOther3.accessFieldB3(b));
 
   C4 c = new C4();
+  Expect.equals(499, c._field1);
   Expect.equals(499, c_field1a(c));
   Expect.equals(499, c.field1a());
+  Expect.equals(42, c._field2);
   Expect.equals(42, c_field2a(c));
   Expect.equals(42, c.field2a());
   Expect.equals(99, LibOther3.c_field1b(c));

@@ -40,6 +40,10 @@ BENCHMARK(CorelibCompileAll) {
   timer.Start();
   const Error& error = Error::Handle(benchmark->isolate(),
                                      Library::CompileAll());
+  if (!error.IsNull()) {
+    OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",
+                 error.ToErrorCString());
+  }
   EXPECT(error.IsNull());
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();

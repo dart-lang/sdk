@@ -182,7 +182,7 @@ namespace dart {
   V(LocalObjectMirrorImpl_getField, 2)                                         \
   V(LocalObjectMirrorImpl_setField, 3)                                         \
   V(LocalClosureMirrorImpl_apply, 2)                                           \
-  V(LocalInterfaceMirrorImpl_invokeConstructor, 3)                             \
+  V(LocalClassMirrorImpl_invokeConstructor, 3)                                 \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \
@@ -190,6 +190,9 @@ namespace dart {
   V(GrowableObjectArray_getCapacity, 1)                                        \
   V(GrowableObjectArray_setLength, 2)                                          \
   V(GrowableObjectArray_setData, 2)                                            \
+  V(WeakProperty_new, 2)                                                       \
+  V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_getValue, 1)                                                  \
 
 BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)
 

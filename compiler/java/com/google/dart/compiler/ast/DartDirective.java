@@ -9,7 +9,7 @@ import com.google.dart.compiler.resolver.NodeElement;
 /**
  * Base class for directives.
  */
-public abstract class DartDirective extends DartNode {
+public abstract class DartDirective extends DartNodeWithMetadata {
   @Override
   public NodeElement getElement() {
     throw new UnsupportedOperationException(getClass().getSimpleName());

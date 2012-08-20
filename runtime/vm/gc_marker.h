@@ -16,6 +16,7 @@ class Isolate;
 class MarkingVisitor;
 class ObjectPointerVisitor;
 class PageSpace;
+class RawWeakProperty;
 
 // The class GCMarker is used to mark reachable old generation objects as part
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
@@ -39,6 +40,7 @@ class GCMarker : public ValueObject {
                         bool visit_prologue_weak_persistent_handles);
   void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
+  void ProcessWeakProperty(RawWeakProperty* raw_weak, MarkingVisitor* visitor);
 
   Heap* heap_;
 

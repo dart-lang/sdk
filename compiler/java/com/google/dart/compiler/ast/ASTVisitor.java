@@ -77,6 +77,10 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
+  public R visitAnnotation(DartAnnotation node) {
+    return visitNode(node);
+  }
+
   public R visitArrayAccess(DartArrayAccess node) {
     return visitExpression(node);
   }

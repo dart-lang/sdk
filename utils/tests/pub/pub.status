@@ -11,7 +11,6 @@ lock_file_test: Skip
 version_solver_test: Skip
 
 [ $compiler == dartc ]
-yaml_test: Fail # pub issue 3539
 version_solver_test: Fail # dart:io is using private named parameters
 
 # Pub only runs on the standalone VM, not the browser.

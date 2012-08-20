@@ -17,7 +17,7 @@ class A {
     if (n == 0) return set;
     return () => limp(n - 1);
   }
-  A get self() => this;
+  A get self => this;
   A operator+(A other) {
     this.value += other.value;
     return this;
@@ -29,7 +29,7 @@ class Box {
   Box(this.value);
   A operator[](int pos) => value;
   void operator[]=(int pos, A a) { value = a; }
-  A get x() => value;
+  A get x => value;
   void set x(A a) { value = a; }
 }
 

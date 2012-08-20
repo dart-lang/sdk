@@ -242,9 +242,13 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((Element parameter) {
-      Type type = parameter.computeType(compiler);
+      Type type = parameter.computeType(compiler).unalias(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
-      if (type is FunctionType) input = convertDartClosure(parameter, type);
+      if (type is FunctionType) {
+        // The parameter type is a function type either directly or through
+        // typedef(s).
+        input = convertDartClosure(parameter, type);
+      }
       inputs.add(input);
       arguments.add('#');
     });
@@ -274,8 +278,10 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     // mangling problem will go away once we switch these libraries
     // to use Leg's 'JS' function.
     parameters.forEachParameter((Element parameter) {
-      Type type = parameter.computeType(compiler);
+      Type type = parameter.computeType(compiler).unalias(compiler);
       if (type is FunctionType) {
+        // The parameter type is a function type either directly or through
+        // typedef(s).
         HInstruction jsClosure = convertDartClosure(parameter, type);
         // Because the JS code references the argument name directly,
         // we must keep the name and assign the JS closure to it.

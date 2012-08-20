@@ -61,13 +61,11 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
   } else if (type is TypeVariableType) {
     return new Dart2JsTypeVariableMirror(system, type);
   } else if (type is FunctionType) {
-    if (type.element is TypedefElement) {
-      return new Dart2JsTypedefMirror(system, type.element);
-    } else {
-      return new Dart2JsFunctionTypeMirror(system, type, functionSignature);
-    }
+    return new Dart2JsFunctionTypeMirror(system, type, functionSignature);
   } else if (type is VoidType) {
     return new Dart2JsVoidMirror(system, type);
+  } else if (type is TypedefType) {
+    return new Dart2JsTypedefMirror(system, type);
   }
   throw new IllegalArgumentException("Unexpected interface type $type");
 }
@@ -221,7 +219,7 @@ class LibraryCompiler extends api.Compiler {
     scanBuiltinLibraries();
     var elementList = <LibraryElement>[];
     for (var uri in uriList) {
-      elementList.add(scanner.loadLibrary(uri, null));
+      elementList.add(scanner.loadLibrary(uri, null, uri));
     }
 
     world.populate(this);
@@ -244,9 +242,6 @@ class LibraryCompiler extends api.Compiler {
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
     });
-    //world.queueIsClosed = true;
-    assert(world.checkNoEnqueuedInvokedInstanceMethods());
-    world.registerFieldClosureInvocations();
   }
 
   String codegen(WorkItem work, Enqueuer world) {
@@ -318,7 +313,7 @@ class Dart2JsCompilation implements Compilation {
 
   Dart2JsCompilation(Path script, Path libraryRoot,
                      [Path packageRoot, List<String> opts = const <String>[]])
-      : cwd = getCurrentDirectory(), sourceFiles = <SourceFile>{} {
+      : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
     var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot !== null) {
@@ -335,7 +330,7 @@ class Dart2JsCompilation implements Compilation {
 
   Dart2JsCompilation.library(List<Path> libraries, Path libraryRoot,
                      [Path packageRoot, List<String> opts = const <String>[]])
-      : cwd = getCurrentDirectory(), sourceFiles = <SourceFile>{} {
+      : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
     var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot !== null) {
@@ -427,7 +422,7 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
 
   void _ensureLibraries() {
     if (_libraries == null) {
-      _libraries = <Dart2JsLibraryMirror>{};
+      _libraries = <String, Dart2JsLibraryMirror>{};
       compiler.libraries.forEach((_, LibraryElement v) {
         var mirror = new Dart2JsLibraryMirror(system, v);
         _libraries[mirror.canonicalName] = mirror;
@@ -495,7 +490,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
 
   void _ensureTypes() {
     if (_types == null) {
-      _types = <InterfaceMirror>{};
+      _types = <String, InterfaceMirror>{};
       _library.forEachExport((Element e) {
         if (e.getLibrary() == _library) {
           if (e.isClass()) {
@@ -503,7 +498,8 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
             var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
             _types[type.canonicalName] = type;
           } else if (e.isTypedef()) {
-            var type = new Dart2JsTypedefMirror.fromLibrary(this, e);
+            var type = new Dart2JsTypedefMirror.fromLibrary(this,
+                e.computeType(system.compiler));
             _types[type.canonicalName] = type;
           }
         }
@@ -513,7 +509,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
 
   void _ensureMembers() {
     if (_members == null) {
-      _members = <MemberMirror>{};
+      _members = <String, MemberMirror>{};
       _library.forEachExport((Element e) {
         if (!e.isClass() && !e.isTypedef()) {
           for (var member in _convertElementMemberToMemberMirrors(this, e)) {
@@ -683,7 +679,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
 
   void _ensureMembers() {
     if (_members == null) {
-      _members = <Dart2JsMemberMirror>{};
+      _members = <String, Dart2JsMemberMirror>{};
       _class.localMembers.forEach((e) {
         for (var member in _convertElementMemberToMemberMirrors(this, e)) {
           _members[member.canonicalName] = member;
@@ -788,31 +784,31 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   }
 }
 
-class Dart2JsTypedefMirror extends Dart2JsElementMirror
+class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     implements Dart2JsTypeMirror, TypedefMirror {
   final Dart2JsLibraryMirror _library;
   List<TypeVariableMirror> _typeVariables;
   TypeMirror _definition;
 
-  Dart2JsTypedefMirror(Dart2JsMirrorSystem system, TypedefElement _typedef)
-      : this._library = system.getLibrary(_typedef.getLibrary()),
+  Dart2JsTypedefMirror(Dart2JsMirrorSystem system, TypedefType _typedef)
+      : this._library = system.getLibrary(_typedef.element.getLibrary()),
         super(system, _typedef);
 
   Dart2JsTypedefMirror.fromLibrary(Dart2JsLibraryMirror library,
-                                   TypedefElement _typedef)
+                                   TypedefType _typedef)
       : this._library = library,
         super(library.system, _typedef);
 
-  TypedefElement get _typedef() => _element;
+  TypedefType get _typedef() => _type;
 
   String get canonicalName() => simpleName;
 
   String get qualifiedName() => '${library.qualifiedName}.${simpleName}';
 
   Location get location() {
-    var node = _typedef.parseNode(_diagnosticListener);
+    var node = _typedef.element.parseNode(_diagnosticListener);
     if (node !== null) {
-      var script = _typedef.getCompilationUnit().script;
+      var script = _typedef.element.getCompilationUnit().script;
       var span = system.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
     }
@@ -855,14 +851,16 @@ class Dart2JsTypedefMirror extends Dart2JsElementMirror
     return _definition;
   }
 
-  Map<Object, MemberMirror> get declaredMembers() => const <MemberMirror>{};
+  Map<Object, MemberMirror> get declaredMembers() =>
+      const <String, MemberMirror>{};
 
   InterfaceMirror get declaration() => this;
 
   // TODO(johnniwinther): How should a typedef respond to these?
   InterfaceMirror get superclass() => null;
 
-  Map<Object, InterfaceMirror> get interfaces() => const <InterfaceMirror>{};
+  Map<Object, InterfaceMirror> get interfaces() =>
+      const <String, InterfaceMirror>{};
 
   bool get isClass() => false;
 
@@ -872,7 +870,8 @@ class Dart2JsTypedefMirror extends Dart2JsElementMirror
 
   bool get isDeclaration() => true;
 
-  Map<Object, MethodMirror> get constructors() => const <MethodMirror>{};
+  Map<Object, MethodMirror> get constructors() =>
+      const <String, MethodMirror>{};
 
   InterfaceMirror get defaultType() => null;
 }
@@ -899,7 +898,8 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
             _typeVariableType.element.enclosingElement);
       } else if (_typeVariableType.element.enclosingElement.isTypedef()) {
         _declarer = new Dart2JsTypedefMirror(system,
-            _typeVariableType.element.enclosingElement);
+            _typeVariableType.element.enclosingElement.computeType(
+                system.compiler));
       }
     }
     return _declarer;
@@ -1124,7 +1124,8 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
 
   List<TypeVariableMirror> get typeVariables() => declaration.typeVariables;
 
-  Map<Object, MethodMirror> get constructors() => <MethodMirror>{};
+  Map<Object, MethodMirror> get constructors() =>
+      <String, MethodMirror>{};
 
   InterfaceMirror get defaultType() => null;
 
@@ -1305,6 +1306,11 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
     var node = _function.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _function.getCompilationUnit().script;
+      if (_function.isPatched) {
+        // TODO(ager): This should not be necessary when patch
+        // support has been reworked.
+        script = _function.patch.getCompilationUnit().script;
+      }
       var span = system.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
     }

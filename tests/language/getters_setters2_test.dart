@@ -16,7 +16,7 @@ class C {}
 
 class T1 {
   A getterField; 
-  A get field() { return getterField; }
+  A get field { return getterField; }
   // OK, B is assignable to A
   void set field(B arg) { getterField = arg; }
 }
@@ -24,7 +24,7 @@ class T1 {
 class T2 {
   A getterField; 
   C setterField; 
-  A get field() { return getterField; }
+  A get field { return getterField; }
 
   // Type C is not assignable to A
   void set field(C arg) { setterField = arg; } /// 01: static type warning
@@ -32,7 +32,7 @@ class T2 {
 
 class T3 {
   B getterField; 
-  B get field() { return getterField; }
+  B get field { return getterField; }
   // OK, A is assignable to B
   void set field(A arg) { getterField = arg; }
 }

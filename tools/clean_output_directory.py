@@ -17,7 +17,7 @@ def BuildOptions():
   result.add_option("-m", "--mode",
       help='Build variants (comma-separated).',
       metavar='[all,debug,release]',
-      default='debug')
+      default='all')
   result.add_option("--arch",
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm]',

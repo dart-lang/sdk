@@ -25,8 +25,8 @@ public enum TypeErrorCode implements ErrorCode {
   DEFAULT_CONSTRUCTOR_TYPES(
       "Constructor '%s' in '%s' has parameters types (%s), doesn't match '%s' in '%s' with (%s)"),
   DUPLICATE_NAMED_ARGUMENT("Named parameter argument already provided as positional argument"),
-  CASE_EXPRESSION_SHOULD_BE_INT_STRING(ErrorSeverity.ERROR,
-      "Case expression should be compiler-time constant of type 'int' or 'String', '%s' found"),
+  CASE_EXPRESSION_TYPE_SHOULD_NOT_HAVE_EQUALS(ErrorSeverity.ERROR,
+      "Case expression type '%s' should not implement operator =="),
   CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE(ErrorSeverity.ERROR,
       "All case expressions should be compiler-time constants of the same type - 'int' or 'String'. '%s' expected but '%s' found"),
   EXPECTED_POSITIONAL_ARGUMENT("Expected positional argument of type %s before named arguments"),

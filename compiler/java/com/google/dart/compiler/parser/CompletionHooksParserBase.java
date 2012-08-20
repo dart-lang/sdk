@@ -257,6 +257,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
     begin();
   }
 
+  protected void beginMetadata() {
+    begin();
+  }
+
   protected void beginMethodName() {
     begin();
   }

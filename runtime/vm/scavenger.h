@@ -94,11 +94,14 @@ class Scavenger {
   void IterateRoots(Isolate* isolate,
                     ScavengerVisitor* visitor,
                     bool visit_prologue_weak_persistent_handles);
+  void IterateWeakProperties(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakRoots(Isolate* isolate,
                         HandleVisitor* visitor,
                         bool visit_prologue_weak_persistent_handles);
   void ProcessToSpace(ScavengerVisitor* visitor);
+  uword ProcessWeakProperty(RawWeakProperty* raw_weak,
+                            ScavengerVisitor* visitor);
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
 
   bool IsUnreachable(RawObject** p);

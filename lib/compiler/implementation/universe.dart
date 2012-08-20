@@ -75,8 +75,7 @@ class SelectorKind {
 
   static final SelectorKind GETTER = const SelectorKind('getter');
   static final SelectorKind SETTER = const SelectorKind('setter');
-  // TODO(kasperl): Rename INVOCATION to CALL and introduce CALL_ANY.
-  static final SelectorKind INVOCATION = const SelectorKind('invocation');
+  static final SelectorKind CALL = const SelectorKind('call');
   static final SelectorKind OPERATOR = const SelectorKind('operator');
   static final SelectorKind INDEX = const SelectorKind('index');
 
@@ -85,8 +84,8 @@ class SelectorKind {
 
 class Selector implements Hashable {
   final SelectorKind kind;
-  final SourceString name;       // Name is null for call-any selectors.
-  final LibraryElement library;  // Library is null for non-private selectors.
+  final SourceString name;
+  final LibraryElement library; // Library is null for non-private selectors.
 
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
@@ -100,17 +99,19 @@ class Selector implements Hashable {
       this.argumentCount,
       [List<SourceString> namedArguments = const <SourceString>[]])
     : this.name = name,
-      this.library = (name != null && name.isPrivate()) ? library : null,
+      this.library = name.isPrivate() ? library : null,
       this.namedArguments = namedArguments,
       this.orderedNamedArguments = namedArguments.isEmpty()
           ? namedArguments
           : <SourceString>[] {
-    // TODO(kasperl): Only allow null name for call-any selectors.
-    assert(name == null || !name.isPrivate() || library != null);
+    assert(!name.isPrivate() || library != null);
   }
 
   Selector.getter(SourceString name, LibraryElement library)
       : this(SelectorKind.GETTER, name, library, 0);
+
+  Selector.getterFrom(Selector selector)
+      : this(SelectorKind.GETTER, selector.name, selector.library, 0);
 
   Selector.setter(SourceString name, LibraryElement library)
       : this(SelectorKind.SETTER, name, library, 1);
@@ -131,18 +132,23 @@ class Selector implements Hashable {
                 LibraryElement library,
                 int arity,
                 [List<SourceString> named = const []])
-      : this(SelectorKind.INVOCATION, name, library, arity, named);
+      : this(SelectorKind.CALL, name, library, arity, named);
 
-  Selector.callAny(int arity, [List<SourceString> named = const []])
-      : this(SelectorKind.INVOCATION, null, null, arity, named);
+  Selector.callClosure(int arity, [List<SourceString> named = const []])
+      : this(SelectorKind.CALL, Namer.CLOSURE_INVOCATION_NAME, null,
+             arity, named);
+
+  Selector.callClosureFrom(Selector selector)
+      : this(SelectorKind.CALL, Namer.CLOSURE_INVOCATION_NAME, null,
+             selector.argumentCount, selector.namedArguments);
 
   // TODO(kasperl): This belongs somewhere else.
   Selector.noSuchMethod()
-      : this(SelectorKind.INVOCATION, Compiler.NO_SUCH_METHOD, null, 2);
+      : this(SelectorKind.CALL, Compiler.NO_SUCH_METHOD, null, 2);
 
   bool isGetter() => kind === SelectorKind.GETTER;
   bool isSetter() => kind === SelectorKind.SETTER;
-  bool isCall() => kind === SelectorKind.INVOCATION;
+  bool isCall() => kind === SelectorKind.CALL;
 
   bool isIndex() => kind === SelectorKind.INDEX && argumentCount == 1;
   bool isIndexSet() => kind === SelectorKind.INDEX && argumentCount == 2;
@@ -167,16 +173,10 @@ class Selector implements Hashable {
   Type get receiverType() => null;
 
   bool applies(Element element, Compiler compiler) {
-    if (element.isSetter()) return kind === SelectorKind.SETTER;
-    if (element.isGetter()) {
-      return kind === SelectorKind.GETTER || kind === SelectorKind.INVOCATION;
-    }
-    if (element.isField()) {
-      return kind === SelectorKind.GETTER
-          || kind === SelectorKind.INVOCATION
-          || kind === SelectorKind.SETTER;
-    }
-    if (kind === SelectorKind.GETTER) return true;
+    if (element.isSetter()) return isSetter();
+    if (element.isGetter()) return isGetter() || isCall();
+    if (element.isField()) return isGetter() || isSetter() || isCall();
+    if (isGetter()) return true;
 
     FunctionElement function = element;
     FunctionSignature parameters = function.computeSignature(compiler);
@@ -384,5 +384,5 @@ class TypedSelector extends Selector {
     return false;
   }
 
-  toString() => 'TypedSelector($kind, $receiverType, $argumentCount)';
+  toString() => 'Selector($kind, $name, $argumentCount, type=$receiverType)';
 }

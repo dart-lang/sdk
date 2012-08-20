@@ -20,10 +20,10 @@ class Indexed {
 var result;
 
 class A {
-  get field() { result.add(1); return 1; }
+  get field { result.add(1); return 1; }
   set field(value) {}
 
-  static get static_field() { result.add(0); return 1; }
+  static get static_field { result.add(0); return 1; }
   static set static_field(value) { result.add(1); }
 }
 

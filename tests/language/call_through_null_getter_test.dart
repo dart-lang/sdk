@@ -85,7 +85,7 @@ class A {
 
   A() { }
   var field;
-  get getter() { return field; }
+  get getter { return field; }
   method() { return field; }
 
 }

@@ -7,7 +7,7 @@
 #include "vm/bit_vector.h"
 #include "vm/intermediate_language.h"
 #include "vm/il_printer.h"
-#include "vm/flow_graph_builder.h"
+#include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/parser.h"
 
@@ -56,17 +56,15 @@ static intptr_t ToInstructionStart(intptr_t pos) {
 }
 
 
-FlowGraphAllocator::FlowGraphAllocator(
-  const GrowableArray<BlockEntryInstr*>& block_order,
-  FlowGraphBuilder* builder)
-  : builder_(builder),
-    block_order_(block_order),
-    postorder_(builder->postorder_block_entries()),
-    live_out_(block_order.length()),
-    kill_(block_order.length()),
-    live_in_(block_order.length()),
-    vreg_count_(builder->current_ssa_temp_index()),
-    live_ranges_(builder->current_ssa_temp_index()),
+FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
+  : flow_graph_(flow_graph),
+    block_order_(flow_graph.reverse_postorder()),
+    postorder_(flow_graph.postorder()),
+    live_out_(block_order_.length()),
+    kill_(block_order_.length()),
+    live_in_(block_order_.length()),
+    vreg_count_(flow_graph.max_virtual_register_number()),
+    live_ranges_(flow_graph.max_virtual_register_number()),
     cpu_regs_(),
     blocked_cpu_regs_() {
   for (intptr_t i = 0; i < vreg_count_; i++) live_ranges_.Add(NULL);
@@ -104,6 +102,9 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
 
           PushArgumentInstr* push_argument = def->AsPushArgument();
           if ((push_argument != NULL) && push_argument->WasEliminated()) {
+            // TODO(zerny): This should be unreachable if we could properly
+            // replace uses by values. (See RemovePushArguments in
+            // flow_graph_optimizer.cc).
             (*values)[i] = push_argument->value();
             continue;
           }
@@ -505,13 +506,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
     ConnectIncomingPhiMoves(block);
   }
 
-  const bool copied = builder_->copied_parameter_count() > 0;
-
   // Process incoming parameters.  Do this after all other instructions so
   // that safepoints for all calls have already been found.
-  const intptr_t fixed_parameters_count =
-      builder_->parsed_function().function().num_fixed_parameters();
-
   GraphEntryInstr* graph_entry = postorder_[block_count - 1]->AsGraphEntry();
   for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
     Value* val = graph_entry->start_env()->values()[i];
@@ -522,16 +518,18 @@ void FlowGraphAllocator::BuildLiveRanges() {
       range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
       range->DefineAt(graph_entry->start_pos());
 
+      // Assert that copied and non-copied parameters are mutually exclusive.
+      // This might change in the future and, if so, the index will be wrong.
+      ASSERT(flow_graph_.copied_parameter_count() == 0 ||
+             flow_graph_.non_copied_parameter_count() == 0);
       // Slot index for the leftmost copied parameter is 0.
       intptr_t slot_index = param->index();
-      if (!copied) {
-        // Slot index for the rightmost fixed parameter is -1.
-        slot_index -= fixed_parameters_count;
-      }
+      // Slot index for the rightmost fixed parameter is -1.
+      slot_index -= flow_graph_.non_copied_parameter_count();
 
       range->set_assigned_location(Location::StackSlot(slot_index));
       range->set_spill_slot(Location::StackSlot(slot_index));
-      if (copied) {
+      if (flow_graph_.copied_parameter_count() > 0) {
         ASSERT(spill_slots_.length() == slot_index);
         spill_slots_.Add(range->End());
       }
@@ -548,7 +546,9 @@ void FlowGraphAllocator::BuildLiveRanges() {
         AddToUnallocated(tail);
       }
       ConvertAllUses(range);
-      if (copied) MarkAsObjectAtSafepoints(range);
+      if (flow_graph_.copied_parameter_count() > 0) {
+        MarkAsObjectAtSafepoints(range);
+      }
     }
   }
 }
@@ -744,10 +744,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
   LocationSummary* locs = current->locs();
 
-  // TODO(vegorov): number of inputs must match number of input locations.
-  if (locs->input_count() != current->InputCount()) {
-    builder_->Bailout("ssa allocator: number of input locations mismatch");
-  }
+  // Number of input locations and number of input operands have to agree.
+  ASSERT(locs->input_count() == current->InputCount());
 
   // Normalize same-as-first-input output if input is specified as
   // fixed register.
@@ -2002,7 +2000,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   }
 
   if (FLAG_print_ssa_liveranges) {
-    const Function& function = builder_->parsed_function().function();
+    const Function& function = flow_graph_.parsed_function().function();
 
     OS::Print("-- [before ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
@@ -2011,7 +2009,7 @@ void FlowGraphAllocator::AllocateRegisters() {
 
     OS::Print("-- [before ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
-    FlowGraphPrinter printer(Function::Handle(), block_order_, true);
+    FlowGraphPrinter printer(flow_graph_, true);
     printer.PrintBlocks();
     OS::Print("----------------------------------------------\n");
   }
@@ -2025,7 +2023,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   entry->set_spill_slot_count(spill_slots_.length());
 
   if (FLAG_print_ssa_liveranges) {
-    const Function& function = builder_->parsed_function().function();
+    const Function& function = flow_graph_.parsed_function().function();
 
     OS::Print("-- [after ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
@@ -2034,7 +2032,7 @@ void FlowGraphAllocator::AllocateRegisters() {
 
     OS::Print("-- [after ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
-    FlowGraphPrinter printer(Function::Handle(), block_order_, true);
+    FlowGraphPrinter printer(flow_graph_, true);
     printer.PrintBlocks();
     OS::Print("----------------------------------------------\n");
   }

@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartMetadata;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
@@ -23,7 +23,7 @@ public interface Element extends HasSourceInfo {
 
   Modifiers getModifiers();
   
-  DartMetadata getMetadata();
+  DartObsoleteMetadata getMetadata();
 
   /**
    * @return the innermost {@link EnclosingElement} which encloses this {@link Element}.

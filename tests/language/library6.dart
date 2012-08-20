@@ -10,7 +10,7 @@
 #library("Library6NegativeTest.dart");
 #import("library5a.dart");  // Defines function type alias Fun
 
-typedef int Fun();  // Conflicts with definition of Fun from library5a
+typedef int Fun();  // Does not conflict with definition of Fun from library5a
 
 main() {
 }

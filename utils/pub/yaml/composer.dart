@@ -25,7 +25,7 @@ class _Composer extends _Visitor {
    */
   int idCounter;
 
-  _Composer(this.root) : this.anchors = <_Node>{}, this.idCounter = 0;
+  _Composer(this.root) : this.anchors = <String, _Node>{}, this.idCounter = 0;
 
   /** Runs the Composer to produce a representation graph. */
   _Node compose() => root.visit(this);

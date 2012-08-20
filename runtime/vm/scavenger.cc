@@ -4,6 +4,9 @@
 
 #include "vm/scavenger.h"
 
+#include <map>
+#include <utility>
+
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/isolate.h"
@@ -63,6 +66,25 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
   void VisitingOldPointers(bool value) { visiting_old_pointers_ = value; }
 
+  void DelayWeakProperty(RawWeakProperty* raw_weak) {
+    RawObject* raw_key = raw_weak->ptr()->key_;
+    DelaySet::iterator it = delay_set_.find(raw_key);
+    if (it != delay_set_.end()) {
+      ASSERT(raw_key->IsWatched());
+    } else {
+      ASSERT(!raw_key->IsWatched());
+      raw_key->SetWatchedBit();
+    }
+    delay_set_.insert(std::make_pair(raw_key, raw_weak));
+  }
+
+  void Finalize() {
+    DelaySet::iterator it = delay_set_.begin();
+    for (; it != delay_set_.end(); ++it) {
+      WeakProperty::Clear(it->second);
+    }
+  }
+
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
     uword ptr = reinterpret_cast<uword>(p);
@@ -100,6 +122,16 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
     } else {
+      if (raw_obj->IsWatched()) {
+        std::pair<DelaySet::iterator, DelaySet::iterator> ret;
+        // Visit all elements with a key equal to raw_obj.
+        ret = delay_set_.equal_range(raw_obj);
+        for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
+          it->second->VisitPointers(this);
+        }
+        delay_set_.erase(ret.first, ret.second);
+        raw_obj->ClearWatchedBit();
+      }
       intptr_t size = raw_obj->Size();
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
@@ -146,6 +178,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Scavenger* scavenger_;
   Heap* heap_;
   Heap* vm_heap_;
+  typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
+  DelaySet delay_set_;
 
   bool visiting_old_pointers_;
 
@@ -439,7 +473,13 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
-      resolved_top_ += raw_obj->VisitPointers(visitor);
+      intptr_t class_id = raw_obj->GetClassId();
+      if (class_id != kWeakPropertyCid) {
+        resolved_top_ += raw_obj->VisitPointers(visitor);
+      } else {
+        RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
+        resolved_top_ += ProcessWeakProperty(raw_weak, visitor);
+      }
     }
     visitor->VisitingOldPointers(true);
     while (PromotedStackHasMore()) {
@@ -450,6 +490,23 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       raw_object->VisitPointers(visitor);
     }
     visitor->VisitingOldPointers(false);
+  }
+}
+
+
+uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
+                                     ScavengerVisitor* visitor) {
+  // The fate of the weak property is determined by its key.
+  RawObject* raw_key = raw_weak->ptr()->key_;
+  uword raw_addr = RawObject::ToAddr(raw_key);
+  uword header = *reinterpret_cast<uword*>(raw_addr);
+  if (!IsForwarding(header)) {
+    // Key is white.  Delay the weak property.
+    visitor->DelayWeakProperty(raw_weak);
+    return raw_weak->Size();
+  } else {
+    // Key is gray or black.  Make the weak property black.
+    return raw_weak->VisitPointers(visitor);
   }
 }
 
@@ -507,6 +564,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   IterateWeakReferences(isolate, &visitor);
   ScavengerWeakVisitor weak_visitor(this);
   IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
+  visitor.Finalize();
   Epilogue(isolate, invoke_api_callbacks);
   timer.Stop();
   if (FLAG_verbose_gc) {

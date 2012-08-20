@@ -41,7 +41,7 @@ void Symbols::InitOnce(Isolate* isolate) {
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxId);
   const Array& symbol_table =
       Array::Handle(isolate->object_store()->symbol_table());
-  OneByteString& str = OneByteString::Handle();
+  dart::OneByteString& str = OneByteString::Handle();
 
   for (intptr_t i = 1; i < Symbols::kMaxId; i++) {
     str = OneByteString::New(names[i], Heap::kOld);
@@ -71,7 +71,7 @@ intptr_t Symbols::Size(Isolate* isolate) {
   Array& symbol_table = Array::Handle(isolate,
                                       isolate->object_store()->symbol_table());
   intptr_t table_size_index = symbol_table.Length() - 1;
-  Smi& used = Smi::Handle();
+  dart::Smi& used = Smi::Handle();
   used ^= symbol_table.At(table_size_index);
   return used.Value();
 }
@@ -203,7 +203,7 @@ void Symbols::GrowSymbolTable(const Array& symbol_table) {
   // Copy all elements from the original symbol table to the newly allocated
   // array.
   String& element = String::Handle();
-  Object& new_element = Object::Handle();
+  dart::Object& new_element = Object::Handle();
   for (intptr_t i = 0; i < table_size; i++) {
     element ^= symbol_table.At(i);
     if (!element.IsNull()) {
@@ -231,7 +231,7 @@ void Symbols::InsertIntoSymbolTable(const Array& symbol_table,
   intptr_t table_size = symbol_table.Length() - 1;
   symbol.SetCanonical();  // Mark object as being canonical.
   symbol_table.SetAt(index, symbol);  // Remember the new symbol.
-  Smi& used = Smi::Handle();
+  dart::Smi& used = Smi::Handle();
   used ^= symbol_table.At(table_size);
   intptr_t used_elements = used.Value() + 1;  // One more element added.
   used = Smi::New(used_elements);

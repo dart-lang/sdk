@@ -12,8 +12,8 @@ class AConst {
 class BConst {
   const BConst();
   set foo(value) {}
-  get foo() { return 5; }
-  
+  get foo { return 5; }
+
   operator [](ix) { return ix; }
   operator []=(ix, value) {}  
 }

@@ -142,17 +142,6 @@ def BuildSDK(mode, system):
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
-  # TODO(efortuna): Currently we always clobber Windows builds. The VM
-  # team thinks there's a problem with dependency tracking on Windows that
-  # is leading to occasional build failures. Remove when this gyp issue has
-  # been ironed out.
-  if system == 'win7':
-    for build in ['Release_', 'Debug_']:
-      for arch in ['ia32', 'x64']:
-        outdir = build + arch
-        shutil.rmtree(outdir, ignore_errors=True)
-        shutil.rmtree('runtime/%s' % outdir, ignore_errors=True)
-
   os.chdir(DART_PATH)
 
   args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']

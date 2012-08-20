@@ -685,7 +685,7 @@ function(collectedClasses) {
       // create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, element);
+          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.getName(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
@@ -753,7 +753,7 @@ $classesCollector.$mangledName = {'':
       // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, member);
+          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
 
       String invocationName =
           namer.instanceMethodName(member.getLibrary(),
@@ -805,7 +805,7 @@ $classesCollector.$mangledName = {'':
         String invocationName =
             namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                                selector);
-        SourceString callName = namer.CLOSURE_INVOCATION_NAME;
+        SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
         String closureCallName =
             namer.instanceMethodInvocationName(member.getLibrary(), callName,
                                                selector);
@@ -921,16 +921,7 @@ $classesCollector.$mangledName = {'':
       return buffer;
     }
 
-    void addNoSuchMethodHandlers(SourceString name, Set<Selector> selectors) {
-      // TODO(kasperl): We should really teach private selectors about
-      // which libraries they are used from. That way, we wouldn't
-      // have to conservatively generate versions for all libraries
-      // the name is used from.
-      String nameString = name.slowToString();
-      Collection<LibraryElement> libraries = name.isPrivate()
-          ? namer.usedPrivateNames[nameString]
-          : const [ null ];
-
+    void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
       // Cache the object class and type.
       ClassElement objectClass = compiler.objectClass;
       Type objectType = objectClass.computeType(compiler);
@@ -940,7 +931,7 @@ $classesCollector.$mangledName = {'':
         // class has a member that matches the current name and
         // selector (grabbed from the scope).
         bool hasMatchingMember(ClassElement holder) {
-          Element element = holder.lookupMember(name);
+          Element element = holder.lookupMember(selector.name);
           if (element === null) return false;
 
           // TODO(kasperl): Consider folding this logic into the
@@ -1014,28 +1005,29 @@ $classesCollector.$mangledName = {'':
         Set<ClassElement> holders = noSuchMethodHoldersFor(receiverType);
         if (holders.every(hasMatchingMember)) continue;
 
-        for (LibraryElement lib in libraries) {
-          String jsName = null;
-          String methodName = null;
-          if (selector.kind === SelectorKind.GETTER) {
-            jsName = namer.getterName(lib, name);
-            methodName = 'get:$nameString';
-          } else if (selector.kind === SelectorKind.SETTER) {
-            jsName = namer.setterName(lib, name);
-            methodName = 'set:$nameString';
-          } else if (selector.kind === SelectorKind.INVOCATION) {
-            jsName = namer.instanceMethodInvocationName(lib, name, selector);
-            methodName = nameString;
-          } else {
-            // We simply ignore selectors that do not need
-            // noSuchMethod handlers.
-            continue;
-          }
-          if (!addedJsNames.contains(jsName)) {
-            CodeBuffer jsCode = generateMethod(methodName, selector);
-            defineInstanceMember(jsName, jsCode);
-            addedJsNames.add(jsName);
-          }
+        String jsName = null;
+        String methodName = null;
+        String nameString = selector.name.slowToString();
+        if (selector.isGetter()) {
+          jsName = namer.getterName(selector.library, selector.name);
+          methodName = 'get:$nameString';
+        } else if (selector.isSetter()) {
+          jsName = namer.setterName(selector.library, selector.name);
+          methodName = 'set:$nameString';
+        } else if (selector.isCall()) {
+          jsName = namer.instanceMethodInvocationName(
+              selector.library, selector.name, selector);
+          methodName = nameString;
+        } else {
+          // We simply ignore selectors that do not need
+          // noSuchMethod handlers.
+          continue;
+        }
+
+        if (!addedJsNames.contains(jsName)) {
+          CodeBuffer jsCode = generateMethod(methodName, selector);
+          defineInstanceMember(jsName, jsCode);
+          addedJsNames.add(jsName);
         }
       }
     }
@@ -1054,7 +1046,7 @@ $classesCollector.$mangledName = {'':
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
-      Selector selector = new Selector.callAny(0);
+      Selector selector = new Selector.callClosure(0);
       String invocationName = "${namer.closureInvocationName(selector)}";
       mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
     }

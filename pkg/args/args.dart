@@ -208,7 +208,7 @@ class ArgParser {
 
   /** Creates a new ArgParser. */
   ArgParser()
-    : _options = <_Option>{},
+    : _options = <String, _Option>{},
       _optionNames = <String>[];
 
   /**
@@ -308,7 +308,7 @@ class ArgParser {
     for (var name in _optionNames) {
       var option = _options[name];
       if (option.allowMultiple &&
-          results[name].length == 0 && 
+          results[name].length == 0 &&
           option.defaultValue != null) {
         results[name].add(option.defaultValue);
       }
@@ -489,6 +489,17 @@ class ArgParser {
 
     return null;
   }
+
+  /**
+   * Get the default value for an option. Useful after parsing to test
+   * if the user specified something other than the default.
+   */
+  getDefault(String option) {
+    if (!_options.containsKey(option)) {
+      throw new IllegalArgumentException('No option named $option');
+    }
+    return _options[option].defaultValue;
+  }
 }
 
 /**
@@ -518,6 +529,9 @@ class ArgResults {
 
     return _options[name];
   }
+
+  /** Get the names of the options as a [Collection]. */
+  Collection<String> get options() => _options.getKeys();
 }
 
 class _Option {

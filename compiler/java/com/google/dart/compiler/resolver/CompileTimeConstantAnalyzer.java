@@ -9,11 +9,11 @@ import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
@@ -419,13 +419,9 @@ public class CompileTimeConstantAnalyzer {
           return null;
 
         case NONE:
+        default:
           expectedConstant(x);
           return null;
-
-        default:
-          throw new InternalCompilerException("Unexpected element "
-              + x.toString() + " kind: " + ElementKind.of(element)
-              + " evaluating type for compile-time constant expression.");
       }
       return null;
     }
@@ -489,6 +485,7 @@ public class CompileTimeConstantAnalyzer {
       switch (ElementKind.of(x.getQualifier().getElement())) {
         case CLASS:
         case LIBRARY_PREFIX:
+        case LIBRARY:
         case NONE:
           // OK.
           break;
@@ -632,10 +629,6 @@ public class CompileTimeConstantAnalyzer {
           }
           return null;
         }
-        if (isClassField && !isStatic) {
-          DartExpression value = node.getValue();
-          checkInstanceFieldInitializer(value);
-        }
       }
       return super.visitField(node);
     }
@@ -681,6 +674,12 @@ public class CompileTimeConstantAnalyzer {
       }
       return super.visitInitializer(node);
     }
+    
+    @Override
+    public Void visitCase(DartCase node) {
+      checkConstantExpression(node.getExpr());
+      return super.visitCase(node);
+    }
 
     @Override
     public Void visitMapLiteral(DartMapLiteral node) {
@@ -720,7 +719,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitVariableStatement(DartVariableStatement node) {
       Modifiers modifiers = node.getModifiers();
-      if (modifiers.isStatic() && modifiers.isFinal()) {
+      if (modifiers.isConstant() || (modifiers.isStatic() && modifiers.isFinal())) {
         for (DartVariable variable : node.getVariables()) {
           if (variable.getValue() != null) {
             checkConstantExpression(variable.getValue());
@@ -793,32 +792,5 @@ public class CompileTimeConstantAnalyzer {
 
   public void exec(DartUnit unit) {
     unit.accept(new FindCompileTimeConstantExpressionsVisitor());
-  }
-
-  private void checkInstanceFieldInitializer(DartExpression value) {
-    if (value != null) {
-      value.accept(new ASTVisitor<Void>() {
-        @Override
-        public Void visitThisExpression(DartThisExpression node) {
-          context.onError(new DartCompilationError(node,
-              ResolverErrorCode.CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER));
-          return null;
-        }
-        @Override
-        public Void visitIdentifier(DartIdentifier node) {
-          NodeElement element = node.getElement();
-          if (ElementKind.of(element) == ElementKind.FIELD) {
-            FieldElement fieldElement = (FieldElement) element;
-            boolean isStatic = fieldElement.getModifiers().isStatic()
-                || Elements.isTopLevel(fieldElement);
-            if (!isStatic) {
-              context.onError(new DartCompilationError(node,
-                  ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER));
-            }
-          }
-          return null;
-        }
-      });
-    }
   }
 }

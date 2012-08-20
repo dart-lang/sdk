@@ -67,18 +67,19 @@ class Environment {
  * Visits the graph in dominator order and inserts TypeGuards in places where
  * we consider the guard to be of value.
  *
- * Might modify the [:propagatedType:] fields of the instructions in an
- * inconsistent way. No further analysis should rely on them.
+ * Might modify the [types] in an inconsistent way. No further analysis should
+ * rely on them.
  */
 class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   final Compiler compiler;
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
+  final HTypeMap types;
   bool calledInLoop = false;
   bool isRecursiveMethod = false;
   int stateId = 1;
 
-  SsaTypeGuardInserter(this.compiler, this.work);
+  SsaTypeGuardInserter(this.compiler, this.work, this.types);
 
   void visitGraph(HGraph graph) {
     isRecursiveMethod = graph.isRecursiveMethod;
@@ -153,7 +154,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     // type guard is much smaller than the first one that causes the
     // generation of a bailout method.
     if (instruction is HIndex &&
-        (instruction as HIndex).builtin &&
+        (instruction as HIndex).isBuiltin(types) &&
         hasTypeGuards) {
       HBasicBlock loopHeader = instruction.block.enclosingLoopHeader;
       if (loopHeader != null && loopHeader.parentLoopHeader != null) {
@@ -166,20 +167,9 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     return calledInLoop;
   }
 
-  bool shouldInsertTypeGuard(HInstruction instruction) {
-    HType speculativeType = instruction.propagatedType;
-    HType computedType = instruction.computeTypeFromInputTypes();
-    // Start by reverting the propagated type. If we add a type guard then the
-    // guard will expose the speculative type. If we don't add a type guard
-    // then this avoids subsequent instructions to use the the wrong type.
-    //
-    // Note that just setting the propagatedType of the instruction is not
-    // complete since the type could lead to a phi node which in turn could
-    // change the computedType. In this case we might miss some guards we
-    // would have liked to insert. Most of the time this should however be
-    // fine, due to dominator-order visiting.
-    instruction.propagatedType = computedType;
-
+  bool shouldInsertTypeGuard(HInstruction instruction,
+                             HType speculativeType,
+                             HType computedType) {
     if (!speculativeType.isUseful()) return false;
     // If the types agree we don't need to check.
     if (speculativeType == computedType) return false;
@@ -189,8 +179,22 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitInstruction(HInstruction instruction) {
-    HType speculativeType = instruction.propagatedType;
-    if (shouldInsertTypeGuard(instruction)) {
+    HType speculativeType = types[instruction];
+    HType computedType = instruction.computeTypeFromInputTypes(types);
+    // Currently the type in [types] is the speculative type each instruction
+    // would like to have. We start by recomputing the type non-speculatively.
+    // If we add a type guard then the guard will expose the speculative type.
+    // If we don't add a type guard then this avoids that subsequent
+    // instructions use the wrong (speculative) type.
+    //
+    // Note that just setting the speculative type of the instruction is not
+    // complete since the type could lead to a phi node which in turn could
+    // change the speculative type. In this case we might miss some guards we
+    // would have liked to insert. Most of the time this should however be
+    // fine, due to dominator-order visiting.
+    types[instruction] = computedType;
+
+    if (shouldInsertTypeGuard(instruction, speculativeType, computedType)) {
       HInstruction insertionPoint;
       if (instruction is HPhi) {
         insertionPoint = instruction.block.first;
@@ -218,7 +222,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
         insertionPoint.block.addBefore(insertionPoint, target);
       }
       HTypeGuard guard = new HTypeGuard(speculativeType, instruction, target);
-      guard.propagatedType = speculativeType;
+      types[guard] = speculativeType;
       work.guards.add(guard);
       instruction.block.rewrite(instruction, guard);
       insertionPoint.block.addBefore(insertionPoint, guard);

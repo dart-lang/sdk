@@ -21,6 +21,46 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
+
+intptr_t Computation::Hashcode() const {
+  intptr_t result = computation_kind();
+  for (intptr_t i = 0; i < InputCount(); ++i) {
+    UseVal* val = InputAt(i)->AsUse();
+    intptr_t j = val != NULL
+        ? val->definition()->ssa_temp_index()
+        : -1;
+    result = result * 31 + j;
+  }
+  return result;
+}
+
+
+bool Computation::Equals(Computation* other) const {
+  if (computation_kind() != other->computation_kind()) return false;
+  for (intptr_t i = 0; i < InputCount(); ++i) {
+    if (!InputAt(i)->Equals(other->InputAt(i))) return false;
+  }
+  return AttributesEqual(other);
+}
+
+
+bool CheckClassComp::AttributesEqual(Computation* other) const {
+  CheckClassComp* other_check = other->AsCheckClass();
+  if (other_check == NULL) return false;
+  if (ic_data()->NumberOfChecks() != other->ic_data()->NumberOfChecks()) {
+    return false;
+  }
+  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); ++i) {
+    // TODO(fschneider): Make sure ic_data are sorted to hit more cases.
+    if (ic_data()->GetReceiverClassIdAt(i) !=
+        other->ic_data()->GetReceiverClassIdAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 UseVal::UseVal(Definition* definition)
     : definition_(definition), next_use_(NULL), previous_use_(NULL) {
   AddToUseList();
@@ -32,6 +72,40 @@ void UseVal::SetDefinition(Definition* definition) {
   RemoveFromUseList();
   definition_ = definition;
   AddToUseList();
+}
+
+
+// Returns true if the value represents a constant.
+bool UseVal::BindsToConstant() const {
+  BindInstr* bind = definition()->AsBind();
+  if (bind == NULL) {
+    return false;
+  }
+  return bind->computation()->AsConstant() != NULL;
+}
+
+
+// Returns true if the value represents constant null.
+bool UseVal::BindsToConstantNull() const {
+  BindInstr* bind = definition()->AsBind();
+  if (bind == NULL) {
+    return false;
+  }
+  ConstantVal* constant = bind->computation()->AsConstant();
+  if (constant != NULL) {
+    return constant->value().IsNull();
+  }
+  return false;
+}
+
+
+const Object& UseVal::BoundConstant() const {
+  ASSERT(BindsToConstant());
+  BindInstr* bind = definition()->AsBind();
+  ASSERT(bind != NULL);
+  ConstantVal* constant = bind->computation()->AsConstant();
+  ASSERT(constant != NULL);
+  return constant->value();
 }
 
 
@@ -138,7 +212,18 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   // that the instruction is removed from the graph.
   set_previous(NULL);
   set_next(NULL);
+  ASSERT(!IsDefinition() || AsDefinition()->use_list() == NULL);
   return return_previous ? prev_instr : next_instr;
+}
+
+
+void BindInstr::InsertBefore(BindInstr* next) {
+  ASSERT(previous_ == NULL);
+  ASSERT(next_ == NULL);
+  next_ = next;
+  previous_ = next->previous_;
+  next->previous_ = this;
+  previous_->next_ = this;
 }
 
 
@@ -149,12 +234,16 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
 
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
+  ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+    ForwardInstructionIterator it(entry);
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
       it.Current()->Accept(this);
     }
+    current_iterator_ = NULL;
   }
 }
 
@@ -163,14 +252,15 @@ void FlowGraphVisitor::VisitBlocks() {
 // given dst_type.
 // TODO(regis): Support a set of compile types for the given value.
 bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
-  ASSERT(!dst_type.IsMalformed());  // Should be tested by caller.
-  ASSERT(!dst_type.IsDynamicType());  // Should be tested by caller.
-  ASSERT(!dst_type.IsObjectType());  // Should be tested by caller.
+  // No type is more specific than a malformed type.
+  if (dst_type.IsMalformed()) {
+    return false;
+  }
 
   // If the value is the null constant, its type (NullType) is more specific
   // than the destination type, even if the destination type is the void type,
   // since a void function is allowed to return null.
-  if (IsConstant() && AsConstant()->value().IsNull()) {
+  if (BindsToConstantNull()) {
     return true;
   }
 
@@ -321,6 +411,18 @@ void Definition::ReplaceUsesWith(Definition* other) {
 }
 
 
+bool Definition::SetPropagatedCid(intptr_t cid) {
+  ASSERT(cid != kIllegalCid);
+  if (propagated_cid_ == kIllegalCid) {
+    // First setting, nothing has changed.
+    propagated_cid_ = cid;
+    return false;
+  }
+  bool has_changed = (propagated_cid_ != cid);
+  propagated_cid_ = cid;
+  return has_changed;
+}
+
 RawAbstractType* BindInstr::CompileType() const {
   ASSERT(!HasPropagatedType());
   // The compile type may be requested when building the flow graph, i.e. before
@@ -328,6 +430,14 @@ RawAbstractType* BindInstr::CompileType() const {
   return computation()->CompileType();
 }
 
+
+intptr_t BindInstr::GetPropagatedCid() {
+  if (has_propagated_cid()) return propagated_cid();
+  intptr_t cid = computation()->ResultCid();
+  ASSERT(cid != kIllegalCid);
+  SetPropagatedCid(cid);
+  return cid;
+}
 
 void BindInstr::RecordAssignedVars(BitVector* assigned_vars,
                                    intptr_t fixed_parameter_count) {
@@ -568,6 +678,19 @@ RawAbstractType* ConstantVal::CompileType() const {
 }
 
 
+intptr_t ConstantVal::ResultCid() const {
+  if (value().IsNull()) {
+    return kNullCid;
+  }
+  if (value().IsInstance()) {
+    return Class::Handle(value().clazz()).id();
+  } else {
+    ASSERT(value().IsAbstractTypeArguments());
+    return kDynamicCid;
+  }
+}
+
+
 RawAbstractType* UseVal::CompileType() const {
   if (definition()->HasPropagatedType()) {
     return definition()->PropagatedType();
@@ -578,6 +701,11 @@ RawAbstractType* UseVal::CompileType() const {
   AbstractType& type = AbstractType::Handle(definition()->CompileType());
   definition()->SetPropagatedType(type);
   return type.raw();
+}
+
+
+intptr_t UseVal::ResultCid() const {
+  return definition()->GetPropagatedCid();
 }
 
 
@@ -629,7 +757,10 @@ RawAbstractType* PolymorphicInstanceCallComp::CompileType() const {
 
 
 RawAbstractType* StaticCallComp::CompileType() const {
-  return function().result_type();
+  if (FLAG_enable_type_checks) {
+    return function().result_type();
+  }
+  return Type::DynamicType();
 }
 
 
@@ -665,13 +796,39 @@ RawAbstractType* EqualityCompareComp::CompileType() const {
 }
 
 
+intptr_t EqualityCompareComp::ResultCid() const {
+  if ((receiver_class_id() == kSmiCid) ||
+      (receiver_class_id() == kDoubleCid) ||
+      (receiver_class_id() == kNumberCid)) {
+    // Known/library equalities that are guaranteed to return Boolean.
+    return kBoolCid;
+  }
+  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
+    return kBoolCid;
+  }
+  return kDynamicCid;
+}
+
+
 RawAbstractType* RelationalOpComp::CompileType() const {
   if ((operands_class_id() == kSmiCid) ||
       (operands_class_id() == kDoubleCid) ||
       (operands_class_id() == kNumberCid)) {
+    // Known/library relational ops that are guaranteed to return Boolean.
     return Type::BoolInterface();
   }
   return Type::DynamicType();
+}
+
+
+intptr_t RelationalOpComp::ResultCid() const {
+  if ((operands_class_id() == kSmiCid) ||
+      (operands_class_id() == kDoubleCid) ||
+      (operands_class_id() == kNumberCid)) {
+    // Known/library relational ops that are guaranteed to return Boolean.
+    return kBoolCid;
+  }
+  return kDynamicCid;
 }
 
 
@@ -806,20 +963,34 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 
 
 RawAbstractType* BinaryOpComp::CompileType() const {
-  // TODO(srdjan): Convert to use with class-ids instead of types.
+  ObjectStore* object_store = Isolate::Current()->object_store();
   if (operands_type() == kMintOperands) {
-    return Isolate::Current()->object_store()->mint_type();
-  } else if (op_kind() == Token::kSHL) {
-    return Type::IntInterface();
-  } else {
-    ASSERT(operands_type() == kSmiOperands);
-    return Isolate::Current()->object_store()->smi_type();
+    return object_store->mint_type();
   }
+  if (op_kind() == Token::kSHL) {
+    return Type::IntInterface();
+  }
+  ASSERT(operands_type() == kSmiOperands);
+  return object_store->smi_type();
+}
+
+
+intptr_t BinaryOpComp::ResultCid() const {
+  if (operands_type() == kMintOperands) {
+    return kMintCid;
+  }
+  ASSERT(operands_type() == kSmiOperands);
+  return (op_kind() == Token::kSHL) ? kDynamicCid : kSmiCid;
 }
 
 
 RawAbstractType* DoubleBinaryOpComp::CompileType() const {
   return Type::DoubleInterface();
+}
+
+
+intptr_t DoubleBinaryOpComp::ResultCid() const {
+  return kDoubleCid;
 }
 
 
@@ -829,7 +1000,8 @@ RawAbstractType* UnarySmiOpComp::CompileType() const {
 
 
 RawAbstractType* NumberNegateComp::CompileType() const {
-  return Type::NumberInterface();
+  // Implemented only for doubles.
+  return Type::DoubleInterface();
 }
 
 
@@ -840,6 +1012,11 @@ RawAbstractType* DoubleToDoubleComp::CompileType() const {
 
 RawAbstractType* SmiToDoubleComp::CompileType() const {
   return Type::DoubleInterface();
+}
+
+
+RawAbstractType* CheckClassComp::CompileType() const {
+  return AbstractType::null();
 }
 
 
@@ -1047,24 +1224,23 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
-  // TODO(srdjan): Do not use CompileType for class check elimination.
-  return NULL;
   UseVal* left_use = left()->AsUse();
   UseVal* right_use = right()->AsUse();
   if ((right_use == NULL) || (left_use == NULL)) return NULL;
+  if (!right_use->BindsToConstant()) return NULL;
+  const Object& right_constant = right_use->BoundConstant();
   Definition* left = left_use->definition();
-  BindInstr* right = right_use->definition()->AsBind();
-  if (right == NULL) return NULL;
-  ConstantVal* right_constant = right->computation()->AsConstant();
-  if (right_constant == NULL) return NULL;
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
   // Handles e === true.
   if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant->value().raw() == Bool::True()) &&
-      left_use->CompileTypeIsMoreSpecificThan(
-          Type::Handle(Type::BoolInterface()))) {
+      (right_constant.raw() == Bool::True()) &&
+      (left_use->ResultCid() == kBoolCid)) {
     // Remove the constant from the graph.
-    right->RemoveFromGraph();
+    BindInstr* right = right_use->definition()->AsBind();
+    if (right != NULL) {
+      right->set_use_list(NULL);
+      right->RemoveFromGraph();
+    }
     // Return left subexpression as the replacement for this instruction.
     return left;
   }
@@ -1314,6 +1490,27 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->is_ssa()) {
     ASSERT(locs()->in(0).IsRegister());
     __ PushRegister(locs()->in(0).reg());
+  }
+}
+
+
+// Helper to either use the constant value of a defintion or the defintion.
+static Value* UseDefinition(Definition* defn) {
+  if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
+    return defn->AsBind()->computation()->AsConstant();
+  } else {
+    return new UseVal(defn);
+  }
+}
+
+
+Environment::Environment(const GrowableArray<Definition*>& definitions,
+                         intptr_t fixed_parameter_count)
+    : values_(definitions.length()),
+      locations_(NULL),
+      fixed_parameter_count_(fixed_parameter_count) {
+  for (intptr_t i = 0; i < definitions.length(); ++i) {
+    values_.Add(UseDefinition(definitions[i]));
   }
 }
 

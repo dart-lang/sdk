@@ -5,7 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartMetadata;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
@@ -14,7 +14,7 @@ import com.google.dart.compiler.type.Type;
 class FieldElementImplementation extends AbstractNodeElement implements FieldElement, FieldNodeElement {
   private final EnclosingElement holder;
   private final SourceInfo nameLocation;
-  private DartMetadata metadata;
+  private DartObsoleteMetadata metadata;
   private Modifiers modifiers;
   private Type type;
   private MethodNodeElement getter;
@@ -25,7 +25,7 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
       SourceInfo nameLocation,
       String name,
       EnclosingElement holder,
-      DartMetadata metadata,
+      DartObsoleteMetadata metadata,
       Modifiers modifiers) {
     super(node, name);
     this.holder = holder;
@@ -60,7 +60,7 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
   }
 
   @Override
-  public DartMetadata getMetadata() {
+  public DartObsoleteMetadata getMetadata() {
     return metadata;
   }
 
@@ -76,7 +76,7 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
 
   public static FieldElementImplementation fromNode(DartField node,
       EnclosingElement holder,
-      DartMetadata metadata,
+      DartObsoleteMetadata metadata,
       Modifiers modifiers) {
     return new FieldElementImplementation(node,
         node.getName().getSourceInfo(),

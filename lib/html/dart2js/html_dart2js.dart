@@ -3816,7 +3816,7 @@ class _CanvasElementImpl extends _ElementImpl implements CanvasElement native "*
 
   Object getContext(String contextId) native;
 
-  String toDataURL(String type) native;
+  String toDataURL(String type, [num quality]) native;
 
 
   _CanvasRenderingContext2DImpl get context2d() => getContext('2d');
@@ -4526,6 +4526,11 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
 }
 
+class _DataListElementImpl extends _ElementImpl implements DataListElement native "*HTMLDataListElement" {
+
+  final _HTMLCollectionImpl options;
+}
+
 class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
 
   final String kind;
@@ -4662,9 +4667,9 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
 
   _DirectoryReaderImpl createReader() native;
 
-  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
+  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
+  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
@@ -4673,9 +4678,9 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
   _DirectoryReaderSyncImpl createReader() native;
 
-  _DirectoryEntrySyncImpl getDirectory(String path, Object flags) native;
+  _DirectoryEntrySyncImpl getDirectory(String path, Map flags) native;
 
-  _FileEntrySyncImpl getFile(String path, Object flags) native;
+  _FileEntrySyncImpl getFile(String path, Map flags) native;
 
   void removeRecursively() native;
 }
@@ -7625,7 +7630,7 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
   _IDBVersionChangeRequestImpl deleteDatabase(String name) native;
 
-  _IDBRequestImpl open(String name) native;
+  _IDBOpenDBRequestImpl open(String name, [int version]) native;
 
   _IDBRequestImpl webkitGetDatabaseNames() native;
 }
@@ -7700,6 +7705,28 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl put(value, [key]) native;
 }
 
+class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest native "*IDBOpenDBRequest" {
+
+  _IDBOpenDBRequestEventsImpl get on() =>
+    new _IDBOpenDBRequestEventsImpl(this);
+
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+
+class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
+  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked() => this['blocked'];
+
+  EventListenerList get upgradeNeeded() => this['upgradeneeded'];
+}
+
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*IDBRequest" {
 
   _IDBRequestEventsImpl get on() =>
@@ -7770,6 +7797,13 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
   EventListenerList get complete() => this['complete'];
 
   EventListenerList get error() => this['error'];
+}
+
+class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededEvent native "*IDBUpgradeNeededEvent" {
+
+  final int newVersion;
+
+  final int oldVersion;
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
@@ -7938,6 +7972,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool indeterminate;
 
   final _NodeListImpl labels;
+
+  final _ElementImpl list;
 
   String max;
 
@@ -8635,8 +8671,6 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
   bool webkitClosedCaptionsVisible;
 
   final bool webkitHasClosedCaptions;
-
-  final String webkitMediaSourceURL;
 
   bool webkitPreservesPitch;
 
@@ -9397,8 +9431,8 @@ class _ChildNodeListLazy implements NodeList {
   _ChildNodeListLazy(this._this);
 
 
-  _NodeImpl get first() native "return this._this.firstChild;";
-  _NodeImpl last() native "return this._this.lastChild;";
+  _NodeImpl get first() => JS('_NodeImpl', '#.firstChild', _this);
+  _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
 
   void add(_NodeImpl value) {
     _this.$dom_appendChild(value);
@@ -10085,6 +10119,8 @@ class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*Ov
 }
 
 class _PagePopupControllerImpl implements PagePopupController native "*PagePopupController" {
+
+  String localizeNumberString(String numberString) native;
 
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
@@ -14059,6 +14095,8 @@ class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
 
   final _TimeRangesImpl buffered;
 
+  num timestampOffset;
+
   void abort() native;
 
   void append(_Uint8ArrayImpl data) native;
@@ -17384,6 +17422,11 @@ class _Elements {
 
   factory DListElement() {
     _DListElementImpl _e = _document.$dom_createElement("dl");
+    return _e;
+  }
+
+  factory DataListElement() {
+    _DataListElementImpl _e = _document.$dom_createElement("datalist");
     return _e;
   }
 
@@ -21334,7 +21377,7 @@ interface CanvasElement extends Element default _Elements {
   Object getContext(String contextId);
 
   /** @domName HTMLCanvasElement.toDataURL */
-  String toDataURL(String type);
+  String toDataURL(String type, [num quality]);
 
   final CanvasRenderingContext2D context2d;
 }
@@ -22402,6 +22445,20 @@ interface DOMURL default _DOMURLFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDataListElement
+interface DataListElement extends Element default _Elements {
+
+  DataListElement();
+
+  /** @domName HTMLDataListElement.options */
+  final HTMLCollection options;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DataTransferItem
 interface DataTransferItem {
 
@@ -22664,10 +22721,10 @@ interface DirectoryEntry extends Entry {
   DirectoryReader createReader();
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
 
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
@@ -22685,10 +22742,10 @@ interface DirectoryEntrySync extends EntrySync {
   DirectoryReaderSync createReader();
 
   /** @domName DirectoryEntrySync.getDirectory */
-  DirectoryEntrySync getDirectory(String path, Object flags);
+  DirectoryEntrySync getDirectory(String path, Map flags);
 
   /** @domName DirectoryEntrySync.getFile */
-  FileEntrySync getFile(String path, Object flags);
+  FileEntrySync getFile(String path, Map flags);
 
   /** @domName DirectoryEntrySync.removeRecursively */
   void removeRecursively();
@@ -24985,7 +25042,7 @@ interface IDBFactory {
   IDBVersionChangeRequest deleteDatabase(String name);
 
   /** @domName IDBFactory.open */
-  IDBRequest open(String name);
+  IDBOpenDBRequest open(String name, [int version]);
 
   /** @domName IDBFactory.webkitGetDatabaseNames */
   IDBRequest webkitGetDatabaseNames();
@@ -25141,6 +25198,27 @@ interface IDBObjectStore {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBOpenDBRequest
+interface IDBOpenDBRequest extends IDBRequest, EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBOpenDBRequestEvents get on();
+}
+
+interface IDBOpenDBRequestEvents extends IDBRequestEvents {
+
+  EventListenerList get blocked();
+
+  EventListenerList get upgradeNeeded();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName IDBRequest
 interface IDBRequest extends EventTarget {
 
@@ -25238,6 +25316,21 @@ interface IDBTransactionEvents extends Events {
   EventListenerList get complete();
 
   EventListenerList get error();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName IDBUpgradeNeededEvent
+interface IDBUpgradeNeededEvent extends Event {
+
+  /** @domName IDBUpgradeNeededEvent.newVersion */
+  final int newVersion;
+
+  /** @domName IDBUpgradeNeededEvent.oldVersion */
+  final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25508,6 +25601,9 @@ interface InputElement extends Element default _Elements {
 
   /** @domName HTMLInputElement.labels */
   final NodeList labels;
+
+  /** @domName HTMLInputElement.list */
+  final Element list;
 
   /** @domName HTMLInputElement.max */
   String max;
@@ -26254,9 +26350,6 @@ interface MediaElement extends Element {
 
   /** @domName HTMLMediaElement.webkitHasClosedCaptions */
   final bool webkitHasClosedCaptions;
-
-  /** @domName HTMLMediaElement.webkitMediaSourceURL */
-  final String webkitMediaSourceURL;
 
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
@@ -27846,6 +27939,9 @@ interface OverflowEvent extends Event {
 
 /// @domName PagePopupController
 interface PagePopupController {
+
+  /** @domName PagePopupController.localizeNumberString */
+  String localizeNumberString(String numberString);
 
   /** @domName PagePopupController.setValueAndClosePopup */
   void setValueAndClosePopup(int numberValue, String stringValue);
@@ -32318,6 +32414,9 @@ interface SourceBuffer {
   /** @domName SourceBuffer.buffered */
   final TimeRanges buffered;
 
+  /** @domName SourceBuffer.timestampOffset */
+  num timestampOffset;
+
   /** @domName SourceBuffer.abort */
   void abort();
 
@@ -33889,7 +33988,7 @@ interface VideoElement extends MediaElement default _Elements {
 
 // WARNING: Do not edit - generated code.
 
-typedef void VoidCallback();
+typedef bool VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36995,28 +37094,6 @@ class _XMLHttpRequestUtils {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// IDBOpenRequest is not in WebKit but is needed for FireFox.  Dartium will not
-// implement this interface until it appears in the WebKit IDL.
-//
-// See:
-// http://www.w3.org/TR/IndexedDB/#request-api
-// http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#request-api
-
-interface IDBOpenDBRequest extends IDBRequest {
-
-  IDBOpenDBRequestEvents get on();
-}
-
-interface IDBOpenDBRequestEvents extends IDBRequestEvents {
-
-  EventListenerList get blocked();
-
-  EventListenerList get upgradeneeded();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 _serialize(var message) {
   return new _JsSerializer().traverse(message);
 }
@@ -37625,33 +37702,6 @@ class _IDBKeyRangeFactoryProvider {
   static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) native
       '''return cls.bound(lower, upper, lowerOpen, upperOpen);''';
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// IDBOpenDBRequest.  IDBFactory.open returns a plain IDBRequest on Chrome and
-// Dartium but an IDBOpenDBRequest on Firefox.  Chrome/Dartium is expected to
-// change at some point as IDBOpenDBRequest is more standard.  When it appears
-// in the WebKit IDL we can remove this hand-written file.
-//
-// See:
-// http://www.w3.org/TR/IndexedDB/#request-api
-// http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#request-api
-
-class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest
-    native "*IDBOpenDBRequest" {
-
-  _IDBOpenDBRequestEventsImpl get on() =>
-    new _IDBOpenDBRequestEventsImpl(this);
-}
-
-class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
-  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get blocked() => _get('blocked');
-
-  EventListenerList get upgradeneeded() => _get('upgradeneeded');
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

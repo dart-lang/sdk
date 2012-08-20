@@ -381,7 +381,7 @@ class MockSource extends Source {
   bool get shouldCache() => true;
 
   MockSource(this.name)
-      : _packages = <Map<Version, Package>>{};
+      : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name) {
     return fakeAsync(() => _packages[name].getKeys());
@@ -431,7 +431,7 @@ class MockVersionlessSource extends Source {
   final bool shouldCache = false;
 
   MockVersionlessSource()
-    : _packages = <Package>{};
+    : _packages = <String, Package>{};
 
   Future<bool> install(PackageId id, String path) {
     throw 'no';

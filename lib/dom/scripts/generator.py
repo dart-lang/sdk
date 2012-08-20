@@ -67,23 +67,6 @@ _dart2js_dom_custom_native_specs = {
     'DOMWindow': '@*DOMWindow',
 }
 
-#
-# Custom native bodies for dart2js implementations of dom operations that
-# appear in dart:dom_deprecated and dart:html.  This is used to
-# work-around the lack of a 'rename' feature in the 'native' string -
-# the correct name is available on the DartName extended
-# attribute. See Issue 1814
-#
-dom_dart2js_native_bodies = {
-    # Some JavaScript processors, especially tools like yuicompress and
-    # JSCompiler, choke on 'this.continue'
-    'IDBCursor.continueFunction':
-      """
-        if (key == null) return this['continue']();
-        return this['continue'](key);
-      """,
-}
-
 def IsRegisteredType(type_name):
   return type_name in _idl_type_registry
 

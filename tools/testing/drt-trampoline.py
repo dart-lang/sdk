@@ -9,6 +9,7 @@
 # Expected invocation: python drt-trampoline.py <path to DRT> <DRT command line>
 
 import os
+import signal
 import subprocess
 import sys
 
@@ -53,7 +54,19 @@ def main(argv):
 
   stdout = subprocess.PIPE if out_expected_file else None
   p = subprocess.Popen(cmd, env=env, stdout=stdout)
+
+  def signal_handler(signal, frame):
+    p.terminate()
+    sys.exit(0)
+
+  # SIGINT is Ctrl-C.
+  signal.signal(signal.SIGINT, signal_handler)
+  # SIGTERM is sent by test.dart when a process times out.
+  signal.signal(signal.SIGTERM, signal_handler)
   output, error = p.communicate()
+  signal.signal(signal.SIGINT, signal.SIG_DFL)
+  signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
   if p.returncode != 0:
     raise Exception('Failed to run command. return code=%s' % p.returncode)
 

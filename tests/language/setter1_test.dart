@@ -14,14 +14,14 @@ class First {
     b = 20;
   }
 
-  int get a() {
+  int get a {
     return a_;
   }
   void set a(int val) {
     a_ = a_ + val;
   }
 
-  static int get b() {
+  static int get b {
     return b_;
   }
   static void set b(int val) {
@@ -52,7 +52,7 @@ class Second {
     // d = 40; // Should be an error.
   }
 
-  int get a() {
+  int get a {
     return a_;
   }
   void set a(int value) {
@@ -62,7 +62,7 @@ class Second {
   static void set b(int value) {
     Second.c = value;
   }
-  static int get d() {
+  static int get d {
     return Second.c;
   }
 }

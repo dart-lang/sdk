@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that Object can be resolved when importing dart:core with a prefix.
-
-#import('dart:core', prefix:'core');
-
-class Object {
+void main() {
+  var foo = new Foo();
+  var bar = new Bar(); /// 01: compile-time error
 }
 
-main() => core.print(new Object());
+class Foo {
+  factory Foo() => null;
+}
+
+class Bar extends Foo {
+  Bar(); /// 01: continued
+}
