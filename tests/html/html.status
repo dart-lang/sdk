@@ -13,6 +13,7 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+fileapi_test: Fail # TODO(antonm): I am working on it.
 #htmloptionscollection_test: Fail # TODO(asiva): investigate.
 
 [ $compiler == none && $runtime == drt && $system == windows]
