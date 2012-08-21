@@ -513,6 +513,39 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testTypeVariablesAreRenamed() {
+  // Somewhat a hack: we require all the references of the identifier
+  // to be renamed in the same way for the whole library. Hence
+  // if we have a class and type variable with the same name, they
+  // both should be renamed.
+  var librarySrc = '''
+#library('mylib');
+class T {}
+class B<T> {}
+class A<T> extends B<T> { T f; }
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+class T {}
+class B<T> {}
+class A<T> extends B<T> { T f; }
+
+main() {
+  new A<int>().f;
+  new T();
+
+  new mylib.A<int>().f;
+  new mylib.T();
+}
+''';
+  var expectedResult =
+    'class T{}class B<T>{}class A<T> extends B<T>{T f;}'
+    'class p_T{}class p_B<p_T>{}class p_A<p_T> extends p_B<p_T>{p_T f;}'
+    'main(){new p_A<int>().f; new p_T(); new A<int>().f; new T();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -544,4 +577,5 @@ main() {
   testFieldTypeOutput();
   testDefaultClassNamePlaceholder();
   testFactoryRename();
+  testTypeVariablesAreRenamed();
 }

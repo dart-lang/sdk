@@ -29,7 +29,7 @@ void renamePlaceholders(
           .putIfAbsent(originalName, () => generateUniqueName(originalName));
 
   String renameElement(Element element) {
-    assert(element.isTopLevel());
+    assert(element.isTopLevel() || element is TypeVariableElement);
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
     String originalName = element.name.slowToString();

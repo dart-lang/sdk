@@ -358,12 +358,17 @@ class PlaceholderCollector extends AbstractVisitor {
   visitTypeAnnotation(TypeAnnotation node) {
     // Poor man generic variables resolution.
     // TODO(antonm): get rid of it once resolver can deal with it.
-    if (isPlainTypeName(node) && currentElement is TypeDeclarationElement) {
+    TypeDeclarationElement typeDeclarationElement;
+    if (currentElement is TypeDeclarationElement) {
+      typeDeclarationElement = currentElement;
+    } else {
+      typeDeclarationElement = currentElement.getEnclosingClass();
+    }
+    if (typeDeclarationElement !== null && isPlainTypeName(node)) {
       SourceString name = node.typeName.asIdentifier().source;
-      TypeDeclarationElement typeElement = currentElement;
-      for (TypeVariableType parameter in typeElement.typeVariables) {
+      for (TypeVariableType parameter in typeDeclarationElement.typeVariables) {
         if (parameter.name == name) {
-          // type annotation matches one of parameters, shouldn't be renamed.
+          makeTypePlaceholder(node, parameter);
           return;
         }
       }
@@ -442,6 +447,16 @@ class PlaceholderCollector extends AbstractVisitor {
     assert(currentElement is ClassElement);
     makeElementPlaceholder(node.name, currentElement);
     node.visitChildren(this);
+    if (node.typeParameters !== null) {
+      // Another poor man resolution.
+      final typeVariableTypes =
+          new List<Type>.from(currentElement.typeVariables);
+      int i = 0;
+      for (TypeVariable typeVariable in node.typeParameters) {
+        makeTypePlaceholder(typeVariable.name, typeVariableTypes[i]);
+        i++;
+      }
+    }
     if (node.defaultClause !== null) {
       // Can't just visit class node's default clause because of the bug in the
       // resolver, it just crashes when it meets type variable.
