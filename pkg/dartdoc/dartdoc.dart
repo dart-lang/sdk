@@ -780,6 +780,7 @@ class Dartdoc {
     // Document the types.
     final classes = <InterfaceMirror>[];
     final interfaces = <InterfaceMirror>[];
+    final typedefs = <TypedefMirror>[];
     final exceptions = <InterfaceMirror>[];
 
     for (InterfaceMirror type in orderByName(library.types.getValues())) {
@@ -789,13 +790,18 @@ class Dartdoc {
         exceptions.add(type);
       } else if (type.isClass) {
         classes.add(type);
-      } else {
+      } else if (type.isInterface){
         interfaces.add(type);
+      } else if (type is TypedefMirror) {
+        typedefs.add(type);
+      } else {
+        throw new InternalError("internal error: unknown type $type.");
       }
     }
 
     docTypes(classes, 'Classes');
     docTypes(interfaces, 'Interfaces');
+    docTypes(typedefs, 'Typedefs');
     docTypes(exceptions, 'Exceptions');
 
     writeFooter();
@@ -808,7 +814,7 @@ class Dartdoc {
     }
   }
 
-  void docTypes(List<InterfaceMirror> types, String header) {
+  void docTypes(List types, String header) {
     if (types.length == 0) return;
 
     writeln('<h3>$header</h3>');
@@ -990,14 +996,11 @@ class Dartdoc {
       writeln('<span class="show-code">Code</span>');
     }
 
-    if (type.definition !== null) {
-      // TODO(johnniwinther): Implement [:TypedefMirror.definition():].
-      write('typedef ');
-      annotateType(type, type.definition, type.simpleName);
+    write('typedef ');
+    annotateType(type, type.definition, type.simpleName);
 
-      write(''' <a class="anchor-link" href="#${type.simpleName}"
-                title="Permalink to ${type.simpleName}">#</a>''');
-    }
+    write(''' <a class="anchor-link" href="#${type.simpleName}"
+              title="Permalink to ${type.simpleName}">#</a>''');
     writeln('</h4>');
 
     docCode(type.location, null, showCode: true);

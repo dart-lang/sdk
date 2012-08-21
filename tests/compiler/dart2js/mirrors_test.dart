@@ -29,7 +29,7 @@ main() {
   var dirPath = scriptPath.directoryPath;
   var libPath = dirPath.join(new Path.fromNative('../../../'));
   var inputPath = dirPath.join(new Path.fromNative('mirrors_helper.dart'));
-  var compilation = new Compilation(inputPath, libPath);
+  var compilation = new Compilation.library([inputPath], libPath);
   Expect.isNotNull(compilation, "No compilation created");
 
   var mirrors = compilation.mirrors;
@@ -553,12 +553,13 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.throws(() => funcTypedef.typeArguments,
                 (exception) => true,
                 "Typedef has type arguments");
-  Expect.isNotNull(funcTypedef.typeVariables, "Type variables is null");
-  // TODO(johnniwinther): Should return a non-empty map.
-  Expect.isTrue(funcTypedef.typeVariables.isEmpty(),
-                "Type variables is non-empty");
-  // TODO(johnniwinther): Provide access to the definition type.
-  Expect.isNull(funcTypedef.definition, "Typedef definition is not null");
+  var funcTypedefTypeVariables = funcTypedef.typeVariables;
+  Expect.isNotNull(funcTypedefTypeVariables);
+  Expect.equals(2, funcTypedefTypeVariables.length);
+
+  var funcTypedefDefinition = funcTypedef.definition;
+  Expect.isNotNull(funcTypedefDefinition);
+  Expect.isTrue(funcTypedefDefinition is FunctionTypeMirror);
 
   Expect.stringEquals("func2", method3Parameter2.simpleName,
                       "Unexpected parameter simpleName");
