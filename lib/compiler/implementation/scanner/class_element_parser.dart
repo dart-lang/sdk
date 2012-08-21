@@ -18,7 +18,19 @@ class PartialClassElement extends ClassElement {
                       Token this.endToken,
                       Element enclosing,
                       int id)
-      : super(name, enclosing, id);
+      : super(name, enclosing, id, ClassElement.STATE_NOT_STARTED);
+
+  void set supertypeLoadState(int state) {
+    assert(state == supertypeLoadState + 1);
+    assert(state <= ClassElement.STATE_DONE);
+    super.supertypeLoadState = state;
+  }
+
+  void set resolutionState(int state) {
+    assert(state == resolutionState + 1);
+    assert(state <= ClassElement.STATE_DONE);
+    super.resolutionState = state;
+  }
 
   ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;

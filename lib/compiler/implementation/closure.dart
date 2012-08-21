@@ -66,14 +66,8 @@ class ClosureClassElement extends ClassElement {
               // By assigning a fresh class-id we make sure that the hashcode
               // is unique, but also emit closure classes after all other
               // classes (since the emitter sorts classes by their id).
-              compiler.getNextFreeClassId()) {
-    // We assign twice to [supertypeLoadState] as it contains asserts
-    // which enforce certain sequence of transitions.
-    supertypeLoadState = ClassElement.STATE_STARTED;
-    supertypeLoadState = ClassElement.STATE_DONE;
-    // Same as for [supertypeLoadState] above.
-    resolutionState = ClassElement.STATE_STARTED;
-    resolutionState = ClassElement.STATE_DONE;
+              compiler.getNextFreeClassId(),
+              ClassElement.STATE_DONE) {
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);
     interfaces = const EmptyLink<Type>();

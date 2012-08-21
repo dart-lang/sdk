@@ -993,7 +993,7 @@ abstract class TypeDeclarationElement implements Element {
 
     // Create types and elements for type variable.
     var arguments = new LinkBuilder<Type>();
-    for (Link<Node> link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
       TypeVariable node = link.head;
       SourceString variableName = node.name.source;
       TypeVariableElement variableElement =
@@ -1018,22 +1018,8 @@ class ClassElement extends ScopeContainerElement
   Type defaultClass;
   Link<Type> interfaces;
   SourceString nativeName;
-
-  int _supertypeLoadState = STATE_NOT_STARTED;
-  int get supertypeLoadState() => _supertypeLoadState;
-  void set supertypeLoadState(int state) {
-    assert(state == _supertypeLoadState + 1);
-    assert(state <= STATE_DONE);
-    _supertypeLoadState = state;
-  }
-
-  int _resolutionState = STATE_NOT_STARTED;
-  int get resolutionState() => _resolutionState;
-  void set resolutionState(int state) {
-    assert(state == _resolutionState + 1);
-    assert(state <= STATE_DONE);
-    _resolutionState = state;
-  }
+  int supertypeLoadState;
+  int resolutionState;
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
@@ -1044,8 +1030,10 @@ class ClassElement extends ScopeContainerElement
   // Lazily applied patch of class members.
   ClassElement patch = null;
 
-  ClassElement(SourceString name, Element enclosing, this.id)
-    : super(name, ElementKind.CLASS, enclosing);
+  ClassElement(SourceString name, Element enclosing, this.id, int initialState)
+    : supertypeLoadState = initialState,
+      resolutionState = initialState,
+      super(name, ElementKind.CLASS, enclosing);
 
   InterfaceType computeType(compiler) {
     if (type == null) {
