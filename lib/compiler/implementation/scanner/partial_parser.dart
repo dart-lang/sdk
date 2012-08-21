@@ -11,6 +11,17 @@ class PartialParser extends Parser {
 
   Token parseExpression(Token token) => skipExpression(token);
 
+  Token parseArgumentsOpt(Token token) {
+    // This method is overridden for two reasons:
+    // 1. Avoid generating events for arguments.
+    // 2. Avoid calling skip expression for each argument (which doesn't work).
+    if (optional('(', token)) {
+      return token.endGroup.next;
+    } else {
+      return token;
+    }
+  }
+
   Token skipExpression(Token token) {
     while (true) {
       final kind = token.kind;

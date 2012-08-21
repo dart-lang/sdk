@@ -29,6 +29,7 @@ final int MINUS_TOKEN = $MINUS;
 final int PERIOD_TOKEN = $PERIOD;
 final int PLUS_TOKEN = $PLUS;
 final int QUESTION_TOKEN = $QUESTION;
+final int AT_TOKEN = $AT;
 final int CLOSE_CURLY_BRACKET_TOKEN = $CLOSE_CURLY_BRACKET;
 final int CLOSE_SQUARE_BRACKET_TOKEN = $CLOSE_SQUARE_BRACKET;
 final int CLOSE_PAREN_TOKEN = $CLOSE_PAREN;
@@ -329,6 +330,9 @@ final PrecedenceInfo SEMICOLON_INFO =
   const PrecedenceInfo(const SourceString(';'), 0, SEMICOLON_TOKEN);
 final PrecedenceInfo COMMA_INFO =
   const PrecedenceInfo(const SourceString(','), 0, COMMA_TOKEN);
+
+final PrecedenceInfo AT_INFO =
+  const PrecedenceInfo(const SourceString('@'), 0, AT_TOKEN);
 
 // Assignment operators.
 final int ASSIGNMENT_PRECEDENCE = 1;

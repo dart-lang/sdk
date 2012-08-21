@@ -195,6 +195,12 @@ class Listener {
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
   }
 
+  void beginMetadata(Token token) {
+  }
+
+  void endMetadata(Token beginToken, Token endToken) {
+  }
+
   void beginOptionalFormalParameters(Token token) {
   }
 
@@ -573,6 +579,11 @@ class ElementListener extends Listener {
     ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
                                         prefix, beginToken, endToken);
     addScriptTag(scriptTag);
+  }
+
+  void endMetadata(Token beginToken, Token endToken) {
+    var send = popNode(); // Qualified (Send or Identifier).
+    // TODO(ahe): Don't discard metadata.
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,

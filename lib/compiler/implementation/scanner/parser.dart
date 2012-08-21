@@ -10,12 +10,26 @@
  * file scanner.dart.
  *
  * Subclasses of the class [Listener] are used to listen to events.
+ *
+ * Most methods of this class belong in one of two major categories:
+ * parse metods and peek methods. Parse methods all have the prefix
+ * parse, and peek methods all have the prefix peek.
+ *
+ * Parse methods generate events (by calling methods on [listener])
+ * and return the next token to parse. Peek methods do not generate
+ * events (except for errors) and may return null.
+ *
+ * Parse methods are generally named parseGrammarProductionSuffix. The
+ * suffix can be one of "opt", or "star". "opt" means zero or one
+ * matches, "star" means zero or more matches. For example,
+ * [parseMetadataStar] corresponds to this grammar snippet: [:
+ * metadata* :], and [parseTypeOpt] corresponds to: [: type? :].
  */
 class Parser {
   final Listener listener;
   bool mayParseFunctionExpressions = true;
 
-  Parser(Listener this.listener);
+  Parser(this.listener);
 
   void parseUnit(Token token) {
     while (token.kind !== EOF_TOKEN) {
@@ -24,6 +38,7 @@ class Parser {
   }
 
   Token parseTopLevelDeclaration(Token token) {
+    token = parseMetadataStar(token);
     final String value = token.stringValue;
     if (value === 'interface') {
       return parseInterface(token);
@@ -36,6 +51,24 @@ class Parser {
     } else {
       return parseTopLevelMember(token);
     }
+  }
+
+  Token parseMetadataStar(Token token) {
+    while (optional('@', token)) {
+      token = parseMetadata(token);
+    }
+    return token;
+  }
+
+  Token parseMetadata(Token token) {
+    listener.beginMetadata(token);
+    Token atToken = token;
+    assert(optional('@', token));
+    token = parseIdentifier(token.next);
+    token = parseQualifiedRestOpt(token);
+    token = parseArgumentsOpt(token);
+    listener.endMetadata(atToken, token);
+    return token;
   }
 
   Token parseInterface(Token token) {
@@ -586,6 +619,7 @@ class Parser {
   }
 
   Token parseMember(Token token) {
+    token = parseMetadataStar(token);
     String value = token.stringValue;
     if (value === 'factory' ||
         (value === 'external' && optional('factory', token.next))) {

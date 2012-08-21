@@ -2,11 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $runtime == none ]
+foreign_test: Fail # Cannot resolve JS.
+
+
 [ $checked ]
 native_checked_fields_test: Fail
 
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && ( $runtime == d8 || $browser ) ]
 foreign_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_call_arity1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_call_arity2_test: Fail # TODO(ahe): Convert to metadata syntax.
