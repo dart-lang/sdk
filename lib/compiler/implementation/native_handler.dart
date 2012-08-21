@@ -83,6 +83,7 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.canUseNative = true;
+    library.addToScope(compiler.findHelper(const SourceString('JS')), compiler);
     if (compiler.jsIndexingBehaviorInterface !== null) {
       library.addToScope(compiler.jsIndexingBehaviorInterface, compiler);
     }

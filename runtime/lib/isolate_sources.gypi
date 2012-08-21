@@ -5,7 +5,10 @@
 # This file contains all sources for the dart:isolate library.
 {
   'sources': [
-    'isolate_patch.dart',
+    '../../lib/isolate/isolate_api.dart',
+    '../../lib/isolate/timer.dart',
+    '../../lib/isolate/timer_hook.dart',
+    'isolate.dart',
     'isolate.cc',
   ],
 }

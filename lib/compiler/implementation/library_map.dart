@@ -44,8 +44,7 @@ final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
   "io": const LibraryInfo(
       "lib/compiler/implementation/lib/io.dart"),
   "isolate": const LibraryInfo(
-      "lib/isolate/isolate.dart",
-      "lib/compiler/implementation/lib/isolate_patch.dart"),
+      "lib/isolate/isolate_dart2js.dart"),
   "json": const LibraryInfo("lib/json/json.dart"),
   "math": const LibraryInfo(
       "lib/math/math.dart",
