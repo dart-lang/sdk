@@ -38061,6 +38061,12 @@ class _Lists {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Patch file for the dart:isolate library.
+
+/********************************************************
+  Inserted from lib/isolate/serialization.dart
+ ********************************************************/
+
 class _MessageTraverserVisitedMap {
 
   operator[](var object) => null;
@@ -38263,3 +38269,4 @@ class _Deserializer {
     throw "Unexpected serialized object";
   }
 }
+

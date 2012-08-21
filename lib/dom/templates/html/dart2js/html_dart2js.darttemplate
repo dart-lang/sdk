@@ -31,7 +31,7 @@ $!GENERATED_DART_FILES
 #source('../../html/src/Device.dart');
 #source('../../dom/src/_ListIterators.dart');
 #source('../../dom/src/_Lists.dart');
-#source('../../isolate/serialization.dart');
+#source('../../js_isolate_impl/isolate.dart');
 
 
 Window get window() native "return window;";

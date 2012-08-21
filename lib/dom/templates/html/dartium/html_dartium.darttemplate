@@ -28,7 +28,7 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/../../html/src/_Testing.dart');
 #source('$AUXILIARY_DIR/_ListIterators.dart');
 #source('$AUXILIARY_DIR/_Lists.dart');
-#source('$AUXILIARY_DIR/../../isolate/serialization.dart');
+#source('$AUXILIARY_DIR/../../js_isolate_impl/isolate.dart');
 
 #source('$AUXILIARY_DIR/native_DOMPublic.dart');
 #source('$AUXILIARY_DIR/native_DOMImplementation.dart');

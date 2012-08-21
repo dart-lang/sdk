@@ -4,6 +4,7 @@
 
 {
   'sources': [
-    '../../runtime/lib/empty_source.dart',
+    'base.dart',
+    'timer.dart'
   ],
 }

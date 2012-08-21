@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _ReceivePortFactory {
-  factory ReceivePort() {
+patch class _ReceivePortFactory {
+  /* patch */ factory ReceivePort() {
     return new _ReceivePortImpl();
   }
 }
 
-
 class _ReceivePortImpl implements ReceivePort {
-  /*--- public interface ---*/
   factory _ReceivePortImpl() native "ReceivePortImpl_factory";
 
   receive(void onMessage(var message, SendPort replyTo)) {
@@ -118,13 +116,14 @@ _getPortInternal() native "isolate_getPortInternal";
 
 ReceivePort _portInternal;
 
-ReceivePort get _port() {
+patch ReceivePort get port() {
   if (_portInternal === null) {
     _portInternal = _getPortInternal();
   }
   return _portInternal;
 }
 
-_spawnFunction(void topLevelFunction()) native "isolate_spawnFunction";
+patch spawnFunction(void topLevelFunction()) native "isolate_spawnFunction";
 
-_spawnUri(String uri) native "isolate_spawnUri";
+patch spawnUri(String uri) native "isolate_spawnUri";
+
