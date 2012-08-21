@@ -289,7 +289,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
 }
 
 
-// Helper to either use the constant value of a defintion or the defintion.
+// Helper to either use the constant value of a definition or the definition.
 static Value* UseDefinition(Definition* defn) {
   if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
     return defn->AsBind()->computation()->AsConstant();
