@@ -1,0 +1,15 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $FACTORYPROVIDER {
+  factory HttpRequest() native 'return new XMLHttpRequest();';
+
+  factory HttpRequest.get(String url,
+                                     onSuccess(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onSuccess, false);
+
+  factory HttpRequest.getWithCredentials(String url,
+                                     onSuccess(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onSuccess, true);
+}

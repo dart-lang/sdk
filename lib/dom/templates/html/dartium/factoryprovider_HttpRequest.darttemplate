@@ -6,11 +6,11 @@ class $FACTORYPROVIDER {
   factory $INTERFACE($PARAMETERS) => _create$INTERFACE($ARGUMENTS);
   static $INTERFACE _create$INTERFACE($PARAMETERS) native "$NATIVE_NAME";
 
-  factory XMLHttpRequest.get(String url,
-                                     onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.get(url, onSuccess, false);
+  factory HttpRequest.get(String url,
+                                     onSuccess(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onSuccess, false);
 
-  factory XMLHttpRequest.getWithCredentials(String url,
-                                     onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.get(url, onSuccess, true);
+  factory HttpRequest.getWithCredentials(String url,
+                                     onSuccess(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onSuccess, true);
 }
