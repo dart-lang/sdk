@@ -62,7 +62,7 @@ String decodeUtf16(List<int> bytes, [int offset = 0, int length,
   Utf16BytesToCodeUnitsDecoder decoder = new Utf16BytesToCodeUnitsDecoder(bytes,
       offset, length, replacementCodepoint);
   List<int> codeunits = decoder.decodeRest();
-  // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // TODO is16BitCodeUnit() is used to work around a bug with dart2js
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
@@ -85,7 +85,7 @@ String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   List<int> codeunits = (new Utf16beBytesToCodeUnitsDecoder(bytes, offset,
       length, stripBom, replacementCodepoint)).decodeRest();
-  // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // TODO is16BitCodeUnit() is used to work around a bug with dart2js
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
@@ -108,7 +108,7 @@ String decodeUtf16le(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   List<int> codeunits = (new Utf16leBytesToCodeUnitsDecoder(bytes, offset,
       length, stripBom, replacementCodepoint)).decodeRest();
-  // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // TODO is16BitCodeUnit() is used to work around a bug with dart2js
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
@@ -198,7 +198,7 @@ bool hasUtf16leBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
 }
 
 List<int> _stringToUtf16CodeUnits(String str) {
-  // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // TODO is16BitCodeUnit() is used to work around a bug with dart2js
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {

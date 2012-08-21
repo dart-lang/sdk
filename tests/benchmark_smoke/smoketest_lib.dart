@@ -8,7 +8,7 @@
 #import("dart:html");
 
 /** 
- * This is a sample no-op benchmark to ensure that frog has not dramatically
+ * This is a sample no-op benchmark to ensure that dart2js has not dramatically
  * broken Firefox.
  */
 class Smoketest extends BenchmarkBase {

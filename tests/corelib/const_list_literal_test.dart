@@ -67,7 +67,7 @@ class ConstListLiteralTest {
     Expect.equals(2, list[1]);
     Expect.equals(3, list[2]);
 
-    // Note: the next check is a regression test for frog. The immutable list
+    // Note: the next check is a regression test for dart2js. The immutable list
     // overrides the 'length' property of List, but relies on using the native
     // 'forEach' construct in Array. This test ensures that our strategy works
     // correctly.
