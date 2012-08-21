@@ -502,13 +502,13 @@ main() {
 }
 ''';
   var expectedResult =
-    'interface p_I default B{p_I();}'
-    'class A implements p_I{A(){}}'
-    'class B{factory p_I(){}}'
-    'interface I default p_B{I();}'
-    'class p_A implements I{p_A(){}}'
-    'class p_B{factory I(){}}'
-    'main(){new I(); new p_A(); new p_I(); new A();}';
+    'interface I default B{I();}'
+    'class A implements I{A(){}}'
+    'class B{factory I(){}}'
+    'interface p_I default p_B{p_I();}'
+    'class p_A implements p_I{p_A(){}}'
+    'class p_B{factory p_I(){}}'
+    'main(){new p_I(); new p_A(); new I(); new A();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }

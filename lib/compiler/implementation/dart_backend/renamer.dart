@@ -44,31 +44,35 @@ void renamePlaceholders(
   }
 
   renameNodes(Collection<Node> nodes, renamer) {
-    for (Node node in nodes) {
+    final comparison = compareBy((node) => node.getBeginToken().charOffset);
+    for (Node node in sorted(nodes, comparison)) {
       renames[node] = renamer(node);
+    }
+  }
+
+  sortedForEach(Map<Element, Dynamic> map, f) {
+    for (Element element in sortElements(map.getKeys())) {
+      f(element, map[element]);
     }
   }
 
   renameNodes(placeholderCollector.nullNodes, (_) => '');
   renameNodes(placeholderCollector.unresolvedNodes,
       (_) => generateUniqueName('Unresolved'));
-  placeholderCollector.elementNodes.forEach(
-      (Element element, Set<Node> nodes) {
-        String renamedElement = renameElement(element);
-        renameNodes(nodes, (_) => renamedElement);
+  sortedForEach(placeholderCollector.elementNodes, (element, nodes) {
+    String renamedElement = renameElement(element);
+    renameNodes(nodes, (_) => renamedElement);
   });
-  placeholderCollector.localPlaceholders.forEach(
-      (FunctionElement element, Set<LocalPlaceholder> localPlaceholders) {
-        // TODO(smok): Check for conflicts with class fields and take usages
-        // into account.
-        localPlaceholders.forEach((LocalPlaceholder placeholder) {
-          renameNodes(placeholder.nodes, (_) => placeholder.identifier);
-        });
-      });
-  placeholderCollector.privateNodes.forEach(
-      (LibraryElement library, Set<Identifier> nodes) {
-        renameNodes(nodes, (node) =>
-            rename(library, node.source.slowToString()));
+  sortedForEach(placeholderCollector.localPlaceholders,
+      (element, placeholders) {
+    // TODO(smok): Check for conflicts with class fields and take usages
+    // into account.
+    for (LocalPlaceholder placeholder in placeholders) {
+      renameNodes(placeholder.nodes, (_) => placeholder.identifier);
+    }
+  });
+  sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
+    renameNodes(nodes, (node) => rename(library, node.source.slowToString()));
   });
 }
 

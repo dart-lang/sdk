@@ -104,21 +104,10 @@ class DartBackend extends Backend {
     renamePlaceholders(compiler, collector, renames, imports);
 
     // Sort elements.
-    compareElements(e0, e1) {
-      compareBy(x, y, f) => f(x).compareTo(f(y));
-      int result = compareBy(e0, e1, (e) => e.getLibrary().uri.toString());
-      if (result != 0) return result;
-      return compareBy(e0, e1, (e) => e.position().charOffset);
-    }
-
-    final sortedTopLevels = new List<Element>.from(topLevelElements);
-    sortedTopLevels.sort(compareElements);
-
+    final sortedTopLevels = sortElements(topLevelElements);
     final sortedClassMembers = new Map<ClassElement, List<Element>>();
     classMembers.forEach((classElement, members) {
-      final sortedMembers = new List<Element>.from(members);
-      sortedMembers.sort(compareElements);
-      sortedClassMembers[classElement] = sortedMembers;
+      sortedClassMembers[classElement] = sortElements(members);
     });
 
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
@@ -190,4 +179,22 @@ class ReferencedElementCollector extends AbstractVisitor {
       rootElement.parseNode(compiler).accept(this);
     });
   }
+}
+
+compareBy(f) => (x, y) => f(x).compareTo(f(y));
+
+List sorted(List l, comparison) {
+  final result = new List.from(l);
+  result.sort(comparison);
+  return result;
+}
+
+List<Element> sortElements(Collection<Element> elements) {
+  compareElements(e0, e1) {
+    int result = compareBy((e) => e.getLibrary().uri.toString())(e0, e1);
+    if (result != 0) return result;
+    return compareBy((e) => e.position().charOffset)(e0, e1);
+  }
+
+  return sorted(elements, compareElements);
 }
