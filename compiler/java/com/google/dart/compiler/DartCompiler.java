@@ -1279,17 +1279,17 @@ public class DartCompiler {
       LibraryUnit libUnit = entry.getValue();
       if (!resolvedLibs.containsKey(libUri) && libUnit != null) {
         newLibraries.put(libUri, libUnit);
-        for (DartUnit unit : libUnit.getUnits()) {
-          // Don't analyze diet units.
-          if (unit.isDiet()) {
-            continue;
-          }
-          for (DartCompilationPhase phase : phases) {
+        for (DartCompilationPhase phase : phases) {
+          // Run phase on all units, because "const" phase expects to have fully resolved library.
+          for (DartUnit unit : libUnit.getUnits()) {
+            if (unit.isDiet()) {
+              continue;
+            }
             unit = phase.exec(unit, context, compiler.getTypeProvider());
-            // Ignore errors. Resolver and TypeAnalyzer should be able to cope with
-            // resolution errors.
           }
-          // To help support the IDE, notify the listener that this unit is compiled.
+        }
+        // To help support the IDE, notify the listener that these unit were compiled.
+        for (DartUnit unit : libUnit.getUnits()) {
           context.unitCompiled(unit);
         }
       }
