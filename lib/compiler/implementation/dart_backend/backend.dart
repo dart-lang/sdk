@@ -183,7 +183,7 @@ class ReferencedElementCollector extends AbstractVisitor {
 
 compareBy(f) => (x, y) => f(x).compareTo(f(y));
 
-List sorted(List l, comparison) {
+List sorted(Iterable l, comparison) {
   final result = new List.from(l);
   result.sort(comparison);
   return result;
