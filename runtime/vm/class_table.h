@@ -29,6 +29,13 @@ class ClassTable {
     return (index > 0) && (index < top_);
   }
 
+  bool HasValidClassAt(intptr_t index) const {
+    ASSERT(IsValidIndex(index));
+    return table_[index] != NULL;
+  }
+
+  intptr_t NumCids() const { return top_; }
+
   void Register(const Class& cls);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);

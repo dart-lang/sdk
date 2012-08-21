@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_optimizer.h"
 
+#include "vm/cha.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
@@ -18,6 +19,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
+DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -868,6 +870,7 @@ void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
   // it to the DynamicType, unless the argument is a compiler generated value,
   // i.e. the receiver argument or the constructor phase argument.
   AbstractType& param_type = AbstractType::Handle(Type::DynamicType());
+  param->SetPropagatedCid(kDynamicCid);
   if (param->index() < 2) {
     const Function& function = parsed_function().function();
     if (((param->index() == 0) && function.IsDynamicFunction()) ||
@@ -875,13 +878,19 @@ void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
       // Parameter is the receiver or the constructor phase.
       LocalScope* scope = parsed_function().node_sequence()->scope();
       param_type = scope->VariableAt(param->index())->type().raw();
+      if (FLAG_use_cha) {
+        const intptr_t cid = Class::Handle(param_type.type_class()).id();
+        if (!CHA::HasSubclasses(cid)) {
+          // Receiver's class has no subclasses.
+          param->SetPropagatedCid(cid);
+        }
+      }
     }
   }
   bool changed = param->SetPropagatedType(param_type);
   if (changed) {
     still_changing_ = true;
   }
-  param->SetPropagatedCid(kDynamicCid);
 }
 
 

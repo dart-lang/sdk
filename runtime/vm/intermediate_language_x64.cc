@@ -2191,6 +2191,14 @@ LocationSummary* CheckClassComp::MakeLocationSummary() const {
 
 
 void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t v_cid = value()->ResultCid();
+  const intptr_t num_checks = ic_data()->NumberOfChecks();
+  if ((num_checks == 1) &&
+      (v_cid == ic_data()->GetReceiverClassIdAt(0))) {
+    // No checks needed.
+    // TODO(srdjan): Should the computation have been removed instead?
+    return;
+  }
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
@@ -2201,7 +2209,6 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(ZERO, deopt);
   __ LoadClassId(temp, value);
   Label is_ok;
-  const intptr_t num_checks = ic_data()->NumberOfChecks();
   const bool use_near_jump = num_checks < 5;
   for (intptr_t i = 0; i < num_checks; i++) {
     __ cmpl(temp, Immediate(ic_data()->GetReceiverClassIdAt(i)));
