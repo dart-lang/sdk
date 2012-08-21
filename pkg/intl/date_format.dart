@@ -66,11 +66,13 @@
  *
  * Examples Using the US Locale:
  *
- *     Pattern                           Result
- *     ----------------                  -------
- *     "yMd"                            -> 07/10/1996
- *     "yMMMMd"                         -> July 10, 1996
- *     "Hm"                             -> 12:08 PM
+ *      Pattern                           Result
+ *      ----------------                  -------
+ *      new DateFormat.yMd()             -> 07/10/1996
+ *      new DateFormat("yMd")            -> 07/10/1996
+ *      new DateFormat.yMMMMd("en_US")   -> July 10, 1996
+ *      new DateFormat("Hm", "en_US")    -> 12:08 PM
+ *      new DateFormat.yMd().Hm()        -> 07/10/1996 12:08 PM
  *
  * Explicit Pattern Syntax: Formats can also be specified with a pattern string.
  * The skeleton forms will resolve to explicit patterns of this form, but will
@@ -150,17 +152,6 @@
  * If the year pattern does not have exactly two 'y' characters, the year is
  * interpreted literally, regardless of the number of digits. So using the
  * pattern "MM/dd/yyyy", "01/11/12" parses to Jan 11, 12 A.D.
- *
- * When numeric fields abut one another directly, with no intervening
- * delimiter characters, they constitute a run of abutting numeric fields. Such
- * runs are parsed specially. For example, the format "HHmmss" parses the input
- * text "123456" to 12:34:56, parses the input text "12345" to 1:23:45, and
- * fails to parse "1234". In other words, the leftmost field of the run is
- * flexible, while the others keep a fixed width. If the parse fails anywhere in
- * the run, then the leftmost field is shortened by one character, and the
- * entire run is parsed again. This is repeated until either the parse succeeds
- * or the leftmost field is one character in length. If the parse still fails at
- * that point, the parse of the run fails.
  */
 
 #library('date_format');
@@ -201,7 +192,7 @@ class DateFormat {
     // TODO(alanknight): There will need to be at least setup type async
     // operations to avoid the need to bring along every locale in every program
     _locale = Intl.verifiedLocale(locale);
-    _setPattern(newPattern);
+    addPattern(newPattern);
   }
 
   /**
@@ -238,6 +229,8 @@ class DateFormat {
    * format, treating it as being in the local timezone.
    */
   Date parse(String inputString, [utc = false]) {
+    // TODO(alanknight): The Closure code refers to special parsing of numeric
+    // values with no delimiters, which we currently don't do. Should we?
     var dateFields = new _DateBuilder();
     if (utc) dateFields.utc=true;
     var stream = new _Stream(inputString);
@@ -357,6 +350,55 @@ class DateFormat {
   DateFormat.s([locale]) : this("s", locale);
 
   /**
+   * Methods for appending a particular skeleton to the format, or setting
+   * it as the only format if none was previously set. These are primarily
+   * useful for creating compound formats. For example
+   *       new DateFormat.yMd().hms();
+   * would create a date format that prints both the date and the time.
+   */
+  DateFormat d() => addPattern("d");
+  DateFormat E() => addPattern("E");
+  DateFormat EEEE() => addPattern("EEEE");
+  DateFormat LLL() => addPattern("LLL");
+  DateFormat LLLL() => addPattern("LLLL");
+  DateFormat M() => addPattern("M");
+  DateFormat Md() => addPattern("Md");
+  DateFormat MEd() => addPattern("MEd");
+  DateFormat MMM() => addPattern("MMM");
+  DateFormat MMMd() => addPattern("MMMd");
+  DateFormat MMMEd() => addPattern("MMMEd");
+  DateFormat MMMM() => addPattern("MMMM");
+  DateFormat MMMMd() => addPattern("MMMMd");
+  DateFormat MMMMEEEEd() => addPattern("MMMMEEEEd");
+  DateFormat QQQ() => addPattern("QQQ");
+  DateFormat QQQQ() => addPattern("QQQQ");
+  DateFormat y() => addPattern("y");
+  DateFormat yM() => addPattern("yM");
+  DateFormat yMd() => addPattern("yMd");
+  DateFormat yMEd() => addPattern("yMEd");
+  DateFormat yMMM() => addPattern("yMMM");
+  DateFormat yMMMd() => addPattern("yMMMd");
+  DateFormat yMMMEd() => addPattern("yMMMEd");
+  DateFormat yMMMM() => addPattern("yMMMM");
+  DateFormat yMMMMd() => addPattern("yMMMMd");
+  DateFormat yMMMMEEEEd() => addPattern("yMMMMEEEEd");
+  DateFormat yQQQ() => addPattern("yQQQ");
+  DateFormat yQQQQ() => addPattern("yQQQQ");
+  DateFormat H() => addPattern("H");
+  DateFormat Hm() => addPattern("Hm");
+  DateFormat Hms() => addPattern("Hms");
+  DateFormat j() => addPattern("j");
+  DateFormat jm() => addPattern("jm");
+  DateFormat jms() => addPattern("jms");
+  DateFormat jmv() => addPattern("jmv");
+  DateFormat jmz() => addPattern("jmz");
+  DateFormat jv() => addPattern("jv");
+  DateFormat jz() => addPattern("jz");
+  DateFormat m() => addPattern("m");
+  DateFormat ms() => addPattern("ms");
+  DateFormat s() => addPattern("s");
+
+  /**
    * ICU constants for format names, resolving to the corresponding skeletons.
    */
   static final String DAY = 'd';
@@ -412,10 +454,21 @@ class DateFormat {
   String _pattern;
 
   /**
-   * We parse the format string into individual fields and store them here.
-   * This is what is actually used to do the formatting.
+   * We parse the format string into individual [_DateFormatField] objects
+   * that are used to do the actual formatting and parsing. Do not use
+   * this variable directly, use the getter [_formatFields].
    */
-  List<_DateFormatField> _formatFields;
+  List<_DateFormatField> _formatFieldsPrivate;
+
+  /**
+   * Getter for [_formatFieldsPrivate] that lazily initializes it.
+   */
+  get _formatFields() {
+    if (_formatFieldsPrivate == null) {
+      _formatFieldsPrivate = parsePattern(_pattern);
+    }
+    return _formatFieldsPrivate;
+  }
 
   /**
    * A series of regular expressions used to parse a format string into its
@@ -437,20 +490,36 @@ class DateFormat {
   ];
 
   /**
-   * Given a format from the user look it up in our list of known skeletons.
-   * If it's there, then use the corresponding pattern for this locale.
-   * If it's not, then treat it as an explicit pattern.
+   * Set our pattern, appending it to any existing patterns. Also adds a single
+   * space to separate the two.
    */
-  _setPattern(String inputPattern) {
+  _setPattern(String inputPattern, [String separator = ' ']) {
+    if (_pattern == null) {
+      _pattern = inputPattern;
+    } else {
+      _pattern = "$_pattern$separator$inputPattern";
+    }
+  }
+
+  /**
+   * Add [inputPattern] to this instance as a pattern. If there was a previous
+   * pattern, then this appends to it, separating the two by [separator].
+   * [inputPattern] is first looked up in our list of known skeletons.
+   * If it's found there, then use the corresponding pattern for this locale.
+   * If it's not, then treat [inputPattern] as an explicit pattern.
+   */
+  DateFormat addPattern(String inputPattern, [String separator = ' ']) {
     // TODO(alanknight): This is an expensive operation. Caching recently used
     // formats, or possibly introducing an entire "locale" object that would
     // cache patterns for that locale could be a good optimization.
     if (!_availableSkeletons.containsKey(inputPattern)) {
-      _pattern = inputPattern;
+      _setPattern(inputPattern, separator);
     } else {
-      _pattern = _availableSkeletons[inputPattern];
+      _setPattern(_availableSkeletons[inputPattern], separator);
     }
-    _formatFields = parsePattern(_pattern);
+    // If we have already parsed the format fields, reset them.
+    _formatFieldsPrivate = null;
+    return this;
   }
 
   /** Return the pattern that we use to format dates.*/

@@ -169,6 +169,20 @@ testRoundTripParsing(String localeName, Date date) {
 }
 
 main() {
+  test('Multiple patterns', () {
+    var date = new Date.now();
+    var multiple1 = new DateFormat.yMd().jms();
+    var multiple2 = new DateFormat("yMd").jms();
+    var separate1 = new DateFormat.yMd();
+    var separate2 = new DateFormat.jms();
+    var separateFormat = "${separate1.format(date)} ${separate2.format(date)}";
+    expect(multiple1.format(date), equals(multiple2.format(date)));
+    expect(multiple1.format(date), equals(separateFormat));
+    var customPunctuation = new DateFormat("yMd").addPattern("jms",":::");
+    var custom = "${separate1.format(date)}:::${separate2.format(date)}";
+    expect(customPunctuation.format(date), equals(custom));
+  });
+
   test('Basic date format parsing', () {
     var date_format = new DateFormat("d");
     expect(
