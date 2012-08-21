@@ -48,7 +48,7 @@ static intptr_t ClassIdFromObjectId(intptr_t object_id) {
 
 
 static intptr_t ObjectIdFromClassId(intptr_t class_id) {
-  ASSERT((class_id > kIllegalCid) && (class_id < kNumPredefinedCids));
+  ASSERT(class_id > kIllegalCid && class_id < kNumPredefinedCids);
   return (class_id + kClassIdsOffset);
 }
 
@@ -414,8 +414,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id, bool is_signature_class) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
-    ASSERT((class_id >= kInstanceCid) && (class_id <= kWeakPropertyCid));
-    return isolate()->class_table()->At(class_id);
+    return Class::GetClass(class_id, is_signature_class);
   }
   cls_ = Object::class_class();
   RawClass* obj = reinterpret_cast<RawClass*>(

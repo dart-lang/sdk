@@ -41,16 +41,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     if (kind == Snapshot::kFull) {
       cls = reader->NewClass(class_id, is_signature_class);
     } else {
-      if (class_id < kNumPredefinedCids) {
-        ASSERT((class_id >= kInstanceCid) && (class_id <= kWeakPropertyCid));
-        cls = reader->isolate()->class_table()->At(class_id);
-      } else {
-        if (is_signature_class) {
-          cls = Class::New<Closure>(kIllegalCid);
-        } else {
-          cls = Class::New<Instance>(kIllegalCid);
-        }
-      }
+      cls = Class::GetClass(class_id, is_signature_class);
     }
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
