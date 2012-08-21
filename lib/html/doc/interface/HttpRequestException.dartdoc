@@ -7,7 +7,7 @@
 //   Do not make code changes here.
 
 /// @domName XMLHttpRequestException
-interface XMLHttpRequestException {
+interface HttpRequestException {
 
   static final int ABORT_ERR = 102;
 

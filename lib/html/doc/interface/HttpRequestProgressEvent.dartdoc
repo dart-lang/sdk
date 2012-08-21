@@ -7,7 +7,7 @@
 //   Do not make code changes here.
 
 /// @domName XMLHttpRequestProgressEvent
-interface XMLHttpRequestProgressEvent extends ProgressEvent {
+interface HttpRequestProgressEvent extends ProgressEvent {
 
   /** @domName XMLHttpRequestProgressEvent.position */
   final int position;

@@ -7,12 +7,12 @@
 //   Do not make code changes here.
 
 /// @domName XMLHttpRequestUpload
-interface XMLHttpRequestUpload extends EventTarget {
+interface HttpRequestUpload extends EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  XMLHttpRequestUploadEvents get on();
+  HttpRequestUploadEvents get on();
 
   /** @domName XMLHttpRequestUpload.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -24,7 +24,7 @@ interface XMLHttpRequestUpload extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface XMLHttpRequestUploadEvents extends Events {
+interface HttpRequestUploadEvents extends Events {
 
   EventListenerList get abort();
 
