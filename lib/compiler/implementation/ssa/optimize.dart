@@ -42,6 +42,9 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaDeadPhiEliminator(),
           new SsaGlobalValueNumberer(compiler, types),
           new SsaCodeMotion(),
+          // Previous optimizations may have generated new
+          // opportunities for constant folding.
+          new SsaConstantFolder(backend, work, types),
           new SsaDeadCodeEliminator(types),
           new SsaRegisterRecompilationCandidates(backend, work, types)];
       runPhases(graph, phases);
@@ -929,7 +932,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         HInstruction other = values.lookup(instruction);
         if (other !== null) {
           assert(other.gvnEquals(instruction) && instruction.gvnEquals(other));
-          block.rewrite(instruction, other);
+          block.rewriteWithBetterUser(instruction, other);
           block.remove(instruction);
         } else {
           values.add(instruction);
@@ -1071,7 +1074,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
           for (final successor in successors) {
             HInstruction toRewrite = values[successor.id].lookup(instruction);
             if (toRewrite != instruction) {
-              successor.rewrite(toRewrite, instruction);
+              successor.rewriteWithBetterUser(toRewrite, instruction);
               successor.remove(toRewrite);
             }
           }

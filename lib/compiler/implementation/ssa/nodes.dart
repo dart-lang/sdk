@@ -604,6 +604,35 @@ class HBasicBlock extends HInstructionList implements Hashable {
     from.usedBy.clear();
   }
 
+  /**
+   * Rewrites all uses of the [from] instruction to using either the
+   * [to] instruction, or a [HCheck] instruction that has better type
+   * information on [to], and that dominates the user.
+   */
+  void rewriteWithBetterUser(HInstruction from, HInstruction to) {
+    Link<HCheck> better = const EmptyLink<HCheck>();
+    for (HInstruction user in to.usedBy) {
+      if (user is HCheck && (user as HCheck).checkedInput === to) {
+        better = better.prepend(user);
+      }
+    }
+
+    if (better.isEmpty()) return rewrite(from, to);
+
+    L1: for (HInstruction user in from.usedBy) {
+      for (HCheck check in better) {
+        if (check.dominates(user)) {
+          user.rewriteInput(from, check);
+          check.usedBy.add(user);
+          continue L1;
+        }
+      }
+      user.rewriteInput(from, to);
+      to.usedBy.add(user);
+    }
+    from.usedBy.clear();
+  }
+
   bool isExitBlock() {
     return first === last && first is HExit;
   }
@@ -1004,6 +1033,17 @@ class HInstruction implements Hashable {
   bool isCodeMotionInvariant() => false;
 
   bool isStatement(HTypeMap types) => false;
+
+  bool dominates(HInstruction other) {
+    if (block != other.block) return block.dominates(other.block);
+
+    HInstruction current = this;
+    while (current !== null) {
+      if (current === other) return true;
+      current = current.next;
+    }
+    return false;
+  }
 }
 
 class HBoolify extends HInstruction {
