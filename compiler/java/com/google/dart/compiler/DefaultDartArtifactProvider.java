@@ -35,7 +35,7 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
   @Override
   public Reader getArtifactReader(Source source, String part, String extension)
       throws IOException {
-    if (SystemLibraryManager.isDartUri(source.getUri())) {
+    if (PackageLibraryManager.isDartUri(source.getUri())) {
       DartSource bundledSource = getBundledArtifact(source, source, part, extension);
       if (bundledSource != null) {
         Reader reader = null;
@@ -73,7 +73,7 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
 
   @Override
   public boolean isOutOfDate(Source source, Source base, String extension) {
-    if (SystemLibraryManager.isDartUri(base.getUri())) {
+    if (PackageLibraryManager.isDartUri(base.getUri())) {
       Source bundledSource = getBundledArtifact(source, base, "", extension);
       if (bundledSource != null && bundledSource.exists()) {
         // Note: Artifacts bundled with sources are always up to date

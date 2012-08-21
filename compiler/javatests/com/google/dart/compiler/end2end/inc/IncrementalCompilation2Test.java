@@ -21,7 +21,7 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -658,7 +658,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   
   public void test_reportMissingSource_withSchema_dart() throws Exception {
     URI uri = new URI("dart:noSuchSource");
-    Source source = new UrlSource(uri, new SystemLibraryManager()) {
+    Source source = new UrlSource(uri, new PackageLibraryManager()) {
       @Override
       public String getName() {
         return null;

@@ -8,7 +8,7 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 
@@ -23,8 +23,8 @@ import java.util.List;
  */
 public class TestCompilerConfiguration implements CompilerConfiguration {
   private final CompilerOptions compilerOptions = new CompilerOptions();
-  private final SystemLibraryManager systemLibraryManager =
-      new SystemLibraryManager();
+  private final PackageLibraryManager systemLibraryManager =
+      new PackageLibraryManager();
 
   @Override
   public boolean developerModeChecks() {
@@ -93,7 +93,7 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public SystemLibraryManager getSystemLibraryManager() {
+  public PackageLibraryManager getSystemLibraryManager() {
     return systemLibraryManager;
   }
 }

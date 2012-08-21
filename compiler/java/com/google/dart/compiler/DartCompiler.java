@@ -146,7 +146,7 @@ public class DartCompiler {
       this.phases = config.getPhases();
       this.context = context;
       for (LibrarySource library : embedded) {
-        if (SystemLibraryManager.isDartSpec(library.getName())) {
+        if (PackageLibraryManager.isDartSpec(library.getName())) {
           LibrarySource foundLibrary = context.getSystemLibraryFor(library.getName());
           assert(foundLibrary != null);
           embeddedLibraries.add(foundLibrary);
@@ -257,7 +257,7 @@ public class DartCompiler {
             }
 
             if (!incremental
-                || SystemLibraryManager.isDartUri(libSrc.getUri())
+                || PackageLibraryManager.isDartUri(libSrc.getUri())
                 || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
               // If we just parsed unit of library, report problems.
@@ -445,7 +445,7 @@ public class DartCompiler {
         throws IOException {
       String libSpec = libNode.getText();
       LibrarySource dep;
-      if (SystemLibraryManager.isDartSpec(libSpec)) {
+      if (PackageLibraryManager.isDartSpec(libSpec)) {
         dep = context.getSystemLibraryFor(libSpec);
       } else {
         dep = libSrc.getImportFor(libSpec);
@@ -613,7 +613,7 @@ public class DartCompiler {
     private void validateLibraryDirectives() {
       for (LibraryUnit lib : getLibrariesToProcess()) {
         // don't need to validate system libraries
-        if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
+        if (PackageLibraryManager.isDartUri(lib.getSource().getUri())) {
           continue;
         }
         
@@ -656,7 +656,7 @@ public class DartCompiler {
         // check that each imported library has a library directive
         for (LibraryUnit importedLib  : lib.getImportedLibraries()) {
 
-          if (SystemLibraryManager.isDartUri(importedLib.getSource().getUri())) {
+          if (PackageLibraryManager.isDartUri(importedLib.getSource().getUri())) {
             // system libraries are always valid
             continue;
           }
@@ -1103,7 +1103,7 @@ public class DartCompiler {
       File outputDirectory = config.getOutputDirectory();
       DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(outputDirectory);
       // Compile the Dart application and its dependencies.
-      SystemLibraryManager libraryManager = config.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = config.getSystemLibraryManager();
       final LibrarySource lib = new UrlLibrarySource(sourceFile.toURI(),libraryManager);
       DefaultDartCompilerListener listener;
       if (config.getCompilerOptions().showSourceFromAst()) {
@@ -1213,7 +1213,7 @@ public class DartCompiler {
   public static LibraryUnit analyzeLibrary(LibrarySource lib, final Map<URI, DartUnit> parsedUnits,
       CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
       throws IOException {
-    final SystemLibraryManager manager = config.getSystemLibraryManager();
+    final PackageLibraryManager manager = config.getSystemLibraryManager();
     final HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
     SelectiveCache selectiveCache = new SelectiveCache() {
       @Override

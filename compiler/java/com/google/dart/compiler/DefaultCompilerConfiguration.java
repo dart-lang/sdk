@@ -25,7 +25,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   private final CompilerMetrics compilerMetrics;
 
-  private final SystemLibraryManager systemLibraryManager;
+  private final PackageLibraryManager systemLibraryManager;
 
 
   /**
@@ -39,7 +39,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    * A new instance with the specified {@link CompilerOptions}.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions) {
-    this(compilerOptions, new SystemLibraryManager(compilerOptions.getDartSdkPath(),
+    this(compilerOptions, new PackageLibraryManager(compilerOptions.getDartSdkPath(),
                                                    compilerOptions.getPlatformName()));
   }
 
@@ -47,7 +47,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    * A new instance with the specified options and system library manager.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions,
-      SystemLibraryManager libraryManager) {
+      PackageLibraryManager libraryManager) {
     this.compilerOptions = compilerOptions;
     this.compilerMetrics = compilerOptions.showMetrics() ? new CompilerMetrics() : null;
     this.systemLibraryManager = libraryManager;
@@ -136,7 +136,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
   
   @Override
-  public SystemLibraryManager getSystemLibraryManager() {
+  public PackageLibraryManager getSystemLibraryManager() {
     return systemLibraryManager;
   }
 }

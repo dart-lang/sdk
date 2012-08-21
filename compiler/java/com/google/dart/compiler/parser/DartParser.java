@@ -14,7 +14,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -224,7 +224,7 @@ public class DartParser extends CompletionHooksParserBase {
     this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
+    this.corelibParse = source != null && PackageLibraryManager.isDartUri(source.getUri());
   }
 
   public static String read(Source source) throws IOException {

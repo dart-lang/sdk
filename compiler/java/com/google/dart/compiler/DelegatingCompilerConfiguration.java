@@ -84,7 +84,7 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public SystemLibraryManager getSystemLibraryManager() {
+  public PackageLibraryManager getSystemLibraryManager() {
     return delegate.getSystemLibraryManager();
   }
 }

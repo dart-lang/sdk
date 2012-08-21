@@ -10,7 +10,7 @@ import java.net.URI;
  * A {@link LibrarySource} backed by a URL.
  */
 public class UrlLibrarySource extends UrlSource implements LibrarySource {
-  public UrlLibrarySource(URI uri, SystemLibraryManager slm) {
+  public UrlLibrarySource(URI uri, PackageLibraryManager slm) {
     super(uri, slm);
   }
 
@@ -51,7 +51,7 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
       URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
       String path = uri.getPath();
       // Resolve relative reference out of one system library into another
-      if (SystemLibraryManager.isDartUri(uri)) {
+      if (PackageLibraryManager.isDartUri(uri)) {
         if(path != null && path.startsWith("/..")) {
           URI fileUri = systemLibraryManager.resolveDartUri(uri);
           URI shortUri = systemLibraryManager.getShortUri(fileUri);
@@ -59,7 +59,7 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
             uri = shortUri;
           }
         }
-      } else if (SystemLibraryManager.isPackageUri(uri)){
+      } else if (PackageLibraryManager.isPackageUri(uri)){
         URI fileUri = systemLibraryManager.resolveDartUri(uri);
         if (fileUri != null){
           uri = fileUri;

@@ -16,7 +16,7 @@ public class UrlDartSource extends UrlSource implements DartSource {
   private final LibrarySource lib;
   private final String relPath;
 
-  protected UrlDartSource(URI uri, String relPath, LibrarySource lib, SystemLibraryManager slm) {
+  protected UrlDartSource(URI uri, String relPath, LibrarySource lib, PackageLibraryManager slm) {
     super(uri,slm);
     this.relPath = relPath;
     this.lib = lib;

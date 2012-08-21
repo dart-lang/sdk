@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 
 import java.net.URI;
 
-public class SystemLibraryManagerTest extends TestCase {
+public class PackageLibraryManagerTest extends TestCase {
   /**
    * For FS based {@link URI} the path is not <code>null</code>, for JAR {@link URI} the scheme
    * specific part is not <code>null</code>.
@@ -21,7 +21,7 @@ public class SystemLibraryManagerTest extends TestCase {
     return uri.getSchemeSpecificPart();
   }
 
-  SystemLibraryManager systemLibraryManager = new SystemLibraryManager();
+  PackageLibraryManager systemLibraryManager = new PackageLibraryManager();
  
 
   public void testExpand1() throws Exception {
