@@ -2344,17 +2344,14 @@ class Stackmap : public Object {
   bool IsObject(intptr_t index) const {
     return InRange(index) && GetBit(index);
   }
+
+  RawCode* Code() const { return raw_ptr()->code_; }
+  void SetCode(const dart::Code& code) const;
+
+  intptr_t Length() const { return raw_ptr()->length_; }
+
   uword PC() const { return raw_ptr()->pc_; }
   void SetPC(uword value) const { raw_ptr()->pc_ = value; }
-
-  RawCode* GetCode() const { return raw_ptr()->code_; }
-  void SetCode(const Code& code) const;
-
-  // Return the index of the highest stack slot that has an object.
-  intptr_t MaximumBitIndex() const { return raw_ptr()->max_set_bit_index_; }
-
-  // Return the index of the lowest stack slot that has an object.
-  intptr_t MinimumBitIndex() const { return raw_ptr()->min_set_bit_index_; }
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
@@ -2362,31 +2359,24 @@ class Stackmap : public Object {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t length_in_bytes) {
-    ASSERT(length_in_bytes >= 0);
-    ASSERT(length_in_bytes <= kMaxLengthInBytes);
-    return RoundedAllocationSize(sizeof(RawStackmap) + length_in_bytes);
+  static intptr_t InstanceSize(intptr_t length) {
+    ASSERT(length >= 0);
+    // The stackmap payload is in an array of bytes.
+    intptr_t payload_size =
+        Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+    return RoundedAllocationSize(sizeof(RawStackmap) + payload_size);
   }
   static RawStackmap* New(intptr_t pc_offset,
-                          intptr_t length_in_bits,
+                          intptr_t length,
                           BitmapBuilder* bmap);
 
  private:
-  inline intptr_t SizeInBits() const;
+  void SetLength(intptr_t length) const { raw_ptr()->length_ = length; }
 
-  void SetMinBitIndex(intptr_t value) const {
-    raw_ptr()->min_set_bit_index_ = value;
-  }
-  void SetMaxBitIndex(intptr_t value) const {
-    raw_ptr()->max_set_bit_index_ = value;
-  }
-
-  bool InRange(intptr_t index) const { return index < SizeInBits(); }
+  bool InRange(intptr_t index) const { return index < Length(); }
 
   bool GetBit(intptr_t bit_index) const;
   void SetBit(intptr_t bit_index, bool value) const;
-
-  void set_bitmap_size_in_bytes(intptr_t value) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
   friend class BitmapBuilder;
@@ -2523,12 +2513,6 @@ class Code : public Object {
   }
   void set_is_optimized(bool value) const {
     raw_ptr()->is_optimized_ = value ? 1 : 0;
-  }
-  intptr_t spill_slot_count() const {
-    return raw_ptr()->spill_slot_count_;
-  }
-  void set_spill_slot_count(intptr_t count) const {
-    raw_ptr()->spill_slot_count_ = count;
   }
 
   uword EntryPoint() const {
@@ -5505,11 +5489,6 @@ intptr_t TokenStream::Length() const {
 
 void Context::SetAt(intptr_t index, const Instance& value) const {
   StorePointer(InstanceAddr(index), value.raw());
-}
-
-
-intptr_t Stackmap::SizeInBits() const {
-  return (Smi::Value(raw_ptr()->bitmap_size_in_bytes_) * kBitsPerByte);
 }
 
 

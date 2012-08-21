@@ -62,25 +62,6 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 }
 
 
-void BitmapBuilder::SetBits(const Stackmap& stackmap) {
-  intptr_t min = stackmap.MinimumBitIndex();
-  intptr_t max = stackmap.MaximumBitIndex();
-  if (min == Stackmap::kNoMinimum || max == Stackmap::kNoMaximum) {
-    return;
-  }
-  for (intptr_t i = 0; i < min; i++) {
-    Set(i, false);
-  }
-  for (intptr_t i = min; i <= max; i++) {
-    Set(i, stackmap.IsObject(i));
-  }
-  intptr_t bound = SizeInBits();
-  for (intptr_t i = (max + 1); i < bound; i++) {
-    Set(i, false);
-  }
-}
-
-
 bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
   ASSERT(InRange(bit_offset));
   int byte_offset = bit_offset >> kBitsPerByteLog2;

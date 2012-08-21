@@ -6744,7 +6744,7 @@ void PcDescriptors::Verify(bool check_ids) const {
 }
 
 
-void Stackmap::SetCode(const Code& code) const {
+void Stackmap::SetCode(const dart::Code& code) const {
   StorePointer(&raw_ptr()->code_, code.raw());
 }
 
@@ -6774,47 +6774,41 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 
 
 RawStackmap* Stackmap::New(intptr_t pc_offset,
-                           intptr_t length_in_bits,
+                           intptr_t length,
                            BitmapBuilder* bmap) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
-  intptr_t length_in_bytes =
-      Utils::RoundUp(length_in_bits, kBitsPerByte) / kBitsPerByte;
-  if (length_in_bytes < 0 || length_in_bytes > kMaxLengthInBytes) {
+  // Guard against integer overflow of the instance size computation.
+  intptr_t payload_size =
+      Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+  if (payload_size < 0 ||
+      payload_size >
+          (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap)))) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Stackmap::New: invalid length %" PRIdPTR "\n",
-           length_in_bytes);
+           length);
   }
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
     RawObject* raw = Object::Allocate(Stackmap::kClassId,
-                                      Stackmap::InstanceSize(length_in_bytes),
+                                      Stackmap::InstanceSize(length),
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.set_bitmap_size_in_bytes(length_in_bytes);
+    result.SetLength(length);
   }
   // When constructing a stackmap we store the pc offset in the stackmap's
   // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
   // address.
   ASSERT(pc_offset >= 0);
   result.SetPC(pc_offset);
-  for (intptr_t i = 0; i < length_in_bits; i++) {
+  for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
-  ASSERT(bmap->Maximum() < length_in_bits);
-  result.SetMinBitIndex(bmap->Minimum());
-  result.SetMaxBitIndex(bmap->Maximum());
+  ASSERT(bmap->Maximum() < length);
   return result.raw();
-}
-
-
-void Stackmap::set_bitmap_size_in_bytes(intptr_t value) const {
-  // This is only safe because we create a new Smi, which does not cause
-  // heap allocation.
-  raw_ptr()->bitmap_size_in_bytes_ = Smi::New(value);
 }
 
 
@@ -6822,24 +6816,23 @@ const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
-    // Guard against integer overflow, though it is highly unlikely.
-    if (MaximumBitIndex() > kIntptrMax / 4) {
-      FATAL1("MaximumBitIndex() is unexpectedly large (%" PRIdPTR ")",
-             MaximumBitIndex());
-    }
-    intptr_t index = OS::SNPrint(NULL, 0, "0x%" PRIxPTR " { ", PC());
-    intptr_t alloc_size =
-        index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
+    const char* kFormat = "0x%" PRIxPTR ": ";
+    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PC()) + 1;
     Isolate* isolate = Isolate::Current();
-    char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
-    index = OS::SNPrint(chars, alloc_size, "0x%" PRIxPTR " { ", PC());
-    for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
-      index += OS::SNPrint((chars + index),
-                           (alloc_size - index),
-                           "%d ",
-                           IsObject(i) ? 1 : 0);
+    // Guard against integer overflow in the computation of alloc_size.
+    //
+    // TODO(kmillikin): We could just truncate the string if someone
+    // tries to print a 2 billion plus entry stackmap.
+    if (Length() > (kIntptrMax - fixed_length)) {
+      FATAL1("Length() is unexpectedly large (%" PRIdPTR ")", Length());
     }
-    OS::SNPrint((chars + index), (alloc_size - index), "}");
+    intptr_t alloc_size = fixed_length + Length();
+    char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
+    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PC());
+    for (intptr_t i = 0; i < Length(); i++) {
+      chars[index++] = IsObject(i) ? '1' : '0';
+    }
+    chars[index] = '\0';
     return chars;
   }
 }
@@ -7151,7 +7144,6 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
-    result.set_spill_slot_count(0);
     result.set_comments(Comments::New(0));
   }
   return result.raw();

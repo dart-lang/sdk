@@ -208,8 +208,8 @@ intptr_t RawObject::SizeFromClass() const {
       }
       case kStackmapCid: {
         const RawStackmap* map = reinterpret_cast<const RawStackmap*>(this);
-        intptr_t size_in_bytes = Smi::Value(map->ptr()->bitmap_size_in_bytes_);
-        instance_size = Stackmap::InstanceSize(size_in_bytes);
+        intptr_t length = map->ptr()->length_;
+        instance_size = Stackmap::InstanceSize(length);
         break;
       }
       case kLocalVarDescriptorsCid: {
@@ -484,9 +484,9 @@ intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
 intptr_t RawStackmap::VisitStackmapPointers(RawStackmap* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   RawStackmap* obj = raw_obj->ptr();
-  intptr_t size_in_bytes = Smi::Value(obj->bitmap_size_in_bytes_);
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return Stackmap::InstanceSize(size_in_bytes);
+  intptr_t length = obj->length_;
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->code_));
+  return Stackmap::InstanceSize(length);
 }
 
 

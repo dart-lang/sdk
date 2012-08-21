@@ -41,9 +41,6 @@ class BitmapBuilder : public ZoneAllocated {
   // Sets min..max (inclusive) to value.
   void SetRange(intptr_t min, intptr_t max, bool value);
 
-  // Replicates the bit map setting of the passed in Stackmap object.
-  void SetBits(const Stackmap& stackmap);
-
  private:
   static const intptr_t kInitialSizeInBytes = 16;
   static const intptr_t kIncrementSizeInBytes = 16;

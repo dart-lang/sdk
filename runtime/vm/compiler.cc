@@ -233,9 +233,6 @@ static bool CompileParsedFunctionHelper(
       const Function& function = parsed_function.function();
       const Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
       code.set_is_optimized(optimized);
-      if (optimized && use_ssa) {
-        code.set_spill_slot_count(graph_compiler.StackSize());
-      }
       graph_compiler.FinalizePcDescriptors(code);
       graph_compiler.FinalizeDeoptInfo(code);
       graph_compiler.FinalizeStackmaps(code);

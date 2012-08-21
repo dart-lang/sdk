@@ -765,10 +765,6 @@ class RawCode : public RawObject {
   // This cannot be boolean because of alignment issues on x64 architectures.
   intptr_t is_optimized_;
 
-  // The number of spill slots used by an optimized code object.  This is
-  // used as the length of each stackmap in the code.
-  intptr_t spill_slot_count_;
-
   // Variable length data follows here.
   int32_t data_[0];
 
@@ -806,28 +802,20 @@ class RawPcDescriptors : public RawObject {
 };
 
 
-// Stackmap is an immutable representation of the layout of the stack at
-// a PC. The stack map representation consists of a bit map which marks
-// each stack slot index starting from the FP (frame pointer) as an object
-// or regular untagged value.
-// The Stackmap also consists of a link to code object corresponding to
-// the frame which the stack map is describing.
-// The bit map representation is optimized for dense and small bit maps,
-// without any upper bound.
+// Stackmap is an immutable representation of the layout of the stack at a
+// PC. The stack map representation consists of a bit map which marks each
+// live object index starting from the base of the frame.
+//
+// The Stackmap also consists of a link to the code object corresponding to
+// the frame which the stack map is describing.  The bit map representation
+// is optimized for dense and small bit maps, without any upper bound.
 class RawStackmap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
   RawCode* code_;  // Code object corresponding to the frame described.
-  RawSmi* bitmap_size_in_bytes_;  // Size of the bit map in bytes.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->bitmap_size_in_bytes_);
-  }
+
+  intptr_t length_;  // Length of payload, in bits.
   uword pc_;  // PC corresponding to this stack map representation.
-  intptr_t min_set_bit_index_;  // Minimum bit offset which is set.
-  intptr_t max_set_bit_index_;  // Maximum bit offset which is set.
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t data_[0];

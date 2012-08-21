@@ -75,31 +75,6 @@ TEST_CASE(BitmapBuilder) {
   for (int32_t i = 1025; i <= 2048; i++) {
     EXPECT(!stackmap2.IsObject(i));
   }
-
-  // Test the functionality to copy a Stackmap object into a builder.
-  BitmapBuilder* builder2 = new BitmapBuilder();
-  builder2->SetBits(stackmap1);
-  EXPECT_EQ(1022, builder2->Maximum());
-  EXPECT_EQ(0, builder2->Minimum());
-  value = true;
-  for (int32_t i = 0; i < 1024; i++) {
-    EXPECT_EQ(value, builder2->Get(i));
-    value = !value;
-  }
-
-  BitmapBuilder* builder3 = new BitmapBuilder();
-  builder3->SetBits(stackmap2);
-  EXPECT_EQ(1024, builder3->Maximum());
-  EXPECT_EQ(257, builder3->Minimum());
-  for (int32_t i = 0; i <= 256; i++) {
-    EXPECT(!builder3->Get(i));
-  }
-  for (int32_t i = 257; i <= 1024; i++) {
-    EXPECT(builder3->Get(i));
-  }
-  for (int32_t i = 1025; i <= 2048; i++) {
-    EXPECT(!builder3->Get(i));
-  }
 }
 
 }  // namespace dart

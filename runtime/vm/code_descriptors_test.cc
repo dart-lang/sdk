@@ -55,12 +55,18 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     // Build a stackmap table and some stackmap table entries.
-    StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder(11);
+    const intptr_t kStackSlotCount = 11;
+    StackmapTableBuilder* stackmap_table_builder =
+        new StackmapTableBuilder(kStackSlotCount);
     EXPECT(stackmap_table_builder != NULL);
+
     BitmapBuilder* stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
     stack_bitmap->Set(0, true);
-    EXPECT(stack_bitmap->Get(0));
+    bool expectation0[kStackSlotCount] = { true };
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation0[i], stack_bitmap->Get(i));
+    }
     // Add a stack map entry at pc offset 0.
     stackmap_table_builder->AddEntry(0, stack_bitmap);
 
@@ -69,9 +75,10 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->Set(0, true);
     stack_bitmap->Set(1, false);
     stack_bitmap->Set(2, true);
-    EXPECT(stack_bitmap->Get(0));
-    EXPECT(!stack_bitmap->Get(1));
-    EXPECT(stack_bitmap->Get(2));
+    bool expectation1[kStackSlotCount] = { true, false, true };
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation1[i], stack_bitmap->Get(i));
+    }
     // Add a stack map entry at pc offset 1.
     stackmap_table_builder->AddEntry(1, stack_bitmap);
 
@@ -81,11 +88,10 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->Set(1, false);
     stack_bitmap->Set(2, true);
     stack_bitmap->SetRange(3, 5, true);
-    EXPECT(stack_bitmap->Get(0));
-    EXPECT(!stack_bitmap->Get(1));
-    EXPECT(stack_bitmap->Get(2));
-    for (intptr_t i = 3; i <= 5; i++) {
-      EXPECT(stack_bitmap->Get(i));
+    bool expectation2[kStackSlotCount] =
+        { true, false, true, true, true, true };
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation2[i], stack_bitmap->Get(i));
     }
     // Add a stack map entry at pc offset 2.
     stackmap_table_builder->AddEntry(2, stack_bitmap);
@@ -98,16 +104,12 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->SetRange(3, 5, true);
     stack_bitmap->SetRange(6, 9, false);
     stack_bitmap->Set(10, true);
-    EXPECT(stack_bitmap->Get(0));
-    EXPECT(!stack_bitmap->Get(1));
-    EXPECT(stack_bitmap->Get(2));
-    for (intptr_t i = 3; i <= 5; i++) {
-      EXPECT(stack_bitmap->Get(i));
+    bool expectation3[kStackSlotCount] =
+        { true, false, true, true, true, true, false, false,
+          false, false, true };
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation3[i], stack_bitmap->Get(i));
     }
-    for (intptr_t i = 6; i <= 9; i++) {
-      EXPECT(!stack_bitmap->Get(i));
-    }
-    EXPECT(stack_bitmap->Get(10));
     // Add a stack map entry at pc offset 3.
     stackmap_table_builder->AddEntry(3, stack_bitmap);
 
@@ -126,41 +128,31 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
 
     // Validate the first stack map entry.
     stack_map ^= stack_map_list.At(0);
-    EXPECT(stack_map.IsObject(0));
-    EXPECT_EQ(0, stack_map.MinimumBitIndex());
-    EXPECT_EQ(0, stack_map.MaximumBitIndex());
+    EXPECT_EQ(kStackSlotCount, stack_map.Length());
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation0[i], stack_map.IsObject(i));
+    }
 
     // Validate the second stack map entry.
     stack_map ^= stack_map_list.At(1);
-    EXPECT(stack_map.IsObject(0));
-    EXPECT(!stack_map.IsObject(1));
-    EXPECT(stack_map.IsObject(2));
-    EXPECT_EQ(0, stack_map.MinimumBitIndex());
-    EXPECT_EQ(2, stack_map.MaximumBitIndex());
+    EXPECT_EQ(kStackSlotCount, stack_map.Length());
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation1[i], stack_map.IsObject(i));
+    }
 
     // Validate the third stack map entry.
     stack_map ^= stack_map_list.At(2);
-    EXPECT(stack_map.IsObject(0));
-    EXPECT(!stack_map.IsObject(1));
-    for (intptr_t i = 2; i <= 5; i++) {
-      EXPECT(stack_map.IsObject(i));
+    EXPECT_EQ(kStackSlotCount, stack_map.Length());
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation2[i], stack_map.IsObject(i));
     }
-    EXPECT_EQ(0, stack_map.MinimumBitIndex());
-    EXPECT_EQ(5, stack_map.MaximumBitIndex());
 
     // Validate the fourth stack map entry.
     stack_map ^= stack_map_list.At(3);
-    EXPECT(stack_map.IsObject(0));
-    EXPECT(!stack_map.IsObject(1));
-    for (intptr_t i = 2; i <= 5; i++) {
-      EXPECT(stack_map.IsObject(i));
+    EXPECT_EQ(kStackSlotCount, stack_map.Length());
+    for (intptr_t i = 0; i < kStackSlotCount; ++i) {
+      EXPECT_EQ(expectation3[i], stack_map.IsObject(i));
     }
-    for (intptr_t i = 6; i <= 9; i++) {
-      EXPECT(!stack_map.IsObject(i));
-    }
-    EXPECT(stack_map.IsObject(10));
-    EXPECT_EQ(0, stack_map.MinimumBitIndex());
-    EXPECT_EQ(10, stack_map.MaximumBitIndex());
     retval = true;
   } else {
     retval = false;
@@ -229,7 +221,7 @@ TEST_CASE(StackmapGC) {
 
   // Build and setup a stackmap for the call to 'func' in 'A.foo' in order
   // to test the traversal of stack maps when a GC happens.
-  StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder(7);
+  StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder(5);
   EXPECT(stackmap_table_builder != NULL);
   BitmapBuilder* stack_bitmap = new BitmapBuilder();
   EXPECT(stack_bitmap != NULL);
@@ -238,8 +230,6 @@ TEST_CASE(StackmapGC) {
   stack_bitmap->Set(2, false);  // var k.
   stack_bitmap->Set(3, true);  // var s2.
   stack_bitmap->Set(4, true);  // var s3.
-  stack_bitmap->Set(5, true);  // First argument to func(i, k).
-  stack_bitmap->Set(6, true);  // Second argument to func(i, k).
   const Code& code = Code::Handle(function_foo.unoptimized_code());
   // Search for the pc of the call to 'func'.
   const PcDescriptors& descriptors =
