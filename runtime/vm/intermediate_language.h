@@ -394,6 +394,8 @@ class UseVal : public Value {
 
   virtual intptr_t ResultCid() const;
 
+  virtual bool AttributesEqual(Computation* other) const;
+
  private:
   void AddToUseList();
   Definition* definition_;
@@ -430,6 +432,8 @@ class ConstantVal : public Value {
   virtual void RemoveFromUseList() { }
 
   virtual intptr_t ResultCid() const;
+
+  virtual bool AttributesEqual(Computation* other) const;
 
  private:
   const Object& value_;

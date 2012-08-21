@@ -44,6 +44,18 @@ bool Computation::Equals(Computation* other) const {
 }
 
 
+bool UseVal::AttributesEqual(Computation* other) const {
+  return other->IsUse()
+      && definition() == other->AsUse()->definition();
+}
+
+
+bool ConstantVal::AttributesEqual(Computation* other) const {
+  return other->IsConstant()
+      && value().raw() == other->AsConstant()->value().raw();
+}
+
+
 bool CheckClassComp::AttributesEqual(Computation* other) const {
   CheckClassComp* other_check = other->AsCheckClass();
   if (other_check == NULL) return false;
