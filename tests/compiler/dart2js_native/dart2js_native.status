@@ -2,17 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == frog && $runtime == d8 ]
-native_class_inheritance4_frog_test: Fail
-native_property_frog_test: Fail
-native_missing_method1_frog_test: Fail # Issue 1912
-native_window1_frog_test: Fail # Issue 1915
-
-[ $compiler == frog ]
-foreign_test: Fail # Leg only test
-
 [ $checked ]
 native_checked_fields_frog_test: Fail
 
-[ $compiler == dartc || $runtime == drt || $runtime == ie || $runtime == chrome || $runtime == safari || $runtime == ff || $runtime == opera ]
+[ $compiler == dartc || $browser ]
 *: Skip

@@ -1,0 +1,57 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $checked ]
+native_checked_fields_test: Fail
+
+
+[ $compiler == dart2js ]
+foreign_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_call_arity1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_call_arity2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_call_arity3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_checked_arguments1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_checked_fields_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_avoids_hidden_name_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_inheritance1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_inheritance2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_inheritance3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_inheritance4_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_is_check1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_is_check3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_class_with_dart_methods_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_closure_identity_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_exceptions1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_field_rename_1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_field_rename_2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_library_same_name_used_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_literal_class_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_method_rename1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_method_rename2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_method_rename3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_method_with_keyword_name_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_missing_method1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_missing_method2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_named_constructors2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_named_constructors3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_no_such_method_exception2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_no_such_method_exception3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_no_such_method_exception4_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_no_such_method_exception5_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_no_such_method_exception_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_null_closure_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_null_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_parameter_names_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_property_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_to_string_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_use_native_name_in_table_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_window1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_window2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_wrapping_function2_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_wrapping_function3_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_wrapping_function_test: Fail # TODO(ahe): Convert to metadata syntax.
+
+
+[ $compiler == dartc || $browser ]
+*: Skip

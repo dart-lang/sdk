@@ -48,6 +48,7 @@ final TEST_SUITE_DIRECTORIES = const [
     const Path('tests/benchmark_smoke'),
     const Path('tests/compiler/dart2js'),
     const Path('tests/compiler/dart2js_extra'),
+    const Path('tests/compiler/dart2js_foreign'),
     const Path('tests/compiler/dart2js_native'),
     const Path('tests/corelib'),
     const Path('tests/dom'),
