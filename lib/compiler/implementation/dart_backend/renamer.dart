@@ -14,14 +14,6 @@ void renamePlaceholders(
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
   final Set<String> usedTopLevelIdentifiers = new Set<String>();
-  int privateNameCounter = 0;
-
-  String getName(LibraryElement library, String originalName, renamer) =>
-      renamed.putIfAbsent(library, () => <String>{})
-          .putIfAbsent(originalName, renamer);
-
-  String renamePrivateIdentifier(LibraryElement library, String id) =>
-      getName(library, id, () => '_${privateNameCounter++}${id}');
 
   Generator topLevelGenerator =
       true ? conservativeGenerator : new MinifyingGenerator('ABCD').generate;
@@ -31,6 +23,10 @@ void renamePlaceholders(
     usedTopLevelIdentifiers.add(newName);
     return newName;
   }
+
+  rename(library, originalName) =>
+      renamed.putIfAbsent(library, () => <String>{})
+          .putIfAbsent(originalName, () => generateUniqueName(originalName));
 
   String renameElement(Element element) {
     assert(element.isTopLevel());
@@ -44,8 +40,7 @@ void renamePlaceholders(
       return '$prefix.$originalName';
     }
 
-    return getName(library, originalName,
-                   () => generateUniqueName(originalName));
+    return rename(library, originalName);
   }
 
   renameNodes(Collection<Node> nodes, renamer) {
@@ -73,7 +68,7 @@ void renamePlaceholders(
   placeholderCollector.privateNodes.forEach(
       (LibraryElement library, Set<Identifier> nodes) {
         renameNodes(nodes, (node) =>
-            renamePrivateIdentifier(library, node.source.slowToString()));
+            rename(library, node.source.slowToString()));
   });
 }
 

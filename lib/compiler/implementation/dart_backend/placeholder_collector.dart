@@ -34,7 +34,7 @@ class SendVisitor extends ResolvedVisitor {
   visitGetterSend(Send node) {
     final element = elements[node];
     // element === null means dynamic property access.
-    if (element === null || element.isInstanceMember()) {
+    if (element === null || element.isMember()) {
       tryRenamePrivateSelector(node);
       return;
     }
@@ -296,11 +296,12 @@ class PlaceholderCollector extends AbstractVisitor {
   }
 
   visitSendSet(SendSet send) {
+    if (send.selector is Identifier) {
+      tryMakePrivateIdentifier(send.selector.asIdentifier());
+    }
     final element = treeElements[send];
     if (element !== null) {
-      if (element.isInstanceMember()) {
-        tryMakePrivateIdentifier(send.selector.asIdentifier());
-      } else if (element.isTopLevel()) {
+      if (element.isTopLevel()) {
         assert(element is VariableElement || element.isSetter());
         makeElementPlaceholder(send.selector, element);
       } else {
