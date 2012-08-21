@@ -301,15 +301,38 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
     }
   }
   if (FLAG_print_flags) {
-    OS::Print("Flag settings:\n");
-    Flag* flag = Flags::flags_;
-    while (flag != NULL) {
-      flag->Print();
-      flag = flag->next_;
-    }
+    PrintFlags();
   }
-
   return true;
 }
 
+
+int Flags::CompareFlagNames(const void* left, const void* right) {
+  const Flag* left_flag = *reinterpret_cast<const Flag* const *>(left);
+  const Flag* right_flag = *reinterpret_cast<const Flag* const *>(right);
+  return strcmp(left_flag->name_, right_flag->name_);
+}
+
+
+void Flags::PrintFlags() {
+    OS::Print("Flag settings:\n");
+    Flag* flag = Flags::flags_;
+    int num_flags = 0;
+    while (flag != NULL) {
+      num_flags++;
+      flag = flag->next_;
+    }
+    Flag** flag_array = new Flag*[num_flags];
+    flag = Flags::flags_;
+    for (int i = 0; i < num_flags; ++i, flag = flag->next_) {
+      flag_array[i] = flag;
+    }
+
+    qsort(flag_array, num_flags, sizeof flag_array[0], CompareFlagNames);
+
+    for (int i = 0; i < num_flags; ++i) {
+      flag_array[i]->Print();
+    }
+    delete[] flag_array;
+  }
 }  // namespace dart

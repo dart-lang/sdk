@@ -73,6 +73,10 @@ class Flags {
 
   static void Parse(const char* option);
 
+  static int CompareFlagNames(const void* left, const void* right);
+
+  static void PrintFlags();
+
   // Testing needs direct access to private methods.
   friend void Dart_TestParseFlags();
 
