@@ -477,6 +477,42 @@ main() {
   Expect.isTrue(collector.elementNodes[classElement].contains(defaultTypeNode));
 }
 
+testFactoryRename() {
+  var librarySrc = '''
+#library('mylib');
+
+interface I default B { I(); }
+class A implements I { A() {} }
+class B { factory I() {} }
+
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+interface I default B { I(); }
+class A implements I { A() {} }
+class B { factory I() {} }
+
+main() {
+  new I();
+  new A();
+
+  new mylib.I();
+  new mylib.A();
+}
+''';
+  var expectedResult =
+    'interface p_I default B{p_I();}'
+    'class A implements p_I{A(){}}'
+    'class B{factory p_I(){}}'
+    'interface I default p_B{I();}'
+    'class p_A implements I{p_A(){}}'
+    'class p_B{factory I(){}}'
+    'main(){new I(); new p_A(); new p_I(); new A();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -507,4 +543,5 @@ main() {
   testLibraryGetSet();
   testFieldTypeOutput();
   testDefaultClassNamePlaceholder();
+  testFactoryRename();
 }

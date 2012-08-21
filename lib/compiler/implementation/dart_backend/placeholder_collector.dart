@@ -108,6 +108,16 @@ class PlaceholderCollector extends AbstractVisitor {
       localPlaceholders = new Map<FunctionElement, Set<LocalPlaceholder>>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>();
 
+  void tryMakeConstructorNamePlaceholder(
+      FunctionExpression constructor, ClassElement element) {
+    Node nameNode = constructor.name;
+    if (nameNode is Send) nameNode = nameNode.receiver;
+    if (nameNode.asIdentifier().token.slowToString()
+        == element.name.slowToString()) {
+      makeElementPlaceholder(nameNode, element);
+    }
+  }
+
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
@@ -122,14 +132,27 @@ class PlaceholderCollector extends AbstractVisitor {
       //      0.dart: class C { C(); }
       //      1.dart: interface C default p0.C { C(); }
       //    the second case is just a bug now.
-      final enclosingClass = element.getEnclosingClass();
-      Node nameNode = node.name;
-      if (nameNode is Send) nameNode = nameNode.receiver;
-      // For cases like class C implements I { I(); }
-      if (nameNode.asIdentifier().token.slowToString()
-          == enclosingClass.name.slowToString()) {
-        makeTypePlaceholder(nameNode, enclosingClass.type);
+      tryMakeConstructorNamePlaceholder(node, element.getEnclosingClass());
+
+      // If we have interface constructor, make sure that we put placeholder
+      // for its default factory implementation.
+      // Example:
+      // interface I default C { I();}
+      // class C { factory I() {} }
+      // 2 cases:
+      // Plain interface name. Rename it unless it is the default
+      // constructor for enclosing class.
+      // Example:
+      // interface I { I(); }
+      // class C implements I { C(); }  don't rename this case.
+      // OR I.named() inside C, rename first part.
+      if (element.defaultImplementation !== null
+          && element.defaultImplementation !== element) {
+        FunctionElement implementingFactory = element.defaultImplementation;
+        tryMakeConstructorNamePlaceholder(implementingFactory.cachedNode,
+            element.getEnclosingClass());
       }
+
       // Process Ctor(this._field) correctly.
       for (Node parameter in node.parameters) {
         VariableDefinitions definitions = parameter.asVariableDefinitions();
