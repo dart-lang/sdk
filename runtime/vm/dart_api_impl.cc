@@ -3545,7 +3545,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
         "Invalid arguments passed to Dart_CreateNativeWrapperClass");
   }
   const Class& cls = Class::Handle(
-      isolate, Class::NewNativeWrapper(&lib, cls_name, field_count));
+      isolate, Class::NewNativeWrapper(lib, cls_name, field_count));
   if (cls.IsNull()) {
     return Api::NewError(
         "Unable to create native wrapper class : already exists");

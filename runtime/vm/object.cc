@@ -1782,10 +1782,10 @@ RawClass* Class::GetClass(intptr_t class_id, bool is_signature_class) {
 }
 
 
-RawClass* Class::NewNativeWrapper(Library* library,
+RawClass* Class::NewNativeWrapper(const Library& library,
                                   const String& name,
                                   int field_count) {
-  Class& cls = Class::Handle(library->LookupClass(name));
+  Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
     const Array& empty_array = Array::Handle(Object::empty_array());
     cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
@@ -1799,7 +1799,7 @@ RawClass* Class::NewNativeWrapper(Library* library,
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
-    library->AddClass(cls);
+    library.AddClass(cls);
     return cls.raw();
   } else {
     return Class::null();
@@ -6232,7 +6232,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
   const String& native_flds_lib_url = String::Handle(
       Symbols::New("dart:nativewrappers"));
-  Library& native_flds_lib = Library::Handle(
+  const Library& native_flds_lib = Library::Handle(
       Library::NewLibraryHelper(native_flds_lib_url, false));
   native_flds_lib.Register();
   isolate->object_store()->set_native_wrappers_library(native_flds_lib);
@@ -6248,7 +6248,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
                 kNativeWrappersClass,
                 fld_cnt);
     cls_name = Symbols::New(name_buffer);
-    Class::NewNativeWrapper(&native_flds_lib, cls_name, fld_cnt);
+    Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
 }
 

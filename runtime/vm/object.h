@@ -693,7 +693,7 @@ class Class : public Object {
   static RawClass* NewInterface(const String& name,
                                 const Script& script,
                                 intptr_t token_pos);
-  static RawClass* NewNativeWrapper(Library* library,
+  static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
 
