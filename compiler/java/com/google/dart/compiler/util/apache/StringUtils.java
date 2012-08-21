@@ -6050,7 +6050,7 @@ public class StringUtils {
      * StringUtils.getLevenshteinDistance("","")               = 0
      * StringUtils.getLevenshteinDistance("","a")              = 1
      * StringUtils.getLevenshteinDistance("aaapppp", "")       = 7
-     * StringUtils.getLevenshteinDistance("frog", "fog")       = 1
+     * StringUtils.getLevenshteinDistance("frig", "fig")       = 1
      * StringUtils.getLevenshteinDistance("fly", "ant")        = 3
      * StringUtils.getLevenshteinDistance("elephant", "hippo") = 7
      * StringUtils.getLevenshteinDistance("hippo", "elephant") = 7

@@ -96,7 +96,7 @@ public class CommandLineOptions {
     private boolean warningsAreFatal = false;
 
     @Option(name = "--platform",
-        usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, frog, any)")
+        usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, any)")
     private String platformName = PackageLibraryManager.DEFAULT_PLATFORM;
 
     @Option(name = "--dart-sdk",
