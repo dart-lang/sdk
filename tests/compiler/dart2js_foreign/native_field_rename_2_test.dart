@@ -10,7 +10,8 @@ interface I {
   int key;
 }
 
-class A implements I native "*A" {
+@native("*A")
+class A implements I  {
   int key;                    //  jsname is 'key'
   int getKey() => key;
 }
@@ -21,17 +22,18 @@ class B implements I {
   int getKey() => key;
 }
 
-class X native "*X" {
-  int native_key_method() native 'key';
+@native("*X")
+class X  {
+  @native('key') int native_key_method();
   // This should cause B.key to be renamed, but not A.key.
-  int key() native 'key';
+  @native('key') int key();
 }
 
-A makeA() native;
-X makeX() native;
+@native A makeA();
+@native X makeX();
 
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){ this.key = 111; }
 A.prototype.getKey = function(){return this.key;};
@@ -41,7 +43,8 @@ X.prototype.key = function(){return 666;};
 
 makeA = function(){return new A};
 makeX = function(){return new X};
-""";
+""")
+void setup();
 
 testDynamic() {
   var things = [makeA(), new B(), makeX()];

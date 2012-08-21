@@ -4,20 +4,22 @@
 
 // Test that type checks occur on native methods.
 
-class A native "*A" {
-  int foo(int x) native;
-  int cmp(A other) native;
+@native("*A")
+class A  {
+  @native int foo(int x);
+  @native int cmp(A other);
 }
 
-class B native "*B" {
-  String foo(String x) native;
-  int cmp(B other) native;
+@native("*B")
+class B  {
+  @native String foo(String x);
+  @native int cmp(B other);
 }
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+@native A makeA() { return new A(); }
+@native B makeB() { return new B(); }
 
-void setup() native """
+@native("""
 function A() {}
 A.prototype.foo = function (x) { return x + 1; };
 A.prototype.cmp = function (x) { return 0; };
@@ -28,7 +30,8 @@ B.prototype.cmp = function (x) { return 1; };
 
 makeA = function(){return new A;};
 makeB = function(){return new B;};
-""";
+""")
+void setup();
 
 expectThrows(action()) {
   bool threw = false;

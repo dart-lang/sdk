@@ -4,25 +4,28 @@
 
 // Test that type checks occur on assignment to fields of native methods.
 
-class A native "*A" {
+@native("*A")
+class A  {
   int foo;
 }
 
-class B native "*B" {
+@native("*B")
+class B  {
   String foo;
 }
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+@native A makeA() { return new A(); }
+@native B makeB() { return new B(); }
 
-void setup() native """
+@native("""
 function A() {}
 
 function B() {}
 
 makeA = function(){return new A;};
 makeB = function(){return new B;};
-""";
+""")
+void setup();
 
 expectThrows(action()) {
   bool threw = false;

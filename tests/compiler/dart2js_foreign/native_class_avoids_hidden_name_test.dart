@@ -4,12 +4,14 @@
 
 // Test that hidden native class names are not used by generated code.
 
-class A native "*B" {
+@native("*B")
+class A  {
   get name => 'A';
   static A create() => makeA();
 }
 
-class B native "*C" {
+@native("*C")
+class B  {
   get name => 'B';
   static B create() => makeB();
 }
@@ -19,23 +21,25 @@ class C {  // Ordinary class with name clashing with native class.
   static C create() => new C();
 }
 
-makeA() native;
-makeB() native;
+@native makeA();
+@native makeB();
 
-void setup1() native """
+@native("""
 // Poison hidden native names 'B' and 'C' to prove the compiler didn't place
 // anthing on the hidden native class.
 B = null;
 C = null;
-""";
+""")
+void setup1();
 
-void setup2() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function B(){}
 function C(){}
 makeA = function(){return new B};  // A is "*B"
 makeB = function(){return new C};  // B is "*C"
-""";
+""")
+void setup2();
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 

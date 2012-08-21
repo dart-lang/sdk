@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A native "= {log: function() { return 42 } }" {
-  void log() native;
+@native("= {log: function() { return 42 } }")
+class A  {
+  @native void log();
 }
 
-getA() native """
+@native("""
   return A;
-""";
+""")
+getA();
 
 bar() {
   new A();

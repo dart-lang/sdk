@@ -5,18 +5,20 @@
 // This is a similar test to NativeCallArity1FrogTest, but makes sure
 // that subclasses also get the right number of arguments.
 
-class A native "*A" {
-  int foo([x, y]) native;
+@native("*A")
+class A  {
+  @native int foo([x, y]);
 }
 
-class B extends A native "*B" {
-  int foo([x, y]) native;
+@native("*B")
+class B extends A  {
+  @native int foo([x, y]);
 }
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+@native A makeA() { return new A(); }
+@native B makeB() { return new B(); }
 
-void setup() native """
+@native("""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;
@@ -36,7 +38,8 @@ inherits(B, A);
 
 makeA = function(){return new A;};
 makeB = function(){return new B;};
-""";
+""")
+void setup();
 
 
 testDynamicContext() {

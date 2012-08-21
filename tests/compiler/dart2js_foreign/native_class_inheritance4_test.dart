@@ -6,7 +6,8 @@
 // inheritance, the superclass method must not be reached by a call on the
 // subclass.
 
-class A native "*A" {
+@native("*A")
+class A  {
   var _field;
 
   int get X => _field;
@@ -15,7 +16,8 @@ class A native "*A" {
   int method(int z) => _field + z;
 }
 
-class B extends A native "*B" {
+@native("*B")
+class B extends A  {
   var _field2;
 
   int get X => _field2;
@@ -24,10 +26,10 @@ class B extends A native "*B" {
   int method(int z) => _field2 + z;
 }
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+@native A makeA() { return new A(); }
+@native B makeB() { return new B(); }
 
-void setup() native @"""
+@native(@"""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;
@@ -44,7 +46,8 @@ function B(){}
 inherits(B, A);
 makeA = function(){return new A;};
 makeB = function(){return new B;};
-""";
+""")
+void setup();
 
 testBasicA_dynamic() {
   setup();  // Fresh constructors.

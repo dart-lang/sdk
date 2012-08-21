@@ -8,7 +8,8 @@ interface Window {
 
 // Defining this global object makes Frog eager on optimizing
 // call sites where the receiver is typed 'Window'.
-class _DOMWindowJs implements Window native "@*DOMWindow" {
+@native("@*DOMWindow")
+class _DOMWindowJs implements Window  {
   final int document;
 }
 

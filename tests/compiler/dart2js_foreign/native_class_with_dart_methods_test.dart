@@ -4,7 +4,8 @@
 
 // Additional Dart code may be 'placed on' hidden native classes.
 
-class A native "*A" {
+@native("*A")
+class A  {
 
   var _field;
 
@@ -14,12 +15,13 @@ class A native "*A" {
   int method(int z) => _field + z;
 }
 
-A makeA() native { return new A(); }
+@native A makeA() { return new A(); }
 
-void setup() native """
+@native("""
 function A() {}
 makeA = function(){return new A;};
-""";
+""")
+void setup();
 
 
 main() {

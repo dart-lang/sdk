@@ -7,13 +7,14 @@
 #library('main');
 #import('native_library_same_name_used_lib1.dart');
 
-void setup() native """
+@native("""
   // This code is all inside 'setup' and so not accesible from the global scope.
   function I(){}
   I.prototype.read = function() { return this._x; };
   I.prototype.write = function(x) { this._x = x; };
   makeI = function(){return new I};
-""";
+""")
+void setup();
 
 // A pure Dart implementation of I.
 

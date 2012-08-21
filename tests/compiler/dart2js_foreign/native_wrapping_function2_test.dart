@@ -6,21 +6,28 @@ typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-class A native "*A" {
-  foo0(Callback0 closure) native "return closure();";
-  foo1(Callback1 closure, arg1) native "return closure(arg1);";
-  foo2(Callback2 closure, arg1, arg2) native "return closure(arg1, arg2);";
-  foo3([Callback0 closure]) native
-      "return closure == (void 0) ? 42 : closure();";
+@native("*A")
+class A  {
+  @native("return closure();")
+  foo0(Callback0 closure);
+
+  @native("return closure(arg1);")
+  foo1(Callback1 closure, arg1);
+
+  @native("return closure(arg1, arg2);")
+  foo2(Callback2 closure, arg1, arg2);
+
+  @native("return closure == (void 0) ? 42 : closure();")
+  foo3([Callback0 closure]);
 }
 
-makeA() native;
+@native makeA();
 
-void setup() native """
+@native("""
 function A() {}
 makeA = function(){return new A;};
-""";
-
+""")
+void setup();
 
 main() {
   setup();

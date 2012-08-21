@@ -10,21 +10,23 @@
 // * Named arguments are passed in the correct position, so require preceding
 // arguments to be passed.
 
-class A native "*A" {
-  int foo(int x) native;
+@native("*A")
+class A  {
+  @native int foo(int x);
 }
 
-class B native "*B" {
-  int foo([x, y, z]) native;
+@native("*B")
+class B  {
+  @native int foo([x, y, z]);
 }
 
 // TODO(sra): Add a case where the parameters have default values.  Wait until
 // dart:dom_deprecated / dart:html need non-null default values.
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+@native A makeA() { return new A(); }
+@native B makeB() { return new B(); }
 
-void setup() native """
+@native("""
 function A() {}
 A.prototype.foo = function () { return arguments.length; };
 
@@ -33,7 +35,8 @@ B.prototype.foo = function () { return arguments.length; };
 
 makeA = function(){return new A;};
 makeB = function(){return new B;};
-""";
+""")
+void setup();
 
 
 testDynamicContext() {

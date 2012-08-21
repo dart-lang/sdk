@@ -13,4 +13,4 @@ interface I {
   write(I x);
 }
 
-makeI() native { new Impl(); }  // Hint Impl is created by makeI.
+@native makeI() { new Impl(); }  // Hint Impl is created by makeI.

@@ -6,21 +6,23 @@ typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-class A native "*A" {
-  foo1(Callback1 closure, [arg1 = 0]) native;
-  foo2(Callback2 closure, [arg1 = 0, arg2 = 1]) native;
+@native("*A")
+class A  {
+  @native foo1(Callback1 closure, [arg1 = 0]);
+  @native foo2(Callback2 closure, [arg1 = 0, arg2 = 1]);
 }
 
-makeA() native;
+@native makeA();
 
-void setup() native """
+@native("""
 function A() {}
 A.prototype.foo1 = function(closure, arg1) { return closure(arg1); };
 A.prototype.foo2 = function(closure, arg1, arg2) {
   return closure(arg1, arg2);
 };
 makeA = function(){return new A;};
-""";
+""")
+void setup();
 
 
 main() {

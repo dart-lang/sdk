@@ -6,29 +6,33 @@
 // interferes with subsequent resolving of the method.  This might happen if the
 // noSuchMethod is cached on Object.prototype.
 
-class A1 native "*A1" {
+@native("*A1")
+class A1  {
 }
 
-class B1 extends A1 native "*B1" {
+@native("*B1")
+class B1 extends A1  {
 }
 
-makeA1() native;
-makeB1() native;
+@native makeA1();
+@native makeB1();
 
 
-class A2 native "*A2" {
-  foo([a=99]) native;
+@native("*A2")
+class A2  {
+  @native foo([a=99]);
 }
 
-class B2 extends A2 native "*B2" {
+@native("*B2")
+class B2 extends A2  {
 }
 
-makeA2() native;
-makeB2() native;
+@native makeA2();
+@native makeB2();
 
-makeObject() native;
+@native makeObject();
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
@@ -56,7 +60,8 @@ makeA2 = function(){return new A2};
 makeB2 = function(){return new B2};
 
 makeObject = function(){return new Object};
-""";
+""")
+void setup();
 
 
 main() {

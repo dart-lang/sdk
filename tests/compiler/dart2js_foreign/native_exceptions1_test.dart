@@ -15,15 +15,17 @@
 
 
 // The exception type.
-class E native "*E" {
-  E._used() native;  // Bogus native constructor, called only from fake body.
+@native("*E")
+class E  {
+  @native E._used();  // Bogus native constructor, called only from fake body.
 
   final int code;
 }
 
 // Type with exception-throwing methods.
-class A native "*A" {
-  op(int x) native {
+@native("*A")
+class A  {
+  @native op(int x) {
     // Fake body calls constructor to mark the exception class (E) as used.
     throw new E._used();
   }
@@ -35,15 +37,16 @@ class B {
   op(String x) => 123;
 }
 
-makeA() native;
+@native makeA();
 
-void setup1() native """
+@native("""
 // Ensure we are not relying on global names 'A' and 'E'.
 A = null;
 E = null;
-""";
+""")
+void setup1();
 
-void setup2() native """
+@native("""
 // This code is all inside 'setup2' and so not accesible from the global scope.
 function E(x){ this.code = x; }
 
@@ -53,7 +56,8 @@ A.prototype.op = function (x) {
   return  x / 2;
 };
 makeA = function(){return new A};
-""";
+""")
+void setup2();
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 

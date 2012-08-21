@@ -4,25 +4,39 @@
 
 // Properties on hidden native classes.
 
-class A native "*A" {
+@native("*A")
+class A  {
 
   // Setters and getters should be similar to these methods:
-  int getX() native 'return this._x;';
-  void setX(int value) native 'this._x = value;';
+  @native('return this._x;')
+  int getX();
 
-  int get X() native;
-  set X(int value) native;
+  @native('this._x = value;')
+  void setX(int value);
 
-  int get Y() native;
-  set Y(int value) native;
+  @native
+  int get X();
 
-  int get Z() native 'return this._z;';
-  set Z(int value) native 'this._z = value;';
+  @native
+  set X(int value);
+
+  @native
+  int get Y();
+
+  @native
+  set Y(int value);
+
+  @native('return this._z;')
+  int get Z();
+
+  @native('this._z = value;')
+  set Z(int value);
 }
 
-A makeA() native { return new A(); }
+@native
+A makeA() { return new A(); }
 
-void setup() native """
+@native("""
 function A() {}
 
 Object.defineProperty(A.prototype, "X", {
@@ -31,7 +45,8 @@ Object.defineProperty(A.prototype, "X", {
 });
 
 makeA = function(){return new A;};
-""";
+""")
+void setup();
 
 
 main() {

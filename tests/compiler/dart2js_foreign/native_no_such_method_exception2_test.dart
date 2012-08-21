@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A native "*A" {
+@native("*A")
+class A  {
 }
 
-class B extends A native "*B" {
-  foo() native;
+@native("*B")
+class B extends A  {
+  @native foo();
 }
 
-makeA() native;
-makeB() native;
+@native makeA();
+@native makeB();
 
-setup() native """
+@native("""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;
@@ -29,7 +31,8 @@ function inherits(child, parent) {
   makeA = function() { return new A; }
   makeB = function() { return new B; }
   B.prototype.foo = function() { return 42; }
-""";
+""")
+setup();
 
 main() {
   setup();

@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A native "*A" {
+@native("*A")
+class A  {
 }
 
-makeA() native;
+@native makeA();
 
-void setup() native """
+@native("""
 function A() {};
 A.prototype.foo = function() { return  42; }
 makeA = function() { return new A; }
-""";
+""")
+void setup();
 
 class B {
   // We need to define a foo method so that Frog sees it. Because it's

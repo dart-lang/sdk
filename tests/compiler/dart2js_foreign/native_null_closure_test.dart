@@ -4,21 +4,23 @@
 
 typedef void MyFunctionType();
 
-class A native "*A" {
-  setClosure(MyFunctionType f) native;
-  check(MyFunctionType f) native;
-  invoke() native;
+@native("*A")
+class A  {
+  @native setClosure(MyFunctionType f);
+  @native check(MyFunctionType f);
+  @native invoke();
 }
 
-makeA() native { return new A(); }
+@native makeA() { return new A(); }
 
-void setup() native """
+@native("""
 function A() {}
 A.prototype.setClosure = function(f) { this.f = f; };
 A.prototype.check = function(f) { return this.f === f; };
 A.prototype.invoke = function() { return this.f(); };
 makeA = function(){return new A;};
-""";
+""")
+void setup();
 
 
 main() {

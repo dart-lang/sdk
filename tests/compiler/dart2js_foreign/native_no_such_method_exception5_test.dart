@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A native "*A" {
+@native("*A")
+class A  {
   bar() => 42;
   noSuchMethod(x,y) => "native($x:$y)";
 }
 
-class B native "*B" {
+@native("*B")
+class B  {
   baz() => 42;
 }
 
@@ -16,12 +18,13 @@ class C {
   noSuchMethod(x, y) => "$x:$y";
 }
 
-makeA() native;
+@native makeA();
 
-setup() native """
+@native("""
   function A() {}
   makeA = function() { return new A; }
-""";
+""")
+setup();
 
 main() {
   setup();

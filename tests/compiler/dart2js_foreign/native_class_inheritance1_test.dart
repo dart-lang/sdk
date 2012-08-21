@@ -8,31 +8,35 @@
 // stored on Object.prototype.
 
 // Version 1: It might be possible to call foo directly.
-class A1 native "*A1" {
-  foo() native;
+@native("*A1")
+class A1  {
+  @native foo();
 }
 
-class B1 extends A1 native "*B1" {
-  foo() native;
+@native("*B1")
+class B1 extends A1  {
+  @native foo();
 }
 
-makeA1() native;
-makeB1() native;
+@native makeA1();
+@native makeB1();
 
 
 // Version 2: foo needs some kind of trampoline.
-class A2 native "*A2" {
-  foo([a=99]) native;
+@native("*A2")
+class A2  {
+  @native foo([a=99]);
 }
 
-class B2 extends A2 native "*B2" {
-  foo([z=1000]) native;
+@native("*B2")
+class B2 extends A2  {
+  @native foo([z=1000]);
 }
 
-makeA2() native;
-makeB2() native;
+@native makeA2();
+@native makeB2();
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
@@ -61,7 +65,8 @@ B2.prototype.foo = function(z){return z + 20000;}
 
 makeA2 = function(){return new A2};
 makeB2 = function(){return new B2};
-""";
+""")
+void setup();
 
 
 main() {

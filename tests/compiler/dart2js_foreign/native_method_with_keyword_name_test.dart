@@ -4,18 +4,20 @@
 
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
-class A native "*A" {
-  int delete() native;
+@native("*A")
+class A  {
+  @native int delete();
 }
 
-A makeA() native { return new A(); }
+@native A makeA() { return new A(); }
 
-void setup() native """
+@native("""
 function A() {}
 A.prototype.delete = function() { return 87; };
 
 makeA = function(){return new A;};
-""";
+""")
+void setup();
 
 
 main() {

@@ -11,21 +11,23 @@ interface I {
 
 // Native implementation.
 
-class A implements I native "*A" {
+@native("*A")
+class A implements I  {
   // The native class accepts only other native instances.
-  A read() native;
-  write(A x) native;
+  @native A read();
+  @native write(A x);
 }
 
-makeA() native;
+@native makeA();
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){}
 A.prototype.read = function() { return this._x; };
 A.prototype.write = function(x) { this._x = x; };
 makeA = function(){return new A};
-""";
+""")
+void setup();
 
 class B {}
 

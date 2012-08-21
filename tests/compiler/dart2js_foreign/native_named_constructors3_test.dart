@@ -6,7 +6,8 @@
 // Regression test.
 
 
-class A native "*A" {
+@native("*A")
+class A  {
 
   // No static methods in this class.
 
@@ -14,18 +15,21 @@ class A native "*A" {
 
   factory A.fromString(String s)  => makeA(s.length);
 
-  factory A.nativeConstructor(int a, int b) native @'return makeA(a+b);';
+  @native(@'return makeA(a+b);')
+  factory A.nativeConstructor(int a, int b);
 
-  foo() native 'return this._x;';
+  @native('return this._x;')
+  foo();
 }
 
-makeA(v) native;
+@native makeA(v);
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(arg) { this._x = arg; }
 makeA = function(arg) { return new A(arg); }
-""";
+""")
+void setup();
 
 main() {
   setup();

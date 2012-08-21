@@ -8,7 +8,8 @@
 #import('native_library_same_name_used_lib1.dart');  // To get interface I.
 
 // Native impl has same name as interface.
-class Impl implements I native "*I" {
-  Impl read() native;
-  write(Impl x) native;
+@native("*I")
+class Impl implements I  {
+  @native Impl read();
+  @native write(Impl x);
 }

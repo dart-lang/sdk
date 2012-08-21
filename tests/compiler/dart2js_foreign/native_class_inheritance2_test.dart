@@ -7,26 +7,30 @@
 // superclass caches the method in the prototype, so shadowing the dispatcher
 // stored on Object.prototype.
 
-class A native "*A" {
-  foo([a=100]) native;
+@native("*A")
+class A  {
+  @native foo([a=100]);
 }
 
-class B extends A native "*B" {
+@native("*B")
+class B extends A  {
 }
 
-class C extends B native "*C" {
-  foo([z=300]) native;
+@native("*C")
+class C extends B  {
+  @native foo([z=300]);
 }
 
-class D extends C native "*D" {
+@native("*D")
+class D extends C  {
 }
 
-makeA() native;
-makeB() native;
-makeC() native;
-makeD() native;
+@native makeA();
+@native makeB();
+@native makeC();
+@native makeD();
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
@@ -54,7 +58,8 @@ makeA = function(){return new A};
 makeB = function(){return new B};
 makeC = function(){return new C};
 makeD = function(){return new D};
-""";
+""")
+void setup();
 
 
 main() {

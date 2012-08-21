@@ -5,12 +5,16 @@
 // Test the feature where the native string declares the native method's name.
 // #3. The name does not get
 
-class A native "*A" {
-  int foo() native 'fooA';
+@native("*A")
+class A  {
+  @native('fooA')
+  int foo();
 }
 
-class B extends A native "*B" {
-  int foo() native 'fooB';
+@native("*B")
+class B extends A  {
+  @native('fooB')
+  int foo();
   int fooA() => 333;
 }
 
@@ -19,11 +23,11 @@ class Decoy {
   int fooB() => 999;
 }
 
-makeA() native;
-makeB() native;
+@native makeA();
+@native makeB();
 
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
@@ -43,7 +47,8 @@ B.prototype.fooB = function(){return 200;};
 
 makeA = function(){return new A};
 makeB = function(){return new B};
-""";
+""")
+void setup();
 
 testDynamic() {
   var things = [makeA(), makeB(), new Decoy()];

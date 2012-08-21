@@ -4,20 +4,21 @@
 
 // Test the feature where the native string declares the native method's name.
 
-class A native "*A" {
-  int foo() native 'fooA';
-  int bar() native 'barA';
-  int baz() native 'bazA';
+@native("*A")
+class A  {
+  @native('fooA') int foo();
+  @native('barA') int bar();
+  @native('bazA') int baz();
 }
 
-A makeA() native;
+@native A makeA();
 
 class B {
   int bar([x]) => 800;
   int baz() => 900;
 }
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){}
 A.prototype.fooA = function(){return 100;};
@@ -25,7 +26,8 @@ A.prototype.barA = function(){return 200;};
 A.prototype.bazA = function(){return 300;};
 
 makeA = function(){return new A};
-""";
+""")
+void setup();
 
 
 testDynamic() {

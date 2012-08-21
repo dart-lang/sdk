@@ -5,17 +5,21 @@
 // Test that parameters in native methods are not mangled. This test is needed
 // until we change all libraries to using the JS foreign element.
 
-class A native "*A" {
-  foo(name) native "return name;";
-  bar(undefined) native "return undefined;";
+@native("*A")
+class A  {
+  @native("return name;")
+  foo(name);
+  @native("return undefined;")
+  bar(undefined);
 }
 
-A makeA() native;
+@native A makeA();
 
-void setup() native """
+@native("""
 function A() {}
 makeA = function(){return new A;};
-""";
+""")
+void setup();
 
 
 main() {

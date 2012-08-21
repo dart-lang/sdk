@@ -6,7 +6,8 @@
 // fields.  However, native fields keep their name.  The implication: a getter
 // for the field must be based on the field's name, not the field's jsname.
 
-class A native "*A" {
+@native("*A")
+class A  {
   int key;                    //  jsname is 'key'
   int getKey() => key;
 }
@@ -17,18 +18,19 @@ class B {
   int getKey() => key;
 }
 
-class X native "*X" {
-  int native_key_method() native 'key';
+@native("*X")
+class X  {
+  @native('key') int native_key_method();
   // This should cause B.key to be renamed, but not A.key.
 
-  int key() native 'key';
+  @natve('key') int key();
 }
 
-A makeA() native;
-X makeX() native;
+@native A makeA();
+@native X makeX();
 
 
-void setup() native """
+@native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){ this.key = 111; }
 A.prototype.getKey = function(){return this.key;};
@@ -38,7 +40,8 @@ X.prototype.key = function(){return 666;};
 
 makeA = function(){return new A};
 makeX = function(){return new X};
-""";
+""")
+void setup();
 
 testDynamic() {
   var things = [makeA(), new B(), makeX()];
