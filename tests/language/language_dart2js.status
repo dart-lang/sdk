@@ -280,7 +280,6 @@ double_to_string_as_fixed_test: Fail
 expect_test: Fail
 factory3_test: Fail
 implied_interface_test: Fail
-library_private_in_constructor_test: Fail
 list_test: Fail
 local_function3_test: Fail
 local_function_test: Fail
