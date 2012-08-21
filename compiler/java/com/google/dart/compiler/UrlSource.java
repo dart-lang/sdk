@@ -40,7 +40,7 @@ public abstract class UrlSource implements Source {
   private volatile File sourceFile = null;
   private volatile JarURLConnection jarConn = null;
 
-  protected final PackageLibraryManager systemLibraryManager;
+  protected final PackageLibraryManager packageLibraryManager;
 
   protected UrlSource(URI uri) {
     this(uri,null);
@@ -54,7 +54,7 @@ public abstract class UrlSource implements Source {
     }
     this.uri = BASE_URI.relativize(expanded.normalize());
     this.absoluteUri = BASE_URI.resolve(expanded);
-    this.systemLibraryManager = slm;
+    this.packageLibraryManager = slm;
     if (PackageLibraryManager.isDartUri(this.uri) || PackageLibraryManager.isPackageUri(this.uri)) {
       assert slm != null;
       this.shouldCareAboutLastModified = false;
@@ -79,7 +79,7 @@ public abstract class UrlSource implements Source {
 
     this.uri = BASE_URI.relativize(uri);
     this.translatedUri = this.absoluteUri = BASE_URI.resolve(uri);
-    this.systemLibraryManager = null;
+    this.packageLibraryManager = null;
     this.shouldCareAboutLastModified = true;
   }
 

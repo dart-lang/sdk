@@ -93,7 +93,7 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public PackageLibraryManager getSystemLibraryManager() {
+  public PackageLibraryManager getPackageLibraryManager() {
     return systemLibraryManager;
   }
 }

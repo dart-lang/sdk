@@ -35,7 +35,7 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.s
       URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
-      return new UrlDartSource(uri, relPath, this, systemLibraryManager);
+      return new UrlDartSource(uri, relPath, this, packageLibraryManager);
     } catch (Throwable e) {
       return null;
     }
@@ -53,23 +53,23 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
       // Resolve relative reference out of one system library into another
       if (PackageLibraryManager.isDartUri(uri)) {
         if(path != null && path.startsWith("/..")) {
-          URI fileUri = systemLibraryManager.resolveDartUri(uri);
-          URI shortUri = systemLibraryManager.getShortUri(fileUri);
+          URI fileUri = packageLibraryManager.resolveDartUri(uri);
+          URI shortUri = packageLibraryManager.getShortUri(fileUri);
           if (shortUri != null) {
             uri = shortUri;
           }
         }
       } else if (PackageLibraryManager.isPackageUri(uri)){
-        URI fileUri = systemLibraryManager.resolveDartUri(uri);
+        URI fileUri = packageLibraryManager.resolveDartUri(uri);
         if (fileUri != null){
           uri = fileUri;
         }
       } else if (path != null && !(new File(path).exists())){
         // resolve against package root directories to find file
-         uri = systemLibraryManager.findExistingFileInPackages(uri);
+         uri = packageLibraryManager.findExistingFileInPackages(uri);
       }
      
-      return new UrlLibrarySource(uri, systemLibraryManager);
+      return new UrlLibrarySource(uri, packageLibraryManager);
     } catch (Throwable e) {
       return null;
     }

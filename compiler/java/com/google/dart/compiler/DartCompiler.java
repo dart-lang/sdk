@@ -1038,7 +1038,7 @@ public class DartCompiler {
     }
 
     CompilerConfiguration config = new DefaultCompilerConfiguration(compilerOptions);
-    config.getSystemLibraryManager().setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
+    config.getPackageLibraryManager().setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
     return compilerMain(sourceFile, config);
   }
 
@@ -1103,7 +1103,7 @@ public class DartCompiler {
       File outputDirectory = config.getOutputDirectory();
       DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(outputDirectory);
       // Compile the Dart application and its dependencies.
-      PackageLibraryManager libraryManager = config.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = config.getPackageLibraryManager();
       final LibrarySource lib = new UrlLibrarySource(sourceFile.toURI(),libraryManager);
       DefaultDartCompilerListener listener;
       if (config.getCompilerOptions().showSourceFromAst()) {
@@ -1213,7 +1213,7 @@ public class DartCompiler {
   public static LibraryUnit analyzeLibrary(LibrarySource lib, final Map<URI, DartUnit> parsedUnits,
       CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
       throws IOException {
-    final PackageLibraryManager manager = config.getSystemLibraryManager();
+    final PackageLibraryManager manager = config.getPackageLibraryManager();
     final HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
     SelectiveCache selectiveCache = new SelectiveCache() {
       @Override

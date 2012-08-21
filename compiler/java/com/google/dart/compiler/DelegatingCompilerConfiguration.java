@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -84,7 +84,7 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public PackageLibraryManager getSystemLibraryManager() {
-    return delegate.getSystemLibraryManager();
+  public PackageLibraryManager getPackageLibraryManager() {
+    return delegate.getPackageLibraryManager();
   }
 }
