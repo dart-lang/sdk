@@ -1146,7 +1146,7 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return ApiError::null();
 }
 
@@ -1154,7 +1154,7 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
 void RawApiError::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
@@ -1162,7 +1162,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return LanguageError::null();
 }
 
@@ -1170,7 +1170,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
 void RawLanguageError::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
@@ -1178,7 +1178,7 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t object_id,
                                                     intptr_t tags,
                                                     Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return UnhandledException::null();
 }
 
@@ -1186,7 +1186,7 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
 void RawUnhandledException::WriteTo(SnapshotWriter* writer,
                                     intptr_t object_id,
                                     Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
@@ -1194,7 +1194,7 @@ RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
                                       Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return UnwindError::null();
 }
 
@@ -1202,7 +1202,7 @@ RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
 void RawUnwindError::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
