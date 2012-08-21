@@ -34,7 +34,6 @@ DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
 DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
 DEFINE_FLAG(bool, local_cse, true, "Do local subexpression elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
@@ -122,8 +121,8 @@ static void InstallUnoptimizedCode(const Function& function) {
 
 
 // Return false if bailed out.
-static bool CompileParsedFunctionHelper(
-    const ParsedFunction& parsed_function, bool optimized, bool use_ssa) {
+static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
+                                        bool optimized) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
@@ -164,7 +163,9 @@ static bool CompileParsedFunctionHelper(
       flow_graph = builder.BuildGraph();
 
       // Transform to SSA.
-      if (optimized && use_ssa) flow_graph->ComputeSSA();
+      if (optimized) {
+        flow_graph->ComputeSSA();
+      }
 
       if (FLAG_print_flow_graph) {
         OS::Print("Before Optimizations\n");
@@ -178,27 +179,25 @@ static bool CompileParsedFunctionHelper(
       }
 
       if (optimized) {
-        FlowGraphOptimizer optimizer(*flow_graph, use_ssa);
+        FlowGraphOptimizer optimizer(*flow_graph);
         optimizer.ApplyICData();
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(*flow_graph, optimized && use_ssa);
+        FlowGraphTypePropagator propagator(*flow_graph);
         propagator.PropagateTypes();
 
 
-        if (use_ssa) {
-          // Do optimizations that depend on the propagated type information.
-          optimizer.OptimizeComputations();
+        // Do optimizations that depend on the propagated type information.
+        optimizer.OptimizeComputations();
 
-          if (FLAG_local_cse) {
-            LocalCSE local_cse(*flow_graph);
-            local_cse.Optimize();
-          }
-
-          // Perform register allocation on the SSA graph.
-          FlowGraphAllocator allocator(*flow_graph);
-          allocator.AllocateRegisters();
+        if (FLAG_local_cse) {
+          LocalCSE local_cse(*flow_graph);
+          local_cse.Optimize();
         }
+
+        // Perform register allocation on the SSA graph.
+        FlowGraphAllocator allocator(*flow_graph);
+        allocator.AllocateRegisters();
 
         if (FLAG_print_flow_graph) {
           OS::Print("After Optimizations:\n");
@@ -218,7 +217,6 @@ static bool CompileParsedFunctionHelper(
     FlowGraphCompiler graph_compiler(&assembler,
                                      *flow_graph,
                                      optimized,
-                                     optimized && use_ssa,
                                      is_leaf);
     {
       TimerScope timer(FLAG_compiler_stats,
@@ -262,7 +260,7 @@ static bool CompileParsedFunctionHelper(
       OS::Print("%s\n", bailout_error.ToErrorCString());
     }
     // We only bail out from generating ssa code.
-    ASSERT(optimized && use_ssa);
+    ASSERT(optimized);
     is_compiled = false;
   }
   // Reset global isolate state.
@@ -397,31 +395,38 @@ static RawError* CompileFunctionHelper(const Function& function,
     Parser::ParseFunction(&parsed_function);
     parsed_function.AllocateVariables();
 
-    if (!CompileParsedFunctionHelper(parsed_function,
-                                     optimized,
-                                     FLAG_use_ssa)) {
-      // Compile again using non-ssa code generation.
-      // Re-parse because of side-effects to the AST during compilation.
-      ParsedFunction parsed_function(function);
-      Parser::ParseFunction(&parsed_function);
-      parsed_function.AllocateVariables();
-      CompileParsedFunctionHelper(parsed_function, optimized, false);
+    const bool success =
+        CompileParsedFunctionHelper(parsed_function, optimized);
+    if (optimized && !success) {
+      // Optimizer bailed out. Disable optimizations and to never try again.
+      if (FLAG_trace_compiler) {
+        OS::Print("--> disabling optimizations for '%s'\n",
+                  function.ToFullyQualifiedCString());
+      }
+      function.set_is_optimizable(false);
+      isolate->set_long_jump_base(base);
+      return Error::null();
     }
+
+    ASSERT(success);
 
     if (FLAG_trace_compiler) {
       OS::Print("--> '%s' entry: 0x%x\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint());
     }
+
     if (Isolate::Current()->debugger()->IsActive()) {
       Isolate::Current()->debugger()->NotifyCompilation(function);
     }
+
     if (FLAG_disassemble) {
       DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized && optimized) {
       // TODO(fschneider): Print unoptimized code along with the optimized code.
       DisassembleCode(function, true);
     }
+
     isolate->set_long_jump_base(base);
     return Error::null();
   } else {
@@ -454,8 +459,8 @@ RawError* Compiler::CompileParsedFunction(
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    // Non-optimized, non-ssa code generator.
-    CompileParsedFunctionHelper(parsed_function, false, false);
+    // Non-optimized code generator.
+    CompileParsedFunctionHelper(parsed_function, false);
     isolate->set_long_jump_base(base);
     return Error::null();
   } else {
@@ -531,8 +536,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     fragment->scope()->AddVariable(parsed_function.expression_temp_var());
     parsed_function.AllocateVariables();
 
-    // Non-optimized, non-ssa code generator.
-    CompileParsedFunctionHelper(parsed_function, false, false);
+    // Non-optimized code generator.
+    CompileParsedFunctionHelper(parsed_function, false);
 
     GrowableArray<const Object*> arguments;  // no arguments.
     const Array& kNoArgumentNames = Array::Handle();

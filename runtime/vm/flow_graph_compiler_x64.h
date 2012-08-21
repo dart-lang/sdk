@@ -29,7 +29,6 @@ class FlowGraphCompiler : public ValueObject {
   FlowGraphCompiler(Assembler* assembler,
                     const FlowGraph& flow_graph,
                     bool is_optimizing,
-                    bool is_ssa,
                     bool is_leaf);
 
   ~FlowGraphCompiler();
@@ -52,8 +51,6 @@ class FlowGraphCompiler : public ValueObject {
   }
   static bool CanOptimize();
   bool is_optimizing() const { return is_optimizing_; }
-
-  bool is_ssa() const { return is_ssa_; }
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
   ParallelMoveResolver* parallel_move_resolver() {
@@ -185,10 +182,7 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t try_index);
   Label* AddDeoptStub(intptr_t deopt_id,
                       intptr_t try_index_,
-                      DeoptReasonId reason,
-                      Register reg1 = kNoRegister,
-                      Register reg2 = kNoRegister,
-                      Register reg3 = kNoRegister);
+                      DeoptReasonId reason);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 
@@ -202,10 +196,6 @@ class FlowGraphCompiler : public ValueObject {
   const Bool& bool_true() const { return bool_true_; }
   const Bool& bool_false() const { return bool_false_; }
   const Class& double_class() const { return double_class_; }
-
-  FrameRegisterAllocator* frame_register_allocator() {
-    return &frame_register_allocator_;
-  }
 
   // Returns true if the compiled function has a finally clause.
   bool HasFinally() const;
@@ -292,6 +282,9 @@ class FlowGraphCompiler : public ValueObject {
     return block_order_.length() - index - 1;
   }
 
+  // Perform a greedy local register allocation.  Consider all registers free.
+  void AllocateRegistersLocally(Instruction* instr);
+
   // Returns true if the generated code does not call other Dart code or
   // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
   bool IsLeaf() const;
@@ -312,14 +305,12 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<SlowPathCode*> slow_path_code_;
   const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
-  const bool is_ssa_;
   const bool is_dart_leaf_;
 
   const Bool& bool_true_;
   const Bool& bool_false_;
   const Class& double_class_;
 
-  FrameRegisterAllocator frame_register_allocator_;
   ParallelMoveResolver parallel_move_resolver_;
 
   // Currently instructions generate deopt stubs internally by

@@ -1123,9 +1123,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                           original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget,
-                                          instance_reg,
-                                          value_reg);
+                                          kDeoptInstanceGetterSameTarget);
     // Smis do not have instance fields (Smi class is always first).
     Register temp_reg = locs()->temp(0).reg();
     ASSERT(temp_reg != instance_reg);
@@ -1500,11 +1498,9 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where PushArgument is handled in FrameRegisterAllocator::AllocateRegisters.
-  // Instead of popping the value it is left alone on the simulated frame
-  // and materialized on the physical stack before the call.
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
   // TODO(fschneider): Avoid special-casing for SSA mode here.
-  if (compiler->is_ssa()) {
+  if (compiler->is_optimizing()) {
     ASSERT(locs()->in(0).IsRegister());
     __ PushRegister(locs()->in(0).reg());
   }

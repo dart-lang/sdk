@@ -33,12 +33,8 @@ LocationSummary* Computation::MakeCallSummary() {
 
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
-  if (is_used() && locs()->out().IsRegister()) {
-    // TODO(vegorov): this should really happen only for comparisons fused
-    // with branches.  Currrently IR does not provide an easy way to remove
-    // instructions from the graph so we just leave fused comparison in it
-    // but change its result location to be NoLocation.
-    compiler->frame_register_allocator()->Push(locs()->out().reg(), this);
+  if (is_used() && !compiler->is_optimizing()) {
+    __ pushl(locs()->out().reg());
   }
 }
 
@@ -454,9 +450,7 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
   Register temp = locs.temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id,
                                         try_index,
-                                        kDeoptEquality,
-                                        left,
-                                        right);
+                                        kDeoptEquality);
   __ testl(left, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   // 'left' is not Smi.
@@ -563,9 +557,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     Register temp = locs.temp(0).reg();
     Label* deopt = compiler->AddDeoptStub(deopt_id,
                                           try_index,
-                                          kDeoptSmiCompareSmi,
-                                          left,
-                                          right);
+                                          kDeoptSmiCompareSmi);
     __ movl(temp, left);
     __ orl(temp, right);
     __ testl(temp, Immediate(kSmiTagMask));
@@ -618,9 +610,7 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   Register temp = locs.temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id,
                                         try_index,
-                                        kDeoptDoubleComparison,
-                                        left,
-                                        right);
+                                        kDeoptDoubleComparison);
   compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
   compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
 
@@ -836,9 +826,7 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                         original()->try_index(),
-                                        deopt_reason,
-                                        receiver,
-                                        index);
+                                        deopt_reason);
 
   __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
   __ j(ZERO, deopt);
@@ -902,10 +890,7 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                         original()->try_index(),
-                                        kDeoptStoreIndexed,
-                                        receiver,
-                                        index,
-                                        value);
+                                        kDeoptStoreIndexed);
 
   __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
   __ j(ZERO, deopt);
@@ -966,8 +951,7 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                           original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget,
-                                          instance_reg);
+                                          kDeoptInstanceGetterSameTarget);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
     ASSERT(result_reg != instance_reg);
@@ -1102,8 +1086,7 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                           original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget,
-                                          instance_reg);
+                                          kDeoptInstanceGetterSameTarget);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
     ASSERT(result_reg != instance_reg);
@@ -1515,9 +1498,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   if (can_deopt) {
     deopt  = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
                                     comp->instance_call()->try_index(),
-                                    kDeoptSmiBinaryOp,
-                                    temp,
-                                    right);
+                                    kDeoptSmiBinaryOp);
   }
   if (left_is_smi && right_is_smi) {
     if (can_deopt) {
@@ -1682,9 +1663,7 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   ASSERT(comp->op_kind() == Token::kBIT_AND);
   Label* deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
                                         comp->instance_call()->try_index(),
-                                        kDeoptMintBinaryOp,
-                                        left,
-                                        right);
+                                        kDeoptMintBinaryOp);
   Label mint_static_call, smi_static_call, non_smi, smi_smi, done;
   __ testl(left, Immediate(kSmiTagMask));  // Is receiver Smi?
   __ j(NOT_ZERO, &non_smi);
@@ -1858,8 +1837,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(value == result);
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        kDeoptUnaryOp,
-                                        value);
+                                        kDeoptUnaryOp);
   if (test_class_id == kSmiCid) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
@@ -1909,8 +1887,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(value == result);
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        kDeoptUnaryOp,
-                                        value);
+                                        kDeoptUnaryOp);
   if (test_class_id == kDoubleCid) {
     Register temp = locs()->temp(0).reg();
     __ testl(value, Immediate(kSmiTagMask));
@@ -1960,8 +1937,7 @@ void DoubleToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        kDeoptDoubleToDouble,
-                                        value);
+                                        kDeoptDoubleToDouble);
   Register temp = locs()->temp(0).reg();
   __ testl(value, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);  // Deoptimize if Smi.
@@ -2213,8 +2189,7 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         try_index(),
-                                        kDeoptCheckClass,
-                                        value);
+                                        kDeoptCheckClass);
   ASSERT(ic_data()->GetReceiverClassIdAt(0) != kSmiCid);
   __ testl(value, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
