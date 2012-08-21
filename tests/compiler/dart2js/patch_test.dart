@@ -16,7 +16,6 @@ Compiler applyPatch(String script, String patch) {
   var uri = new Uri("core.dartp");
   compiler.sourceFiles[uri.toString()] = new MockFile(patch);
   compiler.patchParser.patchLibrary(uri, compiler.coreLibrary);
-  compiler.applyClassPatches(compiler.coreLibrary);
   return compiler;
 }
 
@@ -66,6 +65,7 @@ testPatchMember() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find);
+  container.parseNode(compiler);
   ensure(compiler, "toString", container.lookupLocalMember, hasBody:true);
 }
 
@@ -82,6 +82,7 @@ testPatchGetter() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find);
+  container.parseNode(compiler);
   ensure(compiler,
          "field",
          container.lookupLocalMember,

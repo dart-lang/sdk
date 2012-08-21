@@ -382,19 +382,6 @@ class Compiler implements DiagnosticListener {
        patchParser.patchLibrary(patchUri, library);
       // We allow foreign functions in patched libraries.
       addForeignFunctions(library);  // Is safe even if already added.
-      // TODO(lrn): Make this lazy.
-      applyClassPatches(library);
-    }
-  }
-
-  void applyClassPatches(LibraryElement library) {
-    for (Element element in library.localMembers) {
-      if (element.isClass()) {
-        ClassElement classElement = element;
-        if (classElement.isPatched) {
-          applyClassPatch(classElement, classElement.patch);
-        }
-      }
     }
   }
 
@@ -482,16 +469,6 @@ class Compiler implements DiagnosticListener {
       internalError("Cannot overwrite existing '"
                     "${originalElement.name.slowToString()}' with non-patch.");
     }
-    if (originalElement is PartialClassElement) {
-      // Only happens when patching a library. Dart does not, yet, have nested
-      // classes.
-      if (patchElement is! PartialClassElement) {
-        internalError("Trying to patch class with non-class",
-                      element:originalElement);
-      }
-      applyClassPatch(originalElement, patchElement);
-      return;
-    }
     if (originalElement is! FunctionElement) {
       // TODO(lrn): Handle class declarations too.
       internalError("Can only patch functions", element: originalElement);
@@ -526,18 +503,6 @@ class Compiler implements DiagnosticListener {
     }
     // Don't just assign the patch field. This also updates the cachedNode.
     element.setPatch(patchElement);
-  }
-
-  void applyClassPatch(PartialClassElement original,
-                       PartialClassElement patch) {
-    // Eagerly parse the class so we can patch it.
-    // TODO(lrn): Perhaps find a way to delay parsing until the class is needed,
-    // i.e., until [parseNode] is called on [original].
-    ClassNode node = original.parseNode(this);
-    // Parse patch class with "patch" parser.
-    ClassNode patchNode = patchParser.parsePatchClassNode(patch);
-    Link<Element> patches = patch.localMembers;
-    applyContainerPatch(original, patches);
   }
 
   /**
