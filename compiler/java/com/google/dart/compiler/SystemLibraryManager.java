@@ -88,6 +88,7 @@ public class SystemLibraryManager {
     if (SDK_LIBRARY_MANAGER == null){
       SDK_LIBRARY_MANAGER = new SdkLibraryManager(sdkPath, platformName);
     }
+    setPackageRoots(DEFAULT_PACKAGE_ROOTS);
   }
 
 
