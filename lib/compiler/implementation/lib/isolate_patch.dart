@@ -788,7 +788,7 @@ patch class _ReceivePortFactory {
 }
 
 /** Implementation of a multi-use [ReceivePort] on top of JavaScript. */
-class _ReceivePortImpl {
+class _ReceivePortImpl implements ReceivePort {
   int _id;
   Function _callback;
   static int _nextFreeId = 1;
