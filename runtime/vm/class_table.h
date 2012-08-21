@@ -12,11 +12,8 @@
 namespace dart {
 
 class Class;
-class Function;
-template <typename T> class ZoneGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
-class String;
 
 class ClassTable {
  public:
@@ -37,26 +34,6 @@ class ClassTable {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void Print();
-
-  // Returns true if the class given by its cid has subclasses.
-  // Must not be called for kDartObjectCid.
-  bool HasSubclasses(intptr_t cid) const;
-
-  // Returns an array containing the cids of the direct and indirect subclasses
-  // of the class given by its cid.
-  // Must not be called for kDartObjectCid.
-  ZoneGrowableArray<intptr_t>* GetSubclassIdsOf(intptr_t cid) const;
-
-  // Returns an array containing instance functions of the given name and
-  // belonging to the classes given by their cids.
-  // Cids must not contain kDartObjectCid.
-  ZoneGrowableArray<Function*>* GetNamedInstanceFunctionsOf(
-      const ZoneGrowableArray<intptr_t>& cids,
-      const String& function_name) const;
-
-  // Returns an array of functions overriding the given function.
-  // Must not be called for a function of class Object.
-  ZoneGrowableArray<Function*>* GetOverridesOf(const Function& function) const;
 
   static intptr_t table_offset() {
     return OFFSET_OF(ClassTable, table_);

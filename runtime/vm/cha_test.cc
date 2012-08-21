@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/cha.h"
 #include "vm/class_finalizer.h"
-#include "vm/class_table.h"
-#include "vm/dart_entry.h"
 #include "vm/globals.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
@@ -77,54 +76,54 @@ TEST_CASE(ClassHierarchyAnalysis) {
       Function::Handle(class_d.LookupDynamicFunction(function_bar_name));
   EXPECT(!class_d_bar.IsNull());
 
-  ClassTable* class_table = Isolate::Current()->class_table();
-  EXPECT(class_table != NULL);
-
   ZoneGrowableArray<intptr_t>* a_subclass_ids =
-      class_table->GetSubclassIdsOf(class_a_id);
+      CHA::GetSubclassIdsOf(class_a_id);
   EXPECT_EQ(3, a_subclass_ids->length());
   EXPECT_EQ(class_b_id, (*a_subclass_ids)[0]);
   EXPECT_EQ(class_c_id, (*a_subclass_ids)[1]);
   EXPECT_EQ(class_d_id, (*a_subclass_ids)[2]);
   ZoneGrowableArray<intptr_t>* b_subclass_ids =
-      class_table->GetSubclassIdsOf(class_b_id);
+      CHA::GetSubclassIdsOf(class_b_id);
   EXPECT_EQ(1, b_subclass_ids->length());
   EXPECT_EQ(class_c_id, (*b_subclass_ids)[0]);
   ZoneGrowableArray<intptr_t>* c_subclass_ids =
-      class_table->GetSubclassIdsOf(class_c_id);
+      CHA::GetSubclassIdsOf(class_c_id);
   EXPECT_EQ(0, c_subclass_ids->length());
   ZoneGrowableArray<intptr_t>* d_subclass_ids =
-      class_table->GetSubclassIdsOf(class_d_id);
+      CHA::GetSubclassIdsOf(class_d_id);
   EXPECT_EQ(0, d_subclass_ids->length());
 
   ZoneGrowableArray<Function*>* foos =
-      class_table->GetNamedInstanceFunctionsOf(*a_subclass_ids,
-                                               function_foo_name);
+      CHA::GetNamedInstanceFunctionsOf(*a_subclass_ids, function_foo_name);
   EXPECT_EQ(2, foos->length());
   EXPECT_EQ(class_c_foo.raw(), (*foos)[0]->raw());
   EXPECT_EQ(class_d_foo.raw(), (*foos)[1]->raw());
 
   ZoneGrowableArray<Function*>* class_a_foo_overrides =
-      class_table->GetOverridesOf(class_a_foo);
+      CHA::GetOverridesOf(class_a_foo);
   EXPECT_EQ(2, class_a_foo_overrides->length());
   EXPECT_EQ(class_c_foo.raw(), (*class_a_foo_overrides)[0]->raw());
   EXPECT_EQ(class_d_foo.raw(), (*class_a_foo_overrides)[1]->raw());
 
   ZoneGrowableArray<Function*>* bars =
-      class_table->GetNamedInstanceFunctionsOf(*a_subclass_ids,
-                                               function_bar_name);
+      CHA::GetNamedInstanceFunctionsOf(*a_subclass_ids, function_bar_name);
   EXPECT_EQ(1, bars->length());
   EXPECT_EQ(class_d_bar.raw(), (*bars)[0]->raw());
 
   ZoneGrowableArray<Function*>* class_a_bar_overrides =
-      class_table->GetOverridesOf(class_a_bar);
+      CHA::GetOverridesOf(class_a_bar);
   EXPECT_EQ(1, class_a_bar_overrides->length());
   EXPECT_EQ(class_d_bar.raw(), (*class_a_bar_overrides)[0]->raw());
 
-  EXPECT(class_table->HasSubclasses(class_a_id));
-  EXPECT(class_table->HasSubclasses(class_b_id));
-  EXPECT(!class_table->HasSubclasses(class_c_id));
-  EXPECT(!class_table->HasSubclasses(class_d_id));
+  // TODO(regis): Add this test EXPECT(CHA::HasSubclasses(kDartObjectCid)).
+  EXPECT(!CHA::HasSubclasses(kSmiCid));
+  EXPECT(!CHA::HasSubclasses(kNullCid));
+  EXPECT(!CHA::HasSubclasses(kDynamicCid));
+  EXPECT(!CHA::HasSubclasses(kVoidCid));
+  EXPECT(CHA::HasSubclasses(class_a_id));
+  EXPECT(CHA::HasSubclasses(class_b_id));
+  EXPECT(!CHA::HasSubclasses(class_c_id));
+  EXPECT(!CHA::HasSubclasses(class_d_id));
 }
 
 }  // namespace dart
