@@ -51,8 +51,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       dart2jsPath: "compiler/implementation/lib/io.dart"),
 
   "isolate": const LibraryInfo(
-      "isolate/isolate_compiler.dart",
-      dart2jsPath: "isolate/isolate_dart2js.dart"),
+      "isolate/isolate.dart"),
 
   "json": const LibraryInfo(
       "json/json.dart"),

@@ -14,7 +14,7 @@ class IsolateSpawnException implements Exception {
  * the first communication between isolates (see [spawnFunction] and
  * [spawnUri]).
  */
-ReceivePort get port() => _port;
+external ReceivePort get port();
 
 /**
  * Creates and spawns an isolate that shares the same code as the current
@@ -32,9 +32,7 @@ ReceivePort get port() => _port;
  * See comments at the top of this library for more details.
  */
 // Note this feature is not yet available in the dartvm.
-SendPort spawnFunction(void topLevelFunction()) {
-  return _spawnFunction(topLevelFunction);
-}
+external SendPort spawnFunction(void topLevelFunction());
 
 /**
  * Creates and spawns an isolate whose code is available at [uri].  Like with
@@ -43,9 +41,7 @@ SendPort spawnFunction(void topLevelFunction()) {
  *
  * See comments at the top of this library for more details.
  */
-SendPort spawnUri(String uri) {
-  return _spawnUri(uri);
-}
+external SendPort spawnUri(String uri);
 
 /**
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
@@ -145,4 +141,8 @@ interface SendPortSync {
 
   callSync(var message);
 
+}
+
+class _ReceivePortFactory {
+  external factory ReceivePort();
 }
