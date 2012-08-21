@@ -464,14 +464,15 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
-  void analyzeArguments(Send send, FunctionType funType) {
+  void analyzeArguments(Send send, Type type) {
     Link<Node> arguments = send.arguments;
-    if (funType === null || funType === types.dynamicType) {
+    if (type === null || type === types.dynamicType) {
       while(!arguments.isEmpty()) {
         analyze(arguments.head);
         arguments = arguments.tail;
       }
     } else {
+      FunctionType funType = type;
       Link<Type> parameterTypes = funType.parameterTypes;
       while (!arguments.isEmpty() && !parameterTypes.isEmpty()) {
         checkAssignable(arguments.head, parameterTypes.head,
