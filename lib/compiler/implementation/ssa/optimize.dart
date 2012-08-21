@@ -228,7 +228,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType receiverType = types[node.receiver];
     if (receiverType.isExact()) {
       HBoundedType type = receiverType;
-      Element element = type.lookupMember(node.name);
+      Element element = type.lookupMember(node.selector.name);
       // TODO(ngeoffray): Also fold if it's a getter or variable.
       if (element != null && element.isFunction()) {
         if (node.selector.applies(element, compiler)) {
@@ -250,7 +250,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HBoundedType type = types[node.inputs[1]];
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
         selector,
-        selector.name,
         node.inputs.getRange(1, node.inputs.length - 1));
     if (type.isExact()) {
       HBoundedType concrete = type;

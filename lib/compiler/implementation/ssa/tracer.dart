@@ -318,7 +318,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
-    String target = "($kind) $receiver.${invoke.name.slowToString()}";
+    String name = invoke.selector.name.slowToString();
+    String target = "($kind) $receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments =
         invoke.inputs.getRange(offset, invoke.inputs.length - offset);

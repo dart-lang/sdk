@@ -131,7 +131,6 @@ generic_inheritance_test: Fail # Expect.isTrue(false) fails.
 generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
 instanceof2_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 instanceof3_test: Fail # cannot resolve type UndeclaredType.
-library_private_in_constructor_test: Fail # Issue 2620.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
 named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.

@@ -286,7 +286,7 @@ class JavaScriptBackend extends Backend {
                                  Selector selector,
                                  HTypeMap types) {
     Map<Selector, InvocationInfo> invocationInfos =
-        invocationInfo.putIfAbsent(node.name,
+        invocationInfo.putIfAbsent(selector.name,
                                    () => new Map<Selector, InvocationInfo>());
     InvocationInfo info = invocationInfos[selector];
     if (info != null) {

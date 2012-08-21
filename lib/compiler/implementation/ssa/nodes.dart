@@ -1167,11 +1167,10 @@ class HInvoke extends HInstruction {
 class HInvokeDynamic extends HInvoke {
   final Selector selector;
   Element element;
-  SourceString name;
 
-  HInvokeDynamic(this.selector, this.element, this.name,
-                 List<HInstruction> inputs) : super(inputs);
-  toString() => 'invoke dynamic: $name';
+  HInvokeDynamic(this.selector, this.element, List<HInstruction> inputs)
+    : super(inputs);
+  toString() => 'invoke dynamic: $selector';
   HInstruction get receiver() => inputs[0];
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -1180,42 +1179,38 @@ class HInvokeDynamic extends HInvoke {
 
 class HInvokeClosure extends HInvokeDynamic {
   HInvokeClosure(Selector selector, List<HInstruction> inputs)
-    : super(selector, null, const SourceString('call'), inputs);
+    : super(selector, null, inputs);
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(Selector selector,
-                       SourceString methodName,
-                       List<HInstruction> inputs)
-    : super(selector, null, methodName, inputs);
-  toString() => 'invoke dynamic method: $name';
+  HInvokeDynamicMethod(Selector selector, List<HInstruction> inputs)
+    : super(selector, null, inputs);
+  toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 class HInvokeDynamicField extends HInvokeDynamic {
-  HInvokeDynamicField(Selector selector,
-                      Element element,
-                      SourceString name,
-                      List<HInstruction>inputs)
-      : super(selector, element, name, inputs);
-  toString() => 'invoke dynamic field: $name';
+  HInvokeDynamicField(Selector selector, Element element,
+                      List<HInstruction> inputs)
+      : super(selector, element, inputs);
+  toString() => 'invoke dynamic field: $selector';
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, name, receiver)
-    : super(selector, element, name, [receiver]);
-  toString() => 'invoke dynamic getter: $name';
+  HInvokeDynamicGetter(selector, element, receiver)
+    : super(selector, element,[receiver]);
+  toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, name, receiver, value)
-    : super(selector, element, name, [receiver, value]);
-  toString() => 'invoke dynamic setter: $name';
+  HInvokeDynamicSetter(selector, element, receiver, value)
+    : super(selector, element, [receiver, value]);
+  toString() => 'invoke dynamic setter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 

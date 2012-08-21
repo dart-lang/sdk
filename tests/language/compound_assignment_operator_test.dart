@@ -48,8 +48,7 @@ class CompoundAssignmentOperatorTest {
     indexed[3][i++] += 1;
     Expect.equals(1, i);
   }
-  
-  
+
   static testIndexedMore() {
      result = [];
      array() { result.add(0); return [0]; }
@@ -60,7 +59,7 @@ class CompoundAssignmentOperatorTest {
      sequence(array()[index()] += 1, middle(), array()[index()] += 1);
      Expect.listEquals([0, 1, 2, 0, 1, 3], result);
   }
-  
+
   static testIndexedMoreMore() {
     result = [];
     middle() { result.add(2); }
@@ -72,9 +71,8 @@ class CompoundAssignmentOperatorTest {
 
     result = [];
     sequence(A.static_field++, middle(), A.static_field++);
-    Expect.listEquals([0, 1, 2, 0, 1, 3], result);    
+    Expect.listEquals([0, 1, 2, 0, 1, 3], result);
   }
-  
 
   static void testMain() {
     for (int i = 0; i < 1000; i++) {

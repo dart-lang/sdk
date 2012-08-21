@@ -1403,6 +1403,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
+    SourceString name = node.selector.name;
     String methodName;
     List<js.Expression> arguments;
 
@@ -1411,11 +1412,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.inputs[0] is HForeignNew) {
       // TODO(ahe): The constructor name was statically resolved in
       // SsaBuilder.buildFactory. Is there a cleaner way to do this?
-      methodName = node.name.slowToString();
+      methodName = name.slowToString();
       arguments = visitArguments(node.inputs);
     } else {
       methodName = compiler.namer.instanceMethodInvocationName(
-          currentLibrary, node.name, node.selector);
+          node.selector.library, name, node.selector);
       arguments = visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader !== null;
 
@@ -1441,8 +1442,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (inLoop) backend.builder.functionsCalledInLoop.add(target);
         world.registerDynamicInvocationOf(target);
       } else {
-        if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
-        world.registerDynamicInvocation(node.name, selector);
+        if (inLoop) backend.builder.selectorsCalledInLoop[name] = selector;
+        world.registerDynamicInvocation(name, selector);
       }
     }
     push(jsPropertyCall(object, methodName, arguments), node);
@@ -1451,7 +1452,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
                                    Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
-    if (node.name.isPrivate()) return defaultSelector;
+    if (defaultSelector.name.isPrivate()) return defaultSelector;
     HType receiverHType = types[node.inputs[0]];
     Type receiverType = receiverHType.computeType(compiler);
     if (receiverType !== null) {
@@ -1463,24 +1464,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
-    push(jsPropertyCall(pop(),
-                        compiler.namer.setterName(currentLibrary, node.name),
-                        visitArguments(node.inputs)),
-         node);
-    Selector setter = new Selector.setter(node.name, currentLibrary);
+    Selector setter = node.selector;
+    String name = compiler.namer.setterName(setter.library, setter.name);
+    push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicSetter(
-        node.name, getOptimizedSelectorFor(node, setter));
+        setter.name, getOptimizedSelectorFor(node, setter));
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
-    push(jsPropertyCall(pop(),
-                        compiler.namer.getterName(currentLibrary, node.name),
-                        visitArguments(node.inputs)),
-         node);
-    Selector getter = new Selector.getter(node.name, currentLibrary);
+    Selector getter = node.selector;
+    String name = compiler.namer.getterName(getter.library, getter.name);
+    push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
-        node.name, getOptimizedSelectorFor(node, getter));
+        getter.name, getOptimizedSelectorFor(node, getter));
   }
 
   visitInvokeClosure(HInvokeClosure node) {

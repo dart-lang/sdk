@@ -10,12 +10,12 @@ interface TreeElements {
 
 class TreeElementMapping implements TreeElements {
   Map<Node, Element> map;
-  Map<Send, Selector> selectors;
+  Map<Node, Selector> selectors;
   Map<TypeAnnotation, Type> types;
 
   TreeElementMapping()
     : map = new LinkedHashMap<Node, Element>(),
-      selectors = new LinkedHashMap<Send, Selector>(),
+      selectors = new LinkedHashMap<Node, Selector>(),
       types = new LinkedHashMap<TypeAnnotation, Type>();
 
   operator []=(Node node, Element element) => map[node] = element;
@@ -28,11 +28,11 @@ class TreeElementMapping implements TreeElements {
 
   Type getType(TypeAnnotation annotation) => types[annotation];
 
-  void setSelector(Send send, Selector selector) {
-    selectors[send] = selector;
+  void setSelector(Node node, Selector selector) {
+    selectors[node] = selector;
   }
 
-  Selector getSelector(Send send) => selectors[send];
+  Selector getSelector(Node node) => selectors[node];
 }
 
 class ResolverTask extends CompilerTask {
@@ -1339,8 +1339,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     bool isComplex = source !== '=';
     if (isComplex) {
       if (selector.isSetter()) {
+        // TODO(kasperl): We're registering the getter selector for
+        // compound assignments on the AST selector node. In the code
+        // generator, we then fetch it from there when generating the
+        // getter for a SendSet node.
+        Selector getterSelector = new Selector.getterFrom(selector);
+        registerSend(getterSelector, getter);
+        mapping.setSelector(node.selector, getterSelector);
         useElement(node.selector, getter);
-        registerSend(new Selector.getterFrom(selector), getter);
       } else {
         // TODO(kasperl): If [getter] is resolved, it will actually
         // refer to the []= operator which isn't the one we want to
