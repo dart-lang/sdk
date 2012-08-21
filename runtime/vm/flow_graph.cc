@@ -271,8 +271,9 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   }
 
   // All locals are initialized with #null.
-  Definition* null_defn = new BindInstr(BindInstr::kUsed,
-                                        new ConstantVal(Object::ZoneHandle()));
+  Definition* null_defn =
+      new BindInstr(BindInstr::kUsed,
+                    new MaterializeComp(new ConstantVal(Object::ZoneHandle())));
   // The null definition should not appear in input positions.
   ASSERT(null_defn->ssa_temp_index() == -1);
   while (start_env.length() < variable_count()) {
@@ -291,8 +292,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
 
 // Helper to either use the constant value of a definition or the definition.
 static Value* UseDefinition(Definition* defn) {
-  if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
-    return defn->AsBind()->computation()->AsConstant();
+  if (defn->IsBind() && defn->AsBind()->computation()->IsMaterialize()) {
+    return defn->AsBind()->computation()->AsMaterialize()->constant_val();
   } else {
     return new UseVal(defn);
   }

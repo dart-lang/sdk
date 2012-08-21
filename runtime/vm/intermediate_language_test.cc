@@ -36,7 +36,8 @@ TEST_CASE(DefUseTests) {
   EXPECT(def1->use_list()->next_use() == NULL);
   EXPECT(def2->use_list() == use3);
   EXPECT(def2->use_list()->next_use() == NULL);
-  BindInstr* bind = new BindInstr(BindInstr::kUsed, use2);
+  BindInstr* bind =
+      new BindInstr(BindInstr::kUsed, new BooleanNegateComp(use2));
   bind->RemoveInputUses();
   EXPECT(def1->use_list() == NULL);
   // Test replacing with a definition without uses.
@@ -53,7 +54,6 @@ TEST_CASE(OptimizationTests) {
   UseVal* use1a = new UseVal(def1);
   UseVal* use1b = new UseVal(def1);
   EXPECT(use1a->Equals(use1b));
-  EXPECT(use1a->Hashcode() == use1b->Hashcode());
   UseVal* use2 = new UseVal(def2);
   EXPECT(!use2->Equals(use1a));
 

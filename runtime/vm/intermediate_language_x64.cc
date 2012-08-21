@@ -173,16 +173,16 @@ void StoreLocalComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ConstantVal::MakeLocationSummary() const {
+LocationSummary* MaterializeComp::MakeLocationSummary() const {
   return LocationSummary::Make(0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
-void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
+void MaterializeComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
-  __ LoadObject(result, value());
+  __ LoadObject(result, constant_val()->value());
 }
 
 

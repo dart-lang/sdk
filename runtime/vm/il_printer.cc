@@ -162,6 +162,11 @@ void ConstantVal::PrintTo(BufferFormatter* f) const {
 }
 
 
+void MaterializeComp::PrintOperandsTo(BufferFormatter* f) const {
+  constant_val()->PrintTo(f);
+}
+
+
 void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'%s",

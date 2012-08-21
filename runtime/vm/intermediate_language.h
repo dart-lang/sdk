@@ -59,7 +59,6 @@ class LocalVariable;
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
 #define FOR_EACH_COMPUTATION(M)                                                \
-  FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(AssertBoolean, AssertBooleanComp)                                          \
   M(CurrentContext, CurrentContextComp)                                        \
@@ -102,11 +101,13 @@ class LocalVariable;
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
   M(DoubleToDouble, DoubleToDoubleComp)                                        \
   M(SmiToDouble, SmiToDoubleComp)                                              \
-  M(CheckClass, CheckClassComp)
+  M(CheckClass, CheckClassComp)                                                \
+  M(Materialize, MaterializeComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
 FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
+FOR_EACH_VALUE(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 // Forward declarations.
@@ -312,9 +313,31 @@ class TemplateComputation : public Computation {
 };
 
 
-class Value : public TemplateComputation<0> {
+class Value : public ZoneAllocated {
  public:
   Value() { }
+
+  // Declare an enum value used to define kind-test predicates.
+  enum ValueKind {
+#define DECLARE_VALUE_KIND(ShortName, ClassName) k##ShortName,
+  FOR_EACH_VALUE(DECLARE_VALUE_KIND)
+#undef DECLARE_VALUE_KIND
+  };
+
+  // Declare predicate for each value.
+#define DECLARE_PREDICATE(ShortName, ClassName)                                \
+  inline bool Is##ShortName() const;                                           \
+  inline const ClassName* As##ShortName() const;                               \
+  inline ClassName* As##ShortName();
+FOR_EACH_VALUE(DECLARE_PREDICATE)
+#undef DECLARE_PREDICATE
+
+  virtual ValueKind value_kind() const = 0;
+
+  virtual RawAbstractType* CompileType() const = 0;
+  virtual intptr_t ResultCid() const = 0;
+
+  virtual void PrintTo(BufferFormatter* f) const = 0;
 
   // Returns true if the value represents a constant.
   virtual bool BindsToConstant() const = 0;
@@ -330,6 +353,8 @@ class Value : public TemplateComputation<0> {
   bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
   virtual void RemoveFromUseList() = 0;
+
+  virtual bool Equals(Value* other) const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -350,7 +375,12 @@ class Value : public TemplateComputation<0> {
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
-  DECLARE_COMPUTATION(ShortName)                                               \
+  virtual ValueKind value_kind() const {                                       \
+    return Value::k##ShortName;                                                \
+  }                                                                            \
+  virtual const char* DebugName() const { return #ShortName; }                 \
+  virtual RawAbstractType* CompileType() const;                                \
+  virtual bool Equals(Value* other) const;                                     \
   virtual void PrintTo(BufferFormatter* f) const;
 
 
@@ -394,8 +424,6 @@ class UseVal : public Value {
 
   virtual intptr_t ResultCid() const;
 
-  virtual bool AttributesEqual(Computation* other) const;
-
  private:
   void AddToUseList();
   Definition* definition_;
@@ -433,8 +461,6 @@ class ConstantVal : public Value {
 
   virtual intptr_t ResultCid() const;
 
-  virtual bool AttributesEqual(Computation* other) const;
-
  private:
   const Object& value_;
 
@@ -442,6 +468,26 @@ class ConstantVal : public Value {
 };
 
 #undef DECLARE_VALUE
+
+
+class MaterializeComp : public TemplateComputation<0> {
+ public:
+  explicit MaterializeComp(ConstantVal* constant_val)
+      : constant_val_(constant_val) { }
+
+  DECLARE_COMPUTATION(Materialize)
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  ConstantVal* constant_val() const { return constant_val_; }
+
+  virtual intptr_t ResultCid() const;
+
+ private:
+  ConstantVal* constant_val_;
+};
 
 
 class AssertAssignableComp : public TemplateComputation<3> {
@@ -1830,7 +1876,7 @@ class CheckClassComp : public TemplateComputation<1> {
 
 
 // Implementation of type testers and cast functins.
-#define DEFINE_PREDICATE(ShortName, ClassName)                                 \
+#define DEFINE_COMPUTATION_PREDICATE(ShortName, ClassName)                     \
 bool Computation::Is##ShortName() const {                                      \
   return computation_kind() == k##ShortName;                                   \
 }                                                                              \
@@ -1842,9 +1888,23 @@ ClassName* Computation::As##ShortName() {                                      \
   if (!Is##ShortName()) return NULL;                                           \
   return static_cast<ClassName*>(this);                                        \
 }
-FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
-#undef DEFINE_PREDICATE
+FOR_EACH_COMPUTATION(DEFINE_COMPUTATION_PREDICATE)
+#undef DEFINE_COMPUTATION_PREDICATE
 
+#define DEFINE_VALUE_PREDICATE(ShortName, ClassName)                           \
+bool Value::Is##ShortName() const {                                            \
+  return value_kind() == k##ShortName;                                         \
+}                                                                              \
+const ClassName* Value::As##ShortName() const {                                \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<const ClassName*>(this);                                  \
+}                                                                              \
+ClassName* Value::As##ShortName() {                                            \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<ClassName*>(this);                                        \
+}
+FOR_EACH_VALUE(DEFINE_VALUE_PREDICATE)
+#undef DEFINE_VALUE_PREDICATE
 
 // Instructions.
 

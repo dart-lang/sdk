@@ -44,13 +44,13 @@ bool Computation::Equals(Computation* other) const {
 }
 
 
-bool UseVal::AttributesEqual(Computation* other) const {
+bool UseVal::Equals(Value* other) const {
   return other->IsUse()
       && definition() == other->AsUse()->definition();
 }
 
 
-bool ConstantVal::AttributesEqual(Computation* other) const {
+bool ConstantVal::Equals(Value* other) const {
   return other->IsConstant()
       && value().raw() == other->AsConstant()->value().raw();
 }
@@ -93,7 +93,7 @@ bool UseVal::BindsToConstant() const {
   if (bind == NULL) {
     return false;
   }
-  return bind->computation()->AsConstant() != NULL;
+  return bind->computation()->AsMaterialize() != NULL;
 }
 
 
@@ -103,9 +103,9 @@ bool UseVal::BindsToConstantNull() const {
   if (bind == NULL) {
     return false;
   }
-  ConstantVal* constant = bind->computation()->AsConstant();
+  MaterializeComp* constant = bind->computation()->AsMaterialize();
   if (constant != NULL) {
-    return constant->value().IsNull();
+    return constant->constant_val()->value().IsNull();
   }
   return false;
 }
@@ -115,9 +115,9 @@ const Object& UseVal::BoundConstant() const {
   ASSERT(BindsToConstant());
   BindInstr* bind = definition()->AsBind();
   ASSERT(bind != NULL);
-  ConstantVal* constant = bind->computation()->AsConstant();
+  MaterializeComp* constant = bind->computation()->AsMaterialize();
   ASSERT(constant != NULL);
-  return constant->value();
+  return constant->constant_val()->value();
 }
 
 
@@ -718,6 +718,17 @@ RawAbstractType* UseVal::CompileType() const {
 
 intptr_t UseVal::ResultCid() const {
   return definition()->GetPropagatedCid();
+}
+
+
+
+RawAbstractType* MaterializeComp::CompileType() const {
+  return constant_val()->CompileType();
+}
+
+
+intptr_t MaterializeComp::ResultCid() const {
+  return constant_val()->ResultCid();
 }
 
 
@@ -1353,16 +1364,6 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UseVal::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(deopt_id(),
@@ -1512,8 +1513,8 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 // Helper to either use the constant value of a definition or the definition.
 static Value* UseDefinition(Definition* defn) {
-  if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
-    return defn->AsBind()->computation()->AsConstant();
+  if (defn->IsBind() && defn->AsBind()->computation()->IsMaterialize()) {
+    return defn->AsBind()->computation()->AsMaterialize()->constant_val();
   } else {
     return new UseVal(defn);
   }
