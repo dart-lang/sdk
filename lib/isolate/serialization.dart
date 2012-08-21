@@ -37,10 +37,9 @@ class _MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
     if (x is SendPortSync) return visitSendPortSync(x);
-    if (x is Function) return visitFunction(x);
 
-    // TODO(floitsch): make this a real exception. (which one)?
-    throw "Message serialization: Illegal value $x passed";
+    // Overridable fallback.
+    return visitObject(x);
   }
 
   abstract visitPrimitive(x);
@@ -49,8 +48,9 @@ class _MessageTraverser {
   abstract visitSendPort(SendPort x);
   abstract visitSendPortSync(SendPortSync x);
 
-  visitFunction(Function func) {
-    throw "Serialization of functions is not allowed.";
+  visitObject(Object x) {
+    // TODO(floitsch): make this a real exception. (which one)?
+    throw "Message serialization: Illegal value $x passed";
   }
 
   static bool isPrimitive(x) {
@@ -158,8 +158,7 @@ class _Deserializer {
       case 'list': return _deserializeList(x);
       case 'map': return _deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
-      // TODO(floitsch): Use real exception (which one?).
-      default: throw "Unexpected serialized object";
+      default: return deserializeObject(x);
     }
   }
 
@@ -200,4 +199,8 @@ class _Deserializer {
 
   abstract deserializeSendPort(List x);
 
+  deserializeObject(List x) {
+    // TODO(floitsch): Use real exception (which one?).
+    throw "Unexpected serialized object";
+  }
 }

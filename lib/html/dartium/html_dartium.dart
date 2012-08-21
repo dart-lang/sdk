@@ -40763,6 +40763,12 @@ class _JsSerializer extends _Serializer {
              x._receivePort._isolateId, x._receivePort._portId ];
   }
 
+  visitObject(Object x) {
+    if (x is Function) return visitFunction(x);
+    // TODO: Handle DOM elements and proxy other objects.
+    throw "Unserializable object $x";
+ }
+
   visitFunction(Function func) {
     return [ 'funcref',
               _makeFunctionRef(func), visitSendPortSync(_sendPort()), null ];
@@ -40821,6 +40827,8 @@ _deserialize(var message) {
 
 class _JsDeserializer extends _Deserializer {
 
+  static final _UNSPECIFIED = const Object();
+
   deserializeSendPort(List x) {
     String tag = x[1];
     switch (tag) {
@@ -40836,6 +40844,27 @@ class _JsDeserializer extends _Deserializer {
     }
   }
 
+  deserializeObject(List x) {
+    String tag = x[0];
+    switch (tag) {
+      case 'funcref': return deserializeFunction(x);
+      default: throw 'Illegal object type: $x';
+    }
+  }
+
+  deserializeFunction(List x) {
+    var id = x[1];
+    SendPortSync port = deserializeSendPort(x[2]);
+    // TODO: Support varargs when there is support in the language.
+    return ([arg0 = _UNSPECIFIED, arg1 = _UNSPECIFIED,
+              arg2 = _UNSPECIFIED, arg3 = _UNSPECIFIED]) {
+      var args = [arg0, arg1, arg2, arg3];
+      var last = args.indexOf(_UNSPECIFIED);
+      if (last >= 0) args = args.getRange(0, last);
+      var message = [id, args];
+      return port.callSync(message);
+    };
+  }
 }
 
 // The receiver is JS.
@@ -41276,10 +41305,9 @@ class _MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
     if (x is SendPortSync) return visitSendPortSync(x);
-    if (x is Function) return visitFunction(x);
 
-    // TODO(floitsch): make this a real exception. (which one)?
-    throw "Message serialization: Illegal value $x passed";
+    // Overridable fallback.
+    return visitObject(x);
   }
 
   abstract visitPrimitive(x);
@@ -41288,8 +41316,9 @@ class _MessageTraverser {
   abstract visitSendPort(SendPort x);
   abstract visitSendPortSync(SendPortSync x);
 
-  visitFunction(Function func) {
-    throw "Serialization of functions is not allowed.";
+  visitObject(Object x) {
+    // TODO(floitsch): make this a real exception. (which one)?
+    throw "Message serialization: Illegal value $x passed";
   }
 
   static bool isPrimitive(x) {
@@ -41397,8 +41426,7 @@ class _Deserializer {
       case 'list': return _deserializeList(x);
       case 'map': return _deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
-      // TODO(floitsch): Use real exception (which one?).
-      default: throw "Unexpected serialized object";
+      default: return deserializeObject(x);
     }
   }
 
@@ -41439,6 +41467,10 @@ class _Deserializer {
 
   abstract deserializeSendPort(List x);
 
+  deserializeObject(List x) {
+    // TODO(floitsch): Use real exception (which one?).
+    throw "Unexpected serialized object";
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

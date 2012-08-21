@@ -29,6 +29,12 @@ class _JsSerializer extends _Serializer {
              x._receivePort._isolateId, x._receivePort._portId ];
   }
 
+  visitObject(Object x) {
+    if (x is Function) return visitFunction(x);
+    // TODO: Handle DOM elements and proxy other objects.
+    throw "Unserializable object $x";
+ }
+
   visitFunction(Function func) {
     return [ 'funcref',
               _makeFunctionRef(func), visitSendPortSync(_sendPort()), null ];
@@ -87,6 +93,8 @@ _deserialize(var message) {
 
 class _JsDeserializer extends _Deserializer {
 
+  static final _UNSPECIFIED = const Object();
+
   deserializeSendPort(List x) {
     String tag = x[1];
     switch (tag) {
@@ -102,6 +110,27 @@ class _JsDeserializer extends _Deserializer {
     }
   }
 
+  deserializeObject(List x) {
+    String tag = x[0];
+    switch (tag) {
+      case 'funcref': return deserializeFunction(x);
+      default: throw 'Illegal object type: $x';
+    }
+  }
+
+  deserializeFunction(List x) {
+    var id = x[1];
+    SendPortSync port = deserializeSendPort(x[2]);
+    // TODO: Support varargs when there is support in the language.
+    return ([arg0 = _UNSPECIFIED, arg1 = _UNSPECIFIED,
+              arg2 = _UNSPECIFIED, arg3 = _UNSPECIFIED]) {
+      var args = [arg0, arg1, arg2, arg3];
+      var last = args.indexOf(_UNSPECIFIED);
+      if (last >= 0) args = args.getRange(0, last);
+      var message = [id, args];
+      return port.callSync(message);
+    };
+  }
 }
 
 // The receiver is JS.

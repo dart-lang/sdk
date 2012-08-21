@@ -46,6 +46,33 @@ function ReceivePortSync() {
 }
 
 (function() {
+  // Track proxied functions.
+  // TODO: Fix leaks, particularly in dart2js case.
+  var functionRefMap = {};
+
+  var nextFunctionRefId = 0;
+
+  function functionRefDispatch(message) {
+    var id = message[0];
+    var args = message[1];
+    var f = functionRefMap[id];
+    // TODO: Should we capture this automatically?
+    return f.apply(null, args);
+  }
+
+  var functionRefPort = null;
+
+  function makeFunctionRef(f) {
+    if (functionRefPort == null) {
+      var port = new ReceivePortSync();
+      port.receive(functionRefDispatch);
+      functionRefPort = port.toSendPort();
+    }
+    var ref = 'func-ref-' + (nextFunctionRefId++);
+    functionRefMap[ref] = f;
+    return ref;
+  }
+
   function serialize(message) {
     var visited = [];
     function checkedSerialization(obj, serializer) {
@@ -79,6 +106,9 @@ function ReceivePortSync() {
         return [ 'sendport', 'nativejs', message.receivePort.id ];
       } else if (message instanceof DartSendPortSync) {
         return [ 'sendport', 'dart', message.isolateId, message.portId ];
+      } else if (message instanceof Function) {
+        return [ 'funcref', makeFunctionRef(message),
+                 doSerialize(functionRefPort) ];
       } else {
         return checkedSerialization(message, function(id) {
           var keys = Object.getOwnPropertyNames(message);
