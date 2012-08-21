@@ -1119,6 +1119,14 @@ class HIntegerCheck extends HCheck {
 
   HType get guaranteedType() => HType.INTEGER;
 
+  HType computeDesiredTypeForInput(HInstruction input, HTypeMap types) {
+    // If the desired type of the input is already a number, we want
+    // to specialize it to an integer.
+    return input.isNumber(types)
+      ? HType.INTEGER
+      : super.computeDesiredTypeForInput(input, types);
+  }
+
   accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
   int typeCode() => 3;
   bool typeEquals(other) => other is HIntegerCheck;

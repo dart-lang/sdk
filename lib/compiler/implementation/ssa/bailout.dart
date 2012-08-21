@@ -162,6 +162,16 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
       }
     }
 
+    // If the instruction is used by a phi where a guard would be
+    // valuable, put the guard on that instruction.
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HPhi
+          && user.block.id > instruction.id
+          && typeGuardWouldBeValuable(user, speculativeType)) {
+        return true;
+      }
+    }
+
     // Insert type guards if the method is likely to be called in a
     // loop.
     return calledInLoop;

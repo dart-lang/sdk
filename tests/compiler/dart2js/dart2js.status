@@ -5,9 +5,6 @@
 constant_folding_string_test: Fail
 redundant_phi_eliminator_test: Fail # Fails because of hack to allow aborting loops.
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
-type_inference2_test: Fail # Issue 2577, requires liveness analysis.
-type_inference4_test: Fail # Issue 2665.
-type_inference5_test: Fail # Issue 2665.
 
 [ $runtime == d8 || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
