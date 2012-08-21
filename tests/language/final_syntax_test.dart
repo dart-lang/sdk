@@ -10,8 +10,10 @@ main() {
   Expect.equals(42, f0);
   Expect.equals(87, f2);
 
-  Expect.equals(42, F0); /// 03: compile-time error
-  Expect.equals(87, F2); /// 04: compile-time error
+  Expect.equals(42, F0);
+  Expect.equals(null, F1); /// 03: compile-time error
+  Expect.equals(87, F2);
+  Expect.equals(null, F3); /// 04: compile-time error
 
   Expect.isTrue(P0 is Point);
   Expect.isTrue(P1 is int);   /// 05: compile-time error
