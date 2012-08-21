@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Internationalization object providing access to message formatting objects,
+ * date formatting, parsing, bidirectional text relative to a specific locale.
+ */
 #library('intl');
 
 #import('dart:web');
@@ -10,11 +14,6 @@
 #source('intl_message.dart');
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');
-
-/**
- * Internationalization object providing access to message formatting objects,
- * date formatting, parsing, bidirectional text relative to a specific locale.
- */
 
 class Intl {
   /**

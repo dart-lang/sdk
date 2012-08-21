@@ -9,6 +9,14 @@
 
 // TODO(ahe): Separate API from implementation details.
 
+/**
+ * The IO library is used for Dart server applications,
+ * which run on a stand-alone Dart VM from the command line.
+ * *This library does not work in browser based applications.*
+ *
+ * This library allows you to work with files, directories,
+ * sockets, processes, HTTP servers and clients, and more.
+ */
 #library("dart:io");
 #import("dart:coreimpl");
 #import("dart:isolate");
