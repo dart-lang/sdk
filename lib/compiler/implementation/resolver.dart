@@ -2338,11 +2338,11 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         fullConstructorName = '$fullConstructorName'
                               '.${constructorName.slowToString()}';
       }
-      ResolutionWarning message  =
+      ResolutionWarning warning  =
           new ResolutionWarning(MessageKind.CANNOT_FIND_CONSTRUCTOR,
                                 [fullConstructorName]);
-      compiler.reportWarning(diagnosticNode, message);
-      return new ErroneousFunctionElement(message, cls);
+      compiler.reportWarning(diagnosticNode, warning);
+      return new ErroneousFunctionElement(warning.message, cls);
     }
     return result;
   }

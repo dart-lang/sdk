@@ -314,6 +314,13 @@ class PlaceholderCollector extends AbstractVisitor {
   visitNode(Node node) { node.visitChildren(this); }  // We must go deeper.
 
   visitSend(Send send) {
+    Element element = treeElements[send];
+    if (element !== null && element.isErroneous()) {
+      // TODO(antonm): this is an unresolved constructor, not a dynamic send.
+      ErroneousElement erroneousElement = element;
+      compiler.cancel(reason: erroneousElement.errorMessage.toString(),
+                      node: send);
+    }
     new SendVisitor(this, treeElements).visitSend(send);
     send.visitChildren(this);
   }

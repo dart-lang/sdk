@@ -18,7 +18,7 @@ class ResolvedVisitor<R> extends AbstractVisitor<R> {
       return visitClosureSend(node);
     } else {
       Element element = elements[node];
-      if (element === null) {
+      if (Element.isInvalid(element)) {
         // Example: f() with 'f' unbound.
         // This can only happen inside an instance method.
         return visitDynamicSend(node);

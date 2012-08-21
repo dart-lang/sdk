@@ -341,6 +341,8 @@ class ErroneousFunctionElement extends ErroneousElement
   requiredParameterCount(compiler) => unsupported();
   optionalParameterCount(compiler) => unsupported();
   parameterCount(copmiler) => unsupported();
+
+  getLibrary() => enclosingElement.getLibrary();
 }
 
 class ContainerElement extends Element {
