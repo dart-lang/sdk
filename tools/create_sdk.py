@@ -422,7 +422,8 @@ def Main(argv):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
     if exists(join(src_dir, 'lib')):
-      copytree(join(src_dir, 'lib'), join(dest_dir, 'lib'))
+      copytree(join(src_dir, 'lib'), join(dest_dir, 'lib'),
+           ignore=ignore_patterns('.svn'))
 
   # Create and populate pkg/dartdoc.
   dartdoc_src_dir = join(HOME, 'pkg', 'dartdoc')
