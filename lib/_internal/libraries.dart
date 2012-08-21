@@ -60,6 +60,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       "math/math.dart",
       dart2jsPatchPath: "compiler/implementation/lib/math.dartp"),
 
+  "mirrors": const LibraryInfo(
+      "mirrors/mirrors.dart"),
+
   // Used by Dartium applications
   "nativewrappers": const LibraryInfo(
       "html/nativewrappers.dart",

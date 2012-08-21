@@ -50,6 +50,8 @@
 # ........json_frog.dart
 #.........json.dart
 # ........{frog}/
+# ......mirrors/
+# ........mirrors.dart
 # ......uri/
 # ........uri.dart
 # ......utf/
@@ -334,7 +336,8 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'crypto', 'json', 'math', 'uri', 'utf', 'web']:
+  for library in ['_internal', 'crypto', 'json', 'math', 'mirrors', 'uri',
+                  'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
