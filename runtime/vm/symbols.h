@@ -62,6 +62,7 @@ class ObjectPointerVisitor;
   V(TypeParameter, "TypeParameter")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
+  V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \

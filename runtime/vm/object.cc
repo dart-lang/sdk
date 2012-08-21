@@ -396,6 +396,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(type_parameter, TypeParameter);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(instantiated_type_arguments, InstantiatedTypeArguments);
+  SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
