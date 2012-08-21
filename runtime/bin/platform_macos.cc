@@ -21,6 +21,15 @@ bool Platform::Initialize() {
     perror("Setting signal handler failed");
     return false;
   }
+  // Unblock SIGCHLD as waiting on spawned child process depends
+  // on successful interception of this signal.
+  sigset_t newset;
+  sigemptyset(&newset);
+  sigaddset(&newset, SIGCHLD);
+  if (sigprocmask(SIG_UNBLOCK, &newset, NULL) != 0) {
+    perror("Unblocking SIGCHLD signal failed");
+  }
+
   return true;
 }
 
