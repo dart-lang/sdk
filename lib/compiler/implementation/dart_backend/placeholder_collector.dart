@@ -143,7 +143,7 @@ class PlaceholderCollector extends AbstractVisitor {
                 tryMakePrivateIdentifier(
                     send.selector.asFunctionExpression().name.asIdentifier());
               } else {
-                internalError('Unreachable case');
+                unreachable();
               }
             } else {
               assert(definition is Identifier
@@ -180,7 +180,7 @@ class PlaceholderCollector extends AbstractVisitor {
           tryMakePrivateIdentifier(
               definition.asSendSet().selector.asIdentifier());
         } else {
-          internalError('Unreachable case');
+          unreachable();
         }
       }
     } else if (element.isTopLevel()) {
@@ -190,7 +190,7 @@ class PlaceholderCollector extends AbstractVisitor {
       } else if (fieldNode is SendSet) {
         makeElementPlaceholder(fieldNode.selector, element);
       } else {
-        internalError('Unreachable case');
+        unreachable();
       }
     }
   }
@@ -214,7 +214,7 @@ class PlaceholderCollector extends AbstractVisitor {
       currentElement = element;
       elementNode = currentElement.parseNode(compiler);
     } else {
-      assert(false); // Unreachable.
+      unreachable();
     }
     currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     compiler.withCurrentElement(element, () {
@@ -278,6 +278,8 @@ class PlaceholderCollector extends AbstractVisitor {
   void internalError(String reason, [Node node]) {
     compiler.cancel(reason: reason, node: node);
   }
+
+  void unreachable() { internalError('Unreachable case'); }
 
   visit(Node node) => (node === null) ? null : node.accept(this);
 
