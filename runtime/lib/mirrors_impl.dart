@@ -47,9 +47,7 @@ class _LocalMirrorSystemImpl implements MirrorSystem {
     return _voidType;
   }
 
-  String toString() {
-    return "MirrorSystem for isolate '$debugName'";
-  }
+  String toString() => "MirrorSystem for isolate '$debugName'";
 }
 
 abstract class _LocalMirrorImpl implements Mirror {
@@ -59,7 +57,7 @@ abstract class _LocalMirrorImpl implements Mirror {
 
   // Local mirrors always return the same MirrorSystem.  This field
   // is more interesting once we implement remote mirrors.
-  MirrorSystem get mirrors() { return _Mirrors.currentMirrorSystem(); }
+  MirrorSystem get mirrors() => _Mirrors.currentMirrorSystem();
 }
 
 class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
@@ -77,9 +75,7 @@ class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
     return _rootLibrary;
   }
 
-  String toString() {
-    return "IsolateMirror on '$debugName'";
-  }
+  String toString() => "IsolateMirror on '$debugName'";
 }
 
 // A VMReference is used to hold a reference to a VM-internal object,
@@ -172,9 +168,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
 // Prints a string as it might appear in dart program text.
 // TODO(turnidge): Consider truncating.
 String _dartEscape(String str) {
-  bool isNice(int code) {
-    return (code >= 32 && code <= 126);
-  }
+  bool isNice(int code) => (code >= 32 && code <= 126);
 
   StringBuffer buf = new StringBuffer();
   for (int i = 0; i < str.length; i++) {
@@ -261,8 +255,8 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
   MethodMirror _function;
   MethodMirror function() => _function;
 
-  String source() {
-    throw new NotImplementedException('ClosureMirror.source() not implemented');
+  String get source() {
+    throw new NotImplementedException('ClosureMirror.source not implemented');
   }
 
   Future<ObjectMirror> apply(List<Object> positionalArguments,
@@ -320,22 +314,40 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   _LocalClassMirrorImpl(ref,
                         this.simpleName,
                         this.isClass,
-                        this._library,
+                        this._owner,
                         this._superclass,
                         this._superinterfaces,
                         this._defaultFactory,
                         this.members) : super(ref) {}
 
   final String simpleName;
-  final bool isClass;
 
-  var _library;
-  LibraryMirror get library() {
-    if (_library is _LazyLibraryMirror) {
-      _library = _library.resolve(mirrors);
+  String _qualifiedName = null;
+  String get qualifiedName() {
+    if (_qualifiedName === null) {
+      _qualifiedName = '${owner.qualifiedName}.${simpleName}';
     }
-    return _library;
+    return _qualifiedName;
   }
+
+  var _owner;
+  DeclarationMirror get owner() {
+    if (_owner is! Mirror) {
+      _owner = _owner.resolve(mirrors);
+    }
+    return _owner;
+  }
+
+  bool get isPrivate() => simpleName.startsWith('_');
+
+  final bool isTopLevel = true;
+
+  SourceLocation get location() {
+    throw new NotImplementedException(
+        'ClassMirror.location not yet implemented');
+  }
+
+  final bool isClass;
 
   var _superclass;
   ClassMirror get superclass() {
@@ -366,10 +378,13 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _defaultFactory;
   }
 
-  final Map<String, ClassMirror> members;
+  final Map<String, Mirror> members;
 
-  Map<String, ClassMirror> _methods = null;
-  Map<String, ClassMirror> _variables = null;
+  Map<String, MethodMirror> _methods = null;
+  Map<String, MethodMirror> _constructors = null;
+  Map<String, MethodMirror> _getters = null;
+  Map<String, MethodMirror> _setters = null;
+  Map<String, VariableMirror> _variables = null;
 
   Map<String, MethodMirror> get methods() {
     if (_methods == null) {
@@ -377,6 +392,30 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                            (key, value) => (value is MethodMirror));
     }
     return _methods;
+  }
+
+  Map<String, MethodMirror> get constructors() {
+    if (_constructors == null) {
+      _constructors = filterMap(methods,
+                                (key, value) => (value.isConstructor));
+    }
+    return _constructors;
+  }
+
+  Map<String, MethodMirror> get getters() {
+    if (_getters == null) {
+      _getters = filterMap(methods,
+                           (key, value) => (value.isGetter));
+    }
+    return _getters;
+  }
+
+  Map<String, MethodMirror> get setters() {
+    if (_setters == null) {
+      _setters = filterMap(methods,
+                           (key, value) => (value.isSetter));
+    }
+    return _setters;
   }
 
   Map<String, VariableMirror> get variables() {
@@ -387,13 +426,31 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _variables;
   }
 
-  String toString() {
-    return "ClassMirror on '$simpleName'";
+  List<TypeVariableMirror> get typeVariables() {
+    throw new NotImplementedException(
+        'ClassMirror.typeVariables not yet implemented');
   }
 
+  List<TypeMirror> get typeArguments() {
+    throw new NotImplementedException(
+        'ClassMirror.typeArguments not yet implemented');
+  }
+
+  bool isGenericDeclaration() {
+    throw new NotImplementedException(
+        'ClassMirror.isGenericDeclaration not yet implemented');
+  }
+
+  ClassMirror genericDeclaration() {
+    throw new NotImplementedException(
+        'ClassMirror.genericDeclaration not yet implemented');
+  }
+
+  String toString() => "ClassMirror on '$simpleName'";
+
   Future<InstanceMirror> newInstance(String constructorName,
-                                List positionalArguments,
-                                [Map<String,Dynamic> namedArguments]) {
+                                     List positionalArguments,
+                                     [Map<String,Dynamic> namedArguments]) {
     if (namedArguments !== null) {
       throw new NotImplementedException('named arguments not implemented');
     }
@@ -434,12 +491,32 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
                           this.members) : super(ref) {}
 
   final String simpleName;
+
+  // The simple name and the qualified name are the same for a library.
+  String get qualifiedName() => simpleName;
+
+  // Always null for libraries.
+  final DeclarationMirror owner = null;
+
+  // Always false for libraries.
+  final bool isPrivate = false;
+
+  // Always false for libraries.
+  final bool isTopLevel = false;
+
+  SourceLocation get location() {
+    throw new NotImplementedException(
+        'LibraryMirror.location not yet implemented');
+  }
+
   final String url;
-  final Map<String, ClassMirror> members;
+  final Map<String, Mirror> members;
 
   Map<String, ClassMirror> _classes = null;
-  Map<String, ClassMirror> _functions = null;
-  Map<String, ClassMirror> _variables = null;
+  Map<String, MethodMirror> _functions = null;
+  Map<String, MethodMirror> _getters = null;
+  Map<String, MethodMirror> _setters = null;
+  Map<String, VariableMirror> _variables = null;
 
   Map<String, ClassMirror> get classes() {
     if (_classes == null) {
@@ -457,6 +534,22 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _functions;
   }
 
+  Map<String, MethodMirror> get getters() {
+    if (_getters == null) {
+      _getters = filterMap(functions,
+                           (key, value) => (value.isGetter));
+    }
+    return _getters;
+  }
+
+  Map<String, MethodMirror> get setters() {
+    if (_setters == null) {
+      _setters = filterMap(functions,
+                           (key, value) => (value.isSetter));
+    }
+    return _setters;
+  }
+
   Map<String, VariableMirror> get variables() {
     if (_variables == null) {
       _variables = filterMap(members,
@@ -465,9 +558,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _variables;
   }
 
-  String toString() {
-    return "LibraryMirror on '$simpleName'";
-  }
+  String toString() => "LibraryMirror on '$simpleName'";
 }
 
 class _LocalMethodMirrorImpl extends _LocalMirrorImpl
@@ -487,52 +578,81 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
 
   final String simpleName;
 
+  String _qualifiedName = null;
+  String get qualifiedName() {
+    if (_qualifiedName === null) {
+      _qualifiedName = '${owner.qualifiedName}.${simpleName}';
+    }
+    return _qualifiedName;
+  }
+
   var _owner;
-  Mirror get owner() {
+  DeclarationMirror get owner() {
     if (_owner is! Mirror) {
       _owner = _owner.resolve(mirrors);
     }
     return _owner;
   }
 
+  bool get isPrivate() {
+    return simpleName.startsWith('_') || constructorName.startsWith('_');
+  }
+
+  bool get isTopLevel() =>  owner is LibraryMirror;
+
+  SourceLocation get location() {
+    throw new NotImplementedException(
+        'MethodMirror.location not yet implemented');
+  }
+
+  TypeMirror get returnType() {
+    throw new NotImplementedException(
+        'MethodMirror.returnType not yet implemented');
+  }
+
   final List<ParameterMirror> parameters;
 
-  bool get isTopLevel() {
-    return owner is LibraryMirror;
-  }
-
   final bool isStatic;
+  final bool isAbstract;
 
-  bool get isMethod() {
-    return !isGetter && !isSetter && !isConstructor;
+  bool get isRegularMethod() => !isGetter && !isSetter && !isConstructor;
+
+  TypeMirror get isOperator() {
+    throw new NotImplementedException(
+        'MethodMirror.isOperator not yet implemented');
   }
 
-  final bool isAbstract;
   final bool isGetter;
   final bool isSetter;
   final bool isConstructor;
+
+  var _constructorName = null;
+  String get constructorName() {
+    if (_constructorName === null) {
+      if (!isConstructor) {
+        _constructorName = '';
+      } else {
+        var parts = simpleName.split('.');
+        if (parts.length > 2) {
+          throw new MirrorException(
+              'Internal error in MethodMirror.constructorName: '
+              'malformed name <$simpleName>');
+        } else if (parts.length == 2) {
+          _constructorName = parts[1];
+        } else {
+          _constructorName = '';
+        }
+      }
+    }
+    return _constructorName;
+  }
 
   final bool isConstConstructor;
   final bool isGenerativeConstructor;
   final bool isRedirectingConstructor;
   final bool isFactoryConstructor;
 
-  String toString() {
-    return "MethodMirror on '$simpleName'";
-  }
-}
-
-class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
-    implements ParameterMirror {
-  // TODO(rmacnak): Fill these mirrors will real information
-  _LocalParameterMirrorImpl(this.isOptional)
-    : super(null, null, false, false) {}
-
-  final bool isOptional;
-
-  TypeMirror get type() => null;
-  String get defaultValue() => null;
-  bool get hasDefaultValue() => null;
+  String toString() => "MethodMirror on '$simpleName'";
 }
 
 class _LocalVariableMirrorImpl extends _LocalMirrorImpl
@@ -544,23 +664,67 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
 
   final String simpleName;
 
+  String _qualifiedName = null;
+  String get qualifiedName() {
+    if (_qualifiedName === null) {
+      _qualifiedName = '${owner.qualifiedName}.${simpleName}';
+    }
+    return _qualifiedName;
+  }
+
   var _owner;
-  Mirror get owner() {
+  DeclarationMirror get owner() {
     if (_owner is! Mirror) {
       _owner = _owner.resolve(mirrors);
     }
     return _owner;
   }
 
+  bool get isPrivate() {
+    return simpleName.startsWith('_');
+  }
+
   bool get isTopLevel() {
     return owner is LibraryMirror;
+  }
+
+  SourceLocation get location() {
+    throw new NotImplementedException(
+        'MethodMirror.location not yet implemented');
+  }
+
+  TypeMirror get returnType() {
+    throw new NotImplementedException(
+        'MethodMirror.returnType not yet implemented');
   }
 
   final bool isStatic;
   final bool isFinal;
 
-  String toString() {
-    return "VariableMirror on '$simpleName'";
+  String toString() => "VariableMirror on '$simpleName'";
+}
+
+class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
+    implements ParameterMirror {
+  // TODO(rmacnak): Fill these mirrors will real information
+  _LocalParameterMirrorImpl(this.isOptional)
+    : super(null, null, false, false) {}
+
+  final bool isOptional;
+
+  TypeMirror get type()  {
+    throw new NotImplementedException(
+        'ParameterMirror.type not yet implemented');
+  }
+
+  String get defaultValue() {
+    throw new NotImplementedException(
+        'ParameterMirror.defaultValue not yet implemented');
+  }
+
+  bool get hasDefaultValue() {
+    throw new NotImplementedException(
+        'ParameterMirror.hasDefaultValue not yet implemented');
   }
 }
 

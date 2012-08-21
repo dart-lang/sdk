@@ -42,13 +42,19 @@ sort(list) => list.sort(_stringCompare);
 
 String buildMethodString(MethodMirror func) {
   var result = '${func.simpleName}';
+  if (func.isPrivate) {
+    result = '$result private';
+  }
   if (func.isTopLevel) {
     result = '$result toplevel';
   }
   if (func.isStatic) {
     result = '$result static';
   }
-  if (func.isMethod) {
+  if (func.isAbstract) {
+    result = '$result abstract';
+  }
+  if (func.isRegularMethod) {
     result = '$result method';
   }
   if (func.isGetter) {
@@ -77,6 +83,9 @@ String buildMethodString(MethodMirror func) {
 
 String buildVariableString(VariableMirror variable) {
   var result = '${variable.simpleName}';
+  if (variable.isPrivate) {
+    result = '$result private';
+  }
   if (variable.isTopLevel) {
     result = '$result toplevel';
   }
@@ -91,6 +100,9 @@ String buildVariableString(VariableMirror variable) {
 
 void testRootLibraryMirror(LibraryMirror lib_mirror) {
   Expect.equals('isolate_mirror_local_test', lib_mirror.simpleName);
+  Expect.equals('isolate_mirror_local_test', lib_mirror.qualifiedName);
+  Expect.equals(null, lib_mirror.owner);
+  Expect.isFalse(lib_mirror.isPrivate);
   Expect.isTrue(lib_mirror.url.contains('isolate_mirror_local_test.dart'));
   Expect.equals("LibraryMirror on 'isolate_mirror_local_test'",
                 lib_mirror.toString());
@@ -176,6 +188,16 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testStringInstanceMirror]',
                 '$keys');
 
+  // Check that the getters map is complete.
+  keys = lib_mirror.getters.getKeys();
+  sort(keys);
+  Expect.equals('[myVar]', '$keys');
+
+  // Check that the setters map is complete.
+  keys = lib_mirror.setters.getKeys();
+  sort(keys);
+  Expect.equals('[myVar=]', '$keys');
+
   // Check that the variables map is complete.
   keys = lib_mirror.variables.getKeys();
   sort(keys);
@@ -209,6 +231,10 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   Expect.isTrue(func is MethodMirror);
   Expect.equals('MyClass constructor', buildMethodString(func));
 
+  func = cls_mirror.members['MyClass.named'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('MyClass.named constructor', buildMethodString(func));
+
   // Test variable mirrors.
   VariableMirror variable = lib_mirror.members['global_var'];
   Expect.isTrue(variable is VariableMirror);
@@ -236,9 +262,11 @@ void testLibrariesMap(Map libraries) {
   ClassMirror list_intf = core_lib.members['List'];
   Expect.isTrue(list_intf is ClassMirror);
   Expect.equals('List', list_intf.simpleName);
+  Expect.equals('dart:core.List', list_intf.qualifiedName);
+  Expect.isFalse(list_intf.isPrivate);
   Expect.equals('Object', list_intf.superclass.simpleName);
   Expect.equals('ListFactory', list_intf.defaultFactory.simpleName);
-  Expect.equals('dart:core', list_intf.library.simpleName);
+  Expect.equals('dart:core', list_intf.owner.simpleName);
   Expect.isFalse(list_intf.isClass);
   Expect.equals('Collection', list_intf.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'List'", list_intf.toString());
@@ -247,9 +275,11 @@ void testLibrariesMap(Map libraries) {
   ClassMirror oom_cls = core_lib.members['OutOfMemoryException'];
   Expect.isTrue(oom_cls is ClassMirror);
   Expect.equals('OutOfMemoryException', oom_cls.simpleName);
+  Expect.equals('dart:core.OutOfMemoryException', oom_cls.qualifiedName);
+  Expect.isFalse(oom_cls.isPrivate);
   Expect.equals('Object', oom_cls.superclass.simpleName);
   Expect.isTrue(oom_cls.defaultFactory === null);
-  Expect.equals('dart:core', oom_cls.library.simpleName);
+  Expect.equals('dart:core', oom_cls.owner.simpleName);
   Expect.isTrue(oom_cls.isClass);
   Expect.equals('Exception', oom_cls.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'OutOfMemoryException'",
@@ -324,6 +354,7 @@ class MyInterface {
 
 class MyClass extends MySuperClass implements MyInterface {
   MyClass(this.value) {}
+  MyClass.named() {}
 
   final value;
 
@@ -348,7 +379,7 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   Expect.equals('MyClass', cls.simpleName);
   Expect.equals('MySuperClass', cls.superclass.simpleName);
   Expect.isTrue(cls.defaultFactory === null);
-  Expect.equals('isolate_mirror_local_test', cls.library.simpleName);
+  Expect.equals('isolate_mirror_local_test', cls.owner.simpleName);
   Expect.isTrue(cls.isClass);
   Expect.equals('MyInterface', cls.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'MyClass'",
