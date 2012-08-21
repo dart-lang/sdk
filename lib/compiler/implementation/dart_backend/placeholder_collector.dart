@@ -98,6 +98,9 @@ class PlaceholderCollector extends AbstractVisitor {
   Element currentElement;
   TreeElements treeElements;
 
+  LibraryElement get coreLibrary => compiler.coreLibrary;
+  FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
+
   PlaceholderCollector(this.compiler) :
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
@@ -247,6 +250,8 @@ class PlaceholderCollector extends AbstractVisitor {
 
   void makeElementPlaceholder(Node node, Element element) {
     assert(element !== null);
+    if (element === entryFunction) return;
+    if (element.getLibrary() === coreLibrary) return;
     elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }
 

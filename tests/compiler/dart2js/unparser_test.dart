@@ -389,11 +389,11 @@ main() {
 ''';
   var expectedResult =
     'topfoo(){}'
-    'class p_A{foo(){}}'
+    'class A{foo(){}}'
     'p_topfoo(){var x=5;}'
-    'class A{num foo(){}A.fromFoo(){}p_A myliba;List<A> mylist;}'
-    'p_A getA()=> null;'
-    'main(){var a=new p_A(); a.foo(); var b=new A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}';
+    'class p_A{num foo(){}p_A.fromFoo(){}A myliba;List<p_A> mylist;}'
+    'A getA()=> null;'
+    'main(){var a=new A(); a.foo(); var b=new p_A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }

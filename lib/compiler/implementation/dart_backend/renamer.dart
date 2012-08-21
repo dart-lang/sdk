@@ -38,8 +38,6 @@ void renamePlaceholders(
     // local identifiers.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
-    if (library === compiler.coreLibrary
-        || element == compiler.mainApp.find(Compiler.MAIN)) return originalName;
     if (isDartCoreLib(compiler, library)) {
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
