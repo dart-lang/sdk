@@ -466,7 +466,7 @@ class IDLTypeInfo(object):
   def requires_v8_scope(self):
     return self._data.requires_v8_scope
 
-  def emit_to_native(self, emitter, idl_node, accept_null, name, handle, interface_name):
+  def emit_to_native(self, emitter, idl_node, accept_null, name, handle):
     if 'Callback' in idl_node.ext_attrs:
       function_name = 'create'
       if accept_null:
@@ -481,16 +481,12 @@ class IDLTypeInfo(object):
         FUNCTION_NAME=function_name,
         IDL_TYPE=self.idl_type(),
         HANDLE=handle)
-      return name
+      return
 
-    argument = name
     if self.custom_to_native():
       type = 'RefPtr<%s>' % self.native_type()
-      argument = '%s.get()' % name
     else:
       type = '%s*' % self.native_type()
-      if isinstance(self, SVGTearOffIDLTypeInfo) and not interface_name.endswith('List'):
-        argument = '%s->propertyReference()' % name
     emitter.Emit(
         '\n'
         '        $TYPE $NAME = Dart$IDL_TYPE::toNative($HANDLE, exception);\n'
@@ -500,7 +496,9 @@ class IDLTypeInfo(object):
         NAME=name,
         IDL_TYPE=self.idl_type(),
         HANDLE=handle)
-    return argument
+
+  def argument_expression(self, name, interface_name):
+    return '%s.get()' % name if self.custom_to_native() else name
 
   def custom_to_native(self):
     return self._data.custom_to_native
@@ -578,7 +576,7 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
   def __init__(self, data, item_info):
     super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', data, item_info)
 
-  def emit_to_native(self, emitter, idl_node, accept_null, name, handle, interface_name):
+  def emit_to_native(self, emitter, idl_node, accept_null, name, handle):
     assert not accept_null
     emitter.Emit(
         '\n'
@@ -587,7 +585,6 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
         '            goto fail;\n',
         NAME=name,
         HANDLE=handle)
-    return name
 
   def to_native_includes(self):
     return ['"DartDOMStringList.h"']
@@ -597,7 +594,7 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
 
-  def emit_to_native(self, emitter, idl_node, accept_null, name, handle, interface_name):
+  def emit_to_native(self, emitter, idl_node, accept_null, name, handle):
     function_name = 'dartTo%s' % self._capitalized_native_type()
     if accept_null:
       function_name += 'WithNullCheck'
@@ -615,7 +612,6 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
         NAME=name,
         FUNCTION_NAME=function_name,
         HANDLE=handle)
-    return name
 
   def parameter_type(self):
     if self.native_type() == 'String':
@@ -679,6 +675,9 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
       conversion_cast = 'static_cast<%s*>(%s)'
     conversion_cast = conversion_cast % (self.native_type(), value)
     return 'Dart%s::toDart(%s)' % (self._idl_type, conversion_cast)
+
+  def argument_expression(self, name, interface_name):
+    return name if interface_name.endswith('List') else '%s->propertyReference()' % name
 
 
 class TypeData(object):

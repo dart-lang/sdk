@@ -831,15 +831,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     for i, argument in enumerate(arguments):
       type_info = self._TypeInfo(argument.type.id)
       self._cpp_impl_includes |= set(type_info.to_native_includes())
-      cpp_arguments.append(type_info.emit_to_native(
+      argument_name = DartDomNameOfAttribute(argument)
+      type_info.emit_to_native(
           body_emitter,
           argument,
           (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or (argument.ext_attrs.get('Optional') == 'DefaultIsNullString'),
-          # TODO(antonm): all IDs should be renamed when database is generated.
-          # That will allow to get rid of argument_name argument altogether.
-          DartDomNameOfAttribute(argument),
-          'Dart_GetNativeArgument(args, %i)' % (start_index + i),
-          self._interface.id))
+          argument_name,
+          'Dart_GetNativeArgument(args, %i)' % (start_index + i))
+      cpp_arguments.append(type_info.argument_expression(argument_name, self._interface.id))
 
     body_emitter.Emit('\n')
 
