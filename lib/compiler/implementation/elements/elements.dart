@@ -1556,6 +1556,8 @@ class TypeVariableElement extends Element {
 
   String toString() => "${enclosingElement.toString()}.${name.slowToString()}";
 
+  Token position() => findMyName(enclosingElement.position());
+
   TypeVariableElement cloneTo(Element enclosing, DiagnosticListener listener) {
     TypeVariableElement result =
         new TypeVariableElement(name, enclosing, cachedNode, type, bound);
