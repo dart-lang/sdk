@@ -843,7 +843,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     body_emitter.Emit('\n')
 
     if 'NeedsUserGestureCheck' in ext_attrs:
-      cpp_arguments.append('DartUtilities::processingUserGesture');
+      cpp_arguments.append('DartUtilities::processingUserGesture')
 
     invocation_emitter = body_emitter
     if raises_dom_exception:
