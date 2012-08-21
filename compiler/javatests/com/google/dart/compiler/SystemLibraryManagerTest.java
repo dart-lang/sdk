@@ -22,6 +22,7 @@ public class SystemLibraryManagerTest extends TestCase {
   }
 
   SystemLibraryManager systemLibraryManager = new SystemLibraryManager();
+ 
 
   public void testExpand1() throws Exception {
     URI shortUri = new URI("dart:core");
@@ -87,6 +88,7 @@ public class SystemLibraryManagerTest extends TestCase {
   }
   
   public void testPackageExpand1() throws Exception {
+    systemLibraryManager.setPackageRoots(null);
     URI shortUri = new URI("package:test.dart");
     URI fullUri = systemLibraryManager.expandRelativeDartUri(shortUri);
     assertNotNull(fullUri);
