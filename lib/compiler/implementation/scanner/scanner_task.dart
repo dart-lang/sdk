@@ -78,20 +78,12 @@ class ScannerTask extends CompilerTask {
     // Now that we have processed all the source tags, it is safe to
     // start loading other libraries.
 
-    // TODO(ahe): During Compiler.scanBuiltinLibraries,
-    // compiler.coreLibrary is null. Clean this up when there is a
-    // better way to access "dart:core".
-    bool implicitlyImportCoreLibrary = compiler.coreLibrary !== null;
+    if (library.uri.scheme != 'dart' || library.uri.path != 'core') {
+      compiler.importCoreLibrary(library);
+    }
 
     for (ScriptTag tag in imports.toLink()) {
-      Uri resolvedUri =
-          importLibraryFromTag(tag, library.entryCompilationUnit);
-      if (resolvedUri.toString() == "dart:core") {
-        implicitlyImportCoreLibrary = false;
-      }
-    }
-    if (implicitlyImportCoreLibrary) {
-      importLibrary(library, compiler.coreLibrary, null);
+      importLibraryFromTag(tag, library.entryCompilationUnit);
     }
   }
 

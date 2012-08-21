@@ -36,6 +36,8 @@ String compileAll(String code) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri);
   compiler.runCompiler(uri);
+  Expect.isFalse(compiler.compilationFailed,
+                 'Unexpected compilation error');
   return compiler.assembledCode;
 }
 

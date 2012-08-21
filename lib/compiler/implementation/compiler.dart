@@ -349,17 +349,7 @@ class Compiler implements DiagnosticListener {
     coreImplLibrary = scanBuiltinLibrary('coreimpl');
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
-    coreLibrary = scanBuiltinLibrary('core');
 
-    // Since coreLibrary import the libraries "coreimpl", "js_helper",
-    // and "interceptors", coreLibrary is null when they are being
-    // built. So we add the implicit import of coreLibrary now. This
-    // can be cleaned up when we have proper support for "dart:core"
-    // and don't need to access it through the field "coreLibrary".
-    // TODO(ahe): Clean this up as described above.
-    scanner.importLibrary(coreImplLibrary, coreLibrary, null);
-    scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
-    scanner.importLibrary(interceptorsLibrary, coreLibrary, null);
     addForeignFunctions(jsHelperLibrary);
     addForeignFunctions(interceptorsLibrary);
 
@@ -372,6 +362,17 @@ class Compiler implements DiagnosticListener {
 
     //patchDartLibrary(coreLibrary, 'core');
     //patchDartLibrary(coreImplLibrary, 'coreimpl');
+  }
+
+  void importCoreLibrary(LibraryElement library) {
+    Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
+    if (coreLibrary === null) {
+      coreLibrary = scanner.loadLibrary(coreUri, null, coreUri);
+    }
+    scanner.importLibrary(library,
+                          coreLibrary,
+                          null,
+                          library.entryCompilationUnit);
   }
 
   void patchDartLibrary(LibraryElement library, String dartLibraryPath) {
