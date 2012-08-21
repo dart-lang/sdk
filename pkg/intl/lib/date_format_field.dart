@@ -203,6 +203,7 @@ class _DateFormatPatternField extends _DateFormatField {
    */
   void handleNumericField(_Stream input, Function setter, [int offset = 0]) {
     var result = input.nextInteger();
+    if (result == null) throwFormatException(input);
     setter(result + offset);
   }
 

@@ -58,7 +58,7 @@
 # ....pkg/
 # ......args/
 # ......dartdoc/
-# ......i18n/
+# ......intl/
 # ......logging/
 # ......(more will come here)
 # ....util/
@@ -410,10 +410,10 @@ def Main(argv):
   os.makedirs(PKG)
 
   #
-  # Create and populate pkg/{args, i18n, logging, unittest}
+  # Create and populate pkg/{args, intl, logging, unittest}
   #
 
-  for library in ['args', 'i18n', 'logging', 'unittest']:
+  for library in ['args', 'intl', 'logging', 'unittest']:
     src_dir = join(HOME, 'pkg', library)
     dest_dir = join(PKG, library)
     os.makedirs(dest_dir)
@@ -421,6 +421,8 @@ def Main(argv):
     for filename in os.listdir(src_dir):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
+    if exists(join(src_dir, 'lib')):
+      copytree(join(src_dir, 'lib'), join(dest_dir, 'lib'))
 
   # Create and populate pkg/dartdoc.
   dartdoc_src_dir = join(HOME, 'pkg', 'dartdoc')

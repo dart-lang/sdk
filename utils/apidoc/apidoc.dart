@@ -110,7 +110,7 @@ void main() {
     }
   });
   apidocLibraries.add(doc.scriptDir.append('../../pkg/unittest/unittest.dart'));
-  apidocLibraries.add(doc.scriptDir.append('../../pkg/i18n/intl.dart'));
+  apidocLibraries.add(doc.scriptDir.append('../../pkg/intl/intl.dart'));
 
   print('Generating docs...');
   final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
