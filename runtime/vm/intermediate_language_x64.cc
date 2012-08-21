@@ -1515,19 +1515,11 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
                                    comp->instance_call()->try_index(),
                                    kDeoptSmiBinaryOp);
   }
-  if (left_is_smi && right_is_smi) {
-    if (can_deopt) {
-      // Preserve left for deopt.
-      __ movq(temp, left);
-    }
-  } else {
-    // TODO(vegorov): for many binary operations this pattern can be rearranged
-    // to save one move.
+  if (!left_is_smi || !right_is_smi) {
     __ movq(temp, left);
-    __ orq(left, right);
-    __ testq(left, Immediate(kSmiTagMask));
+    __ orq(temp, right);
+    __ testq(temp, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
-    __ movq(left, temp);
   }
   switch (comp->op_kind()) {
     case Token::kADD: {
@@ -1604,6 +1596,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
     case Token::kSHL: {
       Label call_method, done;
       // Check if count too large for handling it inlined.
+      __ movq(temp, left);
       __ cmpq(right,
           Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
       __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
