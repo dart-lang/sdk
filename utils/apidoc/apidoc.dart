@@ -109,21 +109,32 @@ void main() {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });
-  apidocLibraries.add(doc.scriptDir.append('../../pkg/unittest/unittest.dart'));
-  apidocLibraries.add(doc.scriptDir.append('../../pkg/intl/intl.dart'));
 
-  print('Generating docs...');
-  final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
-  // Select the libraries to include in the produced documentation:
-  apidoc.includeApi = true;
-  apidoc.includedLibraries = <String>[
-    'unittest',
-    'intl',
-  ];
+  final includedLibraries = <String>[];
+  var lister = new Directory.fromPath(
+      doc.scriptDir.append('../../pkg/')).list();
+  lister.onDir = (dirPath) {
+    var path = new Path(dirPath);
+    var libname = path.filename;
+    path = path.append('${libname}.dart');
+    if (new File.fromPath(path).existsSync()) {
+      apidocLibraries.add(path);
+      includedLibraries.add(libname);
+    } else {
+      print('Warning: could not find package at $path');
+    }
+  };
+  lister.onDone = (success) {
+    print('Generating docs...');
+    final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
+    // Select the libraries to include in the produced documentation:
+    apidoc.includeApi = true;
+    apidoc.includedLibraries = includedLibraries;
 
-  Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
-    apidoc.documentLibraries(apidocLibraries, doc.libPath);
-  });
+    Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+      apidoc.documentLibraries(apidocLibraries, doc.libPath);
+    });
+  };
 }
 
 /**
