@@ -16,6 +16,7 @@ import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartToSourceVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
@@ -697,7 +698,7 @@ public class DartCompiler {
             // don't need to check a unit that hasn't changed
             continue;
           }
-          if (unit.getDirectives().size() > 0) {
+          if (invalidDirectivesForPart(unit.getDirectives())) {
             // find corresponding source node for this unit
             for (LibraryNode sourceNode : lib.getSourcePaths()) {
               if (sourceNode == lib.getSelfSourcePath()) {
@@ -715,6 +716,14 @@ public class DartCompiler {
           }
         }
       }
+    }
+
+    private boolean invalidDirectivesForPart(List<DartDirective> directives) {
+      int size = directives.size();
+      if (size == 1) {
+        return !(directives.get(0) instanceof DartPartOfDirective);
+      }
+      return size > 0;
     }
 
     private void setEntryPoint() {
