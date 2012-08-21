@@ -204,6 +204,7 @@ class ClassNode extends Node {
 
   visitChildren(Visitor visitor) {
     if (name !== null) name.accept(visitor);
+    if (typeParameters !== null) typeParameters.accept(visitor);
     if (superclass !== null) superclass.accept(visitor);
     if (interfaces !== null) interfaces.accept(visitor);
   }

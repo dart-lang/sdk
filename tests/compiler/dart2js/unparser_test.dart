@@ -546,6 +546,35 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testClassTypeArgumentBound() {
+  var librarySrc = '''
+#library('mylib');
+
+interface I {}
+class A<T extends I> {}
+
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+interface I {}
+class A<T extends I> {}
+
+main() {
+  new A();
+  new mylib.A();
+}
+''';
+  var expectedResult =
+    'interface I{}'
+    'class A<T extends I>{}'
+    'interface p_I{}'
+    'class p_A<p_T extends p_I>{}'
+    'main(){new p_A(); new A();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -578,4 +607,5 @@ main() {
   testDefaultClassNamePlaceholder();
   testFactoryRename();
   testTypeVariablesAreRenamed();
+  testClassTypeArgumentBound();
 }
