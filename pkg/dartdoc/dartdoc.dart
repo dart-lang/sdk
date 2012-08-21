@@ -231,8 +231,9 @@ Path get scriptDir() =>
 
 // TODO(johnniwinther): Trailing slashes matter due to the use of [libPath] as
 // a base URI with [Uri.resolve].
+/// Relative path to the library in which dart2js resides.
 Path get libPath() => IN_SDK
-    ? scriptDir.append('../dart2js/')
+    ? scriptDir.append('../../lib/dart2js/')
     : scriptDir.append('../../');
 
 /**
