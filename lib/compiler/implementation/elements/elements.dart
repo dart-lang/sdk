@@ -160,6 +160,9 @@ class Element implements Hashable {
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
+  /** See [ErroneousElement] for documentation. */
+  bool isErroneous() => false;
+
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
@@ -284,6 +287,60 @@ class Element implements Hashable {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
 
+
+  static bool isInvalid(Element e) => e == null || e.isErroneous();
+}
+
+/**
+ * Represents an unresolvable or duplicated element.
+ *
+ * An [ErroneousElement] is used instead of [null] to provide additional
+ * information about the error that caused the element to be unresolvable
+ * or otherwise invalid.
+ *
+ * Accessing any field or calling any method defined on [Element] except
+ * [isValid] will currently throw an exception. (This might change when we
+ * actually want more information on the erroneous element, e.g., the name
+ * of the element we were trying to resolve.)
+ *
+ * Code that cannot not handle an [ErroneousElement] should use
+ *   [: Element.isInvalid(element) :]
+ * to check for unresolvable elements instead of
+ *   [: element == null :].
+ */
+class ErroneousElement extends Element {
+  final Message errorMessage;
+
+  ErroneousElement(this.errorMessage, Element enclosing)
+      : super(const SourceString('erroneous element'), null, enclosing);
+
+  isErroneous() => true;
+
+  unsupported() {
+    throw 'unsupported operation on erroneous element';
+  }
+
+  SourceString get name() => unsupported();
+  ElementKind get kind() => unsupported();
+  Link<Node> get metadata() => unsupported();
+}
+
+class ErroneousFunctionElement extends ErroneousElement
+                               implements FunctionElement {
+  ErroneousFunctionElement(errorMessage, Element enclosing)
+      : super(errorMessage, enclosing);
+
+  get type() => unsupported();
+  get cachedNode() => unsupported();
+  get functionSignature() => unsupported();
+  get patch() => unsupported();
+  get defaultImplementation() => unsupported();
+  bool get isPatched() => unsupported();
+  setPatch(patch) => unsupported();
+  computeSignature(compiler) => unsupported();
+  requiredParameterCount(compiler) => unsupported();
+  optionalParameterCount(compiler) => unsupported();
+  parameterCount(copmiler) => unsupported();
 }
 
 class ContainerElement extends Element {
@@ -1305,17 +1362,17 @@ class ClassElement extends ScopeContainerElement
 
 class Elements {
   static bool isLocal(Element element) {
-    return ((element !== null)
+    return !Element.isInvalid(element)
             && !element.isInstanceMember()
             && !isStaticOrTopLevelField(element)
             && !isStaticOrTopLevelFunction(element)
             && (element.kind === ElementKind.VARIABLE ||
                 element.kind === ElementKind.PARAMETER ||
-                element.kind === ElementKind.FUNCTION));
+                element.kind === ElementKind.FUNCTION);
   }
 
   static bool isInstanceField(Element element) {
-    return (element !== null)
+    return !Element.isInvalid(element)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FIELD
                || element.kind === ElementKind.GETTER
@@ -1325,12 +1382,12 @@ class Elements {
   static bool isStaticOrTopLevel(Element element) {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
-    if (element != null
+    if (!Element.isInvalid(element)
         && element.modifiers != null
         && element.modifiers.isStatic()) {
       return true;
     }
-    return (element != null)
+    return !Element.isInvalid(element)
            && !element.isInstanceMember()
            && !element.isPrefix()
            && element.enclosingElement !== null
@@ -1352,7 +1409,7 @@ class Elements {
   }
 
   static bool isInstanceMethod(Element element) {
-    return (element != null)
+    return !Element.isInvalid(element)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FUNCTION);
   }

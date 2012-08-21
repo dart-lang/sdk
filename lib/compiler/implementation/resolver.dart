@@ -1451,18 +1451,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
-
     FunctionElement constructor = resolveConstructor(node);
     resolveSelector(node.send);
     resolveArguments(node.send.argumentsNode);
-    if (constructor === null) return null;
+    useElement(node.send, constructor);
+    if (Element.isInvalid(constructor)) return constructor;
     // TODO(karlklose): handle optional arguments.
     if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
       // TODO(ngeoffray): resolution error with wrong number of
       // parameters. We cannot do this rigth now because of the
       // List constructor.
     }
-    useElement(node.send, constructor);
     world.registerStaticUse(constructor);
     compiler.withCurrentElement(constructor, () {
       FunctionExpression tree = constructor.parseNode(compiler);
@@ -1493,21 +1492,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
+  /**
+   * Try to resolve the constructor that is referred to by [node].
+   * Note: this function may return an ErroneousFunctionElement instead of
+   * [null], if there is no corresponding constructor, class or library.
+   */
   FunctionElement resolveConstructor(NewExpression node) {
     FunctionElement constructor =
         node.accept(new ConstructorResolver(compiler, this));
     TypeAnnotation annotation = getTypeAnnotationFromSend(node.send);
-    Type type = resolveTypeRequired(annotation);
-    if (constructor === null) {
-      Element resolved = (type != null) ? type.element : null;
-      if (resolved !== null && resolved.kind === ElementKind.TYPE_VARIABLE) {
-        error(node, MessageKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
-        return null;
-      } else {
-        error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
-        return null;
-      }
-    }
+    // TODO(karlklose): clean up: the type should be resolved in the
+    // constructor resolver visitor to avoid visiting the node twice.
+    resolveTypeRequired(annotation);
     return constructor;
   }
 
@@ -2324,22 +2320,43 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
+
   ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
 
   visitNode(Node node) {
     throw 'not supported';
   }
 
+  FunctionElement lookupConstructor(ClassElement cls,
+                                    Node diagnosticNode,
+                                    SourceString constructorName) {
+    cls.ensureResolved(compiler);
+    Element result = cls.lookupConstructor(cls.name, constructorName);
+    if (result === null) {
+      String fullConstructorName = cls.name.slowToString();
+      if (constructorName !== const SourceString('')) {
+        fullConstructorName = '$fullConstructorName'
+                              '.${constructorName.slowToString()}';
+      }
+      ResolutionWarning message  =
+          new ResolutionWarning(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+                                [fullConstructorName]);
+      compiler.reportWarning(diagnosticNode, message);
+      return new ErroneousFunctionElement(message, cls);
+    }
+    return result;
+  }
+
   visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     Element e = visit(selector);
-    if (e !== null && e.kind === ElementKind.CLASS) {
+    if (!Element.isInvalid(e) && e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
       if (cls.isInterface() && (cls.defaultClass === null)) {
         error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
       }
-      e = cls.lookupConstructor(cls.name);
+      e = lookupConstructor(cls, selector, const SourceString(''));
     }
     return e;
   }
@@ -2363,13 +2380,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
               [cls.name]);
       }
-      SourceString constructorName =
-        Elements.constructConstructorName(cls.name, name.source);
-      FunctionElement constructor = cls.lookupConstructor(constructorName);
-      if (constructor === null) {
-        error(name, MessageKind.CANNOT_FIND_CONSTRUCTOR, [name]);
-      }
-      e = constructor;
+      return lookupConstructor(cls, name, name.source);
     } else if (e.kind === ElementKind.PREFIX) {
       PrefixElement prefix = e;
       e = prefix.lookupLocalMember(name.source);

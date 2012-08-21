@@ -395,6 +395,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     Type returnType;
     Type previousType;
     final FunctionElement element = elements[node];
+    if (Element.isInvalid(element)) return types.dynamicType;
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
         element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
       type = types.dynamicType;
@@ -707,7 +708,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type computeType(Element element) {
-    if (element === null) return types.dynamicType;
+    if (Element.isInvalid(element)) return types.dynamicType;
     Type result = element.computeType(compiler);
     return (result !== null) ? result : types.dynamicType;
   }

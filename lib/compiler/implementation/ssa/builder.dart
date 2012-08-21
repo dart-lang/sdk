@@ -2417,7 +2417,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    if (node.isConst()) {
+    Element element = elements[node.send];
+    if (Element.isInvalid(element)) {
+      // TODO(karlklose): generate runtime error or noSuchMethodCall, depending
+      // on whether element is null or it is an erroneous element with a
+      // particular error message.
+      compiler.cancel('Unimplemented unresolved constructor call', node: node);
+    } else if (node.isConst()) {
       // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
