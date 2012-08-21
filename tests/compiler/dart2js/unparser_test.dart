@@ -279,16 +279,16 @@ main() {
 }
 ''';
   var expectedResult =
-      'globalfoo(){}var p_globalVar;var globalVarInitialized=6,p_globalVarInitialized2=7;'
-      'class p_A{p_A(){}p_A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
-      'p_globalfoo(){}var globalVar;var p_globalVarInitialized=6,globalVarInitialized2=7;'
+      'globalfoo(){}var globalVar;var globalVarInitialized=6,globalVarInitialized2=7;'
       'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
-      'main(){globalVar; p_globalVarInitialized; globalVarInitialized2; p_globalfoo();'
-         ' A.field; A.staticfoo();'
-         ' new A(); new A.fromFoo(); new A().foo();'
-         ' p_globalVar; globalVarInitialized; p_globalVarInitialized2; globalfoo();'
+      'p_globalfoo(){}var p_globalVar;var p_globalVarInitialized=6,p_globalVarInitialized2=7;'
+      'class p_A{p_A(){}p_A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'main(){p_globalVar; p_globalVarInitialized; p_globalVarInitialized2; p_globalfoo();'
          ' p_A.field; p_A.staticfoo();'
-         ' new p_A(); new p_A.fromFoo(); new p_A().foo();}';
+         ' new p_A(); new p_A.fromFoo(); new p_A().foo();'
+         ' globalVar; globalVarInitialized; globalVarInitialized2; globalfoo();'
+         ' A.field; A.staticfoo();'
+         ' new A(); new A.fromFoo(); new A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -567,7 +567,7 @@ main() {
   testGetSet();
   testFactoryConstructor();
   testAbstractClass();
-  //testConflictSendsRename();
+  testConflictSendsRename();
   testNoConflictSendsRename();
   testConflictLibraryClassRename();
   testDefaultClassWithArgs();
