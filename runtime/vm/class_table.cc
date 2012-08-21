@@ -97,6 +97,18 @@ void ClassTable::Print() {
 }
 
 
+bool ClassTable::HasSubclasses(intptr_t cid) const {
+  const Class& cls = Class::Handle(At(cid));
+  ASSERT(!cls.IsNull());
+  // TODO(regis): Replace assert below with ASSERT(cid > kDartObjectCid).
+  ASSERT(!cls.IsObjectClass());
+  const GrowableObjectArray& cls_direct_subclasses =
+      GrowableObjectArray::Handle(cls.direct_subclasses());
+  return
+      !cls_direct_subclasses.IsNull() && (cls_direct_subclasses.Length() > 0);
+}
+
+
 // Returns true if the given array of cids contains the given cid.
 static bool ContainsCid(ZoneGrowableArray<intptr_t>* cids, intptr_t cid) {
   for (intptr_t i = 0; i < cids->length(); i++) {

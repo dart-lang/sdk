@@ -38,6 +38,10 @@ class ClassTable {
 
   void Print();
 
+  // Returns true if the class given by its cid has subclasses.
+  // Must not be called for kDartObjectCid.
+  bool HasSubclasses(intptr_t cid) const;
+
   // Returns an array containing the cids of the direct and indirect subclasses
   // of the class given by its cid.
   // Must not be called for kDartObjectCid.

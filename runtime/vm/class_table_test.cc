@@ -120,6 +120,11 @@ TEST_CASE(ClassHierarchyAnalysis) {
       class_table->GetOverridesOf(class_a_bar);
   EXPECT_EQ(1, class_a_bar_overrides->length());
   EXPECT_EQ(class_d_bar.raw(), (*class_a_bar_overrides)[0]->raw());
+
+  EXPECT(class_table->HasSubclasses(class_a_id));
+  EXPECT(class_table->HasSubclasses(class_b_id));
+  EXPECT(!class_table->HasSubclasses(class_c_id));
+  EXPECT(!class_table->HasSubclasses(class_d_id));
 }
 
 }  // namespace dart
