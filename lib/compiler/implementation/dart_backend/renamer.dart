@@ -50,35 +50,32 @@ void renamePlaceholders(
                    () => generateUniqueName(originalName));
   }
 
-  placeholderCollector.nullNodes.forEach((Node node) {
-    renames[node] = '';
-  });
-  placeholderCollector.unresolvedNodes.forEach((Node node) {
-    renames[node] = generateUniqueName('Unresolved');
-  });
+  renameNodes(Collection<Node> nodes, renamer) {
+    for (Node node in nodes) {
+      renames[node] = renamer(node);
+    }
+  }
+
+  renameNodes(placeholderCollector.nullNodes, (_) => '');
+  renameNodes(placeholderCollector.unresolvedNodes,
+      (_) => generateUniqueName('Unresolved'));
   placeholderCollector.elementNodes.forEach(
       (Element element, Set<Node> nodes) {
         String renamedElement = renameElement(element);
-        nodes.forEach((Node node) {
-          renames[node] = renamedElement;
-        });
+        renameNodes(nodes, (_) => renamedElement);
   });
   placeholderCollector.localPlaceholders.forEach(
       (FunctionElement element, Set<LocalPlaceholder> localPlaceholders) {
         // TODO(smok): Check for conflicts with class fields and take usages
         // into account.
         localPlaceholders.forEach((LocalPlaceholder placeholder) {
-          placeholder.nodes.forEach((Node node) {
-            renames[node] = placeholder.identifier;
-          });
+          renameNodes(placeholder.nodes, (_) => placeholder.identifier);
         });
       });
   placeholderCollector.privateNodes.forEach(
       (LibraryElement library, Set<Identifier> nodes) {
-        nodes.forEach((Identifier node) {
-          renames[node] =
-              renamePrivateIdentifier(library, node.source.slowToString());
-        });
+        renameNodes(nodes, (node) =>
+            renamePrivateIdentifier(library, node.source.slowToString()));
   });
 }
 
