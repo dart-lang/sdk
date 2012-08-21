@@ -16,15 +16,12 @@ native_call_arity1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_call_arity2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_call_arity3_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_checked_arguments1_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_checked_fields_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_avoids_hidden_name_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_inheritance1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_inheritance2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_inheritance3_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_class_inheritance4_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_is_check1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_is_check3_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_class_with_dart_methods_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_closure_identity_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_exceptions1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_field_rename_1_test: Fail # TODO(ahe): Convert to metadata syntax.
@@ -48,13 +45,17 @@ native_null_closure_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_null_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_parameter_names_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_property_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_to_string_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_use_native_name_in_table_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_window1_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_window2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_wrapping_function2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_wrapping_function3_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_wrapping_function_test: Fail # TODO(ahe): Convert to metadata syntax.
+
+native_checked_fields_test: Pass # For the wrong reason.
+native_class_inheritance4_test: Pass # For the wrong reason.
+native_class_with_dart_methods_test: Pass # For the wrong reason.
+native_to_string_test: Pass # For the wrong reason.
+native_window1_test: Pass # For the wrong reason.
+native_window2_test: Pass # For the wrong reason.
 
 
 [ $compiler == dartc || $browser ]
