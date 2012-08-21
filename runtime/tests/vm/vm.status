@@ -9,11 +9,7 @@ cc/RunLoop_ExceptionChild: Fail
 cc/ArrayNew_Overflow_Crash: Crash
 cc/AllocGeneric_Overflow: Crash
 
-[ $system == linux || $system == windows ]
 cc/SNPrint_BadArgs: Skip
-
-[ $system == mac ]
-cc/SNPrint_BadArgs: Crash
 
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
