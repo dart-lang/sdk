@@ -284,9 +284,6 @@ class Element implements Hashable {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
 
-  Link<Type> get allSupertypesAndSelf() {
-    return allSupertypes.prepend(new InterfaceType(this));
-  }
 }
 
 class ContainerElement extends Element {
@@ -1112,8 +1109,9 @@ class ClassElement extends ScopeContainerElement
   Element lookupSuperInterfaceMember(SourceString memberName,
                                      LibraryElement fromLibrary) {
     bool isPrivate = memberName.isPrivate();
-    for (Type t in interfaces) {
-      Element e = t.element.lookupLocalMember(memberName);
+    for (InterfaceType t in interfaces) {
+      ClassElement cls = t.element;
+      Element e = cls.lookupLocalMember(memberName);
       if (e === null) continue;
       // Private members from a different library are not visible.
       if (isPrivate && fromLibrary !== e.getLibrary()) continue;
@@ -1310,6 +1308,10 @@ class ClassElement extends ScopeContainerElement
 
   ClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.internalErrorOnElement(this, 'unsupported operation');
+  }
+
+  Link<Type> get allSupertypesAndSelf() {
+    return allSupertypes.prepend(new InterfaceType(this));
   }
 }
 

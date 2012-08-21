@@ -1967,13 +1967,14 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (cls.allSupertypes !== null) return;
     final Type supertype = cls.supertype;
     if (supertype != null) {
-      Link<Type> superSupertypes = supertype.element.allSupertypes;
+      ClassElement superElement = supertype.element;
+      Link<Type> superSupertypes = superElement.allSupertypes;
       assert(superSupertypes !== null);
       Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
       for (Link<Type> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
-        Element element = interfaces.head.element;
+        ClassElement element = interfaces.head.element;
         Link<Type> interfaceSupertypes = element.allSupertypes;
         assert(interfaceSupertypes !== null);
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
