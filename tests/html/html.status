@@ -9,8 +9,6 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 measurement_test: Pass, Fail  # Issue 1940
 
 # Isolate implementation is private after the unification - Issue 4651
-js_interop_1_test: Fail
-js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
 js_interop_func_passing_test: Fail
@@ -21,7 +19,6 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 #htmloptionscollection_test: Fail # TODO(asiva): investigate.
-js_interop_1_test: Pass
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -193,8 +190,6 @@ unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js ]
 transferables_test: Skip # until isInstance works in dart2js
-js_interop_1_test: Pass
-js_interop_2_test: Pass
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
