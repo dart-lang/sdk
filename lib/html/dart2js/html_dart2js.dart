@@ -37109,7 +37109,7 @@ _serialize(var message) {
 }
 
 class JsProxy {
-  final int _id;
+  final _id;
 
   JsProxy._internal(this._id);
 }
@@ -37161,7 +37161,7 @@ class _JsSerializer extends _Serializer {
 // TODO: provide better, backend specific implementation.
 class _Registry<T> {
   final String _name;
-  final int _nextId;
+  int _nextId;
   final Map<String, T> _registry;
 
   _Registry(this._name) : _nextId = 0, _registry = <T>{};
@@ -37281,10 +37281,10 @@ class _JsDeserializer extends _Deserializer {
     String tag = x[1];
     switch (tag) {
       case 'nativejs':
-        int id = x[2];
+        var id = x[2];
         return new JsProxy._internal(id);
       case 'dart':
-        int id = x[2];
+        var id = x[2];
         // TODO(vsm): Check for isolate id.  If the isolate isn't the
         // current isolate, return a DartProxy.
         return _getDartProxyObj(id);
