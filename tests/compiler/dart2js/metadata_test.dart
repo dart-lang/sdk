@@ -16,17 +16,36 @@ void testClassMetadata() {
                     main() {}""";
 
   check(compiler, element) {
-    return; // TODO(ahe): I'm working on the following.
     Expect.isFalse(element.metadata.isEmpty());
     MetadataAnnotation annotation = element.metadata.head;
     Expect.isNotNull(annotation);
     Constant value = annotation.value;
-    print(value);
+    return; // TODO(ahe): I'm working on the following.
+    Expect.isNotNull(value);
   }
 
   compileAndCheck(source, 'Foo', check);
 }
 
+void testTopLevelMethodMetadata() {
+  // TODO(ahe): native should be "const", not "final".
+  final source = """final native = 'xyz';
+                    @native
+                    main() {}""";
+
+  check(compiler, element) {
+    Expect.isFalse(element.metadata.isEmpty());
+    MetadataAnnotation annotation = element.metadata.head;
+    Expect.isNotNull(annotation);
+    Constant value = annotation.value;
+    return; // TODO(ahe): I'm working on the following.
+    Expect.isNotNull(value);
+  }
+
+  compileAndCheck(source, 'main', check);
+}
+
 void main() {
   testClassMetadata();
+  testTopLevelMethodMetadata();
 }

@@ -60,11 +60,16 @@ class Parser {
     return token;
   }
 
+  /**
+   * Parse
+   * [: '@' qualified (‘.’ identifier)? (arguments)? :]
+   */
   Token parseMetadata(Token token) {
     listener.beginMetadata(token);
     Token atToken = token;
     assert(optional('@', token));
     token = parseIdentifier(token.next);
+    token = parseQualifiedRestOpt(token);
     token = parseQualifiedRestOpt(token);
     token = parseArgumentsOpt(token);
     listener.endMetadata(atToken, token);

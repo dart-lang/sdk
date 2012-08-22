@@ -527,6 +527,8 @@ class ElementListener extends Listener {
 
   Link<Node> nodes = const EmptyLink<Node>();
 
+  Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
+
   ElementListener(DiagnosticListener listener,
                   CompilationUnitElement this.compilationUnitElement,
                   int idGenerator())
@@ -582,8 +584,8 @@ class ElementListener extends Listener {
   }
 
   void endMetadata(Token beginToken, Token endToken) {
-    var send = popNode(); // Qualified (Send or Identifier).
-    // TODO(ahe): Don't discard metadata.
+    popNode(); // Discard node (Send or Identifier).
+    pushMetadata(new PartialMetadataAnnotation(beginToken));
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -809,7 +811,15 @@ class ElementListener extends Listener {
   }
 
   void pushElement(Element element) {
+    for (Link link = metadata; !link.isEmpty(); link = link.tail) {
+      element.addMetadata(link.head);
+    }
+    metadata = const EmptyLink<MetadataAnnotation>();
     compilationUnitElement.addMember(element, listener);
+  }
+
+  void pushMetadata(MetadataAnnotation annotation) {
+    metadata = metadata.prepend(annotation);
   }
 
   void addScriptTag(ScriptTag tag) {
@@ -1634,7 +1644,7 @@ class PartialMetadataAnnotation extends MetadataAnnotation {
   Expression cachedNode;
   Constant value;
 
-  PartialMetadataAnnotation(this.value);
+  PartialMetadataAnnotation(this.beginToken);
 
   // TODO(ahe): Add more functionality as needed.
 }
