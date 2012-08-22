@@ -665,7 +665,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         if self._IsArgumentOptionalInWebCore(operation, argument):
           check = '%s !== _null' % argument_names[position]
           # argument_count instead of position + 1 is used here to cover one
-          # complicated case.  Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
+          # complicated case with the effectively optional argument in the middle.
+          # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
           # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
           # y is optional in WebCore, while z is not.
           # In this case, if y !== _null, we'd like to emit foo(x, y, z) invocation, not
