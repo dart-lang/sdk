@@ -45,8 +45,9 @@ class TestRunner(object):
     if platform.system() == 'Windows':
       # On Windows, shell must be true to get the correct environment variables.
       self.has_shell = True
+    self.current_revision_num = None
 
-  def run_cmd(self, cmd_list, outfile=None, append=False, std_in=''):
+  def RunCmd(self, cmd_list, outfile=None, append=False, std_in=''):
     """Run the specified command and print out any output to stdout.
 
     Args:
@@ -78,18 +79,18 @@ class TestRunner(object):
       print stderr
     return output, stderr
 
-  def time_cmd(self, cmd):
+  def TimeCmd(self, cmd):
     """Determine the amount of (real) time it takes to execute a given 
     command."""
     start = time.time()
-    self.run_cmd(cmd)
+    self.RunCmd(cmd)
     return time.time() - start
 
-  def clear_out_unversioned_files(self):
+  def ClearOutUnversionedFiles(self):
     """Remove all files that are unversioned by svn."""
     if os.path.exists(DART_REPO_LOC):
       os.chdir(DART_REPO_LOC)
-      results, _ = self.run_cmd(['svn', 'st'])
+      results, _ = self.RunCmd(['svn', 'st'])
       for line in results.split('\n'):
         if line.startswith('?'):
           to_remove = line.split()[1]
@@ -98,32 +99,30 @@ class TestRunner(object):
           else:
             os.remove(to_remove)
 
-  def get_archive(self, archive_name):
+  def GetArchive(self, archive_name):
     """Wrapper around the pulling down a specific archive from Google Storage.
     Adds a specific revision argument as needed.
-    Returns: The stderr from running this command."""
-    cmd = ['python', os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py'),
-           archive_name]
-    if self.current_revision_num != -1:
-      cmd += ['-r', self.current_revision_num]
-    _, stderr = self.run_cmd(cmd)
-    return stderr
+    Returns: The stdout and stderr from running this command."""
+    while True:
+      cmd = ['python', os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py'),
+             archive_name]
+      if int(self.current_revision_num) != -1:
+        cmd += ['-r', str(self.current_revision_num)]
+      stdout, stderr = self.RunCmd(cmd)
+      if 'Please try again later' in stdout:
+        time.sleep(100)
+      else:
+        break
+    return (stdout, stderr)
 
-  def sync_and_build(self, suites, revision_num=''):
-    """Make sure we have the latest version of of the repo, and build it. We
-    begin and end standing in DART_REPO_LOC.
-
-    Args:
-      suites: The set of suites that we wish to build.
-
-    Returns:
-      err_code = 1 if there was a problem building."""
+  def _Sync(self, revision_num=None):
+    """Update the repository to the latest or specified revision."""
     os.chdir(dirname(DART_REPO_LOC))
-    self.clear_out_unversioned_files()
-    if revision_num == '':
-      self.run_cmd(['gclient', 'sync'])
+    self.ClearOutUnversionedFiles()
+    if not revision_num:
+      self.RunCmd(['gclient', 'sync'])
     else:
-      self.run_cmd(['gclient', 'sync', '-r', revision_num, '-t'])
+      self.RunCmd(['gclient', 'sync', '-r', str(revision_num), '-t'])
     
     shutil.copytree(os.path.join(TOP_LEVEL_DIR, 'internal'),
                     os.path.join(DART_REPO_LOC, 'internal'))
@@ -133,14 +132,24 @@ class TestRunner(object):
         os.path.join(TOP_LEVEL_DIR, 'tools', 'testing', 'run_selenium.py'),
         os.path.join(DART_REPO_LOC, 'tools', 'testing', 'run_selenium.py'))
 
-    if revision_num == '':
-      revision_num = search_for_revision()
+  def SyncAndBuild(self, suites, revision_num=None):
+    """Make sure we have the latest version of of the repo, and build it. We
+    begin and end standing in DART_REPO_LOC.
+
+    Args:
+      suites: The set of suites that we wish to build.
+
+    Returns:
+      err_code = 1 if there was a problem building."""
+    self._Sync(revision_num)
+    if not revision_num:
+      revision_num = SearchForRevision()
 
     self.current_revision_num = revision_num
-    stderr = self.get_archive('sdk')
-    if not os.path.exists(os.path.join(
-        DART_REPO_LOC, 'tools', 'get_archive.py')) \
-        or 'InvalidUriError' in stderr:
+    stdout, stderr = self.GetArchive('sdk')
+    if (not os.path.exists(os.path.join(
+        DART_REPO_LOC, 'tools', 'get_archive.py'))
+        or 'InvalidUriError' in stderr or "Couldn't download" in stdout):
       # Couldn't find the SDK on Google Storage. Build it locally.
 
       # On Windows, the output directory is marked as "Read Only," which causes
@@ -156,7 +165,7 @@ class TestRunner(object):
       shutil.rmtree(os.path.join(os.getcwd(),
                     utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')),
                     onerror=on_rm_error)
-      lines = self.run_cmd([os.path.join('.', 'tools', 'build.py'), '-m', 
+      lines = self.RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 
                             'release', '--arch=ia32', 'create_sdk'])
 
       for line in lines:
@@ -167,7 +176,7 @@ class TestRunner(object):
           return 1
     return 0
 
-  def ensure_output_directory(self, dir_name):
+  def EnsureOutputDirectory(self, dir_name):
     """Test that the listed directory name exists, and if not, create one for
     our output to be placed.
 
@@ -179,49 +188,95 @@ class TestRunner(object):
       os.makedirs(dir_path)
       print 'Creating output directory ', dir_path
 
-  def has_interesting_code(self, past_revision_num=None):
+  def HasInterestingCode(self, revision_num=None):
     """Tests if there are any versions of files that might change performance
-    results on the server."""
+    results on the server.
+
+    Returns:
+       (False, None): There is no interesting code to run.
+       (True, revisionNumber): There is interesting code to run at revision
+                              revisionNumber.
+       (True, None): There is interesting code to run by syncing to the
+                     tip-of-tree."""
     if not os.path.exists(DART_REPO_LOC):
-      return True
+      self._Sync()
     os.chdir(DART_REPO_LOC)
-    no_effect = ['client', 'compiler', 'editor', 'pkg', 'samples', 'tests',
-                 'third_party', 'tools', 'utils']
-    # Pass 'p' in if we have a new certificate for the svn server, we want to
-    # (p)ermanently accept it.
-    if past_revision_num:
+    no_effect = ['dart/client', 'dart/compiler', 'dart/editor',
+                 'dart/lib/html/doc', 'dart/pkg', 'dart/tests', 'dart/samples',
+                 'dart/lib/dartdoc', 'dart/lib/i18n', 'dart/lib/unittest',
+                 'dart/tools/dartc', 'dart/tools/get_archive.py',
+                 'dart/tools/test.py', 'dart/tools/testing',
+                 'dart/tools/utils', 'dart/third_party', 'dart/utils']
+    definitely_yes = ['dart/samples/third_party/dromaeo',
+                      'dart/lib/html/dart2js', 'dart/lib/html/dartium',
+                      'dart/lib/scripts', 'dart/lib/src',
+                      'dart/third_party/WebCore']
+    def GetFileList(revision):
+      """Determine the set of files that were changed for a particular
+      revision."""
       # TODO(efortuna): This assumes you're using svn. Have a git fallback as
-      # well.
-      results, _ = self.run_cmd(['svn', 'log', '-v', '-r',
-                                 str(past_revision_num)], std_in='p\r\n')
+      # well. Pass 'p' in if we have a new certificate for the svn server, we
+      # want to (p)ermanently accept it.
+      results, _ = self.RunCmd([
+          'svn', 'log', 'http://dart.googlecode.com/svn/branches/bleeding_edge',
+          '-v', '-r', str(revision)], std_in='p\r\n')
       results = results.split('\n')
       if len(results) <= 3:
-        results = []
+        return []
       else:
         # Trim off the details about revision number and commit message. We're
         # only interested in the files that are changed.
         results = results[3:]
         changed_files = []
         for result in results:
-          if result == '':
+          if len(result) <= 1:
             break
-          changed_files += [result.replace('/branches/bleeding_edge/dart/', '')]
-        results = changed_files
+          tokens = result.split()
+          if len(tokens) > 1:
+            changed_files += [tokens[1].replace('/branches/bleeding_edge/', '')]
+        return changed_files
+
+    def HasPerfAffectingResults(files_list):
+      """Determine if this set of changed files might effect performance
+      tests."""
+      def IsSafeFile(f):
+        if not any(f.startswith(prefix) for prefix in definitely_yes):
+          return any(f.startswith(prefix) for prefix in no_effect)
+        return False
+      return not all(IsSafeFile(f) for f in files_list)
+
+    if revision_num:
+      return (HasPerfAffectingResults(GetFileList(
+          revision_num)), revision_num)
     else:
-      results, _ = self.run_cmd(['svn', 'st', '-u'], std_in='p\r\n')
-      results = results.split('\n')
-    for line in results:
-      tokens = line.split()
-      if past_revision_num or len(tokens) >= 3 and '*' in tokens[-3]:
-        # Loop through the changed files to see if it contains any files that
-        # are NOT listed in the no_effect list (directories not listed in
-        # the "no_effect" list are assumed to potentially affect performance.
-        if not reduce(lambda x, y: x or y, 
-            [tokens[-1].startswith(item) for item in no_effect], False):
-          return True
-    return False
+      results, _ = self.RunCmd(['svn', 'st', '-u'], std_in='p\r\n')
+      latest_interesting_server_rev = int(results.split('\n')[-2].split()[-1])
+      if self.backfill:
+        done_cls = list(UpdateSetOfDoneCls())
+        done_cls.sort()
+        if done_cls:
+          last_done_cl = int(done_cls[-1])
+        else:
+          last_done_cl = EARLIEST_REVISION
+        while latest_interesting_server_rev >= last_done_cl:
+          file_list = GetFileList(latest_interesting_server_rev)
+          if HasPerfAffectingResults(file_list):
+            return (True, latest_interesting_server_rev)
+          else:
+            UpdateSetOfDoneCls(latest_interesting_server_rev)
+          latest_interesting_server_rev -= 1
+      else:
+        last_done_cl = int(SearchForRevision(DART_REPO_LOC)) + 1
+        while last_done_cl <= latest_interesting_server_rev:
+          file_list = GetFileList(last_done_cl)
+          if HasPerfAffectingResults(file_list):
+            return (True, last_done_cl)
+          else:
+            UpdateSetOfDoneCls(last_done_cl)
+          last_done_cl += 1
+      return (False, None)
     
-  def get_os_directory(self):
+  def GetOsDirectory(self):
     """Specifies the name of the directory for the testing build of dart, which
     has yet a different naming convention from utils.getBuildRoot(...)."""
     if platform.system() == 'Windows':
@@ -231,11 +286,11 @@ class TestRunner(object):
     else:
       return 'linux'
 
-  def parse_args(self):
+  def ParseArgs(self):
     parser = optparse.OptionParser()
     parser.add_option('--suites', '-s', dest='suites', help='Run the specified '
                       'comma-separated test suites from set: %s' % \
-                      ','.join(TestBuilder.available_suite_names()), 
+                      ','.join(TestBuilder.AvailableSuiteNames()), 
                       action='store', default=None)
     parser.add_option('--forever', '-f', dest='continuous', help='Run this scri'
                       'pt forever, always checking for the next svn checkin',
@@ -247,46 +302,55 @@ class TestRunner(object):
                       help='Do not post the results of the run.', default=False)
     parser.add_option('--notest', '-t', dest='no_test', action='store_true',
                       help='Do not run the tests.', default=False)
-    parser.add_option('--verbose', '-v', dest='verbose', help='Print extra '
-                      'debug output', action='store_true', default=False)
+    parser.add_option('--verbose', '-v', dest='verbose', 
+                      help='Print extra debug output', action='store_true',
+                      default=False)
+    parser.add_option('--backfill', '-b', dest='backfill',
+                      help='Backfill earlier CLs with additional results when '
+                      'there is idle time.', action='store_true',
+                      default=False)
 
     args, ignored = parser.parse_args()
 
     if not args.suites:
-      suites = TestBuilder.available_suite_names()
+      suites = TestBuilder.AvailableSuiteNames()
     else:
       suites = []
       suitelist = args.suites.split(',')
       for name in suitelist:
-        if name in TestBuilder.available_suite_names():
+        if name in TestBuilder.AvailableSuiteNames():
           suites.append(name)
         else:
           print ('Error: Invalid suite %s not in ' % name) + \
-              '%s' % ','.join(TestBuilder.available_suite_names())
+              '%s' % ','.join(TestBuilder.AvailableSuiteNames())
           sys.exit(1)
     self.suite_names = suites
     self.no_build = args.no_build
     self.no_upload = args.no_upload
     self.no_test = args.no_test
     self.verbose = args.verbose
+    self.backfill = args.backfill
     return args.continuous
 
-  def run_test_sequence(self, revision_num='', num_reruns=1):
+  def RunTestSequence(self, revision_num=None, num_reruns=1):
     """Run the set of commands to (possibly) build, run, and post the results
     of our tests. Returns 0 on a successful run, 1 if we fail to post results or
     the run failed, -1 if the build is broken.
     """
     suites = []
     success = True
-    if not self.no_build and self.sync_and_build(suites, revision_num) == 1:
+    if not self.no_build and self.SyncAndBuild(suites, revision_num) == 1:
       return -1 # The build is broken.
+
+    if not self.current_revision_num:
+      self.current_revision_num = SearchForRevision(DART_REPO_LOC)
 
     for name in self.suite_names:
       for run in range(num_reruns):
-        suites += [TestBuilder.make_test(name, self)]
+        suites += [TestBuilder.MakeTest(name, self)]
 
     for test in suites:
-      success = success and test.run()
+      success = success and test.Run()
     if success:
       return 0
     else:
@@ -343,7 +407,7 @@ class Test(object):
           self.revision_dict[platform][f][extra_metric] = []		
           self.values_dict[platform][f][extra_metric] = []
 
-  def is_valid_combination(self, platform, variant):
+  def IsValidCombination(self, platform, variant):
     """Check whether data should be captured for this platform/variant
     combination.
     """
@@ -360,20 +424,20 @@ class Test(object):
       return False
     return True
 
-  def run(self):
+  def Run(self):
     """Run the benchmarks/tests from the command line and plot the
     results.
     """
     for visitor in [self.tester, self.file_processor]:
-      visitor.prepare()
+      visitor.Prepare()
     
     os.chdir(TOP_LEVEL_DIR)
-    self.test_runner.ensure_output_directory(self.result_folder_name)
-    self.test_runner.ensure_output_directory(os.path.join(
+    self.test_runner.EnsureOutputDirectory(self.result_folder_name)
+    self.test_runner.EnsureOutputDirectory(os.path.join(
         'old', self.result_folder_name))
     os.chdir(DART_REPO_LOC)
     if not self.test_runner.no_test:
-      self.tester.run_tests()
+      self.tester.RunTests()
 
     os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools', 'testing', 'perf_testing'))
 
@@ -381,7 +445,7 @@ class Test(object):
     post_success = True
     for afile in files:
       if not afile.startswith('.'):
-        should_move_file = self.file_processor.process_file(afile, True)
+        should_move_file = self.file_processor.ProcessFile(afile, True)
         if should_move_file:
           shutil.move(os.path.join(self.result_folder_name, afile),
                       os.path.join('old', self.result_folder_name, afile))
@@ -394,16 +458,16 @@ class Test(object):
 class Tester(object):
   """The base level visitor class that runs tests. It contains convenience 
   methods that many Tester objects use. Any class that would like to be a
-  TesterVisitor must implement the run_tests() method."""
+  TesterVisitor must implement the RunTests() method."""
 
   def __init__(self, test):
     self.test = test
 
-  def prepare(self):
+  def Prepare(self):
     """Perform any initial setup required before the test is run."""
     pass
 
-  def add_svn_revision_to_trace(self, outfile, browser = None):
+  def AddSvnRevisionToTrace(self, outfile, browser = None):
     """Add the svn version number to the provided tracefile."""
     def get_dartium_revision():
       version_file_name = os.path.join(DART_REPO_LOC, 'client', 'tests',
@@ -415,16 +479,16 @@ class Tester(object):
 
     if browser and browser == 'dartium':
       revision = get_dartium_revision()
-      self.test.test_runner.run_cmd(['echo', 'Revision: ' + revision], outfile)
+      self.test.test_runner.RunCmd(['echo', 'Revision: ' + revision], outfile)
     else:
-      revision = search_for_revision()
-      self.test.test_runner.run_cmd(['echo', 'Revision: ' + revision], outfile)
+      revision = SearchForRevision()
+      self.test.test_runner.RunCmd(['echo', 'Revision: ' + revision], outfile)
 
 
 class Processor(object):
   """The base level vistor class that processes tests. It contains convenience 
   methods that many File Processor objects use. Any class that would like to be
-  a ProcessorVisitor must implement the process_file() method."""
+  a ProcessorVisitor must implement the ProcessFile() method."""
 
   SCORE = 'Score'
   COMPILE_TIME = 'CompileTime'
@@ -433,11 +497,11 @@ class Processor(object):
   def __init__(self, test):
     self.test = test
 
-  def prepare(self):
+  def Prepare(self):
     """Perform any initial setup required before the test is run."""
     pass
 
-  def open_trace_file(self, afile, not_yet_uploaded):
+  def OpenTraceFile(self, afile, not_yet_uploaded):
     """Find the correct location for the trace file, and open it.
     Args: 
       afile: The tracefile name.
@@ -449,7 +513,7 @@ class Processor(object):
       file_path = os.path.join('old', file_path)
     return open(file_path)
 
-  def report_results(self, benchmark_name, score, platform, variant, 
+  def ReportResults(self, benchmark_name, score, platform, variant, 
                      revision_number, metric):
     """Store the results of the benchmark run.
     Args:
@@ -465,21 +529,24 @@ class Processor(object):
     return post_results.report_results(benchmark_name, score, platform, variant,
                                        revision_number, metric)
 
-  def calculate_geometric_mean(self, platform, variant, svn_revision):
+  def CalculateGeometricMean(self, platform, variant, svn_revision):
     """Calculate the aggregate geometric mean for JS and dart2js benchmark sets,
     given two benchmark dictionaries."""
     geo_mean = 0		
-    if self.test.is_valid_combination(platform, variant):
+    if self.test.IsValidCombination(platform, variant):
       for benchmark in self.test.values_list:
+        if not self.test.values_dict[platform][variant][benchmark]:
+          print 'Error determining mean for %s %s %s' % (platform, variant,
+                                                         benchmark)
+          continue
         geo_mean += math.log(
-            self.test.values_dict[platform][variant][benchmark][
-                len(self.test.values_dict[platform][variant][benchmark]) - 1])
+            self.test.values_dict[platform][variant][benchmark][-1])
 
     self.test.values_dict[platform][variant]['Geo-Mean'] += \
         [math.pow(math.e, geo_mean / len(self.test.values_list))]
     self.test.revision_dict[platform][variant]['Geo-Mean'] += [svn_revision]
 
-  def get_score_type(self, benchmark_name):
+  def GetScoreType(self, benchmark_name):
     """Determine the type of score for posting -- default is 'Score' (aka
     Runtime), other options are CompileTime and CodeSize."""
     return self.SCORE
@@ -518,8 +585,8 @@ class RuntimePerformanceTest(Test):
 
 class BrowserTester(Tester):
   @staticmethod
-  def get_browsers(add_dartium=True):
-    browsers = []#['ff', 'chrome']
+  def GetBrowsers(add_dartium=True):
+    browsers = ['ff', 'chrome']
     if add_dartium:
       browsers += ['dartium']
     has_shell = False
@@ -539,43 +606,43 @@ class CommonBrowserTest(RuntimePerformanceTest):
     """Args:
       test_runner: Reference to the object that notifies us when to run."""
     super(CommonBrowserTest, self).__init__(
-        self.name(), BrowserTester.get_browsers(False),
+        self.Name(), BrowserTester.GetBrowsers(False),
         'browser', ['js', 'dart2js'],
-        self.get_standalone_benchmarks(), test_runner, 
+        self.GetStandaloneBenchmarks(), test_runner, 
         self.CommonBrowserTester(self),
         self.CommonBrowserFileProcessor(self))
   
   @staticmethod
-  def name():
+  def Name():
     return 'browser-perf'
 
   @staticmethod
-  def get_standalone_benchmarks():
+  def GetStandaloneBenchmarks():
     return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
     'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
     'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
     'TreeSort']
 
   class CommonBrowserTester(BrowserTester):
-    def run_tests(self):
+    def RunTests(self):
       """Run a performance test in the browser."""
       os.chdir(DART_REPO_LOC)
-      self.test.test_runner.run_cmd([
+      self.test.test_runner.RunCmd([
           'python', os.path.join('internal', 'browserBenchmarks',
           'make_web_benchmarks.py')])
 
       for browser in self.test.platform_list:
         for version in self.test.versions:
-          if not self.test.is_valid_combination(browser, version):
+          if not self.test.IsValidCombination(browser, version):
             continue
           self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'perf-%s-%s-%s' % (self.test.cur_time, browser, version))
-          self.add_svn_revision_to_trace(self.test.trace_file, browser)
+          self.AddSvnRevisionToTrace(self.test.trace_file, browser)
           file_path = os.path.join(
               os.getcwd(), 'internal', 'browserBenchmarks',
               'benchmark_page_%s.html' % version)
-          self.test.test_runner.run_cmd(
+          self.test.test_runner.RunCmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
               '--out', file_path, '--browser', browser,
               '--timeout', '600', '--mode', 'perf'], self.test.trace_file, 
@@ -583,7 +650,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
 
   class CommonBrowserFileProcessor(Processor):
 
-    def process_file(self, afile, should_post_file):
+    def ProcessFile(self, afile, should_post_file):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage and/or we can
           delete the trace file."""
@@ -592,7 +659,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
-      f = self.open_trace_file(afile, should_post_file)
+      f = self.OpenTraceFile(afile, should_post_file)
       lines = f.readlines()
       line = ''
       i = 0
@@ -629,14 +696,14 @@ class CommonBrowserTest(RuntimePerformanceTest):
         bench_dict[name] += [float(score)]
         self.test.revision_dict[browser][version][name] += [revision_num]
         if not self.test.test_runner.no_upload and should_post_file:
-          upload_success = upload_success and self.report_results(
+          upload_success = upload_success and self.ReportResults(
               name, score, browser, version, revision_num,
-              self.get_score_type(name))
+              self.GetScoreType(name))
         else:
           upload_success = False
 
       f.close()
-      self.calculate_geometric_mean(browser, version, revision_num)
+      self.CalculateGeometricMean(browser, version, revision_num)
       return upload_success
 
 
@@ -674,7 +741,7 @@ class DromaeoTester(Tester):
 
   # Use filenames that don't have unusual characters for benchmark names.	
   @staticmethod	
-  def legalize_filename(str):	
+  def LegalizeFilename(str):
     remap = {	
         ' ': '_',	
         '(': '_',	
@@ -690,23 +757,23 @@ class DromaeoTester(Tester):
   # failure properly.  The modify suite fails on 32-bit chrome, which
   # is the default on mac and win.
   @staticmethod
-  def get_valid_dromaeo_tags():
+  def GetValidDromaeoTags():
     tags = [tag for (tag, _) in DromaeoTester.DROMAEO_BENCHMARKS.values()]
     if platform.system() == 'Darwin' or platform.system() == 'Windows':
       tags.remove('modify')
     return tags
 
   @staticmethod
-  def get_dromaeo_benchmarks():
-    valid = DromaeoTester.get_valid_dromaeo_tags()
+  def GetDromaeoBenchmarks():
+    valid = DromaeoTester.GetValidDromaeoTags()
     benchmarks = reduce(lambda l1,l2: l1+l2,
                         [tests for (tag, tests) in
                          DromaeoTester.DROMAEO_BENCHMARKS.values() 
                          if tag in valid])
-    return map(DromaeoTester.legalize_filename, benchmarks)
+    return map(DromaeoTester.LegalizeFilename, benchmarks)
 
   @staticmethod
-  def get_dromaeo_versions():
+  def GetDromaeoVersions():
     return ['js', 'dart2js_html']
 
 
@@ -714,20 +781,20 @@ class DromaeoTest(RuntimePerformanceTest):
   """Runs Dromaeo tests, in the browser."""
   def __init__(self, test_runner):
     super(DromaeoTest, self).__init__(
-        self.name(),
-        BrowserTester.get_browsers(True),
+        self.Name(),
+        BrowserTester.GetBrowsers(True),
         'browser',
-        DromaeoTester.get_dromaeo_versions(), 
-        DromaeoTester.get_dromaeo_benchmarks(), test_runner,
+        DromaeoTester.GetDromaeoVersions(), 
+        DromaeoTester.GetDromaeoBenchmarks(), test_runner,
         self.DromaeoPerfTester(self),
         self.DromaeoFileProcessor(self))
 
   @staticmethod
-  def name():
+  def Name():
     return 'dromaeo'
 
   class DromaeoPerfTester(DromaeoTester):
-    def move_chrome_driver_if_needed(self, browser):
+    def MoveChromeDriverIfNeeded(self, browser):
       """Move the appropriate version of ChromeDriver onto the path. 
       TODO(efortuna): This is a total hack because the latest version of Chrome
       (Dartium builds) requires a different version of ChromeDriver, that is
@@ -737,7 +804,7 @@ class DromaeoTest(RuntimePerformanceTest):
       in the default location (inside depot_tools).
       """
       current_dir = os.getcwd()
-      self.test.test_runner.get_archive('chromedriver')
+      self.test.test_runner.GetArchive('chromedriver')
       path = os.environ['PATH'].split(os.pathsep)
       orig_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools', 'testing',
                                             'orig-chromedriver')
@@ -748,7 +815,7 @@ class DromaeoTest(RuntimePerformanceTest):
       if platform.system() == 'Windows':
         extension = '.exe'
 
-      def move_chromedriver(depot_tools, copy_to_depot_tools_dir=True,
+      def MoveChromedriver(depot_tools, copy_to_depot_tools_dir=True,
                             from_path=None):
         if from_path:
           from_dir = from_path + extension
@@ -770,75 +837,78 @@ class DromaeoTest(RuntimePerformanceTest):
         if 'depot_tools' in loc:
           if browser == 'chrome':
             if os.path.exists(orig_chromedriver_path):
-              move_chromedriver(loc)
+              MoveChromedriver(loc)
           elif browser == 'dartium':
-            if self.test.test_runner.current_revision_num < FIRST_CHROMEDRIVER:
+            if (int(self.test.test_runner.current_revision_num) < 
+                FIRST_CHROMEDRIVER):
               # If we don't have a stashed a different chromedriver just use
               # the regular chromedriver.
-              self.test.test_runner.run_cmd(os.path.join(
+              self.test.test_runner.RunCmd(os.path.join(
                   TOP_LEVEL_DIR, 'tools', 'testing', 'webdriver_test_setup.py'),
                   '-f', '-s', '-p')
             elif not os.path.exists(dartium_chromedriver_path):
-              self.test.test_runner.get_archive('chromedriver')
+              stdout, _ = self.test.test_runner.GetArchive('chromedriver')
             # Move original chromedriver for storage.
             if not os.path.exists(orig_chromedriver_path):
-              move_chromedriver(loc, copy_to_depot_tools_dir=False)
+              MoveChromedriver(loc, copy_to_depot_tools_dir=False)
             if self.test.test_runner.current_revision_num >= FIRST_CHROMEDRIVER:
               # Copy Dartium chromedriver into depot_tools
-              move_chromedriver(loc, from_path=os.path.join(
+              MoveChromedriver(loc, from_path=os.path.join(
                                 dartium_chromedriver_path, 'chromedriver'))
       os.chdir(current_dir)
 
-    def run_tests(self):
+    def RunTests(self):
       """Run dromaeo in the browser."""
       
-      self.test.test_runner.get_archive('dartium')
+      self.test.test_runner.GetArchive('dartium')
 
       # Build tests.
       dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
       current_path = os.getcwd()
       os.chdir(dromaeo_path)
-      self.test.test_runner.run_cmd(['python', 'generate_dart2js_tests.py'])
+      if os.path.exists('generate_dart2js_tests.py'):
+        stdout, _ = self.test.test_runner.RunCmd(
+            ['python', 'generate_dart2js_tests.py'])
+      else:
+        stdout, _ = self.test.test_runner.RunCmd(
+            ['python', 'generate_frog_tests.py'])
       os.chdir(current_path)
+      if 'Error: Compilation failed' in stdout:
+        return
+      versions = DromaeoTester.GetDromaeoVersions()
 
-      versions = DromaeoTester.get_dromaeo_versions()
-
-      for browser in BrowserTester.get_browsers():
-        self.move_chrome_driver_if_needed(browser)
+      for browser in BrowserTester.GetBrowsers():
+        self.MoveChromeDriverIfNeeded(browser)
         for version_name in versions:
-          if not self.test.is_valid_combination(browser, version_name):
+          if not self.test.IsValidCombination(browser, version_name):
             continue
-          version = DromaeoTest.DromaeoPerfTester.get_dromaeo_url_query(
+          version = DromaeoTest.DromaeoPerfTester.GetDromaeoUrlQuery(
               browser, version_name)
           self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'dromaeo-%s-%s-%s' % (self.test.cur_time, browser, version_name))
-          self.add_svn_revision_to_trace(self.test.trace_file, browser)
+          self.AddSvnRevisionToTrace(self.test.trace_file, browser)
           file_path = '"%s"' % os.path.join(os.getcwd(), dromaeo_path,
               'index-js.html?%s' % version)
-          if platform.system() == 'Windows':
-            file_path = file_path.replace('&', '^&')
-            file_path = file_path.replace('?', '^?')
-            file_path = file_path.replace('|', '^|')
-          self.test.test_runner.run_cmd(
+          self.test.test_runner.RunCmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
                '--out', file_path, '--browser', browser,
                '--timeout', '900', '--mode', 'dromaeo'], self.test.trace_file,
                append=True)
       # Put default Chromedriver back in.
-      self.move_chrome_driver_if_needed('chrome')
+      self.MoveChromeDriverIfNeeded('chrome')
 
     @staticmethod
-    def get_dromaeo_url_query(browser, version):
+    def GetDromaeoUrlQuery(browser, version):
       if browser == 'dartium':
         version = version.replace('frog', 'dart')
-      version = version.replace('_','&')
-      tags = DromaeoTester.get_valid_dromaeo_tags()
-      return '|'.join([ '%s&%s' % (version, tag) for tag in tags])
+      version = version.replace('_','AND')
+      tags = DromaeoTester.GetValidDromaeoTags()
+      return 'OR'.join([ '%sAND%s' % (version, tag) for tag in tags])
 
 
   class DromaeoFileProcessor(Processor):
-    def process_file(self, afile, should_post_file):
+    def ProcessFile(self, afile, should_post_file):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage."""
       parts = afile.split('-')
@@ -847,7 +917,7 @@ class DromaeoTest(RuntimePerformanceTest):
 
       bench_dict = self.test.values_dict[browser][version]
 
-      f = self.open_trace_file(afile, should_post_file)
+      f = self.OpenTraceFile(afile, should_post_file)
       lines = f.readlines()
       i = 0
       revision_num = 0
@@ -869,39 +939,40 @@ class DromaeoTest(RuntimePerformanceTest):
             if results:
               for result in results:
                 r = re.match(result_pattern, result)
-                name = DromaeoTester.legalize_filename(r.group(1).strip(':'))
+                name = DromaeoTester.LegalizeFilename(r.group(1).strip(':'))
                 score = float(r.group(2))
                 bench_dict[name] += [float(score)]
                 self.test.revision_dict[browser][version][name] += \
                     [revision_num]
                 if not self.test.test_runner.no_upload and should_post_file:
-                  upload_success = upload_success and self.report_results(
+                  upload_success = upload_success and self.ReportResults(
                       name, score, browser, version, revision_num,
-                      self.get_score_type(name))
+                      self.GetScoreType(name))
                 else:
                   upload_success = False
 
       f.close()
-      self.calculate_geometric_mean(browser, version, revision_num)
+      self.CalculateGeometricMean(browser, version, revision_num)
       return upload_success
 
 class TestBuilder(object):
   """Construct the desired test object."""
-  available_suites = dict((suite.name(), suite) for suite in [
+  available_suites = dict((suite.Name(), suite) for suite in [
       CommonBrowserTest, DromaeoTest])
 
   @staticmethod
-  def make_test(test_name, test_runner):
+  def MakeTest(test_name, test_runner):
     return TestBuilder.available_suites[test_name](test_runner)
 
   @staticmethod
-  def available_suite_names():
+  def AvailableSuiteNames():
     return TestBuilder.available_suites.keys()
 
-def search_for_revision(directory = None):
+
+def SearchForRevision(directory = None):
   """Find the current revision number in the desired directory. If directory is
   None, find the revision number in the current directory."""
-  def find_revision(svn_info_command):
+  def FindRevision(svn_info_command):
     p = subprocess.Popen(svn_info_command, stdout = subprocess.PIPE,
                          stderr = subprocess.STDOUT,
                          shell = (platform.system() == 'Windows'))
@@ -915,13 +986,14 @@ def search_for_revision(directory = None):
   if not directory:
     directory = cwd
   os.chdir(directory)
-  revision_num = int(find_revision(['svn', 'info']))
+  revision_num = int(FindRevision(['svn', 'info']))
   if revision_num == -1:
-    revision_num = int(find_revision(['git', 'svn', 'info']))
+    revision_num = int(FindRevision(['git', 'svn', 'info']))
   os.chdir(cwd)
   return str(revision_num)
 
-def update_set_of_done_cls(revision_num=None):
+
+def UpdateSetOfDoneCls(revision_num=None):
   """Update the set of CLs that do not need additional performance runs.
   Args:
   revision_num: an additional number to be added to the 'done set'
@@ -941,40 +1013,41 @@ def update_set_of_done_cls(revision_num=None):
   f.close()
   return result_set
 
-def fill_in_back_history(results_set, runner):
+
+def FillInBackHistory(results_set, runner):
   """Fill in back history performance data. This is done one of two ways, with
   equal probability of trying each way (falling back on the sequential version
   as our data becomes more densely populated)."""
   has_run_extra = False
-  revision_num = int(search_for_revision(DART_REPO_LOC))
+  revision_num = int(SearchForRevision(DART_REPO_LOC))
 
-  def try_to_run_additional(revision_number):
+  def TryToRunAdditional(revision_number):
     """Determine the number of results we have stored for a particular revision
     number, and if it is less than 10, run some extra tests.
     Args: 
       - revision_number: the revision whose performance we want to potentially
         test.
     Returns: True if we successfully ran some additional tests."""
-    if not runner.has_interesting_code(revision_number):
-      results_set = update_set_of_done_cls(revision_number)
+    if not runner.HasInterestingCode(revision_number)[0]:
+      results_set = UpdateSetOfDoneCls(revision_number)
       return False
-    a_test = TestBuilder.make_test(runner.suite_names[0], runner)
+    a_test = TestBuilder.MakeTest(runner.suite_names[0], runner)
     benchmark_name = a_test.values_list[0]
     platform_name = a_test.platform_list[0]
     variant = a_test.values_dict[platform_name].keys()[0]
     num_results = post_results.get_num_results(benchmark_name,
         platform_name, variant, revision_number,
-        a_test.file_processor.get_score_type(benchmark_name))
+        a_test.file_processor.GetScoreType(benchmark_name))
     if num_results < 10:
       # Run at most two more times.
       if num_results > 8:
         reruns = 10 - num_results
       else:
         reruns = 2
-      run = runner.run_test_sequence(revision_num=str(revision_number),
+      run = runner.RunTestSequence(revision_num=str(revision_number),
           num_reruns=reruns)
     if num_results >= 10 or run == 0 and num_results + reruns >= 10:
-      results_set = update_set_of_done_cls(revision_number)
+      results_set = UpdateSetOfDoneCls(revision_number)
     else:
       return False
     return True
@@ -993,8 +1066,8 @@ def fill_in_back_history(results_set, runner):
     weighted_total = sum(thousands_list)
     generated_random_number = random.randint(0, weighted_total - 1)
     for i in list(reversed(thousands_list)):
-      thousands = thousands_list[i - 1]
-      weighted_total -= thousands_list[i - 1]
+      thousands = i
+      weighted_total -= i
       if weighted_total <= generated_random_number:
         break
     while tries < 15 and not has_run_extra:
@@ -1005,7 +1078,7 @@ def fill_in_back_history(results_set, runner):
         max_range = bucket_size
       rev = thousands * bucket_size + random.randrange(0, max_range)
       if rev not in results_set:
-        has_run_extra = try_to_run_additional(rev)
+        has_run_extra = TryToRunAdditional(rev)
       tries += 1
 
   if not has_run_extra:
@@ -1015,16 +1088,17 @@ def fill_in_back_history(results_set, runner):
     # checked in.
     while revision_num > EARLIEST_REVISION and not has_run_extra:
       if revision_num not in results_set:
-        has_run_extra = try_to_run_additional(revision_num)
+        has_run_extra = TryToRunAdditional(revision_num)
       revision_num -= 1
   if not has_run_extra:
     # No more extra back-runs to do (for now). Wait for new code.
     time.sleep(200)
   return results_set
 
+
 def main():
   runner = TestRunner()
-  continuous = runner.parse_args()
+  continuous = runner.ParseArgs()
 
   if not os.path.exists(DART_REPO_LOC):
     os.mkdir(dirname(DART_REPO_LOC))
@@ -1036,13 +1110,17 @@ def main():
     p.communicate()
   if continuous:
     while True:
-      results_set = update_set_of_done_cls()
-      if runner.has_interesting_code():
-        runner.run_test_sequence()
+      results_set = UpdateSetOfDoneCls()
+      (is_interesting, interesting_rev_num) = runner.HasInterestingCode()
+      if is_interesting:
+        runner.RunTestSequence(interesting_rev_num)
       else:
-        results_set = fill_in_back_history(results_set, runner)
+        if runner.backfill:
+          results_set = FillInBackHistory(results_set, runner)
+        else:
+          time.sleep(200)
   else:
-    runner.run_test_sequence()
+    runner.RunTestSequence()
 
 if __name__ == '__main__':
   main()
