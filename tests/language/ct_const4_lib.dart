@@ -5,4 +5,4 @@
 
 #library("CTConst4Lib");
 
-final B = 1;
+const B = 1;

@@ -5,5 +5,5 @@
 #library("PrefixTest2.dart");
 
 class Prefix {
-  static final int foo = 42;
+  static const int foo = 42;
 }

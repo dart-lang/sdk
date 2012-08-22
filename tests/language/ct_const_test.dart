@@ -4,21 +4,21 @@
 // All things regarding compile time constant expressions.
 
 interface Roman {
-  static final I = 1;
-  static final II = 2;
-  static final III = 3;
-  static final IV = 4;
-  static final V = 5;
+  static const I = 1;
+  static const II = 2;
+  static const III = 3;
+  static const IV = 4;
+  static const V = 5;
 
-  static final VivaItalia = const {"green": 1, "red": 3, "white": 2};
+  static const VivaItalia = const {"green": 1, "red": 3, "white": 2};
 }
 
 
 class Point {
-  static final int zero = 0;
+  static const int zero = 0;
 
-  static final origin = const Point(0, 0);
-  static final origin2 = const Point(zero, Roman.IV - 4);
+  static const origin = const Point(0, 0);
+  static const origin2 = const Point(zero, Roman.IV - 4);
 
   const Point(x, y) : x_= x, y_ = y;
   const Point.X(x) : x_ = x, y_ = Roman.V - Roman.II - 3;
@@ -40,7 +40,7 @@ class Line {
 
 class CTConstTest {
   static int getZero() { return 0; }
-  static final naught = null;
+  static const naught = null;
 
   static testMain() {
     Expect.equals(0, Point.zero);

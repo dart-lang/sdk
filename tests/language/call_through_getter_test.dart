@@ -4,9 +4,9 @@
 
 // Tests that we can call functions through getters.
 
-final TOP_LEVEL_CONST = 1;
-final TOP_LEVEL_CONST_REF = TOP_LEVEL_CONST;
-final TOP_LEVEL_NULL = null;
+const TOP_LEVEL_CONST = 1;
+const TOP_LEVEL_CONST_REF = TOP_LEVEL_CONST;
+const TOP_LEVEL_NULL = null;
 
 var topLevel;
 
@@ -28,10 +28,10 @@ class CallThroughGetterTest {
     Expect.equals(1, TOP_LEVEL_CONST_REF);
     Expect.equals(2, topLevel());
 
-    expectThrowsNotClosure(() { 
+    expectThrowsNotClosure(() {
       TOP_LEVEL_CONST(); /// static type warning
     });
-    expectThrowsNotClosure(() { 
+    expectThrowsNotClosure(() {
       (TOP_LEVEL_CONST)();  /// static type warning
     });
   }

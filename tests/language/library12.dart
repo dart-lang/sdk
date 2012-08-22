@@ -37,7 +37,7 @@ interface Library12Interface {
   Library12 addObjects(Library12 value1, Library12 value2);
 }
 
-final int top_level12 = 10;
+const int top_level12 = 10;
 top_level_func12() {
   return 20;
 }

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final m1 = const { '__proto__': 400 + 99 };
-final m2 = const { 'a': 499, 'b': 42 };
-final m3 = const { '__proto__': 499 };
+const m1 = const { '__proto__': 400 + 99 };
+const m2 = const { 'a': 499, 'b': 42 };
+const m3 = const { '__proto__': 499 };
 
 bool isIllegalAccessException(o) => o is IllegalAccessException;
 

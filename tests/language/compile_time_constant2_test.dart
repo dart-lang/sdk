@@ -2,31 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final x = 19;
-final y = 3;
-final g1 = x + y;
-final g2 = x * y;
-final g3 = x / y;
-final g4 = x ~/ y;
-final g5 = x << y;
-final g6 = x >> y;
-final g7 = ~x;
-final g8 = -x;
-final g9 = x < y;
-final g10 = x <= y;
-final g11 = x <= x;
-final g12 = x > y;
-final g13 = x >= y;
-final g14 = x >= x;
-final g15 = x == y;
-final g16 = x == x;
-final g17 = x != y;
-final g18 = x != x;
-final g19 = x | y;
-final g20 = x & y;
-final g21 = x ^ y;
-final g22 = g1 + g2 + g4 + g5 + g6 + g7 + g8;
-final g23 = x % y;
+const x = 19;
+const y = 3;
+const g1 = x + y;
+const g2 = x * y;
+const g3 = x / y;
+const g4 = x ~/ y;
+const g5 = x << y;
+const g6 = x >> y;
+const g7 = ~x;
+const g8 = -x;
+const g9 = x < y;
+const g10 = x <= y;
+const g11 = x <= x;
+const g12 = x > y;
+const g13 = x >= y;
+const g14 = x >= x;
+const g15 = x == y;
+const g16 = x == x;
+const g17 = x != y;
+const g18 = x != x;
+const g19 = x | y;
+const g20 = x & y;
+const g21 = x ^ y;
+const g22 = g1 + g2 + g4 + g5 + g6 + g7 + g8;
+const g23 = x % y;
 
 main() {
   Expect.equals(22, g1);

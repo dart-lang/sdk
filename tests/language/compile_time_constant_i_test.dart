@@ -30,30 +30,30 @@ class C extends B {
   final z;
 }
 
-final a1 = const A(499);
-final a2 = const A.redirect(10499);
-final a3 = const A.optional();
-final a1b = const A.redirect(498);
-final a3b = const A(5);
+const a1 = const A(499);
+const a2 = const A.redirect(10499);
+const a3 = const A.optional();
+const a1b = const A.redirect(498);
+const a3b = const A(5);
 
-final b1 = const B(99499, -99499);
-final b2 = const B.redirect(1234, 5678);
-final b3 = const B.redirect2(112233, 556677);
-final b4 = const B.redirect3(332211, 776655);
-final b5 = const B.optional(43526);
-final b6 = const B.optional2(y: 9753, x:8642);
-final b3b = const B(112233 + 122 + 1, 556677 + 122);
-final b6b = const B(8642, 9753);
+const b1 = const B(99499, -99499);
+const b2 = const B.redirect(1234, 5678);
+const b3 = const B.redirect2(112233, 556677);
+const b4 = const B.redirect3(332211, 776655);
+const b5 = const B.optional(43526);
+const b6 = const B.optional2(y: 9753, x:8642);
+const b3b = const B(112233 + 122 + 1, 556677 + 122);
+const b6b = const B(8642, 9753);
 
-final c1 = const C(121, 232, 343);
-final c2 = const C.redirect(12321, 23432, 34543);
-final c3 = const C.redirect2(32123, 43234, 54345);
-final c4 = const C.redirect3(313, 424, 535);
-final c5 = const C.optional(191, 181, 171);
-final c6 = const C.optional(-191);
-final c7 = const C.optional2();
-final c8 = const C.optional3(9911);
-final c3b = const C(32123 + 333 + 122 + 1, 43234 + 333 + 122, 54345 + 333);
+const c1 = const C(121, 232, 343);
+const c2 = const C.redirect(12321, 23432, 34543);
+const c3 = const C.redirect2(32123, 43234, 54345);
+const c4 = const C.redirect3(313, 424, 535);
+const c5 = const C.optional(191, 181, 171);
+const c6 = const C.optional(-191);
+const c7 = const C.optional2();
+const c8 = const C.optional3(9911);
+const c3b = const C(32123 + 333 + 122 + 1, 43234 + 333 + 122, 54345 + 333);
 
 main() {
   Expect.equals(499, a1.x);

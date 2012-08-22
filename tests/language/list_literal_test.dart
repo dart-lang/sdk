@@ -5,8 +5,8 @@
 
 class ListLiteralTest {
 
-  static final LAUREL = 1;
-  static final HARDY  = 2;
+  static const LAUREL = 1;
+  static const HARDY  = 2;
 
   static testMain() {
 

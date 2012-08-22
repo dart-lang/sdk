@@ -216,6 +216,8 @@ static_top_level_test/02: Fail
 static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
+static_top_level_test/06: Fail
+static_top_level_test/07: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.

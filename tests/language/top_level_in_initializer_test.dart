@@ -4,7 +4,7 @@
 
 // Test that constructor initializers can access top level elements.
 
-final topLevelField = 1;
+const topLevelField = 1;
 topLevelMethod() => 1;
 get topLevelGetter { return 1; }
 

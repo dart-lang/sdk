@@ -21,9 +21,9 @@ class ThingamaBob extends WhatchamaCallIt {
 
 class StringInterpolateTest {
 
-  static final String A = "svin";
-  static final String B = "hest";
-  static final int N = 1 + 1;
+  static const String A = "svin";
+  static const String B = "hest";
+  static const int N = 1 + 1;
   static String Printers;
   static String AAR_Printers;
 

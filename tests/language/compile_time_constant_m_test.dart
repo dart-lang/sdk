@@ -7,7 +7,7 @@ class A {
   foo([x = const A()]) => x;
 }
 
-final x = const A();
+const x = const A();
 
 foo([x = const A()]) => x;
 

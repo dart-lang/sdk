@@ -3,17 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test compile-time constants with string-interpolation.
 
-final str = "foo";
-final m1 = const { "foo": 499 };
-final m2 = const { "$str": 499 };
-final m3 = const { "$str": 42, "foo": 499 };
-final m4 = const { "foo": 42, "$str": 499 };
-final m5 = const { "f" "o" "o": 499 };
+const str = "foo";
+const m1 = const { "foo": 499 };
+const m2 = const { "$str": 499 };
+const m3 = const { "$str": 42, "foo": 499 };
+const m4 = const { "foo": 42, "$str": 499 };
+const m5 = const { "f" "o" "o": 499 };
 
-final mm1 = const { "afoo#foo": 499 };
-final mm2 = const { "a$str#$str": 499 };
-final mm3 = const { "a" "$str" "#" "foo": 499 };
-final mm4 = const { "a$str" "#$str": 499 };
+const mm1 = const { "afoo#foo": 499 };
+const mm2 = const { "a$str#$str": 499 };
+const mm3 = const { "a" "$str" "#" "foo": 499 };
+const mm4 = const { "a$str" "#$str": 499 };
 
 main() {
   Expect.equals(1, m1.length);

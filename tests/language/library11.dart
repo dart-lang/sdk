@@ -24,7 +24,7 @@ class Library111<T> {
 }
 
 
-final int top_level11 = 100;
+const int top_level11 = 100;
 top_level_func11() {
   return 200;
 }

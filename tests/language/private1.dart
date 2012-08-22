@@ -20,7 +20,7 @@ void expectCatch(f) {
 }
 
 String _private1() => "private1";
-final String _private1Field = "private1Field";
+const String _private1Field = "private1Field";
 
 void testPrivateTopLevel() {
   Expect.equals("private1", _private1());

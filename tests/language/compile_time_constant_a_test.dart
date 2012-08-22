@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final m1 = const { 'a': 400 + 99 };
-final m2 = const { 'a': 499, 'b': 42 };
-final m3 = const { 'm1': m1, 'm2': m2 };
-final m4 = const { 'z': 9, 'a': 8, 'm': 7 };
-final m5 = const { '': 499 };
-final m6 = const { 'a': 499 };
-final m7 = const {};
+const m1 = const { 'a': 400 + 99 };
+const m2 = const { 'a': 499, 'b': 42 };
+const m3 = const { 'm1': m1, 'm2': m2 };
+const m4 = const { 'z': 9, 'a': 8, 'm': 7 };
+const m5 = const { '': 499 };
+const m6 = const { 'a': 499 };
+const m7 = const {};
 
 bool isIllegalAccessException(o) => o is IllegalAccessException;
 

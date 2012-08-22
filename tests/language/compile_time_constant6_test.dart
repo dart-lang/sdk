@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final g1 = true;
-final g2 = 499;
-final g3 = "foo";
-final g4 = 3.3;
-final g5 = g1 == g2;
-final g6 = g1 == g3;
-final g7 = g1 == g4;
-final g8 = g2 == g3;
-final g9 = g2 == g4;
-final g10 = g3 == g4;
-final g11 = g1 == g1;
-final g12 = g2 == g2;
-final g13 = g3 == g3;
-final g14 = g4 == g4;
+const g1 = true;
+const g2 = 499;
+const g3 = "foo";
+const g4 = 3.3;
+const g5 = g1 == g2;
+const g6 = g1 == g3;
+const g7 = g1 == g4;
+const g8 = g2 == g3;
+const g9 = g2 == g4;
+const g10 = g3 == g4;
+const g11 = g1 == g1;
+const g12 = g2 == g2;
+const g13 = g3 == g3;
+const g14 = g4 == g4;
 
 main() {
   Expect.isFalse(g5);

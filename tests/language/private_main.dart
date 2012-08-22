@@ -9,7 +9,7 @@ main() {
 
 class PrivateMain {
 
-  static final _myPrecious = "A Ring";
+  static const _myPrecious = "A Ring";
 
   static accessMyPrivates() {
     var value = 0;

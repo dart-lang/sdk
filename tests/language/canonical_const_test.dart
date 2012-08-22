@@ -4,8 +4,8 @@
 // Check that initializers of static const fields are compile time constants.
 
 class CanonicalConstTest {
-  static final A = const C1();
-  static final B = const C2();
+  static const A = const C1();
+  static const B = const C2();
 
   static testMain() {
     Expect.isTrue(null===null);

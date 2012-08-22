@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Issue4515170Test {
-  static final VAL = 3;
+  static const VAL = 3;
   static int defaultVal([int a = VAL]) {
     return a;
   }

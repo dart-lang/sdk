@@ -11,7 +11,7 @@ class A {
 
 class StringInterpolation1NegativeTest {
   // Dollar not followed by "{" or identifier.
-  static final DOLLAR = const A("$");
+  static const DOLLAR = const A("$");
   testMain() {
   }
 }

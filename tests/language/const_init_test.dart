@@ -10,15 +10,15 @@ class Point {
 }
 
 class ConstInitTest {
-  static final N = 1;
-  static final O = 1 + 3;
-  static final P = 2 * (O - N);
-  static final Q = const Point(0, 0);
+  static const N = 1;
+  static const O = 1 + 3;
+  static const P = 2 * (O - N);
+  static const Q = const Point(0, 0);
 
-  static final Q2 = const Point(0, 0);
-  static final P2 = 2 * (O - N);
-  static final O2 = 1 + 3;
-  static final N2 = 1;
+  static const Q2 = const Point(0, 0);
+  static const P2 = 2 * (O - N);
+  static const O2 = 1 + 3;
+  static const N2 = 1;
 
   static testMain() {
     Expect.equals(1, N);

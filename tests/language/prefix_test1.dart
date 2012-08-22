@@ -6,7 +6,7 @@
 
 #import("prefix_test2.dart", prefix: "prefix");
 class Prefix {
-  static final int foo = 43;
+  static const int foo = 43;
 
   static getSource() {
     return foo;

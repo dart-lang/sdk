@@ -17,7 +17,7 @@ class C extends B {
   final y;
 }
 
-final v = const C(42);
+const v = const C(42);
 
 main() {
   Expect.equals(42, v.y);

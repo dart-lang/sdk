@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Allow assignment of string interpolation to a static final field
+// Allow assignment of string interpolation to a static const field
 
 class A {
-  static final x = 1;
-  static final y = "Two is greater than ${x}";
+  static const x = 1;
+  static const y = "Two is greater than ${x}";
 }
 
 main() {

@@ -1,11 +1,11 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Check that arrays from final array literals are immutable.
+// Check that arrays from const array literals are immutable.
 
 class ListLiteral3Test {
 
-  static final List<String> canonicalJoke = const ["knock", "knock"];
+  static const List<String> canonicalJoke = const ["knock", "knock"];
 
   static testMain() {
 

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Constants {
-  static final PI = 3.14;
-  static final foo = 1;
+  static const PI = 3.14;
+  static const foo = 1;
 }
 
 class A {
-  static final y = -1;
+  static const y = -1;
   int x;
   A() : x = 1 {}
   A.named() : x = 3 {}

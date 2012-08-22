@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 interface Constants {
-  static final int FIVE = 5;
+  static const int FIVE = 5;
 }
 
 class InterfaceConstantsTest {

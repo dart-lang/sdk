@@ -4,4 +4,4 @@
 
 // A perfectly legal dart source file for use with script and library tests.
 
-final int script_source = 1;
+const int script_source = 1;

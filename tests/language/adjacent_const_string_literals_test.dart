@@ -23,7 +23,7 @@ testEmpty() {
   Expect.equals("", (const Conster("" "" "")).toString());
   Expect.equals("", (const Conster("" '' "")).toString());
   Expect.equals("", (const Conster("" "" @"")).toString());
-  
+
   Expect.equals("a", (const Conster("a" "")).toString());
   Expect.equals("a", (const Conster("a" '')).toString());
   Expect.equals("a", (const Conster("a" @'')).toString());
@@ -31,7 +31,7 @@ testEmpty() {
   Expect.equals("b", (const Conster('b' "")).toString());
   Expect.equals("b", (const Conster('b' '')).toString());
   Expect.equals("b", (const Conster('b' @'')).toString());
-  
+
   Expect.equals("c", (const Conster(@'c' "")).toString());
   Expect.equals("c", (const Conster(@'c' '')).toString());
   Expect.equals("c", (const Conster(@'c' @'')).toString());
@@ -43,13 +43,13 @@ testEmpty() {
   Expect.equals("b", (const Conster('' "b")).toString());
   Expect.equals("b", (const Conster('' 'b')).toString());
   Expect.equals("b", (const Conster('' @'b')).toString());
-  
+
   Expect.equals("c", (const Conster(@'' "c")).toString());
   Expect.equals("c", (const Conster(@'' 'c')).toString());
   Expect.equals("c", (const Conster(@'' @'c')).toString());
 }
 
-final s = "a";
+const s = "a";
 
 testInterpolation() {
   Expect.equals(@"ab", (const Conster("$s" "b")).toString());
@@ -59,7 +59,7 @@ testInterpolation() {
   Expect.equals(@"-a-b", (const Conster("-$s-" "b")).toString());
   Expect.equals(@"-a-b", (const Conster('-$s-' "b")).toString());
   Expect.equals(@"-$s-b", (const Conster(@'-$s-' "b")).toString());
-  
+
   Expect.equals(@"ba", (const Conster('b' "$s")).toString());
   Expect.equals(@"ba", (const Conster('b' '$s')).toString());
   Expect.equals(@"b$s", (const Conster('b' @'$s')).toString());
