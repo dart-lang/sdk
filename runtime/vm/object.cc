@@ -637,7 +637,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Allocate and initialize the Object class and type.  The Object
   // class and ByteArray subclasses are the only pre-allocated,
   // non-interface classes in the core library.
-  cls = Class::New<Instance>();
+  cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
   name = Symbols::Object();
   cls.set_name(name);
@@ -920,6 +920,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // Set up empty classes in the object store, these will get
   // initialized correctly when we read from the snapshot.
   // This is done to allow bootstrapping of reading classes from the snapshot.
+  cls = Class::New<Instance>(kInstanceCid);
+  object_store->set_object_class(cls);
+
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
@@ -1251,9 +1254,9 @@ RawClass* Class::New() {
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::InstanceSize());
-  result.set_id((FakeObject::kClassId != kInstanceCid &&
-                 FakeObject::kClassId != kClosureCid) ?
-                FakeObject::kClassId : kIllegalCid);
+  ASSERT((FakeObject::kClassId != kInstanceCid) &&
+         (FakeObject::kClassId != kClosureCid));
+  result.set_id(FakeObject::kClassId);
   result.raw_ptr()->state_bits_ = 0;
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
@@ -1675,10 +1678,15 @@ RawClass* Class::New(intptr_t index) {
   result.raw_ptr()->state_bits_ = 0;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
+  result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
   Isolate::Current()->class_table()->Register(result);
   return result.raw();
 }
+
+
+// Force instantiation of template version to work around ld problems.
+template RawClass* Class::New<Closure>(intptr_t index);
 
 
 template <class FakeInstance>
@@ -1764,22 +1772,6 @@ RawClass* Class::NewSignatureClass(const String& name,
   new_canonical_types.SetAt(0, signature_type);
   result.set_canonical_types(new_canonical_types);
   return result.raw();
-}
-
-
-RawClass* Class::GetClass(intptr_t class_id, bool is_signature_class) {
-  if (class_id >= kIntegerCid && class_id <= kWeakPropertyCid) {
-    return Isolate::Current()->class_table()->At(class_id);
-  }
-  if (class_id >= kNumPredefinedCids) {
-    if (is_signature_class) {
-      return Class::New<Closure>();
-    }
-    return Class::New<Instance>();
-  }
-  OS::Print("Class::GetClass id unknown: %d\n", class_id);
-  UNREACHABLE();
-  return Class::null();
 }
 
 
