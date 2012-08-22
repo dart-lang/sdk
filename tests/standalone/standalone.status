@@ -17,18 +17,20 @@ io/socket_invalid_arguments_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
-[ $runtime == vm]
+[ $runtime == vm ]
 io/many_echo_server_test: Skip        # Bug 5103754
 # This test fails intermittently.
 io/http_basic_test: Pass, Fail     # Issue 3599
 
+[ $runtime == vm && $system == linux ]
+io/test_runner_test: Pass, Fail  # Issue 1947
 
-[ $runtime == vm && $system == macos]
+[ $runtime == vm && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 io/socket_many_connections_test: Skip
 io/http_server_handler_test: Skip # Issue 2637
 
-[ $runtime == vm && $system == windows]
+[ $runtime == vm && $system == windows ]
 io/http_shutdown_test: Skip  # Currently times out on windows
 io/file_system_links_test: Skip  # No links on Windows.
 io/http_connection_header_test: Pass, Fail  # Issue 2959
@@ -38,7 +40,7 @@ io/*: Skip # Don't run tests using dart:io in the browser
 crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 
-[ $compiler == dartc]
+[ $compiler == dartc ]
 *: Skip
 
 [ $compiler == frog ]
@@ -69,10 +71,10 @@ io/options_test: Fail, OK # Cannot pass options to d8.
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail
 
-[$compiler == dart2js && $browser ]
+[ $compiler == dart2js && $browser ]
 *: Skip
 
-[$compiler == dart2js && $checked ]
+[ $compiler == dart2js && $checked ]
 io/http_read_test: Skip # Timeout TODO(ngeoffray): investigate
 io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 

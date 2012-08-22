@@ -65,8 +65,8 @@ void testTestRunner() {
                                   new Set<String>.from([CRASH]))).start();
   Expect.equals(4, TestController.numTests);
   // Test that the test runner throws an exception if a test with
-  // expectation SKIP is run.  Throw must be from the synchronous part
-  // of the RunninProcess starter, for the exception to be caught here.
+  // expectation SKIP is run.  The RunningProcess constructor must throw
+  // the exception synchronously, for it to be caught here at the call site.
   Expect.throws(new RunningProcess(MakeTestCase("pass", [SKIP])).start);
 }
 
