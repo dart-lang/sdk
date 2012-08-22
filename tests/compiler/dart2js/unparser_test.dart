@@ -39,6 +39,13 @@ class Math {
 }
 ''';
 
+final ioLib = @'''
+#library('io');
+class Platform {
+  static int operatingSystem;
+}
+''';
+
 testDart2Dart(String src, [void continuation(String s)]) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
@@ -63,6 +70,7 @@ testDart2DartWithLibrary(
       return new Future.immediate(srcLibrary);
     }
     if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
+    if (uri.path.endsWith('/io.dart')) return new Future.immediate(ioLib);
     return new Future.immediate('');
   }
 
@@ -630,6 +638,20 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testStaticAccessIoLib() {
+  var src = '''
+#import('dart:io');
+
+main() {
+  Platform.operatingSystem;
+}
+''';
+  var expectedResult = '#import("dart:io", prefix: "p");'
+      'main(){p.Platform.operatingSystem;}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -665,4 +687,5 @@ main() {
   testClassTypeArgumentBound();
   testDoubleMains();
   testInterfaceDefaultAnotherLib();
+  testStaticAccessIoLib();
 }
