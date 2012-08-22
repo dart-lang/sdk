@@ -1255,6 +1255,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  static final int INVOKE_INTERCEPTOR_TYPECODE = 4;
   static final int INVOKE_STATIC_TYPECODE = 30;
 
   /** The first input must be the target. */
@@ -1353,7 +1354,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     }
   }
 
-  int typeCode() => 4;
+  int typeCode() => HInvokeStatic.INVOKE_INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) {
     return getter == other.getter && name == other.name;

@@ -1493,7 +1493,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     if (Elements.isStaticOrTopLevelFunction(node.element) &&
-        node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE) {
+        (node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE ||
+         node.typeCode() == HInvokeStatic.INVOKE_INTERCEPTOR_TYPECODE)) {
       // Register this invocation to collect the types used at all call sites.
       backend.registerStaticInvocation(node, types);
     }
