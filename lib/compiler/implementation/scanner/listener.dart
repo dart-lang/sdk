@@ -1640,7 +1640,7 @@ class PartialTypedefElement extends TypedefElement {
 
 /// A [MetadataAnnotation] which is constructed on demand.
 class PartialMetadataAnnotation extends MetadataAnnotation {
-  final Token beginToken = null;
+  final Token beginToken;
   Expression cachedNode;
   Constant value;
 
