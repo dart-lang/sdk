@@ -7157,7 +7157,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   assembler->FinalizeInstructions(region);
   Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
   if (perf_events_writer != NULL) {
-    const char* format = "%x %x %s\n";
+    const char* format = "%" PRIxPTR " %" PRIxPTR " %s\n";
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
     intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
