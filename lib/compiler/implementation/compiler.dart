@@ -504,9 +504,27 @@ class Compiler implements DiagnosticListener {
         const SourceString('DART_CLOSURE_TO_JS'), library), this);
   }
 
+  /** Enable the 'JS' helper for a library if needed. */
+  void maybeEnableJSHelper(library) {
+    String libraryName = library.uri.toString();
+    if (library.entryCompilationUnit.script.name.contains(
+            'dart/tests/compiler/dart2js_native')
+        || libraryName == 'dart:isolate'
+        || libraryName == 'dart:math'
+        || libraryName == 'dart:html') {
+      library.addToScope(findHelper(const SourceString('JS')), this);
+      if (jsIndexingBehaviorInterface !== null) {
+        library.addToScope(jsIndexingBehaviorInterface, this);
+      }
+    }
+  }
+
   void runCompiler(Uri uri) {
     scanBuiltinLibraries();
     mainApp = scanner.loadLibrary(uri, null, uri);
+    libraries.forEach((_, library) {
+      maybeEnableJSHelper(library);
+    });
     final Element main = mainApp.find(MAIN);
     if (main === null) {
       reportFatalError('Could not find $MAIN', mainApp);

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,6 +10,7 @@
 #import('dart_backend/dart_backend.dart', prefix: 'dart_backend');
 #import('elements/elements.dart');
 #import('js_backend/js_backend.dart', prefix: 'js_backend');
+#import('native_handler.dart', prefix: 'native');
 #import('scanner/scanner_implementation.dart');
 #import('scanner/scannerlib.dart');
 #import('ssa/ssa.dart');

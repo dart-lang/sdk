@@ -30,7 +30,7 @@ class PatchParserTask extends leg.CompilerTask {
     compiler.withCurrentElement(compilationUnit, () {
       // This patches the elements of the patch library into [library].
       // Injected elements are added directly under the compilation unit.
-      // Patche elements are stored on the patched functions or classes.
+      // Patch elements are stored on the patched functions or classes.
       scanLibraryElements(compilationUnit, imports);
     });
     // After scanning declarations, we handle the import tags in the patch.

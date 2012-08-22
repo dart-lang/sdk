@@ -81,13 +81,8 @@ void maybeEnableNative(Compiler compiler,
           'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:dom_deprecated'
       || libraryName == 'dart:isolate'
-      || libraryName == 'dart:math'
       || libraryName == 'dart:html') {
     library.canUseNative = true;
-    library.addToScope(compiler.findHelper(const SourceString('JS')), compiler);
-    if (compiler.jsIndexingBehaviorInterface !== null) {
-      library.addToScope(compiler.jsIndexingBehaviorInterface, compiler);
-    }
   }
 }
 
