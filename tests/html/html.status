@@ -183,7 +183,6 @@ unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js ]
 transferables_test: Skip # until isInstance works in dart2js
-indexeddb_3_test: Fail  # Issue 4648 - codegen bug.
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
