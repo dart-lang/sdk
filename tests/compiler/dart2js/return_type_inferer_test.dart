@@ -2,22 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:uri");
-
 #import("../../../lib/compiler/implementation/ssa/ssa.dart");
 
 #import('compiler_helper.dart');
-#import('parser_helper.dart');
-
-void compileAndFind(String code,
-                    String functionName,
-                    check(compiler, element)) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
-  var compiler = compilerFor(code, uri);
-  compiler.runCompiler(uri);
-  var fun = findElement(compiler, functionName);
-  return check(compiler.backend, fun);
-}
 
 final String TEST_ONE = @"""
   f(p) => p;
@@ -71,10 +58,11 @@ final String TEST_TEN = @"""
 """;
 
 void runTest(String test, [HType expectedType = HType.UNKNOWN]) {
-  compileAndFind(
+  compileAndCheck(
     test,
     'f',
-    (backend, x) {
+    (compiler, x) {
+      var backend = compiler.backend;
       HType type =
           backend.optimisticReturnTypesWithRecompilationOnTypeChange(null, x);
       Expect.equals(expectedType, type);

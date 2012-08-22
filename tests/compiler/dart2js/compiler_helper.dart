@@ -41,7 +41,17 @@ String compileAll(String code) {
   return compiler.assembledCode;
 }
 
-lego.Element findElement(var compiler, String name) {
+Dynamic compileAndCheck(String code,
+                        String name,
+                        check(MockCompiler compiler, lego.Element element)) {
+  Uri uri = new Uri.fromComponents(scheme: 'source');
+  MockCompiler compiler = compilerFor(code, uri);
+  compiler.runCompiler(uri);
+  lego.Element element = findElement(compiler, name);
+  return check(compiler, element);
+}
+
+lego.Element findElement(compiler, String name) {
   var element = compiler.mainApp.find(buildSourceString(name));
   Expect.isNotNull(element, 'Could not locate $name.');
   return element;

@@ -106,7 +106,7 @@ class Element implements Hashable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
-  Link<Node> metadata = const EmptyLink<Node>();
+  Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
     assert(getLibrary() !== null);
@@ -122,8 +122,8 @@ class Element implements Hashable {
     compiler.internalError("$this.computeType.", token: position());
   }
 
-  void addMetadata(Node node) {
-    metadata = metadata.prepend(node);
+  void addMetadata(MetadataAnnotation annotation) {
+    metadata = metadata.prepend(annotation);
   }
 
   bool isFunction() => kind === ElementKind.FUNCTION;
@@ -322,7 +322,7 @@ class ErroneousElement extends Element {
 
   SourceString get name => unsupported();
   ElementKind get kind => unsupported();
-  Link<Node> get metadata => unsupported();
+  Link<MetadataAnnotation> get metadata => unsupported();
 }
 
 class ErroneousFunctionElement extends ErroneousElement
@@ -1579,4 +1579,40 @@ class TypeVariableElement extends Element {
         new TypeVariableElement(name, enclosing, cachedNode, type, bound);
     return result;
   }
+}
+
+/**
+ * A single metadata annotation.
+ *
+ * For example, consider:
+ *
+ * [:
+ * class Data {
+ *   const Data();
+ * }
+ *
+ * const data = const Data();
+ *
+ * @data
+ * class Foo {}
+ *
+ * @data @data
+ * class Bar {}
+ * :]
+ *
+ * In this example, there are three instances of [MetadataAnnotation]
+ * and they correspond each to a location in the source code where
+ * there is an at-sign, '@'. The [value] of each of these instances
+ * are the same compile-time constant, [: const Data() :].
+ *
+ * The mirror system does not have a concept matching this class.
+ */
+class MetadataAnnotation {
+  /**
+   * The compile-time constant which this annotation resolves to.
+   * In the mirror system, this would be an object mirror.
+   */
+  abstract Constant get value();
+
+  // TODO(ahe): Add more functionality as needed.
 }

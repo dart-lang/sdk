@@ -416,7 +416,10 @@ class Compiler implements DiagnosticListener {
   bool isPatchElement(Element element) {
     // TODO(lrn): More checks needed if we introduce metadata for real.
     // In that case, it must have the identifier "native" as metadata.
-    return !element.metadata.isEmpty();
+    for (Link link = element.metadata; !link.isEmpty(); link = link.tail) {
+      if (link.head is PatchMetadataAnnotation) return true;
+    }
+    return false;
   }
 
   Element clonePatch(Element patchElement, Element enclosing) {

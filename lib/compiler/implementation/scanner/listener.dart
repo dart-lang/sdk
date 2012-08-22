@@ -1628,6 +1628,17 @@ class PartialTypedefElement extends TypedefElement {
   }
 }
 
+/// A [MetadataAnnotation] which is constructed on demand.
+class PartialMetadataAnnotation extends MetadataAnnotation {
+  final Token beginToken;
+  Expression cachedNode;
+  Constant value;
+
+  PartialMetadataAnnotation(this.value);
+
+  // TODO(ahe): Add more functionality as needed.
+}
+
 Node parse(DiagnosticListener diagnosticListener,
            CompilationUnitElement element,
            doParse(Parser parser)) {

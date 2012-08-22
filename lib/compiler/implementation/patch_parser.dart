@@ -141,7 +141,6 @@ class PatchParser extends PartialParser {
   }
 }
 
-
 /**
  * Partial parser for patch files that also handles the members of class
  * declarations.
@@ -151,7 +150,6 @@ class PatchClassElementParser extends PatchParser {
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
-
 
 /**
  * Extension of [ElementListener] for parsing patch files.
@@ -166,6 +164,12 @@ class PatchElementListener extends ElementListener implements PatchListener {
                        int idGenerator(),
                        this.imports)
     : super(listener, patchElement, idGenerator);
+
+  MetadataAnnotation popMetadata() {
+    // TODO(ahe): Remove this method.
+    popNode(); // Discard null.
+    return new PatchMetadataAnnotation();
+  }
 
   void beginPatch(Token token) {
     if (token.next.stringValue === "class") {
@@ -198,7 +202,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
   void pushElement(Element element) {
     if (isMemberPatch || (isClassPatch && element is ClassElement)) {
       // Apply patch.
-      element.addMetadata(popNode());
+      element.addMetadata(popMetadata());
       LibraryElement library = compilationUnitElement.getLibrary();
       Element existing = library.localLookup(element.name);
       if (isMemberPatch) {
@@ -246,7 +250,6 @@ class PatchElementListener extends ElementListener implements PatchListener {
   }
 }
 
-
 /**
  * Extension of [MemberListener] for parsing patch class bodies.
  */
@@ -256,6 +259,12 @@ class PatchMemberListener extends MemberListener implements PatchListener {
   PatchMemberListener(leg.DiagnosticListener listener,
                       Element enclosingElement)
     : super(listener, enclosingElement);
+
+  MetadataAnnotation popMetadata() {
+    // TODO(ahe): Remove this method.
+    popNode(); // Discard null.
+    return new PatchMetadataAnnotation();
+  }
 
   void beginPatch(Token token) {
     if (token.next.stringValue === "class") {
@@ -276,8 +285,13 @@ class PatchMemberListener extends MemberListener implements PatchListener {
 
   void addMember(Element element) {
     if (isMemberPatch || (isClassPatch && element is ClassElement)) {
-      element.addMetadata(popNode());
+      element.addMetadata(popMetadata());
     }
     super.addMember(element);
   }
+}
+
+// TODO(ahe): Get rid of this class.
+class PatchMetadataAnnotation extends MetadataAnnotation {
+  final Constant value = null;
 }
