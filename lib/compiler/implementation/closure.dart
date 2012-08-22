@@ -16,7 +16,7 @@ class ClosureTask extends CompilerTask {
       : closureMappingCache = new Map<Node, ClosureClassMap>(),
         super(compiler);
 
-  String get name() => "Closure Simplifier";
+  String get name => "Closure Simplifier";
 
   ClosureClassMap computeClosureToClassMapping(FunctionExpression node,
                                                      TreeElements elements) {

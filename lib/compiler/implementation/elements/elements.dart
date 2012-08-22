@@ -112,7 +112,7 @@ class Element implements Hashable {
     assert(getLibrary() !== null);
   }
 
-  Modifiers get modifiers() => null;
+  Modifiers get modifiers => null;
 
   Node parseNode(DiagnosticListener listener) {
     listener.cancel("Internal Error: $this.parseNode", token: position());
@@ -320,9 +320,9 @@ class ErroneousElement extends Element {
     throw 'unsupported operation on erroneous element';
   }
 
-  SourceString get name() => unsupported();
-  ElementKind get kind() => unsupported();
-  Link<Node> get metadata() => unsupported();
+  SourceString get name => unsupported();
+  ElementKind get kind => unsupported();
+  Link<Node> get metadata => unsupported();
 }
 
 class ErroneousFunctionElement extends ErroneousElement
@@ -330,12 +330,12 @@ class ErroneousFunctionElement extends ErroneousElement
   ErroneousFunctionElement(errorMessage, Element enclosing)
       : super(errorMessage, enclosing);
 
-  get type() => unsupported();
-  get cachedNode() => unsupported();
-  get functionSignature() => unsupported();
-  get patch() => unsupported();
-  get defaultImplementation() => unsupported();
-  bool get isPatched() => unsupported();
+  get type => unsupported();
+  get cachedNode => unsupported();
+  get functionSignature => unsupported();
+  get patch => unsupported();
+  get defaultImplementation => unsupported();
+  bool get isPatched => unsupported();
   setPatch(patch) => unsupported();
   computeSignature(compiler) => unsupported();
   requiredParameterCount(compiler) => unsupported();
@@ -471,7 +471,7 @@ class LibraryElement extends ScopeContainerElement {
   }
 
 
-  bool get isPatched() => patch !== null;
+  bool get isPatched => patch !== null;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -579,7 +579,7 @@ class TypedefElement extends Element implements TypeDeclarationElement {
     return cachedType;
   }
 
-  Link<Type> get typeVariables() => cachedType.typeArguments;
+  Link<Type> get typeVariables => cachedType.typeArguments;
 
   Scope buildScope() =>
       new TypeDeclarationScope(enclosingElement.buildScope(), this);
@@ -594,7 +594,7 @@ class VariableElement extends Element {
   final VariableListElement variables;
   Expression cachedNode; // The send or the identifier in the variables list.
 
-  Modifiers get modifiers() => variables.modifiers;
+  Modifiers get modifiers => variables.modifiers;
 
   VariableElement(SourceString name,
                   VariableListElement this.variables,
@@ -625,7 +625,7 @@ class VariableElement extends Element {
     return variables.computeType(compiler);
   }
 
-  Type get type() => variables.type;
+  Type get type => variables.type;
 
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
@@ -791,7 +791,7 @@ class AbstractFieldElement extends Element {
     }
   }
 
-  Modifiers get modifiers() {
+  Modifiers get modifiers {
     // The resolver ensures that the flags match (ignoring abstract).
     if (getter !== null) {
       return new Modifiers.withFlags(
@@ -837,7 +837,7 @@ class FunctionSignature {
     }
   }
 
-  int get parameterCount() => requiredParameterCount + optionalParameterCount;
+  int get parameterCount => requiredParameterCount + optionalParameterCount;
 }
 
 class FunctionElement extends Element {
@@ -892,7 +892,7 @@ class FunctionElement extends Element {
     defaultImplementation = this;
   }
 
-  bool get isPatched() => patch !== null;
+  bool get isPatched => patch !== null;
 
   /**
    * Applies a patch function to this function. The patch function's body
@@ -1104,9 +1104,9 @@ class ClassElement extends ScopeContainerElement
     return type;
   }
 
-  bool get isPatched() => patch != null;
+  bool get isPatched => patch != null;
 
-  Link<Type> get typeVariables() => type.arguments;
+  Link<Type> get typeVariables => type.arguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -1246,7 +1246,7 @@ class ClassElement extends ScopeContainerElement
     return result;
   }
 
-  bool get hasConstructor() {
+  bool get hasConstructor {
     // Search in scope to be sure we search patched constructors.
     for (var element in localScope.getValues()) {
       if (element.isConstructor()) return true;
@@ -1254,7 +1254,7 @@ class ClassElement extends ScopeContainerElement
     return false;
   }
 
-  Link<Element> get constructors() {
+  Link<Element> get constructors {
     // TODO(ajohnsen): See if we can avoid this method at some point.
     Link<Element> result = const EmptyLink<Element>();
     for (Element member in localMembers) {
@@ -1268,7 +1268,7 @@ class ClassElement extends ScopeContainerElement
    *
    * The returned element may not be resolved yet.
    */
-  ClassElement get superclass() {
+  ClassElement get superclass {
     assert(supertypeLoadState == STATE_DONE);
     return supertype === null ? null : supertype.element;
   }
@@ -1357,7 +1357,7 @@ class ClassElement extends ScopeContainerElement
     listener.internalErrorOnElement(this, 'unsupported operation');
   }
 
-  Link<Type> get allSupertypesAndSelf() {
+  Link<Type> get allSupertypesAndSelf {
     return allSupertypes.prepend(new InterfaceType(this));
   }
 }
@@ -1508,7 +1508,7 @@ class LabelElement extends Element {
     target.isContinueTarget = true;
   }
 
-  bool get isTarget() => isBreakTarget || isContinueTarget;
+  bool get isTarget => isBreakTarget || isContinueTarget;
   Node parseNode(DiagnosticListener l) => label;
 
   Token position() => label.getBeginToken();
@@ -1526,7 +1526,7 @@ class TargetElement extends Element {
 
   TargetElement(this.statement, this.nestingLevel, Element enclosingElement)
       : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
-  bool get isTarget() => isBreakTarget || isContinueTarget;
+  bool get isTarget => isBreakTarget || isContinueTarget;
 
   LabelElement addLabel(Label label, String labelName) {
     LabelElement result = new LabelElement(label, labelName, this,
@@ -1537,7 +1537,7 @@ class TargetElement extends Element {
 
   Node parseNode(DiagnosticListener l) => statement;
 
-  bool get isSwitch() => statement is SwitchStatement;
+  bool get isSwitch => statement is SwitchStatement;
 
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();

@@ -102,7 +102,7 @@ class Token {
 
   Token(PrecedenceInfo this.info, int this.charOffset);
 
-  get value() => info.value;
+  get value => info.value;
 
   /**
    * Returns the string value for keywords and symbols. For instance 'class' for
@@ -112,17 +112,17 @@ class Token {
    *
    * [stringValue] should only be used for testing keywords and symbols.
    */
-  String get stringValue() => info.value.stringValue;
+  String get stringValue => info.value.stringValue;
 
   /**
    * The kind enum of this token as determined by its [info].
    */
-  int get kind() => info.kind;
+  int get kind => info.kind;
 
   /**
    * The precedence level for this token.
    */
-  int get precedence() => info.precedence;
+  int get precedence => info.precedence;
 
   /**
    * Returns a textual representation of this token to be used for debugging
@@ -140,7 +140,7 @@ class Token {
   /**
    * The number of characters parsed by this token.
    */
-  int get slowCharCount() => slowToString().length;
+  int get slowCharCount => slowToString().length;
 }
 
 /**
@@ -148,7 +148,7 @@ class Token {
  */
 class KeywordToken extends Token {
   final Keyword value;
-  String get stringValue() => value.syntax;
+  String get stringValue => value.syntax;
 
   KeywordToken(Keyword value, int charOffset)
     : this.value = value, super(value.info, charOffset);
@@ -161,7 +161,7 @@ class KeywordToken extends Token {
  */
 class StringToken extends Token {
   final SourceString value;
-  String get stringValue() => value.stringValue;
+  String get stringValue => value.stringValue;
 
   StringToken(PrecedenceInfo info, String value, int charOffset)
     : this.fromSource(info, new SourceString(value), charOffset);

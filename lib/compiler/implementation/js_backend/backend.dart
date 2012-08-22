@@ -62,7 +62,7 @@ class InvocationInfo {
       compiledFunctions.add(function);
 
   void clearTypeInformation() { providedTypes = null; }
-  bool get hasTypeInformation() => providedTypes != null;
+  bool get hasTypeInformation => providedTypes != null;
 
 }
 
@@ -118,7 +118,7 @@ class JavaScriptBackend extends Backend {
 
   final List<Element> invalidateAfterCodegen;
 
-  List<CompilerTask> get tasks() {
+  List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 

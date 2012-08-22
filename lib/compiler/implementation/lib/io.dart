@@ -76,23 +76,23 @@ class _File {
 }
 
 class _Platform {
-  static int get numberOfProcessors() {
+  static int get numberOfProcessors {
     throw new UnsupportedOperationException('_Platform.numberOfProcessors');
   }
 
-  static String get pathSeparator() {
+  static String get pathSeparator {
     throw new UnsupportedOperationException('_Platform.pathSeparator');
   }
 
-  static String get operatingSystem() {
+  static String get operatingSystem {
     throw new UnsupportedOperationException('_Platform.operatingSystem');
   }
 
-  static String get localHostname() {
+  static String get localHostname {
     throw new UnsupportedOperationException('_Platform.localHostname');
   }
 
-  static Map<String, String> get environment() {
+  static Map<String, String> get environment {
     throw new UnsupportedOperationException('_Platform.environment');
   }
 }
@@ -157,7 +157,7 @@ class _EventHandler {
     throw new UnsupportedOperationException(msg);
   }
 
-  static _EventHandler get _eventHandler() {
+  static _EventHandler get _eventHandler {
     throw new UnsupportedOperationException('_EventHandler._eventhandler');
   }
 

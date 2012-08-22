@@ -95,7 +95,7 @@ interface PatchListener extends Listener {
 class PatchParser extends PartialParser {
   PatchParser(PatchListener listener) : super(listener);
 
-  PatchListener get patchListener() => listener;
+  PatchListener get patchListener => listener;
 
   bool isPatch(Token token) {
     return token.stringValue === null &&

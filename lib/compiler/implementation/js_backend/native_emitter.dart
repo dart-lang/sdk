@@ -47,46 +47,46 @@ class NativeEmitter {
         redirectingMethods = new Map<FunctionElement, String>(),
         nativeBuffer = new CodeBuffer();
 
-  Compiler get compiler() => emitter.compiler;
+  Compiler get compiler => emitter.compiler;
 
   void addRedirectingMethod(FunctionElement element, String name) {
     redirectingMethods[element] = name;
   }
 
-  String get dynamicName() {
+  String get dynamicName {
     Element element = compiler.findHelper(
         const SourceString('dynamicFunction'));
     return compiler.namer.isolateAccess(element);
   }
 
-  String get dynamicSetMetadataName() {
+  String get dynamicSetMetadataName {
     Element element = compiler.findHelper(
         const SourceString('dynamicSetMetadata'));
     return compiler.namer.isolateAccess(element);
   }
 
-  String get typeNameOfName() {
+  String get typeNameOfName {
     Element element = compiler.findHelper(
         const SourceString('getTypeNameOf'));
     return compiler.namer.isolateAccess(element);
   }
 
-  String get defPropName() {
+  String get defPropName {
     Element element = compiler.findHelper(
         const SourceString('defineProperty'));
     return compiler.namer.isolateAccess(element);
   }
 
-  String get toStringHelperName() {
+  String get toStringHelperName {
     Element element = compiler.findHelper(
         const SourceString('toStringForNativeObject'));
     return compiler.namer.isolateAccess(element);
   }
 
-  String get defineNativeClassName()
+  String get defineNativeClassName
       => '${compiler.namer.CURRENT_ISOLATE}.\$defineNativeClass';
 
-  String get defineNativeClassFunction() {
+  String get defineNativeClassFunction {
     return """
 function(cls, fields, methods) {
   var generateGetterSetter = ${emitter.generateGetterSetterFunction};

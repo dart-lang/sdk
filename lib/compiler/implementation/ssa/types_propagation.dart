@@ -10,7 +10,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   final HTypeMap types;
 
   final Compiler compiler;
-  String get name() => 'type propagator';
+  String get name => 'type propagator';
 
   SsaTypePropagator(this.compiler, this.types)
       : workmap = new Map<int, HInstruction>(),

@@ -196,7 +196,7 @@ class If extends Statement {
   If(this.condition, this.then, this.otherwise);
   If.then(this.condition, this.then) : this.otherwise = new EmptyStatement();
 
-  bool get hasElse() => otherwise is !EmptyStatement;
+  bool get hasElse => otherwise is !EmptyStatement;
 
   accept(NodeVisitor visitor) => visitor.visitIf(this);
 
@@ -444,7 +444,7 @@ class LiteralExpression extends Expression {
 
   // Code that uses JS must take care of operator precedences, and
   // put parenthesis if needed.
-  int get precedenceLevel() => PRIMARY;
+  int get precedenceLevel => PRIMARY;
 }
 
 /**
@@ -464,7 +464,7 @@ class VariableDeclarationList extends Expression {
     }
   }
 
-  int get precedenceLevel() => EXPRESSION;
+  int get precedenceLevel => EXPRESSION;
 }
 
 class Sequence extends Expression {
@@ -478,7 +478,7 @@ class Sequence extends Expression {
     for (Expression expr in expressions) expr.accept(visitor);
   }
 
-  int get precedenceLevel() => EXPRESSION;
+  int get precedenceLevel => EXPRESSION;
 }
 
 class Assignment extends Expression {
@@ -491,10 +491,10 @@ class Assignment extends Expression {
   Assignment.compound(this.leftHandSide, String op, this.value)
       : compoundTarget = new VariableUse(op);
 
-  int get precedenceLevel() => ASSIGNMENT;
+  int get precedenceLevel => ASSIGNMENT;
 
-  bool get isCompound() => compoundTarget != null;
-  String get op() => compoundTarget == null ? null : compoundTarget.name;
+  bool get isCompound => compoundTarget != null;
+  String get op => compoundTarget == null ? null : compoundTarget.name;
 
   accept(NodeVisitor visitor) => visitor.visitAssignment(this);
 
@@ -510,7 +510,7 @@ class VariableInitialization extends Assignment {
   VariableInitialization(VariableDeclaration declaration, Expression value)
       : super(declaration, value);
 
-  VariableDeclaration get declaration() => leftHandSide;
+  VariableDeclaration get declaration => leftHandSide;
 
   accept(NodeVisitor visitor) => visitor.visitVariableInitialization(this);
 }
@@ -530,7 +530,7 @@ class Conditional extends Expression {
     otherwise.accept(visitor);
   }
 
-  int get precedenceLevel() => ASSIGNMENT;
+  int get precedenceLevel => ASSIGNMENT;
 }
 
 class Call extends Expression {
@@ -546,7 +546,7 @@ class Call extends Expression {
     for (Expression arg in arguments) arg.accept(visitor);
   }
 
-  int get precedenceLevel() => CALL;
+  int get precedenceLevel => CALL;
 }
 
 class New extends Call {
@@ -559,17 +559,17 @@ class Binary extends Call {
   Binary(String op, Expression left, Expression right)
       : super(new VariableUse(op), <Expression>[left, right]);
 
-  String get op() {
+  String get op {
     VariableUse use = target;
     return use.name;
   }
 
-  Expression get left() => arguments[0];
-  Expression get right() => arguments[1];
+  Expression get left => arguments[0];
+  Expression get right => arguments[1];
 
   accept(NodeVisitor visitor) => visitor.visitBinary(this);
 
-  int get precedenceLevel() {
+  int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
       case "*":
@@ -616,24 +616,24 @@ class Prefix extends Call {
   Prefix(String op, Expression arg)
       : super(new VariableUse(op), <Expression>[arg]);
 
-  String get op() => (target as VariableUse).name;
-  Expression get argument() => arguments[0];
+  String get op => (target as VariableUse).name;
+  Expression get argument => arguments[0];
 
   accept(NodeVisitor visitor) => visitor.visitPrefix(this);
 
-  int get precedenceLevel() => UNARY;
+  int get precedenceLevel => UNARY;
 }
 
 class Postfix extends Call {
   Postfix(String op, Expression arg)
       : super(new VariableUse(op), <Expression>[arg]);
 
-  String get op() => (target as VariableUse).name;
-  Expression get argument() => arguments[0];
+  String get op => (target as VariableUse).name;
+  Expression get argument => arguments[0];
 
   accept(NodeVisitor visitor) => visitor.visitPostfix(this);
 
-  int get precedenceLevel() => UNARY;
+  int get precedenceLevel => UNARY;
 }
 
 abstract class VariableReference extends Expression {
@@ -644,7 +644,7 @@ abstract class VariableReference extends Expression {
   VariableReference(this.name);
 
   abstract accept(NodeVisitor visitor);
-  int get precedenceLevel() => PRIMARY;
+  int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
 }
 
@@ -685,7 +685,7 @@ class NamedFunction extends Expression {
     function.accept(visitor);
   }
 
-  int get precedenceLevel() => CALL;
+  int get precedenceLevel => CALL;
 }
 
 class Fun extends Expression {
@@ -701,7 +701,7 @@ class Fun extends Expression {
     body.accept(visitor);
   }
 
-  int get precedenceLevel() => CALL;
+  int get precedenceLevel => CALL;
 }
 
 class PropertyAccess extends Expression {
@@ -719,13 +719,13 @@ class PropertyAccess extends Expression {
     selector.accept(visitor);
   }
 
-  int get precedenceLevel() => CALL;
+  int get precedenceLevel => CALL;
 }
 
 abstract class Literal extends Expression {
   void visitChildren(NodeVisitor visitor) {}
 
-  int get precedenceLevel() => PRIMARY;
+  int get precedenceLevel => PRIMARY;
 }
 
 class LiteralBool extends Literal {
@@ -773,7 +773,7 @@ class ArrayInitializer extends Expression {
     for (ArrayElement element in elements) element.accept(visitor);
   }
 
-  int get precedenceLevel() => PRIMARY;
+  int get precedenceLevel => PRIMARY;
 }
 
 /**
@@ -804,7 +804,7 @@ class ObjectInitializer extends Expression {
     for (Property init in properties) init.accept(visitor);
   }
 
-  int get precedenceLevel() => PRIMARY;
+  int get precedenceLevel => PRIMARY;
 }
 
 class Property extends Node {
@@ -835,5 +835,5 @@ class RegExpLiteral extends Expression {
   accept(NodeVisitor visitor) => visitor.visitRegExpLiteral(this);
   void visitChildren(NodeVisitor visitor) {}
 
-  int get precedenceLevel() => PRIMARY;
+  int get precedenceLevel => PRIMARY;
 }

@@ -62,7 +62,7 @@ class NullConstant extends PrimitiveConstant {
   factory NullConstant() => const NullConstant._internal();
   const NullConstant._internal();
   bool isNull() => true;
-  get value() => null;
+  get value => null;
 
   void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add(JsNull);
@@ -254,7 +254,7 @@ class StringConstant extends PrimitiveConstant {
 
   int hashCode() => _hashCode;
   DartString toDartString() => value;
-  int get length() => value.length;
+  int get length => value.length;
 }
 
 class ObjectConstant extends Constant {
@@ -314,7 +314,7 @@ class ListConstant extends ObjectConstant {
 
   List<Constant> getDependencies() => entries;
 
-  int get length() => entries.length;
+  int get length => entries.length;
 }
 
 class MapConstant extends ObjectConstant {
@@ -427,7 +427,7 @@ class MapConstant extends ObjectConstant {
     return result;
   }
 
-  int get length() => keys.length;
+  int get length => keys.length;
 }
 
 class ConstructedConstant extends ObjectConstant {
@@ -496,7 +496,7 @@ class ConstantHandler extends CompilerTask {
         compiledConstants = new Map<Constant, String>(),
         pendingVariables = new Set<VariableElement>(),
         super(compiler);
-  String get name() => 'ConstantHandler';
+  String get name => 'ConstantHandler';
 
   void registerCompileTimeConstant(Constant constant) {
     Function ifAbsentThunk = (() => compiler.namer.getFreshGlobalName("CTC"));

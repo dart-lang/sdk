@@ -97,7 +97,7 @@ void _fillStatics(context) native @"""
 """;
 
 ReceivePort _lazyPort;
-patch ReceivePort get port() {
+patch ReceivePort get port {
   if (_lazyPort === null) {
     _lazyPort = new ReceivePort();
   }
@@ -155,14 +155,14 @@ class _Manager {
    * Whether to use web workers when implementing isolates. Set to false for
    * debugging/testing.
    */
-  bool get useWorkers() => supportsWorkers;
+  bool get useWorkers => supportsWorkers;
 
   /**
    * Whether to use the web-worker JSON-based message serialization protocol. By
    * default this is only used with web workers. For debugging, you can force
    * using this protocol by changing this field value to [true].
    */
-  bool get needSerialization() => useWorkers;
+  bool get needSerialization => useWorkers;
 
   /**
    * Registry of isolates. Isolates must be registered if, and only if, receive
@@ -377,7 +377,7 @@ interface _ManagerStub {
 
 /** A stub for interacting with the main manager. */
 class _MainManagerStub implements _ManagerStub {
-  get id() => 0;
+  get id => 0;
   void set id(int i) { throw new NotImplementedException(); }
   void set onmessage(f) {
     throw new Exception("onmessage should not be set on MainManagerStub");
@@ -1035,7 +1035,7 @@ class _Window native "@*DOMWindow" {
   int setInterval(_TimeoutHandler handler, int timeout) native;
 }
 
-_Window get _window() =>
+_Window get _window =>
   JS('bool', 'typeof window != "undefined"') ? JS('_Window', 'window') : null;
 
 class _Timer implements Timer {

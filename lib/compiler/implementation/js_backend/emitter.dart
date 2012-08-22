@@ -48,26 +48,26 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
   }
 
-  String get name() => 'CodeEmitter';
+  String get name => 'CodeEmitter';
 
-  String get defineClassName()
+  String get defineClassName
       => '${namer.ISOLATE}.\$defineClass';
-  String get finishClassesName()
+  String get finishClassesName
       => '${namer.ISOLATE}.\$finishClasses';
-  String get finishIsolateConstructorName()
+  String get finishIsolateConstructorName
       => '${namer.ISOLATE}.\$finishIsolateConstructor';
-  String get pendingClassesName()
+  String get pendingClassesName
       => '${namer.ISOLATE}.\$pendingClasses';
-  String get isolatePropertiesName()
+  String get isolatePropertiesName
       => '${namer.ISOLATE}.${namer.ISOLATE_PROPERTIES}';
-  String get supportsProtoName()
+  String get supportsProtoName
       => 'supportsProto';
 
   final String GETTER_SUFFIX = "?";
   final String SETTER_SUFFIX = "!";
   final String GETTER_SETTER_SUFFIX = "=";
 
-  String get generateGetterSetterFunction() {
+  String get generateGetterSetterFunction {
     return """
 function(field, prototype) {
   var len = field.length;
@@ -89,7 +89,7 @@ function(field, prototype) {
 }""";
   }
 
-  String get defineClassFunction() {
+  String get defineClassFunction {
     // First the class name, then the super class name, followed by the fields
     // (in an array) and the members (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -129,7 +129,7 @@ function(cls, fields, prototype) {
   }
 
   /** Needs defineClass to be defined. */
-  String get protoSupportCheck() {
+  String get protoSupportCheck {
     // On Firefox and Webkit browsers we can manipulate the __proto__
     // directly. Opera claims to have __proto__ support, but it is buggy.
     // So we have to do more checks.
@@ -147,7 +147,7 @@ if (tmp.__proto__) {
 ''';
   }
 
-  String get finishClassesFunction() {
+  String get finishClassesFunction {
     // 'defineClass' does not require the classes to be constructed in order.
     // Classes are initially just stored in the 'pendingClasses' field.
     // 'finishClasses' takes all pending classes and sets up the prototype.
@@ -208,7 +208,7 @@ function(collectedClasses) {
 }''';
   }
 
-  String get finishIsolateConstructorFunction() {
+  String get finishIsolateConstructorFunction {
     String isolate = namer.ISOLATE;
     // We replace the old Isolate function with a new one that initializes
     // all its field with the initial (and often final) value of all globals.
@@ -712,7 +712,7 @@ function(collectedClasses) {
     //
     // class A {
     //    foo(x, y, z) { ... } // Original function.
-    //    get foo() { return new BoundClosure499(this, "foo"); }
+    //    get foo { return new BoundClosure499(this, "foo"); }
     // }
     // class BoundClosure499 extends Closure {
     //   var self;

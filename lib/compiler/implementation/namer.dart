@@ -9,7 +9,7 @@ class Namer {
   final Compiler compiler;
 
   static Set<String> _jsReserved = null;
-  Set<String> get jsReserved() {
+  Set<String> get jsReserved {
     if (_jsReserved === null) {
       _jsReserved = new Set<String>();
       _jsReserved.addAll(JsNames.javaScriptKeywords);

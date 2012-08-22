@@ -7,8 +7,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
   SsaCodeGeneratorTask(JavaScriptBackend backend)
       : this.backend = backend,
         super(backend.compiler);
-  String get name() => 'SSA code generator';
-  NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
+  String get name => 'SSA code generator';
+  NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
 
   js.Fun buildJavaScriptFunction(FunctionElement element,
@@ -149,7 +149,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Map<Element, String> parameterNames;
 
   js.Block currentContainer;
-  js.Block get body() => currentContainer;
+  js.Block get body => currentContainer;
   List<js.Expression> expressionStack;
   List<js.Block> oldContainerStack;
 
@@ -199,10 +199,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>();
 
-  LibraryElement get currentLibrary() => work.element.getLibrary();
-  Compiler get compiler() => backend.compiler;
-  NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
-  Enqueuer get world() => backend.compiler.enqueuer.codegen;
+  LibraryElement get currentLibrary => work.element.getLibrary();
+  Compiler get compiler => backend.compiler;
+  NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
+  Enqueuer get world => backend.compiler.enqueuer.codegen;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);

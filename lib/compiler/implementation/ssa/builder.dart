@@ -139,7 +139,7 @@ class SsaBuilderTask extends CompilerTask {
   final Map<SourceString, Selector> selectorsCalledInLoop;
   final JavaScriptBackend backend;
 
-  String get name() => 'SSA builder';
+  String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend)
     : interceptors = new Interceptors(backend.compiler),
@@ -230,7 +230,7 @@ class LocalsHandler {
       : directLocals = new Map<Element, HInstruction>(),
         redirectionMapping = new Map<Element, Element>();
 
-  get typesTask() => builder.compiler.typesTask;
+  get typesTask => builder.compiler.typesTask;
 
   /**
    * Creates a new [LocalsHandler] based on [other]. We only need to
@@ -823,9 +823,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // block is closed.
   HBasicBlock lastOpenedBlock;
 
-  LibraryElement get currentLibrary() => work.element.getLibrary();
-  Compiler get compiler() => builder.compiler;
-  CodeEmitterTask get emitter() => builder.emitter;
+  LibraryElement get currentLibrary => work.element.getLibrary();
+  Compiler get compiler => builder.compiler;
+  CodeEmitterTask get emitter => builder.emitter;
 
   SsaBuilder(SsaBuilderTask builder, WorkItem work)
     : this.builder = builder,
@@ -3438,7 +3438,7 @@ class SsaBranchBuilder {
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 
-  Compiler get compiler() => builder.compiler;
+  Compiler get compiler => builder.compiler;
 
   void checkNotAborted() {
     if (builder.isAborted()) {

@@ -155,7 +155,7 @@ class JsNames {
 
   static Set<String> _reserved;
 
-  static Set<String> get reserved() {
+  static Set<String> get reserved {
     if (_reserved === null) {
       _reserved = new Set<String>();
       _reserved.addAll(reservedPropertySymbols);

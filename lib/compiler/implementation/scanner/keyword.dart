@@ -110,7 +110,7 @@ class Keyword implements SourceString {
   final PrecedenceInfo info;
 
   static Map<String, Keyword> _keywords;
-  static Map<String, Keyword> get keywords() {
+  static Map<String, Keyword> get keywords {
     if (_keywords === null) {
       _keywords = computeKeywordMap();
     }
@@ -143,7 +143,7 @@ class Keyword implements SourceString {
 
   String toString() => syntax;
   String slowToString() => syntax;
-  String get stringValue() => syntax;
+  String get stringValue => syntax;
 
   SourceString copyWithoutQuotes(int initial, int terminal) {
     // TODO(lrn): consider remodelling to avoid having this method in keywords.
@@ -163,7 +163,7 @@ class KeywordState {
   abstract Keyword get keyword();
 
   static KeywordState _KEYWORD_STATE;
-  static KeywordState get KEYWORD_STATE() {
+  static KeywordState get KEYWORD_STATE {
     if (_KEYWORD_STATE === null) {
       List<String> strings = new List<String>(Keyword.values.length);
       for (int i = 0; i < Keyword.values.length; i++) {

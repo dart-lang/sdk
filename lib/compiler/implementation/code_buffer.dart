@@ -11,7 +11,7 @@ class CodeBuffer implements StringBuffer {
       : buffer = new StringBuffer(),
         sourceLocations = new List<SourceLocation>();
 
-  int get length() => buffer.length;
+  int get length => buffer.length;
 
   bool isEmpty() {
     return buffer.isEmpty();

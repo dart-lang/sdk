@@ -38,7 +38,7 @@ class TreeElementMapping implements TreeElements {
 class ResolverTask extends CompilerTask {
   ResolverTask(Compiler compiler) : super(compiler);
 
-  String get name() => 'Resolver';
+  String get name => 'Resolver';
 
   TreeElements resolve(Element element) {
     return measure(() {
@@ -684,7 +684,7 @@ class SwitchLabelScope implements LabelScope {
 class EmptyLabelScope implements LabelScope {
   const EmptyLabelScope();
   LabelElement lookup(String label) => null;
-  LabelScope get outer() {
+  LabelScope get outer {
     throw 'internal error: empty label scope has no outer';
   }
 }
@@ -909,7 +909,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       super(compiler) {
   }
 
-  Enqueuer get world() => compiler.enqueuer.resolution;
+  Enqueuer get world => compiler.enqueuer.resolution;
 
   Element lookup(Node node, SourceString name) {
     Element result = scope.lookup(name);
@@ -1820,7 +1820,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
 }
 
 class TypedefResolverVisitor extends TypeDefinitionVisitor {
-  TypedefElement get element() => super.element;
+  TypedefElement get element => super.element;
 
   TypedefResolverVisitor(Compiler compiler, TypedefElement typedefElement)
       : super(compiler, typedefElement);
@@ -1853,7 +1853,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
  * types.
  */
 class ClassResolverVisitor extends TypeDefinitionVisitor {
-  ClassElement get element() => super.element;
+  ClassElement get element => super.element;
 
   ClassResolverVisitor(Compiler compiler, ClassElement classElement)
     : super(compiler, classElement);
@@ -2312,7 +2312,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   // TODO(ahe): This is temporary.
-  ClassElement get currentClass() {
+  ClassElement get currentClass {
     return enclosingElement.isMember()
       ? enclosingElement.getEnclosingClass() : null;
   }
@@ -2428,7 +2428,7 @@ class Scope {
  * class hierarchy. In all other cases [ClassScope] is used.
  */
 class TypeDeclarationScope extends Scope {
-  TypeDeclarationElement get element() => super.element;
+  TypeDeclarationElement get element => super.element;
 
   TypeDeclarationScope(parent, TypeDeclarationElement element)
       : super(parent, element) {
@@ -2521,7 +2521,7 @@ class ClassScope extends TypeDeclarationScope {
 }
 
 class TopScope extends Scope {
-  LibraryElement get library() => element;
+  LibraryElement get library => element;
 
   TopScope(LibraryElement library) : super(null, library);
   Element lookup(SourceString name) {

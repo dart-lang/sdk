@@ -21,7 +21,7 @@ class SourceFile {
 
   SourceFile(this.filename, this.text);
 
-  List<int> get lineStarts() {
+  List<int> get lineStarts {
     if (_lineStarts == null) {
       var starts = [0];
       var index = 0;

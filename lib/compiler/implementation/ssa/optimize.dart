@@ -12,8 +12,8 @@ class SsaOptimizerTask extends CompilerTask {
   SsaOptimizerTask(JavaScriptBackend backend)
     : this.backend = backend,
       super(backend.compiler);
-  String get name() => 'SSA optimizer';
-  Compiler get compiler() => backend.compiler;
+  String get name => 'SSA optimizer';
+  Compiler get compiler => backend.compiler;
 
   void runPhases(HGraph graph, List<OptimizationPhase> phases) {
     for (OptimizationPhase phase in phases) {
@@ -108,7 +108,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final WorkItem work;
   final HTypeMap types;
   HGraph graph;
-  Compiler get compiler() => backend.compiler;
+  Compiler get compiler => backend.compiler;
 
   SsaConstantFolder(this.backend, this.work, this.types);
 
@@ -1188,7 +1188,7 @@ class BaseRecompilationVisitor extends HBaseVisitor {
   final JavaScriptBackend backend;
   final WorkItem work;
   final HTypeMap types;
-  Compiler get compiler() => backend.compiler;
+  Compiler get compiler => backend.compiler;
 
   BaseRecompilationVisitor(this.backend, this.work, this.types);
 

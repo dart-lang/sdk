@@ -6,7 +6,7 @@ class EnqueueTask extends CompilerTask {
   final Enqueuer codegen;
   final Enqueuer resolution;
 
-  String get name() => 'Enqueue';
+  String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
     : codegen = new Enqueuer(compiler,
@@ -36,7 +36,7 @@ class RecompilationQueue {
     queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
   }
 
-  int get length() => queue.length;
+  int get length => queue.length;
 
   bool isEmpty() => queue.isEmpty();
 
@@ -72,7 +72,7 @@ class Enqueuer {
       recompilationCandidates =
           new RecompilationQueue(itemCompilationContextCreator);
 
-  bool get isResolutionQueue() => compiler.enqueuer.resolution === this;
+  bool get isResolutionQueue => compiler.enqueuer.resolution === this;
 
   TreeElements getCachedElements(Element element) {
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();

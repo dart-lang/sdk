@@ -10,6 +10,6 @@ class Script {
   final Uri uri;
   Script(this.uri, this.file);
 
-  String get text() => (file === null) ? null : file.text;
-  String get name() => (file === null) ? null : file.filename;
+  String get text => (file === null) ? null : file.text;
+  String get name => (file === null) ? null : file.filename;
 }

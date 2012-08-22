@@ -104,7 +104,7 @@ class Compiler implements DiagnosticListener {
    */
   ClassElement jsIndexingBehaviorInterface;
 
-  Element get currentElement() => _currentElement;
+  Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
     Element old = currentElement;
     _currentElement = element;
@@ -192,8 +192,8 @@ class Compiler implements DiagnosticListener {
     tasks.addAll(backend.tasks);
   }
 
-  Universe get resolverWorld() => enqueuer.resolution.universe;
-  Universe get codegenWorld() => enqueuer.codegen.universe;
+  Universe get resolverWorld => enqueuer.resolution.universe;
+  Universe get codegenWorld => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -826,7 +826,7 @@ class Compiler implements DiagnosticListener {
     unimplemented('Compiler.readScript');
   }
 
-  String get legDirectory() {
+  String get legDirectory {
     unimplemented('Compiler.legDirectory');
   }
 
@@ -835,7 +835,7 @@ class Compiler implements DiagnosticListener {
   Element findInterceptor(SourceString name)
       => interceptorsLibrary.findLocal(name);
 
-  bool get isMockCompilation() => false;
+  bool get isMockCompilation => false;
 }
 
 class CompilerTask {
@@ -844,8 +844,8 @@ class CompilerTask {
 
   CompilerTask(this.compiler) : watch = new Stopwatch();
 
-  String get name() => 'Unknown task';
-  int get timing() => watch.elapsedInMs();
+  String get name => 'Unknown task';
+  int get timing => watch.elapsedInMs();
 
   measure(Function action) {
     // TODO(kasperl): Do we have to worry about exceptions here?

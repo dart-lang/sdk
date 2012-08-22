@@ -4,7 +4,7 @@
 
 class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);
-  String get name() => 'Scanner';
+  String get name => 'Scanner';
 
   void scanLibrary(LibraryElement library) {
     var compilationUnit = library.entryCompilationUnit;

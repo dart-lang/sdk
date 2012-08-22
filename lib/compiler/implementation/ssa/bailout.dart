@@ -106,7 +106,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     return type.isPrimitive() && !type.isNull();
   }
 
-  bool get hasTypeGuards() => work.guards.length != 0;
+  bool get hasTypeGuards => work.guards.length != 0;
 
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
