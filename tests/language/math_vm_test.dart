@@ -4,6 +4,8 @@
 // Tests that the VM does not crash on weird corner cases of class Math.
 // VMOptions=--optimization_counter_threshold=100
 
+#import('dart:math');
+
 class FakeNumber {
   const FakeNumber();
   void toDouble() {}
@@ -12,7 +14,7 @@ class FakeNumber {
 class MathTest {
   static bool testParseInt(x) {
     try {
-      Math.parseInt(x);  // Expects string.
+      parseInt(x);  // Expects string.
       return true;
     } catch (var e) {
       return false;
@@ -21,7 +23,7 @@ class MathTest {
 
   static bool testSqrt(x) {
     try {
-      Math.sqrt(x);  // Expects number.
+      sqrt(x);  // Expects number.
       return true;
     } catch (var e) {
       return false;

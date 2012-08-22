@@ -4,6 +4,7 @@
 
 #library('dart:uri');
 
+#import('dart:math');
 #import('dart:utf');
 
 #source('encode_decode.dart');
@@ -45,7 +46,7 @@ class Uri {
 
   static int _parseIntOrZero(String val) {
     if (val !== null && val != '') {
-      return Math.parseInt(val);
+      return parseInt(val);
     } else {
       return 0;
     }

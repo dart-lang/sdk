@@ -18,7 +18,6 @@
     'hashable.dart',
     'iterable.dart',
     'iterator.dart',
-    'math.dart',
     'map.dart',
     'list.dart',
     'num.dart',

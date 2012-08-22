@@ -4,6 +4,8 @@
 
 #library('yaml_test');
 
+#import('dart:math');
+
 #import('../../../pkg/unittest/unittest.dart');
 #import('../../pub/yaml/yaml.dart');
 #import('../../pub/yaml/deep_equals.dart');
@@ -34,8 +36,8 @@ expectYamlStreamLoads(List expected, String source) {
 }
 
 main() {
-  var infinity = Math.parseDouble("Infinity");
-  var nan = Math.parseDouble("NaN");
+  var infinity = parseDouble("Infinity");
+  var nan = parseDouble("NaN");
 
   group('YamlMap', () {
     group('accepts as a key', () {

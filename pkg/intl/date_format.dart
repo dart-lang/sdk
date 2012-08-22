@@ -156,6 +156,8 @@
 
 #library('date_format');
 
+#import('dart:math');
+
 #import('intl.dart');
 #import('date_time_patterns.dart');
 #import('date_symbols.dart');

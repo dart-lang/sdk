@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,18 +6,11 @@
 // class. This can easily be simplified once we get rid of the Math
 // class entirely.
 #library('math_parse_double_test');
-#import('dart:math', prefix: 'math');
 
-double parseDouble(String string) {
-  num x = Math.parseDouble(string);
-  num y = math.parseDouble(string);
-  Expect.equals(x, y);
-  return x;
-}
+#import('dart:math');
 
 void parseDoubleThrowsFormatException(str) {
-  Expect.throws(() => Math.parseDouble(str), (e) => e is FormatException);
-  Expect.throws(() => math.parseDouble(str), (e) => e is FormatException);
+  Expect.throws(() => parseDouble(str), (e) => e is FormatException);
 }
 
 void main() {

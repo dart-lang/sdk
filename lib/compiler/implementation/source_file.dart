@@ -4,6 +4,8 @@
 
 #library('source_file');
 
+#import('dart:math');
+
 #import('colors.dart', prefix: 'colors');
 
 /**
@@ -71,7 +73,7 @@ class SourceFile {
         textLine = '${text.substring(_lineStarts[line])}\n';
       }
 
-      int toColumn = Math.min(column + (end-start), textLine.length);
+      int toColumn = min(column + (end-start), textLine.length);
       buf.add(textLine.substring(0, column));
       buf.add(color(textLine.substring(column, toColumn)));
       buf.add(textLine.substring(toColumn));

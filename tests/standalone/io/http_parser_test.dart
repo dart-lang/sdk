@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import('dart:math');
+
 #source("../../../runtime/bin/http_parser.dart");
 
 class HttpParserTest {
@@ -81,7 +83,7 @@ class HttpParserTest {
       int unparsed;
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int remaining = requestData.length - pos;
-        int writeLength = Math.min(chunkSize, remaining);
+        int writeLength = min(chunkSize, remaining);
         written += writeLength;
         int parsed = httpParser.writeList(requestData, pos, writeLength);
         unparsed = writeLength - parsed;
@@ -132,7 +134,7 @@ class HttpParserTest {
       reset();
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int remaining = requestData.length - pos;
-        int writeLength = Math.min(chunkSize, remaining);
+        int writeLength = min(chunkSize, remaining);
         httpParser.writeList(requestData, pos, writeLength);
       }
       Expect.isTrue(errorCalled);
@@ -225,7 +227,7 @@ class HttpParserTest {
       int unparsed;
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int remaining = requestData.length - pos;
-        int writeLength = Math.min(chunkSize, remaining);
+        int writeLength = min(chunkSize, remaining);
         written += writeLength;
         int parsed = httpParser.writeList(requestData, pos, writeLength);
         unparsed = writeLength - parsed;
@@ -279,7 +281,7 @@ class HttpParserTest {
       reset();
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int remaining = requestData.length - pos;
-        int writeLength = Math.min(chunkSize, remaining);
+        int writeLength = min(chunkSize, remaining);
         httpParser.writeList(requestData, pos, writeLength);
       }
       if (close) httpParser.connectionClosed();

@@ -19,6 +19,7 @@
  */
 #library("dart:io");
 #import("dart:coreimpl");
+#import("dart:math");
 #import("dart:isolate");
 // TODO(ahe): Should Leg support this library?
 // #import("dart:nativewrappers");

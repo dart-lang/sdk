@@ -180,6 +180,8 @@
  */
 #library('args');
 
+#import('dart:math');
+
 #import('utils.dart');
 
 /**
@@ -672,15 +674,15 @@ class _Usage {
       var option = args._options[name];
 
       // Make room in the first column if there are abbreviations.
-      abbr = Math.max(abbr, getAbbreviation(option).length);
+      abbr = max(abbr, getAbbreviation(option).length);
 
       // Make room for the option.
-      title = Math.max(title, getLongOption(option).length);
+      title = max(title, getLongOption(option).length);
 
       // Make room for the allowed help.
       if (option.allowedHelp != null) {
         for (var allowed in option.allowedHelp.getKeys()) {
-          title = Math.max(title, getAllowedTitle(allowed).length);
+          title = max(title, getAllowedTitle(allowed).length);
         }
       }
     }

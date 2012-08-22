@@ -4,6 +4,8 @@
 
 #library("number_format");
 
+#import('dart:math');
+
 #import("intl.dart");
 #import("number_symbols.dart");
 #import("number_symbols_data.dart");
@@ -111,15 +113,15 @@ class NumberFormat {
       return;
     }
 
-    var exponent = (Math.log(number) / Math.log(10)).floor();
-    var mantissa = number / Math.pow(10, exponent);
+    var exponent = (log(number) / log(10)).floor();
+    var mantissa = number / pow(10, exponent);
 
     if (_minimumIntegerDigits < 1) {
       exponent++;
       mantissa /= 10;
     } else {
       exponent -= _minimumIntegerDigits - 1;
-      mantissa *= Math.pow(10, _minimumIntegerDigits - 1);
+      mantissa *= pow(10, _minimumIntegerDigits - 1);
     }
     _formatFixed(number);
     _formatExponent(exponent);
@@ -144,7 +146,7 @@ class NumberFormat {
    */
   void _formatFixed(num number) {
     // Round the number.
-    var power = Math.pow(10, _maximumFractionDigits);
+    var power = pow(10, _maximumFractionDigits);
     var intValue = number.truncate().toInt();
     var multiplied = (number * power).round();
     var fracValue = (multiplied - intValue * power).floor().toInt();

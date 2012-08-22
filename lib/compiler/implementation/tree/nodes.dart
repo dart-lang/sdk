@@ -664,7 +664,7 @@ class LiteralInt extends Literal<int> {
     try {
       Token valueToken = token;
       if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
-      return Math.parseInt(valueToken.value.slowToString());
+      return parseInt(valueToken.value.slowToString());
     } catch (FormatException ex) {
       (this.handler)(token, ex);
     }
@@ -683,7 +683,7 @@ class LiteralDouble extends Literal<double> {
     try {
       Token valueToken = token;
       if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
-      return Math.parseDouble(valueToken.value.slowToString());
+      return parseDouble(valueToken.value.slowToString());
     } catch (FormatException ex) {
       (this.handler)(token, ex);
     }

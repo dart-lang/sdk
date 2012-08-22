@@ -727,6 +727,7 @@ class _WebSocketClientConnection
   }
 
   void _generateNonceAndHash() {
+    Random random = new Random();
     assert(_nonce == null);
     void intToBigEndianBytes(int value, List<int> bytes, int offset) {
       bytes[offset] = (value >> 24) & 0xFF;
@@ -738,11 +739,11 @@ class _WebSocketClientConnection
     // Generate 16 random bytes. Use the last four bytes for the hash code.
     List<int> nonce = new List<int>(16);
     for (int i = 0; i < 4; i++) {
-      int r = (Math.random() * 0x100000000).toInt();
+      int r = random.nextInt(0x100000000);
       intToBigEndianBytes(r, nonce, i * 4);
     }
     _nonce = _Base64._encode(nonce);
-    _hash = (Math.random() * 0x100000000).toInt();
+    _hash = random.nextInt(0x100000000);
   }
 
   bool _isWebSocketUpgrade(HttpClientResponse response) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import('dart:math');
+
 #source("../../../runtime/bin/http_parser.dart");
 #source("../../../runtime/bin/mime_multipart_parser.dart");
 
@@ -64,7 +66,7 @@ void testParse(String message,
     int unparsed;
     for (int pos = 0; pos < data.length; pos += chunkSize) {
       int remaining = data.length - pos;
-      int writeLength = Math.min(chunkSize, remaining);
+      int writeLength = min(chunkSize, remaining);
       written += writeLength;
       int parsed =
           parser.update(data.getRange(pos, writeLength), 0, writeLength);

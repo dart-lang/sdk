@@ -4,6 +4,8 @@
 
 #library('dart:core');
 
+#import('dart:math');
+
 #import('coreimpl.dart');
 
 #import('js_helper.dart'); // TODO(ahe): remove this import.
@@ -25,7 +27,6 @@
 #source('../../../../corelib/src/iterator.dart');
 #source('../../../../corelib/src/list.dart');
 #source('../../../../corelib/src/map.dart');
-#source('../../../../corelib/src/math.dart');
 #source('../../../../corelib/src/num.dart');
 #source('../../../../corelib/src/options.dart');
 #source('../../../../corelib/src/pattern.dart');

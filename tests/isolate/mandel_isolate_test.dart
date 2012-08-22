@@ -4,6 +4,7 @@
 
 #library('MandelIsolateTest');
 #import('dart:isolate');
+#import('dart:math');
 #import('../../pkg/unittest/unittest.dart');
 
 final TERMINATION_MESSAGE = -1;
@@ -16,7 +17,7 @@ main() {
     state._validated.future.then(expectAsync1((result) {
       expect(result, isTrue);
     }));
-    for (int i = 0; i < Math.min(ISOLATES, N); i++) state.startClient(i);
+    for (int i = 0; i < min(ISOLATES, N); i++) state.startClient(i);
   });
 }
 

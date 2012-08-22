@@ -87,7 +87,7 @@ class _Stream {
     if (contents is String) {
       result = contents.substring(
           index,
-          Math.min(index + howMany, contents.length));
+          min(index + howMany, contents.length));
     } else {
       // Assume List
       result = contents.getRange(index, howMany);
@@ -130,6 +130,6 @@ class _Stream {
     var string = digitMatcher.stringMatch(rest());
     if (string == null || string.isEmpty()) return null;
     read(string.length);
-    return Math.parseInt(string);
+    return parseInt(string);
   }
 }

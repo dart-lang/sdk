@@ -1,14 +1,17 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test program for testing stopwatch support.
 
+#library('stopwatch_test');
+#import('dart:math');
+
 class StopwatchTest {
   static bool checkTicking(Stopwatch sw) {
     sw.start();
     for (int i = 0; i < 10000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       if (sw.elapsed() > 0) {
         break;
       }
@@ -24,7 +27,7 @@ class StopwatchTest {
     sw2.start();
     int sw2LastElapsed = 0;
     for (int i = 0; i < 100000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       int v2 = sw.elapsed();
       if (v1 != v2) {
         return false;
@@ -46,7 +49,7 @@ class StopwatchTest {
     Stopwatch sw = new Stopwatch();
     sw.start();
     for (int i = 0; i < 100000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       if (sw.elapsed() > 0) {
         break;
       }
@@ -55,7 +58,7 @@ class StopwatchTest {
     int initial = sw.elapsed();
     sw.start();
     for (int i = 0; i < 100000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       if (sw.elapsed() > initial) {
         break;
       }
@@ -68,7 +71,7 @@ class StopwatchTest {
     Stopwatch sw = new Stopwatch();
     sw.start();
     for (int i = 0; i < 100000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       if (sw.elapsed() > 0) {
         break;
       }
@@ -78,14 +81,14 @@ class StopwatchTest {
     Expect.equals(0, sw.elapsed());
     sw.start();
     for (int i = 0; i < 100000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       if (sw.elapsed() > 0) {
         break;
       }
     }
     sw.reset();
     for (int i = 0; i < 100000; i++) {
-      Math.parseInt(i.toString());
+      parseInt(i.toString());
       if (sw.elapsed() > 0) {
         break;
       }

@@ -373,6 +373,7 @@ def Main(argv):
   dest_file = open(join(corelib_dest_dir, 'core_runtime.dart'), 'w')
   dest_file.write('#library("dart:core");\n')
   dest_file.write('#import("dart:coreimpl");\n')
+  dest_file.write('#import("dart:math");\n')
   for filename in corelib_sources:
     dest_file.write('#source("runtime/' + filename + '");\n')
   for filename in corelib_runtime_sources:
@@ -400,6 +401,7 @@ def Main(argv):
   # Construct lib/coreimpl/coreimpl_runtime.dart from whole cloth.
   dest_file = open(join(coreimpl_dest_dir, 'coreimpl_runtime.dart'), 'w')
   dest_file.write('#library("dart:coreimpl");\n')
+  dest_file.write('#import("dart:math");\n')
   for filename in coreimpl_sources:
     dest_file.write('#source("runtime/' + filename + '");\n')
   for filename in coreimpl_runtime_sources:

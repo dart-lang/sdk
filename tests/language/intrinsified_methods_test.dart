@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 
+#library('intrinsified_methods_test');
+#import('dart:math');
 
 testIsNegative() {
   Expect.isFalse((12.0).isNegative());
@@ -21,15 +23,15 @@ testIsNaN() {
 
 
 testTrigonometric() {
-  Expect.approxEquals(1.0, Math.sin(Math.PI / 2.0), 0.0001);
-  Expect.approxEquals(1.0, Math.cos(0), 0.0001);
-  Expect.approxEquals(1.0, Math.cos(0.0), 0.0001);
+  Expect.approxEquals(1.0, sin(PI / 2.0), 0.0001);
+  Expect.approxEquals(1.0, cos(0), 0.0001);
+  Expect.approxEquals(1.0, cos(0.0), 0.0001);
 }
 
 num foo(int n) {
   var x;
   for(var i = 0; i <= n; ++i) {
-    Expect.equals(2.0, Math.sqrt(4.0));
+    Expect.equals(2.0, sqrt(4.0));
     testIsNegative();
     testIsNaN();
     testTrigonometric();

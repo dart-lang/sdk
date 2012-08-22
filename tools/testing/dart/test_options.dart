@@ -5,6 +5,7 @@
 #library("test_options_parser");
 
 #import("dart:io");
+#import("dart:math");
 #import("drt_updater.dart");
 #import("test_suite.dart");
 
@@ -338,7 +339,7 @@ Note: currently only implemented for dart2js.''',
         configuration[spec.name] = true;
       } else if (spec.type == 'int') {
         try {
-          configuration[spec.name] = Math.parseInt(value);
+          configuration[spec.name] = parseInt(value);
         } catch (var e) {
           print('Integer value expected for int option $name');
           exit(1);

@@ -859,7 +859,6 @@ RawError* Object::Init(Isolate* isolate) {
     return error.raw();
   }
   const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
-  Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
   error = Bootstrap::Compile(math_lib, math_script);
@@ -6179,6 +6178,10 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   core_impl_lib.Register();
   core_lib.AddImport(core_impl_lib);
   core_impl_lib.AddImport(core_lib);
+  Library::InitMathLibrary(isolate);
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  core_lib.AddImport(math_lib);
+  core_impl_lib.AddImport(math_lib);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These

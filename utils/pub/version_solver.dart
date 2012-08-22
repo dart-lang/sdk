@@ -38,6 +38,7 @@
 #library('version_solver');
 
 #import('dart:json');
+#import('dart:math');
 #import('lock_file.dart');
 #import('package.dart');
 #import('pubspec.dart');
@@ -108,7 +109,7 @@ class VersionSolver {
         // TODO(rnystrom): These numbers here are magic and arbitrary. Tune
         // when we have a better picture of real-world package topologies.
         _numIterations++;
-        if (_numIterations > Math.max(50, _packages.length * 5)) {
+        if (_numIterations > max(50, _packages.length * 5)) {
           throw new CouldNotSolveException();
         }
 

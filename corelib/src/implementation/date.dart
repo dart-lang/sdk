@@ -24,18 +24,18 @@ class DateImplementation implements Date {
       int parseIntOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
         if (matched === null || matched == "") return 0;
-        return Math.parseInt(matched);
+        return parseInt(matched);
       }
 
       double parseDoubleOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
         if (matched === null || matched == "") return 0.0;
-        return Math.parseDouble(matched);
+        return parseDouble(matched);
       }
 
-      int years = Math.parseInt(match[1]);
-      int month = Math.parseInt(match[2]);
-      int day = Math.parseInt(match[3]);
+      int years = parseInt(match[1]);
+      int month = parseInt(match[2]);
+      int day = parseInt(match[3]);
       int hour = parseIntOrZero(match[4]);
       int minute = parseIntOrZero(match[5]);
       int second = parseIntOrZero(match[6]);

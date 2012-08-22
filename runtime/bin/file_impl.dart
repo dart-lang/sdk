@@ -60,7 +60,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   void _fillBuffer() {
     Expect.equals(_position, _data.length);
     if (_openedFile == null) return;  // Called before the file is opened.
-    int size = Math.min(_bufferLength, _fileLength - _filePosition);
+    int size = min(_bufferLength, _fileLength - _filePosition);
     if (size == 0) {
       _closeFile();
       return;

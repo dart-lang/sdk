@@ -110,8 +110,8 @@ int _hexCharPairToByte(String s, int pos) {
   // An alternative to calling parseInt twice would be to take a
   // two character substring and call it once, but that may be less
   // efficient.
-  int d1 = Math.parseInt("0x${s[pos]}");
-  int d2 = Math.parseInt("0x${s[pos+1]}");
+  int d1 = parseInt("0x${s[pos]}");
+  int d2 = parseInt("0x${s[pos+1]}");
   return d1 * 16 + d2;
 }
 

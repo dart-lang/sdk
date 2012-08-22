@@ -27,7 +27,7 @@ class _BaseDataInputStream {
     if (len === null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
-    int bytesToRead = Math.min(len, available());
+    int bytesToRead = min(len, available());
     return _readInto(buffer, offset, bytesToRead);
   }
 

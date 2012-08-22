@@ -13,6 +13,7 @@
 #import('dart:io');
 #import('dart:isolate');
 #import('dart:json');
+#import('dart:math');
 #import('dart:uri');
 
 #import('../../../pkg/unittest/unittest.dart');
@@ -364,7 +365,7 @@ void _validateOutputString(String expectedText, List<String> actual) {
   // to expect zero lines of output, not a single empty line.
   expected.removeLast();
 
-  final length = Math.min(expected.length, actual.length);
+  final length = min(expected.length, actual.length);
   for (var i = 0; i < length; i++) {
     if (expected[i].trim() != actual[i].trim()) {
       Expect.fail(

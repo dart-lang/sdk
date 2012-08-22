@@ -9,6 +9,7 @@
 #library("io");
 #import("dart:coreimpl");
 #import("dart:isolate");
+#import("dart:math");
 #import("dart:nativewrappers");
 #import("dart:uri");
 #import("dart:crypto");

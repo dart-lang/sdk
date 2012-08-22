@@ -1959,7 +1959,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v5 = 1.0 + 2.0;",
         "  var v6 = new Map<String, int>();",
         "  var v7 = new Map().length;",
-        "  var v8 = Math.random();",
         "}",
         "");
     // prepare expected results
@@ -1972,7 +1971,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     expectedList.add("double");
     expectedList.add("Map<String, int>");
     expectedList.add("int");
-    expectedList.add("double");
     // check each "v" type
     for (int i = 0; i < expectedList.size(); i++) {
       String expectedTypeString = expectedList.get(i);
@@ -2390,13 +2388,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  final v1 = 123;",
-        "  final v2 = Math.random();",
-        "  final v3 = 1 + 2.0;",
+        "  final v2 = 1 + 2.0;",
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "int");
     assertInferredElementTypeString(testUnit, "v2", "double");
-    assertInferredElementTypeString(testUnit, "v3", "double");
   }
 
   public void test_typesPropagation_field_inClass_const() throws Exception {
@@ -2429,12 +2425,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "final v1 = 123;",
-        "final v2 = Math.random();",
-        "final v3 = 1 + 2.0;",
+        "final v2 = 1 + 2.0;",
         "");
     assertInferredElementTypeString(testUnit, "v1", "int");
     assertInferredElementTypeString(testUnit, "v2", "double");
-    assertInferredElementTypeString(testUnit, "v3", "double");
   }
 
   public void test_typesPropagation_field_topLevel_const() throws Exception {

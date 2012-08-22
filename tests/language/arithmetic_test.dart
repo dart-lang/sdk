@@ -1,13 +1,16 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
+
+#library('arithmetic_test');
+#import('dart:math');
 
 class ArithmeticTest {
 
   static bool exceptionCaughtParseInt(String s) {
     try {
-      Math.parseInt(s);
+      parseInt(s);
       return false;
     } catch (FormatException e) {
       return true;
@@ -16,7 +19,7 @@ class ArithmeticTest {
 
   static bool exceptionCaughtParseDouble(String s) {
     try {
-      Math.parseDouble(s);
+      parseDouble(s);
       return false;
     } catch (FormatException e) {
       return true;
@@ -25,7 +28,7 @@ class ArithmeticTest {
 
   static bool toIntThrowsFormatException(String str) {
     // No exception allowed for parse double.
-    double d = Math.parseDouble(str);
+    double d = parseDouble(str);
     try {
       var a = d.toInt();
       return false;
@@ -337,31 +340,34 @@ class ArithmeticTest {
     { int i = (-big).toInt(); }
 
     // Math functions.
-    Expect.equals(2.0, Math.sqrt(4.0));
-    Expect.approxEquals(1.0, Math.sin(3.14159265 / 2.0));
-    Expect.approxEquals(-1.0, Math.cos(3.14159265));
+    Expect.equals(2.0, sqrt(4.0));
+    Expect.approxEquals(1.0, sin(3.14159265 / 2.0));
+    Expect.approxEquals(-1.0, cos(3.14159265));
 
-    Expect.equals(12, Math.parseInt("12"));
-    Expect.equals(-12, Math.parseInt("-12"));
+    Expect.equals(12, parseInt("12"));
+    Expect.equals(-12, parseInt("-12"));
     Expect.equals(12345678901234567890,
-                  Math.parseInt("12345678901234567890"));
+                  parseInt("12345678901234567890"));
     Expect.equals(-12345678901234567890,
-                  Math.parseInt("-12345678901234567890"));
+                  parseInt("-12345678901234567890"));
     // Type checks.
-    { int i = Math.parseInt("12"); }
-    { int i = Math.parseInt("-12"); }
-    { int i = Math.parseInt("12345678901234567890"); }
-    { int i = Math.parseInt("-12345678901234567890"); }
+    { int i = parseInt("12"); }
+    { int i = parseInt("-12"); }
+    { int i = parseInt("12345678901234567890"); }
+    { int i = parseInt("-12345678901234567890"); }
 
-    Expect.equals(1.2, Math.parseDouble("1.2"));
-    Expect.equals(-1.2, Math.parseDouble("-1.2"));
+    Expect.equals(1.2, parseDouble("1.2"));
+    Expect.equals(-1.2, parseDouble("-1.2"));
     // Type checks.
-    { double d = Math.parseDouble("1.2"); }
-    { double d = Math.parseDouble("-1.2"); }
-    { double d = Math.parseDouble("0"); }
+    { double d = parseDouble("1.2"); }
+    { double d = parseDouble("-1.2"); }
+    { double d = parseDouble("0"); }
 
     // Random
-    { double d = Math.random(); }
+    {
+      Random rand = new Random();
+      double d = rand.nextDouble();
+    }
 
     Expect.equals(false, exceptionCaughtParseInt("22"));
     Expect.equals(true, exceptionCaughtParseInt("alpha"));
@@ -370,20 +376,20 @@ class ArithmeticTest {
     Expect.equals(true, exceptionCaughtParseDouble("alpha"));
     Expect.equals(true, exceptionCaughtParseDouble("-alpha"));
 
-    Expect.equals(false, Math.parseDouble("1.2").isNaN());
-    Expect.equals(false, Math.parseDouble("1.2").isInfinite());
+    Expect.equals(false, parseDouble("1.2").isNaN());
+    Expect.equals(false, parseDouble("1.2").isInfinite());
 
-    Expect.equals(true, Math.parseDouble("NaN").isNaN());
-    Expect.equals(true, Math.parseDouble("Infinity").isInfinite());
-    Expect.equals(true, Math.parseDouble("-Infinity").isInfinite());
+    Expect.equals(true, parseDouble("NaN").isNaN());
+    Expect.equals(true, parseDouble("Infinity").isInfinite());
+    Expect.equals(true, parseDouble("-Infinity").isInfinite());
 
-    Expect.equals(false, Math.parseDouble("NaN").isNegative());
-    Expect.equals(false, Math.parseDouble("Infinity").isNegative());
-    Expect.equals(true, Math.parseDouble("-Infinity").isNegative());
+    Expect.equals(false, parseDouble("NaN").isNegative());
+    Expect.equals(false, parseDouble("Infinity").isNegative());
+    Expect.equals(true, parseDouble("-Infinity").isNegative());
 
-    Expect.equals("NaN", Math.parseDouble("NaN").toString());
-    Expect.equals("Infinity", Math.parseDouble("Infinity").toString());
-    Expect.equals("-Infinity", Math.parseDouble("-Infinity").toString());
+    Expect.equals("NaN", parseDouble("NaN").toString());
+    Expect.equals("Infinity", parseDouble("Infinity").toString());
+    Expect.equals("-Infinity", parseDouble("-Infinity").toString());
 
     Expect.equals(false, toIntThrowsFormatException("1.2"));
     Expect.equals(true, toIntThrowsFormatException("Infinity"));
@@ -391,12 +397,12 @@ class ArithmeticTest {
     Expect.equals(true, toIntThrowsFormatException("NaN"));
 
     // Min/max
-    Expect.equals(1, Math.min(1, 12));
-    Expect.equals(12, Math.max(1, 12));
-    Expect.equals(1.0, Math.min(1.0, 12.0));
-    Expect.equals(12.0, Math.max(1.0, 12.0));
-    Expect.equals(false, 1.0 < Math.min(1.0, 12.0));
-    Expect.equals(true, 1.0 < Math.max(1.0, 12.0));
+    Expect.equals(1, min(1, 12));
+    Expect.equals(12, max(1, 12));
+    Expect.equals(1.0, min(1.0, 12.0));
+    Expect.equals(12.0, max(1.0, 12.0));
+    Expect.equals(false, 1.0 < min(1.0, 12.0));
+    Expect.equals(true, 1.0 < max(1.0, 12.0));
 
     // Hashcode
     Expect.equals(false, (3.4).hashCode() == (1.2).hashCode());

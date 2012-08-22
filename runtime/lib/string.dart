@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -127,7 +127,7 @@ class StringBase {
   int lastIndexOf(String other, [int start = null]) {
     if (start == null) start = length - 1;
     if (other.isEmpty()) {
-      return Math.min(this.length, start);
+      return min(this.length, start);
     }
     if (start >= this.length) {
       start = this.length - 1;

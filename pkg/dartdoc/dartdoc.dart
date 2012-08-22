@@ -17,6 +17,7 @@
 #library('dartdoc');
 
 #import('dart:io');
+#import('dart:math');
 #import('dart:uri');
 #import('dart:json');
 #import('mirrors/mirrors.dart');
