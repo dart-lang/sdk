@@ -14,6 +14,7 @@
 #import('../tree/tree.dart');
 #import('../util/characters.dart');
 #import('../source_file.dart');
+#import('../ssa/ssa.dart');
 
 #source('../diagnostic_listener.dart');
 #source('../scanner/byte_array_scanner.dart');

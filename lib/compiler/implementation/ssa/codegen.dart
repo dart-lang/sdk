@@ -27,7 +27,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
-      HTypeMap types = work.compilationContext.types;
+      JavaScriptItemCompilationContext context = work.compilationContext;
+      HTypeMap types = context.types;
       graph.exit.predecessors.forEach((block) {
         assert(block.last is HGoto || block.last is HReturn);
         if (block.last is HReturn) {
