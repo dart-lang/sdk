@@ -37,12 +37,7 @@ class PatchParserTask extends leg.CompilerTask {
     // TODO(lrn): These imports end up in the original library and are in
     // scope for the original methods too. This should be fixed.
     for (tree.ScriptTag tag in imports.toLink()) {
-      if (tag.isSource()) {
-        Uri resolved = patchUri.resolve(tag.argument.dartString.slowToString());
-        compiler.scanner.sourceTagInLibrary(tag, resolved, library);
-      } else {
-        compiler.scanner.importLibraryFromTag(tag, compilationUnit);
-      }
+      compiler.scanner.importLibraryFromTag(tag, compilationUnit);
     }
   }
 

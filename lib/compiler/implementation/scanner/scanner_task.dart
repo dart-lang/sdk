@@ -58,7 +58,7 @@ class ScannerTask extends CompilerTask {
         }
       } else if (tag.isSource()) {
         tagState = checkTag(TagState.SOURCE, tag);
-        compiler.scanner.sourceTagInLibrary(tag, resolved, library);
+        importSourceFromTag(tag, resolved, library);
       } else if (tag.isResource()) {
         tagState = checkTag(TagState.RESOURCE, tag);
         compiler.reportWarning(tag, 'ignoring resource tag');
@@ -85,12 +85,13 @@ class ScannerTask extends CompilerTask {
   }
 
   /**
-   * Source a tag in the scope of [library]. The [path] given is used as is,
-   * any resolve should be done beforehand.
+   * Handle a source tag in the scope of [library]. The [path] given is used as
+   * is, any resolution should be done beforehand.
    */
-  void sourceTagInLibrary(ScriptTag tag, Uri path, LibraryElement library) {
-    Script script = compiler.readScript(path, tag);
-    CompilationUnitElement unit = new CompilationUnitElement(script, library);
+  void importSourceFromTag(ScriptTag tag, Uri path, LibraryElement library) {
+    Script sourceScript = compiler.readScript(path, tag);
+    CompilationUnitElement unit =
+        new CompilationUnitElement(sourceScript, library);
     compiler.withCurrentElement(unit, () => compiler.scanner.scan(unit));
   }
 
