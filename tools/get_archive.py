@@ -160,7 +160,19 @@ def GetDartiumRevision(name, directory, version_file, latest_pattern,
           # First try to find one with the the second number the same as the
           # requested number.
           latest = out.split()[0]
-          foundURL = True
+          # Now test that the permissions are correct so you can actually
+          # download it.
+          temp_dir = tempfile.mkdtemp()
+          temp_zip = os.path.join(temp_dir, 'foo.zip')
+          returncode, out = Gsutil('cp', latest, 'file://' + temp_zip)
+          if returncode == 0:
+            foundURL = True
+          else:
+            # Unable to download this item (most likely because something went
+            # wrong on the upload and the permissions are bad). Keep looking for
+            # a different URL.
+            revision_num = int(revision_num) - 1
+          shutil.rmtree(temp_dir)
         else:
           # Now try to find one with a nearby CL num.
           revision_num = int(revision_num) - 1
