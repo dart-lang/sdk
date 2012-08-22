@@ -7165,6 +7165,8 @@ typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 // WARNING: Do not edit - generated code.
 
 interface SQLTransaction {
+
+  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7187,6 +7189,8 @@ typedef bool SQLTransactionErrorCallback(SQLError error);
 // WARNING: Do not edit - generated code.
 
 interface SQLTransactionSync {
+
+  SQLResultSet executeSql(String sqlStatement, List arguments);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

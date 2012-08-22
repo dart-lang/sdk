@@ -736,6 +736,7 @@ _idl_type_registry = {
     'Flags': TypeData(clazz='Primitive', dart_type='Object'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
+    'ObjectArray': TypeData(clazz='Primitive', dart_type='List'),
     'PositionOptions': TypeData(clazz='Primitive', dart_type='Object'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of

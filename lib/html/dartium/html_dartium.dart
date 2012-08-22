@@ -14317,6 +14317,8 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
 class _SQLTransactionImpl extends NativeFieldWrapperClass1 implements SQLTransaction {
 
+  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14325,6 +14327,8 @@ class _SQLTransactionImpl extends NativeFieldWrapperClass1 implements SQLTransac
 // WARNING: Do not edit - generated code.
 
 class _SQLTransactionSyncImpl extends NativeFieldWrapperClass1 implements SQLTransactionSync {
+
+  SQLResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32357,6 +32361,9 @@ typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 
 /// @domName SQLTransaction
 interface SQLTransaction {
+
+  /** @domName SQLTransaction.executeSql */
+  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32380,6 +32387,9 @@ typedef bool SQLTransactionErrorCallback(SQLError error);
 
 /// @domName SQLTransactionSync
 interface SQLTransactionSync {
+
+  /** @domName SQLTransactionSync.executeSql */
+  SQLResultSet executeSql(String sqlStatement, List arguments);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

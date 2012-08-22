@@ -10701,9 +10701,13 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList native "*SQLResult
 }
 
 class _SQLTransactionImpl implements SQLTransaction native "*SQLTransaction" {
+
+  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native;
 }
 
 class _SQLTransactionSyncImpl implements SQLTransactionSync native "*SQLTransactionSync" {
+
+  _SQLResultSetImpl executeSql(String sqlStatement, List arguments) native;
 }
 
 class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*SVGAElement" {
@@ -28926,6 +28930,9 @@ typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 
 /// @domName SQLTransaction
 interface SQLTransaction {
+
+  /** @domName SQLTransaction.executeSql */
+  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28949,6 +28956,9 @@ typedef bool SQLTransactionErrorCallback(SQLError error);
 
 /// @domName SQLTransactionSync
 interface SQLTransactionSync {
+
+  /** @domName SQLTransactionSync.executeSql */
+  SQLResultSet executeSql(String sqlStatement, List arguments);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
