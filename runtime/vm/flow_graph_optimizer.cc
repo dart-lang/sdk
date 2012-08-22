@@ -194,6 +194,22 @@ static intptr_t ReceiverClassId(Computation* comp) {
 }
 
 
+static void AddCheckClass(BindInstr* instr,
+                          InstanceCallComp* comp,
+                          Value* value) {
+  // Type propagation has not run yet, we cannot eliminate the check.
+  CheckClassComp* check = new CheckClassComp(value, comp);
+  const ICData& unary_checks =
+      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+  check->set_ic_data(&unary_checks);
+  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
+  ASSERT(instr->env() != NULL);  // Always the case with SSA.
+  // Attach the original environment to the check instruction.
+  check_instr->set_env(instr->env());
+  check_instr->InsertBefore(instr);
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
                                                InstanceCallComp* comp,
                                                Token::Kind op_kind) {
@@ -211,16 +227,16 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
     case kGrowableObjectArrayCid: {
       Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-          array_op = new LoadIndexedComp(comp->ArgumentAt(0)->value(),
-                                         comp->ArgumentAt(1)->value(),
-                                         class_id,
-                                         comp);
+        array_op = new LoadIndexedComp(comp->ArgumentAt(0)->value(),
+                                       comp->ArgumentAt(1)->value(),
+                                       class_id,
+                                       comp);
       } else {
-          array_op = new StoreIndexedComp(comp->ArgumentAt(0)->value(),
-                                          comp->ArgumentAt(1)->value(),
-                                          comp->ArgumentAt(2)->value(),
-                                          class_id,
-                                          comp);
+        array_op = new StoreIndexedComp(comp->ArgumentAt(0)->value(),
+                                        comp->ArgumentAt(1)->value(),
+                                        comp->ArgumentAt(2)->value(),
+                                        class_id,
+                                        comp);
       }
       array_op->set_ic_data(comp->ic_data());
       instr->set_computation(array_op);
@@ -366,19 +382,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         String::Handle(Field::NameFromGetter(comp->function_name()));
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
-
-    // Type propagation has not run yet, we cannot eliminate the check.
-    CheckClassComp* check =
-        new CheckClassComp(comp->ArgumentAt(0)->value(), comp);
-    const ICData& unary_checks =
-        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
-    check->set_ic_data(&unary_checks);
-    BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
-    ASSERT(instr->env() != NULL);  // Always the case with SSA.
-    // Attach the original environment to the check instruction.
-    check_instr->set_env(instr->env());
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
     instr->set_env(NULL);
-    check_instr->InsertBefore(instr);
     LoadInstanceFieldComp* load =
         new LoadInstanceFieldComp(field,
                                   comp->ArgumentAt(0)->value(),
@@ -558,18 +563,8 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  // Type propagation has not run yet, we cannot eliminate the check.
-  CheckClassComp* check =
-      new CheckClassComp(comp->ArgumentAt(0)->value(), comp);
-  const ICData& unary_checks =
-      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
-  check->set_ic_data(&unary_checks);
-  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
-  ASSERT(instr->env() != NULL);  // Always the case with SSA.
-  // Attach the original environment to the check instruction.
-  check_instr->set_env(instr->env());
+  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
   instr->set_env(NULL);
-  check_instr->InsertBefore(instr);
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),
