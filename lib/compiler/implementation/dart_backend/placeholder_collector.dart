@@ -388,6 +388,15 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitTypeVariable(TypeVariable node) {
     assert(currentElement is TypedefElement || currentElement is ClassElement);
+    // Hack for case when interface and default class are in different
+    // libraries, try to resolve type variable to default class type arg.
+    // Example:
+    // lib1: interface I<K> default C<K> {...}
+    // lib2: class C<K> {...}
+    if (currentElement is ClassElement
+        && (currentElement as ClassElement).defaultClass !== null) {
+      currentElement = (currentElement as ClassElement).defaultClass.element;
+    }
     // Another poor man type resolution.
     // Find this variable in current element type parameters.
     for (Type type in currentElement.typeVariables) {

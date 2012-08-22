@@ -604,6 +604,32 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testInterfaceDefaultAnotherLib() {
+  var librarySrc = '''
+#library('mylib');
+class C<T> {
+  factory I() {}
+}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+interface I<T> default mylib.C<T> {
+  I();
+}
+
+main() {
+  new I();
+}
+''';
+  var expectedResult =
+    'class C<T>{factory I(){}}'
+    'interface I<T> default C<T>{I();}'
+    'main(){new I();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -638,4 +664,5 @@ main() {
   testTypeVariablesAreRenamed();
   testClassTypeArgumentBound();
   testDoubleMains();
+  testInterfaceDefaultAnotherLib();
 }
