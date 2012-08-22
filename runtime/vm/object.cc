@@ -1853,7 +1853,6 @@ void Class::AddDirectSubclass(const Class& subclass) const {
   ASSERT(!subclass.IsNull());
   ASSERT(subclass.SuperClass() == raw());
   // Do not keep track of the direct subclasses of class Object.
-  // TODO(regis): Replace assert below with ASSERT(id() != kDartObjectCid).
   ASSERT(!IsObjectClass());
   GrowableObjectArray& direct_subclasses =
       GrowableObjectArray::Handle(raw_ptr()->direct_subclasses_);
@@ -1899,7 +1898,7 @@ void Class::set_allocation_stub(const Code& value) const {
 
 
 bool Class::IsObjectClass() const {
-  return raw() == Type::Handle(Type::ObjectType()).type_class();
+  return id() == kInstanceCid;
 }
 
 
@@ -10095,10 +10094,9 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      const Class& cls = Class::Handle(isolate->object_store()->object_class());
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(cls.id(), tags);
+      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
       raw->ptr()->tags_ = tags;
     }
   }

@@ -115,7 +115,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT_EQ(1, class_a_bar_overrides->length());
   EXPECT_EQ(class_d_bar.raw(), (*class_a_bar_overrides)[0]->raw());
 
-  // TODO(regis): Add this test EXPECT(CHA::HasSubclasses(kDartObjectCid)).
+  EXPECT(CHA::HasSubclasses(kInstanceCid));
   EXPECT(!CHA::HasSubclasses(kSmiCid));
   EXPECT(!CHA::HasSubclasses(kNullCid));
   EXPECT(!CHA::HasSubclasses(kDynamicCid));
@@ -127,4 +127,3 @@ TEST_CASE(ClassHierarchyAnalysis) {
 }
 
 }  // namespace dart
-

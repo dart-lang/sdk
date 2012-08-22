@@ -20,12 +20,12 @@ class CHA : public AllStatic {
 
   // Returns an array containing the cids of the direct and indirect subclasses
   // of the class given by its cid.
-  // Must not be called for kDartObjectCid.
+  // Must not be called for kInstanceCid.
   static ZoneGrowableArray<intptr_t>* GetSubclassIdsOf(intptr_t cid);
 
   // Returns an array containing instance functions of the given name and
   // belonging to the classes given by their cids.
-  // Cids must not contain kDartObjectCid.
+  // Cids must not contain kInstanceCid.
   static ZoneGrowableArray<Function*>* GetNamedInstanceFunctionsOf(
       const ZoneGrowableArray<intptr_t>& cids,
       const String& function_name);

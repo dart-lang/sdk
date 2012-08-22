@@ -26,12 +26,10 @@ RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
                                       int num_named_arguments) {
   // Figure out type of receiver first.
   Class& cls = Class::Handle();
-  if (receiver.IsNull()) {
-    // For method lookup treat null object as instance of Object.
-    // TODO(srdjan): Remove special case once Dart's NullClass is implemented.
+  cls = receiver.clazz();
+  // For lookups treat null as an instance of class Object.
+  if (cls.IsNullClass()) {
     cls = Isolate::Current()->object_store()->object_class();
-  } else {
-    cls = receiver.clazz();
   }
   ASSERT(!cls.IsNull());
 

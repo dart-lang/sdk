@@ -13,10 +13,10 @@
 namespace dart {
 
 bool CHA::HasSubclasses(intptr_t cid) {
+  ASSERT(cid >= kInstanceCid);
   const ClassTable& class_table = *Isolate::Current()->class_table();
   const Class& cls = Class::Handle(class_table.At(cid));
   ASSERT(!cls.IsNull());
-  // TODO(regis): Add ASSERT(cid > kDartObjectCid).
   if (cls.IsObjectClass()) {
     // Class Object has subclasses, although we do not keep track of them.
     return true;
@@ -60,11 +60,10 @@ static void CollectSubclassIds(ZoneGrowableArray<intptr_t>* cids,
 
 
 ZoneGrowableArray<intptr_t>* CHA::GetSubclassIdsOf(intptr_t cid) {
+  ASSERT(cid > kInstanceCid);
   const ClassTable& class_table = *Isolate::Current()->class_table();
   const Class& cls = Class::Handle(class_table.At(cid));
   ASSERT(!cls.IsNull());
-  // TODO(regis): Replace assert below with ASSERT(cid > kDartObjectCid).
-  ASSERT(!cls.IsObjectClass());
   ZoneGrowableArray<intptr_t>* ids = new ZoneGrowableArray<intptr_t>();
   CollectSubclassIds(ids, cls);
   return ids;
@@ -81,9 +80,8 @@ ZoneGrowableArray<Function*>* CHA::GetNamedInstanceFunctionsOf(
   Function& cls_function = Function::Handle();
   for (intptr_t i = 0; i < cids.length(); i++) {
     const intptr_t cid = cids[i];
+    ASSERT(cid > kInstanceCid);
     cls = class_table.At(cid);
-    // TODO(regis): Replace assert below with ASSERT(cid > kDartObjectCid).
-    ASSERT(!cls.IsObjectClass());
     cls_function = cls.LookupDynamicFunction(function_name);
     if (!cls_function.IsNull()) {
       functions->Add(&Function::ZoneHandle(cls_function.raw()));
