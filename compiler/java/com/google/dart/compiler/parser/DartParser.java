@@ -887,10 +887,6 @@ public class DartParser extends CompletionHooksParserBase {
     // Deal with native clause for classes.
     DartStringLiteral nativeName = null;
     if (optionalPseudoKeyword(NATIVE_KEYWORD)) {
-      if (superType != null) {
-        // dom_frog.dart has this situation
-        //reportError(position(), ParserErrorCode.NATIVE_MUST_NOT_EXTEND);
-      }
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.NATIVE_ONLY_CLASS);
       }
@@ -1663,10 +1659,6 @@ public class DartParser extends CompletionHooksParserBase {
       parseStringWithPasting();
     }
     if (match(Token.LBRACE) || match(Token.ARROW)) {
-      // dom_frog.dart has non-static native methods with string and block
-      //if (!modifiers.isStatic()) {
-      //  reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
-      //}
       return done(parseFunctionStatementBody(!modifiers.isExternal(), true));
     } else {
       expect(Token.SEMICOLON);
