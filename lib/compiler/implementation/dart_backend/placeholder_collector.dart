@@ -215,6 +215,11 @@ class PlaceholderCollector extends AbstractVisitor {
     assert(element !== null);
     if (element === entryFunction) return;
     if (element.getLibrary() === coreLibrary) return;
+    if (element == compiler.types.dynamicType.element) {
+      internalError(
+          'Should never make element placeholder for dynamic type element',
+          node);
+    }
     elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }
 
@@ -323,7 +328,7 @@ class PlaceholderCollector extends AbstractVisitor {
         }
       }
       // TODO(antonm): is there a better way to detect unresolved types?
-      if (type !== compiler.types.dynamicType) {
+      if (type.element !== compiler.types.dynamicType.element) {
         makeTypePlaceholder(target, type);
       } else {
         if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
