@@ -215,5 +215,8 @@ fileapi_test: Skip # Issue 3022
 css_test: Pass, Fail # Issue #2823
 fileapi_test: Skip # Issue 3022
 
+[ $compiler == dart2js && $runtime == ff && $system == windows]
+js_interop_2_test: Fail # Issue 4658.
+
 [ $compiler == dart2js && $runtime == drt && $system == macos ]
 indexeddb_2_test: Fail # Issue 3669.
