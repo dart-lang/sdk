@@ -13,6 +13,9 @@ js_interop_3_test: Fail
 js_interop_4_test: Fail
 js_interop_func_passing_test: Fail
 
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
+js_interop_2_test: Fail  # Issue 4651
+
 [ $runtime == drt ]
 xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
@@ -152,10 +155,6 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
-
-[ $runtime == ff && $system == windows ]
-# TODO(vsm): Investigate why this is only failing on windows.
-js_interop_2_test: Fail
 
 [ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
