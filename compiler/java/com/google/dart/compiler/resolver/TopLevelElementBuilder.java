@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -73,6 +74,21 @@ public class TopLevelElementBuilder {
     // Fill "library" scope.
     {
       List<Element> exportedElements = Lists.newArrayList();
+      {
+        DartUnit selfUnit = library.getSelfDartUnit();
+        if (selfUnit != null && !selfUnit.getDirectives().isEmpty()
+            && selfUnit.getDirectives().get(0) instanceof DartLibraryDirective) {
+          DartLibraryDirective libraryDirective = (DartLibraryDirective) selfUnit.getDirectives().get(
+              0);
+          if (!libraryDirective.isObsoleteFormat()) {
+            String name = libraryDirective.getLibraryName();
+            if (name != null) {
+              String elementName = "__library_" + name;
+              scope.declareElement(elementName, library.getElement());
+            }
+          }
+        }
+      }
       for (DartUnit unit : library.getUnits()) {
         fillInUnitScope(unit, listener, scope, exportedElements);
       }

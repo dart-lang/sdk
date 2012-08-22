@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartContinueStatement;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -47,6 +48,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartReturnStatement;
@@ -221,6 +223,11 @@ public class Resolver {
 
     @Override
     public Element visitUnit(DartUnit unit) {
+      for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartPartOfDirective) {
+          directive.accept(this);
+        }
+      }
       for (DartNode node : unit.getTopLevelNodes()) {
         node.accept(this);
       }
@@ -983,6 +990,17 @@ public class Resolver {
         onError(x, ResolverErrorCode.THIS_IN_FACTORY_CONSTRUCTOR);
       } else if (inInitializer) {
         onError(x, ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION);
+      }
+      return null;
+    }
+    
+    @Override
+    public Element visitPartOfDirective(DartPartOfDirective node) {
+      String elementName = "__library_" + node.getLibraryName();
+      Element element = context.getScope().findElement(null, elementName);
+      if (ElementKind.of(element) == ElementKind.LIBRARY) {
+        node.getName().setElement(element);
+        return element;
       }
       return null;
     }
