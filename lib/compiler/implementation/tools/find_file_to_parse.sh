@@ -58,7 +58,6 @@ find .. \( \
     | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/SpreadArgumentTest.dart \
     | grep -v /tests/language/src/IsNotClass1NegativeTest.dart \
     | grep -v /tests/language/src/Label8NegativeTest.dart \
-    | grep -v /frog/tests/await/ \
     | grep -v /tests/language/src/ListLiteralNegativeTest.dart \
     | grep -v /tests/language/src/MapLiteralNegativeTest.dart \
     | grep -v /tests/language/src/TryCatch2NegativeTest.dart \
@@ -66,7 +65,6 @@ find .. \( \
     | grep -v /tests/language/src/TryCatch4NegativeTest.dart \
     | grep -v /tests/language/src/ParameterInitializer3NegativeTest.dart \
     | grep -v /compiler/javatests/com/google/dart/compiler/parser/FactoryInitializersNegativeTest.dart \
-    | grep -v /frog/tests/leg_only/src/TypedLocalsTest.dart \
     | grep -v '/editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/formatter/testsource/test006$A_in.dart' \
     | grep -v '/editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/formatter/testsource/test006$A_out.dart' \
     | grep -v '/utils/dartdoc/dartdoc.dart' \

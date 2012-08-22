@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Script {
-  // TODO(kasperl): Once MockFile in frog/tests/leg/src/parser_helper.dart
+  // TODO(kasperl): Once MockFile in tests/compiler/dart2js/parser_helper.dart
   // implements SourceFile, we should be able to type the [file] field as
   // such.
   final file;

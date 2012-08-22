@@ -1915,9 +1915,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
-        // TODO(karlklose): We emulate the frog behavior and answer
-        // true to any is check involving a type variable -- both is T
-        // and is !T -- until we have a proper implementation of
+        // TODO(karlklose): We emulate the behavior of the old frog 
+        // compiler and answer true to any is check involving a type variable 
+        // -- both is T and is !T -- until we have a proper implementation of
         // reified generics.
         stack.add(graph.addConstantBool(true));
       } else {
