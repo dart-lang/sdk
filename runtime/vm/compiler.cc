@@ -186,7 +186,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         FlowGraphTypePropagator propagator(*flow_graph);
         propagator.PropagateTypes();
 
-
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();
 

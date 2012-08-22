@@ -367,9 +367,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
 
-    LoadInstanceFieldComp* load;
-    // TODO(fschneider): Avoid generating redundant checks by checking the
-    // result-cid of the value.
+    // Type propagation has not run yet, we cannot eliminate the check.
     CheckClassComp* check =
         new CheckClassComp(comp->ArgumentAt(0)->value(), comp);
     const ICData& unary_checks =
@@ -381,10 +379,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     check_instr->set_env(instr->env());
     instr->set_env(NULL);
     check_instr->InsertBefore(instr);
-    load = new LoadInstanceFieldComp(field,
-                                     comp->ArgumentAt(0)->value(),
-                                     NULL,
-                                     false);  // Can not deoptimize.
+    LoadInstanceFieldComp* load =
+        new LoadInstanceFieldComp(field,
+                                  comp->ArgumentAt(0)->value(),
+                                  NULL);  // Can not deoptimize.
     instr->set_computation(load);
     RemovePushArguments(comp);
     return true;
@@ -559,12 +557,24 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
       String::Handle(Field::NameFromSetter(comp->function_name()));
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
+
+  // Type propagation has not run yet, we cannot eliminate the check.
+  CheckClassComp* check =
+      new CheckClassComp(comp->ArgumentAt(0)->value(), comp);
+  const ICData& unary_checks =
+      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+  check->set_ic_data(&unary_checks);
+  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
+  ASSERT(instr->env() != NULL);  // Always the case with SSA.
+  // Attach the original environment to the check instruction.
+  check_instr->set_env(instr->env());
+  instr->set_env(NULL);
+  check_instr->InsertBefore(instr);
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),
       comp->ArgumentAt(1)->value(),
-      comp);
-  store->set_ic_data(comp->ic_data());
+      NULL);  // Can not deoptimize.
   instr->set_computation(store);
   RemovePushArguments(comp);
   return true;

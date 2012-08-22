@@ -1003,11 +1003,11 @@ class NativeCallComp : public TemplateComputation<0> {
 
 class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
+  // Set 'original' to NULL if LoadInstanceFieldComp cannot deoptimize.
   LoadInstanceFieldComp(const Field& field,
                         Value* instance,
-                        InstanceCallComp* original,  // Maybe NULL.
-                        bool can_deoptimize)
-      : field_(field), original_(original), can_deoptimize_(can_deoptimize) {
+                        InstanceCallComp* original)
+      : field_(field), original_(original) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
@@ -1020,12 +1020,11 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return can_deoptimize_; }
+  virtual bool CanDeoptimize() const { return original_ != NULL; }
 
  private:
   const Field& field_;
   const InstanceCallComp* original_;  // For optimizations.
-  const bool can_deoptimize_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -1033,6 +1032,7 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
 class StoreInstanceFieldComp : public TemplateComputation<2> {
  public:
+  // Set 'original' to NULL if StoreInstanceFieldComp cannot deoptimize.
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
                          Value* value,
@@ -1055,7 +1055,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return original_ != NULL; }
 
  private:
   const Field& field_;

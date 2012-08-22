@@ -1973,8 +1973,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   node->instance()->Visit(&for_instance);
   Append(for_instance);
   LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-      node->field(), for_instance.value(), NULL,
-      false);  // Can not deoptimize.
+      node->field(), for_instance.value(), NULL);  // Can not deoptimize.
   ReturnComputation(load);
 }
 
