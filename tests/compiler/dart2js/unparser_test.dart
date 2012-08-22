@@ -575,6 +575,24 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testDoubleMains() {
+  var librarySrc = '''
+#library('mylib');
+main() {}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+main() {
+  mylib.main();
+}
+''';
+  var expectedResult =
+    'p_main(){}'
+    'main(){p_main();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -608,4 +626,5 @@ main() {
   testFactoryRename();
   testTypeVariablesAreRenamed();
   testClassTypeArgumentBound();
+  testDoubleMains();
 }

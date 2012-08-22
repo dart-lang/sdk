@@ -14,6 +14,9 @@ void renamePlaceholders(
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
   final Set<String> usedTopLevelIdentifiers = new Set<String>();
+  // TODO(antonm): we should also populate this set with top-level
+  // names from core library.
+  usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
 
   Generator topLevelGenerator =
       true ? conservativeGenerator : new MinifyingGenerator('ABCD').generate;
