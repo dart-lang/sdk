@@ -520,17 +520,21 @@ testTypeVariablesAreRenamed() {
   // both should be renamed.
   var librarySrc = '''
 #library('mylib');
+typedef void MyFunction<T extends num>(T arg);
 class T {}
 class B<T> {}
 class A<T> extends B<T> { T f; }
 ''';
   var mainSrc = '''
 #import('mylib.dart', prefix: 'mylib');
+typedef void MyFunction<T extends num>(T arg);
 class T {}
 class B<T> {}
 class A<T> extends B<T> { T f; }
 
 main() {
+  MyFunction myf1;
+  mylib.MyFunction myf2;
   new A<int>().f;
   new T();
 
@@ -539,9 +543,16 @@ main() {
 }
 ''';
   var expectedResult =
-    'class T{}class B<T>{}class A<T> extends B<T>{T f;}'
-    'class p_T{}class p_B<p_T>{}class p_A<p_T> extends p_B<p_T>{p_T f;}'
-    'main(){new p_A<int>().f; new p_T(); new A<int>().f; new T();}';
+    'typedef void MyFunction<T extends num>(T arg);'
+    'class T{}'
+    'class B<T>{}'
+    'class A<T> extends B<T>{T f;}'
+    'typedef void p_MyFunction<p_T extends num>(p_T arg);'
+    'class p_T{}'
+    'class p_B<p_T>{}'
+    'class p_A<p_T> extends p_B<p_T>{p_T f;}'
+    'main(){p_MyFunction myf1; MyFunction myf2; new p_A<int>().f; '
+        'new p_T(); new A<int>().f; new T();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }

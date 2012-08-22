@@ -381,16 +381,6 @@ class PlaceholderCollector extends AbstractVisitor {
     ClassElement classElement = currentElement;
     makeElementPlaceholder(node.name, classElement);
     node.visitChildren(this);
-    if (node.typeParameters !== null) {
-      // Another poor man resolution.
-      final typeVariableTypes =
-          new List<Type>.from(classElement.typeVariables);
-      int i = 0;
-      for (TypeVariable typeVariable in node.typeParameters) {
-        makeTypePlaceholder(typeVariable.name, typeVariableTypes[i]);
-        i++;
-      }
-    }
     if (node.defaultClause !== null) {
       // Can't just visit class node's default clause because of the bug in the
       // resolver, it just crashes when it meets type variable.
@@ -399,6 +389,19 @@ class PlaceholderCollector extends AbstractVisitor {
       makeTypePlaceholder(node.defaultClause.typeName, defaultType);
       visit(node.defaultClause.typeArguments);
     }
+  }
+
+  visitTypeVariable(TypeVariable node) {
+    assert(currentElement is TypedefElement || currentElement is ClassElement);
+    // Another poor man type resolution.
+    // Find this variable in current element type parameters.
+    for (Type type in currentElement.typeVariables) {
+      if (type.name.slowToString() == node.name.source.slowToString()) {
+        makeTypePlaceholder(node.name, type);
+        break;
+      }
+    }
+    node.visitChildren(this);
   }
 
   visitTypedef(Typedef node) {
