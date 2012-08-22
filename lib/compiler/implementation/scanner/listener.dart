@@ -932,7 +932,7 @@ class NodeListener extends ElementListener {
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, supertype, interfaces, null,
-                           beginToken, extendsKeyword, endToken));
+                           beginToken, extendsKeyword, body, endToken));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -953,7 +953,8 @@ class NodeListener extends ElementListener {
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, null, supertypes,
-                           defaultClause, interfaceKeyword, null, endToken));
+                           defaultClause, interfaceKeyword, null, body,
+                           endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {

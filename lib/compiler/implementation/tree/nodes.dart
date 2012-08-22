@@ -186,6 +186,7 @@ class ClassNode extends Node {
   final TypeAnnotation superclass;
   final NodeList interfaces;
   final NodeList typeParameters;
+  final NodeList body;
 
   // TODO(ahe, karlklose): the default keyword is not recorded.
   final TypeAnnotation defaultClause;
@@ -196,7 +197,7 @@ class ClassNode extends Node {
 
   ClassNode(this.name, this.typeParameters, this.superclass, this.interfaces,
             this.defaultClause, this.beginToken, this.extendsKeyword,
-            this.endToken);
+            this.body, this.endToken);
 
   ClassNode asClassNode() => this;
 
@@ -207,6 +208,7 @@ class ClassNode extends Node {
     if (typeParameters !== null) typeParameters.accept(visitor);
     if (superclass !== null) superclass.accept(visitor);
     if (interfaces !== null) interfaces.accept(visitor);
+    if (body !== null) body.accept(visitor);
   }
 
   bool get isInterface() => beginToken.stringValue === 'interface';
@@ -1679,7 +1681,7 @@ class CatchBlock extends Node {
   final Token onKeyword;
   final Token catchKeyword;
 
-  CatchBlock(this.type, this.formals, this.block, 
+  CatchBlock(this.type, this.formals, this.block,
              this.onKeyword, this.catchKeyword);
 
   CatchBlock asCatchBlock() => this;
