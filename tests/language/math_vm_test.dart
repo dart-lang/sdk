@@ -4,6 +4,8 @@
 // Tests that the VM does not crash on weird corner cases of class Math.
 // VMOptions=--optimization_counter_threshold=100
 
+#library('math_vm_test');
+
 #import('dart:math');
 
 class FakeNumber {
