@@ -198,7 +198,30 @@ static bool DeleteFile(char* file_name,
   if (written != strlen(file_name)) {
     return false;
   }
-  return (DeleteFile(path) != 0);
+
+  if (DeleteFile(path) != 0) {
+    return true;
+  }
+
+  // If we failed because the file is read-only, make it writeable and try
+  // again. This mirrors Linux/Mac where a directory containing read-only files
+  // can still be recursively deleted.
+  if (GetLastError() == ERROR_ACCESS_DENIED) {
+    DWORD attributes = GetFileAttributes(path);
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+      return false;
+    }
+
+    if ((attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY) {
+      attributes &= ~FILE_ATTRIBUTE_READONLY;
+
+      if (SetFileAttributes(path, attributes) == 0) {
+        return false;
+      }
+
+      return DeleteFile(path) != 0;
+    }
+  }
 }
 
 
@@ -224,6 +247,7 @@ static bool DeleteEntry(LPWIN32_FIND_DATA find_file_data,
                         char* path,
                         int path_length) {
   DWORD attributes = find_file_data->dwFileAttributes;
+
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
     return DeleteDir(find_file_data->cFileName, path, path_length);
   } else {
