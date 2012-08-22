@@ -1767,7 +1767,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
-      push(new HInvokeInterceptor(selector, getterName, inputs, getter: true));
+      push(new HInvokeInterceptor(selector, inputs));
     } else {
       push(new HInvokeDynamicGetter(selector, null, receiver));
     }
@@ -1812,8 +1812,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
-      add(new HInvokeInterceptor(
-          selector, setterName, inputs, setter: true));
+      add(new HInvokeInterceptor(selector, inputs));
     } else {
       add(new HInvokeDynamicSetter(selector, null, receiver, value));
     }
@@ -2051,7 +2050,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.receiver);
       inputs.add(pop());
       addGenericSendArgumentsToList(node.arguments, inputs);
-      push(new HInvokeInterceptor(selector, dartMethodName, inputs));
+      push(new HInvokeInterceptor(selector, inputs));
       return;
     }
 

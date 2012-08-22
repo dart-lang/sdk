@@ -2029,19 +2029,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Don't count the target method or the receiver in the arity.
     int arity = interceptor.inputs.length - 2;
     HInstruction receiver = interceptor.inputs[1];
-    bool getter = interceptor.getter;
-    SourceString name = interceptor.name;
+    bool isCall = interceptor.selector.isCall();
+    SourceString name = interceptor.selector.name;
 
     if (interceptor.isLengthGetterOnStringOrArray(types)) {
       return 'length';
-    } else if (receiver.isExtendableArray(types) && !getter) {
+    } else if (receiver.isExtendableArray(types) && isCall) {
       if (name == const SourceString('add') && arity == 1) {
         return 'push';
       }
       if (name == const SourceString('removeLast') && arity == 0) {
         return 'pop';
       }
-    } else if (receiver.isString(types) && !getter) {
+    } else if (receiver.isString(types) && isCall) {
       if (name == const SourceString('concat') &&
           arity == 1 &&
           interceptor.inputs[2].isString(types)) {
@@ -2063,7 +2063,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         use(node.inputs[1]);
         js.PropertyAccess access = new js.PropertyAccess.field(pop(), builtin);
-        if (node.getter) {
+        if (node.selector.isGetter()) {
           push(access, node);
           return;
         }

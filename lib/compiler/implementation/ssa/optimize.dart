@@ -206,11 +206,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (input.isString(types)
-        && node.name == const SourceString('toString')) {
+        && node.selector.name == const SourceString('toString')) {
       return node.inputs[1];
     }
 
-    if (!input.canBePrimitive(types) && !node.getter && !node.setter) {
+    if (!input.canBePrimitive(types) && node.selector.isCall()) {
       bool transformToDynamicInvocation = true;
       if (input.canBeNull(types)) {
         // Check if the method exists on Null. If yes we must not transform
@@ -664,15 +664,11 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
-    Selector selector = new Selector.call(
-        lengthInterceptor.name,
-        lengthInterceptor.getLibrary(),  // TODO(kasperl): Wrong.
-        0);
+    Selector selector = new Selector.getter(
+        const SourceString('length'),
+        lengthInterceptor.getLibrary());  // TODO(kasperl): Wrong.
     HInvokeInterceptor length = new HInvokeInterceptor(
-        selector,
-        const SourceString("length"),
-        <HInstruction>[interceptor, receiver],
-        getter: true);
+        selector, <HInstruction>[interceptor, receiver]);
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
 

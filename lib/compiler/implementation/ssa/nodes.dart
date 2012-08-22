@@ -1296,23 +1296,18 @@ class HInvokeSuper extends HInvokeStatic {
 
 class HInvokeInterceptor extends HInvokeStatic {
   final Selector selector;
-  final SourceString name;
-  final bool getter;
-  final bool setter;
 
   HInvokeInterceptor(this.selector,
-                     this.name,
                      List<HInstruction> inputs,
-                     [HType knownType = HType.UNKNOWN,
-                      this.getter = false,
-                      this.setter = false])
+                     [HType knownType = HType.UNKNOWN])
       : super(inputs, knownType);
 
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
   bool isLengthGetter() {
-    return getter && name == const SourceString('length');
+    return selector.isGetter() &&
+        selector.name == const SourceString('length');
   }
 
   bool isLengthGetterOnStringOrArray(HTypeMap types) {
@@ -1321,7 +1316,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   HType computeLikelyType(HTypeMap types) {
     // In general a length getter or method returns an int.
-    if (name == const SourceString('length')) return HType.INTEGER;
+    if (isLengthGetter()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
@@ -1336,8 +1331,9 @@ class HInvokeInterceptor extends HInvokeStatic {
     // on it that mutate it, then we want to restrict the incoming type to be
     // a mutable array.
     if (input == inputs[1] && input.isIndexablePrimitive(types)) {
-      if (name == const SourceString('add')
-          || name == const SourceString('removeLast')) {
+      // TODO(kasperl): Should we check that the selector is a call selector?
+      if (selector.name == const SourceString('add')
+          || selector.name == const SourceString('removeLast')) {
         return HType.MUTABLE_ARRAY;
       }
     }
@@ -1356,9 +1352,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   int typeCode() => HInvokeStatic.INVOKE_INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInvokeInterceptor;
-  bool dataEquals(HInvokeInterceptor other) {
-    return getter == other.getter && name == other.name;
-  }
+  bool dataEquals(HInvokeInterceptor other) => selector == other.selector;
 }
 
 abstract class HFieldAccess extends HInstruction {
