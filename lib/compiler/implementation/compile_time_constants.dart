@@ -839,7 +839,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     Element element = elements[send];
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.modifiers === null ||
-          !element.modifiers.isFinal()) {
+          // TODO(johnniwinther): This should eventually be [isConst].  
+          !element.modifiers.isFinalOrConst()) {
         error(send);
       }
       return compiler.compileVariable(element);

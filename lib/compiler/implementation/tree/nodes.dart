@@ -1140,6 +1140,12 @@ class Modifiers extends Node {
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
   bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
 
+  /**
+   * Use this to check if the declaration is either explicitly or implicitly 
+   * final.
+   */
+  bool isFinalOrConst() => isFinal() || isConst();
+
   String toString() {
     LinkBuilder<String> builder = new LinkBuilder<String>();
     if (isStatic()) builder.addLast('static');

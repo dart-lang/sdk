@@ -172,7 +172,7 @@ class Element implements Hashable {
   }
 
   bool isAssignable() {
-    if (modifiers != null && modifiers.isFinal()) return false;
+    if (modifiers != null && modifiers.isFinalOrConst()) return false;
     if (isFunction() || isGenerativeConstructor()) return false;
     return true;
   }

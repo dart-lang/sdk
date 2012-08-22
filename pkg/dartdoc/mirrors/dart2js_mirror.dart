@@ -1359,6 +1359,7 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
 
   bool get isStatic() => _variable.modifiers.isStatic();
 
+  // TODO(johnniwinther): Should this return true on const as well?
   bool get isFinal() => _variable.modifiers.isFinal();
 
   TypeMirror get type() => _convertTypeToTypeMirror(system,

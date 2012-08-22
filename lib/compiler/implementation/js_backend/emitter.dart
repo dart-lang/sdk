@@ -392,7 +392,7 @@ function(collectedClasses) {
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.kind === ElementKind.FIELD);
-    return (member.modifiers === null || !member.modifiers.isFinal())
+    return (member.modifiers === null || !member.modifiers.isFinalOrConst())
         && compiler.codegenWorld.hasInvokedSetter(member, compiler);
   }
 

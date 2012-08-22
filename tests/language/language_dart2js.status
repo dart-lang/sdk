@@ -51,24 +51,6 @@ getter_declaration_negative_test: Fail # This will be fixed when dart2js reject 
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 
-# const variables are not regarded as compile-time constants:
-adjacent_const_string_literals_test: Fail
-call_through_getter_test: Fail
-compile_time_constant2_test: Fail
-compile_time_constant3_test: Fail
-compile_time_constant5_test: Fail
-compile_time_constant6_test: Fail
-compile_time_constant_a_test: Fail
-compile_time_constant_j_test: Fail
-compile_time_constant_o_test: Fail
-const_init_test: Fail
-ct_const3_test: Fail
-ct_const4_test: Fail
-issue4515170_test: Fail
-list_literal2_test: Fail
-string_interpolation8_test: Fail
-top_level_var_test: Fail
-
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
 function_type_alias6_test: Crash, Fail

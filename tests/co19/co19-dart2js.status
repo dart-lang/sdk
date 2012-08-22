@@ -142,15 +142,12 @@ Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Compile-time error: 
 Language/03_Overview/1_Scoping_A02_t05: Fail # Compile-time error: error: C is not a type
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Compile-time error: error: cannot resolve foo
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # Compile-time error: error: cannot resolve type Undeclared
-Language/05_Variables/05_Variables_A05_t03: Fail # Compile-time error: error: not a compile-time constant
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Compile-time error: error: not a compile-time constant
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
-Language/10_Expressions/01_Constants_A05_t01: Fail # Compile-time error: error: not a compile-time constant
-Language/10_Expressions/01_Constants_A06_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
-Language/10_Expressions/01_Constants_A14_t01: Fail # Compile-time error: error: not a compile-time constant
+Language/10_Expressions/01_Constants_A14_t01: Fail # Parser error: Field 'as' conflict with pseudo-keyword.
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Compile-time error: error: not a compile-time constant
