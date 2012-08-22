@@ -374,6 +374,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 5, 10, 3));
   }
+  
+  public void test_switchExpression_case_finalLocalVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(var v) {",
+        "  final int VALUE = 0;",
+        "  switch (v) {",
+        "    case VALUE: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
 
   /**
    * Language specification requires that factory should be declared in class. However declaring

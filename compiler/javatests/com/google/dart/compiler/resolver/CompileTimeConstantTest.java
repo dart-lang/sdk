@@ -227,7 +227,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         "class Object {}",
         "var b = null === '';"));
   }
-
+  
   public void test_parameterDefaultValue_inLocalFunction() {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(
@@ -239,7 +239,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "class Object {}",
             "class int {}",
             ""),
-        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 21, 1));
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 21, 1));
   }
 
   public void test_stringInterpolation_referenceConstVar_num() {

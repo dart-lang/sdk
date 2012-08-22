@@ -411,6 +411,12 @@ public class CompileTimeConstantAnalyzer {
 
           rememberInferredType(x, inferredType);
           break;
+          
+        case VARIABLE:
+          if (!element.getModifiers().isConstant() && !element.getModifiers().isFinal()) {
+            expectedConstant(x);
+          }
+          return null;
 
         case METHOD:
           if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {

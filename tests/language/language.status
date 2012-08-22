@@ -93,6 +93,7 @@ new_expression_type_args_frog_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
+parameter_initializer6_negative_test: Fail # language change 4288
 prefix1_negative_test : Fail # language change 1031
 prefix4_negative_test : Fail # language change 1031
 prefix5_negative_test : Fail # language change 1031

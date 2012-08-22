@@ -779,38 +779,34 @@ public class DartCompiler {
           boolean persist = false;
 
           // Compile all the units in this library.
-          for (DartUnit unit : lib.getUnits()) {
-
-            // Don't compile diet units.
-            if (unit.isDiet()) {
-              continue;
-            }
-
-            updateAnalysisTimestamp(unit);
+          for (DartCompilationPhase phase : phases) {
 
             // Run all compiler phases including AST simplification and symbol
             // resolution. This must run in serial.
-            for (DartCompilationPhase phase : phases) {
-              TraceEvent phaseEvent =
-                  Tracer.canTrace() ? Tracer.start(DartEventType.EXEC_PHASE, "phase", phase
-                      .getClass().getCanonicalName(), "lib", lib.getName(), "unit", unit
-                      .getSourceName()) : null;
-              try {
-                unit = phase.exec(unit, context, getTypeProvider());
-              } finally {
-                Tracer.end(phaseEvent);
+            for (DartUnit unit : lib.getUnits()) {
+              
+              // Don't compile diet units.
+              if (unit.isDiet()) {
+                continue;
               }
+
+              unit = phase.exec(unit, context, getTypeProvider());
               if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
                 return;
               }
             }
 
+          }
+
+          for (DartUnit unit : lib.getUnits()) {
+            if (unit.isDiet()) {
+              continue;
+            }
+            updateAnalysisTimestamp(unit);
             // To help support the IDE, notify the listener that this unit is compiled.
             context.unitCompiled(unit);
-
             // Update deps.
             lib.getDeps(context).update(context, unit);
-
             // We analyzed something, so we need to persist the deps.
             persist = true;
           }
