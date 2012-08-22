@@ -6766,18 +6766,17 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(intptr_t pc_offset,
-                           intptr_t length,
-                           BitmapBuilder* bmap) {
+RawStackmap* Stackmap::New(intptr_t pc_offset, BitmapBuilder* bmap) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
   // Guard against integer overflow of the instance size computation.
+  intptr_t length = bmap->Length();
   intptr_t payload_size =
       Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if (payload_size < 0 ||
-      payload_size >
-          (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap)))) {
+  if ((payload_size < 0) ||
+      (payload_size >
+           (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap))))) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Stackmap::New: invalid length %" PRIdPTR "\n",
            length);
@@ -6800,7 +6799,6 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
-  ASSERT(bmap->Maximum() < length);
   return result.raw();
 }
 

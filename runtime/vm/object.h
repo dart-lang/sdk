@@ -2342,7 +2342,8 @@ class Stackmap : public Object {
   static const intptr_t kNoMinimum = -1;
 
   bool IsObject(intptr_t index) const {
-    return InRange(index) && GetBit(index);
+    ASSERT(InRange(index));
+    return GetBit(index);
   }
 
   RawCode* Code() const { return raw_ptr()->code_; }
@@ -2366,9 +2367,7 @@ class Stackmap : public Object {
         Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
     return RoundedAllocationSize(sizeof(RawStackmap) + payload_size);
   }
-  static RawStackmap* New(intptr_t pc_offset,
-                          intptr_t length,
-                          BitmapBuilder* bmap);
+  static RawStackmap* New(intptr_t pc_offset, BitmapBuilder* bmap);
 
  private:
   void SetLength(intptr_t length) const { raw_ptr()->length_ = length; }

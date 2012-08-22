@@ -62,7 +62,12 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
 
     BitmapBuilder* stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
+    EXPECT_EQ(0, stack_bitmap->Length());
     stack_bitmap->Set(0, true);
+    EXPECT_EQ(1, stack_bitmap->Length());
+    stack_bitmap->SetLength(kStackSlotCount);
+    EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
+
     bool expectation0[kStackSlotCount] = { true };
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation0[i], stack_bitmap->Get(i));
@@ -72,9 +77,14 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
 
     stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
+    EXPECT_EQ(0, stack_bitmap->Length());
     stack_bitmap->Set(0, true);
     stack_bitmap->Set(1, false);
     stack_bitmap->Set(2, true);
+    EXPECT_EQ(3, stack_bitmap->Length());
+    stack_bitmap->SetLength(kStackSlotCount);
+    EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
+
     bool expectation1[kStackSlotCount] = { true, false, true };
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation1[i], stack_bitmap->Get(i));
@@ -84,10 +94,15 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
 
     stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
+    EXPECT_EQ(0, stack_bitmap->Length());
     stack_bitmap->Set(0, true);
     stack_bitmap->Set(1, false);
     stack_bitmap->Set(2, true);
     stack_bitmap->SetRange(3, 5, true);
+    EXPECT_EQ(6, stack_bitmap->Length());
+    stack_bitmap->SetLength(kStackSlotCount);
+    EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
+
     bool expectation2[kStackSlotCount] =
         { true, false, true, true, true, true };
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
@@ -98,12 +113,17 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
 
     stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
+    EXPECT_EQ(0, stack_bitmap->Length());
     stack_bitmap->Set(0, true);
     stack_bitmap->Set(1, false);
     stack_bitmap->Set(2, true);
     stack_bitmap->SetRange(3, 5, true);
     stack_bitmap->SetRange(6, 9, false);
     stack_bitmap->Set(10, true);
+    EXPECT_EQ(11, stack_bitmap->Length());
+    stack_bitmap->SetLength(kStackSlotCount);
+    EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
+
     bool expectation3[kStackSlotCount] =
         { true, false, true, true, true, true, false, false,
           false, false, true };

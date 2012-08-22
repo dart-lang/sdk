@@ -6,6 +6,8 @@
 #define VM_BITMAP_H_
 
 #include "vm/allocation.h"
+#include "vm/isolate.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -14,21 +16,25 @@ class RawStackmap;
 class Stackmap;
 
 
-// BitmapBuilder is used to build a bitmap. The implementation is optimized for
-// a dense set of small bit maps without an upper bound (e.g: a pointer map
-// description of a stack).
+// BitmapBuilder is used to build a bitmap. The implementation is optimized
+// for a dense set of small bit maps without a fixed upper bound (e.g: a
+// pointer map description of a stack).
 class BitmapBuilder : public ZoneAllocated {
  public:
-  BitmapBuilder() : size_in_bytes_(kInitialSizeInBytes),
-                    bit_list_(bit_list_data_) {
-    memset(bit_list_data_, 0, kInitialSizeInBytes);
+  BitmapBuilder()
+      : length_(0),
+        data_size_in_bytes_(kInitialSizeInBytes),
+        data_(Isolate::Current()->current_zone()->Alloc<uint8_t>(
+            kInitialSizeInBytes)) {
+    memset(data_, 0, kInitialSizeInBytes);
   }
 
-  intptr_t SizeInBits() const { return (size_in_bytes_ * kBitsPerByte); }
-  intptr_t SizeInBytes() const { return size_in_bytes_; }
+  intptr_t Length() const { return length_; }
+  void SetLength(intptr_t length);
 
-  // Get/Set individual bits in the bitmap, set expands the underlying bitmap
-  // if needed.
+  // Get/Set individual bits in the bitmap, setting bits beyond the bitmap's
+  // length increases the length and expands the underlying bitmap if
+  // needed.
   bool Get(intptr_t bit_offset) const;
   void Set(intptr_t bit_offset, bool value);
 
@@ -46,15 +52,19 @@ class BitmapBuilder : public ZoneAllocated {
   static const intptr_t kIncrementSizeInBytes = 16;
 
   bool InRange(intptr_t offset) const {
-    return (offset >= 0) && (offset < SizeInBits());
+    return (offset >= 0) && (offset < length_);
   }
 
+  // Get/Set a bit that is known to be covered by the backing store.
   bool GetBit(intptr_t bit_offset) const;
   void SetBit(intptr_t bit_offset, bool value);
 
-  intptr_t size_in_bytes_;
-  uint8_t bit_list_data_[kInitialSizeInBytes];
-  uint8_t* bit_list_;
+  intptr_t length_;
+
+  // Backing store for the bitmap.  Reading bits beyond the backing store
+  // (up to length_) is allowed and they are assumed to be false.
+  intptr_t data_size_in_bytes_;
+  uint8_t* data_;
 
   DISALLOW_COPY_AND_ASSIGN(BitmapBuilder);
 };

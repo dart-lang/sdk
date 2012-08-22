@@ -9,49 +9,58 @@
 
 namespace dart {
 
-bool BitmapBuilder::Get(intptr_t bit_offset) const {
-  if (!InRange(bit_offset)) {
-    return false;
+void BitmapBuilder::SetLength(intptr_t new_length) {
+  // When this function is used to shorten the length, affected bits in the
+  // backing store need to be cleared because the implementation assumes it.
+  if (new_length < length_) {
+    // Byte offset containing the first bit to be cleared.
+    intptr_t byte_offset = new_length >> kBitsPerByteLog2;
+    if (byte_offset < data_size_in_bytes_) {
+      // First bit index (in the byte) to be cleared.
+      intptr_t bit_index = new_length & (kBitsPerByte - 1);
+      intptr_t mask = (1 << bit_index) - 1;
+      data_[byte_offset] &= mask;
+      // Clear the rest.
+      ++byte_offset;
+      if (byte_offset < data_size_in_bytes_) {
+        memset(&data_[byte_offset], 0, data_size_in_bytes_ - byte_offset);
+      }
+    }
   }
-  return GetBit(bit_offset);
+  length_ = new_length;
+}
+
+
+bool BitmapBuilder::Get(intptr_t bit_offset) const {
+  ASSERT(InRange(bit_offset));
+  intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
+  // Bits not covered by the backing store are implicitly false.
+  return (byte_offset < data_size_in_bytes_) && GetBit(bit_offset);
 }
 
 
 void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
-  while (!InRange(bit_offset)) {
-    intptr_t new_size = size_in_bytes_ + kIncrementSizeInBytes;
-    ASSERT(new_size > 0);
-    uint8_t* new_bit_list =
-        Isolate::Current()->current_zone()->Alloc<uint8_t>(new_size);
-    ASSERT(new_bit_list != NULL);
-    ASSERT(bit_list_ != NULL);
-    uint8_t* old_bit_list = bit_list_;
-    memmove(new_bit_list, old_bit_list, size_in_bytes_);
-    memset((new_bit_list + size_in_bytes_), 0, kIncrementSizeInBytes);
-    size_in_bytes_ = new_size;
-    bit_list_ = new_bit_list;
+  ASSERT(bit_offset >= 0);
+  if (!InRange(bit_offset)) {
+    length_ = bit_offset + 1;
+    // Bits not covered by the backing store are implicitly false.
+    if (!value) return;
+    // Grow the backing store if necessary.
+    intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
+    if (byte_offset >= data_size_in_bytes_) {
+      uint8_t* old_data = data_;
+      intptr_t old_size = data_size_in_bytes_;
+      data_size_in_bytes_ =
+          Utils::RoundUp(byte_offset + 1, kIncrementSizeInBytes);
+      ASSERT(data_size_in_bytes_ > 0);
+      data_ = Isolate::Current()->current_zone()->Alloc<uint8_t>(
+          data_size_in_bytes_);
+      ASSERT(data_ != NULL);
+      memmove(data_, old_data, old_size);
+      memset(&data_[old_size], 0, (data_size_in_bytes_ - old_size));
+    }
   }
   SetBit(bit_offset, value);
-}
-
-
-// Return the bit offset of the highest bit set.
-intptr_t BitmapBuilder::Maximum() const {
-  intptr_t bound = SizeInBits();
-  for (intptr_t i = (bound - 1); i >= 0; i--) {
-    if (Get(i)) return i;
-  }
-  return Stackmap::kNoMaximum;
-}
-
-
-// Return the bit offset of the lowest bit set.
-intptr_t BitmapBuilder::Minimum() const {
-  intptr_t bound = SizeInBits();
-  for (intptr_t i = 0; i < bound; i++) {
-    if (Get(i)) return i;
-  }
-  return Stackmap::kNoMinimum;
 }
 
 
@@ -64,26 +73,26 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 
 bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
   ASSERT(InRange(bit_offset));
-  int byte_offset = bit_offset >> kBitsPerByteLog2;
-  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+  intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
+  ASSERT(byte_offset < data_size_in_bytes_);
+  intptr_t bit_remainder = bit_offset & (kBitsPerByte - 1);
   uint8_t mask = 1U << bit_remainder;
-  ASSERT(bit_list_ != NULL);
-  return ((bit_list_[byte_offset] & mask) != 0);
+  ASSERT(data_ != NULL);
+  return ((data_[byte_offset] & mask) != 0);
 }
 
 
 void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
   ASSERT(InRange(bit_offset));
   int byte_offset = bit_offset >> kBitsPerByteLog2;
+  ASSERT(byte_offset < data_size_in_bytes_);
   int bit_remainder = bit_offset & (kBitsPerByte - 1);
   uint8_t mask = 1U << bit_remainder;
-  uint8_t* byte_addr;
-  ASSERT(bit_list_ != NULL);
-  byte_addr = &(bit_list_[byte_offset]);
+  ASSERT(data_ != NULL);
   if (value) {
-    *byte_addr |= mask;
+    data_[byte_offset] |= mask;
   } else {
-    *byte_addr &= ~mask;
+    data_[byte_offset] &= ~mask;
   }
 }
 
