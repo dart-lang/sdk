@@ -8,6 +8,11 @@ xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
 measurement_test: Pass, Fail  # Issue 1940
 
+# Isolate implementation is private after the unification - Issue 4651
+js_interop_4_test: Fail
+js_interop_func_passing_test: Fail
+js_interop_3_test: Fail
+
 [ $runtime == drt ]
 xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
