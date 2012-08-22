@@ -32,9 +32,11 @@ void renamePlaceholders(
           .putIfAbsent(originalName, () => generateUniqueName(originalName));
 
   String renameElement(Element element) {
-    assert(element.isTopLevel() || element is TypeVariableElement);
+    assert(Elements.isStaticOrTopLevel(element)
+           || element is TypeVariableElement);
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
+    // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
     if (isDartCoreLib(compiler, library)) {

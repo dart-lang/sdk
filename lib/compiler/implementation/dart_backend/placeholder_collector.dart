@@ -32,12 +32,12 @@ class SendVisitor extends ResolvedVisitor {
     final element = elements[node];
     // element === null means dynamic property access.
     if (element === null) return;
-    // We don't want to rename non top-level element access
-    // unless it's a local variable.
     if (element.isPrefix()) {
       // Node is prefix part in case of source 'lib.somesetter = 5;'
       collector.makeNullPlaceholder(node);
-      return;
+    } else if (Elements.isStaticOrTopLevel(element)) {
+      // Unqualified or prefixed top level or static.
+      collector.makeElementPlaceholder(node.selector, element);
     } else if (!element.isTopLevel()) {
       // May get FunctionExpression here in selector
       // in case of A(int this.f());
@@ -46,26 +46,16 @@ class SendVisitor extends ResolvedVisitor {
       } else {
         assert(node.selector is FunctionExpression);
       }
-      return;
-    }
-    // Unqualified <class> in static invocation, why it's not a type annotation?
-    // Another option would be to process in visitStaticSend, NB:
-    // those elements are not top-level.
-    // OR: unqualified top level.
-    collector.makeElementPlaceholder(node.selector, element);
-    if (node.receiver !== null) {
-      // <lib prefix>.<top level>.
-      collector.makeNullPlaceholder(node.receiver);  // Cut library prefix.
     }
   }
 
   visitStaticSend(Send node) {
     final element = elements[node];
-    if (!element.isTopLevel()) return;
+    if (element.isConstructor() || element.isFactoryConstructor()) return;
+    collector.makeElementPlaceholder(node.selector, element);
     // Another ugly case: <lib prefix>.<top level> is represented as
     // receiver: lib prefix, selector: top level.
-    collector.makeElementPlaceholder(node.selector, element);
-    if (node.receiver !== null) {
+    if (element.isTopLevel() && node.receiver !== null) {
       assert(elements[node.receiver].isPrefix());
       // Hack: putting null into map overrides receiver of original node.
       collector.makeNullPlaceholder(node.receiver);
@@ -142,7 +132,7 @@ class PlaceholderCollector extends AbstractVisitor {
         tryMakeConstructorNamePlaceholder(implementingFactory.cachedNode,
             element.getEnclosingClass());
       }
-    } else if (element.isTopLevel()) {
+    } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
       // fields/getters/setters/methods.  Top-level identifiers are renamed
       // just to escape conflicts and that should be enough as we shouldn't
@@ -153,7 +143,7 @@ class PlaceholderCollector extends AbstractVisitor {
 
   void collectFieldDeclarationPlaceholders(
       Element element, VariableDefinitions node) {
-    if (element.isTopLevel()) {
+    if (Elements.isStaticOrTopLevel(element)) {
       Node fieldNode = element.parseNode(compiler);
       if (fieldNode is Identifier) {
         makeElementPlaceholder(fieldNode, element);
@@ -266,7 +256,7 @@ class PlaceholderCollector extends AbstractVisitor {
   visitSendSet(SendSet send) {
     final element = treeElements[send];
     if (element !== null) {
-      if (element.isTopLevel()) {
+      if (Elements.isStaticOrTopLevel(element)) {
         assert(element is VariableElement || element.isSetter());
         makeElementPlaceholder(send.selector, element);
       } else {
