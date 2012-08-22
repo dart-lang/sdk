@@ -1825,36 +1825,40 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     GET_LIST_ELEMENT(isolate, Array, obj, index);
-  }
-  if (obj.IsGrowableObjectArray()) {
+  } else if (obj.IsGrowableObjectArray()) {
     GET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index);
-  }
-  // Now check and handle a dart object that implements the List interface.
-  const Instance& instance =
-      Instance::Handle(isolate, GetListInstance(isolate, obj));
-  if (!instance.IsNull()) {
-    String& name = String::Handle(isolate, String::New("[]"));
-    const Function& function =
-        Function::Handle(isolate,
-                         Resolver::ResolveDynamic(instance, name, 2, 0));
-    if (!function.IsNull()) {
-      GrowableArray<const Object*> args(1);
-      Integer& indexobj = Integer::Handle(isolate);
-      indexobj = Integer::New(index);
-      args.Add(&indexobj);
-      const Array& kNoArgumentNames = Array::Handle(isolate);
-      return Api::NewHandle(
-          isolate,
-          DartEntry::InvokeDynamic(instance, function, args, kNoArgumentNames));
+  } else if (obj.IsError()) {
+    return list;
+  } else {
+    // Check and handle a dart object that implements the List interface.
+    const Instance& instance =
+        Instance::Handle(isolate, GetListInstance(isolate, obj));
+    if (!instance.IsNull()) {
+      String& name = String::Handle(isolate, String::New("[]"));
+      const Function& function =
+          Function::Handle(isolate,
+                           Resolver::ResolveDynamic(instance, name, 2, 0));
+      if (!function.IsNull()) {
+        GrowableArray<const Object*> args(1);
+        Integer& indexobj = Integer::Handle(isolate);
+        indexobj = Integer::New(index);
+        args.Add(&indexobj);
+        const Array& kNoArgumentNames = Array::Handle(isolate);
+        return Api::NewHandle(isolate, DartEntry::InvokeDynamic(
+            instance, function, args, kNoArgumentNames));
+      }
     }
+    return Api::NewError("Object does not implement the 'List' interface");
   }
-  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 
 #define SET_LIST_ELEMENT(isolate, type, obj, index, value)                     \
   const type& array = type::Cast(obj);                                         \
   const Object& value_obj = Object::Handle(isolate, Api::UnwrapHandle(value)); \
+  if (!value_obj.IsNull() && !value_obj.IsInstance()) {                        \
+    RETURN_TYPE_ERROR(isolate, value, Instance);                               \
+  }                                                                            \
   if ((index >= 0) && (index < array.Length())) {                              \
     array.SetAt(index, value_obj);                                             \
     return Api::Success(isolate);                                              \
@@ -1873,32 +1877,37 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
       return Api::NewError("Cannot modify immutable array");
     }
     SET_LIST_ELEMENT(isolate, Array, obj, index, value);
-  }
-  if (obj.IsGrowableObjectArray()) {
+  } else if (obj.IsGrowableObjectArray()) {
     SET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index, value);
-  }
-  // Now check and handle a dart object that implements the List interface.
-  const Instance& instance =
-      Instance::Handle(isolate, GetListInstance(isolate, obj));
-  if (!instance.IsNull()) {
-    String& name = String::Handle(isolate, String::New("[]="));
-    const Function& function =
-        Function::Handle(isolate,
-                         Resolver::ResolveDynamic(instance, name, 3, 0));
-    if (!function.IsNull()) {
-      const Integer& index_obj = Integer::Handle(isolate, Integer::New(index));
-      const Object& value_obj =
-          Object::Handle(isolate, Api::UnwrapHandle(value));
-      GrowableArray<const Object*> args(2);
-      args.Add(&index_obj);
-      args.Add(&value_obj);
-      const Array& kNoArgumentNames = Array::Handle(isolate);
-      return Api::NewHandle(
-          isolate,
-          DartEntry::InvokeDynamic(instance, function, args, kNoArgumentNames));
+  } else if (obj.IsError()) {
+    return list;
+  } else {
+    // Check and handle a dart object that implements the List interface.
+    const Instance& instance =
+        Instance::Handle(isolate, GetListInstance(isolate, obj));
+    if (!instance.IsNull()) {
+      String& name = String::Handle(isolate, String::New("[]="));
+      const Function& function =
+          Function::Handle(isolate,
+                           Resolver::ResolveDynamic(instance, name, 3, 0));
+      if (!function.IsNull()) {
+        const Integer& index_obj =
+            Integer::Handle(isolate, Integer::New(index));
+        const Object& value_obj =
+            Object::Handle(isolate, Api::UnwrapHandle(value));
+        if (!value_obj.IsNull() && !value_obj.IsInstance()) {
+          RETURN_TYPE_ERROR(isolate, value, Instance);
+        }
+        GrowableArray<const Object*> args(2);
+        args.Add(&index_obj);
+        args.Add(&value_obj);
+        const Array& kNoArgumentNames = Array::Handle(isolate);
+        return Api::NewHandle(isolate, DartEntry::InvokeDynamic(
+            instance, function, args, kNoArgumentNames));
+      }
     }
+    return Api::NewError("Object does not implement the 'List' interface");
   }
-  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 
@@ -1937,58 +1946,60 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       return Api::Success(isolate);
     }
     return Api::NewError("Invalid length passed in to access list elements");
-  }
-  if (obj.IsArray()) {
+  } else if (obj.IsArray()) {
     GET_LIST_ELEMENT_AS_BYTES(isolate,
                               Array,
                               obj,
                               native_array,
                               offset,
-                              length);  }
-  if (obj.IsGrowableObjectArray()) {
+                              length);
+  } else if (obj.IsGrowableObjectArray()) {
     GET_LIST_ELEMENT_AS_BYTES(isolate,
                               GrowableObjectArray,
                               obj,
                               native_array,
                               offset,
                               length);
-  }
-  // Now check and handle a dart object that implements the List interface.
-  const Instance& instance =
-      Instance::Handle(isolate, GetListInstance(isolate, obj));
-  if (!instance.IsNull()) {
-    String& name = String::Handle(isolate, String::New("[]"));
-    const Function& function =
-        Function::Handle(isolate,
-                         Resolver::ResolveDynamic(instance, name, 2, 0));
-    if (!function.IsNull()) {
-      Object& result = Object::Handle(isolate);
-      Integer& intobj = Integer::Handle(isolate);
-      for (int i = 0; i < length; i++) {
-        intobj = Integer::New(offset + i);
-        GrowableArray<const Object*> args(1);
-        args.Add(&intobj);
-        const Array& kNoArgumentNames = Array::Handle(isolate);
-        result = DartEntry::InvokeDynamic(
-            instance, function, args, kNoArgumentNames);
-        if (result.IsError()) {
-          return Api::NewHandle(isolate, result.raw());
+  } else if (obj.IsError()) {
+    return list;
+  } else {
+    // Check and handle a dart object that implements the List interface.
+    const Instance& instance =
+        Instance::Handle(isolate, GetListInstance(isolate, obj));
+    if (!instance.IsNull()) {
+      String& name = String::Handle(isolate, String::New("[]"));
+      const Function& function =
+          Function::Handle(isolate,
+                           Resolver::ResolveDynamic(instance, name, 2, 0));
+      if (!function.IsNull()) {
+        Object& result = Object::Handle(isolate);
+        Integer& intobj = Integer::Handle(isolate);
+        for (int i = 0; i < length; i++) {
+          intobj = Integer::New(offset + i);
+          GrowableArray<const Object*> args(1);
+          args.Add(&intobj);
+          const Array& kNoArgumentNames = Array::Handle(isolate);
+          result = DartEntry::InvokeDynamic(
+              instance, function, args, kNoArgumentNames);
+          if (result.IsError()) {
+            return Api::NewHandle(isolate, result.raw());
+          }
+          if (!result.IsInteger()) {
+            return Api::NewError("%s expects the argument 'list' to be "
+                                 "a List of int", CURRENT_FUNC);
+          }
+          const Integer& integer_result = Integer::Cast(result);
+          ASSERT(integer_result.AsInt64Value() <= 0xff);
+          // TODO(hpayer): value should always be smaller then 0xff. Add error
+          // handling.
+          native_array[i] =
+              static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
         }
-        if (!result.IsInteger()) {
-          return Api::NewError("%s expects the argument 'list' to be "
-                               "a List of int", CURRENT_FUNC);
-        }
-        const Integer& integer_result = Integer::Cast(result);
-        ASSERT(integer_result.AsInt64Value() <= 0xff);
-        // TODO(hpayer): value should always be smaller then 0xff. Add error
-        // handling.
-        native_array[i] =
-            static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
+        return Api::Success(isolate);
       }
-      return Api::Success(isolate);
     }
+    return Api::NewError("Object does not implement the 'List' interface");
   }
-  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 
@@ -2020,8 +2031,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
       return Api::Success(isolate);
     }
     return Api::NewError("Invalid length passed in to set list elements");
-  }
-  if (obj.IsArray()) {
+  } else if (obj.IsArray()) {
     if (obj.IsImmutableArray()) {
       return Api::NewError("Cannot modify immutable array");
     }
@@ -2031,45 +2041,47 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                               native_array,
                               offset,
                               length);
-  }
-  if (obj.IsGrowableObjectArray()) {
+  } else if (obj.IsGrowableObjectArray()) {
     SET_LIST_ELEMENT_AS_BYTES(isolate,
                               GrowableObjectArray,
                               obj,
                               native_array,
                               offset,
                               length);
-  }
-  // Now check and handle a dart object that implements the List interface.
-  const Instance& instance =
-      Instance::Handle(isolate, GetListInstance(isolate, obj));
-  if (!instance.IsNull()) {
-    String& name = String::Handle(isolate, String::New("[]="));
-    const Function& function =
-        Function::Handle(isolate,
-                         Resolver::ResolveDynamic(instance, name, 3, 0));
-    if (!function.IsNull()) {
-      Integer& indexobj = Integer::Handle(isolate);
-      Integer& valueobj = Integer::Handle(isolate);
-      for (int i = 0; i < length; i++) {
-        indexobj = Integer::New(offset + i);
-        valueobj = Integer::New(native_array[i]);
-        GrowableArray<const Object*> args(2);
-        args.Add(&indexobj);
-        args.Add(&valueobj);
-        const Array& kNoArgumentNames = Array::Handle(isolate);
-        const Object& result = Object::Handle(
-            isolate,
-            DartEntry::InvokeDynamic(
-                instance, function, args, kNoArgumentNames));
-        if (result.IsError()) {
-          return Api::NewHandle(isolate, result.raw());
+  } else if (obj.IsError()) {
+    return list;
+  } else {
+  // Check and handle a dart object that implements the List interface.
+    const Instance& instance =
+        Instance::Handle(isolate, GetListInstance(isolate, obj));
+    if (!instance.IsNull()) {
+      String& name = String::Handle(isolate, String::New("[]="));
+      const Function& function =
+          Function::Handle(isolate,
+                           Resolver::ResolveDynamic(instance, name, 3, 0));
+      if (!function.IsNull()) {
+        Integer& indexobj = Integer::Handle(isolate);
+        Integer& valueobj = Integer::Handle(isolate);
+        for (int i = 0; i < length; i++) {
+          indexobj = Integer::New(offset + i);
+          valueobj = Integer::New(native_array[i]);
+          GrowableArray<const Object*> args(2);
+          args.Add(&indexobj);
+          args.Add(&valueobj);
+          const Array& kNoArgumentNames = Array::Handle(isolate);
+          const Object& result = Object::Handle(
+              isolate,
+              DartEntry::InvokeDynamic(
+                  instance, function, args, kNoArgumentNames));
+          if (result.IsError()) {
+            return Api::NewHandle(isolate, result.raw());
+          }
         }
+        return Api::Success(isolate);
       }
-      return Api::Success(isolate);
     }
+    return Api::NewError("Object does not implement the 'List' interface");
   }
-  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 
@@ -2313,16 +2325,12 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(closure));
-  if (obj.IsNull()) {
-    return Api::NewError("Null object passed to Dart_ClosureFunction");
-  }
-  if (!obj.IsClosure()) {
-    return Api::NewError("Invalid closure passed to Dart_ClosureFunction");
+  const Closure& closure_obj = Api::UnwrapClosureHandle(isolate, closure);
+  if (closure_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, closure, Closure);
   }
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
-  const Closure& closure_obj = Closure::Cast(obj);
   RawFunction* rf = closure_obj.function();
   return Api::NewHandle(isolate, rf);
 }
@@ -2333,21 +2341,25 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            Dart_Handle* arguments) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(closure));
-  if (obj.IsNull()) {
-    return Api::NewError("Null object passed in to invoke closure");
+  const Closure& closure_obj = Api::UnwrapClosureHandle(isolate, closure);
+  if (closure_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, closure, Closure);
   }
-  if (!obj.IsClosure()) {
-    return Api::NewError("Invalid closure passed to invoke closure");
+  if (number_of_arguments < 0) {
+    return Api::NewError(
+        "%s expects argument 'number_of_arguments' to be non-negative.",
+        CURRENT_FUNC);
   }
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Now try to invoke the closure.
-  const Closure& closure_obj = Closure::Cast(obj);
   GrowableArray<const Object*> dart_arguments(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg =
         Object::Handle(isolate, Api::UnwrapHandle(arguments[i]));
+    if (!arg.IsNull() && !arg.IsInstance()) {
+      RETURN_TYPE_ERROR(isolate, arguments[i], Instance);
+    }
     dart_arguments.Add(&arg);
   }
   const Array& kNoArgumentNames = Array::Handle(isolate);
@@ -2405,8 +2417,7 @@ DART_EXPORT bool Dart_IsInterface(Dart_Handle handle) {
 DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Class::Handle(
-      isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
@@ -2417,8 +2428,7 @@ DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz) {
 DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Class::Handle(
-      isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
@@ -2437,8 +2447,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
 DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Class::Handle(
-      isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
@@ -2460,8 +2469,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
                                                     intptr_t* count) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Class::Handle(
-      isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
@@ -2480,8 +2488,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
                                                  intptr_t index) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Class::Handle(
-      isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
@@ -3006,8 +3013,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   }
 
   // Get the class to instantiate.
-  Class& cls = Class::Handle(
-      isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
+  Class& cls =
+      Class::Handle(isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
@@ -3024,11 +3031,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
     const String& dot = String::Handle(isolate, Symbols::Dot());
     dot_name = String::Concat(dot, String::Cast(name_obj));
   } else {
-    return Api::NewError(
-        "%s expects argument 'constructor_name' to be of type String.",
-        CURRENT_FUNC);
+    RETURN_TYPE_ERROR(isolate, constructor_name, String);
   }
-
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::NewError(msg);
@@ -3377,6 +3381,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
                            CURRENT_FUNC, field_name.ToCString());
     }
 
+  } else if (obj.IsError()) {
+      return container;
   } else {
     return Api::NewError(
         "%s expects argument 'container' to be an object, class, or library.",
@@ -3518,6 +3524,8 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
                            CURRENT_FUNC, field_name.ToCString());
     }
 
+  } else if (obj.IsError()) {
+      return container;
   } else {
     return Api::NewError(
         "%s expects argument 'container' to be an object, class, or library.",
@@ -3531,22 +3539,22 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
                                                       int field_count) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& param = Object::Handle(isolate, Api::UnwrapHandle(name));
-  if (param.IsNull() || !param.IsString() || field_count <= 0) {
-    return Api::NewError(
-        "Invalid arguments passed to Dart_CreateNativeWrapperClass");
+  const String& cls_name = Api::UnwrapStringHandle(isolate, name);
+  if (cls_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, name, String);
   }
-  String& cls_name = String::Handle(isolate);
-  cls_name ^= param.raw();
-  cls_name = Symbols::New(cls_name);
-  Library& lib = Library::Handle(isolate);
-  lib ^= Api::UnwrapHandle(library);
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
-    return Api::NewError(
-        "Invalid arguments passed to Dart_CreateNativeWrapperClass");
+    RETURN_TYPE_ERROR(isolate, library, Library);
   }
+  if (field_count <= 0) {
+    return Api::NewError(
+        "Negative field_count passed to Dart_CreateNativeWrapperClass");
+  }
+
+  String& cls_symbol = String::Handle(isolate, Symbols::New(cls_name));
   const Class& cls = Class::Handle(
-      isolate, Class::NewNativeWrapper(lib, cls_name, field_count));
+      isolate, Class::NewNativeWrapper(lib, cls_symbol, field_count));
   if (cls.IsNull()) {
     return Api::NewError(
         "Unable to create native wrapper class : already exists");
@@ -3613,13 +3621,15 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  const Instance& excp = Api::UnwrapInstanceHandle(isolate, exception);
+  if (excp.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  }
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
-  const Instance& excp =
-      Instance::CheckedHandle(isolate, Api::UnwrapHandle(exception));
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   ApiState* state = isolate->api_state();
@@ -3634,16 +3644,20 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
+  const Instance& excp = Api::UnwrapInstanceHandle(isolate, exception);
+  if (excp.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  }
+  const Instance& stk = Api::UnwrapInstanceHandle(isolate, stacktrace);
+  if (stk.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, stacktrace, Instance);
+  }
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
-  DARTSCOPE(isolate);
-  const Instance& excp =
-      Instance::CheckedHandle(isolate, Api::UnwrapHandle(exception));
-  const Instance& stk =
-      Instance::CheckedHandle(isolate, Api::UnwrapHandle(stacktrace));
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   ApiState* state = isolate->api_state();
