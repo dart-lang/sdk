@@ -279,20 +279,36 @@ class ResolverTask extends CompilerTask {
   }
 
   void checkAbstractField(Element member) {
-    if (member is !AbstractFieldElement) return;
-    if (member.getter === null) return;
-    if (member.setter === null) return;
-    int getterFlags = member.getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
-    int setterFlags = member.setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
+    // Only check for getters. The test can only fail if there is both a setter
+    // and a getter with the same name, and we only need to check each abstract
+    // field once, so we just ignore setters.
+    if (!member.isGetter()) return;
+
+    // Find the associated abstract field.
+    ClassElement classElement = member.getEnclosingClass();
+    Element lookupElement = classElement.lookupLocalMember(member.name);
+    if (lookupElement === null) {
+      compiler.internalErrorOnElement(member,
+                                      "No abstract field for accessor");
+    } else if (lookupElement.kind !== ElementKind.ABSTRACT_FIELD) {
+       compiler.internalErrorOnElement(
+           member, "Inaccessible abstract field for accessor");
+    }
+    AbstractFieldElement field = lookupElement;
+
+    if (field.getter === null) return;
+    if (field.setter === null) return;
+    int getterFlags = field.getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
+    int setterFlags = field.setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     if (getterFlags !== setterFlags) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
       compiler.reportMessage(
-          compiler.spanFromElement(member.getter),
+          compiler.spanFromElement(field.getter),
           MessageKind.GETTER_MISMATCH.error([mismatchedFlags]),
           api.Diagnostic.ERROR);
       compiler.reportMessage(
-          compiler.spanFromElement(member.setter),
+          compiler.spanFromElement(field.setter),
           MessageKind.SETTER_MISMATCH.error([mismatchedFlags]),
           api.Diagnostic.ERROR);
     }

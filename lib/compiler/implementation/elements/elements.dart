@@ -370,7 +370,7 @@ class ScopeContainerElement extends ContainerElement {
 
   void addToScope(Element element, DiagnosticListener listener) {
     if (element.isAccessor()) {
-      addGetterOrSetter(element, localScope[element.name], listener);
+      addAccessorToScope(element, localScope[element.name], listener);
     } else {
       Element existing = localScope.putIfAbsent(element.name, () => element);
       if (existing !== element) {
@@ -385,13 +385,26 @@ class ScopeContainerElement extends ContainerElement {
     return localScope[elementName];
   }
 
-  void addGetterOrSetter(FunctionElement element,
-                         Element existing,
-                         DiagnosticListener listener) {
+  /**
+   * Adds a definition for an [accessor] (getter or setter) to a container.
+   * The definition binds to an abstract field that can hold both a getter
+   * and a setter.
+   *
+   * The abstract field is added once, for the first getter or setter, and
+   * reused if the other one is also added.
+   * The abstract field should not be treated as a proper member of the
+   * container, it's simply a way to return two results for one lookup.
+   * That is, the getter or setter does not have the abstract field as enclosing
+   * element, they are enclosed by the class or compilation unit, as is the
+   * abstract field.
+   */
+  void addAccessorToScope(Element accessor,
+                          Element existing,
+                          DiagnosticListener listener) {
     void reportError(Element other) {
       // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-      listener.cancel('duplicate definition of ${element.name.slowToString()}',
-                      element: element);
+      listener.cancel('duplicate definition of ${accessor.name.slowToString()}',
+                      element: accessor);
       listener.cancel('existing definition', element: other);
     }
 
@@ -400,28 +413,29 @@ class ScopeContainerElement extends ContainerElement {
         reportError(existing);
       } else {
         AbstractFieldElement field = existing;
-        if (element.kind == ElementKind.GETTER) {
-          if (field.getter != null && field.getter != element) {
+        if (accessor.isGetter()) {
+          if (field.getter != null && field.getter != accessor) {
             reportError(field.getter);
           }
-          field.getter = element;
+          field.getter = accessor;
         } else {
-          if (field.setter != null && field.setter != element) {
+          assert(accessor.isSetter());
+          if (field.setter != null && field.setter != accessor) {
             reportError(field.setter);
           }
-          field.setter = element;
+          field.setter = accessor;
         }
       }
     } else {
-      Element container = element.getEnclosingClassOrCompilationUnit();
+      Element container = accessor.getEnclosingClassOrCompilationUnit();
       AbstractFieldElement field =
-          new AbstractFieldElement(element.name, container);
-      if (element.kind == ElementKind.GETTER) {
-        field.getter = element;
+          new AbstractFieldElement(accessor.name, container);
+      if (accessor.isGetter()) {
+        field.getter = accessor;
       } else {
-        field.setter = element;
+        field.setter = accessor;
       }
-      addMember(field, listener);
+      addToScope(field, listener);
     }
   }
 }

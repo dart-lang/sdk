@@ -388,43 +388,19 @@ class Compiler implements DiagnosticListener {
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
       Element originalElement = original.localLookup(patchElement.name);
-      if (patchElement.isAccessor()) {
-        // TODO(lrn): When we change to always add accessors to members, and
-        // not add abstract fields, the logic here should be reversed.
-        // For now, access getters through the abstract field and skip
-        // any accessors.
-      } else if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
-        // Getters and setters are kept inside a synthetic field.
-        if (originalElement !== null &&
-            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+      if (patchElement.isAccessor() && originalElement !== null) {
+        if (originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
           internalError("Cannot patch non-getter/setter with getter/setter",
                         element: originalElement);
         }
-        AbstractFieldElement patchField = patchElement;
         AbstractFieldElement originalField = originalElement;
-        if (patchField.getter !== null) {
-          if (originalField === null || originalField.getter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.getter, original),
-                                       originalField,
-                                       this);
-            if (originalField === null && patchField.setter !== null) {
-              // It exists now, so find it for the setter patching.
-              originalField = original.localLookup(patchElement.name);
-            }
-          } else {
-            patchMember(originalField.getter, patchField.getter);
-          }
+        if (patchElement.isGetter()) {
+          originalElement = originalField.getter;
+        } else {
+          originalElement = originalField.setter;
         }
-        if (patchField.setter !== null) {
-          if (originalField === null || originalField.setter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.setter, original),
-                                       originalField,
-                                       this);
-          } else {
-            patchMember(originalField.setter, patchField.setter);
-          }
-        }
-      } else if (originalElement === null) {
+      }
+      if (originalElement === null) {
         if (isPatchElement(patchElement)) {
           internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
