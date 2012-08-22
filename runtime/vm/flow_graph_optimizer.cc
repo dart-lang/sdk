@@ -252,7 +252,7 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                                 InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
-  BinaryOpComp::OperandsType operands_type = BinaryOpComp::kDynamicOperands;
+  intptr_t operands_type = kIllegalCid;
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   switch (op_kind) {
@@ -260,9 +260,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     case Token::kSUB:
     case Token::kMUL:
       if (HasOnlyTwoSmi(ic_data)) {
-        operands_type = BinaryOpComp::kSmiOperands;
+        operands_type = kSmiCid;
       } else if (HasOnlyTwoDouble(ic_data)) {
-        operands_type = BinaryOpComp::kDoubleOperands;
+        operands_type = kDoubleCid;
       } else {
         return false;
       }
@@ -270,15 +270,15 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     case Token::kDIV:
     case Token::kMOD:
       if (HasOnlyTwoDouble(ic_data)) {
-        operands_type = BinaryOpComp::kDoubleOperands;
+        operands_type = kDoubleCid;
       } else {
         return false;
       }
     case Token::kBIT_AND:
       if (HasOnlyTwoSmi(ic_data)) {
-        operands_type = BinaryOpComp::kSmiOperands;
+        operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data)) {
-        operands_type = BinaryOpComp::kMintOperands;
+        operands_type = kMintCid;
       } else {
         return false;
       }
@@ -289,7 +289,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     case Token::kSHR:
     case Token::kSHL:
       if (HasOnlyTwoSmi(ic_data)) {
-        operands_type = BinaryOpComp::kSmiOperands;
+        operands_type = kSmiCid;
       } else {
         return false;
       }
@@ -299,19 +299,28 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
   };
 
   ASSERT(comp->ArgumentCount() == 2);
-  if (operands_type == BinaryOpComp::kDoubleOperands) {
-    DoubleBinaryOpComp* double_bin_op = new DoubleBinaryOpComp(op_kind, comp);
+  if (operands_type == kDoubleCid) {
+    BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
     double_bin_op->set_ic_data(comp->ic_data());
     instr->set_computation(double_bin_op);
-  } else {
+  } else if (operands_type == kMintCid) {
     Value* left = comp->ArgumentAt(0)->value();
     Value* right = comp->ArgumentAt(1)->value();
-    BinaryOpComp* bin_op =
-        new BinaryOpComp(op_kind,
-                         operands_type,
-                         comp,
-                         left,
-                         right);
+    BinaryMintOpComp* bin_op = new BinaryMintOpComp(op_kind,
+                                                    comp,
+                                                    left,
+                                                    right);
+    bin_op->set_ic_data(comp->ic_data());
+    instr->set_computation(bin_op);
+    RemovePushArguments(comp);
+  } else {
+    ASSERT(operands_type == kSmiCid);
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
+    BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
+                                                  comp,
+                                                  left,
+                                                  right);
     bin_op->set_ic_data(comp->ic_data());
     instr->set_computation(bin_op);
     RemovePushArguments(comp);

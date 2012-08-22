@@ -94,8 +94,9 @@ class LocalVariable;
   M(ChainContext, ChainContextComp)                                            \
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
-  M(BinaryOp, BinaryOpComp)                                                    \
-  M(DoubleBinaryOp, DoubleBinaryOpComp)                                        \
+  M(BinarySmiOp, BinarySmiOpComp)                                              \
+  M(BinaryMintOp, BinaryMintOpComp)                                            \
+  M(BinaryDoubleOp, BinaryDoubleOpComp)                                        \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
@@ -1649,22 +1650,13 @@ class CatchEntryComp : public TemplateComputation<0> {
 };
 
 
-class BinaryOpComp : public TemplateComputation<2> {
+class BinarySmiOpComp : public TemplateComputation<2> {
  public:
-  enum OperandsType {
-    kDynamicOperands,
-    kSmiOperands,
-    kMintOperands,
-    kDoubleOperands
-  };
-
-  BinaryOpComp(Token::Kind op_kind,
-               OperandsType operands_type,
-               InstanceCallComp* instance_call,
-               Value* left,
-               Value* right)
+  BinarySmiOpComp(Token::Kind op_kind,
+                  InstanceCallComp* instance_call,
+                  Value* left,
+                  Value* right)
       : op_kind_(op_kind),
-        operands_type_(operands_type),
         instance_call_(instance_call) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
@@ -1677,29 +1669,62 @@ class BinaryOpComp : public TemplateComputation<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
-  OperandsType operands_type() const { return operands_type_; }
-
   InstanceCallComp* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  DECLARE_COMPUTATION(BinaryOp)
+  DECLARE_COMPUTATION(BinarySmiOp)
 
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const;
 
  private:
   const Token::Kind op_kind_;
-  const OperandsType operands_type_;
   InstanceCallComp* instance_call_;
 
-  DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+  DISALLOW_COPY_AND_ASSIGN(BinarySmiOpComp);
 };
 
 
-class DoubleBinaryOpComp : public TemplateComputation<0> {
+class BinaryMintOpComp : public TemplateComputation<2> {
  public:
-  DoubleBinaryOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
+  BinaryMintOpComp(Token::Kind op_kind,
+                   InstanceCallComp* instance_call,
+                   Value* left,
+                   Value* right)
+      : op_kind_(op_kind),
+        instance_call_(instance_call) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(BinaryMintOp)
+
+  virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const;
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpComp);
+};
+
+
+class BinaryDoubleOpComp : public TemplateComputation<0> {
+ public:
+  BinaryDoubleOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
       : op_kind_(op_kind), instance_call_(instance_call) { }
 
   Token::Kind op_kind() const { return op_kind_; }
@@ -1708,7 +1733,7 @@ class DoubleBinaryOpComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  DECLARE_CALL_COMPUTATION(DoubleBinaryOp)
+  DECLARE_CALL_COMPUTATION(BinaryDoubleOp)
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
@@ -1719,7 +1744,7 @@ class DoubleBinaryOpComp : public TemplateComputation<0> {
   const Token::Kind op_kind_;
   InstanceCallComp* instance_call_;
 
-  DISALLOW_COPY_AND_ASSIGN(DoubleBinaryOpComp);
+  DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpComp);
 };
 
 

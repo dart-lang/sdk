@@ -989,34 +989,36 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 }
 
 
-RawAbstractType* BinaryOpComp::CompileType() const {
+RawAbstractType* BinarySmiOpComp::CompileType() const {
   ObjectStore* object_store = Isolate::Current()->object_store();
-  if (operands_type() == kMintOperands) {
-    return object_store->mint_type();
-  }
-  if (op_kind() == Token::kSHL) {
-    return Type::IntInterface();
-  }
-  ASSERT(operands_type() == kSmiOperands);
-  return object_store->smi_type();
+  return (op_kind() == Token::kSHL)
+      ? Type::IntInterface()
+      : object_store->smi_type();
 }
 
 
-intptr_t BinaryOpComp::ResultCid() const {
-  if (operands_type() == kMintOperands) {
-    return kMintCid;
-  }
-  ASSERT(operands_type() == kSmiOperands);
+intptr_t BinarySmiOpComp::ResultCid() const {
   return (op_kind() == Token::kSHL) ? kDynamicCid : kSmiCid;
 }
 
 
-RawAbstractType* DoubleBinaryOpComp::CompileType() const {
+RawAbstractType* BinaryMintOpComp::CompileType() const {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  return object_store->mint_type();
+}
+
+
+intptr_t BinaryMintOpComp::ResultCid() const {
+  return kMintCid;
+}
+
+
+RawAbstractType* BinaryDoubleOpComp::CompileType() const {
   return Type::DoubleInterface();
 }
 
 
-intptr_t DoubleBinaryOpComp::ResultCid() const {
+intptr_t BinaryDoubleOpComp::ResultCid() const {
   return kDoubleCid;
 }
 

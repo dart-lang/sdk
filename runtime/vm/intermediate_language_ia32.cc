@@ -1411,26 +1411,8 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BinaryOpComp::MakeLocationSummary() const {
+LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-
-  // Double operation are handled in DoubleBinaryOpComp.
-  ASSERT(operands_type() != kDoubleOperands);
-
-  if (operands_type() == kMintOperands) {
-    ASSERT(op_kind() == Token::kBIT_AND);
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::RegisterLocation(ECX));
-    summary->set_temp(0, Location::RegisterLocation(EDX));
-    summary->set_out(Location::RegisterLocation(EAX));
-    return summary;
-  }
-
-  ASSERT(operands_type() == kSmiOperands);
-
   if (op_kind() == Token::kTRUNCDIV) {
     const intptr_t kNumTemps = 3;
     LocationSummary* summary =
@@ -1476,16 +1458,16 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
 }
 
 
-static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
-  Register result = comp->locs()->out().reg();
-  Register temp = comp->locs()->temp(0).reg();
+void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  Register temp = locs()->temp(0).reg();
   ASSERT(left == result);
-  const bool left_is_smi = comp->left()->ResultCid() == kSmiCid;
-  const bool right_is_smi = comp->right()->ResultCid() == kSmiCid;
+  const bool left_is_smi = this->left()->ResultCid() == kSmiCid;
+  const bool right_is_smi = this->right()->ResultCid() == kSmiCid;
   bool can_deopt;
-  switch (comp->op_kind()) {
+  switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
@@ -1496,9 +1478,9 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   }
   Label* deopt = NULL;
   if (can_deopt) {
-    deopt  = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
-                                    comp->instance_call()->try_index(),
-                                    kDeoptSmiBinaryOp);
+    deopt  = compiler->AddDeoptStub(instance_call()->deopt_id(),
+                                    instance_call()->try_index(),
+                                    kDeoptBinarySmiOp);
   }
   if (!left_is_smi || !right_is_smi) {
     __ movl(temp, left);
@@ -1506,7 +1488,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
     __ testl(temp, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
   }
-  switch (comp->op_kind()) {
+  switch (op_kind()) {
     case Token::kADD: {
       __ addl(left, right);
       __ j(OVERFLOW, deopt);
@@ -1546,9 +1528,9 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       ASSERT(left == EAX);
       ASSERT((right != EDX) && (right != EAX));
       ASSERT((temp != EDX) && (temp != EAX));
-      ASSERT(comp->locs()->temp(1).reg() == EDX);
+      ASSERT(locs()->temp(1).reg() == EDX);
       ASSERT(result == EAX);
-      Register right_temp = comp->locs()->temp(2).reg();
+      Register right_temp = locs()->temp(2).reg();
       __ movl(right_temp, right);
       __ SmiUntag(left);
       __ SmiUntag(right_temp);
@@ -1585,7 +1567,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       __ cmpl(right,
           Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
       __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
-      Register right_temp = comp->locs()->temp(1).reg();
+      Register right_temp = locs()->temp(1).reg();
       ASSERT(right_temp == ECX);  // Count must be in ECX
       __ movl(right_temp, right);
       __ SmiUntag(right_temp);
@@ -1600,19 +1582,19 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       {
         __ Bind(&call_method);
         Function& target = Function::ZoneHandle(
-            comp->ic_data()->GetTargetForReceiverClassId(kSmiCid));
+            ic_data()->GetTargetForReceiverClassId(kSmiCid));
         ASSERT(!target.IsNull());
         const intptr_t kArgumentCount = 2;
         __ pushl(temp);
         __ pushl(right);
         compiler->GenerateStaticCall(
-            comp->instance_call()->deopt_id(),
-            comp->instance_call()->token_pos(),
-            comp->instance_call()->try_index(),
+            instance_call()->deopt_id(),
+            instance_call()->token_pos(),
+            instance_call()->try_index(),
             target,
             kArgumentCount,
             Array::Handle(),  // No argument names.
-            comp->locs()->stack_bitmap());
+            locs()->stack_bitmap());
         ASSERT(result == EAX);
       }
       __ Bind(&done);
@@ -1643,20 +1625,34 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 }
 
 
-static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
+LocationSummary* BinaryMintOpComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  ASSERT(op_kind() == Token::kBIT_AND);
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_temp(0, Location::RegisterLocation(EDX));
+  summary->set_out(Location::RegisterLocation(EAX));
+  return summary;
+}
+
+
+void BinaryMintOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // TODO(regis): For now, we only support Token::kBIT_AND for a Mint or Smi
   // receiver and a Mint or Smi argument. We fall back to the run time call if
   // both receiver and argument are Mint or if one of them is Mint and the other
   // is a negative Smi.
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
-  Register result = comp->locs()->out().reg();
-  Register temp = comp->locs()->temp(0).reg();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  Register temp = locs()->temp(0).reg();
   ASSERT(left == result);
-  ASSERT(comp->op_kind() == Token::kBIT_AND);
-  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
-                                        comp->instance_call()->try_index(),
-                                        kDeoptMintBinaryOp);
+  ASSERT(op_kind() == Token::kBIT_AND);
+  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+                                        instance_call()->try_index(),
+                                        kDeoptBinaryMintOp);
   Label mint_static_call, smi_static_call, non_smi, smi_smi, done;
   __ testl(left, Immediate(kSmiTagMask));  // Is receiver Smi?
   __ j(NOT_ZERO, &non_smi);
@@ -1693,20 +1689,20 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   __ Bind(&smi_static_call);
   {
     Function& target = Function::ZoneHandle(
-        comp->ic_data()->GetTargetForReceiverClassId(kSmiCid));
+        ic_data()->GetTargetForReceiverClassId(kSmiCid));
     if (target.IsNull()) {
       __ jmp(deopt);
     } else {
       __ pushl(left);
       __ pushl(right);
       compiler->GenerateStaticCall(
-          comp->instance_call()->deopt_id(),
-          comp->instance_call()->token_pos(),
-          comp->instance_call()->try_index(),
+          instance_call()->deopt_id(),
+          instance_call()->token_pos(),
+          instance_call()->try_index(),
           target,
-          comp->instance_call()->ArgumentCount(),
-          comp->instance_call()->argument_names(),
-          comp->locs()->stack_bitmap());
+          instance_call()->ArgumentCount(),
+          instance_call()->argument_names(),
+          locs()->stack_bitmap());
       ASSERT(result == EAX);
       __ jmp(&done);
     }
@@ -1715,20 +1711,20 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   __ Bind(&mint_static_call);
   {
     Function& target = Function::ZoneHandle(
-        comp->ic_data()->GetTargetForReceiverClassId(kMintCid));
+        ic_data()->GetTargetForReceiverClassId(kMintCid));
     if (target.IsNull()) {
       __ jmp(deopt);
     } else {
       __ pushl(left);
       __ pushl(right);
       compiler->GenerateStaticCall(
-          comp->instance_call()->deopt_id(),
-          comp->instance_call()->token_pos(),
-          comp->instance_call()->try_index(),
+          instance_call()->deopt_id(),
+          instance_call()->token_pos(),
+          instance_call()->try_index(),
           target,
-          comp->instance_call()->ArgumentCount(),
-          comp->instance_call()->argument_names(),
-          comp->locs()->stack_bitmap());
+          instance_call()->ArgumentCount(),
+          instance_call()->argument_names(),
+          locs()->stack_bitmap());
       ASSERT(result == EAX);
     }
   }
@@ -1736,28 +1732,12 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 }
 
 
-void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  switch (operands_type()) {
-    case kSmiOperands:
-      EmitSmiBinaryOp(compiler, this);
-      break;
-
-    case kMintOperands:
-      EmitMintBinaryOp(compiler, this);
-      break;
-
-    default:
-      UNREACHABLE();
-  }
-}
-
-
-LocationSummary* DoubleBinaryOpComp::MakeLocationSummary() const {
+LocationSummary* BinaryDoubleOpComp::MakeLocationSummary() const {
   return MakeCallSummary();  // Calls into a stub for allocation.
 }
 
 
-void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryDoubleOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = EBX;
   Register right = ECX;
   Register temp = EDX;
@@ -1779,7 +1759,7 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        kDeoptDoubleBinaryOp);
+                                        kDeoptBinaryDoubleOp);
 
   // Binary operation of two Smi's produces a Smi not a double.
   __ movl(temp, left);
