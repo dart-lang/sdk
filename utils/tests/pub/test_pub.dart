@@ -60,17 +60,32 @@ TarFileDescriptor tar(Pattern name, [List<Descriptor> contents]) =>
  */
 var _server;
 
+/** The cached value for [_portCompleter]. */
+Completer<int> _portCompleterCache;
+
+/** The completer for [port]. */
+Completer<int> get _portCompleter {
+  if (_portCompleterCache != null) return _portCompleterCache;
+  _portCompleterCache = new Completer<int>();
+  _scheduleCleanup((_) {
+    _portCompleterCache = null;
+  });
+  return _portCompleterCache;
+}
+
+/**
+ * A future that will complete to the port used for the current server.
+ */
+Future<int> get port => _portCompleter.future;
+
 /**
  * Creates an HTTP server to serve [contents] as static files. This server will
  * exist only for the duration of the pub run.
  *
  * Subsequent calls to [serve] will replace the previous server.
  */
-void serve(String host, int port, [List<Descriptor> contents]) {
+void serve([List<Descriptor> contents]) {
   var baseDir = dir("serve-dir", contents);
-  if (host == 'localhost') {
-    host = '127.0.0.1';
-  }
 
   _schedule((_) {
     return _closeServer().transform((_) {
@@ -103,7 +118,8 @@ void serve(String host, int port, [List<Descriptor> contents]) {
           response.outputStream.close();
         });
       };
-      _server.listen(host, port);
+      _server.listen("127.0.0.1", 0);
+      _portCompleter.complete(_server.port);
       _scheduleCleanup((_) => _closeServer());
       return null;
     });
@@ -118,6 +134,7 @@ Future _closeServer() {
   if (_server == null) return new Future.immediate(null);
   _server.close();
   _server = null;
+  _portCompleterCache = null;
   // TODO(nweiz): Remove this once issue 4155 is fixed. Pumping the event loop
   // *seems* to be enough to ensure that the server is actually closed, but I'm
   // putting this at 10ms to be safe.
@@ -125,37 +142,71 @@ Future _closeServer() {
 }
 
 /**
+ * The [DirectoryDescriptor] describing the server layout of packages that are
+ * being served via [servePackages]. This is `null` if [servePackages] has not
+ * yet been called for this test.
+ */
+DirectoryDescriptor _servedPackageDir;
+
+/**
+ * A map from package names to version numbers to YAML-serialized pubspecs for
+ * those packages. This represents the packages currently being served by
+ * [servePackages], and is `null` if [servePackages] has not yet been called for
+ * this test.
+ */
+Map<String, Map<String, String>> _servedPackages;
+
+/**
  * Creates an HTTP server that replicates the structure of pub.dartlang.org.
  * [pubspecs] is a list of unserialized pubspecs representing the packages to
  * serve.
+ *
+ * Subsequent calls to [servePackages] will add to the set of packages that are
+ * being served. Previous packages will continue to be served.
  */
-void servePackages(String host, int port, List<Map> pubspecs) {
-  var packages = <String, Map<String, String>>{};
-  for (var spec in pubspecs) {
-    var name = spec['name'];
-    var version = spec['version'];
-    packages.putIfAbsent(name, () => <String, String>{})[version] = yaml(spec);
+void servePackages(List<Map> pubspecs) {
+  if (_servedPackages == null || _servedPackageDir == null) {
+    _servedPackages = <String, Map<String, String>>{};
+    _servedPackageDir = dir('packages', []);
+    serve([_servedPackageDir]);
+
+    _scheduleCleanup((_) {
+      _servedPackages = null;
+      _servedPackageDir = null;
+    });
   }
 
-  serve(host, port, [
-    dir('packages', flatten(packages.getKeys().map((name) {
-      return [
-        file('$name.json',
-          JSON.stringify({'versions': packages[name].getKeys()})),
-        dir(name, [
-          dir('versions', flatten(packages[name].getKeys().map((version) {
-            return [
-              file('$version.yaml', packages[name][version]),
-              tar('$version.tar.gz', [
-                file('pubspec.yaml', packages[name][version]),
-                file('$name.dart', 'main() => print("$name $version");')
-              ])
-            ];
-          })))
-        ])
-      ];
-    })))
-  ]);
+  _schedule((_) {
+    return _awaitObject(pubspecs).transform((resolvedPubspecs) {
+      for (var spec in resolvedPubspecs) {
+        var name = spec['name'];
+        var version = spec['version'];
+        var versions = _servedPackages.putIfAbsent(
+            name, () => <String, String>{});
+        versions[version] = yaml(spec);
+      }
+
+      _servedPackageDir.contents.clear();
+      for (var name in _servedPackages.getKeys()) {
+        var versions = _servedPackages[name].getKeys();
+        _servedPackageDir.contents.addAll([
+          file('$name.json',
+              JSON.stringify({'versions': versions})),
+          dir(name, [
+            dir('versions', flatten(versions.map((version) {
+              return [
+                file('$version.yaml', _servedPackages[name][version]),
+                tar('$version.tar.gz', [
+                  file('pubspec.yaml', _servedPackages[name][version]),
+                  file('$name.dart', 'main() => print("$name $version");')
+                ])
+              ];
+            })))
+          ])
+        ]);
+      }
+    });
+  });
 }
 
 /** Converts [value] into a YAML string. */
@@ -204,7 +255,8 @@ Map package(String name, String version, [List dependencies]) {
  * repository.
  */
 Map dependency(String name, [String versionConstraint]) {
-  var dependency = {"repo": {"name": name, "url": "http://localhost:3123"}};
+  var url = port.transform((p) => "http://localhost:$p");
+  var dependency = {"repo": {"name": name, "url": url}};
   if (versionConstraint != null) dependency["version"] = versionConstraint;
   return dependency;
 }
@@ -271,7 +323,9 @@ DirectoryDescriptor cacheDir(Map packages) {
     }
   });
   return dir(cachePath, [
-    dir('repo', [dir('localhost%583123', contents)])
+    dir('repo', [
+      async(port.transform((p) => dir('localhost%58$p', contents)))
+    ])
   ]);
 }
 
@@ -286,29 +340,31 @@ DirectoryDescriptor appDir(List dependencies) =>
  * Converts a list of dependencies as passed to [package] into a hash as used in
  * a pubspec.
  */
-Map _dependencyListToMap(List<Map> dependencies) {
-  var result = <String, Map>{};
-  dependencies.map((dependency) {
-    var keys = dependency.getKeys().filter((key) => key != "version");
-    var sourceName = only(keys);
-    var source;
-    switch (sourceName) {
-    case "git":
-      source = new GitSource();
-      break;
-    case "repo":
-      source = new RepoSource();
-      break;
-    case "sdk":
-      source = new SdkSource('');
-      break;
-    default:
-      throw 'Unknown source "$sourceName"';
-    }
+Future<Map> _dependencyListToMap(List<Map> dependencies) {
+  return _awaitObject(dependencies).transform((resolvedDependencies) {
+    var result = <String, Map>{};
+    for (var dependency in resolvedDependencies) {
+      var keys = dependency.getKeys().filter((key) => key != "version");
+      var sourceName = only(keys);
+      var source;
+      switch (sourceName) {
+      case "git":
+        source = new GitSource();
+        break;
+      case "repo":
+        source = new RepoSource();
+        break;
+      case "sdk":
+        source = new SdkSource('');
+        break;
+      default:
+        throw 'Unknown source "$sourceName"';
+      }
 
-    result[source.packageName(dependency[sourceName])] = dependency;
-  });
-  return result;
+      result[source.packageName(dependency[sourceName])] = dependency;
+    }
+    return result;
+  }); 
 }
 
 /**

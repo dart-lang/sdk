@@ -297,7 +297,7 @@ installCommand() {
   });
 
   test('checks out a package from a pub server', () {
-    servePackages("localhost", 3123, [package("foo", "1.2.3")]);
+    servePackages([package("foo", "1.2.3")]);
 
     appDir([dependency("foo", "1.2.3")]).scheduleCreate();
 
@@ -311,7 +311,7 @@ installCommand() {
   });
 
   test('checks out packages transitively from a pub server', () {
-    servePackages("localhost", 3123, [
+    servePackages([
       package("foo", "1.2.3", [dependency("bar", "2.0.4")]),
       package("bar", "2.0.3"),
       package("bar", "2.0.4"),
@@ -330,7 +330,7 @@ installCommand() {
   });
 
   test('resolves version constraints from a pub server', () {
-    servePackages("localhost", 3123, [
+    servePackages([
       package("foo", "1.2.3", [dependency("baz", ">=2.0.0")]),
       package("bar", "2.3.4", [dependency("baz", "<3.0.0")]),
       package("baz", "2.0.3"),
@@ -474,7 +474,7 @@ installCommand() {
   });
 
   test('keeps a pub server package locked to the version in the lockfile', () {
-    servePackages("localhost", 3123, [package("foo", "1.0.0")]);
+    servePackages([package("foo", "1.0.0")]);
 
     appDir([dependency("foo")]).scheduleCreate();
 
@@ -488,10 +488,7 @@ installCommand() {
     dir(packagesPath).scheduleDelete();
 
     // Start serving a newer package as well.
-    servePackages("localhost", 3123, [
-      package("foo", "1.0.0"),
-      package("foo", "1.0.1")
-    ]);
+    servePackages([package("foo", "1.0.1")]);
 
     // This install shouldn't update the foo dependency due to the lockfile.
     schedulePub(args: ['install'],
@@ -504,7 +501,7 @@ installCommand() {
 
   test('updates a locked pub server package with a new incompatible '
       'constraint', () {
-    servePackages("localhost", 3123, [package("foo", "1.0.0")]);
+    servePackages([package("foo", "1.0.0")]);
 
     appDir([dependency("foo")]).scheduleCreate();
 
@@ -513,10 +510,7 @@ installCommand() {
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
 
-    servePackages("localhost", 3123, [
-      package("foo", "1.0.0"),
-      package("foo", "1.0.1")
-    ]);
+    servePackages([package("foo", "1.0.1")]);
 
     appDir([dependency("foo", ">1.0.0")]).scheduleCreate();
 
@@ -530,7 +524,7 @@ installCommand() {
 
   test("doesn't update a locked pub server package with a new compatible "
       "constraint", () {
-    servePackages("localhost", 3123, [package("foo", "1.0.0")]);
+    servePackages([package("foo", "1.0.0")]);
 
     appDir([dependency("foo")]).scheduleCreate();
 
@@ -539,10 +533,7 @@ installCommand() {
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
 
-    servePackages("localhost", 3123, [
-      package("foo", "1.0.0"),
-      package("foo", "1.0.1")
-    ]);
+    servePackages([package("foo", "1.0.1")]);
 
     appDir([dependency("foo", ">=1.0.0")]).scheduleCreate();
 
@@ -556,7 +547,7 @@ installCommand() {
 
   test("unlocks dependencies if necessary to ensure that a new dependency "
       "is satisfied", () {
-    servePackages("localhost", 3123, [
+    servePackages([
       package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
       package("bar", "1.0.0", [dependency("baz", "<2.0.0")]),
       package("baz", "1.0.0", [dependency("qux", "<2.0.0")]),
@@ -575,19 +566,11 @@ installCommand() {
       "qux": "1.0.0"
     }).scheduleValidate();
 
-    servePackages("localhost", 3123, [
-      package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
+    servePackages([
       package("foo", "2.0.0", [dependency("bar", "<3.0.0")]),
-
-      package("bar", "1.0.0", [dependency("baz", "<2.0.0")]),
       package("bar", "2.0.0", [dependency("baz", "<3.0.0")]),
-
-      package("baz", "1.0.0", [dependency("qux", "<2.0.0")]),
       package("baz", "2.0.0", [dependency("qux", "<3.0.0")]),
-
-      package("qux", "1.0.0"),
       package("qux", "2.0.0"),
-
       package("newdep", "2.0.0", [dependency("baz", ">=1.5.0")])
     ]);
 
@@ -609,7 +592,7 @@ installCommand() {
 
   test("doesn't unlock dependencies if a new dependency is already "
       "satisfied", () {
-    servePackages("localhost", 3123, [
+    servePackages([
       package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
       package("bar", "1.0.0", [dependency("baz", "<2.0.0")]),
       package("baz", "1.0.0")
@@ -626,16 +609,10 @@ installCommand() {
       "baz": "1.0.0"
     }).scheduleValidate();
 
-    servePackages("localhost", 3123, [
-      package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
+    servePackages([
       package("foo", "2.0.0", [dependency("bar", "<3.0.0")]),
-
-      package("bar", "1.0.0", [dependency("baz", "<2.0.0")]),
       package("bar", "2.0.0", [dependency("baz", "<3.0.0")]),
-
-      package("baz", "1.0.0"),
       package("baz", "2.0.0"),
-
       package("newdep", "2.0.0", [dependency("baz", ">=1.0.0")])
     ]);
 
@@ -808,7 +785,7 @@ updateCommand() {
 
     test("updates one locked pub server package's dependencies if it's "
         "necessary", () {
-      servePackages("localhost", 3123, [
+      servePackages([
         package("foo", "1.0.0", [dependency("foo-dep")]),
         package("foo-dep", "1.0.0")
       ]);
@@ -823,7 +800,7 @@ updateCommand() {
         "foo-dep": "1.0.0"
       }).scheduleValidate();
 
-      servePackages("localhost", 3123, [
+      servePackages([
         package("foo", "2.0.0", [dependency("foo-dep", ">1.0.0")]),
         package("foo-dep", "2.0.0")
       ]);
@@ -841,7 +818,7 @@ updateCommand() {
 
     test("updates a locked package's dependers in order to get it to max "
         "version", () {
-      servePackages("localhost", 3123, [
+      servePackages([
         package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
         package("bar", "1.0.0")
       ]);
@@ -856,11 +833,8 @@ updateCommand() {
         "bar": "1.0.0"
       }).scheduleValidate();
 
-      servePackages("localhost", 3123, [
-        package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
+      servePackages([
         package("foo", "2.0.0", [dependency("bar", "<3.0.0")]),
-
-        package("bar", "1.0.0"),
         package("bar", "2.0.0")
       ]);
 
