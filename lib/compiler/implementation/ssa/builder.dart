@@ -2385,6 +2385,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
       HInvokeStatic instruction = new HInvokeStatic(inputs);
+      // TODO(ngeoffray): Only do this if knowing the return type is
+      // useful.
       HType returnType =
           builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
               work.element, element);

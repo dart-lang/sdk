@@ -38,13 +38,21 @@ class InvocationInfo {
     // Update the type information with the provided types.
     bool typesChanged = false;
     bool allUnknown = true;
-    for (int i = 0; i < providedTypes.length; i++) {
-      HType newType = providedTypes[i].union(types[node.inputs[i + 1]]);
-      if (newType != providedTypes[i]) {
-        typesChanged = true;
-        providedTypes[i] = newType;
+
+    if (providedTypes.length != node.inputs.length - 1) {
+      // If the signatures don't match, remove all optimizations on
+      // that selector.
+      typesChanged = true;
+      allUnknown = true;
+    } else {
+      for (int i = 0; i < providedTypes.length; i++) {
+        HType newType = providedTypes[i].union(types[node.inputs[i + 1]]);
+        if (newType != providedTypes[i]) {
+          typesChanged = true;
+          providedTypes[i] = newType;
+        }
+        if (providedTypes[i] != HType.UNKNOWN) allUnknown = false;
       }
-      if (providedTypes[i] != HType.UNKNOWN) allUnknown = false;
     }
     // If the provided types change we need to recompile all functions which
     // have been compiled under the now invalidated assumptions.
@@ -288,15 +296,20 @@ class JavaScriptBackend extends Backend {
     Map<Selector, InvocationInfo> invocationInfos =
         invocationInfo.putIfAbsent(selector.name,
                                    () => new Map<Selector, InvocationInfo>());
-    InvocationInfo info = invocationInfos[selector];
-    if (info != null) {
-      void recompile(Element element) {
-        if (compiler.phase == Compiler.PHASE_COMPILING) {
-          invalidateAfterCodegen.add(element);
+    if (!invocationInfos.isEmpty()) {
+      invocationInfos.forEach((Selector _, InvocationInfo info) {
+        // TODO(ngeoffray): Check that the signature of [info] applies to
+        // [element]. We cannot do that right now because the
+        // strategy is all or nothing. We should actually retain the
+        // methods that don't apply to [selector].
+        void recompile(Element element) {
+          if (compiler.phase == Compiler.PHASE_COMPILING) {
+            invalidateAfterCodegen.add(element);
+          }
         }
-      }
 
-      info.update(node, types, recompile);
+        info.update(node, types, recompile);
+      });
     } else {
       invocationInfos[selector] = new InvocationInfo(node, types);
     }
