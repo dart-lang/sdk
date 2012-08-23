@@ -169,6 +169,9 @@ class ParamInfo(object):
     self.dart_type = dart_type
     self.is_optional = is_optional
 
+  def Copy(self):
+    return ParamInfo(self.name, self.type_id, self.dart_type, self.is_optional)
+
   def __repr__(self):
     content = 'name = %s, type_id = %s, dart_type = %s, is_optional = %s' % (
         self.name, self.type_id, self.dart_type, self.is_optional)
@@ -413,6 +416,15 @@ class OperationInfo(object):
     else:
       return self.type_name
 
+  def CopyAndWidenDefaultParameters(self):
+    """Returns equivalent OperationInfo, but default parameters are Dynamic."""
+    info = copy.copy(self)
+    info.param_infos = [param.Copy() for param in self.param_infos]
+    for param in info.param_infos:
+      if param.is_optional:
+        param.dart_type = 'Dynamic'
+    return info
+
 
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""
@@ -446,6 +458,61 @@ def IndentText(text, indent):
 def TypeName(type_ids, interface):
   # Dynamically type this field for now.
   return 'Dynamic'
+
+# ------------------------------------------------------------------------------
+
+class Conversion(object):
+  """Represents a way of converting between types."""
+  def __init__(self, name, input_type, output_type):
+    # input_type is the type of the API input (and the argument type of the
+    # conversion function)
+    # output_type is the type of the API output (and the result type of the
+    # conversion function)
+    self.function_name = name
+    self.input_type = input_type
+    self.output_type = output_type
+
+#  TYPE -> "DIRECTION INTERFACE.MEMBER" -> conversion
+#  TYPE -> "DIRECTION INTERFACE.*" -> conversion
+#  TYPE -> "DIRECTION" -> conversion
+#
+# where DIRECTION is 'get' for getters and operation return values, 'set' for
+# setters and operation arguments.  INTERFACE and MEMBER are the idl names.
+#
+dart2js_conversions = {
+    'IDBKey': {
+        'get':
+          Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
+        'set':
+          Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
+        },
+    'ImageData': {
+        'get':
+          Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
+        'set':
+          Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic')
+        },
+    'Dictionary': {
+        'get':
+          Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
+        'set':
+          Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
+        },
+
+    'DOMString[]': {
+        'set':
+          Conversion(
+              '_convertDartToNative_StringArray', 'List<String>', 'List'),
+        },
+}
+
+def FindConversion(idl_type, direction, interface, member):
+  table = dart2js_conversions.get(idl_type)
+  if table:
+    return (table.get('%s %s.%s' % (direction, interface, member)) or
+            table.get('%s %s.*' % (direction, interface)) or
+            table.get(direction))
+  return None
 
 # ------------------------------------------------------------------------------
 

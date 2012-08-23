@@ -898,14 +898,17 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       return
 
     if attribute.id != html_name:
-      self._AddRenamingGetter(attribute, html_name)
-      if not read_only:
-        self._AddRenamingSetter(attribute, html_name)
+      self._AddAttributeUsingProperties(attribute, html_name, read_only)
       return
 
     # If the attribute is shadowing, we can't generate a shadowing
     # field (Issue 1633).
-    (super_attribute, super_attribute_interface) = self._FindShadowedAttribute(attribute, _merged_html_interfaces)
+    # TODO(sra): _FindShadowedAttribute does not take into account the html
+    #  renaming.  we should be looking for another attribute that has the same
+    #  html_name.  Two attributes with the same IDL name might not match if one
+    #  is renamed.
+    (super_attribute, super_attribute_interface) = self._FindShadowedAttribute(
+        attribute, _merged_html_interfaces)
     if super_attribute:
       if read_only:
         if attribute.type.id == super_attribute.type.id:
@@ -919,9 +922,15 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
               NAME=DartDomNameOfAttribute(attribute),
               TYPE=self._NarrowOutputType(attribute.type.id))
           return
-
       self._members_emitter.Emit('\n  // Shadowing definition.')
-      self._AddAttributeUsingProperties(attribute, read_only)
+      self._AddAttributeUsingProperties(attribute, html_name, read_only)
+      return
+
+    # If the type has a conversion we need a getter or setter to contain the
+    # conversion code.
+    if (self._OutputConversion(attribute.type.id, attribute.id) or
+        self._InputConversion(attribute.type.id, attribute.id)):
+      self._AddAttributeUsingProperties(attribute, html_name, read_only)
       return
 
     output_type = self._NarrowOutputType(attribute.type.id)
@@ -937,32 +946,57 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
 
-  def _AddAttributeUsingProperties(self, attribute, read_only):
-    self._AddGetter(attribute)
+  def _AddAttributeUsingProperties(self, attribute, html_name, read_only):
+    self._AddRenamingGetter(attribute, html_name)
     if not read_only:
-      self._AddSetter(attribute)
-
-  def _AddGetter(self, attr):
-    self._AddRenamingGetter(attr, DartDomNameOfAttribute(attr))
-
-  def _AddSetter(self, attr):
-    self._AddRenamingSetter(attr, DartDomNameOfAttribute(attr))
+      self._AddRenamingSetter(attribute, html_name)
 
   def _AddRenamingGetter(self, attr, html_name):
+    conversion = self._OutputConversion(attr.type.id, attr.id)
+    if conversion:
+      return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
-        '\n  $TYPE get $(HTML_NAME)() native "return this.$NAME;";\n',
+        '\n  $TYPE get $HTML_NAME() native "return this.$NAME;";\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=return_type)
 
   def _AddRenamingSetter(self, attr, html_name):
+    conversion = self._InputConversion(attr.type.id, attr.id)
+    if conversion:
+      return self._AddConvertingSetter(attr, html_name, conversion)
     self._members_emitter.Emit(
         '\n  void set $HTML_NAME($TYPE value)'
         ' native "this.$NAME = value;";\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=self._NarrowInputType(attr.type.id))
+
+  def _AddConvertingGetter(self, attr, html_name, conversion):
+    self._members_emitter.Emit(
+        '\n  $RETURN_TYPE get $HTML_NAME() => $CONVERT(this._$(HTML_NAME));'
+        '\n  $NATIVE_TYPE get _$HTML_NAME() native "return this.$NAME;";'
+        '\n',
+        CONVERT=conversion.function_name,
+        HTML_NAME=html_name,
+        NAME=attr.id,
+        RETURN_TYPE=conversion.output_type,
+        NATIVE_TYPE=conversion.input_type)
+
+  def _AddConvertingSetter(self, attr, html_name, conversion):
+    self._members_emitter.Emit(
+        '\n  void set $HTML_NAME($INPUT_TYPE value) {'
+        ' this._$HTML_NAME = $CONVERT(value); }'
+        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value)'
+        ' native "this.$NAME = value;";'
+        '\n',
+        CONVERT=conversion.function_name,
+        HTML_NAME=html_name,
+        NAME=attr.id,
+        INPUT_TYPE=conversion.input_type,
+        NATIVE_TYPE=conversion.output_type)
+
 
   def AddOperation(self, info, html_name):
     """
@@ -976,6 +1010,13 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     if info.IsStatic():
       return
 
+    # Any conversions needed?
+    if any(self._OperationRequiresConversions(op) for op in info.overloads):
+      self._AddOperationWithConversions(info, html_name)
+    else:
+      self._AddDirectNativeOperation(info, html_name)
+
+  def _AddDirectNativeOperation(self, info, html_name):
     # Do we need a native body?
     if html_name != info.declared_name:
       return_type = self._NarrowOutputType(info.type_name)
@@ -989,6 +1030,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
 
       operation_emitter.Emit(
           '\n'
+          #'  // @native("$NAME")\n;'
           '  $TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
@@ -998,6 +1040,161 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
           NAME=info.name,
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
+
+  def _AddOperationWithConversions(self, info, html_name):
+    # Assert all operations have same return type.
+    assert len(set([op.type.id for op in info.operations])) == 1
+    info = info.CopyAndWidenDefaultParameters()
+    output_conversion = self._OutputConversion(info.type_name,
+                                               info.declared_name)
+    if output_conversion:
+      return_type = output_conversion.output_type
+      native_return_type = output_conversion.input_type
+    else:
+      return_type = self._NarrowInputType(info.type_name)
+      native_return_type = return_type
+
+    def InputType(type_name):
+      conversion = self._InputConversion(type_name, info.declared_name)
+      if conversion:
+        return conversion.input_type
+      else:
+        return self._NarrowInputType(type_name)
+
+    body = self._members_emitter.Emit(
+        '\n'
+        '  $TYPE $(HTML_NAME)($PARAMS) {\n'
+        '$!BODY'
+        '  }\n',
+        TYPE=return_type,
+        HTML_NAME=html_name,
+        PARAMS=info.ParametersImplementationDeclaration(InputType, '_default'))
+
+    argument_names = [param_info.name for param_info in info.param_infos]
+    argument_types = [InputType(param_info.dart_type)
+                      for param_info in info.param_infos]
+    operations = info.operations
+
+    method_version = [0]
+    temp_version = [0]
+
+    def GenerateCall(operation, argument_count, checks):
+      if checks:
+        (stmts_emitter, call_emitter) = body.Emit(
+            '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
+            INDENT='      ',
+            CHECKS=' &&\n        '.join(checks))
+      else:
+        (stmts_emitter, call_emitter) = body.Emit('$!A$!B', INDENT='    ');
+
+      method_version[0] += 1
+      target = '_%s_%d' % (html_name, method_version[0])
+      arguments = []
+      target_parameters = []
+      for position, arg in enumerate(operation.arguments[:argument_count]):
+        conversion = self._InputConversion(arg.type.id, operation.id)
+        param_name = operation.arguments[position].id
+        if conversion:
+          temp_version[0] += 1
+          temp_name = '%s_%s' % (param_name, temp_version[0])
+          temp_type = conversion.output_type
+          stmts_emitter.Emit(
+              '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
+              TYPE=TypeOrVar(temp_type),
+              NAME=temp_name,
+              CONVERT=conversion.function_name,
+              ARG=argument_names[position])
+          arguments.append(temp_name)
+          param_type = temp_type
+          verified_type = temp_type  # verified by assignment in checked mode.
+        else:
+          arguments.append(argument_names[position])
+          param_type = self._NarrowInputType(DartType(arg.type.id))
+          # Verified by argument checking on entry to the dispatcher.
+          verified_type = InputType(info.param_infos[position].dart_type)
+
+        # The native method does not need an argument type if we know the type.
+        # But we do need the native methods to have correct function types, so
+        # be conservative.
+        if param_type == verified_type:
+          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+            param_type = 'Dynamic'
+        target_parameters.append(
+            '%s%s' % (TypeOrNothing(param_type), param_name))
+
+      argument_list = ', '.join(arguments)
+      # TODO(sra): If the native method has zero type checks, we can 'inline' is
+      # and call it directly with a JS-expression.
+      call = '%s(%s)' % (target, argument_list)
+
+      if output_conversion:
+        call = '%s(%s)' % (output_conversion.function_name, call)
+
+      if operation.type.id == 'void':
+        call_emitter.Emit('$(INDENT)$CALL;\n$(INDENT)return;\n',
+                          CALL=call)
+      else:
+        call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
+
+      self._members_emitter.Emit(
+          '  $TYPE$TARGET($PARAMS) native "$NATIVE";\n',
+          TYPE=TypeOrNothing(native_return_type),
+          TARGET=target,
+          PARAMS=', '.join(target_parameters),
+          NATIVE=info.declared_name)
+
+    def GenerateChecksAndCall(operation, argument_count):
+      checks = ['_default == %s' % name for name in argument_names]
+      for i in range(0, argument_count):
+        argument = operation.arguments[i]
+        argument_name = argument_names[i]
+        test_type = self._DartType(argument.type.id)
+        if test_type in ['Dynamic', 'Object']:
+          checks[i] = '_default != %s' % argument_name
+        else:
+          checks[i] = '(%s is %s || %s == null)' % (
+              argument_name, self._DartType(argument.type.id), argument_name)
+      GenerateCall(operation, argument_count, checks)
+
+    # TODO: Optimize the dispatch to avoid repeated checks.
+    if len(operations) > 1:
+      for operation in operations:
+        for position, argument in enumerate(operation.arguments):
+          if self._IsOptional(operation, argument):
+            GenerateChecksAndCall(operation, position)
+        GenerateChecksAndCall(operation, len(operation.arguments))
+      body.Emit('    throw "Incorrect number or type of arguments";\n');
+    else:
+      operation = operations[0]
+      argument_count = len(operation.arguments)
+      for position, argument in list(enumerate(operation.arguments))[::-1]:
+        if self._IsOptional(operation, argument):
+          check = '_default != %s' % argument_names[position]
+          GenerateCall(operation, position + 1, [check])
+          argument_count = position
+      GenerateCall(operation, argument_count, [])
+
+
+  def _IsOptional(self, operation, argument):
+    return IsOptional(argument)
+
+
+  def _OperationRequiresConversions(self, operation):
+    return (self._OperationRequiresOutputConversion(operation) or
+            self._OperationRequiresInputConversions(operation))
+
+  def _OperationRequiresOutputConversion(self, operation):
+    return self._OutputConversion(operation.type.id, operation.id)
+
+  def _OperationRequiresInputConversions(self, operation):
+    return any(self._InputConversion(arg.type.id, operation.id)
+               for arg in operation.arguments)
+
+  def _OutputConversion(self, idl_type, member):
+    return FindConversion(idl_type, 'get', self._interface.id, member)
+
+  def _InputConversion(self, idl_type, member):
+    return FindConversion(idl_type, 'set', self._interface.id, member)
 
   def _HasCustomImplementation(self, member_name):
     member_name = '%s.%s' % (self._html_interface_name, member_name)

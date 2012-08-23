@@ -35,6 +35,7 @@ documentfragment_test: Pass, Timeout
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+indexeddb_3_test: Fail  # Issue 4648 - codegen bug.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
@@ -192,9 +193,7 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
-canvas_pixel_array_type_alias_test: Fail # Expectation: CreateImageData. Caught NoSuchMethodException : method not found: 'get$data'
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
-instance_of_test: Fail     # Issue 2535
 localstorage_test: Fail
 mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
