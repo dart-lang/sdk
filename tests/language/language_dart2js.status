@@ -277,25 +277,17 @@ naming_test: Fail
 
 
 [ $compiler == dart2js && $runtime == ie ]
-arithmetic2_test: Fail
-bad_named_parameters2_test: Fail
-bad_named_parameters_test: Fail
 call_through_getter_test: Fail
 call_through_null_getter_test: Fail
 div_by_zero_test: Fail
 double_to_string_as_fixed_test: Fail
 expect_test: Fail
 factory3_test: Fail
-implied_interface_test: Fail
 list_test: Fail
-local_function3_test: Fail
 local_function_test: Fail
 naming_test: Fail
-private3_test: Fail
-savannah_test: Fail
 stack_overflow_test: Fail
 type_checks_in_factory_method_test: Fail
-is_nan_test: Fail # BUG(3542)
 
 
 [ $compiler == dart2js && $runtime == safari ]
