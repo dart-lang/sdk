@@ -8,7 +8,7 @@ class DartBackend extends Backend {
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
 
-  DartBackend(Compiler compiler, [bool validateUnparse = false])
+  DartBackend(Compiler compiler)
       : tasks = <CompilerTask>[],
       super(compiler);
 
