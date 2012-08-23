@@ -304,10 +304,10 @@ class Element implements Hashable {
  * information about the error that caused the element to be unresolvable
  * or otherwise invalid.
  *
- * Accessing any field or calling any method defined on [Element] except
- * [isValid] will currently throw an exception. (This might change when we
- * actually want more information on the erroneous element, e.g., the name
- * of the element we were trying to resolve.)
+ * Accessing any field or calling any method defined on [ErroneousElement]
+ * except [isErroneous] will currently throw an exception. (This might
+ * change when we actually want more information on the erroneous element,
+ * e.g., the name of the element we were trying to resolve.)
  *
  * Code that cannot not handle an [ErroneousElement] should use
  *   [: Element.isInvalid(element) :]

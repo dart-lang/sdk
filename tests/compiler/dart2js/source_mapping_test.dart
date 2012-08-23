@@ -51,7 +51,8 @@ void testSourceMapLocations(String codeWithMarkers) {
 
 String FUNCTIONS_TEST = '''
 @void main() { print(test(15)); @}
-@int test(int x) { return x; @}''';
+// The 'if' has been added to avoid inlining of 'test'.
+@int test(int x) { if (x != null) return x; else return null; @}''';
 
 String RETURN_TEST = 'void main() { print(((x) { @return x; })(0)); }';
 
@@ -69,7 +70,8 @@ void main() {
   var closureSend = (x) { print(x); };
   @closureSend(0);
 }
-void staticSend(x) { print(x); }
+// The 'if' has been added to avoid inlining of 'staticSend'.
+void staticSend(x) { if (x == null) return; print(x); }
 class NewSend { void dynamicSend(x) { print(x); } }
 ''';
 

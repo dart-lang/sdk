@@ -837,9 +837,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
       parameters = new Map<Element, HParameterValue>(),
+      inliningStack = <InliningState>[],
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
+
+  static final MAX_INLINING_DEPTH = 3;
+  static final MAX_INLINING_SOURCE_SIZE = 100;
+  List<InliningState> inliningStack;
+  Element returnElement = null;
 
   void disableMethodInterception() {
     assert(methodInterceptionEnabled);
@@ -898,6 +904,84 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     assert(bodyElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY);
     return bodyElement;
+  }
+
+  InliningState enterInlinedMethod(PartialFunctionElement function,
+                                   Selector selector,
+                                   Link<Node> arguments) {
+    // Once we start to compile the arguments we must be sure that we don't
+    // abort.
+    List<HInstruction> compiledArguments = new List<HInstruction>();
+    bool succeeded = addStaticSendArgumentsToList(selector,
+                                                  arguments,
+                                                  function,
+                                                  compiledArguments);
+    assert(succeeded);
+
+    InliningState state =
+        new InliningState(function, returnElement, elements, stack);
+    inliningStack.add(state);
+    stack = <HInstruction>[];
+    returnElement = new Element(const SourceString("result"),
+                                ElementKind.VARIABLE,
+                                function);
+    localsHandler.updateLocal(returnElement, graph.addConstantNull());
+    elements = compiler.enqueuer.resolution.getCachedElements(function);
+    FunctionSignature signature = function.computeSignature(compiler);
+    int index = 0;
+    signature.forEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[index++];
+      localsHandler.updateLocal(parameter, argument);
+      potentiallyCheckType(argument, parameter);
+    });
+    return state;
+  }
+
+  void leaveInlinedMethod(InliningState state) {
+    InliningState poppedState = inliningStack.removeLast();
+    assert(state == poppedState);
+    elements = state.oldElements;
+    stack.add(localsHandler.readLocal(returnElement));
+    returnElement = state.oldReturnElement;
+    assert(stack.length == 1);
+    state.oldStack.add(stack[0]);
+    stack = state.oldStack;
+  }
+
+  bool tryInlineMethod(Element element,
+                       Selector selector,
+                       Link<Node> arguments) {
+    if (element.kind != ElementKind.FUNCTION) return false;
+    if (element is !PartialFunctionElement) return false;
+    if (inliningStack.length > MAX_INLINING_DEPTH) return false;
+    // Don't inline recursive calls. We use the same elements for the inlined
+    // functions and would thus clobber our local variables.
+    if (work.element == element) return false;
+    for (int i = 0; i < inliningStack.length; i++) {
+      if (inliningStack[i].function == element) return false;
+    }
+    // TODO(ngeoffray): Inlining currently does not work in the presence of
+    // private calls.
+    if (currentLibrary != element.getLibrary()) return false;
+    PartialFunctionElement function = element;
+    int sourceSize =
+        function.endToken.charOffset - function.beginToken.charOffset;
+    if (sourceSize > MAX_INLINING_SOURCE_SIZE) return false;
+    if (!selector.applies(function, compiler)) return false;
+    FunctionExpression functionExpression = function.parseNode(compiler);
+    TreeElements newElements =
+        compiler.enqueuer.resolution.getCachedElements(function);
+    if (newElements === null) {
+      compiler.internalError("Element not resolved: $function");
+    }
+    if (!InlineWeeder.canBeInlined(functionExpression, newElements)) {
+      return false;
+    }
+
+    InliningState state = enterInlinedMethod(function, selector, arguments);
+    functionExpression.body.accept(this);
+    leaveInlinedMethod(state);
+    return true;
   }
 
   void inlineSuperOrRedirect(FunctionElement constructor,
@@ -2372,6 +2456,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
+
+    if (tryInlineMethod(element, selector, node.arguments)) return;
+
     HInstruction target = new HStatic(element);
     add(target);
     var inputs = <HInstruction>[];
@@ -2647,7 +2734,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.expression);
       value = pop();
     }
-    close(attachPosition(new HReturn(value), node)).addSuccessor(graph.exit);
+    if (!inliningStack.isEmpty()) {
+      localsHandler.updateLocal(returnElement, value);
+    } else {
+      close(attachPosition(new HReturn(value), node)).addSuccessor(graph.exit);
+    }
   }
 
   visitThrow(Throw node) {
@@ -3449,6 +3540,91 @@ class StringBuilderVisitor extends AbstractVisitor {
     builder.add(instruction);
     return instruction;
   }
+}
+
+/**
+ * This class visits the method that is a candidate for inlining and
+ * finds whether it is too difficult to inline.
+ */
+class InlineWeeder extends AbstractVisitor {
+  final TreeElements elements;
+  bool seenReturn = false;
+  bool tooDifficult = false;
+
+  InlineWeeder(this.elements);
+
+  static bool canBeInlined(FunctionExpression functionExpression,
+                           TreeElements elements) {
+    InlineWeeder weeder = new InlineWeeder(elements);
+    weeder.visit(functionExpression.body);
+    if (weeder.tooDifficult) return false;
+    return true;
+  }
+
+  void visit(Node node) {
+    node.accept(this);
+  }
+
+  void visitNode(Node node) {
+    if (seenReturn) {
+      tooDifficult = true;
+    } else {
+      node.visitChildren(this);
+    }
+  }
+
+  void visitFunctionExpression(Node node) {
+    tooDifficult = true;
+  }
+
+  void visitFunctionDeclaration(Node node) {
+    tooDifficult = true;
+  }
+
+  void visitSend(Node node) {
+    Element element = elements[node];
+    // Native methods rely on the names of the arguments. If we inline they
+    // could change.
+    if (!Element.isInvalid(element) && element.kind == ElementKind.FOREIGN) {
+      tooDifficult = true;
+    } else {
+      node.visitChildren(this);
+    }
+  }
+
+  visitLoop(Node node) {
+    node.visitChildren(this);
+    if (seenReturn) tooDifficult = true;
+  }
+
+  void visitReturn(Node node) {
+    if (seenReturn || node.getBeginToken().stringValue === 'native') {
+      tooDifficult = true;
+      return;
+    }
+    node.visitChildren(this);
+    seenReturn = true;
+  }
+
+  void visitTryStatement(Node node) {
+    tooDifficult = true;
+  }
+
+  void visitThrow(Node node) {
+    tooDifficult = true;
+  }
+}
+
+class InliningState {
+  final PartialFunctionElement function;
+  final Element oldReturnElement;
+  final TreeElements oldElements;
+  final List<HInstruction> oldStack;
+
+  InliningState(this.function,
+                this.oldReturnElement,
+                this.oldElements,
+                this.oldStack);
 }
 
 class SsaBranch {

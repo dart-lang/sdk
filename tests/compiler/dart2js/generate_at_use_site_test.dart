@@ -15,7 +15,11 @@ fib(n) {
 // for the result of recursively calling fib
 // which introduces new variables because we
 // now have multiple users.
-add(x, y) => x + y;
+// The 'if' has been added to avoid inlining of add.
+add(x, y) {
+  if (x == -1) return x;
+  return x + y;
+}
 """;
 
 main() {

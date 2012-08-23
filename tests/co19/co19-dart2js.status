@@ -417,7 +417,10 @@ LibTest/core/int/compareTo_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 testing missing assertion.
 LibTest/core/int/isEven_A01_t01: Fail, OK # Not in API.
 LibTest/core/int/isOdd_A01_t01: Fail, OK # Not in API.
-LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Requires big int.
+# The following test will start to fail when dart2js fixes issue 2887 (constant
+# folding with runtime-semantics).
+# It should then be marked as:  Fail, OK # Requires big int.
+LibTest/core/int/operator_NOT_A01_t01: Pass
 LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail, Pass # Requires big int unless type inference fools us.

@@ -19,54 +19,55 @@ void compileAndFind(String code,
   return check(compiler.backend, fun);
 }
 
+// The 'f' function has an 'if' to make it non-inlinable.
 final String TEST_ONE = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f("s"); }
 """;
 
 final String TEST_TWO = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f(1); }
 """;
 
 final String TEST_THREE = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f(1); f(2); }
 """;
 
 final String TEST_FOUR = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f(1.1); }
 """;
 
 final String TEST_FIVE = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f(1); f(2.2); }
 """;
 
 final String TEST_SIX = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f(1.1); f(2); }
 """;
 
 final String TEST_SEVEN = @"""
-  f(p) => p;
+  f(p) { if (p == null) return p; return p; }
   main() { f(1); f("s"); }
 """;
 
 final String TEST_EIGHT = @"""
-  f(p1, p2) => p1;
+  f(p1, p2) { if (p1 == null) return p1; return p2; }
   main() { f(1, 2); f(1, "s"); }
 """;
 
 final String TEST_NINE = @"""
-  f(p1, p2) => p1;
+  f(p1, p2) { if (p1 == null) return p1; return p2; }
   main() { f("s", 2); f(1, "s"); }
 """;
 
 final String TEST_TEN = @"""
-  f(p) => p;
-  g(p) => p(1);
+  f(p) { if (p == null) return p; return p; }
+  g(p) { if (p== null) return null; return p(1); }
   main() { f(1); g(f); }
 """;
 
