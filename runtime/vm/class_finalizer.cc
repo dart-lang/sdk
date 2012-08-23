@@ -1080,21 +1080,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_const()) {
     CheckForLegalConstClass(cls);
   }
-  // Check to ensure we don't have classes with native fields in libraries
-  // which do not have a native resolver.
-  // TODO(regis): Re-enable native resolver checking after Dartium is fixed.
-  if (false && cls.num_native_fields() != 0) {
-    const Library& lib = Library::Handle(cls.library());
-    if (lib.native_entry_resolver() == NULL) {
-      const String& cls_name = String::Handle(cls.Name());
-      const String& lib_name = String::Handle(lib.url());
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, cls.token_pos(),
-                  "class '%s' is trying to extend a native fields class, "
-                  "but library '%s' has no native resolvers",
-                  cls_name.ToCString(), lib_name.ToCString());
-    }
-  }
   // Add this class to the direct subclasses of the superclass, unless the
   // superclass is Object.
   if (!super_type.IsNull() && !super_type.IsObjectType()) {

@@ -2069,6 +2069,22 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       Function::Handle(innermost_function().raw());
   innermost_function_ = func.raw();
 
+  // Check to ensure we don't have classes with native fields in libraries
+  // which do not have a native resolver. This check is delayed until the class
+  // is actually used. Invocation of a function in the class is the first point
+  // of use. Access of const static fields in the class do not trigger an error.
+  if (current_class().num_native_fields() != 0) {
+    const Library& lib = Library::Handle(current_class().library());
+    if (lib.native_entry_resolver() == NULL) {
+      const String& cls_name = String::Handle(current_class().Name());
+      const String& lib_name = String::Handle(lib.url());
+      ErrorMsg(current_class().token_pos(),
+               "class '%s' is trying to extend a native fields class, "
+               "but library '%s' has no native resolvers",
+               cls_name.ToCString(), lib_name.ToCString());
+    }
+  }
+
   if (func.IsConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
     innermost_function_ = saved_innermost_function.raw();
