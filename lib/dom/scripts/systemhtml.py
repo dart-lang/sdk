@@ -1070,15 +1070,16 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
         HTML_NAME=html_name,
         PARAMS=info.ParametersImplementationDeclaration(InputType, '_default'))
 
-    argument_names = [param_info.name for param_info in info.param_infos]
-    argument_types = [InputType(param_info.dart_type)
-                      for param_info in info.param_infos]
+    parameter_names = [param_info.name for param_info in info.param_infos]
+    parameter_types = [InputType(param_info.dart_type)
+                       for param_info in info.param_infos]
     operations = info.operations
 
     method_version = [0]
     temp_version = [0]
 
     def GenerateCall(operation, argument_count, checks):
+      checks = filter(lambda e: e != 'true', checks)
       if checks:
         (stmts_emitter, call_emitter) = body.Emit(
             '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
@@ -1103,12 +1104,12 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
               TYPE=TypeOrVar(temp_type),
               NAME=temp_name,
               CONVERT=conversion.function_name,
-              ARG=argument_names[position])
+              ARG=parameter_names[position])
           arguments.append(temp_name)
           param_type = temp_type
           verified_type = temp_type  # verified by assignment in checked mode.
         else:
-          arguments.append(argument_names[position])
+          arguments.append(parameter_names[position])
           param_type = self._NarrowInputType(DartType(arg.type.id))
           # Verified by argument checking on entry to the dispatcher.
           verified_type = InputType(info.param_infos[position].dart_type)
@@ -1144,16 +1145,20 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
           NATIVE=info.declared_name)
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = ['_default == %s' % name for name in argument_names]
+      checks = ['_default == %s' % name for name in parameter_names]
       for i in range(0, argument_count):
         argument = operation.arguments[i]
-        argument_name = argument_names[i]
+        parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
         if test_type in ['Dynamic', 'Object']:
-          checks[i] = '_default != %s' % argument_name
+          checks[i] = '_default != %s' % parameter_name
+        elif test_type == parameter_types[i]:
+          checks[i] = 'true'
         else:
           checks[i] = '(%s is %s || %s == null)' % (
-              argument_name, self._DartType(argument.type.id), argument_name)
+              parameter_name, test_type, parameter_name)
+      # There can be multiple _default checks.  We need them all since a later
+      # optional argument could have been passed by name, leaving 'holes'.
       GenerateCall(operation, argument_count, checks)
 
     # TODO: Optimize the dispatch to avoid repeated checks.
@@ -1169,7 +1174,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       argument_count = len(operation.arguments)
       for position, argument in list(enumerate(operation.arguments))[::-1]:
         if self._IsOptional(operation, argument):
-          check = '_default != %s' % argument_names[position]
+          check = '_default != %s' % parameter_names[position]
           GenerateCall(operation, position + 1, [check])
           argument_count = position
       GenerateCall(operation, argument_count, [])

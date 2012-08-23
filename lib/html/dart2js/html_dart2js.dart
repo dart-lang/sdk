@@ -3943,10 +3943,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void moveTo(num x, num y) native;
 
   void putImageData(ImageData imagedata, num dx, num dy, [dirtyX = _default, dirtyY = _default, dirtyWidth = _default, dirtyHeight = _default]) {
-    if ((imagedata is ImageData || imagedata == null) &&
-        (dx is num || dx == null) &&
-        (dy is num || dy == null) &&
-        _default == dirtyX &&
+    if (_default == dirtyX &&
         _default == dirtyY &&
         _default == dirtyWidth &&
         _default == dirtyHeight) {
@@ -3954,10 +3951,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if ((imagedata is ImageData || imagedata == null) &&
-        (dx is num || dx == null) &&
-        (dy is num || dy == null) &&
-        (dirtyX is num || dirtyX == null) &&
+    if ((dirtyX is num || dirtyX == null) &&
         (dirtyY is num || dirtyY == null) &&
         (dirtyWidth is num || dirtyWidth == null) &&
         (dirtyHeight is num || dirtyHeight == null)) {
@@ -4018,10 +4012,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [dirtyX = _default, dirtyY = _default, dirtyWidth = _default, dirtyHeight = _default]) {
-    if ((imagedata is ImageData || imagedata == null) &&
-        (dx is num || dx == null) &&
-        (dy is num || dy == null) &&
-        _default == dirtyX &&
+    if (_default == dirtyX &&
         _default == dirtyY &&
         _default == dirtyWidth &&
         _default == dirtyHeight) {
@@ -4029,10 +4020,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _webkitPutImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if ((imagedata is ImageData || imagedata == null) &&
-        (dx is num || dx == null) &&
-        (dy is num || dy == null) &&
-        (dirtyX is num || dirtyX == null) &&
+    if ((dirtyX is num || dirtyX == null) &&
         (dirtyY is num || dirtyY == null) &&
         (dirtyWidth is num || dirtyWidth == null) &&
         (dirtyHeight is num || dirtyHeight == null)) {
@@ -8130,26 +8118,22 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _count_3(key) native "count";
 
   _IDBIndexImpl createIndex(String name, keyPath, [options = _default]) {
-    if ((name is String || name == null) &&
-        (keyPath is List<String> || keyPath == null) &&
+    if ((keyPath is List<String> || keyPath == null) &&
         _default == options) {
       List keyPath_1 = _convertDartToNative_StringArray(keyPath);
       return _createIndex_1(name, keyPath_1);
     }
-    if ((name is String || name == null) &&
-        (keyPath is List<String> || keyPath == null) &&
+    if ((keyPath is List<String> || keyPath == null) &&
         (options is Map || options == null)) {
       List keyPath_2 = _convertDartToNative_StringArray(keyPath);
       var options_3 = _convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath_2, options_3);
     }
-    if ((name is String || name == null) &&
-        (keyPath is String || keyPath == null) &&
+    if ((keyPath is String || keyPath == null) &&
         _default == options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((name is String || name == null) &&
-        (keyPath is String || keyPath == null) &&
+    if ((keyPath is String || keyPath == null) &&
         (options is Map || options == null)) {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
@@ -16899,24 +16883,14 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format = _default, type = _default, pixels = _default]) {
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (internalformat is int || internalformat == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         (format is int || format == null) &&
         (type is int || type == null) &&
         (pixels is ArrayBufferView || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (internalformat is int || internalformat == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         _default == format &&
         _default == type &&
         _default == pixels) {
@@ -16924,36 +16898,21 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (internalformat is int || internalformat == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         _default == format &&
         _default == type &&
         _default == pixels) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (internalformat is int || internalformat == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         _default == format &&
         _default == type &&
         _default == pixels) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (internalformat is int || internalformat == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         _default == format &&
         _default == type &&
         _default == pixels) {
@@ -16973,62 +16932,32 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void texParameteri(int target, int pname, int param) native;
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type = _default, pixels = _default]) {
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (xoffset is int || xoffset == null) &&
-        (yoffset is int || yoffset == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         (type is int || type == null) &&
         (pixels is ArrayBufferView || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (xoffset is int || xoffset == null) &&
-        (yoffset is int || yoffset == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         _default == type &&
         _default == pixels) {
       var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (xoffset is int || xoffset == null) &&
-        (yoffset is int || yoffset == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         _default == type &&
         _default == pixels) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (xoffset is int || xoffset == null) &&
-        (yoffset is int || yoffset == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         _default == type &&
         _default == pixels) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) &&
-        (level is int || level == null) &&
-        (xoffset is int || xoffset == null) &&
-        (yoffset is int || yoffset == null) &&
-        (format_OR_width is int || format_OR_width == null) &&
-        (height_OR_type is int || height_OR_type == null) &&
-        (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         _default == type &&
         _default == pixels) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
