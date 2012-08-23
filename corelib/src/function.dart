@@ -4,5 +4,9 @@
 
 // Dart core library.
 
-interface Function {
+abstract class Function {
+  factory Function._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "abstract class Function cannot be instantiated");
+  }
 }

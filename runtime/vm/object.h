@@ -874,14 +874,14 @@ class AbstractType : public Object {
   // Check if this type represents the 'double' interface.
   bool IsDoubleInterface() const;
 
-  // Check if this type represents the 'num' interface.
-  bool IsNumberInterface() const;
+  // Check if this type represents the 'num' type.
+  bool IsNumberType() const;
 
   // Check if this type represents the 'String' interface.
   bool IsStringInterface() const;
 
-  // Check if this type represents the 'Function' interface.
-  bool IsFunctionInterface() const;
+  // Check if this type represents the 'Function' type.
+  bool IsFunctionType() const;
 
   // Check if this type represents the 'List' interface.
   bool IsListInterface() const;
@@ -993,13 +993,13 @@ class Type : public AbstractType {
   static RawType* DoubleInterface();
 
   // The 'num' interface type.
-  static RawType* NumberInterface();
+  static RawType* Number();
 
   // The 'String' interface type.
   static RawType* StringInterface();
 
   // The 'Function' interface type.
-  static RawType* FunctionInterface();
+  static RawType* Function();
 
   // The 'List' interface type.
   static RawType* ListInterface();
@@ -3144,6 +3144,7 @@ class Number : public Instance {
     return false;
   }
   OBJECT_IMPLEMENTATION(Number, Instance);
+  friend class Class;
 };
 
 
@@ -5226,6 +5227,15 @@ class ExternalFloat64Array : public ByteArray {
   HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
+};
+
+
+// DartFunction represents the abstract Dart class 'Function'.
+class DartFunction : public Instance {
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(DartFunction, Instance);
+  friend class Class;
+  friend class Instance;
 };
 
 

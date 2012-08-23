@@ -42,7 +42,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
       cls = reader->NewClass(class_id, is_signature_class);
     } else {
       if (class_id < kNumPredefinedCids) {
-        ASSERT((class_id >= kInstanceCid) && (class_id <= kWeakPropertyCid));
+        ASSERT((class_id >= kInstanceCid) && (class_id <= kDartFunctionCid));
         cls = reader->isolate()->class_table()->At(class_id);
       } else {
         if (is_signature_class) {
@@ -2027,6 +2027,22 @@ void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
 BYTEARRAY_TYPE_LIST(EXTERNALARRAY_WRITE_TO)
 #undef BYTEARRAY_WRITE_TO
 #undef BYTEARRAY_TYPE_LIST
+
+
+RawDartFunction* DartFunction::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind) {
+  UNREACHABLE();  // DartFunction is an abstract class.
+  return DartFunction::null();
+}
+
+
+void RawDartFunction::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind) {
+  UNREACHABLE();  // DartFunction is an abstract class.
+}
 
 
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,

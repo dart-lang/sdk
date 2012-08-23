@@ -50,16 +50,14 @@ class ObjectStore {
     void_type_ = value.raw();
   }
 
-  RawType* function_interface() const {
-    return function_interface_;
-  }
-  void set_function_interface(const Type& value) {
-    function_interface_ = value.raw();
+  RawType* function_type() const { return function_type_; }
+  void set_function_type(const Type& value) {
+    function_type_ = value.raw();
   }
 
-  RawType* number_interface() const { return number_interface_; }
-  void set_number_interface(const Type& value) {
-    number_interface_ = value.raw();
+  RawType* number_type() const { return number_type_; }
+  void set_number_type(const Type& value) {
+    number_type_ = value.raw();
   }
 
   RawType* int_interface() const { return int_interface_; }
@@ -475,8 +473,8 @@ class ObjectStore {
   RawType* null_type_;
   RawType* dynamic_type_;
   RawType* void_type_;
-  RawType* function_interface_;
-  RawType* number_interface_;
+  RawType* function_type_;
+  RawType* number_type_;
   RawType* int_interface_;
   RawClass* integer_implementation_class_;
   RawClass* smi_class_;

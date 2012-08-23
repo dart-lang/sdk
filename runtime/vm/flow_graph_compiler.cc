@@ -429,7 +429,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
   GrowableArray<intptr_t> args;
-  if (type.IsNumberInterface()) {
+  if (type.IsNumberType()) {
     args.Add(kDoubleCid);
     args.Add(kMintCid);
     args.Add(kBigintCid);

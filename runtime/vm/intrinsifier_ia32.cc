@@ -212,7 +212,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
     __ CompareObject(EAX, Type::ZoneHandle(Type::IntInterface()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
-    __ CompareObject(EAX, Type::ZoneHandle(Type::NumberInterface()));
+    __ CompareObject(EAX, Type::ZoneHandle(Type::Number()));
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     __ Bind(&checked_ok);
   }

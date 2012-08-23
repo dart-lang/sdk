@@ -4,6 +4,10 @@
 
 // Dart core library.
 
-interface Hashable {
-  int hashCode();
+abstract class Hashable {
+  factory Hashable._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "abstract class Hashable cannot be instantiated");
+  }
+  abstract int hashCode();
 }

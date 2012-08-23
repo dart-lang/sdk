@@ -756,15 +756,20 @@ RawError* Object::Init(Isolate* isolate) {
   cls = object_store->stacktrace_class();
   cls.set_super_type(type);
 
-  cls = CreateAndRegisterInterface("Function", script, core_lib);
+  // Note: The abstract class Function is represented by VM class
+  // DartFunction, not VM class Function.
+  name = Symbols::Function();
+  cls = Class::New<DartFunction>();
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_function_interface(type);
+  object_store->set_function_type(type);
 
-  cls = CreateAndRegisterInterface("num", script, core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  cls = Class::New<Number>();
+  name = Symbols::Number();
+  RegisterClass(cls, name, core_lib);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_number_interface(type);
+  object_store->set_number_type(type);
 
   cls = CreateAndRegisterInterface("int", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -1035,6 +1040,12 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
+
+  // Some classes are not stored in the object store. Yet we still need to
+  // create their Class object so that they get put into the class_table
+  // (as a side effect of Class::New()).
+  cls = Class::New<DartFunction>();
+  cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
@@ -1751,9 +1762,9 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_type_arguments_instance_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
-  const Type& function_interface = Type::Handle(Type::FunctionInterface());
+  const Type& function_type = Type::Handle(Type::Function());
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
-  interfaces.SetAt(0, function_interface);
+  interfaces.SetAt(0, function_type);
   result.set_interfaces(interfaces);
   // Unless the signature function already has a signature class, create a
   // canonical signature class by having the signature function point back to
@@ -2566,9 +2577,9 @@ bool AbstractType::IsDoubleInterface() const {
 }
 
 
-bool AbstractType::IsNumberInterface() const {
+bool AbstractType::IsNumberType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::NumberInterface()).type_class());
+      (type_class() == Type::Handle(Type::Number()).type_class());
 }
 
 
@@ -2578,9 +2589,9 @@ bool AbstractType::IsStringInterface() const {
 }
 
 
-bool AbstractType::IsFunctionInterface() const {
+bool AbstractType::IsFunctionType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::FunctionInterface()).type_class());
+      (type_class() == Type::Handle(Type::Function()).type_class());
 }
 
 
@@ -2696,8 +2707,8 @@ RawType* Type::DoubleInterface() {
 }
 
 
-RawType* Type::NumberInterface() {
-  return Isolate::Current()->object_store()->number_interface();
+RawType* Type::Number() {
+  return Isolate::Current()->object_store()->number_type();
 }
 
 
@@ -2706,8 +2717,8 @@ RawType* Type::StringInterface() {
 }
 
 
-RawType* Type::FunctionInterface() {
-  return Isolate::Current()->object_store()->function_interface();
+RawType* Type::Function() {
+  return Isolate::Current()->object_store()->function_type();
 }
 
 
@@ -10878,6 +10889,11 @@ void Closure::set_context(const Context& value) const {
 
 void Closure::set_function(const Function& value) const {
   StorePointer(&raw_ptr()->function_, value.raw());
+}
+
+
+const char* DartFunction::ToCString() const {
+  return "Function type class";
 }
 
 

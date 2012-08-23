@@ -940,6 +940,14 @@ intptr_t RawExternalFloat64Array::VisitExternalFloat64ArrayPointers(
 }
 
 
+intptr_t RawDartFunction::VisitDartFunctionPointers(
+    RawDartFunction* raw_obj, ObjectPointerVisitor* visitor) {
+  // Function (defined in core library) is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
 intptr_t RawClosure::VisitClosurePointers(RawClosure* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.

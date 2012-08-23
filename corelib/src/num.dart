@@ -4,41 +4,45 @@
 
 // Dart core library.
 
-interface num extends Comparable, Hashable {
+abstract class num implements Comparable, Hashable {
+  factory num._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "abstract class num cannot be instantiated");
+  }
   // Arithmetic operations.
-  num operator +(num other);
-  num operator -(num other);
-  num operator *(num other);
-  num operator %(num other);
-  double operator /(num other);
+  abstract num operator +(num other);
+  abstract num operator -(num other);
+  abstract num operator *(num other);
+  abstract num operator %(num other);
+  abstract double operator /(num other);
   // Truncating division.
-  num operator ~/(num other);
+  abstract num operator ~/(num other);
   // The unary '-' operator.
-  num operator negate();
-  num remainder(num other);
+  abstract num operator negate();
+  abstract num remainder(num other);
 
   // Relational operations.
-  bool operator <(num other);
-  bool operator <=(num other);
-  bool operator >(num other);
-  bool operator >=(num other);
+  abstract bool operator <(num other);
+  abstract bool operator <=(num other);
+  abstract bool operator >(num other);
+  abstract bool operator >=(num other);
 
   // Predicates.
-  bool isNaN();
-  bool isNegative();
-  bool isInfinite();
+  abstract bool isNaN();
+  abstract bool isNegative();
+  abstract bool isInfinite();
 
-  num abs();
-  num round();
-  num floor();
-  num ceil();
-  num truncate();
+  abstract num abs();
+  abstract num round();
+  abstract num floor();
+  abstract num ceil();
+  abstract num truncate();
 
-  int toInt();
-  double toDouble();
+  abstract int toInt();
+  abstract double toDouble();
 
-  String toStringAsFixed(int fractionDigits);
-  String toStringAsExponential(int fractionDigits);
-  String toStringAsPrecision(int precision);
-  String toRadixString(int radix);
+  abstract String toStringAsFixed(int fractionDigits);
+  abstract String toStringAsExponential(int fractionDigits);
+  abstract String toStringAsPrecision(int precision);
+  abstract String toRadixString(int radix);
 }

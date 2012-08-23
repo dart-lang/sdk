@@ -520,7 +520,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         false,  // not const function.
         false,  // not abstract
         false,  // not external.
-        Class::Handle(Type::Handle(Type::FunctionInterface()).type_class()),
+        Class::Handle(Type::Handle(Type::Function()).type_class()),
         fragment->token_pos()));
 
     func.set_result_type(Type::Handle(Type::DynamicType()));

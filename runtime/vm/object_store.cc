@@ -14,8 +14,8 @@ namespace dart {
 
 ObjectStore::ObjectStore()
   : object_class_(Class::null()),
-    function_interface_(Type::null()),
-    number_interface_(Type::null()),
+    function_type_(Type::null()),
+    number_type_(Type::null()),
     int_interface_(Type::null()),
     integer_implementation_class_(Class::null()),
     smi_class_(Class::null()),

@@ -258,6 +258,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       (cls.library() != Library::CoreImplLibrary())) {
     // Prevent extending core implementation classes.
     switch (super_class.id()) {
+      case kNumberCid:
       case kIntegerCid:
       case kSmiCid:
       case kMintCid:
@@ -293,6 +294,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kExternalFloat32ArrayCid:
       case kFloat64ArrayCid:
       case kExternalFloat64ArrayCid:
+      case kDartFunctionCid:
       case kWeakPropertyCid: {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, cls.token_pos(),
@@ -1223,11 +1225,11 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     // represent a function type, therefore implementing the Function interface.
     if (!cls_belongs_to_core_lib) {
       if (interface.IsBoolInterface() ||
-          interface.IsNumberInterface() ||
+          interface.IsNumberType() ||
           interface.IsIntInterface() ||
           interface.IsDoubleInterface() ||
           interface.IsStringInterface() ||
-          (interface.IsFunctionInterface() && !cls.IsSignatureClass()) ||
+          (interface.IsFunctionType() && !cls.IsSignatureClass()) ||
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, cls.token_pos(),

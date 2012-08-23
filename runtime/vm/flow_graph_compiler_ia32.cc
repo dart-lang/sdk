@@ -237,7 +237,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
     return false;
   }
-  if (type.IsFunctionInterface()) {
+  if (type.IsFunctionType()) {
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -250,7 +250,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(Type::Handle(Type::NumberInterface()), NULL)) {
+  if (type.IsSubtypeOf(Type::Handle(Type::Number()), NULL)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -339,7 +339,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
     __ CompareObject(EDI, Type::ZoneHandle(Type::IntInterface()));
     __ j(EQUAL,  is_instance_lbl);
-    __ CompareObject(EDI, Type::ZoneHandle(Type::NumberInterface()));
+    __ CompareObject(EDI, Type::ZoneHandle(Type::Number()));
     __ j(EQUAL,  is_instance_lbl);
     // Smi must be handled in runtime.
     __ jmp(&fall_through);

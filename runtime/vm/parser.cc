@@ -4511,7 +4511,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // parameterized type to be patched after the actual type is known.
     // We temporarily use the class of the Function interface.
     const Class& unknown_signature_class = Class::Handle(
-        Type::Handle(Type::FunctionInterface()).type_class());
+        Type::Handle(Type::Function()).type_class());
     function_type = Type::New(
         unknown_signature_class, TypeArguments::Handle(), ident_pos);
     function_type.set_is_finalized_instantiated();  // No finalization needed.
@@ -4678,11 +4678,11 @@ bool Parser::TryParseTypeParameter() {
 bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   bool no_check = type.IsDynamicType();
   if ((CurrentToken() == Token::kINTEGER) &&
-      (no_check || type.IsIntInterface() || type.IsNumberInterface())) {
+      (no_check || type.IsIntInterface() || type.IsNumberType())) {
     *value = CurrentIntegerLiteral();
     return true;
   } else if ((CurrentToken() == Token::kDOUBLE) &&
-      (no_check || type.IsDoubleInterface() || type.IsNumberInterface())) {
+      (no_check || type.IsDoubleInterface() || type.IsNumberType())) {
     *value = CurrentDoubleLiteral();
     return true;
   } else if ((CurrentToken() == Token::kSTRING) &&

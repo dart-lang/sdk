@@ -86,6 +86,7 @@ class ObjectPointerVisitor;
   V(UnhandledException, "UnhandledException")                                  \
   V(UnwindError, "UnwindError")                                                \
   V(IntegerImplementation, "IntegerImplementation")                            \
+  V(Number, "num")                                                             \
   V(Smi, "Smi")                                                                \
   V(Mint, "Mint")                                                              \
   V(Bigint, "Bigint")                                                          \
