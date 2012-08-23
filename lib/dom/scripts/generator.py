@@ -533,25 +533,22 @@ class IDLTypeInfo(object):
   def requires_v8_scope(self):
     return self._data.requires_v8_scope
 
-  def to_native_info(self, idl_node, accept_null, name, interface_name):
+  def to_native_info(self, idl_node, interface_name):
     cls = 'Dart%s' % self.idl_type()
 
     if 'Callback' in idl_node.ext_attrs:
-      function_name = 'create'
-      if accept_null:
-        function_name += 'WithNullCheck'
-      return name, 'RefPtr<%s>' % self.native_type(), cls, function_name
+      return '%s', 'RefPtr<%s>' % self.native_type(), cls, 'create'
 
     if self.custom_to_native():
       type = 'RefPtr<%s>' % self.native_type()
-      argument = '%s.get()' % name
+      argument_expression_template = '%s.get()'
     else:
       type = '%s*' % self.native_type()
       if isinstance(self, SVGTearOffIDLTypeInfo) and not interface_name.endswith('List'):
-        argument = '%s->propertyReference()' % name
+        argument_expression_template = '%s->propertyReference()'
       else:
-        argument = name
-    return argument, type, cls, 'toNative'
+        argument_expression_template = '%s'
+    return argument_expression_template, type, cls, 'toNative'
 
   def custom_to_native(self):
     return self._data.custom_to_native
@@ -626,25 +623,21 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
   def __init__(self, data, item_info):
     super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', data, item_info)
 
-  def to_native_info(self, idl_node, accept_null, name, interface_name):
-    assert not accept_null
-    return name, 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
+  def to_native_info(self, idl_node, interface_name):
+    return '%s', 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
 
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
 
-  def to_native_info(self, idl_node, accept_null, name, interface_name):
-    function_name = 'dartTo%s' % self._capitalized_native_type()
-    if accept_null:
-      function_name += 'WithNullCheck'
+  def to_native_info(self, idl_node, interface_name):
     type = self.native_type()
     if type == 'SerializedScriptValue':
       type = 'RefPtr<%s>' % type
     if type == 'String':
       type = 'DartStringAdapter'
-    return name, type, 'DartUtilities', function_name
+    return '%s', type, 'DartUtilities', 'dartTo%s' % self._capitalized_native_type()
 
   def parameter_type(self):
     if self.native_type() == 'String':
