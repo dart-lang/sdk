@@ -194,6 +194,11 @@ external_test/*: Skip
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
 class_extends_negative_test: Fail
+compile_time_constant8_test: Fail
+ct_const_test: Fail
+list_literal1_negative_test: Fail
+list_literal2_negative_test: Fail
+list_literal4_test: Fail
 duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail

@@ -1312,15 +1312,8 @@ class NodeListener extends ElementListener {
                          Token endToken) {
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
     NodeList typeArguments = popNode();
-    TypeAnnotation type = null;
-    if (typeArguments !== null) {
-      if (typeArguments.length() != 1) {
-        error('Type annotations for list literal should have a single type',
-              constKeyword.next);
-      }
-      type = typeArguments.iterator().next();
-    }
-    pushNode(new LiteralList(type, elements, constKeyword));
+    // TODO(ahe): Type arguments are discarded.
+    pushNode(new LiteralList(null, elements, constKeyword));
   }
 
   void handleIndexedExpression(Token openSquareBracket,
