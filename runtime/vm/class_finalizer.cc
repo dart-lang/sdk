@@ -14,11 +14,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, error_on_malformed_type, false,
+            "Report error for malformed types.");
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DEFINE_FLAG(bool, verify_implements, false,
-    "Verify that all classes implement their interface.");
 DECLARE_FLAG(bool, enable_type_checks);
 
 
@@ -33,7 +33,7 @@ bool ClassFinalizer::AllClassesFinalized() {
 // Class finalization occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
+bool ClassFinalizer::FinalizePendingClasses() {
   bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -42,13 +42,16 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
   if (!error.IsNull()) {
     return false;
   }
+  GrowableObjectArray& class_array = GrowableObjectArray::Handle();
+  class_array = object_store->pending_classes();
+  ASSERT(!class_array.IsNull());
+  if (class_array.Length() == 0) {
+    return true;
+  }
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    GrowableObjectArray& class_array = GrowableObjectArray::Handle();
-    class_array = object_store->pending_classes();
-    ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
     // First resolve all superclasses.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -64,20 +67,12 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      FinalizeClass(cls, generating_snapshot);
+      FinalizeClass(cls);
     }
     if (FLAG_print_classes) {
       for (intptr_t i = 0; i < class_array.Length(); i++) {
         cls ^= class_array.At(i);
         PrintClassInformation(cls);
-      }
-    }
-    if (FLAG_verify_implements) {
-      for (intptr_t i = 0; i < class_array.Length(); i++) {
-        cls ^= class_array.At(i);
-        if (!cls.is_interface()) {
-          VerifyClassImplements(cls);
-        }
       }
     }
     // Clear pending classes array.
@@ -105,78 +100,6 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
     CollectInterfaces(interface_class, collected);
   }
 }
-
-
-#if defined (DEBUG)
-// Collect all interfaces of the class 'cls' and check that every function
-// defined in each interface can be found in the class.
-// No need to check instance fields since they have been turned into
-// getters/setters.
-void ClassFinalizer::VerifyClassImplements(const Class& cls) {
-  ASSERT(!cls.is_interface());
-  const GrowableObjectArray& interfaces =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  CollectInterfaces(cls, interfaces);
-  const String& class_name = String::Handle(cls.Name());
-  Class& interface_class = Class::Handle();
-  String& interface_name = String::Handle();
-  Array& interface_functions = Array::Handle();
-  for (int i = 0; i < interfaces.Length(); i++) {
-    interface_class ^= interfaces.At(i);
-    interface_name = interface_class.Name();
-    interface_functions = interface_class.functions();
-    for (intptr_t f = 0; f < interface_functions.Length(); f++) {
-      Function& interface_function = Function::Handle();
-      interface_function ^= interface_functions.At(f);
-      const String& function_name = String::Handle(interface_function.name());
-      // Check for constructor/factory.
-      if (function_name.StartsWith(interface_name)) {
-        // TODO(srdjan): convert 'InterfaceName.' to 'ClassName.' and check.
-        continue;
-      }
-      if (interface_function.kind() == RawFunction::kConstImplicitGetter) {
-        // This interface constants are not overridable.
-        continue;
-      }
-      // Lookup function in 'cls' and all its super classes.
-      Class& test_class = Class::Handle(cls.raw());
-      Function& class_function =
-          Function::Handle(test_class.LookupDynamicFunction(function_name));
-      while (class_function.IsNull()) {
-        test_class = test_class.SuperClass();
-        if (test_class.IsNull()) break;
-        class_function = test_class.LookupDynamicFunction(function_name);
-      }
-      if (class_function.IsNull()) {
-        OS::PrintErr("%s implements '%s' missing: '%s'\n",
-                     class_name.ToCString(),
-                     interface_name.ToCString(),
-                     function_name.ToCString());
-      } else {
-        Error& malformed_error = Error::Handle();
-        if (!class_function.IsSubtypeOf(TypeArguments::Handle(),
-                                        interface_function,
-                                        TypeArguments::Handle(),
-                                        &malformed_error)) {
-          if (!malformed_error.IsNull()) {
-            OS::PrintErr("%s\n", malformed_error.ToErrorCString());
-          }
-          OS::PrintErr("The type of instance method '%s' in class '%s' is not "
-                       "a subtype of the type of '%s' in interface '%s'\n",
-                       function_name.ToCString(),
-                       class_name.ToCString(),
-                       function_name.ToCString(),
-                       interface_name.ToCString());
-        }
-      }
-    }
-  }
-}
-#else
-
-void ClassFinalizer::VerifyClassImplements(const Class& cls) {}
-
-#endif
 
 
 void ClassFinalizer::VerifyBootstrapClasses() {
@@ -678,7 +601,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       if (type_argument.IsMalformed()) {
         // In production mode, malformed type arguments are mapped to Dynamic.
         // In checked mode, a type with malformed type arguments is malformed.
-        if (FLAG_enable_type_checks) {
+        if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
           const Error& error = Error::Handle(type_argument.malformed_error());
           const String& type_name =
               String::Handle(parameterized_type.UserVisibleName());
@@ -813,7 +736,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     } else {
       // This type is a function type alias. Its class may need to be finalized
       // and checked for illegal self reference.
-      FinalizeClass(type_class, false);
+      FinalizeClass(type_class);
       // Finalizing the signature function here (as in the canonical case above)
       // would not mark the canonical signature type as finalized.
       const Type& signature_type = Type::Handle(type_class.SignatureType());
@@ -1079,7 +1002,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
 }
 
 
-void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
+void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_finalized()) {
     return;
   }
@@ -1098,7 +1021,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   // Finalize super class.
   const Class& super_class = Class::Handle(cls.SuperClass());
   if (!super_class.IsNull()) {
-    FinalizeClass(super_class, generating_snapshot);
+    FinalizeClass(super_class);
   }
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls);
@@ -1132,7 +1055,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
     if (cls.HasFactoryClass()) {
       const Class& factory_class = Class::Handle(cls.FactoryClass());
       if (!factory_class.is_finalized()) {
-        FinalizeClass(factory_class, generating_snapshot);
+        FinalizeClass(factory_class);
         // Finalizing the factory class may indirectly finalize this interface.
         if (cls.is_finalized()) {
           return;
@@ -1159,7 +1082,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   }
   // Check to ensure we don't have classes with native fields in libraries
   // which do not have a native resolver.
-  if (!generating_snapshot && cls.num_native_fields() != 0) {
+  if (cls.num_native_fields() != 0) {
     const Library& lib = Library::Handle(cls.library());
     if (lib.native_entry_resolver() == NULL) {
       const String& cls_name = String::Handle(cls.Name());
@@ -1250,36 +1173,6 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
     }
   }
   visited->RemoveLast();
-  return true;
-}
-
-
-bool ClassFinalizer::AddInterfaceIfUnique(
-    const GrowableObjectArray& interface_list,
-    const AbstractType& interface,
-    AbstractType* conflicting) {
-  String& interface_class_name = String::Handle(interface.ClassName());
-  String& existing_interface_class_name = String::Handle();
-  String& interface_name = String::Handle();
-  String& existing_interface_name = String::Handle();
-  AbstractType& other_interface = AbstractType::Handle();
-  for (intptr_t i = 0; i < interface_list.Length(); i++) {
-    other_interface ^= interface_list.At(i);
-    existing_interface_class_name = other_interface.ClassName();
-    if (interface_class_name.Equals(existing_interface_class_name)) {
-      // Same interface class name, now check names of type arguments.
-      interface_name = interface.Name();
-      existing_interface_name = other_interface.Name();
-      // TODO(regis): Revisit depending on the outcome of issue 4905685.
-      if (!interface_name.Equals(existing_interface_name)) {
-        *conflicting = other_interface.raw();
-        return false;
-      } else {
-        return true;
-      }
-    }
-  }
-  interface_list.Add(interface);
   return true;
 }
 
@@ -1454,7 +1347,8 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
   LanguageError& error = LanguageError::Handle();
   if (FLAG_enable_type_checks ||
       !type.HasResolvedTypeClass() ||
-      (finalization == kCanonicalizeWellFormed)) {
+      (finalization == kCanonicalizeWellFormed) ||
+      FLAG_error_on_malformed_type) {
     const Script& script = Script::Handle(cls.script());
     if (prev_error.IsNull()) {
       error ^= Parser::FormatError(
@@ -1463,7 +1357,8 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
       error ^= Parser::FormatErrorWithAppend(
           prev_error, script, type.token_pos(), "Error", format, args);
     }
-    if (finalization == kCanonicalizeWellFormed) {
+    if ((finalization == kCanonicalizeWellFormed) ||
+        FLAG_error_on_malformed_type) {
       ReportError(error);
     }
   }

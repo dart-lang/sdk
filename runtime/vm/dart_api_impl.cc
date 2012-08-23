@@ -85,18 +85,11 @@ const char* CanonicalFunction(const char* func) {
 // TODO(turnidge): Make this function return an error handle directly
 // rather than returning an error string.  The current behavior can
 // cause compilation errors to appear to be api errors.
-const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
-  bool success = true;
-  if (!ClassFinalizer::AllClassesFinalized()) {
-    success = (generating_snapshot) ?
-        ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
-        ClassFinalizer::FinalizePendingClasses();
-  }
-  if (success) {
-    success = isolate->object_store()->PreallocateObjects();
-    if (success) {
-      return NULL;
-    }
+const char* CheckIsolateState(Isolate* isolate) {
+  if (ClassFinalizer::FinalizePendingClasses() &&
+      isolate->object_store()->PreallocateObjects()) {
+    // Success.
+    return NULL;
   }
   // Make a copy of the error message as the original message string
   // may get deallocated when we return back from the Dart API call.
@@ -816,8 +809,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  const char* msg = CheckIsolateState(isolate,
-                                      ClassFinalizer::kGeneratingSnapshot);
+  const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::NewError(msg);
   }

@@ -48,6 +48,7 @@ TEST_CASE(ClassFinalizer) {
   for (int i = 0; i < classes_2.length(); i++) {
     EXPECT(classes_2[i]->is_finalized());
   }
+  EXPECT(ClassFinalizer::AllClassesFinalized());
   EXPECT(ClassFinalizer::FinalizePendingClasses());
 }
 

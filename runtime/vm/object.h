@@ -2977,6 +2977,7 @@ class ApiError : public Error {
 
  private:
   void set_message(const String& message) const;
+  static RawApiError* New();
 
   HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
   friend class Class;
@@ -3001,6 +3002,7 @@ class LanguageError : public Error {
 
  private:
   void set_message(const String& message) const;
+  static RawLanguageError* New();
 
   HEAP_OBJECT_IMPLEMENTATION(LanguageError, Error);
   friend class Class;

@@ -65,8 +65,7 @@ const char* CanonicalFunction(const char* func);
   HANDLESCOPE(__temp_isolate__);
 
 
-const char* CheckIsolateState(Isolate *isolate,
-                              bool generating_snapshot = false);
+const char* CheckIsolateState(Isolate *isolate);
 
 void SetupErrorResult(Dart_Handle* handle);
 

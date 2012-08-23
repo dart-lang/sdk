@@ -7820,6 +7820,15 @@ const char* Error::ToCString() const {
 }
 
 
+RawApiError* ApiError::New() {
+  ASSERT(Object::api_error_class() != Class::null());
+  RawObject* raw = Object::Allocate(ApiError::kClassId,
+                                    ApiError::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawApiError*>(raw);
+}
+
+
 RawApiError* ApiError::New(const String& message, Heap::Space space) {
   ASSERT(Object::api_error_class() != Class::null());
   ApiError& result = ApiError::Handle();
@@ -7848,6 +7857,15 @@ const char* ApiError::ToErrorCString() const {
 
 const char* ApiError::ToCString() const {
   return "ApiError";
+}
+
+
+RawLanguageError* LanguageError::New() {
+  ASSERT(Object::language_error_class() != Class::null());
+  RawObject* raw = Object::Allocate(LanguageError::kClassId,
+                                    LanguageError::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawLanguageError*>(raw);
 }
 
 

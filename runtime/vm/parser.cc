@@ -226,8 +226,7 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 
 
 // For parsing a compilation unit.
-Parser::Parser(const Script& script,
-               const Library& library)
+Parser::Parser(const Script& script, const Library& library)
     : script_(script),
       tokens_iterator_(TokenStream::Handle(script.tokens()), 0),
       token_kind_(Token::kILLEGAL),
@@ -3520,6 +3519,38 @@ RawArray* Parser::ParseInterfaceList() {
 }
 
 
+// Add 'interface' to 'interface_list' if it is not already in the list.
+// An error is reported if the interface conflicts with an interface already in
+// the list with the same class, but different type arguments.
+// Non-conflicting duplicates are ignored without error.
+void Parser::AddInterfaceIfUnique(intptr_t interfaces_pos,
+                                  const GrowableObjectArray& interface_list,
+                                  const AbstractType& interface) {
+  String& interface_class_name = String::Handle(interface.ClassName());
+  String& existing_interface_class_name = String::Handle();
+  String& interface_name = String::Handle();
+  String& existing_interface_name = String::Handle();
+  AbstractType& other_interface = AbstractType::Handle();
+  for (intptr_t i = 0; i < interface_list.Length(); i++) {
+    other_interface ^= interface_list.At(i);
+    existing_interface_class_name = other_interface.ClassName();
+    if (interface_class_name.Equals(existing_interface_class_name)) {
+      // Same interface class name, now check names of type arguments.
+      interface_name = interface.Name();
+      existing_interface_name = other_interface.Name();
+      // TODO(regis): Revisit depending on the outcome of issue 4905685.
+      if (!interface_name.Equals(existing_interface_name)) {
+        ErrorMsg(interfaces_pos,
+                 "interface '%s' conflicts with interface '%s'",
+                 String::Handle(interface.UserVisibleName()).ToCString(),
+                 String::Handle(other_interface.UserVisibleName()).ToCString());
+      }
+    }
+  }
+  interface_list.Add(interface);
+}
+
+
 void Parser::AddInterfaces(intptr_t interfaces_pos,
                            const Class& cls,
                            const Array& interfaces) {
@@ -3533,7 +3564,6 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
     all_interfaces.Add(interface);
   }
   // Now add the new interfaces.
-  AbstractType& conflicting = AbstractType::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= interfaces.At(i);
@@ -3550,15 +3580,7 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
                  String::Handle(interface.UserVisibleName()).ToCString());
       }
     }
-    if (!ClassFinalizer::AddInterfaceIfUnique(all_interfaces,
-                                              interface,
-                                              &conflicting)) {
-      ASSERT(!conflicting.IsNull());
-      ErrorMsg(interfaces_pos,
-               "interface '%s' conflicts with interface '%s'",
-               String::Handle(interface.UserVisibleName()).ToCString(),
-               String::Handle(conflicting.UserVisibleName()).ToCString());
-    }
+    AddInterfaceIfUnique(interfaces_pos, all_interfaces, interface);
   }
   cls_interfaces = Array::MakeArray(all_interfaces);
   cls.set_interfaces(cls_interfaces);

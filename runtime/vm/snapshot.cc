@@ -534,6 +534,16 @@ RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
 }
 
 
+RawApiError* SnapshotReader::NewApiError() {
+  ALLOC_NEW_OBJECT(ApiError, Object::api_error_class());
+}
+
+
+RawLanguageError* SnapshotReader::NewLanguageError() {
+  ALLOC_NEW_OBJECT(LanguageError, Object::language_error_class());
+}
+
+
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // If the header is an object Id, lookup singleton VM classes or classes
   // stored in the object store.
