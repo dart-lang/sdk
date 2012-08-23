@@ -925,7 +925,15 @@ RawAbstractType* AllocateObjectWithBoundsCheckComp::CompileType() const {
 
 RawAbstractType* LoadVMFieldComp::CompileType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
-  return type().raw();
+  // Keep it as null for debug purposes and do not return Dynamic in production
+  // mode, since misuse of the type would remain undetected.
+  if (type().IsNull()) {
+    return AbstractType::null();
+  }
+  if (FLAG_enable_type_checks) {
+    return type().raw();
+  }
+  return Type::DynamicType();
 }
 
 
@@ -975,10 +983,7 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 
 
 RawAbstractType* BinarySmiOpComp::CompileType() const {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  return (op_kind() == Token::kSHL)
-      ? Type::IntInterface()
-      : object_store->smi_type();
+  return (op_kind() == Token::kSHL) ? Type::IntInterface() : Type::SmiType();
 }
 
 
@@ -1000,8 +1005,7 @@ bool BinarySmiOpComp::CanDeoptimize() const {
 
 
 RawAbstractType* BinaryMintOpComp::CompileType() const {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  return object_store->mint_type();
+  return Type::MintType();
 }
 
 
@@ -1021,7 +1025,7 @@ intptr_t BinaryDoubleOpComp::ResultCid() const {
 
 
 RawAbstractType* UnarySmiOpComp::CompileType() const {
-  return Type::IntInterface();
+  return Type::SmiType();
 }
 
 

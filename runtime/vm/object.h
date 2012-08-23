@@ -561,16 +561,16 @@ class Class : public Object {
   // TODO(regis): Implement RemoveDirectSubclass for class unloading support.
 
   // Check if this class represents the class of null.
-  bool IsNullClass() const { return raw() == Object::null_class(); }
+  bool IsNullClass() const { return id() == kNullCid; }
 
   // Check if this class represents the 'Dynamic' class.
-  bool IsDynamicClass() const { return raw() == Object::dynamic_class(); }
+  bool IsDynamicClass() const { return id() == kDynamicCid; }
 
   // Check if this class represents the 'void' class.
-  bool IsVoidClass() const { return raw() == Object::void_class(); }
+  bool IsVoidClass() const { return id() == kVoidCid; }
 
   // Check if this class represents the 'Object' class.
-  bool IsObjectClass() const;
+  bool IsObjectClass() const { return id() == kInstanceCid; }
 
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
@@ -988,6 +988,12 @@ class Type : public AbstractType {
 
   // The 'int' interface type.
   static RawType* IntInterface();
+
+  // The 'Smi' type.
+  static RawType* SmiType();
+
+  // The 'Mint' type.
+  static RawType* MintType();
 
   // The 'double' interface type.
   static RawType* DoubleInterface();

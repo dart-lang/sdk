@@ -1914,11 +1914,6 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
-bool Class::IsObjectClass() const {
-  return id() == kInstanceCid;
-}
-
-
 bool Class::IsCanonicalSignatureClass() const {
   const Function& function = Function::Handle(signature_function());
   return (!function.IsNull() && (function.signature_class() == raw()));
@@ -2699,6 +2694,16 @@ RawType* Type::BoolInterface() {
 
 RawType* Type::IntInterface() {
   return Isolate::Current()->object_store()->int_interface();
+}
+
+
+RawType* Type::SmiType() {
+  return Isolate::Current()->object_store()->smi_type();
+}
+
+
+RawType* Type::MintType() {
+  return Isolate::Current()->object_store()->mint_type();
 }
 
 
