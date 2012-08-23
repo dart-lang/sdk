@@ -12,7 +12,7 @@
     'error.cc',
     'error.dart',
     'error.h',
-    'expando.dart',
+    'expando_impl.dart',
     'literal_factory.dart',
     'object.cc',
     'object.dart',

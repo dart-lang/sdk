@@ -9,9 +9,9 @@ class _Expando<T> implements Expando<T> {
 
   T operator[](Object object) {
     checkType(object);
-    var weak_property = find(this);
-    var list = weak_property.value;
-    var do_compact = false;
+    var weakProperty = find(this);
+    var list = weakProperty.value;
+    var doCompact = false;
     var result = null;
     for (int i = 0; i < list.length; ++i) {
       var key = list[i].key;
@@ -20,21 +20,21 @@ class _Expando<T> implements Expando<T> {
         break;
       }
       if (key === null) {
-        do_compact = true;
+        doCompact = true;
         list[i] = null;
       }
     }
-    if (do_compact) {
-      weak_property.value = list.filter((e) => (e !== null));
+    if (doCompact) {
+      weakProperty.value = list.filter((e) => (e !== null));
     }
     return result;
   }
 
   void operator[]=(Object object, T value) {
     checkType(object);
-    var weak_property = find(this);
-    var list = weak_property.value;
-    var do_compact = false;
+    var weakProperty = find(this);
+    var list = weakProperty.value;
+    var doCompact = false;
     int i = 0;
     for (; i < list.length; ++i) {
       var key = list[i].key;
@@ -42,20 +42,20 @@ class _Expando<T> implements Expando<T> {
         break;
       }
       if (key === null) {
-        do_compact = true;
+        doCompact = true;
         list[i] = null;
       }
     }
     if (i !== list.length && value === null) {
-      do_compact = true;
+      doCompact = true;
       list[i] = null;
     } else if (i !== list.length) {
       list[i].value = value;
     } else {
       list.add(new _WeakProperty(object, value));
     }
-    if (do_compact) {
-      weak_property.value = list.filter((e) => (e !== null));
+    if (doCompact) {
+      weakProperty.value = list.filter((e) => (e !== null));
     }
   }
 
@@ -72,7 +72,7 @@ class _Expando<T> implements Expando<T> {
 
   static find(expando) {
     if (data === null) data = new List();
-    var do_compact = false;
+    var doCompact = false;
     int i = 0;
     for (; i < data.length; ++i) {
       var key = data[i].key;
@@ -80,7 +80,7 @@ class _Expando<T> implements Expando<T> {
         break;
       }
       if (key === null) {
-        do_compact = true;
+        doCompact = true;
         data[i] = null;
       }
     }
@@ -88,7 +88,7 @@ class _Expando<T> implements Expando<T> {
       data.add(new _WeakProperty(expando, new List()));
     }
     var result = data[i];
-    if (do_compact) {
+    if (doCompact) {
       data = data.filter((e) => (e !== null));
     }
     return result;
