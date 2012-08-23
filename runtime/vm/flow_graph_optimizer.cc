@@ -538,9 +538,24 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
     }
     const intptr_t kMaxChecks = 4;
     if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
-      PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
       const ICData& unary_checks =
           ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+      bool call_with_checks;
+      // TODO(srdjan): Add check class comp for mixed smi/non-smi.
+      if (HasOneTarget(unary_checks) &&
+          (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
+        Value* value = comp->ArgumentAt(0)->value()->CopyValue();
+        // Type propagation has not run yet, we cannot eliminate the check.
+        CheckClassComp* check = new CheckClassComp(value, comp);
+        check->set_ic_data(&unary_checks);
+        InsertCheckBefore(instr, check, instr->env()->Copy());
+        // Call can still deoptimize, do not detach environment from instr.
+        call_with_checks = false;
+      } else {
+        call_with_checks = true;
+      }
+      PolymorphicInstanceCallComp* call =
+          new PolymorphicInstanceCallComp(comp, call_with_checks);
       call->set_ic_data(&unary_checks);
       instr->set_computation(call);
     }

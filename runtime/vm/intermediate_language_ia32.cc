@@ -1954,6 +1954,17 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   ASSERT(HasICData());
   ASSERT(ic_data()->num_args_tested() == 1);
+  if (!with_checks()) {
+    const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(0));
+    compiler->GenerateStaticCall(instance_call()->deopt_id(),
+                                 instance_call()->token_pos(),
+                                 instance_call()->try_index(),
+                                 target,
+                                 instance_call()->ArgumentCount(),
+                                 instance_call()->argument_names(),
+                                 locs());
+    return;
+  }
   Label handle_smi;
   Label* is_smi_label =
       ic_data()->GetReceiverClassIdAt(0) == kSmiCid ?  &handle_smi : deopt;

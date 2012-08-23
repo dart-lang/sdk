@@ -719,12 +719,13 @@ class InstanceCallComp : public TemplateComputation<0> {
 
 class PolymorphicInstanceCallComp : public TemplateComputation<0> {
  public:
-  explicit PolymorphicInstanceCallComp(InstanceCallComp* comp)
-      : instance_call_(comp) {
+  explicit PolymorphicInstanceCallComp(InstanceCallComp* comp, bool with_checks)
+      : instance_call_(comp), with_checks_(with_checks) {
     ASSERT(instance_call_ != NULL);
   }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
+  bool with_checks() const { return with_checks_; }
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -738,6 +739,7 @@ class PolymorphicInstanceCallComp : public TemplateComputation<0> {
 
  private:
   InstanceCallComp* instance_call_;
+  const bool with_checks_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallComp);
 };
