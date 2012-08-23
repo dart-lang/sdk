@@ -56,10 +56,6 @@ class FlowGraph: public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
-  GraphEntryInstr* graph_entry() const {
-    return graph_entry_;
-  }
-
   // Operations on the flow graph.
   void ComputeSSA();
 
