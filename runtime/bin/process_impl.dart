@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+_exit(int status) native "Exit";
+
 class _ProcessStartStatus {
   int _errorCode;  // Set to OS error code if process start failed.
   String _errorMessage;  // Set to OS error message if process start failed.

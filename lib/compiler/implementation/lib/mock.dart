@@ -59,11 +59,6 @@ class _InternalByteArray {
   }
 }
 
-// TODO(ahe): This definitely does not belong in the core library.
-void exit(int exitCode) {
-  throw new UnsupportedOperationException("exit($exitCode)");
-}
-
 class _Expando<T> implements Expando<T> {
 
   final String name;
