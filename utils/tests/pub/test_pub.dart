@@ -456,7 +456,7 @@ class Descriptor {
   /**
    * Asserts that the name of the descriptor is a [String] and returns it.
    */
-  String get _stringName() {
+  String get _stringName {
     if (name is String) return name;
     throw 'Pattern $name must be a string.';
   }

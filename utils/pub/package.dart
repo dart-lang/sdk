@@ -48,7 +48,7 @@ class Package {
   /**
    * The package's version.
    */
-  Version get version() => pubspec.version;
+  Version get version => pubspec.version;
 
   /**
    * The parsed pubspec associated with this package.
@@ -59,7 +59,7 @@ class Package {
    * The ids of the packages that this package depends on. This is what is
    * specified in the pubspec when this package depends on another.
    */
-  Collection<PackageRef> get dependencies() => pubspec.dependencies;
+  Collection<PackageRef> get dependencies => pubspec.dependencies;
 
   /**
    * Constructs a package with the given name and pubspec. The package will
@@ -116,7 +116,7 @@ class PackageId implements Comparable, Hashable {
    * The name of the package being identified. This will be the human-friendly
    * name like "uilib".
    */
-  String get name() => source.packageName(description);
+  String get name => source.packageName(description);
 
   int hashCode() => name.hashCode() ^
                     source.name.hashCode() ^
@@ -154,7 +154,7 @@ class PackageId implements Comparable, Hashable {
   /**
    * Returns a future that completes to the resovled [PackageId] for this id.
    */
-  Future<PackageId> get resolved() => source.resolveId(this);
+  Future<PackageId> get resolved => source.resolveId(this);
 }
 
 /**
@@ -182,7 +182,7 @@ class PackageRef {
   /**
    * The name of the package being referenced.
    */
-  String get name() => source.packageName(description);
+  String get name => source.packageName(description);
 
   PackageRef(this.source, this.constraint, this.description);
 

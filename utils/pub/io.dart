@@ -11,7 +11,7 @@
 #import('dart:uri');
 
 /** Gets the current working directory. */
-String get workingDir() => new File('.').fullPathSync();
+String get workingDir => new File('.').fullPathSync();
 
 /**
  * Prints the given string to `stderr` on its own line.
@@ -405,7 +405,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 /**
  * Tests whether or not the git command-line app is available for use.
  */
-Future<bool> get isGitInstalled() {
+Future<bool> get isGitInstalled {
   // TODO(rnystrom): We could cache this after the first check. We aren't right
   // now because Future.immediate() will invoke its callback synchronously.
   // That does bad things in cases where the caller expects futures to always
@@ -460,7 +460,7 @@ class PubProcessResult {
 
   const PubProcessResult(this.stdout, this.stderr, this.exitCode);
 
-  bool get success() => exitCode == 0;
+  bool get success => exitCode == 0;
 }
 
 /**

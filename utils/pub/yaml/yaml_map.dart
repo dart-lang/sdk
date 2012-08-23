@@ -31,7 +31,7 @@ class YamlMap implements Map, Hashable {
     _map.forEach((k, v) => f(_unwrapKey(k), v));
   Collection getKeys() => _map.getKeys().map(_unwrapKey);
   Collection getValues() => _map.getValues();
-  int get length() => _map.length;
+  int get length => _map.length;
   bool isEmpty() => _map.isEmpty();
   String toString() => _map.toString();
 

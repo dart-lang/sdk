@@ -55,7 +55,7 @@ class Entrypoint {
    * The path to this "packages" directory.
    */
   // TODO(rnystrom): Make this path configurable.
-  String get path() => join(root.dir, 'packages');
+  String get path => join(root.dir, 'packages');
 
   /**
    * Ensures that the package identified by [id] is installed to the directory.

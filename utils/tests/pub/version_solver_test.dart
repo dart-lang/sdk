@@ -378,7 +378,7 @@ class MockSource extends Source {
   final Map<String, Map<Version, Package>> _packages;
 
   final String name;
-  bool get shouldCache() => true;
+  bool get shouldCache => true;
 
   MockSource(this.name)
       : _packages = <String, Map<Version, Package>>{};

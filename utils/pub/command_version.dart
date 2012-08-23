@@ -8,9 +8,8 @@
 
 /** Handles the `version` pub command. */
 class VersionCommand extends PubCommand {
-  String get description() => 'print Pub version';
-
-  String get usage() => 'pub version';
+  String get description => 'print Pub version';
+  String get usage => 'pub version';
 
   Future onRun() => printVersion();
 }

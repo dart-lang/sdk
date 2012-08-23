@@ -21,7 +21,7 @@ class SourceRegistry {
   /**
    * Returns the default source, which is used when no source is specified.
    */
-  Source get defaultSource() => _default;
+  Source get defaultSource => _default;
 
   /**
    * Sets the default source. This takes a string, which must be the name of a

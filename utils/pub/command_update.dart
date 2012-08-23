@@ -9,10 +9,10 @@
 
 /** Handles the `update` pub command. */
 class UpdateCommand extends PubCommand {
-  String get description() =>
+  String get description =>
     "update the current package's dependencies to the latest versions";
 
-  String get usage() => 'pub update [dependencies...]';
+  String get usage => 'pub update [dependencies...]';
 
   Future onRun() {
     var future;

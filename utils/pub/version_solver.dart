@@ -253,7 +253,7 @@ class ChangeVersion implements WorkItem {
   /**
    * The name of the package whose version is changing.
    */
-  String get package() => source.packageName(description);
+  String get package => source.packageName(description);
 
   ChangeVersion(this.source, this.description, this.version) {
     if (source == null) throw "null source";
@@ -553,17 +553,17 @@ class Dependency {
    * one. If `false`, then it means this package is not part of the dependency
    * graph and should be omitted.
    */
-  bool get isDependedOn() => !_refs.isEmpty();
+  bool get isDependedOn => !_refs.isEmpty();
 
   /** The names of all the packages that depend on this dependency. */
-  Collection<String> get dependers() => _refs.getKeys();
+  Collection<String> get dependers => _refs.getKeys();
 
   /**
    * Gets the overall constraint that all packages are placing on this one.
    * If no packages have a constraint on this one (which can happen when this
    * package is in the process of being added to the graph), returns `null`.
    */
-  VersionConstraint get constraint() {
+  VersionConstraint get constraint {
     if (_refs.isEmpty()) return null;
     return new VersionConstraint.intersect(
         _refs.getValues().map((ref) => ref.constraint));

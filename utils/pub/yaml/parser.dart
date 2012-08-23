@@ -441,7 +441,7 @@ class _Parser {
         "invalid YAML in $farthestContext");
   }
 
-  /** Returns the number of spaces after the current position. */ 
+  /** Returns the number of spaces after the current position. */
   int countIndentation() {
     var i = 0;
     while (peek(i) == SP) i++;
@@ -483,10 +483,10 @@ class _Parser {
   }
 
   /** Returns whether the current position is at the beginning of a line. */
-  bool get atStartOfLine() => column == 0;
+  bool get atStartOfLine => column == 0;
 
   /** Returns whether the current position is at the end of the input. */
-  bool get atEndOfFile() => pos == len;
+  bool get atEndOfFile => pos == len;
 
   /**
    * Given an indicator character, returns the type of that indicator (or null
@@ -1899,5 +1899,5 @@ class _BlockHeader {
 
   _BlockHeader(this.additionalIndent, this.chomping);
 
-  bool get autoDetectIndent() => additionalIndent == null;
+  bool get autoDetectIndent => additionalIndent == null;
 }

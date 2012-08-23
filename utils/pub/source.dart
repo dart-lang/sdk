@@ -21,7 +21,7 @@ class Source {
    * The name of the source. Should be lower-case, suitable for use in a
    * filename, and unique accross all sources.
    */
-  abstract String get name();
+  abstract String get name;
 
   /**
    * Whether this source's packages should be cached in Pub's global cache
@@ -31,12 +31,12 @@ class Source {
    * packages. It doesn't need to be cached if all packages are available
    * locally.
    */
-  abstract bool get shouldCache();
+  abstract bool get shouldCache;
 
   /**
    * The system cache with which this source is registered.
    */
-  SystemCache get systemCache() {
+  SystemCache get systemCache {
     assert(_systemCache != null);
     return _systemCache;
   }
@@ -51,7 +51,7 @@ class Source {
    *
    * This shouldn't be overridden by subclasses.
    */
-  String get systemCacheRoot() => join(systemCache.rootDir, name);
+  String get systemCacheRoot => join(systemCache.rootDir, name);
 
   /**
    * Records the system cache to which this source belongs.
