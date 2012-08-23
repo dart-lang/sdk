@@ -5,7 +5,6 @@
 [ $compiler == none ]
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
-expando_test: Fail
 compare_to2_test: Fail    # Bug 4018
 
 [ $compiler == dartc ]

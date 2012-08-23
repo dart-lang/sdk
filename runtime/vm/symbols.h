@@ -102,7 +102,6 @@ class ObjectPointerVisitor;
   V(ExternalFourByteString, "ExternalFourByteString")                          \
   V(Stacktrace, "Stacktrace")                                                  \
   V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
-  V(WeakProperty, "WeakProperty")                                              \
   V(Object, "Object")                                                          \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Uint8Array, "_Uint8Array")                                                \
@@ -124,6 +123,7 @@ class ObjectPointerVisitor;
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
+  V(_WeakProperty, "_WeakProperty")                                            \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

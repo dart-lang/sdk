@@ -193,6 +193,7 @@ namespace dart {
   V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
+  V(WeakProperty_setValue, 2)                                                  \
 
 BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)
 

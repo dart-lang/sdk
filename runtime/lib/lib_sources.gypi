@@ -12,8 +12,11 @@
     'error.cc',
     'error.dart',
     'error.h',
+    'expando.dart',
     'literal_factory.dart',
     'object.cc',
     'object.dart',
+    'weak_property.cc',
+    'weak_property.dart',
   ],
 }

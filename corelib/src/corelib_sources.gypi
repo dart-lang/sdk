@@ -11,6 +11,7 @@
     'double.dart',
     'duration.dart',
     'exceptions.dart',
+    'expando.dart',
     'expect.dart',
     'future.dart',
     'function.dart',
