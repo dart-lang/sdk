@@ -64,6 +64,146 @@ void FlowGraph::DiscoverBlocks() {
 }
 
 
+#ifdef DEBUG
+// Helper class to check consistency of the use list construction.  Clears all
+// use-list data in one pass which is then used for assertions when building the
+// use lists.
+class DefUseCleanup : public FlowGraphVisitor {
+ public:
+  explicit DefUseCleanup(FlowGraph* flow_graph)
+      : FlowGraphVisitor(flow_graph->preorder()) { }
+  void CleanupInstruction(Instruction* instr) {
+    JoinEntryInstr* join = instr->AsJoinEntry();
+    if (join != NULL && join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi != NULL) CleanupInstruction(phi);
+      }
+    }
+    Definition* defn = instr->AsDefinition();
+    if (defn != NULL) {
+      defn->set_input_use_list(NULL);
+      defn->set_env_use_list(NULL);
+    }
+    for (intptr_t i = 0; i < instr->InputCount(); ++i) {
+      UseVal* use = instr->InputAt(i)->AsUse();
+      if (use == NULL) continue;
+      use->set_instruction(NULL);
+      use->set_use_index(-1);
+      use->set_next_use(NULL);
+    }
+    if (instr->env() != NULL) {
+      for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
+        UseVal* use = instr->env()->values()[i]->AsUse();
+        if (use == NULL) continue;
+        use->set_instruction(NULL);
+        use->set_use_index(-1);
+        use->set_next_use(NULL);
+      }
+    }
+  }
+#define DEFINE_VISIT(type)                                                     \
+  virtual void Visit##type(type##Instr* instr) { CleanupInstruction(instr); }
+  FOR_EACH_INSTRUCTION(DEFINE_VISIT)
+#undef DEFINE_VISIT
+};
+#endif  // DEBUG
+
+
+static void ClearUseLists(Definition* defn) {
+  ASSERT(defn != NULL);
+  ASSERT(defn->input_use_list() == NULL);
+  ASSERT(defn->env_use_list() == NULL);
+  defn->set_input_use_list(NULL);
+  defn->set_env_use_list(NULL);
+}
+
+
+static void RecordInputUses(Instruction* instr) {
+  ASSERT(instr != NULL);
+  for (intptr_t i = 0; i < instr->InputCount(); ++i) {
+    UseVal* use = instr->InputAt(i)->AsUse();
+    if (use == NULL) continue;
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->next_use() == NULL);
+    use->set_instruction(instr);
+    use->set_use_index(i);
+    use->AddToInputUseList();
+  }
+}
+
+
+static void RecordEnvUses(Instruction* instr) {
+  ASSERT(instr != NULL);
+  if (instr->env() == NULL) return;
+  for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
+    UseVal* use = instr->env()->values()[i]->AsUse();
+    if (use == NULL) continue;
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->next_use() == NULL);
+    use->set_instruction(instr);
+    use->set_use_index(i);
+    use->AddToEnvUseList();
+  }
+}
+
+
+static void ComputeUseListsRecursive(BlockEntryInstr* block) {
+  // Clear phi definitions.
+  JoinEntryInstr* join = block->AsJoinEntry();
+  if (join != NULL && join->phis() != NULL) {
+    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+      PhiInstr* phi = (*join->phis())[i];
+      if (phi != NULL) ClearUseLists(phi);
+    }
+  }
+  // Compute uses on normal instructions.
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->IsDefinition()) ClearUseLists(instr->AsDefinition());
+    RecordInputUses(instr);
+    RecordEnvUses(instr);
+  }
+  // Compute recursively on dominated blocks.
+  for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
+    ComputeUseListsRecursive(block->dominated_blocks()[i]);
+  }
+  // Add phi uses on successor edges.
+  if (block->last_instruction()->SuccessorCount() == 1 &&
+      block->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* join =
+        block->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = join->IndexOfPredecessor(block);
+    ASSERT(pred_index >= 0);
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi == NULL) continue;
+        UseVal* use = phi->InputAt(pred_index)->AsUse();
+        if (use == NULL) continue;
+        ASSERT(use->instruction() == NULL);
+        ASSERT(use->use_index() == -1);
+        ASSERT(use->next_use() == NULL);
+        use->set_instruction(phi);
+        use->set_use_index(pred_index);
+        use->AddToInputUseList();
+      }
+    }
+  }
+}
+
+
+void FlowGraph::ComputeUseLists() {
+#ifdef DEBUG
+  DefUseCleanup cleanup(this);
+  cleanup.VisitBlocks();
+#endif  // DEBUG
+  ComputeUseListsRecursive(graph_entry_);
+}
+
+
 void FlowGraph::ComputeSSA() {
   GrowableArray<BitVector*> dominance_frontier;
   ComputeDominators(&preorder_, &parent_, &dominance_frontier);
@@ -342,11 +482,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       if ((as_bind != NULL) &&
           (as_bind->computation()->IsLoadLocal() ||
            as_bind->computation()->IsStoreLocal())) {
-        // Assert exactly one use.
-        ASSERT(as_bind->use_list() == v);
-        ASSERT(as_bind->use_list()->next_use() == NULL);
-        // Remove the use, its definition and copy the environment value.
-        v->RemoveFromUseList();
+        // Remove the load/store from the graph.
         as_bind->RemoveFromGraph();
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(input_defn->ssa_temp_index() != -1);
@@ -387,9 +523,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         }
         // Update expression stack or remove from graph.
         if (bind->is_used()) {
-          // Assert exactly one use.
-          ASSERT(bind->use_list() != NULL);
-          ASSERT(bind->use_list()->next_use() == NULL);
           env->Add((*env)[index]);
           // We remove load/store instructions when we find their use in 2a.
         } else {

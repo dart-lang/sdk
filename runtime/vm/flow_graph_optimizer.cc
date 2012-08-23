@@ -153,12 +153,6 @@ static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
   for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     PushArgumentInstr* push = comp->ArgumentAt(i);
-    // TODO(zerny): Currently the register allocator replaces unused pushes with
-    // their definitions. To do so here, we need first to link uses to their
-    // instructions and input index. Here push->ReplaceUsesWith requires that
-    // push->value() is a UseVal.
-    // (See FlowGraphAllocator::EliminateEnvironmentUses).
-    push->set_use_list(NULL);
     push->RemoveFromGraph();
   }
 }
@@ -335,10 +329,10 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     // Insert two smi checks and attach a copy of the original
     // environment because the smi operation can still deoptimize.
     InsertCheckBefore(instr,
-                      new CheckSmiComp(left, comp),
+                      new CheckSmiComp(left->CopyValue(), comp),
                       instr->env()->Copy());
     InsertCheckBefore(instr,
-                      new CheckSmiComp(right, comp),
+                      new CheckSmiComp(right->CopyValue(), comp),
                       instr->env()->Copy());
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
                                                   comp,
@@ -415,7 +409,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
 
-    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
     LoadInstanceFieldComp* load =
         new LoadInstanceFieldComp(field,
                                   comp->ArgumentAt(0)->value(),
@@ -595,7 +589,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
+  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),

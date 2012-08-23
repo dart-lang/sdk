@@ -58,6 +58,7 @@ class FlowGraph: public ZoneAllocated {
 
   // Operations on the flow graph.
   void ComputeSSA();
+  void ComputeUseLists();
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;

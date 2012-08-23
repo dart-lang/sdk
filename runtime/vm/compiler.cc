@@ -163,9 +163,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       flow_graph = builder.BuildGraph();
 
       // Transform to SSA.
-      if (optimized) {
-        flow_graph->ComputeSSA();
-      }
+      if (optimized) flow_graph->ComputeSSA();
 
       if (FLAG_print_flow_graph) {
         OS::Print("Before Optimizations\n");
@@ -182,9 +180,16 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         FlowGraphOptimizer optimizer(*flow_graph);
         optimizer.ApplyICData();
 
+        // Compute the use lists.
+        flow_graph->ComputeUseLists();
+
         // Propagate types and eliminate more type tests.
         FlowGraphTypePropagator propagator(*flow_graph);
         propagator.PropagateTypes();
+
+        // TODO(zerny): Here we assume that the use lists remain valid after
+        // type propagation. We should construct a use-list validator to make
+        // this explicit in DEBUG mode.
 
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();

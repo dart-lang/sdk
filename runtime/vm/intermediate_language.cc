@@ -73,20 +73,6 @@ bool CheckClassComp::AttributesEqual(Computation* other) const {
 }
 
 
-UseVal::UseVal(Definition* definition)
-    : definition_(definition), next_use_(NULL), previous_use_(NULL) {
-  AddToUseList();
-}
-
-
-void UseVal::SetDefinition(Definition* definition) {
-  ASSERT(definition != NULL);
-  RemoveFromUseList();
-  definition_ = definition;
-  AddToUseList();
-}
-
-
 // Returns true if the value represents a constant.
 bool UseVal::BindsToConstant() const {
   BindInstr* bind = definition()->AsBind();
@@ -118,34 +104,6 @@ const Object& UseVal::BoundConstant() const {
   MaterializeComp* constant = bind->computation()->AsMaterialize();
   ASSERT(constant != NULL);
   return constant->constant_val()->value();
-}
-
-
-void UseVal::RemoveFromUseList() {
-  ASSERT(definition_ != NULL);
-  if (next_use_ != NULL) {
-    next_use_->previous_use_ = previous_use_;
-  }
-  if (previous_use_ != NULL) {
-    previous_use_->next_use_ = next_use_;
-  } else {
-    // This is the head of the list.
-    ASSERT(definition_->use_list() == this);
-    definition_->set_use_list(next_use_);
-  }
-  previous_use_ = next_use_ = NULL;
-  definition_ = NULL;
-}
-
-
-void UseVal::AddToUseList() {
-  ASSERT(next_use_ == NULL && previous_use_ == NULL && definition_ != NULL);
-  UseVal* head = definition_->use_list();
-  if (head != NULL) {
-    next_use_ = head;
-    head->previous_use_ = this;
-  }
-  definition_->set_use_list(this);
 }
 
 
@@ -226,7 +184,6 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   // that the instruction is removed from the graph.
   set_previous(NULL);
   set_next(NULL);
-  ASSERT(!IsDefinition() || AsDefinition()->use_list() == NULL);
   return return_previous ? prev_instr : next_instr;
 }
 
@@ -405,23 +362,53 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 }
 
 
+void UseVal::AddToInputUseList() {
+  set_next_use(definition()->input_use_list());
+  definition()->set_input_use_list(this);
+}
+
+
+void UseVal::AddToEnvUseList() {
+  set_next_use(definition()->env_use_list());
+  definition()->set_env_use_list(this);
+}
+
+
 void Definition::ReplaceUsesWith(Definition* other) {
-  UseVal* head = use_list();
-  if (head == NULL) return;
-
-  UseVal* current = head;
-  while (current->next_use() != NULL) {
-    current->definition_ = other;
-    current = current->next_use();
+  ASSERT(other != NULL);
+  while (input_use_list_ != NULL) {
+    UseVal* current = input_use_list_;
+    input_use_list_ = input_use_list_->next_use();
+    current->set_definition(other);
+    current->AddToInputUseList();
   }
-  current->definition_ = other;
-
-  if (other->use_list() != NULL) {
-    current->next_use_ = other->use_list();
-    other->use_list()->previous_use_ = current;
+  while (env_use_list_ != NULL) {
+    UseVal* current = env_use_list_;
+    env_use_list_ = env_use_list_->next_use();
+    current->set_definition(other);
+    current->AddToEnvUseList();
   }
-  other->set_use_list(head);
-  set_use_list(NULL);
+}
+
+
+void Definition::ReplaceUsesWith(Value* value) {
+  ASSERT(value != NULL);
+  if (value->IsUse()) {
+    ReplaceUsesWith(value->AsUse()->definition());
+    return;
+  }
+  ASSERT(value->IsConstant());
+  while (input_use_list_ != NULL) {
+    Instruction* instr = input_use_list_->instruction();
+    instr->SetInputAt(input_use_list_->use_index(), value);
+    input_use_list_ = input_use_list_->next_use();
+  }
+  while (env_use_list_ != NULL) {
+    Environment* env = env_use_list_->instruction()->env();
+    ASSERT(env != NULL);
+    env->values()[env_use_list_->use_index()] = value;
+    env_use_list_ = env_use_list_->next_use();
+  }
 }
 
 
@@ -1085,7 +1072,6 @@ Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
     // Remove the constant from the graph.
     BindInstr* right = right_use->definition()->AsBind();
     if (right != NULL) {
-      right->set_use_list(NULL);
       right->RemoveFromGraph();
     }
     // Return left subexpression as the replacement for this instruction.

@@ -212,8 +212,6 @@ class Computation : public ZoneAllocated {
   // TODO(fschneider): Make EmitNativeCode and locs const.
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
-  virtual void RemoveInputUses() = 0;
-
   static LocationSummary* MakeCallSummary();
 
   // Declare an enum value used to define kind-test predicates.
@@ -304,12 +302,6 @@ class TemplateComputation : public Computation {
     ASSERT(value != NULL);
     inputs_[i] = value;
   }
-  virtual void RemoveInputUses() {
-    for (intptr_t i = 0; i < N; ++i) {
-      ASSERT(inputs_[i] != NULL);
-      inputs_[i]->RemoveFromUseList();
-    }
-  }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -355,9 +347,9 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   // specific than any type.
   bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
-  virtual void RemoveFromUseList() = 0;
-
   virtual bool Equals(Value* other) const = 0;
+
+  virtual Value* CopyValue() = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -404,12 +396,16 @@ class PhiInstr;
 
 class UseVal : public Value {
  public:
-  explicit UseVal(Definition* definition);
+  explicit UseVal(Definition* definition)
+      : definition_(definition),
+        next_use_(NULL),
+        instruction_(NULL),
+        use_index_(-1) { }
 
   DECLARE_VALUE(Use)
 
-  inline Definition* definition() const;
-  void SetDefinition(Definition* definition);
+  inline Definition* definition() const { return definition_; }
+  void set_definition(Definition* definition) { definition_ = definition; }
 
   // Returns true if the value represents a constant.
   virtual bool BindsToConstant() const;
@@ -421,19 +417,26 @@ class UseVal : public Value {
   virtual bool CanDeoptimize() const { return false; }
 
   UseVal* next_use() const { return next_use_; }
-  UseVal* previous_use() const { return previous_use_; }
-  virtual void RemoveFromUseList();
-  virtual void RemoveInputUses() { RemoveFromUseList(); }
+  void set_next_use(UseVal* next) { next_use_ = next; }
+
+  Instruction* instruction() const { return instruction_; }
+  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
+
+  intptr_t use_index() const { return use_index_; }
+  void set_use_index(intptr_t index) { use_index_ = index; }
+
+  void AddToInputUseList();
+  void AddToEnvUseList();
 
   virtual intptr_t ResultCid() const;
 
+  virtual Value* CopyValue() { return new UseVal(definition_); }
+
  private:
-  void AddToUseList();
   Definition* definition_;
   UseVal* next_use_;
-  UseVal* previous_use_;
-
-  friend class Definition;
+  Instruction* instruction_;
+  intptr_t use_index_;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -460,9 +463,9 @@ class ConstantVal : public Value {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual void RemoveFromUseList() { }
-
   virtual intptr_t ResultCid() const;
+
+  virtual Value* CopyValue() { return this; }
 
  private:
   const Object& value_;
@@ -2057,9 +2060,6 @@ class Instruction : public ZoneAllocated {
   // Removed this instruction from the graph.
   Instruction* RemoveFromGraph(bool return_previous = true);
 
-  // Remove value uses within this instruction and its inputs.
-  virtual void RemoveInputUses() = 0;
-
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this
   // function.
@@ -2160,13 +2160,6 @@ class TemplateInstruction: public Instruction {
   }
 
   virtual LocationSummary* MakeLocationSummary() const = 0;
-
-  virtual void RemoveInputUses() {
-    for (intptr_t i = 0; i < N; ++i) {
-      ASSERT(inputs_[i] != NULL);
-      inputs_[i]->RemoveFromUseList();
-    }
-  }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -2344,8 +2337,6 @@ class BlockEntryInstr : public Instruction {
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual void RemoveInputUses() { }
 
  protected:
   BlockEntryInstr()
@@ -2572,7 +2563,8 @@ class Definition : public Instruction {
         ssa_temp_index_(-1),
         propagated_type_(AbstractType::Handle()),
         propagated_cid_(kIllegalCid),
-        use_list_(NULL) { }
+        input_use_list_(NULL),
+        env_use_list_(NULL) { }
 
   virtual bool IsDefinition() const { return true; }
   virtual Definition* AsDefinition() { return this; }
@@ -2618,13 +2610,17 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  UseVal* use_list() { return use_list_; }
-  void set_use_list(UseVal* head) {
-    ASSERT(head == NULL || head->previous_use() == NULL);
-    use_list_ = head;
-  }
+  UseVal* input_use_list() { return input_use_list_; }
+  void set_input_use_list(UseVal* head) { input_use_list_ = head; }
 
+  UseVal* env_use_list() { return env_use_list_; }
+  void set_env_use_list(UseVal* head) { env_use_list_ = head; }
+
+  // Replace uses of this definition with uses of other definition or value.
+  // Precondition: use lists must be properly calculated.
+  // Postcondition: use lists and use values are still valid.
   void ReplaceUsesWith(Definition* other);
+  void ReplaceUsesWith(Value* value);
 
  private:
   intptr_t temp_index_;
@@ -2633,17 +2629,11 @@ class Definition : public Instruction {
   // For now:
   AbstractType& propagated_type_;
   intptr_t propagated_cid_;
-  UseVal* use_list_;
+  UseVal* input_use_list_;
+  UseVal* env_use_list_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
-
-
-Definition* UseVal::definition() const {
-  // Check that the definition is either a Phi or a linked in the the IR.
-  ASSERT(definition_ != NULL);
-  return definition_;
-}
 
 
 class BindInstr : public Definition {
@@ -2692,8 +2682,6 @@ class BindInstr : public Definition {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
-  virtual void RemoveInputUses() { computation()->RemoveInputUses(); }
-
   // Insert this instruction before 'next'.
   void InsertBefore(BindInstr* next);
 
@@ -2726,13 +2714,6 @@ class PhiInstr : public Definition {
   void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual void RemoveInputUses() {
-    for (intptr_t i = 0; i < inputs_.length(); ++i) {
-      ASSERT(inputs_[i] != NULL);
-      inputs_[i]->RemoveFromUseList();
-    }
-  }
 
   // TODO(regis): This helper will be removed once we support type sets.
   RawAbstractType* LeastSpecificInputType() const;
@@ -2774,8 +2755,6 @@ class ParameterInstr : public Definition {
   void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual void RemoveInputUses() { }
 
  private:
   const intptr_t index_;
@@ -2825,8 +2804,6 @@ class PushArgumentInstr : public Definition {
   bool WasEliminated() const {
     return next() == NULL;
   }
-
-  virtual void RemoveInputUses() { value_->RemoveFromUseList(); }
 
  private:
   Value* value_;
