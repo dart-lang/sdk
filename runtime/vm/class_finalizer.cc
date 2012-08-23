@@ -42,16 +42,16 @@ bool ClassFinalizer::FinalizePendingClasses() {
   if (!error.IsNull()) {
     return false;
   }
-  GrowableObjectArray& class_array = GrowableObjectArray::Handle();
-  class_array = object_store->pending_classes();
-  ASSERT(!class_array.IsNull());
-  if (class_array.Length() == 0) {
+  if (AllClassesFinalized()) {
     return true;
   }
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
+    GrowableObjectArray& class_array = GrowableObjectArray::Handle();
+    class_array = object_store->pending_classes();
+    ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
     // First resolve all superclasses.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
