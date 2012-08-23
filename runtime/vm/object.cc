@@ -9272,7 +9272,10 @@ RawString* String::SubString(const String& str,
   ASSERT(!str.IsNull());
   ASSERT(begin_index >= 0);
   ASSERT(length >= 0);
-  if (begin_index >= str.Length()) {
+  if (begin_index <= str.Length() && length == 0) {
+    return Symbols::Empty();
+  }
+  if (begin_index > str.Length()) {
     return String::null();
   }
   String& result = String::Handle();
