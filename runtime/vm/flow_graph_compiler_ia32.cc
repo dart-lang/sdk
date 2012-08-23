@@ -47,7 +47,7 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
   }
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;
-  compiler->pc_descriptors_list()-> AddDeoptInfo(
+  compiler->pc_descriptors_list()->AddDeoptInfo(
       compiler->assembler()->CodeSize(),
       deopt_id_,
       reason_,
@@ -450,7 +450,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
                                            intptr_t try_index,
                                            const AbstractType& type,
                                            bool negate_result,
-                                           BitmapBuilder* stack_bitmap) {
+                                           LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
 
   const Immediate raw_null =
@@ -491,7 +491,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
     GenerateCallRuntime(deopt_id, token_pos, try_index,
-                        kInstanceofRuntimeEntry, stack_bitmap);
+                        kInstanceofRuntimeEntry, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -535,7 +535,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                                                  intptr_t try_index,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
-                                                 BitmapBuilder* stack_bitmap) {
+                                                 LocationSummary* locs) {
   ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
@@ -564,7 +564,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                         token_pos,
                         try_index,
                         kMalformedTypeErrorRuntimeEntry,
-                        stack_bitmap);
+                        locs);
     // We should never return here.
     __ int3();
 
@@ -594,7 +594,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                       token_pos,
                       try_index,
                       kTypeCheckRuntimeEntry,
-                      stack_bitmap);
+                      locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -768,11 +768,13 @@ void FlowGraphCompiler::CopyParameters() {
   // spill slots.
   BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
   if (function.IsClosureFunction()) {
-    GenerateCallRuntime(Isolate::kNoDeoptId,
-                        0,
-                        CatchClauseNode::kInvalidTryIndex,
-                        kClosureArgumentMismatchRuntimeEntry,
-                        empty_stack_bitmap);
+    // We do not use GenerateCallRuntime because of the non-standard (empty)
+    // stackmap used here.
+    __ CallRuntime(kClosureArgumentMismatchRuntimeEntry);
+    AddCurrentDescriptor(PcDescriptors::kOther,
+                         Isolate::kNoDeoptId,
+                         0,  // No token position.
+                         CatchClauseNode::kInvalidTryIndex);
   } else {
     ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
@@ -791,20 +793,27 @@ void FlowGraphCompiler::CopyParameters() {
     // ECX : ic-data.
     // EDX : arguments descriptor array.
     __ call(&StubCode::CallNoSuchMethodFunctionLabel());
-    if (is_optimizing()) {
-      stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                        empty_stack_bitmap);
-    }
   }
+  if (is_optimizing()) {
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                      empty_stack_bitmap);
+  }
+
 
   if (FLAG_trace_functions) {
     __ pushl(EAX);  // Preserve result.
     __ PushObject(Function::ZoneHandle(function.raw()));
-    GenerateCallRuntime(Isolate::kNoDeoptId,
-                        0,
-                        CatchClauseNode::kInvalidTryIndex,
-                        kTraceFunctionExitRuntimeEntry,
-                        empty_stack_bitmap);
+    // We do not use GenerateCallRuntime because of the non-standard (empty)
+    // stackmap used here.
+    __ CallRuntime(kTraceFunctionExitRuntimeEntry);
+    AddCurrentDescriptor(PcDescriptors::kOther,
+                         Isolate::kNoDeoptId,
+                         0,  // No token position.
+                         CatchClauseNode::kInvalidTryIndex);
+    if (is_optimizing()) {
+      stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                        empty_stack_bitmap);
+    }
     __ popl(EAX);  // Remove argument.
     __ popl(EAX);  // Restore result.
   }
@@ -908,11 +917,11 @@ void FlowGraphCompiler::CompileGraph() {
 
   // For optimized code, keep a bitmap of the frame in order to build
   // stackmaps for GC safepoints in the prologue.
-  BitmapBuilder* stack_bitmap = NULL;
+  LocationSummary* prologue_locs = NULL;
   if (is_optimizing()) {
     // Spill slots are allocated but not initialized.
-    stack_bitmap = new BitmapBuilder();
-    stack_bitmap->SetLength(StackSize());
+    prologue_locs = new LocationSummary(0, 0, LocationSummary::kCall);
+    prologue_locs->stack_bitmap()->SetLength(StackSize());
   }
 
   // We check the number of passed arguments when we have to copy them due to
@@ -938,7 +947,7 @@ void FlowGraphCompiler::CompileGraph() {
                             function.token_pos(),
                             CatchClauseNode::kInvalidTryIndex,
                             kClosureArgumentMismatchRuntimeEntry,
-                            stack_bitmap);
+                            prologue_locs);
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -978,11 +987,10 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
-  pc_descriptors_list()->AddDescriptor(PcDescriptors::kPatchCode,
-                                       assembler()->CodeSize(),
-                                       Isolate::kNoDeoptId,
-                                       0,
-                                       -1);
+  AddCurrentDescriptor(PcDescriptors::kPatchCode,
+                       Isolate::kNoDeoptId,
+                       0,  // No token position.
+                       CatchClauseNode::kInvalidTryIndex);
   __ jmp(&StubCode::FixCallersTargetLabel());
 }
 
@@ -991,13 +999,11 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      intptr_t try_index,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
-                                     BitmapBuilder* stack_bitmap) {
+                                     LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ call(label);
-  if (is_optimizing() && (stack_bitmap != NULL)) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
-  }
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos, try_index);
+  RecordSafepoint(locs);
 }
 
 
@@ -1005,42 +1011,49 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             intptr_t token_pos,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry,
-                                            BitmapBuilder* stack_bitmap) {
+                                            LocationSummary* locs) {
   ASSERT(!IsLeaf());
-  ASSERT(!is_optimizing() || (stack_bitmap != NULL));
   __ CallRuntime(entry);
-  if (is_optimizing()) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
-  }
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);
+  RecordSafepoint(locs);
 }
 
 
-intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
-                                             const ICData& ic_data,
-                                             const Array& arguments_descriptor,
-                                             intptr_t argument_count) {
+void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
+                                         const ICData& ic_data,
+                                         const Array& arguments_descriptor,
+                                         intptr_t argument_count,
+                                         intptr_t deopt_id,
+                                         intptr_t token_pos,
+                                         intptr_t try_index,
+                                         LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
 
   __ call(target_label);
-  const intptr_t descr_offset = assembler()->CodeSize();
+  AddCurrentDescriptor(PcDescriptors::kIcCall, deopt_id, token_pos, try_index);
+  RecordSafepoint(locs);
+
   __ Drop(argument_count);
-  return descr_offset;
 }
 
 
-intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
-                                           const Array& arguments_descriptor,
-                                           intptr_t argument_count) {
+void FlowGraphCompiler::EmitStaticCall(const Function& function,
+                                       const Array& arguments_descriptor,
+                                       intptr_t argument_count,
+                                       intptr_t deopt_id,
+                                       intptr_t token_pos,
+                                       intptr_t try_index,
+                                       LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
   __ call(&StubCode::CallStaticFunctionLabel());
-  const intptr_t descr_offset = assembler()->CodeSize();
+  AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos,
+                       try_index);
+  RecordSafepoint(locs);
   __ Drop(argument_count);
-  return descr_offset;
 }
 
 

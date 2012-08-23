@@ -65,9 +65,8 @@ class DescriptorList : public ZoneAllocated {
 
 class StackmapTableBuilder : public ZoneAllocated {
  public:
-  explicit StackmapTableBuilder(intptr_t entry_length)
-      : entry_length_(entry_length),
-        stack_map_(Stackmap::ZoneHandle()),
+  explicit StackmapTableBuilder()
+      : stack_map_(Stackmap::ZoneHandle()),
         list_(GrowableObjectArray::ZoneHandle(
             GrowableObjectArray::New(Heap::kOld))) { }
   ~StackmapTableBuilder() { }
@@ -82,8 +81,6 @@ class StackmapTableBuilder : public ZoneAllocated {
   intptr_t Length() const { return list_.Length(); }
   RawStackmap* MapAt(int index) const;
 
-  // All the stackmaps in a function have the same length.
-  const intptr_t entry_length_;
   Stackmap& stack_map_;
   GrowableObjectArray& list_;
   DISALLOW_COPY_AND_ASSIGN(StackmapTableBuilder);

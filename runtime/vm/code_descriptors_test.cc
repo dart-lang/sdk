@@ -56,8 +56,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   if (setjmp(*jump.Set()) == 0) {
     // Build a stackmap table and some stackmap table entries.
     const intptr_t kStackSlotCount = 11;
-    StackmapTableBuilder* stackmap_table_builder =
-        new StackmapTableBuilder(kStackSlotCount);
+    StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder();
     EXPECT(stackmap_table_builder != NULL);
 
     BitmapBuilder* stack_bitmap = new BitmapBuilder();
@@ -241,7 +240,7 @@ TEST_CASE(StackmapGC) {
 
   // Build and setup a stackmap for the call to 'func' in 'A.foo' in order
   // to test the traversal of stack maps when a GC happens.
-  StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder(5);
+  StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder();
   EXPECT(stackmap_table_builder != NULL);
   BitmapBuilder* stack_bitmap = new BitmapBuilder();
   EXPECT(stack_bitmap != NULL);

@@ -1178,7 +1178,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 token_pos(),
                                 try_index(),
                                 kThrowRuntimeEntry,
-                                locs()->stack_bitmap());
+                                locs());
   __ int3();
 }
 
@@ -1193,7 +1193,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 token_pos(),
                                 try_index(),
                                 kReThrowRuntimeEntry,
-                                locs()->stack_bitmap());
+                                locs());
   __ int3();
 }
 
@@ -1320,7 +1320,7 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &StubCode::CallClosureFunctionLabel(),
                          PcDescriptors::kOther,
-                         locs()->stack_bitmap());
+                         locs());
   __ Drop(argument_count);
 }
 
@@ -1342,7 +1342,7 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  ArgumentCount(),
                                  argument_names(),
                                  checked_argument_count(),
-                                 locs()->stack_bitmap());
+                                 locs());
 }
 
 
@@ -1363,7 +1363,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                function(),
                                ArgumentCount(),
                                argument_names(),
-                               locs()->stack_bitmap());
+                               locs());
   __ Bind(&done);
 }
 
@@ -1375,7 +1375,7 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                        try_index(),
                                        dst_type(),
                                        dst_name(),
-                                       locs()->stack_bitmap());
+                                       locs());
   }
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
 }
@@ -1469,7 +1469,7 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &label,
                          PcDescriptors::kOther,
-                         locs()->stack_bitmap());
+                         locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
@@ -1486,7 +1486,7 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(), try_index(), &label,
                          PcDescriptors::kOther,
-                         locs()->stack_bitmap());
+                         locs());
   __ Drop(2);  // Discard type arguments and receiver.
 }
 

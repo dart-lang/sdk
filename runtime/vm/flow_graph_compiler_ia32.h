@@ -81,27 +81,27 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t token_pos,
                            intptr_t try_index,
                            const RuntimeEntry& entry,
-                           BitmapBuilder* stack_bitmap);
+                           LocationSummary* locs);
 
   void GenerateCall(intptr_t token_pos,
                     intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind,
-                    BitmapBuilder* stack_bitmap);
+                    LocationSummary* locs);
 
   void GenerateAssertAssignable(intptr_t deopt_id,
                                 intptr_t token_pos,
                                 intptr_t try_index,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
-                                BitmapBuilder* stack_bitmap);
+                                LocationSummary* locs);
 
   void GenerateInstanceOf(intptr_t deopt_id,
                           intptr_t token_pos,
                           intptr_t try_index,
                           const AbstractType& type,
                           bool negate_result,
-                          BitmapBuilder* stack_bitmap);
+                          LocationSummary* locs);
 
   void GenerateInstanceCall(intptr_t deopt_id,
                             intptr_t token_pos,
@@ -110,7 +110,7 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t argument_count,
                             const Array& argument_names,
                             intptr_t checked_argument_count,
-                            BitmapBuilder* stack_bitmap);
+                            LocationSummary* locs);
 
   void GenerateStaticCall(intptr_t deopt_id,
                           intptr_t token_pos,
@@ -118,7 +118,7 @@ class FlowGraphCompiler : public ValueObject {
                           const Function& function,
                           intptr_t argument_count,
                           const Array& argument_names,
-                          BitmapBuilder* stack_bitmap);
+                          LocationSummary* locs);
 
   void GenerateInlinedMathSqrt(Label* done);
 
@@ -139,12 +139,14 @@ class FlowGraphCompiler : public ValueObject {
                             Register temp_reg,
                             Label* deopt);
 
-  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
-  // pc-descriptor information.
-  intptr_t EmitInstanceCall(ExternalLabel* target_label,
-                            const ICData& ic_data,
-                            const Array& arguments_descriptor,
-                            intptr_t argument_count);
+  void EmitInstanceCall(ExternalLabel* target_label,
+                        const ICData& ic_data,
+                        const Array& arguments_descriptor,
+                        intptr_t argument_count,
+                        intptr_t deopt_id,
+                        intptr_t token_pos,
+                        intptr_t try_index,
+                        LocationSummary* locs);
 
   void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
   void EmitTestAndCall(const ICData& ic_data,
@@ -156,7 +158,7 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t deopt_id,
                        intptr_t token_index,
                        intptr_t try_index,
-                       BitmapBuilder* stack_bitmap);
+                       LocationSummary* locs);
 
   void EmitDoubleCompareBranch(Condition true_condition,
                                XmmRegister left,
@@ -181,6 +183,9 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t deopt_id,
                             intptr_t token_pos,
                             intptr_t try_index);
+
+  void RecordSafepoint(LocationSummary* locs);
+
   Label* AddDeoptStub(intptr_t deopt_id,
                       intptr_t try_index_,
                       DeoptReasonId reason);
@@ -216,11 +221,13 @@ class FlowGraphCompiler : public ValueObject {
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
-  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
-  // pc-descriptor information.
-  intptr_t EmitStaticCall(const Function& function,
-                          const Array& arguments_descriptor,
-                          intptr_t argument_count);
+  void EmitStaticCall(const Function& function,
+                      const Array& arguments_descriptor,
+                      intptr_t argument_count,
+                      intptr_t deopt_id,
+                      intptr_t token_pos,
+                      intptr_t try_index,
+                      LocationSummary* locs);
 
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,
