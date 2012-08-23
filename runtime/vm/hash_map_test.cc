@@ -30,6 +30,10 @@ TEST_CASE(DirectChainedHashMap) {
   EXPECT(map.Lookup(&v1) == &v1);
   EXPECT(map.Lookup(&v2) == &v2);
   EXPECT(map.Lookup(&v3) == &v1);
+  DirectChainedHashMap<TestValue*> map2(map);
+  EXPECT(map2.Lookup(&v1) == &v1);
+  EXPECT(map2.Lookup(&v2) == &v2);
+  EXPECT(map2.Lookup(&v3) == &v1);
 }
 
 }  // namespace dart

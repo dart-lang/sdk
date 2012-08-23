@@ -11,6 +11,7 @@
 namespace dart {
 
 template <typename T> class GrowableArray;
+template <typename T> class DirectChainedHashMap;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
@@ -105,17 +106,16 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 };
 
 
-class LocalCSE : public ValueObject {
+// A simple common subexpression elimination based
+// on the dominator tree.
+class DominatorBasedCSE : public AllStatic {
  public:
-  explicit LocalCSE(const FlowGraph& flow_graph)
-      : blocks_(flow_graph.reverse_postorder()) { }
-
-  void Optimize();
+  static void Optimize(BlockEntryInstr* graph_entry);
 
  private:
-  const GrowableArray<BlockEntryInstr*>& blocks_;
-
-  DISALLOW_COPY_AND_ASSIGN(LocalCSE);
+  static void OptimizeRecursive(
+      BlockEntryInstr* entry,
+      DirectChainedHashMap<BindInstr*>* map);
 };
 
 
