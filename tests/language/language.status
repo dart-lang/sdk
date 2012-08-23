@@ -16,6 +16,7 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
+call_nonexistent_constructor_test: Fail # Issue 3801
 gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
 field_override_test/01: Fail    # Issue 742: field shadowing now allowed
@@ -160,6 +161,7 @@ implicit_this_test/03: Fail # TODO(ahe): Handle abstract getters.
 implicit_this_test/04: Fail # TODO(ahe): Handle abstract getters.
 property_field_override_test: Fail # TODO(ahe): Handle abstract getters.
 
+call_nonexistent_constructor_test: Fail # Issue 1031
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.

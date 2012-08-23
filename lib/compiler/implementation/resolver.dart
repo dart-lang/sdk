@@ -1530,13 +1530,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * [null], if there is no corresponding constructor, class or library.
    */
   FunctionElement resolveConstructor(NewExpression node) {
-    FunctionElement constructor =
-        node.accept(new ConstructorResolver(compiler, this));
     TypeAnnotation annotation = getTypeAnnotationFromSend(node.send);
     // TODO(karlklose): clean up: the type should be resolved in the
     // constructor resolver visitor to avoid visiting the node twice.
     resolveTypeRequired(annotation);
-    return constructor;
+    ConstructorResolver visitor =
+        new ConstructorResolver(compiler, this, node.isConst());
+    return node.accept(visitor);
   }
 
   Type resolveTypeRequired(TypeAnnotation node) {
@@ -2352,8 +2352,11 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
+  final bool inConstContext;
 
-  ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
+  ConstructorResolver(Compiler compiler, this.resolver,
+                      [bool this.inConstContext = false])
+      : super(compiler);
 
   visitNode(Node node) {
     throw 'not supported';
@@ -2370,11 +2373,16 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         fullConstructorName = '$fullConstructorName'
                               '.${constructorName.slowToString()}';
       }
-      ResolutionWarning warning  =
-          new ResolutionWarning(MessageKind.CANNOT_FIND_CONSTRUCTOR,
-                                [fullConstructorName]);
-      compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousFunctionElement(warning.message, cls);
+      if (inConstContext) {
+        error(diagnosticNode, MessageKind.CANNOT_FIND_CONSTRUCTOR,
+              [fullConstructorName]);
+      } else {
+        ResolutionWarning warning  =
+            new ResolutionWarning(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+                                  [fullConstructorName]);
+        compiler.reportWarning(diagnosticNode, warning);
+        return new ErroneousFunctionElement(warning.message, cls);
+      }
     }
     return result;
   }

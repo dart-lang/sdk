@@ -1871,6 +1871,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  void pushInvokeHelper3(Element helper, HInstruction a0, HInstruction a1,
+                         HInstruction a2) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
   visitOperatorSend(node) {
     assert(node.selector is Operator);
     if (!methodInterceptionEnabled) {
@@ -2418,10 +2427,29 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
     if (Element.isInvalid(element)) {
-      // TODO(karlklose): generate runtime error or noSuchMethodCall, depending
-      // on whether element is null or it is an erroneous element with a
-      // particular error message.
-      compiler.cancel('Unimplemented unresolved constructor call', node: node);
+      ErroneousElement error = element;
+      Message message = error.errorMessage;
+      if (message.kind === MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+        Element helper =
+            compiler.findHelper(const SourceString('throwNoSuchMethod'));
+        DartString receiverLiteral = new DartString.literal('');
+        HInstruction receiver = graph.addConstantString(receiverLiteral, node);
+        String constructorName = 'constructor ${message.arguments[0]}';
+        DartString nameLiteral = new DartString.literal(constructorName);
+        HInstruction name = graph.addConstantString(nameLiteral, node.send);
+        List<HInstruction> inputs = <HInstruction>[];
+        node.send.arguments.forEach((argumentNode) {
+          visit(argumentNode);
+          HInstruction value = pop();
+          inputs.add(value);
+        });
+        HInstruction arguments = new HLiteralList(inputs);
+        add(arguments);
+        pushInvokeHelper3(helper, receiver, name, arguments);
+      } else {
+        compiler.cancel('Unimplemented unresolved constructor call',
+                        node: node);
+      }
     } else if (node.isConst()) {
       // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;

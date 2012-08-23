@@ -310,15 +310,21 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 # Issues with co19 test suite.
 #
 # If you add anything here, either file a bug against the Dart
-# langauge specification, co19 test suite, or add a comment that ahe@
+# language specification, co19 test suite, or add a comment that ahe@
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
 Language/07_Classes/2_Getters_A01_t03: Fail, OK # co19 issue 170.
 Language/07_Classes/3_Setters_A01_t03: Fail, OK # Bad test: assumes eager loading.
+Language/07_Classes/5_Constructors_A02_t03: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/07_Classes/07_Classes_A02_t32: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t08: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/06_Lists_A08_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
