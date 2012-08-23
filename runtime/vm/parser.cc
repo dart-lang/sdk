@@ -1787,7 +1787,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   LocalVariable* phase_parameter = new LocalVariable(
        ctor_pos,
        String::ZoneHandle(Symbols::PhaseParameter()),
-       Type::ZoneHandle(Type::IntInterface()));
+       Type::ZoneHandle(Type::SmiType()));
   current_block_->scope->AddVariable(phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
@@ -1855,7 +1855,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   params.AddFinalParameter(
       TokenPos(),
       &String::ZoneHandle(Symbols::PhaseParameter()),
-      &Type::ZoneHandle(Type::IntInterface()));
+      &Type::ZoneHandle(Type::SmiType()));
 
   if (func.is_const()) {
     params.SetImplicitlyFinal();
@@ -2332,7 +2332,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     method->params.AddFinalParameter(
         TokenPos(),
         &String::ZoneHandle(Symbols::PhaseParameter()),
-        &Type::ZoneHandle(Type::IntInterface()));
+        &Type::ZoneHandle(Type::SmiType()));
   }
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
@@ -3077,7 +3077,7 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(TokenPos(),
                            &String::ZoneHandle(Symbols::PhaseParameter()),
-                           &Type::ZoneHandle(Type::IntInterface()));
+                           &Type::ZoneHandle(Type::SmiType()));
 
   AddFormalParamsToFunction(&params, ctor);
   // The body of the constructor cannot modify the type of the constructed
