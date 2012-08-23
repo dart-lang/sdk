@@ -122,10 +122,10 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ASSERT(state->IsValidPrologueWeakPersistentHandle(object) ||
-         state->IsValidWeakPersistentHandle(object) ||
+  ASSERT(state->IsValidLocalHandle(object) ||
          state->IsValidPersistentHandle(object) ||
-         state->IsValidLocalHandle(object));
+         state->IsValidWeakPersistentHandle(object) ||
+         state->IsValidPrologueWeakPersistentHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);
