@@ -770,12 +770,15 @@ void FlowGraphCompiler::CopyParameters() {
     // stack.
     __ addq(RSP, Immediate(StackSize() * kWordSize));
   }
+  // The calls immediately below have empty stackmaps because we have just
+  // dropped the spill slots.
+  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
   if (function.IsClosureFunction()) {
     GenerateCallRuntime(Isolate::kNoDeoptId,
                         0,
                         CatchClauseNode::kInvalidTryIndex,
                         kClosureArgumentMismatchRuntimeEntry,
-                        NULL);
+                        empty_stack_bitmap);
   } else {
     ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
@@ -794,6 +797,10 @@ void FlowGraphCompiler::CopyParameters() {
     // RBX : ic-data.
     // R10 : arguments descriptor array.
     __ call(&StubCode::CallNoSuchMethodFunctionLabel());
+    if (is_optimizing()) {
+      stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                        empty_stack_bitmap);
+    }
   }
 
   if (FLAG_trace_functions) {
@@ -803,7 +810,7 @@ void FlowGraphCompiler::CopyParameters() {
                         0,
                         CatchClauseNode::kInvalidTryIndex,
                         kTraceFunctionExitRuntimeEntry,
-                        NULL);
+                        empty_stack_bitmap);
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
   }
@@ -905,6 +912,16 @@ void FlowGraphCompiler::CompileGraph() {
   } else {
     AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
   }
+
+  // For optimized code, keep a bitmap of the frame in order to build
+  // stackmaps for GC safepoints in the prologue.
+  BitmapBuilder* stack_bitmap = NULL;
+  if (is_optimizing()) {
+    // Spill slots are allocated but not initialized.
+    stack_bitmap = new BitmapBuilder();
+    stack_bitmap->SetLength(StackSize());
+  }
+
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
@@ -928,7 +945,7 @@ void FlowGraphCompiler::CompileGraph() {
                             function.token_pos(),
                             CatchClauseNode::kInvalidTryIndex,
                             kClosureArgumentMismatchRuntimeEntry,
-                            NULL);
+                            stack_bitmap);
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -938,26 +955,15 @@ void FlowGraphCompiler::CompileGraph() {
     CopyParameters();
   }
 
-  // Initialize (non-argument) stack allocated slots to null.
-  //
-  // TODO(vegorov): introduce stack maps and stop initializing all spill slots
-  // with null.
-  intptr_t uninitialized_slot_count;
-  if (is_optimizing()) {
-    GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
-    uninitialized_slot_count =
-        entry->spill_slot_count() - copied_parameter_count;
-  } else {
-    uninitialized_slot_count = local_count;
-  }
-  const intptr_t slot_base = parsed_function().first_stack_local_index();
-
-  if (uninitialized_slot_count > 0) {
+  // In unoptimized code, initialize (non-argument) stack allocated slots to
+  // null.
+  if (!is_optimizing() && (local_count > 0)) {
     __ Comment("Initialize spill slots");
+    const intptr_t slot_base = parsed_function().first_stack_local_index();
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movq(RAX, raw_null);
-    for (intptr_t i = 0; i < uninitialized_slot_count; ++i) {
+    for (intptr_t i = 0; i < local_count; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
       __ movq(Address(RBP, (slot_base - i) * kWordSize), RAX);
     }
@@ -1009,8 +1015,9 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
+  ASSERT(!is_optimizing() || (stack_bitmap != NULL));
   __ CallRuntime(entry);
-  if (is_optimizing() && (stack_bitmap != NULL)) {
+  if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
   }
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);
