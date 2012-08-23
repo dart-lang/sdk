@@ -18,10 +18,7 @@
 
 #import('../../../pkg/unittest/unittest.dart');
 #import('../../lib/file_system.dart', prefix: 'fs');
-#import('../../pub/git_source.dart');
 #import('../../pub/io.dart');
-#import('../../pub/repo_source.dart');
-#import('../../pub/sdk_source.dart');
 #import('../../pub/utils.dart');
 #import('../../pub/yaml/yaml.dart');
 
@@ -126,16 +123,17 @@ Future _closeServer() {
 
 /**
  * Creates an HTTP server that replicates the structure of pub.dartlang.org.
- * [pubspecs] is a list of unserialized pubspecs representing the packages to
+ * [pubspecs] is a list of YAML-format pubspecs representing the packages to
  * serve.
  */
-void servePackages(String host, int port, List<Map> pubspecs) {
+void servePackages(String host, int port, List<String> pubspecs) {
   var packages = <String, Map<String, String>>{};
-  for (var spec in pubspecs) {
-    var name = spec['name'];
-    var version = spec['version'];
-    packages.putIfAbsent(name, () => <String, String>{})[version] = yaml(spec);
-  }
+  pubspecs.forEach((spec) {
+    var parsed = loadYaml(spec);
+    var name = parsed['name'];
+    var version = parsed['version'];
+    packages.putIfAbsent(name, () => <String, String>{})[version] = spec;
+  });
 
   serve(host, port, [
     dir('packages', flatten(packages.getKeys().map((name) {
@@ -156,158 +154,6 @@ void servePackages(String host, int port, List<Map> pubspecs) {
       ];
     })))
   ]);
-}
-
-/** Converts [value] into a YAML string. */
-String yaml(value) => JSON.stringify(value);
-
-/**
- * Describes a file named `pubspec.yaml` with the given YAML-serialized
- * [contents], which should be a serializable object.
- *
- * [contents] may contain [Future]s that resolve to serializable objects, which
- * may in turn contain [Future]s recursively.
- */
-Descriptor pubspec(Map contents) {
-  return async(_awaitObject(contents).transform((resolvedContents) =>
-      file("pubspec.yaml", yaml(resolvedContents))));
-}
-
-/**
- * Describes a file named `pubspec.yaml` for an application package with the
- * given [dependencies].
- */
-Descriptor appPubspec(List dependencies) =>
-  pubspec({"dependencies": _dependencyListToMap(dependencies)});
-
-/**
- * Describes a file named `pubspec.yaml` for a library package with the given
- * [name], [version], and [dependencies].
- */
-Descriptor libPubspec(String name, String version, [List dependencies]) =>
-  pubspec(package(name, version, dependencies));
-
-/**
- * Describes a map representing a library package with the given [name],
- * [version], and [dependencies].
- */
-Map package(String name, String version, [List dependencies]) {
-  var package = {"name": name, "version": version};
-  if (dependencies != null) {
-    package["dependencies"] = _dependencyListToMap(dependencies);
-  }
-  return package;
-}
-
-/**
- * Describes a map representing a dependency on a package in the package
- * repository.
- */
-Map dependency(String name, [String versionConstraint]) {
-  var dependency = {"repo": {"name": name, "url": "http://localhost:3123"}};
-  if (versionConstraint != null) dependency["version"] = versionConstraint;
-  return dependency;
-}
-
-/**
- * Describes a directory for a package installed from the mock package repo.
- * This directory is of the form found in the `packages/` directory.
- */
-DirectoryDescriptor packageDir(String name, String version) {
-  return dir(name, [
-    file("$name.dart", 'main() => print("$name $version");')
-  ]);
-}
-
-/**
- * Describes a directory for a package installed from the mock package server.
- * This directory is of the form found in the global package cache.
- */
-DirectoryDescriptor packageCacheDir(String name, String version) {
-  return dir("$name-$version", [
-    file("$name.dart", 'main() => print("$name $version");')
-  ]);
-}
-
-/**
- * Describes a directory for a Git package. This directory is of the form found
- * in the global package cache.
- */
-DirectoryDescriptor gitPackageCacheDir(String name, [int modifier]) {
-  var value = name;
-  if (modifier != null) value = "$name $modifier";
-  return dir(new RegExp("$name${@'-[a-f0-9]+'}"), [
-    file('$name.dart', 'main() => "$value";')
-  ]);
-}
-
-/**
- * Describes the `packages/` directory containing all the given [packages],
- * which should be name/version pairs. The packages will be validated against
- * the format produced by the mock package server.
- */
-DirectoryDescriptor packagesDir(Map<String, String> packages) {
-  var contents = <Map>[];
-  packages.forEach((name, version) {
-    contents.add(packageDir(name, version));
-  });
-  return dir(packagesPath, contents);
-}
-
-/**
- * Describes the global package cache directory containing all the given
- * [packages], which should be name/version pairs. The packages will be
- * validated against the format produced by the mock package server.
- *
- * A package's value may also be a list of versions, in which case all versions
- * are expected to be installed.
- */
-DirectoryDescriptor cacheDir(Map packages) {
-  var contents = <Map>[];
-  packages.forEach((name, versions) {
-    if (versions is! List) versions = [versions];
-    for (var version in versions) {
-      contents.add(packageCacheDir(name, version));
-    }
-  });
-  return dir(cachePath, [
-    dir('repo', [dir('localhost%583123', contents)])
-  ]);
-}
-
-/**
- * Describes the application directory, containing only a pubspec specifying the
- * given [dependencies].
- */
-DirectoryDescriptor appDir(List dependencies) =>
-  dir(appPath, [appPubspec(dependencies)]);
-
-/**
- * Converts a list of dependencies as passed to [package] into a hash as used in
- * a pubspec.
- */
-Map _dependencyListToMap(List<Map> dependencies) {
-  var result = <String, Map>{};
-  dependencies.map((dependency) {
-    var sourceName = only(dependency.getKeys());
-    var source;
-    switch (sourceName) {
-    case "git":
-      source = new GitSource();
-      break;
-    case "repo":
-      source = new RepoSource();
-      break;
-    case "sdk":
-      source = new SdkSource('');
-      break;
-    default:
-      throw 'Unknown source "$sourceName"';
-    }
-
-    result[source.packageName(dependency[sourceName])] = dependency;
-  });
-  return result;
 }
 
 /**
@@ -638,36 +484,24 @@ class Descriptor {
       if (matches.length == 1) return validate(matches[0]);
 
       var failures = [];
-      var successes = 0;
       var completer = new Completer();
-      checkComplete() {
-        if (failures.length + successes != matches.length) return;
-        if (successes > 0) {
-          completer.complete(null);
-          return;
-        }
-
-        var error = new StringBuffer();
-        error.add("No files named $name in $dir were valid:\n");
-        for (var failure in failures) {
-          error.add("  ").add(failure).add("\n");
-        }
-        completer.completeException(new ExpectException(error.toString()));
-      }
-
       for (var match in matches) {
         var future = validate(match);
 
         future.handleException((e) {
           failures.add(e);
-          checkComplete();
+          if (failures.length != matches.length) return true;
+
+          var error = new StringBuffer();
+          error.add("No files named $name in $dir were valid:\n");
+          for (var failure in failures) {
+            error.add("  ").add(failure).add("\n");
+          }
+          completer.completeException(new ExpectException(error.toString()));
           return true;
         });
 
-        future.then((_) {
-          successes++;
-          checkComplete();
-        });
+        future.then(completer.complete);
       }
       return completer.future;
     });
@@ -751,15 +585,23 @@ class DirectoryDescriptor extends Descriptor {
    * the creation is done.
    */
   Future<Directory> create(parentDir) {
-    // Create the directory.
-    return ensureDir(join(parentDir, _stringName)).chain((dir) {
-      if (contents == null) return new Future<Directory>.immediate(dir);
+    final completer = new Completer<Directory>();
 
-      // Recursively create all of its children.
-      final childFutures = contents.map((child) => child.create(dir));
-      // Only complete once all of the children have been created too.
-      return Futures.wait(childFutures).transform((_) => dir);
+    // Create the directory.
+    ensureDir(join(parentDir, _stringName)).then((dir) {
+      if (contents == null) {
+        completer.complete(dir);
+      } else {
+        // Recursively create all of its children.
+        final childFutures = contents.map((child) => child.create(dir));
+        Futures.wait(childFutures).then((_) {
+          // Only complete once all of the children have been created too.
+          completer.complete(dir);
+        });
+      }
     });
+
+    return completer.future;
   }
 
   /**
@@ -959,31 +801,6 @@ class TarFileDescriptor extends Descriptor {
     });
     return sinkStream;
   }
-}
-
-/**
- * Takes a simple data structure (composed of [Map]s, [List]s, scalar objects,
- * and [Future]s) and recursively resolves all the [Future]s contained within.
- * Completes with the fully resolved structure.
- */
-Future _awaitObject(object) {
-  // Unroll nested futures.
-  if (object is Future) return object.chain(_awaitObject);
-  if (object is Collection) return Futures.wait(object.map(_awaitObject));
-  if (object is! Map) return new Future.immediate(object);
-
-  var pairs = <Future<Pair>>[];
-  object.forEach((key, value) {
-    pairs.add(_awaitObject(value)
-        .transform((resolved) => new Pair(key, resolved)));
-  });
-  return Futures.wait(pairs).transform((resolvedPairs) {
-    var map = {};
-    for (var pair in resolvedPairs) {
-      map[pair.first] = pair.last;
-    }
-    return map;
-  });
 }
 
 /**
