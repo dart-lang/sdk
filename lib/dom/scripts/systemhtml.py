@@ -1168,7 +1168,9 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
           if self._IsOptional(operation, argument):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
-      body.Emit('    throw "Incorrect number or type of arguments";\n');
+      body.Emit(
+          '    throw const Exception("Incorrect number or type of arguments");'
+          '\n');
     else:
       operation = operations[0]
       argument_count = len(operation.arguments)

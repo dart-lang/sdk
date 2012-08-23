@@ -3908,7 +3908,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
         (sh is num || sh == null)) {
       return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _createImageData_1(imagedata) native "createImageData";
   _createImageData_2(num sw, num sh) native "createImageData";
@@ -3959,7 +3959,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   void _putImageData_1(imagedata, dx, dy) native "putImageData";
   void _putImageData_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "putImageData";
@@ -4028,7 +4028,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
   void _webkitPutImageDataHD_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "webkitPutImageDataHD";
@@ -7923,7 +7923,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _count_3(key_1);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _count_1() native "count";
   _IDBRequestImpl _count_2(_IDBKeyRangeImpl range) native "count";
@@ -7937,7 +7937,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key);
       return _get_2(key_1);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _get_1(_IDBKeyRangeImpl key) native "get";
   _IDBRequestImpl _get_2(key) native "get";
@@ -7950,7 +7950,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key);
       return _getKey_2(key_1);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _getKey_1(_IDBKeyRangeImpl key) native "getKey";
   _IDBRequestImpl _getKey_2(key) native "getKey";
@@ -7995,7 +7995,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_3 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_9(key_3, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _openCursor_1() native "openCursor";
   _IDBRequestImpl _openCursor_2(_IDBKeyRangeImpl range) native "openCursor";
@@ -8047,7 +8047,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_3 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_9(key_3, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _openKeyCursor_1() native "openKeyCursor";
   _IDBRequestImpl _openKeyCursor_2(_IDBKeyRangeImpl range) native "openKeyCursor";
@@ -8111,7 +8111,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _count_3(key_1);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _count_1() native "count";
   _IDBRequestImpl _count_2(_IDBKeyRangeImpl range) native "count";
@@ -8138,7 +8138,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBIndexImpl _createIndex_1(name, List keyPath) native "createIndex";
   _IDBIndexImpl _createIndex_2(name, List keyPath, options) native "createIndex";
@@ -8153,7 +8153,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_keyRange);
       return _delete_2(key_1);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _delete_1(_IDBKeyRangeImpl keyRange) native "delete";
   _IDBRequestImpl _delete_2(key) native "delete";
@@ -8168,7 +8168,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key);
       return _getObject_2(key_1);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _getObject_1(_IDBKeyRangeImpl key) native "get";
   _IDBRequestImpl _getObject_2(key) native "get";
@@ -8215,7 +8215,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       var key_3 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_9(key_3, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _openCursor_1() native "openCursor";
   _IDBRequestImpl _openCursor_2(_IDBKeyRangeImpl range) native "openCursor";
@@ -16919,7 +16919,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
       _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   void _texImage2D_1(target, level, internalformat, width, height, int border, int format, int type, _ArrayBufferViewImpl pixels) native "texImage2D";
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native "texImage2D";
@@ -16963,7 +16963,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw const Exception("Incorrect number or type of arguments");
   }
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, int type, _ArrayBufferViewImpl pixels) native "texSubImage2D";
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native "texSubImage2D";
