@@ -70,7 +70,7 @@ void serve(String host, int port, [List<Descriptor> contents]) {
   }
 
   _schedule((_) {
-    _closeServer().transform((_) {
+    return _closeServer().transform((_) {
       _server = new HttpServer();
       _server.defaultRequestHandler = (request, response) {
         var path = request.uri.replaceFirst("/", "").split("/");
