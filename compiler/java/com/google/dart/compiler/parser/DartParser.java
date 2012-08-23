@@ -1594,6 +1594,7 @@ public class DartParser extends CompletionHooksParserBase {
       // accepted, but eventually parameters should be disallowed.
       parameters = new ArrayList<DartParameter>();
     } else {
+      //reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
       parameters = parseFormalParameterList();
     }
 
@@ -4732,6 +4733,7 @@ public class DartParser extends CompletionHooksParserBase {
           exception = done(new DartParameter(exceptionName, null , null, null, Modifiers.NONE));
         } else {
           // Old-style parameter
+          //reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
           exception = parseCatchParameter();
         }
         DartParameter stackTrace = null;
