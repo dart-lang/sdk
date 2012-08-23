@@ -1082,7 +1082,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Check to ensure we don't have classes with native fields in libraries
   // which do not have a native resolver.
-  if (cls.num_native_fields() != 0) {
+  // TODO(regis): Re-enable native resolver checking after Dartium is fixed.
+  if (false && cls.num_native_fields() != 0) {
     const Library& lib = Library::Handle(cls.library());
     if (lib.native_entry_resolver() == NULL) {
       const String& cls_name = String::Handle(cls.Name());

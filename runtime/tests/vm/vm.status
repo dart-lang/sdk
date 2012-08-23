@@ -11,6 +11,8 @@ cc/AllocGeneric_Overflow: Crash
 
 cc/SNPrint_BadArgs: Skip
 
+cc/InjectNativeFields4: Fail # Native resolver checking temporary disabled.
+
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
