@@ -1422,13 +1422,12 @@ LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
     summary->set_temp(2, Location::RequiresRegister());
     return summary;
   } else if (op_kind() == Token::kSHR) {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RegisterLocation(ECX));
     summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   } else if (op_kind() == Token::kSHL) {
     // Two Smi operands can easily overflow into Mint.
@@ -1442,13 +1441,12 @@ LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
     summary->set_out(Location::RegisterLocation(EAX));
     return summary;
   } else {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
 }
@@ -1458,32 +1456,20 @@ void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   Register result = locs()->out().reg();
-  Register temp = locs()->temp(0).reg();
   ASSERT(left == result);
-  const bool left_is_smi = this->left()->ResultCid() == kSmiCid;
-  const bool right_is_smi = this->right()->ResultCid() == kSmiCid;
-  bool can_deopt;
+  Label* deopt = NULL;
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
-      can_deopt = !(right_is_smi && left_is_smi);
+      // Can't deoptimize. Arguments are already checked for smi.
       break;
     default:
-      can_deopt = true;
+      deopt  = compiler->AddDeoptStub(instance_call()->deopt_id(),
+                                      instance_call()->try_index(),
+                                      kDeoptBinarySmiOp);
   }
-  Label* deopt = NULL;
-  if (can_deopt) {
-    deopt  = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                    instance_call()->try_index(),
-                                    kDeoptBinarySmiOp);
-  }
-  if (!left_is_smi || !right_is_smi) {
-    __ movl(temp, left);
-    __ orl(temp, right);
-    __ testl(temp, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt);
-  }
+
   switch (op_kind()) {
     case Token::kADD: {
       __ addl(left, right);
@@ -1517,6 +1503,7 @@ void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
+      Register temp = locs()->temp(0).reg();
       // Handle divide by zero in runtime.
       // Deoptimization requires that temp and right are preserved.
       __ testl(right, right);
@@ -1557,6 +1544,7 @@ void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHL: {
+      Register temp = locs()->temp(0).reg();
       Label call_method, done;
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
@@ -2185,6 +2173,27 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(&is_ok);
 }
+
+
+LocationSummary* CheckSmiComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void CheckSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        try_index(),
+                                        kDeoptCheckSmi);
+  __ testl(value, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, deopt);
+}
+
 
 }  // namespace dart
 

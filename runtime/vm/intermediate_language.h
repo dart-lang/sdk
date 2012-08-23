@@ -103,6 +103,7 @@ class LocalVariable;
   M(DoubleToDouble, DoubleToDoubleComp)                                        \
   M(SmiToDouble, SmiToDoubleComp)                                              \
   M(CheckClass, CheckClassComp)                                                \
+  M(CheckSmi, CheckSmiComp)                                                    \
   M(Materialize, MaterializeComp)
 
 
@@ -152,9 +153,10 @@ class Computation : public ZoneAllocated {
   // Returns true, if this computation can deoptimize.
   virtual bool CanDeoptimize() const  = 0;
 
-  // Optimize this computation. Returns a replacement for the instruction
-  // that wraps this computation or NULL if nothing to replace.
-  virtual Definition* TryReplace(BindInstr* instr) { return NULL; }
+  // Returns a replacement for the instruction that wraps this computation.
+  // Returns NULL if instr can be eliminated.
+  // By default returns instr (input parameter) which means no change.
+  virtual Definition* TryReplace(BindInstr* instr) const;
 
   // Compares two computations. Returns true, if:
   // 1. They are of the same kind.
@@ -772,7 +774,8 @@ class StrictCompareComp : public ComparisonComp {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual Definition* TryReplace(BindInstr* instr);
+  virtual Definition* TryReplace(BindInstr* instr) const;
+
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1675,7 +1678,8 @@ class BinarySmiOpComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(BinarySmiOp)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const;
+
   virtual intptr_t ResultCid() const;
 
  private:
@@ -1890,10 +1894,42 @@ class CheckClassComp : public TemplateComputation<1> {
   intptr_t deopt_id() const { return original_->deopt_id(); }
   intptr_t try_index() const { return original_->try_index(); }
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
  private:
   InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassComp);
+};
+
+
+class CheckSmiComp : public TemplateComputation<1> {
+ public:
+  CheckSmiComp(Value* value, InstanceCallComp* original)
+      : original_(original) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  DECLARE_COMPUTATION(CheckSmi)
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool AttributesEqual(Computation* other) const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual Definition* TryReplace(BindInstr* instr) const;
+
+  Value* value() const { return inputs_[0]; }
+
+  intptr_t deopt_id() const { return original_->deopt_id(); }
+  intptr_t try_index() const { return original_->try_index(); }
+
+ private:
+  InstanceCallComp* original_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckSmiComp);
 };
 
 
@@ -3063,9 +3099,16 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
+  Environment* Copy() const;
+
   void PrintTo(BufferFormatter* f) const;
 
  private:
+  Environment(intptr_t length, intptr_t fixed_parameter_count)
+      : values_(length),
+        locations_(NULL),
+        fixed_parameter_count_(fixed_parameter_count) { }
+
   GrowableArray<Value*> values_;
   Location* locations_;
   const intptr_t fixed_parameter_count_;

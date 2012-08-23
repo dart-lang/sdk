@@ -1000,6 +1000,18 @@ intptr_t BinarySmiOpComp::ResultCid() const {
 }
 
 
+bool BinarySmiOpComp::CanDeoptimize() const {
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      return false;
+    default:
+      return true;
+  }
+}
+
+
 RawAbstractType* BinaryMintOpComp::CompileType() const {
   ObjectStore* object_store = Isolate::Current()->object_store();
   return object_store->mint_type();
@@ -1047,32 +1059,51 @@ RawAbstractType* CheckClassComp::CompileType() const {
 }
 
 
+RawAbstractType* CheckSmiComp::CompileType() const {
+  return AbstractType::null();
+}
+
+
+// Optimizations that eliminate or simplify individual computations.
+Definition* Computation::TryReplace(BindInstr* instr) const {
+  return instr;
+}
+
+
+Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
+  UseVal* left_use = left()->AsUse();
+  UseVal* right_use = right()->AsUse();
+  if ((right_use == NULL) || (left_use == NULL)) return instr;
+  if (!right_use->BindsToConstant()) return instr;
+  const Object& right_constant = right_use->BoundConstant();
+  Definition* left = left_use->definition();
+  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
+  // Handles e === true.
+  if ((kind() == Token::kEQ_STRICT) &&
+      (right_constant.raw() == Bool::True()) &&
+      (left_use->ResultCid() == kBoolCid)) {
+    // Remove the constant from the graph.
+    BindInstr* right = right_use->definition()->AsBind();
+    if (right != NULL) {
+      right->set_use_list(NULL);
+      right->RemoveFromGraph();
+    }
+    // Return left subexpression as the replacement for this instruction.
+    return left;
+  }
+  return instr;
+}
+
+
+Definition* CheckSmiComp::TryReplace(BindInstr* instr) const {
+  return (value()->ResultCid() == kSmiCid) ?  NULL : instr;
+}
+
+
 // Shared code generation methods (EmitNativeCode, MakeLocationSummary, and
 // PrepareEntry). Only assembly code that can be shared across all architectures
 // can be used. Machine specific register allocation and code generation
 // is located in intermediate_language_<arch>.cc
-
-
-// True iff. the arguments to a call will be properly pushed and can
-// be popped after the call.
-template <typename T> static bool VerifyCallComputation(T* comp) {
-  // Argument values should be consecutive temps.
-  //
-  // TODO(kmillikin): implement stack height tracking so we can also assert
-  // they are on top of the stack.
-  intptr_t previous = -1;
-  for (int i = 0; i < comp->ArgumentCount(); ++i) {
-    Value* val = comp->ArgumentAt(i);
-    if (!val->IsUse()) return false;
-    intptr_t current = val->AsUse()->definition()->temp_index();
-    if (i != 0) {
-      if (current != (previous + 1)) return false;
-    }
-    previous = current;
-  }
-  return true;
-}
-
 
 #define __ compiler->assembler()->
 
@@ -1245,31 +1276,6 @@ LocationSummary* StoreContextComp::MakeLocationSummary() const {
 void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Nothing to do.  Context register were loaded by register allocator.
   ASSERT(locs()->in(0).reg() == CTX);
-}
-
-
-Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
-  UseVal* left_use = left()->AsUse();
-  UseVal* right_use = right()->AsUse();
-  if ((right_use == NULL) || (left_use == NULL)) return NULL;
-  if (!right_use->BindsToConstant()) return NULL;
-  const Object& right_constant = right_use->BoundConstant();
-  Definition* left = left_use->definition();
-  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
-  // Handles e === true.
-  if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant.raw() == Bool::True()) &&
-      (left_use->ResultCid() == kBoolCid)) {
-    // Remove the constant from the graph.
-    BindInstr* right = right_use->definition()->AsBind();
-    if (right != NULL) {
-      right->set_use_list(NULL);
-      right->RemoveFromGraph();
-    }
-    // Return left subexpression as the replacement for this instruction.
-    return left;
-  }
-  return NULL;
 }
 
 
@@ -1525,6 +1531,20 @@ Environment::Environment(const GrowableArray<Definition*>& definitions,
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     values_.Add(UseDefinition(definitions[i]));
   }
+}
+
+
+Environment* Environment::Copy() const {
+  Environment* copy = new Environment(values().length(),
+                                      fixed_parameter_count());
+  GrowableArray<Value*>* values_copy = copy->values_ptr();
+  for (intptr_t i = 0; i < values().length(); ++i) {
+    Value* val = values()[i];
+    values_copy->Add(val->IsUse()
+                     ? UseDefinition(values()[i]->AsUse()->definition())
+                     : val);
+  }
+  return copy;
 }
 
 

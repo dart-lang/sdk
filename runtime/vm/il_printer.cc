@@ -408,6 +408,16 @@ void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void CheckClassComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(", cid={");
+  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); i++) {
+    f->Print("%d ", ic_data()->GetReceiverClassIdAt(i));
+  }
+  f->Print("}");
+}
+
+
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
   if (start_env_ != NULL) {

@@ -34,15 +34,18 @@ void FlowGraphOptimizer::OptimizeComputations() {
       BindInstr* instr = it.Current()->AsBind();
       if (instr != NULL) {
         Definition* result = instr->computation()->TryReplace(instr);
-        if (result != NULL) {
-          // Replace uses and remove the current instructions via the iterator.
-          instr->ReplaceUsesWith(result);
-          it.RemoveCurrentFromGraph();
-          if (FLAG_trace_optimization) {
-            OS::Print("Replacing v%d with v%d\n",
-                      instr->ssa_temp_index(),
-                      result->ssa_temp_index());
+        if (result != instr) {
+          if (result != NULL) {
+            instr->ReplaceUsesWith(result);
+            if (FLAG_trace_optimization) {
+              OS::Print("Replacing v%d with v%d\n",
+                        instr->ssa_temp_index(),
+                        result->ssa_temp_index());
+            }
+          } else if (FLAG_trace_optimization) {
+              OS::Print("Removing v%d.\n", instr->ssa_temp_index());
           }
+          it.RemoveCurrentFromGraph();
         }
       }
     }
@@ -194,6 +197,19 @@ static intptr_t ReceiverClassId(Computation* comp) {
 }
 
 
+// Insert a check computation before an instruction and set the environment
+// of the check to the same as the instruction.
+static void InsertCheckBefore(BindInstr* instr,
+                              Computation* check,
+                              Environment* env) {
+  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
+  check_instr->InsertBefore(instr);
+  ASSERT(env != NULL);
+  // Attach an environment to the check instruction.
+  check_instr->set_env(env);
+}
+
+
 static void AddCheckClass(BindInstr* instr,
                           InstanceCallComp* comp,
                           Value* value) {
@@ -202,11 +218,10 @@ static void AddCheckClass(BindInstr* instr,
   const ICData& unary_checks =
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
   check->set_ic_data(&unary_checks);
-  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
-  ASSERT(instr->env() != NULL);  // Always the case with SSA.
-  // Attach the original environment to the check instruction.
-  check_instr->set_env(instr->env());
-  check_instr->InsertBefore(instr);
+  InsertCheckBefore(instr, check, instr->env());
+  // Detach environment from the original instruction because it can't
+  // deoptimize.
+  instr->set_env(NULL);
 }
 
 
@@ -317,6 +332,14 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     ASSERT(operands_type == kSmiCid);
     Value* left = comp->ArgumentAt(0)->value();
     Value* right = comp->ArgumentAt(1)->value();
+    // Insert two smi checks and attach a copy of the original
+    // environment because the smi operation can still deoptimize.
+    InsertCheckBefore(instr,
+                      new CheckSmiComp(left, comp),
+                      instr->env()->Copy());
+    InsertCheckBefore(instr,
+                      new CheckSmiComp(right, comp),
+                      instr->env()->Copy());
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
                                                   comp,
                                                   left,
@@ -391,8 +414,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         String::Handle(Field::NameFromGetter(comp->function_name()));
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
+
     AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
-    instr->set_env(NULL);
     LoadInstanceFieldComp* load =
         new LoadInstanceFieldComp(field,
                                   comp->ArgumentAt(0)->value(),
@@ -573,7 +596,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   ASSERT(!field.IsNull());
 
   AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
-  instr->set_env(NULL);
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),
