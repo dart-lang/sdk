@@ -186,8 +186,8 @@ class PlaceholderCollector extends AbstractVisitor {
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
-    if (element.isVariable()
-        || (element.isFunction() && !Elements.isStaticOrTopLevel(element))) {
+    if (!element.isMember() && !Elements.isStaticOrTopLevel(element)
+        && (element.isVariable() || element.isFunction())) {
       makeLocalPlaceholder(node);
     }
   }
@@ -240,6 +240,7 @@ class PlaceholderCollector extends AbstractVisitor {
                   () => new Set<LocalPlaceholder>()).add(localPlaceholder);
               return localPlaceholder;
             });
+    localPlaceholder.nodes.add(node);
   }
 
   void internalError(String reason, [Node node]) {

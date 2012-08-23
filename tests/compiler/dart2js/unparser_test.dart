@@ -6,6 +6,7 @@
 #import('parser_helper.dart');
 #import('mock_compiler.dart');
 #import("../../../lib/compiler/compiler.dart");
+#import("../../../lib/compiler/implementation/leg.dart", prefix:'leg');
 #import("../../../lib/compiler/implementation/dart_backend/dart_backend.dart");
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
@@ -457,6 +458,27 @@ testFieldTypeOutput() {
   testDart2Dart('main(){new A().field;}class B{}class A{B field;}');
 }
 
+testLocalFunctionPlaceholder() {
+  var src = '''
+main() {
+  function localfoo() {}
+  localfoo();
+}
+''';
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(src);
+  FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
+  compiler.processQueue(compiler.enqueuer.resolution, mainElement);
+  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  collector.collect(mainElement,
+      compiler.enqueuer.resolution.resolvedElements[mainElement]);
+  FunctionExpression mainNode = mainElement.parseNode(compiler);
+  FunctionExpression fooNode = mainNode.body.statements.nodes.head.function;
+  LocalPlaceholder fooPlaceholder =
+      collector.localPlaceholders[mainElement].iterator().next();
+  Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
+}
+
 testDefaultClassNamePlaceholder() {
   var src = '''
 interface I default C{
@@ -688,4 +710,5 @@ main() {
   testDoubleMains();
   testInterfaceDefaultAnotherLib();
   testStaticAccessIoLib();
+  testLocalFunctionPlaceholder();
 }
