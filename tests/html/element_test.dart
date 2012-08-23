@@ -103,7 +103,7 @@ main() {
     test('br', () => testConstructorHelper('br', '<br>', '',
         (element) => element is BRElement));
     test('base', () => testConstructorHelper('base', '<base>foo</base>', '',
-        (element) => element is BaseElement));
+        (element) => element is BaseElement));          
     test('blockquote', () => testConstructorHelper('blockquote',
         '<blockquote>foo</blockquote>', 'foo',
         (element) => element is QuoteElement));
@@ -416,7 +416,7 @@ main() {
         (listener) => Testing.addEventListener(element,
             'webkitfullscreenchange', listener, true));
   });
-
+ 
   group('attributes', () {
       test('manipulation', () {
         final element = new Element.html(
