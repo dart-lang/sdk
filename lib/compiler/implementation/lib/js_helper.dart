@@ -744,6 +744,8 @@ class MathNatives {
 captureStackTrace(ex) {
   if (ex === null) ex = const NullPointerException();
   var jsError = JS('Object', @'new Error()');
+  JS('void', @'#.name = #', jsError, ex);
+  JS('void', @'#.description = #', jsError, ex);
   JS('void', @'#.dartException = #', jsError, ex);
   JS('void', @'''#.toString = #''', jsError,
      DART_CLOSURE_TO_JS(toStringWrapper));
