@@ -11,7 +11,7 @@ interface B default A {
   const B(x);
 }
 
-final b1 = const B(499);
+const b1 = const B(499);
 
 main() {
   Expect.equals(499, b1.x);

@@ -13,6 +13,7 @@
 #import('dart:io');
 #import('dart:isolate');
 #import('dart:json');
+#import('dart:math');
 #import('dart:uri');
 
 #import('../../../pkg/unittest/unittest.dart');
@@ -316,7 +317,7 @@ void ensureGit() {
 }
 
 Future<Directory> _setUpSandbox() {
-  return createTempDir('pub-test-sandbox-');
+  return createTempDir();
 }
 
 Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
@@ -364,7 +365,7 @@ void _validateOutputString(String expectedText, List<String> actual) {
   // to expect zero lines of output, not a single empty line.
   expected.removeLast();
 
-  final length = Math.min(expected.length, actual.length);
+  final length = min(expected.length, actual.length);
   for (var i = 0; i < length; i++) {
     if (expected[i].trim() != actual[i].trim()) {
       Expect.fail(
@@ -790,7 +791,7 @@ class TarFileDescriptor extends Descriptor {
     var sinkStream = new ListInputStream();
     var tempDir;
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
-    createTempDir("pub-test-tmp-").chain((_tempDir) {
+    createTempDir().chain((_tempDir) {
       tempDir = _tempDir;
       return create(tempDir);
     }).then((tar) {

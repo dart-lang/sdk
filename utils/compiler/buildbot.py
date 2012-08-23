@@ -231,7 +231,7 @@ def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
     # TODO(kasperl): Consider running peg and css tests too.
-    extras = ['dart2js_extra', 'dart2js_native']
+    extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
     TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
   else:
     if bot_num == '1':
@@ -241,7 +241,7 @@ def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
           'samples', 'standalone', 'corelib', 'co19', 'language', 'isolate',
           'vm', 'json', 'benchmark_smoke', 'dartdoc', 'utils', 'pub', 'lib'],
           flags)
-      extras = ['dart2js_extra', 'dart2js_native']
+      extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
       TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
           flags)
 

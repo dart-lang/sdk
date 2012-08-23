@@ -12,7 +12,7 @@ main() {
   useHtmlConfiguration();
 
   test('XHR Cross-domain', () {
-    var xhr = new XMLHttpRequest();
+    var xhr = new HttpRequest();
     var url = "https://code.google.com/feeds/issues/p/dart/issues/full?alt=json";
     xhr.open('GET', url, true);
     var validate = expectAsync1((data) {
@@ -22,7 +22,7 @@ main() {
     });
     xhr.on.readyStateChange.add((e) {
       guardAsync(() {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
+        if (xhr.readyState == HttpRequest.DONE) {
           validate(JSON.parse(xhr.response));
         }
       });
@@ -32,7 +32,7 @@ main() {
 
   test('XHR.get Cross-domain', () {
     var url = "https://code.google.com/feeds/issues/p/dart/issues/full?alt=json";
-    new XMLHttpRequest.get(url, expectAsync1((xhr) {
+    new HttpRequest.get(url, expectAsync1((xhr) {
       var data = JSON.parse(xhr.response);
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));

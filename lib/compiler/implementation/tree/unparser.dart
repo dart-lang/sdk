@@ -60,6 +60,9 @@ class Unparser implements Visitor {
   visitClassNode(ClassNode node) {
     addToken(node.beginToken);
     visit(node.name);
+    if (node.typeParameters !== null) {
+      visit(node.typeParameters);
+    }
     sb.add(' ');
     if (node.extendsKeyword !== null) {
       addToken(node.extendsKeyword);
@@ -72,6 +75,15 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
     sb.add('{\n');
+    NodeList body = node.body;
+    if (body !== null) {
+      Link nodes = body.nodes;
+      if (!nodes.isEmpty()) {
+        sb.add('  ');
+        nodes.printOn(sb, '\n  ');
+        sb.add('\n');
+      }
+    }
     sb.add('}\n');
   }
 

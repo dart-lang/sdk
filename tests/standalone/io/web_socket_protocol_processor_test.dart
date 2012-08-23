@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import("dart:math");
+
 #source("../../../runtime/bin/websocket.dart");
 #source("../../../runtime/bin/websocket_impl.dart");
 
@@ -165,7 +167,7 @@ void testFragmentedMessages() {
     bool firstFrame = true;
     bool lastFrame = false;
     while (!lastFrame) {
-      int payloadSize = Math.min(fragmentSize, remaining);
+      int payloadSize = min(fragmentSize, remaining);
       lastFrame = payloadSize == remaining;
       List<int> frame = createFrame(lastFrame,
                                     firstFrame ? opcode : 0x00,

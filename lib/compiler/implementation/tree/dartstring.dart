@@ -51,10 +51,10 @@ class DartString implements Iterable<int> {
 class LiteralDartString extends DartString {
   final String string;
   const LiteralDartString(this.string);
-  int get length() => string.length;
+  int get length => string.length;
   Iterator<int> iterator() => new StringCodeIterator(string);
   String slowToString() => string;
-  SourceString get source() => new StringWrapper(string);
+  SourceString get source => new StringWrapper(string);
 }
 
 /**
@@ -124,7 +124,7 @@ class ConsDartString extends DartString {
     toStringCache = left.slowToString().concat(right.slowToString());
     return toStringCache;
   }
-  SourceString get source() => new StringWrapper(slowToString());
+  SourceString get source => new StringWrapper(slowToString());
 }
 
 class ConsDartStringIterator implements Iterator<int> {

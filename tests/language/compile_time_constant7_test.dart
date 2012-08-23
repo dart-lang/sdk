@@ -7,7 +7,7 @@ class A {
   toString() => "a";
 }
 
-final a = const A();
+const a = const A();
 
 main() {
   Expect.equals("a", a.toString());

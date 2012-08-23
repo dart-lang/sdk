@@ -4,6 +4,7 @@
 
 #library('uri_extras');
 
+#import('dart:math');
 #import('dart:uri');
 
 String relativize(Uri base, Uri uri) {
@@ -19,7 +20,7 @@ String relativize(Uri base, Uri uri) {
     List<String> uriParts = uri.path.split('/');
     List<String> baseParts = base.path.split('/');
     int common = 0;
-    int length = Math.min(uriParts.length, baseParts.length);
+    int length = min(uriParts.length, baseParts.length);
     while (common < length && uriParts[common] == baseParts[common]) {
       common++;
     }

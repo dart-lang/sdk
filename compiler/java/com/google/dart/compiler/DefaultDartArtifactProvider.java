@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -35,7 +35,7 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
   @Override
   public Reader getArtifactReader(Source source, String part, String extension)
       throws IOException {
-    if (SystemLibraryManager.isDartUri(source.getUri())) {
+    if (PackageLibraryManager.isDartUri(source.getUri())) {
       DartSource bundledSource = getBundledArtifact(source, source, part, extension);
       if (bundledSource != null) {
         Reader reader = null;
@@ -73,7 +73,7 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
 
   @Override
   public boolean isOutOfDate(Source source, Source base, String extension) {
-    if (SystemLibraryManager.isDartUri(base.getUri())) {
+    if (PackageLibraryManager.isDartUri(base.getUri())) {
       Source bundledSource = getBundledArtifact(source, base, "", extension);
       if (bundledSource != null && bundledSource.exists()) {
         // Note: Artifacts bundled with sources are always up to date

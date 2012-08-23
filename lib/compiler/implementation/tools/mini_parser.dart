@@ -14,6 +14,7 @@
 #import('../tree/tree.dart');
 #import('../util/characters.dart');
 #import('../source_file.dart');
+#import('../ssa/ssa.dart');
 
 #source('../diagnostic_listener.dart');
 #source('../scanner/byte_array_scanner.dart');
@@ -302,7 +303,7 @@ class MySourceFile extends SourceFile {
 
   MySourceFile(filename, this.rawText) : super(filename, null);
 
-  String get text() {
+  String get text {
     if (rawText is String) {
       return rawText;
     } else {
@@ -324,6 +325,6 @@ class MySourceFile extends SourceFile {
 
 class Mock {
   const Mock();
-  bool get useColors() => true;
+  bool get useColors => true;
   internalError(message) { throw message.toString(); }
 }

@@ -8,7 +8,8 @@ cc/RunLoop_ExceptionChild: Fail
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash
 cc/AllocGeneric_Overflow: Crash
-cc/SNPrint_BadArgs: Crash
+
+cc/SNPrint_BadArgs: Skip
 
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
@@ -23,7 +24,7 @@ cc/Dart2JSCompileAll: Skip
 dart/import_map_test: Skip
 dart/isolate_mirror_local_test: Skip
 
-[ $compiler == dart2js || $compiler == frog || $compiler == dartc ]
+[ $compiler == dart2js || $compiler == dartc ]
 dart/import_map_test: Skip # compilers not aware of import maps.
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays

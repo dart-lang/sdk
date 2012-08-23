@@ -195,6 +195,12 @@ class Listener {
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
   }
 
+  void beginMetadata(Token token) {
+  }
+
+  void endMetadata(Token beginToken, Token endToken) {
+  }
+
   void beginOptionalFormalParameters(Token token) {
   }
 
@@ -521,6 +527,8 @@ class ElementListener extends Listener {
 
   Link<Node> nodes = const EmptyLink<Node>();
 
+  Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
+
   ElementListener(DiagnosticListener listener,
                   CompilationUnitElement this.compilationUnitElement,
                   int idGenerator())
@@ -573,6 +581,11 @@ class ElementListener extends Listener {
     ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
                                         prefix, beginToken, endToken);
     addScriptTag(scriptTag);
+  }
+
+  void endMetadata(Token beginToken, Token endToken) {
+    popNode(); // Discard node (Send or Identifier).
+    pushMetadata(new PartialMetadataAnnotation(beginToken));
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -798,7 +811,15 @@ class ElementListener extends Listener {
   }
 
   void pushElement(Element element) {
+    for (Link link = metadata; !link.isEmpty(); link = link.tail) {
+      element.addMetadata(link.head);
+    }
+    metadata = const EmptyLink<MetadataAnnotation>();
     compilationUnitElement.addMember(element, listener);
+  }
+
+  void pushMetadata(MetadataAnnotation annotation) {
+    metadata = metadata.prepend(annotation);
   }
 
   void addScriptTag(ScriptTag tag) {
@@ -921,7 +942,7 @@ class NodeListener extends ElementListener {
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, supertype, interfaces, null,
-                           beginToken, extendsKeyword, endToken));
+                           beginToken, extendsKeyword, body, endToken));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -942,7 +963,8 @@ class NodeListener extends ElementListener {
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, null, supertypes,
-                           defaultClause, interfaceKeyword, null, endToken));
+                           defaultClause, interfaceKeyword, null, body,
+                           endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
@@ -1614,6 +1636,17 @@ class PartialTypedefElement extends TypedefElement {
         new PartialTypedefElement(name, enclosing, token);
     return result;
   }
+}
+
+/// A [MetadataAnnotation] which is constructed on demand.
+class PartialMetadataAnnotation extends MetadataAnnotation {
+  final Token beginToken;
+  Expression cachedNode;
+  Constant value;
+
+  PartialMetadataAnnotation(this.beginToken);
+
+  // TODO(ahe): Add more functionality as needed.
 }
 
 Node parse(DiagnosticListener diagnosticListener,

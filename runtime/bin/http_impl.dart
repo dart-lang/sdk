@@ -193,7 +193,7 @@ class _HttpHeaders implements HttpHeaders {
           _port = HttpClient.DEFAULT_HTTP_PORT;
         } else {
           try {
-            _port = Math.parseInt(value.substring(pos + 1));
+            _port = parseInt(value.substring(pos + 1));
           } catch (FormatException e) {
             _port = null;
           }
@@ -536,7 +536,7 @@ class _Cookie implements Cookie {
         if (name == "expires") {
           expires = _HttpUtils.parseDate(value, strict: false);
         } else if (name == "max-age") {
-          maxAge = Math.parseInt(value);
+          maxAge = parseInt(value);
         } else if (name == "domain") {
           domain = value;
         } else if (name == "path") {
@@ -1688,7 +1688,7 @@ class _HttpClientResponse
   void _onHeaderReceived(String name, String value) {
     _headers.add(name, value);
     if (name == "content-length") {
-      _contentLength = Math.parseInt(value);
+      _contentLength = parseInt(value);
     }
   }
 

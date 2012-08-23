@@ -15,7 +15,7 @@ class Helper {
 }
 
 class IndexTest {
-  static final ID_IDLE = 0;
+  static const ID_IDLE = 0;
 
   static testMain() {
     var a = new List(10);

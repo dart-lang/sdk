@@ -5,6 +5,7 @@
 #library("test_options_parser");
 
 #import("dart:io");
+#import("dart:math");
 #import("drt_updater.dart");
 #import("test_suite.dart");
 
@@ -71,17 +72,14 @@ is 'dart file.dart' and you specify special command
    dart2dart: Compile Dart code to Dart code
               (only valid with the following runtimes: vm, drt)
 
-   dart2js: Compile dart code to JavaScript by running dart2js (leg).
-            (only valid with the following runtimes: same as frog)
+   dart2js: Compile dart code to JavaScript by running dart2js.
+         (only valid with the following runtimes: d8, drt, chrome,
+         safari, ie, firefox, opera, none (compile only)),
 
    dartc: Perform static analysis on Dart code by running dartc.
-          (only valid with the following runtimes: none)
-
-   frog: (DEPRECATED) Compile dart code to JavaScript by running the
-         frog compiler. (only valid with the following runtimes: d8,
-         drt, chrome, safari, ie, firefox, opera, none (compile only))''',
+          (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2dart', 'frog', 'dart2js', 'dartc'],
+              ['none', 'dart2dart', 'dart2js', 'dartc'],
               'none'),
           new _TestOptionSpecification(
               'runtime',
@@ -214,12 +212,6 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
-              'frog',
-              'Path to frog script or executable',
-              ['--frog'],
-              [],
-              ''),
-          new _TestOptionSpecification(
               'dart',
               'Path to dart executable',
               ['--dart'],
@@ -235,12 +227,6 @@ is 'dart file.dart' and you specify special command
               'dartium',
               'Path to Dartium Chrome executable',
               ['--dartium'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'froglib',
-              'Path to frog library',
-              ['--froglib'],
               [],
               ''),
           new _TestOptionSpecification(
@@ -353,7 +339,7 @@ Note: currently only implemented for dart2js.''',
         configuration[spec.name] = true;
       } else if (spec.type == 'int') {
         try {
-          configuration[spec.name] = Math.parseInt(value);
+          configuration[spec.name] = parseInt(value);
         } catch (var e) {
           print('Integer value expected for int option $name');
           exit(1);
@@ -392,7 +378,6 @@ Note: currently only implemented for dart2js.''',
     bool isValid = true;
     List<String> validRuntimes;
     switch (config['compiler']) {
-      case 'frog':
       case 'dart2js':
         // Note: by adding 'none' as a configuration, if the user
         // runs test.py -c dart2js -r drt,none the dart2js_none and

@@ -41,7 +41,16 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     if (kind == Snapshot::kFull) {
       cls = reader->NewClass(class_id, is_signature_class);
     } else {
-      cls = Class::GetClass(class_id, is_signature_class);
+      if (class_id < kNumPredefinedCids) {
+        ASSERT((class_id >= kInstanceCid) && (class_id <= kWeakPropertyCid));
+        cls = reader->isolate()->class_table()->At(class_id);
+      } else {
+        if (is_signature_class) {
+          cls = New<Closure>(kIllegalCid);
+        } else {
+          cls = New<Instance>(kIllegalCid);
+        }
+      }
     }
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
@@ -1146,7 +1155,7 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return ApiError::null();
 }
 
@@ -1154,7 +1163,7 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
 void RawApiError::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
@@ -1162,7 +1171,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return LanguageError::null();
 }
 
@@ -1170,7 +1179,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
 void RawLanguageError::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
@@ -1178,7 +1187,7 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t object_id,
                                                     intptr_t tags,
                                                     Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return UnhandledException::null();
 }
 
@@ -1186,7 +1195,7 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
 void RawUnhandledException::WriteTo(SnapshotWriter* writer,
                                     intptr_t object_id,
                                     Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 
@@ -1194,7 +1203,7 @@ RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
                                       Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return UnwindError::null();
 }
 
@@ -1202,7 +1211,7 @@ RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
 void RawUnwindError::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 

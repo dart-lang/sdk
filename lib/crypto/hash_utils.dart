@@ -132,7 +132,7 @@ class _HashBase implements Hash {
       _pendingData.add(0);
     }
     var lengthInBits = _lengthInBytes * _BITS_PER_BYTE;
-    assert(lengthInBits < Math.pow(2, 32));
+    assert(lengthInBits < pow(2, 32));
     if (_bigEndianWords) {
       _pendingData.addAll(_wordToBytes(0));
       _pendingData.addAll(_wordToBytes(lengthInBits & _MASK_32));

@@ -221,6 +221,9 @@ class LibraryCompiler extends api.Compiler {
     for (var uri in uriList) {
       elementList.add(scanner.loadLibrary(uri, null, uri));
     }
+    libraries.forEach((_, library) {
+      maybeEnableJSHelper(library);
+    });
 
     world.populate(this);
 
@@ -594,7 +597,7 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
 
   TypeMirror get type() => _convertTypeToTypeMirror(system,
       _variableElement.computeType(system.compiler),
-      system.compiler.dynamicClass.computeType(system.compiler),
+      system.compiler.types.dynamicType,
       _variableElement.variables.functionSignature);
 
   String get defaultValue() {
@@ -630,7 +633,7 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
     }
     return _convertTypeToTypeMirror(system,
       _fieldParameterElement.fieldElement.computeType(system.compiler),
-      system.compiler.dynamicClass.computeType(system.compiler),
+      system.compiler.types.dynamicType,
       _variableElement.variables.functionSignature);
   }
 
@@ -719,7 +722,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
     Link<Type> link = _class.interfaces;
     while (!link.isEmpty()) {
       var type = _convertTypeToTypeMirror(system, link.head,
-          system.compiler.dynamicClass.computeType(system.compiler));
+                                          system.compiler.types.dynamicType);
       map[type.canonicalName] = type;
       link = link.tail;
     }
@@ -837,16 +840,23 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   List<TypeVariableMirror> get typeVariables() {
     if (_typeVariables == null) {
       _typeVariables = <TypeVariableMirror>[];
-      // TODO(johnniwinther): Equip [Typedef] with a [typeParameters] map, just
-      // like [ClassElement].
+      for (TypeVariableType typeVariable in _typedef.typeArguments) {
+        _typeVariables.add(
+            new Dart2JsTypeVariableMirror(system, typeVariable));
+      }
     }
     return _typeVariables;
   }
 
   TypeMirror get definition() {
     if (_definition === null) {
-      // TODO(johnniwinther): Provide access to the functionSignature of the
-      // aliased function definition.
+      // TODO(johnniwinther): Should be [ensureResolved].
+      system.compiler.resolveTypedef(_typedef.element);
+      _definition = _convertTypeToTypeMirror(
+          system,
+          _typedef.element.alias,
+          system.compiler.types.dynamicType,
+          _typedef.element.functionSignature);
     }
     return _definition;
   }
@@ -1017,7 +1027,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
       Link<Type> type = _interfaceType.arguments;
       while (type != null && type.head != null) {
         _typeArguments.add(_convertTypeToTypeMirror(system, type.head,
-            system.compiler.dynamicClass.computeType(system.compiler)));
+            system.compiler.types.dynamicType));
         type = type.tail;
       }
     }
@@ -1131,7 +1141,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
 
   TypeMirror get returnType() {
     return _convertTypeToTypeMirror(system, _functionType.returnType,
-        system.compiler.dynamicClass.computeType(system.compiler));
+                                    system.compiler.types.dynamicType);
   }
 
   List<ParameterMirror> get parameters() {
@@ -1286,7 +1296,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 
   TypeMirror get returnType() => _convertTypeToTypeMirror(
       system, _function.computeSignature(system.compiler).returnType,
-      system.compiler.dynamicClass.computeType(system.compiler));
+      system.compiler.types.dynamicType);
 
   bool get isConst() => _kind == Dart2JsMethodKind.CONST;
 
@@ -1349,11 +1359,12 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
 
   bool get isStatic() => _variable.modifiers.isStatic();
 
+  // TODO(johnniwinther): Should this return true on const as well?
   bool get isFinal() => _variable.modifiers.isFinal();
 
   TypeMirror get type() => _convertTypeToTypeMirror(system,
       _variable.computeType(system.compiler),
-      system.compiler.dynamicClass.computeType(system.compiler));
+      system.compiler.types.dynamicType);
 
   Location get location() {
     var script = _variable.getCompilationUnit().script;

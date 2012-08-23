@@ -4,6 +4,8 @@
 
 #library('dart:crypto');
 
+#import('dart:math');
+
 #source('crypto_utils.dart');
 #source('hash_utils.dart');
 #source('hmac.dart');

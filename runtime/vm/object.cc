@@ -396,6 +396,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(type_parameter, TypeParameter);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(instantiated_type_arguments, InstantiatedTypeArguments);
+  SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
@@ -636,7 +637,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Allocate and initialize the Object class and type.  The Object
   // class and ByteArray subclasses are the only pre-allocated,
   // non-interface classes in the core library.
-  cls = Class::New<Instance>();
+  cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
   name = Symbols::Object();
   cls.set_name(name);
@@ -858,7 +859,6 @@ RawError* Object::Init(Isolate* isolate) {
     return error.raw();
   }
   const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
-  Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
   error = Bootstrap::Compile(math_lib, math_script);
@@ -919,6 +919,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // Set up empty classes in the object store, these will get
   // initialized correctly when we read from the snapshot.
   // This is done to allow bootstrapping of reading classes from the snapshot.
+  cls = Class::New<Instance>(kInstanceCid);
+  object_store->set_object_class(cls);
+
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
@@ -1250,9 +1253,9 @@ RawClass* Class::New() {
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::InstanceSize());
-  result.set_id((FakeObject::kClassId != kInstanceCid &&
-                 FakeObject::kClassId != kClosureCid) ?
-                FakeObject::kClassId : kIllegalCid);
+  ASSERT((FakeObject::kClassId != kInstanceCid) &&
+         (FakeObject::kClassId != kClosureCid));
+  result.set_id(FakeObject::kClassId);
   result.raw_ptr()->state_bits_ = 0;
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
@@ -1674,10 +1677,15 @@ RawClass* Class::New(intptr_t index) {
   result.raw_ptr()->state_bits_ = 0;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
+  result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
   Isolate::Current()->class_table()->Register(result);
   return result.raw();
 }
+
+
+// Force instantiation of template version to work around ld problems.
+template RawClass* Class::New<Closure>(intptr_t index);
 
 
 template <class FakeInstance>
@@ -1766,26 +1774,10 @@ RawClass* Class::NewSignatureClass(const String& name,
 }
 
 
-RawClass* Class::GetClass(intptr_t class_id, bool is_signature_class) {
-  if (class_id >= kIntegerCid && class_id <= kWeakPropertyCid) {
-    return Isolate::Current()->class_table()->At(class_id);
-  }
-  if (class_id >= kNumPredefinedCids) {
-    if (is_signature_class) {
-      return Class::New<Closure>();
-    }
-    return Class::New<Instance>();
-  }
-  OS::Print("Class::GetClass id unknown: %d\n", class_id);
-  UNREACHABLE();
-  return Class::null();
-}
-
-
-RawClass* Class::NewNativeWrapper(Library* library,
+RawClass* Class::NewNativeWrapper(const Library& library,
                                   const String& name,
                                   int field_count) {
-  Class& cls = Class::Handle(library->LookupClass(name));
+  Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
     const Array& empty_array = Array::Handle(Object::empty_array());
     cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
@@ -1799,7 +1791,7 @@ RawClass* Class::NewNativeWrapper(Library* library,
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
-    library->AddClass(cls);
+    library.AddClass(cls);
     return cls.raw();
   } else {
     return Class::null();
@@ -1857,6 +1849,27 @@ void Class::set_interfaces(const Array& value) const {
 }
 
 
+void Class::AddDirectSubclass(const Class& subclass) const {
+  ASSERT(!subclass.IsNull());
+  ASSERT(subclass.SuperClass() == raw());
+  // Do not keep track of the direct subclasses of class Object.
+  ASSERT(!IsObjectClass());
+  GrowableObjectArray& direct_subclasses =
+      GrowableObjectArray::Handle(raw_ptr()->direct_subclasses_);
+  if (direct_subclasses.IsNull()) {
+    direct_subclasses = GrowableObjectArray::New(4, Heap::kOld);
+    StorePointer(&raw_ptr()->direct_subclasses_, direct_subclasses.raw());
+  }
+#if defined(DEBUG)
+  // Verify that the same class is not added twice.
+  for (intptr_t i = 0; i < direct_subclasses.Length(); i++) {
+    ASSERT(direct_subclasses.At(i) != subclass.raw());
+  }
+#endif
+  direct_subclasses.Add(subclass);
+}
+
+
 RawArray* Class::constants() const {
   return raw_ptr()->constants_;
 }
@@ -1885,7 +1898,7 @@ void Class::set_allocation_stub(const Code& value) const {
 
 
 bool Class::IsObjectClass() const {
-  return raw() == Type::Handle(Type::ObjectType()).type_class();
+  return id() == kInstanceCid;
 }
 
 
@@ -3870,6 +3883,12 @@ void Function::set_num_fixed_parameters(intptr_t n) const {
 void Function::set_num_optional_parameters(intptr_t n) const {
   ASSERT(n >= 0);
   raw_ptr()->num_optional_parameters_ = n;
+}
+
+
+bool Function::is_optimizable() const {
+  return OptimizableBit::decode(raw_ptr()->kind_tag_) &&
+         (script() != Script::null());
 }
 
 
@@ -6158,6 +6177,10 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   core_impl_lib.Register();
   core_lib.AddImport(core_impl_lib);
   core_impl_lib.AddImport(core_lib);
+  Library::InitMathLibrary(isolate);
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  core_lib.AddImport(math_lib);
+  core_impl_lib.AddImport(math_lib);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -6204,7 +6227,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
   const String& native_flds_lib_url = String::Handle(
       Symbols::New("dart:nativewrappers"));
-  Library& native_flds_lib = Library::Handle(
+  const Library& native_flds_lib = Library::Handle(
       Library::NewLibraryHelper(native_flds_lib_url, false));
   native_flds_lib.Register();
   isolate->object_store()->set_native_wrappers_library(native_flds_lib);
@@ -6220,7 +6243,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
                 kNativeWrappersClass,
                 fld_cnt);
     cls_name = Symbols::New(name_buffer);
-    Class::NewNativeWrapper(&native_flds_lib, cls_name, fld_cnt);
+    Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
 }
 
@@ -6716,7 +6739,7 @@ void PcDescriptors::Verify(bool check_ids) const {
 }
 
 
-void Stackmap::SetCode(const Code& code) const {
+void Stackmap::SetCode(const dart::Code& code) const {
   StorePointer(&raw_ptr()->code_, code.raw());
 }
 
@@ -6745,48 +6768,40 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(intptr_t pc_offset,
-                           intptr_t length_in_bits,
-                           BitmapBuilder* bmap) {
+RawStackmap* Stackmap::New(intptr_t pc_offset, BitmapBuilder* bmap) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
-  intptr_t length_in_bytes =
-      Utils::RoundUp(length_in_bits, kBitsPerByte) / kBitsPerByte;
-  if (length_in_bytes < 0 || length_in_bytes > kMaxLengthInBytes) {
+  // Guard against integer overflow of the instance size computation.
+  intptr_t length = bmap->Length();
+  intptr_t payload_size =
+      Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+  if ((payload_size < 0) ||
+      (payload_size >
+           (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap))))) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Stackmap::New: invalid length %" PRIdPTR "\n",
-           length_in_bytes);
+           length);
   }
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
     RawObject* raw = Object::Allocate(Stackmap::kClassId,
-                                      Stackmap::InstanceSize(length_in_bytes),
+                                      Stackmap::InstanceSize(length),
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.set_bitmap_size_in_bytes(length_in_bytes);
+    result.SetLength(length);
   }
   // When constructing a stackmap we store the pc offset in the stackmap's
   // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
   // address.
   ASSERT(pc_offset >= 0);
   result.SetPC(pc_offset);
-  for (intptr_t i = 0; i < length_in_bits; i++) {
+  for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
-  ASSERT(bmap->Maximum() < length_in_bits);
-  result.SetMinBitIndex(bmap->Minimum());
-  result.SetMaxBitIndex(bmap->Maximum());
   return result.raw();
-}
-
-
-void Stackmap::set_bitmap_size_in_bytes(intptr_t value) const {
-  // This is only safe because we create a new Smi, which does not cause
-  // heap allocation.
-  raw_ptr()->bitmap_size_in_bytes_ = Smi::New(value);
 }
 
 
@@ -6794,24 +6809,23 @@ const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
-    // Guard against integer overflow, though it is highly unlikely.
-    if (MaximumBitIndex() > kIntptrMax / 4) {
-      FATAL1("MaximumBitIndex() is unexpectedly large (%" PRIdPTR ")",
-             MaximumBitIndex());
-    }
-    intptr_t index = OS::SNPrint(NULL, 0, "0x%" PRIxPTR " { ", PC());
-    intptr_t alloc_size =
-        index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
+    const char* kFormat = "0x%" PRIxPTR ": ";
+    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PC()) + 1;
     Isolate* isolate = Isolate::Current();
-    char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
-    index = OS::SNPrint(chars, alloc_size, "0x%" PRIxPTR " { ", PC());
-    for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
-      index += OS::SNPrint((chars + index),
-                           (alloc_size - index),
-                           "%d ",
-                           IsObject(i) ? 1 : 0);
+    // Guard against integer overflow in the computation of alloc_size.
+    //
+    // TODO(kmillikin): We could just truncate the string if someone
+    // tries to print a 2 billion plus entry stackmap.
+    if (Length() > (kIntptrMax - fixed_length)) {
+      FATAL1("Length() is unexpectedly large (%" PRIdPTR ")", Length());
     }
-    OS::SNPrint((chars + index), (alloc_size - index), "}");
+    intptr_t alloc_size = fixed_length + Length();
+    char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
+    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PC());
+    for (intptr_t i = 0; i < Length(); i++) {
+      chars[index++] = IsObject(i) ? '1' : '0';
+    }
+    chars[index] = '\0';
     return chars;
   }
 }
@@ -7123,7 +7137,6 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
-    result.set_spill_slot_count(0);
     result.set_comments(Comments::New(0));
   }
   return result.raw();
@@ -7144,7 +7157,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   assembler->FinalizeInstructions(region);
   Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
   if (perf_events_writer != NULL) {
-    const char* format = "%x %x %s\n";
+    const char* format = "%" PRIxPTR " %" PRIxPTR " %s\n";
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
     intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
@@ -10081,10 +10094,9 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      const Class& cls = Class::Handle(isolate->object_store()->object_class());
       tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(cls.id(), tags);
+      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
       raw->ptr()->tags_ = tags;
     }
   }

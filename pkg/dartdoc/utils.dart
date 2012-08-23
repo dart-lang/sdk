@@ -38,7 +38,7 @@ String repeat(String text, int count, [String separator]) {
 /** Removes up to [indentation] leading whitespace characters from [text]. */
 String unindent(String text, int indentation) {
   var start;
-  for (start = 0; start < Math.min(indentation, text.length); start++) {
+  for (start = 0; start < min(indentation, text.length); start++) {
     // Stop if we hit a non-whitespace character.
     if (text[start] != ' ') break;
   }

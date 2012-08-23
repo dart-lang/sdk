@@ -19,85 +19,6 @@ class FlowGraphCompiler;
 class DeoptimizationStub;
 
 
-// FrameRegisterAllocator is a simple local register allocator that tries to
-// keep values in registers by delaying pushing them to the stack after they
-// were produced by Bind instruction.  FrameRegisterAllocator relies on the
-// fact that IR is stack based and a value produced by a bind instruction
-// will be used only once.  For the register allocator every Bind is a push and
-// every UseVal of a bind is a pop.
-// It can also operate in a non-optimizing mode when every value is pushed
-// to the stack immediately after it is produced.
-// TODO(vegorov): replace with a linear scan register allocator once SSA is
-// available.
-class FrameRegisterAllocator : public ValueObject {
- public:
-  FrameRegisterAllocator(FlowGraphCompiler* compiler,
-                         bool keep_values_in_registers,
-                         bool is_ssa)
-      : compiler_(compiler),
-        stack_(kNumberOfCpuRegisters),
-        registers_(),
-        keep_values_in_registers_(keep_values_in_registers && !is_ssa),
-        is_ssa_(is_ssa) {
-    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
-      registers_[i] = NULL;
-    }
-  }
-
-  // Notify register allocator that given instruction produced a value
-  // in the given register.
-  void Push(Register reg, BindInstr* val);
-
-  // Perform a greedy local register allocation.  Consider all register free.
-  void AllocateRegisters(Instruction* instr);
-
-  // Spill all live registers to the stack in order from oldest to newest.
-  void Spill();
-
-  // Returns true if all live values are stored on the stack.
-  // Code generator expects no live values in registers at call sites and
-  // branches.
-  bool IsSpilled() const { return stack_.is_empty(); }
-
-  // Popuplate deoptimization stub with live registers to ensure
-  // that they will be pushed to the stack when deoptimization happens.
-  void SpillInDeoptStub(DeoptimizationStub* stub);
-
- private:
-  // Pop a value from the place where it is currently stored (either register
-  // or top of the stack) into a given register.  If value is in the register
-  // verify that passed use corresponds to the instruction that produced the
-  // value.
-  void Pop(Register reg, Value* use);
-
-  // Allocate a register that is not explicitly blocked.
-  // Spills a value if all non-blocked registers contain values.
-  Register AllocateFreeRegister(bool* blocked_registers);
-
-  // Ensure that given register is free for allocation.
-  void SpillRegister(Register reg);
-
-  // Spill the oldest live value from register to the stack.
-  Register SpillFirst();
-
-  FlowGraphCompiler* compiler() { return compiler_; }
-
-  FlowGraphCompiler* compiler_;
-
-  // List of registers with live values in order from oldest to newest.
-  GrowableArray<Register> stack_;
-
-  // Mapping between live registers and instructions that produced values
-  // in them.  Contains NULL for registers do not have corresponding live value.
-  BindInstr* registers_[kNumberOfCpuRegisters];
-
-  const bool keep_values_in_registers_;
-  const bool is_ssa_;
-
-  DISALLOW_COPY_AND_ASSIGN(FrameRegisterAllocator);
-};
-
-
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -145,11 +66,9 @@ class DeoptimizationStub : public ZoneAllocated {
       : deopt_id_(deopt_id),
         try_index_(try_index),
         reason_(reason),
-        registers_(2),
         deoptimization_env_(NULL),
         entry_label_() {}
 
-  void Push(Register reg) { registers_.Add(reg); }
   Label* entry_label() { return &entry_label_; }
 
   // Implementation is in architecture specific file.
@@ -165,7 +84,6 @@ class DeoptimizationStub : public ZoneAllocated {
   const intptr_t deopt_id_;
   const intptr_t try_index_;
   const DeoptReasonId reason_;
-  GrowableArray<Register> registers_;
   const Environment* deoptimization_env_;
   Label entry_label_;
 

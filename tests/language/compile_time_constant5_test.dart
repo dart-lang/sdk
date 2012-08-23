@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final x = true;
-final g1 = !true;
-final g2 = !g1;
+const x = true;
+const g1 = !true;
+const g2 = !g1;
 
 main() {
   Expect.equals(false, g1);

@@ -16,7 +16,7 @@ class TestClass {
 
 globalMethod([value = 300]) => value;
 
-final testValues = const [0, 0.0, '', false, null];
+const testValues = const [0, 0.0, '', false, null];
 
 testFunction(f) {
   Expect.isTrue(f() >= 100);

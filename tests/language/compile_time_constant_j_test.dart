@@ -7,9 +7,9 @@ class A {
   const A() : field = 499;
 }
 
-final x = (((1 + 2)));
-final y = (((((x)))));
-final z = (((const A())));
+const x = (((1 + 2)));
+const y = (((((x)))));
+const z = (((const A())));
 
 main() {
   Expect.equals(3, x);

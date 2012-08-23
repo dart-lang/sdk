@@ -1458,16 +1458,23 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testUndercoreInNamedParameterMethodDefinition() {
+    // TODO(scheglov)
+    // Language change 4288 adds new syntax for optional named parameters.
+    // However before "remove old optional parameter syntax" we have to support old syntax too.
+    // And this conflicts with "_" handling in optional named parameters.
+    // 
+    // http://code.google.com/p/dart/issues/detail?id=4539
+    // requested to disable this
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "method([_foo]) {}",
         "class Foo {",
         "  var _bar;",
-        "  Foo([this._bar]){}",
+        "  //Foo([this._bar]){}",
         "  method([_foo]){}",
         "}"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 9, 4),
-        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 5, 8, 9),
+//        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 5, 8, 9),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 6, 11, 4));
   }
 

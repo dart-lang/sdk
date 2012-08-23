@@ -14,14 +14,9 @@ void renamePlaceholders(
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
   final Set<String> usedTopLevelIdentifiers = new Set<String>();
-  int privateNameCounter = 0;
-
-  String getName(LibraryElement library, String originalName, renamer) =>
-      renamed.putIfAbsent(library, () => <String>{})
-          .putIfAbsent(originalName, renamer);
-
-  String renamePrivateIdentifier(LibraryElement library, String id) =>
-      getName(library, id, () => '_${privateNameCounter++}${id}');
+  // TODO(antonm): we should also populate this set with top-level
+  // names from core library.
+  usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
 
   Generator topLevelGenerator =
       true ? conservativeGenerator : new MinifyingGenerator('ABCD').generate;
@@ -32,53 +27,58 @@ void renamePlaceholders(
     return newName;
   }
 
+  rename(library, originalName) =>
+      renamed.putIfAbsent(library, () => <String>{})
+          .putIfAbsent(originalName, () => generateUniqueName(originalName));
+
   String renameElement(Element element) {
-    assert(element.isTopLevel());
+    assert(Elements.isStaticOrTopLevel(element)
+           || element is TypeVariableElement);
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
+    // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
-    if (library === compiler.coreLibrary
-        || element == compiler.mainApp.find(Compiler.MAIN)) return originalName;
     if (isDartCoreLib(compiler, library)) {
+      assert(element.isTopLevel());
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
       return '$prefix.$originalName';
     }
 
-    return getName(library, originalName,
-                   () => generateUniqueName(originalName));
+    return rename(library, originalName);
   }
 
-  placeholderCollector.nullNodes.forEach((Node node) {
-    renames[node] = '';
+  renameNodes(Collection<Node> nodes, renamer) {
+    final comparison = compareBy((node) => node.getBeginToken().charOffset);
+    for (Node node in sorted(nodes, comparison)) {
+      renames[node] = renamer(node);
+    }
+  }
+
+  sortedForEach(Map<Element, Dynamic> map, f) {
+    for (Element element in sortElements(map.getKeys())) {
+      f(element, map[element]);
+    }
+  }
+
+  renameNodes(placeholderCollector.nullNodes, (_) => '');
+  renameNodes(placeholderCollector.unresolvedNodes,
+      (_) => generateUniqueName('Unresolved'));
+  sortedForEach(placeholderCollector.elementNodes, (element, nodes) {
+    String renamedElement = renameElement(element);
+    renameNodes(nodes, (_) => renamedElement);
   });
-  placeholderCollector.unresolvedNodes.forEach((Node node) {
-    renames[node] = generateUniqueName('Unresolved');
+  sortedForEach(placeholderCollector.localPlaceholders,
+      (element, placeholders) {
+    // TODO(smok): Check for conflicts with class fields and take usages
+    // into account.
+    for (LocalPlaceholder placeholder in placeholders) {
+      renameNodes(placeholder.nodes, (_) => placeholder.identifier);
+    }
   });
-  placeholderCollector.elementNodes.forEach(
-      (Element element, Set<Node> nodes) {
-        String renamedElement = renameElement(element);
-        nodes.forEach((Node node) {
-          renames[node] = renamedElement;
-        });
-  });
-  placeholderCollector.localPlaceholders.forEach(
-      (FunctionElement element, Set<LocalPlaceholder> localPlaceholders) {
-        // TODO(smok): Check for conflicts with class fields and take usages
-        // into account.
-        localPlaceholders.forEach((LocalPlaceholder placeholder) {
-          placeholder.nodes.forEach((Node node) {
-            renames[node] = placeholder.identifier;
-          });
-        });
-      });
-  placeholderCollector.privateNodes.forEach(
-      (LibraryElement library, Set<Identifier> nodes) {
-        nodes.forEach((Identifier node) {
-          renames[node] =
-              renamePrivateIdentifier(library, node.source.slowToString());
-        });
+  sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
+    renameNodes(nodes, (node) => rename(library, node.source.slowToString()));
   });
 }
 

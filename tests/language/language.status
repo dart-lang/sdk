@@ -80,6 +80,8 @@ final_syntax_test/*: Skip  # can't handle base case
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
+interface_constants_test: Fail # Issue 3549
+ct_const_test: Fail # Issue 3549
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
@@ -93,6 +95,7 @@ new_expression_type_args_frog_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
+parameter_initializer6_negative_test: Fail # language change 4288
 prefix1_negative_test : Fail # language change 1031
 prefix4_negative_test : Fail # language change 1031
 prefix5_negative_test : Fail # language change 1031
@@ -185,9 +188,6 @@ pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
-# Final top-level field declarations without initializer do not lead to errors in dart2js frontend.
-final_syntax_test/03: Fail
-final_syntax_test/04: Fail
 # Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
@@ -218,6 +218,8 @@ static_top_level_test/02: Fail
 static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
+static_top_level_test/06: Fail
+static_top_level_test/07: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.
@@ -225,7 +227,6 @@ number_identifier_negative_test: Fail
 # Bug in dart2js frontent: does not support this feature.
 switch_label_test: Fail
 # Common with language_dart2js.
-function_type_alias3_test: Fail
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
@@ -238,6 +239,7 @@ instanceof3_test: Fail
 library_prefixes_test: Fail
 method_name_test: Fail
 numbers_test: Fail
+parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail

@@ -186,6 +186,7 @@ class ClassNode extends Node {
   final TypeAnnotation superclass;
   final NodeList interfaces;
   final NodeList typeParameters;
+  final NodeList body;
 
   // TODO(ahe, karlklose): the default keyword is not recorded.
   final TypeAnnotation defaultClause;
@@ -196,7 +197,7 @@ class ClassNode extends Node {
 
   ClassNode(this.name, this.typeParameters, this.superclass, this.interfaces,
             this.defaultClause, this.beginToken, this.extendsKeyword,
-            this.endToken);
+            this.body, this.endToken);
 
   ClassNode asClassNode() => this;
 
@@ -204,13 +205,15 @@ class ClassNode extends Node {
 
   visitChildren(Visitor visitor) {
     if (name !== null) name.accept(visitor);
+    if (typeParameters !== null) typeParameters.accept(visitor);
     if (superclass !== null) superclass.accept(visitor);
     if (interfaces !== null) interfaces.accept(visitor);
+    if (body !== null) body.accept(visitor);
   }
 
-  bool get isInterface() => beginToken.stringValue === 'interface';
+  bool get isInterface => beginToken.stringValue === 'interface';
 
-  bool get isClass() => !isInterface;
+  bool get isClass => !isInterface;
 
   Token getBeginToken() => beginToken;
 
@@ -248,7 +251,7 @@ class Send extends Expression {
   final Node receiver;
   final Node selector;
   final NodeList argumentsNode;
-  Link<Node> get arguments() => argumentsNode.nodes;
+  Link<Node> get arguments => argumentsNode.nodes;
 
   Send([this.receiver, this.selector, this.argumentsNode]);
   Send.postfix(this.receiver, this.selector, [Node argument = null])
@@ -272,22 +275,22 @@ class Send extends Expression {
 
   int argumentCount() => (argumentsNode === null) ? -1 : argumentsNode.length();
 
-  bool get isSuperCall() {
+  bool get isSuperCall {
     return receiver !== null &&
            receiver.asIdentifier() !== null &&
            receiver.asIdentifier().isSuper();
   }
-  bool get isOperator() => selector is Operator;
-  bool get isPropertyAccess() => argumentsNode === null;
-  bool get isFunctionObjectInvocation() => selector === null;
-  bool get isPrefix() => argumentsNode is Prefix;
-  bool get isPostfix() => argumentsNode is Postfix;
-  bool get isCall() => !isOperator && !isPropertyAccess;
-  bool get isIndex() =>
+  bool get isOperator => selector is Operator;
+  bool get isPropertyAccess => argumentsNode === null;
+  bool get isFunctionObjectInvocation => selector === null;
+  bool get isPrefix => argumentsNode is Prefix;
+  bool get isPostfix => argumentsNode is Postfix;
+  bool get isCall => !isOperator && !isPropertyAccess;
+  bool get isIndex =>
       isOperator && selector.asOperator().source.stringValue === '[]';
-  bool get isLogicalAnd() =>
+  bool get isLogicalAnd =>
       isOperator && selector.asOperator().source.stringValue === '&&';
-  bool get isLogicalOr() =>
+  bool get isLogicalOr =>
       isOperator && selector.asOperator().source.stringValue === '||';
 
   Token getBeginToken() {
@@ -479,7 +482,7 @@ class If extends Statement {
 
   If asIf() => this;
 
-  bool get hasElsePart() => elsePart !== null;
+  bool get hasElsePart => elsePart !== null;
 
   void validate() {
     // TODO(ahe): Check that condition has size one.
@@ -541,7 +544,7 @@ class For extends Loop {
 
   For asFor() => this;
 
-  Expression get condition() {
+  Expression get condition {
     if (conditionStatement is ExpressionStatement) {
       return conditionStatement.asExpressionStatement().expression;
     } else {
@@ -657,11 +660,11 @@ class LiteralInt extends Literal<int> {
 
   LiteralInt asLiteralInt() => this;
 
-  int get value() {
+  int get value {
     try {
       Token valueToken = token;
       if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
-      return Math.parseInt(valueToken.value.slowToString());
+      return parseInt(valueToken.value.slowToString());
     } catch (FormatException ex) {
       (this.handler)(token, ex);
     }
@@ -676,11 +679,11 @@ class LiteralDouble extends Literal<double> {
 
   LiteralDouble asLiteralDouble() => this;
 
-  double get value() {
+  double get value {
     try {
       Token valueToken = token;
       if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
-      return Math.parseDouble(valueToken.value.slowToString());
+      return parseDouble(valueToken.value.slowToString());
     } catch (FormatException ex) {
       (this.handler)(token, ex);
     }
@@ -694,7 +697,7 @@ class LiteralBool extends Literal<bool> {
 
   LiteralBool asLiteralBool() => this;
 
-  bool get value() {
+  bool get value {
     if (token.value == Keyword.TRUE) return true;
     if (token.value == Keyword.FALSE) return false;
     (this.handler)(token, "not a bool ${token.value}");
@@ -762,10 +765,10 @@ class StringQuoting {
   final int quote;
   const StringQuoting(this.quote, [bool raw, int leftQuoteLength])
       : this.raw = raw, this.leftQuoteCharCount = leftQuoteLength;
-  String get quoteChar() => quote === $DQ ? '"' : "'";
+  String get quoteChar => quote === $DQ ? '"' : "'";
 
-  int get leftQuoteLength() => (raw ? 1 : 0) + leftQuoteCharCount;
-  int get rightQuoteLength() => (leftQuoteCharCount > 2) ? 3 : 1;
+  int get leftQuoteLength => (raw ? 1 : 0) + leftQuoteCharCount;
+  int get rightQuoteLength => (leftQuoteCharCount > 2) ? 3 : 1;
   static StringQuoting getQuoting(int quote, bool raw, int quoteLength) {
     int index = quoteLength - 1;
     if (quoteLength > 2) index -= 1;
@@ -794,7 +797,7 @@ class LiteralString extends StringNode {
 
   void visitChildren(Visitor visitor) {}
 
-  bool get isInterpolation() => false;
+  bool get isInterpolation => false;
   bool isValidated() => dartString !== null;
 
   Token getBeginToken() => token;
@@ -808,7 +811,7 @@ class LiteralNull extends Literal<SourceString> {
 
   LiteralNull asLiteralNull() => this;
 
-  SourceString get value() => null;
+  SourceString get value => null;
 
   accept(Visitor visitor) => visitor.visitLiteralNull(this);
 }
@@ -842,7 +845,7 @@ class LiteralList extends Expression {
 class Identifier extends Expression {
   final Token token;
 
-  SourceString get source() => token.value;
+  SourceString get source => token.value;
 
   Identifier(Token this.token);
 
@@ -878,7 +881,7 @@ class Return extends Statement {
 
   Return asReturn() => this;
 
-  bool get hasExpression() => expression !== null;
+  bool get hasExpression => expression !== null;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
@@ -1137,6 +1140,12 @@ class Modifiers extends Node {
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
   bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
 
+  /**
+   * Use this to check if the declaration is either explicitly or implicitly 
+   * final.
+   */
+  bool isFinalOrConst() => isFinal() || isConst();
+
   String toString() {
     LinkBuilder<String> builder = new LinkBuilder<String>();
     if (isStatic()) builder.addLast('static');
@@ -1160,8 +1169,8 @@ class StringInterpolation extends StringNode {
 
   StringInterpolation asStringInterpolation() => this;
 
-  DartString get dartString() => null;
-  bool get isInterpolation() => true;
+  DartString get dartString => null;
+  bool get isInterpolation => true;
 
   accept(Visitor visitor) => visitor.visitStringInterpolation(this);
 
@@ -1219,7 +1228,7 @@ class StringJuxtaposition extends StringNode {
 
   StringJuxtaposition asStringJuxtaposition() => this;
 
-  bool get isInterpolation() {
+  bool get isInterpolation {
     if (isInterpolationCache === null) {
       isInterpolationCache = (first.accept(const IsInterpolationVisitor()) ||
                           second.accept(const IsInterpolationVisitor()));
@@ -1232,7 +1241,7 @@ class StringJuxtaposition extends StringNode {
    * of string literals.
    * Should only be called if [isInterpolation] returns false.
    */
-  DartString get dartString() {
+  DartString get dartString {
     if (isInterpolation) {
       throw new NodeAssertionFailure(this,
                                      "Getting dartString on interpolation;");
@@ -1358,7 +1367,7 @@ class SwitchStatement extends Statement {
 
   SwitchStatement asSwitchStatement() => this;
 
-  Expression get expression() => parenthesizedExpression.expression;
+  Expression get expression => parenthesizedExpression.expression;
 
   accept(Visitor visitor) => visitor.visitSwitchStatement(this);
 
@@ -1408,7 +1417,7 @@ class SwitchCase extends Node {
 
   SwitchCase asSwitchCase() => this;
 
-  bool get isDefaultCase() => defaultKeyword !== null;
+  bool get isDefaultCase => defaultKeyword !== null;
 
   bool isValidContinueTarget() => true;
 
@@ -1485,7 +1494,7 @@ class ForIn extends Loop {
   ForIn(this.declaredIdentifier, this.expression,
         Statement body, this.forToken, this.inToken) : super(body);
 
-  Expression get condition() => null;
+  Expression get condition => null;
 
   ForIn asForIn() => this;
 
@@ -1678,20 +1687,20 @@ class CatchBlock extends Node {
   final Token onKeyword;
   final Token catchKeyword;
 
-  CatchBlock(this.type, this.formals, this.block, 
+  CatchBlock(this.type, this.formals, this.block,
              this.onKeyword, this.catchKeyword);
 
   CatchBlock asCatchBlock() => this;
 
   accept(Visitor visitor) => visitor.visitCatchBlock(this);
 
-  Node get exception() {
+  Node get exception {
     if (formals.nodes.isEmpty()) return null;
     VariableDefinitions declarations = formals.nodes.head;
     return declarations.definitions.nodes.head;
   }
 
-  Node get trace() {
+  Node get trace {
     if (formals.nodes.isEmpty()) return null;
     Link<Node> declarations = formals.nodes.tail;
     if (declarations.isEmpty()) return null;

@@ -30,7 +30,7 @@ class Library10 {
   static var static_fld = 4;
 }
 
-final int top_level10 = 10;
+const int top_level10 = 10;
 top_level_func10() {
   return 20;
 }

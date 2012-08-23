@@ -65,8 +65,8 @@ class DescriptorList : public ZoneAllocated {
 
 class StackmapTableBuilder : public ZoneAllocated {
  public:
-  explicit StackmapTableBuilder(intptr_t entry_length_in_bits)
-      : entry_length_in_bits_(entry_length_in_bits),
+  explicit StackmapTableBuilder(intptr_t entry_length)
+      : entry_length_(entry_length),
         stack_map_(Stackmap::ZoneHandle()),
         list_(GrowableObjectArray::ZoneHandle(
             GrowableObjectArray::New(Heap::kOld))) { }
@@ -83,7 +83,7 @@ class StackmapTableBuilder : public ZoneAllocated {
   RawStackmap* MapAt(int index) const;
 
   // All the stackmaps in a function have the same length.
-  intptr_t entry_length_in_bits_;
+  const intptr_t entry_length_;
   Stackmap& stack_map_;
   GrowableObjectArray& list_;
   DISALLOW_COPY_AND_ASSIGN(StackmapTableBuilder);

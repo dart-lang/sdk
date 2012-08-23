@@ -214,10 +214,10 @@ main() {
     Expect.isTrue(ev.metaKey);
   }, type: 'mousewheel');
 
-  // XMLHttpRequestProgressEvent has no properties to itself, so just test that
+  // HttpRequestProgressEvent has no properties to itself, so just test that
   // it doesn't error out on creation and can be dispatched.
   // Issue 1005.
-  // eventTest('XMLHttpRequestProgressEvent',
-  //     () => new XMLHttpRequestProgressEvent('foo', 5),
+  // eventTest('HttpRequestProgressEvent',
+  //     () => new HttpRequestProgressEvent('foo', 5),
   //     (ev) {});
 }

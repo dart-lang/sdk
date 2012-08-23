@@ -16,8 +16,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
       "Entry point \"%s\" may not be a getter"),
   ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER(ErrorSeverity.WARNING,
       "Entry point \"%s\" may not be a setter"),
-  ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("This source was included by %s via a "
-      + "#source directive, so cannot itself contain directives"),
+  ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("This part was included by %s via a "
+      + "part directive, so cannot itself contain directives other than a part of directive"),
   IO("Input/Output error: %s"),
   MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a library directive: %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),

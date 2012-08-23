@@ -9,9 +9,9 @@ final z = const { '__proto__': 496,
                   '__proto__': 498,
                   '__proto__': 499 };
 
-final x2 = const { 'a': 4 };
-final y2 = const { 'a': 14, 'b': 13 };
-final z2 = const { '__proto__': 499 };
+const x2 = const { 'a': 4 };
+const y2 = const { 'a': 14, 'b': 13 };
+const z2 = const { '__proto__': 499 };
 
 main() {
   Expect.identical(x2, x);

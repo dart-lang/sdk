@@ -9,6 +9,7 @@
 
 #import('../../pkg/args/args.dart');
 #import('dart:io');
+#import('dart:math');
 #import('io.dart');
 #import('command_help.dart');
 #import('command_install.dart');
@@ -121,7 +122,7 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   int length = 0;
   var names = <String>[];
   for (var command in pubCommands.getKeys()) {
-    length = Math.max(length, command.length);
+    length = max(length, command.length);
     names.add(command);
   }
 

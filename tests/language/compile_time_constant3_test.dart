@@ -2,25 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final x = 19.5;
-final y = 3.3;
-final g1 = x + y;
-final g2 = x * y;
-final g3 = x / y;
-final g4 = x ~/ y;
-final g5 = -x;
-final g6 = x < y;
-final g7 = x <= y;
-final g8 = x <= x;
-final g9 = x > y;
-final g10 = x >= y;
-final g11 = x >= x;
-final g12 = x == y;
-final g13 = x == x;
-final g14 = x != y;
-final g15 = x != x;
-final g16 = g1 + g2 + g3 + g4 + g5;
-final g17 = x % y;
+const x = 19.5;
+const y = 3.3;
+const g1 = x + y;
+const g2 = x * y;
+const g3 = x / y;
+const g4 = x ~/ y;
+const g5 = -x;
+const g6 = x < y;
+const g7 = x <= y;
+const g8 = x <= x;
+const g9 = x > y;
+const g10 = x >= y;
+const g11 = x >= x;
+const g12 = x == y;
+const g13 = x == x;
+const g14 = x != y;
+const g15 = x != x;
+const g16 = g1 + g2 + g3 + g4 + g5;
+const g17 = x % y;
 
 main() {
   Expect.equals(22.8, g1);

@@ -5,6 +5,7 @@
 // A test to compare the results of the fixnum library with the Dart VM
 
 #library('int64vmtest');
+#import('dart:math', prefix: 'Math');
 #source('../intx.dart');
 #source('../int32.dart');
 #source('../int64.dart');

@@ -96,16 +96,16 @@ public class CommandLineOptions {
     private boolean warningsAreFatal = false;
 
     @Option(name = "--platform",
-        usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, frog, any)")
-    private String platformName = SystemLibraryManager.DEFAULT_PLATFORM;
+        usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, any)")
+    private String platformName = PackageLibraryManager.DEFAULT_PLATFORM;
 
     @Option(name = "--dart-sdk",
         usage = "Path to dart sdk.  (system property com.google.dart.sdk)")
-    private File dartSdkPath = SystemLibraryManager.DEFAULT_SDK_PATH;
+    private File dartSdkPath = PackageLibraryManager.DEFAULT_SDK_PATH;
     
     @Option(name = "--package-root",
         usage = "Root directory used for the package: scheme")
-    private File packageRoot = SystemLibraryManager.DEFAULT_PACKAGE_ROOT;
+    private File packageRoot = PackageLibraryManager.DEFAULT_PACKAGE_ROOT;
     
     @Option(name = "--show-sdk-warnings", usage = "show warnings from SDK source")
     private boolean showSdkWarnings = false;

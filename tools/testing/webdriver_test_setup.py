@@ -38,17 +38,18 @@ def run_cmd(cmd, stdin=None):
 
 def parse_args():
   parser = optparse.OptionParser()
-  parser.add_option('--firefox', '-f', dest='firefox', help="Don't install "
-      "Firefox", action='store_true', default=False)
-  parser.add_option('--chromedriver', '-c', dest='chromedriver', help="Don't "
-      "install chromedriver.", action='store_true', default=False)
-  parser.add_option('--seleniumrc', '-s', dest='seleniumrc', help="Don't "
-      "install the Selenium RC server (used for Safari and Opera tests).",
-      action='store_true', default=False)
-  parser.add_option('--python', '-p', dest='python', help="Don't "
-      "install Selenium python bindings.", action='store_true', default=False)
+  parser.add_option('--firefox', '-f', dest='firefox',
+      help="Don't install Firefox", action='store_true', default=False)
+  parser.add_option('--chromedriver', '-c', dest='chromedriver',
+      help="Don't install chromedriver.", action='store_true', default=False)
+  parser.add_option('--seleniumrc', '-s', dest='seleniumrc', 
+      help="Don't install the Selenium RC server (used for Safari and Opera "
+           "tests).", action='store_true', default=False)
+  parser.add_option('--python', '-p', dest='python',
+      help="Don't install Selenium python bindings.", action='store_true',
+      default=False)
   parser.add_option('--buildbot', '-b', dest='buildbot', action='store_true',
-      help='Perform a buildbot selenium setup (buildbots have a different' + \
+      help='Perform a buildbot selenium setup (buildbots have a different' +
       'location for their python executable).', default=False)
   args, ignored = parser.parse_args()
   return args

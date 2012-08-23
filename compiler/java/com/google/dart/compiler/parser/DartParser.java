@@ -14,7 +14,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -224,7 +224,7 @@ public class DartParser extends CompletionHooksParserBase {
     this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
+    this.corelibParse = source != null && PackageLibraryManager.isDartUri(source.getUri());
   }
 
   public static String read(Source source) throws IOException {
@@ -887,10 +887,6 @@ public class DartParser extends CompletionHooksParserBase {
     // Deal with native clause for classes.
     DartStringLiteral nativeName = null;
     if (optionalPseudoKeyword(NATIVE_KEYWORD)) {
-      if (superType != null) {
-        // dom_frog.dart has this situation
-        //reportError(position(), ParserErrorCode.NATIVE_MUST_NOT_EXTEND);
-      }
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.NATIVE_ONLY_CLASS);
       }
@@ -1663,10 +1659,6 @@ public class DartParser extends CompletionHooksParserBase {
       parseStringWithPasting();
     }
     if (match(Token.LBRACE) || match(Token.ARROW)) {
-      // dom_frog.dart has non-static native methods with string and block
-      //if (!modifiers.isStatic()) {
-      //  reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
-      //}
       return done(parseFunctionStatementBody(!modifiers.isExternal(), true));
     } else {
       expect(Token.SEMICOLON);

@@ -14,8 +14,8 @@ template <typename T> class GrowableArray;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  FlowGraphOptimizer(const FlowGraph& flow_graph, bool use_ssa)
-      : FlowGraphVisitor(flow_graph.reverse_postorder()), use_ssa_(use_ssa) {}
+  explicit FlowGraphOptimizer(const FlowGraph& flow_graph)
+      : FlowGraphVisitor(flow_graph.reverse_postorder()) {}
   virtual ~FlowGraphOptimizer() {}
 
   void ApplyICData();
@@ -28,6 +28,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitEqualityCompare(EqualityCompareComp* comp,
                                     BindInstr* instr);
   virtual void VisitBind(BindInstr* instr);
+  virtual void VisitBranch(BranchInstr* instr);
 
  private:
   bool TryReplaceWithArrayOp(BindInstr* instr,
@@ -45,8 +46,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceSetter(BindInstr* instr, InstanceCallComp* comp);
 
   bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
-
-  bool use_ssa_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };
@@ -77,11 +76,9 @@ class ParsedFunction;
 
 class FlowGraphTypePropagator : public FlowGraphVisitor {
  public:
-  explicit FlowGraphTypePropagator(const FlowGraph& flow_graph,
-                                   bool is_ssa)
+  explicit FlowGraphTypePropagator(const FlowGraph& flow_graph)
       : FlowGraphVisitor(flow_graph.reverse_postorder()),
         parsed_function_(flow_graph.parsed_function()),
-        is_ssa_(is_ssa),
         still_changing_(false) { }
   virtual ~FlowGraphTypePropagator() { }
 
@@ -103,8 +100,6 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
  private:
   const ParsedFunction& parsed_function_;
-  const bool is_ssa_;  // TODO(regis): Remove once virtual frame backend is
-                       // removed.
   bool still_changing_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
 };

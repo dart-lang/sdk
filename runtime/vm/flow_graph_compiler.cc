@@ -77,7 +77,6 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
 FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
                                      const FlowGraph& flow_graph,
                                      bool is_optimizing,
-                                     bool is_ssa,
                                      bool is_leaf)
     : assembler_(assembler),
       parsed_function_(flow_graph.parsed_function()),
@@ -90,17 +89,14 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       deopt_stubs_(),
       object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
-      is_ssa_(is_ssa),
       is_dart_leaf_(is_leaf),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->double_class())),
-      frame_register_allocator_(this, is_optimizing, is_ssa),
       parallel_move_resolver_(this) {
   ASSERT(assembler != NULL);
-  ASSERT(is_optimizing_ || !is_ssa_);
-  if (is_ssa_) {
+  if (is_optimizing_) {
     stackmap_table_builder_ = new StackmapTableBuilder(StackSize());
   }
 }
@@ -147,7 +143,6 @@ bool FlowGraphCompiler::CanOptimize() {
 
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order().length(); ++i) {
-    ASSERT(frame_register_allocator()->IsSpilled());
     assembler()->Comment("B%d", i);
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -183,7 +178,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 
 intptr_t FlowGraphCompiler::StackSize() const {
-  if (is_ssa_) {
+  if (is_optimizing_) {
     return block_order_[0]->AsGraphEntry()->spill_slot_count();
   } else {
     return parsed_function_.stack_local_count() +
@@ -253,8 +248,6 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              intptr_t token_pos,
                                              intptr_t try_index) {
-  ASSERT((kind != PcDescriptors::kDeopt) ||
-         frame_register_allocator()->IsSpilled());
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        deopt_id,
@@ -265,22 +258,12 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        intptr_t try_index,
-                                       DeoptReasonId reason,
-                                       Register reg1,
-                                       Register reg2,
-                                       Register reg3) {
+                                       DeoptReasonId reason) {
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, try_index, reason);
-  if (pending_deoptimization_env_ == NULL) {
-    ASSERT(!is_ssa_);
-    frame_register_allocator()->SpillInDeoptStub(stub);
-    if (reg1 != kNoRegister) stub->Push(reg1);
-    if (reg2 != kNoRegister) stub->Push(reg2);
-    if (reg3 != kNoRegister) stub->Push(reg3);
-  } else {
-    ASSERT(pending_deoptimization_env_ != NULL);
-    stub->set_deoptimization_env(pending_deoptimization_env_);
-  }
+  ASSERT(is_optimizing_);
+  ASSERT(pending_deoptimization_env_ != NULL);
+  stub->set_deoptimization_env(pending_deoptimization_env_);
   deopt_stubs_.Add(stub);
   return stub->entry_label();
 }
@@ -325,7 +308,7 @@ void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
     // Finalize the stack map array and add it to the code object.
     code.set_stackmaps(
         Array::Handle(stackmap_table_builder_->FinalizeStackmaps(code)));
-    ASSERT(is_ssa() && is_optimizing());
+    ASSERT(is_optimizing());
   }
 }
 
@@ -394,7 +377,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t checked_argument_count,
     BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
-  ASSERT(frame_register_allocator()->IsSpilled());
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function().function(),
                                      function_name,
@@ -419,7 +401,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
                                                  ic_data,
                                                  arguments_descriptor,
                                                  argument_count);
-  if (is_ssa() && (stack_bitmap != NULL)) {
+  if (is_optimizing() && (stack_bitmap != NULL)) {
     stackmap_table_builder_->AddEntry(descr_offset, stack_bitmap);
   }
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kIcCall,
@@ -437,14 +419,12 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            BitmapBuilder* stack_bitmap) {
-  ASSERT(frame_register_allocator()->IsSpilled());
-
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   const intptr_t descr_offset = EmitStaticCall(function,
                                                arguments_descriptor,
                                                argument_count);
-  if (is_ssa() && (stack_bitmap != NULL)) {
+  if (is_optimizing() && (stack_bitmap != NULL)) {
     stackmap_table_builder_->AddEntry(descr_offset, stack_bitmap);
   }
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kFuncCall,
@@ -580,46 +560,29 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
 }
 
 
-Register FrameRegisterAllocator::AllocateFreeRegister(bool* blocked_registers) {
+// Allocate a register that is not explicitly blocked.
+static Register AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
-    if (!blocked_registers[regno] && (registers_[regno] == NULL)) {
+    if (!blocked_registers[regno]) {
       blocked_registers[regno] = true;
       return static_cast<Register>(regno);
     }
   }
-  return SpillFirst();
+  UNREACHABLE();
+  return kNoRegister;
 }
 
 
-Register FrameRegisterAllocator::SpillFirst() {
-  ASSERT(!stack_.is_empty());
-  Register reg = stack_[0];
-  stack_.RemoveFirst();
-  compiler()->assembler()->PushRegister(reg);
-  registers_[reg] = NULL;
-  return reg;
-}
-
-
-void FrameRegisterAllocator::SpillRegister(Register reg) {
-  while (registers_[reg] != NULL) SpillFirst();
-}
-
-
-void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
-  if (is_ssa_) return;
+void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
+  ASSERT(!is_optimizing());
 
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
-  bool blocked_temp_registers[kNumberOfCpuRegisters];
-
-  bool spill = false;
 
   // Mark all available registers free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     blocked_registers[i] = false;
-    blocked_temp_registers[i] = false;
   }
 
   // Mark all fixed input, temp and output registers as used.
@@ -628,23 +591,14 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
     if (loc.IsRegister()) {
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
-      if (registers_[loc.reg()] != NULL) {
-        intptr_t stack_index = stack_.length() - (locs->input_count() - i);
-        if ((stack_index < 0) || (stack_[stack_index] != loc.reg())) {
-          spill = true;
-        }
-      }
     }
   }
-
-  if (spill) Spill();
 
   for (intptr_t i = 0; i < locs->temp_count(); i++) {
     Location loc = locs->temp(i);
     if (loc.IsRegister()) {
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
-      blocked_temp_registers[loc.reg()] = true;
     }
   }
 
@@ -663,6 +617,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
   }
 
   // Allocate all unallocated input locations.
+  const bool should_pop = !instr->IsPushArgument();
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     Register reg = kNoRegister;
@@ -670,24 +625,15 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
       reg = loc.reg();
     } else if (loc.IsUnallocated()) {
       ASSERT(loc.policy() == Location::kRequiresRegister);
-      if (!stack_.is_empty() && !blocked_temp_registers[stack_.Last()]) {
-        reg = stack_.Last();
-        blocked_registers[reg] = true;
-      } else {
-        reg = AllocateFreeRegister(blocked_registers);
-      }
+      reg = AllocateFreeRegister(blocked_registers);
       locs->set_in(i, Location::RegisterLocation(reg));
     }
 
     // Inputs are consumed from the simulated frame. In case of a call argument
     // we leave it until the call instruction.
-    if (!instr->IsPushArgument()) Pop(reg, instr->InputAt(i));
-  }
-
-  // If this instruction is call spill everything that was not consumed by
-  // input locations.
-  if (locs->can_call() || instr->IsBranch() || instr->IsGoto()) {
-    Spill();
+    if (should_pop) {
+      assembler()->PopRegister(reg);
+    }
   }
 
   // Allocate all unallocated temp locations.
@@ -699,7 +645,6 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
         AllocateFreeRegister(blocked_registers));
       locs->set_temp(i, loc);
     }
-    SpillRegister(loc.reg());
   }
 
   Location result_location = locs->out();
@@ -716,60 +661,6 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
         break;
     }
     locs->set_out(result_location);
-  }
-
-  if (result_location.IsRegister()) {
-    SpillRegister(result_location.reg());
-  }
-}
-
-
-void FrameRegisterAllocator::Pop(Register dst, Value* val) {
-  if (is_ssa_) return;
-
-  if (!stack_.is_empty()) {
-    ASSERT(keep_values_in_registers_);
-    Register src = stack_.Last();
-    ASSERT(val->AsUse()->definition() == registers_[src]);
-    stack_.RemoveLast();
-    registers_[src] = NULL;
-    compiler()->assembler()->MoveRegister(dst, src);
-  } else {
-    compiler()->assembler()->PopRegister(dst);
-  }
-}
-
-
-void FrameRegisterAllocator::Push(Register reg, BindInstr* val) {
-  if (is_ssa_) return;
-
-  ASSERT(registers_[reg] == NULL);
-  if (keep_values_in_registers_) {
-    registers_[reg] = val;
-    stack_.Add(reg);
-  } else {
-    compiler()->assembler()->PushRegister(reg);
-  }
-}
-
-
-void FrameRegisterAllocator::Spill() {
-  if (is_ssa_) return;
-
-  for (int i = 0; i < stack_.length(); i++) {
-    Register r = stack_[i];
-    registers_[r] = NULL;
-    compiler()->assembler()->PushRegister(r);
-  }
-  stack_.Clear();
-}
-
-
-void FrameRegisterAllocator::SpillInDeoptStub(DeoptimizationStub* stub) {
-  if (is_ssa_) return;
-
-  for (int i = 0; i < stack_.length(); i++) {
-    stub->Push(stack_[i]);
   }
 }
 

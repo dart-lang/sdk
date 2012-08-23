@@ -10,6 +10,8 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 #import("dart:io");
+#import("dart:math");
+
 #source("process_test_util.dart");
 
 void test(Process process, int expectedExitCode) {
@@ -27,7 +29,7 @@ void test(Process process, int expectedExitCode) {
     void readData() {
       buffer.addAll(input.read());
       for (int i = received;
-           i < Math.min(data.length, buffer.length) - 1;
+           i < min(data.length, buffer.length) - 1;
            i++) {
         Expect.equals(data[i], buffer[i]);
       }

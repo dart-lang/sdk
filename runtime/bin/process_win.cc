@@ -68,8 +68,11 @@ class ProcessInfo {
 class ProcessInfoList {
  public:
   static void AddProcess(DWORD pid, HANDLE handle, HANDLE pipe) {
-    // Create a wait operation for the process handle to extract
-    // the exit code.
+    // Register a callback to extract the exit code, when the process
+    // is signaled.  The callback runs in a independent thread from the OS pool.
+    // Because the callback depends on the process list containing
+    // the process, lock the mutex until the process is added to the list.
+    MutexLocker locker(&mutex_);
     HANDLE wait_handle = INVALID_HANDLE_VALUE;
     BOOL success = RegisterWaitForSingleObject(
         &wait_handle,
@@ -82,8 +85,7 @@ class ProcessInfoList {
       FATAL("Failed to register exit code wait operation.");
     }
     ProcessInfo* info = new ProcessInfo(pid, handle, wait_handle, pipe);
-    // Now mutate the process list under the mutex.
-    MutexLocker locker(&mutex_);
+    // Mutate the process list under the mutex.
     info->set_next(active_processes_);
     active_processes_ = info;
   }
@@ -509,7 +511,9 @@ bool Process::Kill(intptr_t id, int signal) {
                                                 &process_handle,
                                                 &wait_handle,
                                                 &exit_pipe);
-  ASSERT(success);
+  if (!success) {
+    return true;  // The process has already died.  Report a successful kill.
+  }
   BOOL result = TerminateProcess(process_handle, -1);
   if (!result) {
     return false;

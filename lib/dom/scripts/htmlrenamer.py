@@ -3,19 +3,25 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-_html_strip_webkit_prefix_classes = [
-    'Animation',
-    'AnimationEvent',
-    'AnimationList',
-    'BlobBuilder',
-    'CSSKeyframeRule',
-    'CSSKeyframesRule',
-    'CSSMatrix',
-    'CSSTransformValue',
-    'Flags',
-    'LoseContext',
-    'Point',
-    'TransitionEvent']
+_html_interface_renames = {
+    'DOMWindow': 'Window',
+    'WebKitAnimation': 'Animation',
+    'WebKitAnimationEvent': 'AnimationEvent',
+    'WebKitAnimationList': 'AnimationList',
+    'WebKitBlobBuilder': 'BlobBuilder',
+    'WebKitCSSKeyframeRule': 'CSSKeyframeRule',
+    'WebKitCSSKeyframesRule': 'CSSKeyframesRule',
+    'WebKitCSSMatrix': 'CSSMatrix',
+    'WebKitCSSTransformValue': 'CSSTransformValue',
+    'WebKitFlags': 'Flags',
+    'WebKitLoseContext': 'LoseContext',
+    'WebKitPoint': 'Point',
+    'WebKitTransitionEvent': 'TransitionEvent',
+    'XMLHttpRequest': 'HttpRequest',
+    'XMLHttpRequestException': 'HttpRequestException',
+    'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
+    'XMLHttpRequestUpload': 'HttpRequestUpload',
+}
 
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
@@ -272,12 +278,8 @@ class HtmlRenamer(object):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
-    elif interface.id.startswith('WebKit'):
-      stripped_name = interface.id[len('WebKit'):]
-      if stripped_name in _html_strip_webkit_prefix_classes:
-        return stripped_name
-    elif interface.id == 'DOMWindow':
-      return 'Window'
+    elif interface.id in _html_interface_renames:
+      return _html_interface_renames[interface.id]
     return interface.id
 
   def RenameMember(self, interface_name, member, member_prefix=''):

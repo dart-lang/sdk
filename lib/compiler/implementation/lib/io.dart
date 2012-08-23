@@ -9,8 +9,17 @@
 
 // TODO(ahe): Separate API from implementation details.
 
+/**
+ * The IO library is used for Dart server applications,
+ * which run on a stand-alone Dart VM from the command line.
+ * *This library does not work in browser based applications.*
+ *
+ * This library allows you to work with files, directories,
+ * sockets, processes, HTTP servers and clients, and more.
+ */
 #library("dart:io");
 #import("dart:coreimpl");
+#import("dart:math");
 #import("dart:isolate");
 // TODO(ahe): Should Leg support this library?
 // #import("dart:nativewrappers");
@@ -68,23 +77,23 @@ class _File {
 }
 
 class _Platform {
-  static int get numberOfProcessors() {
+  static int get numberOfProcessors {
     throw new UnsupportedOperationException('_Platform.numberOfProcessors');
   }
 
-  static String get pathSeparator() {
+  static String get pathSeparator {
     throw new UnsupportedOperationException('_Platform.pathSeparator');
   }
 
-  static String get operatingSystem() {
+  static String get operatingSystem {
     throw new UnsupportedOperationException('_Platform.operatingSystem');
   }
 
-  static String get localHostname() {
+  static String get localHostname {
     throw new UnsupportedOperationException('_Platform.localHostname');
   }
 
-  static Map<String, String> get environment() {
+  static Map<String, String> get environment {
     throw new UnsupportedOperationException('_Platform.environment');
   }
 }
@@ -149,7 +158,7 @@ class _EventHandler {
     throw new UnsupportedOperationException(msg);
   }
 
-  static _EventHandler get _eventHandler() {
+  static _EventHandler get _eventHandler {
     throw new UnsupportedOperationException('_EventHandler._eventhandler');
   }
 

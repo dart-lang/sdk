@@ -4,6 +4,7 @@
 
 #import("dart:io");
 #import("dart:isolate");
+#import("dart:math");
 
 class ExpectedDataOutputStream implements OutputStream {
   ExpectedDataOutputStream(List<int> this._data,
@@ -62,7 +63,7 @@ class SocketMock implements Socket {
              List<int> expected,
              int cutoff,
              bool closeAsError) :
-      _hashCode = (Math.random() * (1 << 32)).toInt(),
+      _hashCode = new Random().nextInt(1<< 32),
       _read = [] {
     _outputStream =
         new ExpectedDataOutputStream(expected, cutoff, closeAsError, this);
@@ -84,7 +85,7 @@ class SocketMock implements Socket {
   }
 
   int readList(List<int> buffer, int offset, int count) {
-    int max = Math.min(count, _data.length);
+    int max = min(count, _data.length);
     buffer.setRange(offset, max, _data);
     _data = _data.getRange(max, _data.length - max);
     return max;

@@ -4,7 +4,7 @@
 
 class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);
-  String get name() => 'Scanner';
+  String get name => 'Scanner';
 
   void scanLibrary(LibraryElement library) {
     var compilationUnit = library.entryCompilationUnit;
@@ -58,10 +58,7 @@ class ScannerTask extends CompilerTask {
         }
       } else if (tag.isSource()) {
         tagState = checkTag(TagState.SOURCE, tag);
-        Script script = compiler.readScript(resolved, tag);
-        CompilationUnitElement unit =
-            new CompilationUnitElement(script, library);
-        compiler.withCurrentElement(unit, () => scan(unit));
+        importSourceFromTag(tag, resolved, library);
       } else if (tag.isResource()) {
         tagState = checkTag(TagState.RESOURCE, tag);
         compiler.reportWarning(tag, 'ignoring resource tag');
@@ -78,21 +75,24 @@ class ScannerTask extends CompilerTask {
     // Now that we have processed all the source tags, it is safe to
     // start loading other libraries.
 
-    // TODO(ahe): During Compiler.scanBuiltinLibraries,
-    // compiler.coreLibrary is null. Clean this up when there is a
-    // better way to access "dart:core".
-    bool implicitlyImportCoreLibrary = compiler.coreLibrary !== null;
+    if (library.uri.scheme != 'dart' || library.uri.path != 'core') {
+      compiler.importCoreLibrary(library);
+    }
 
     for (ScriptTag tag in imports.toLink()) {
-      Uri resolvedUri =
-          importLibraryFromTag(tag, library.entryCompilationUnit);
-      if (resolvedUri.toString() == "dart:core") {
-        implicitlyImportCoreLibrary = false;
-      }
+      importLibraryFromTag(tag, library.entryCompilationUnit);
     }
-    if (implicitlyImportCoreLibrary) {
-      importLibrary(library, compiler.coreLibrary, null);
-    }
+  }
+
+  /**
+   * Handle a source tag in the scope of [library]. The [path] given is used as
+   * is, any resolution should be done beforehand.
+   */
+  void importSourceFromTag(ScriptTag tag, Uri path, LibraryElement library) {
+    Script sourceScript = compiler.readScript(path, tag);
+    CompilationUnitElement unit =
+        new CompilationUnitElement(sourceScript, library);
+    compiler.withCurrentElement(unit, () => compiler.scanner.scan(unit));
   }
 
   /**

@@ -9,7 +9,7 @@ class ValueSet {
   ValueSet() : table = new List<HInstruction>(8);
 
   bool isEmpty() => size == 0;
-  int get length() => size;
+  int get length => size;
 
   void add(HInstruction instruction) {
     assert(lookup(instruction) === null);

@@ -18,16 +18,36 @@ class PartialClassElement extends ClassElement {
                       Token this.endToken,
                       Element enclosing,
                       int id)
-      : super(name, enclosing, id);
+      : super(name, enclosing, id, ClassElement.STATE_NOT_STARTED);
+
+  void set supertypeLoadState(int state) {
+    assert(state == supertypeLoadState + 1);
+    assert(state <= ClassElement.STATE_DONE);
+    super.supertypeLoadState = state;
+  }
+
+  void set resolutionState(int state) {
+    assert(state == resolutionState + 1);
+    assert(state <= ClassElement.STATE_DONE);
+    super.resolutionState = state;
+  }
 
   ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;
+    // TODO(ahe): Measure these tasks.
     MemberListener listener = new MemberListener(diagnosticListener, this);
     Parser parser = new ClassElementParser(listener);
     Token token = parser.parseTopLevelDeclaration(beginToken);
     assert(token === endToken.next);
     cachedNode = listener.popNode();
     assert(listener.nodes.isEmpty());
+    if (isPatched) {
+      // TODO(lrn): Perhaps extract functionality so it doesn't need compiler.
+      Compiler compiler = diagnosticListener;
+      ClassNode patchNode = compiler.patchParser.parsePatchClassNode(patch);
+      Link<Element> patches = patch.localMembers;
+      compiler.applyContainerPatch(this, patches);
+    }
     return cachedNode;
   }
 

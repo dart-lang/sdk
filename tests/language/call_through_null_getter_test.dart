@@ -4,7 +4,7 @@
 
 // Tests that we can call functions through getters which return null.
 
-final TOP_LEVEL_NULL = null;
+const TOP_LEVEL_NULL = null;
 
 var topLevel;
 

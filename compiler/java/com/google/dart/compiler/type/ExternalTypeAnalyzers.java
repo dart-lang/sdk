@@ -67,6 +67,7 @@ public class ExternalTypeAnalyzers {
     tagToElementType.put("PRE", "PreElement");
     tagToElementType.put("PROGRESS", "ProgressElement");
     tagToElementType.put("SCRIPT", "ScriptElement");
+    tagToElementType.put("SELECT", "SelectElement");
     tagToElementType.put("SOURCE", "SourceElement");
     tagToElementType.put("SPAN", "SpanElement");
     tagToElementType.put("STYLE", "StyleElement");

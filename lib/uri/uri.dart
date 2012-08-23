@@ -4,6 +4,7 @@
 
 #library('dart:uri');
 
+#import('dart:math');
 #import('dart:utf');
 
 #source('encode_decode.dart');
@@ -45,7 +46,7 @@ class Uri {
 
   static int _parseIntOrZero(String val) {
     if (val !== null && val != '') {
-      return Math.parseInt(val);
+      return parseInt(val);
     } else {
       return 0;
     }
@@ -169,6 +170,38 @@ class Uri {
 
   bool hasAuthority() {
     return (userInfo != "") || (domain != "") || (port != 0);
+  }
+
+  /**
+   * For http/https schemes returns URI's [origin][] - scheme://domain:port.
+   * For all other schemes throws IllegalArgumentException.
+   * [origin]: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
+   */
+  String get origin() {
+    if (scheme == "") {
+      // TODO(aprelev@gmail.com): Use StateException instead
+      throw new IllegalArgumentException("Cannot use origin without a scheme");
+    }
+    if (scheme != "http" && scheme != "https") {
+      // TODO(aprelev@gmail.com): Use StateException instead
+      throw new IllegalArgumentException(
+        "origin is applicable to http/https schemes only. Not \'$scheme\'");
+    }
+    StringBuffer sb = new StringBuffer();
+    sb.add(scheme);
+    sb.add(":");
+    if (domain == null || domain == "") {
+      // TODO(aprelev@gmail.com): Use StateException instead
+      throw new IllegalArgumentException("Cannot use origin without a domain");
+    }
+
+    sb.add("//");
+    sb.add(domain);
+    if (port != 0) {
+      sb.add(":");
+      sb.add(port);
+    }
+    return sb.toString();
   }
 
   String toString() {

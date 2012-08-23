@@ -15,9 +15,9 @@ class A {
   toString() => "A $x $y $z $t";
 }
 
-final a1 = const A(99, 100);
-final a2 = const A.named(99, 100);
-final a3 = const A.named2(1, 2, 3, 4);
+const a1 = const A(99, 100);
+const a2 = const A.named(99, 100);
+const a3 = const A.named2(1, 2, 3, 4);
 
 main() {
   Expect.equals(3, a1.x);

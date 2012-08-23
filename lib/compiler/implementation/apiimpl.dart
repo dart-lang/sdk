@@ -122,7 +122,7 @@ class Compiler extends leg.Compiler {
     }
   }
 
-  bool get isMockCompilation() {
+  bool get isMockCompilation {
     return mockableLibraryUsed
       && (options.indexOf('--allow-mock-compilation') !== -1);
   }

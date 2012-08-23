@@ -59,7 +59,6 @@ class LocalVariable;
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
 #define FOR_EACH_COMPUTATION(M)                                                \
-  FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(AssertBoolean, AssertBooleanComp)                                          \
   M(CurrentContext, CurrentContextComp)                                        \
@@ -95,18 +94,21 @@ class LocalVariable;
   M(ChainContext, ChainContextComp)                                            \
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
-  M(BinaryOp, BinaryOpComp)                                                    \
-  M(DoubleBinaryOp, DoubleBinaryOpComp)                                        \
+  M(BinarySmiOp, BinarySmiOpComp)                                              \
+  M(BinaryMintOp, BinaryMintOpComp)                                            \
+  M(BinaryDoubleOp, BinaryDoubleOpComp)                                        \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
   M(DoubleToDouble, DoubleToDoubleComp)                                        \
   M(SmiToDouble, SmiToDoubleComp)                                              \
-  M(CheckClass, CheckClassComp)
+  M(CheckClass, CheckClassComp)                                                \
+  M(Materialize, MaterializeComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
 FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
+FOR_EACH_VALUE(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 // Forward declarations.
@@ -312,9 +314,31 @@ class TemplateComputation : public Computation {
 };
 
 
-class Value : public TemplateComputation<0> {
+class Value : public ZoneAllocated {
  public:
   Value() { }
+
+  // Declare an enum value used to define kind-test predicates.
+  enum ValueKind {
+#define DECLARE_VALUE_KIND(ShortName, ClassName) k##ShortName,
+  FOR_EACH_VALUE(DECLARE_VALUE_KIND)
+#undef DECLARE_VALUE_KIND
+  };
+
+  // Declare predicate for each value.
+#define DECLARE_PREDICATE(ShortName, ClassName)                                \
+  inline bool Is##ShortName() const;                                           \
+  inline const ClassName* As##ShortName() const;                               \
+  inline ClassName* As##ShortName();
+FOR_EACH_VALUE(DECLARE_PREDICATE)
+#undef DECLARE_PREDICATE
+
+  virtual ValueKind value_kind() const = 0;
+
+  virtual RawAbstractType* CompileType() const = 0;
+  virtual intptr_t ResultCid() const = 0;
+
+  virtual void PrintTo(BufferFormatter* f) const = 0;
 
   // Returns true if the value represents a constant.
   virtual bool BindsToConstant() const = 0;
@@ -330,6 +354,8 @@ class Value : public TemplateComputation<0> {
   bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
   virtual void RemoveFromUseList() = 0;
+
+  virtual bool Equals(Value* other) const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -350,7 +376,12 @@ class Value : public TemplateComputation<0> {
 
 // Functions defined in all concrete value classes.
 #define DECLARE_VALUE(ShortName)                                               \
-  DECLARE_COMPUTATION(ShortName)                                               \
+  virtual ValueKind value_kind() const {                                       \
+    return Value::k##ShortName;                                                \
+  }                                                                            \
+  virtual const char* DebugName() const { return #ShortName; }                 \
+  virtual RawAbstractType* CompileType() const;                                \
+  virtual bool Equals(Value* other) const;                                     \
   virtual void PrintTo(BufferFormatter* f) const;
 
 
@@ -438,6 +469,26 @@ class ConstantVal : public Value {
 };
 
 #undef DECLARE_VALUE
+
+
+class MaterializeComp : public TemplateComputation<0> {
+ public:
+  explicit MaterializeComp(ConstantVal* constant_val)
+      : constant_val_(constant_val) { }
+
+  DECLARE_COMPUTATION(Materialize)
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  ConstantVal* constant_val() const { return constant_val_; }
+
+  virtual intptr_t ResultCid() const;
+
+ private:
+  ConstantVal* constant_val_;
+};
 
 
 class AssertAssignableComp : public TemplateComputation<3> {
@@ -953,11 +1004,11 @@ class NativeCallComp : public TemplateComputation<0> {
 
 class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
+  // Set 'original' to NULL if LoadInstanceFieldComp cannot deoptimize.
   LoadInstanceFieldComp(const Field& field,
                         Value* instance,
-                        InstanceCallComp* original,  // Maybe NULL.
-                        bool can_deoptimize)
-      : field_(field), original_(original), can_deoptimize_(can_deoptimize) {
+                        InstanceCallComp* original)
+      : field_(field), original_(original) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
@@ -970,12 +1021,11 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return can_deoptimize_; }
+  virtual bool CanDeoptimize() const { return original_ != NULL; }
 
  private:
   const Field& field_;
   const InstanceCallComp* original_;  // For optimizations.
-  const bool can_deoptimize_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -983,6 +1033,7 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
 class StoreInstanceFieldComp : public TemplateComputation<2> {
  public:
+  // Set 'original' to NULL if StoreInstanceFieldComp cannot deoptimize.
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
                          Value* value,
@@ -1005,7 +1056,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return original_ != NULL; }
 
  private:
   const Field& field_;
@@ -1599,22 +1650,13 @@ class CatchEntryComp : public TemplateComputation<0> {
 };
 
 
-class BinaryOpComp : public TemplateComputation<2> {
+class BinarySmiOpComp : public TemplateComputation<2> {
  public:
-  enum OperandsType {
-    kDynamicOperands,
-    kSmiOperands,
-    kMintOperands,
-    kDoubleOperands
-  };
-
-  BinaryOpComp(Token::Kind op_kind,
-               OperandsType operands_type,
-               InstanceCallComp* instance_call,
-               Value* left,
-               Value* right)
+  BinarySmiOpComp(Token::Kind op_kind,
+                  InstanceCallComp* instance_call,
+                  Value* left,
+                  Value* right)
       : op_kind_(op_kind),
-        operands_type_(operands_type),
         instance_call_(instance_call) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
@@ -1627,29 +1669,62 @@ class BinaryOpComp : public TemplateComputation<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
-  OperandsType operands_type() const { return operands_type_; }
-
   InstanceCallComp* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  DECLARE_COMPUTATION(BinaryOp)
+  DECLARE_COMPUTATION(BinarySmiOp)
 
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const;
 
  private:
   const Token::Kind op_kind_;
-  const OperandsType operands_type_;
   InstanceCallComp* instance_call_;
 
-  DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+  DISALLOW_COPY_AND_ASSIGN(BinarySmiOpComp);
 };
 
 
-class DoubleBinaryOpComp : public TemplateComputation<0> {
+class BinaryMintOpComp : public TemplateComputation<2> {
  public:
-  DoubleBinaryOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
+  BinaryMintOpComp(Token::Kind op_kind,
+                   InstanceCallComp* instance_call,
+                   Value* left,
+                   Value* right)
+      : op_kind_(op_kind),
+        instance_call_(instance_call) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_COMPUTATION(BinaryMintOp)
+
+  virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const;
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpComp);
+};
+
+
+class BinaryDoubleOpComp : public TemplateComputation<0> {
+ public:
+  BinaryDoubleOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
       : op_kind_(op_kind), instance_call_(instance_call) { }
 
   Token::Kind op_kind() const { return op_kind_; }
@@ -1658,7 +1733,7 @@ class DoubleBinaryOpComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  DECLARE_CALL_COMPUTATION(DoubleBinaryOp)
+  DECLARE_CALL_COMPUTATION(BinaryDoubleOp)
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
@@ -1669,7 +1744,7 @@ class DoubleBinaryOpComp : public TemplateComputation<0> {
   const Token::Kind op_kind_;
   InstanceCallComp* instance_call_;
 
-  DISALLOW_COPY_AND_ASSIGN(DoubleBinaryOpComp);
+  DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpComp);
 };
 
 
@@ -1826,7 +1901,7 @@ class CheckClassComp : public TemplateComputation<1> {
 
 
 // Implementation of type testers and cast functins.
-#define DEFINE_PREDICATE(ShortName, ClassName)                                 \
+#define DEFINE_COMPUTATION_PREDICATE(ShortName, ClassName)                     \
 bool Computation::Is##ShortName() const {                                      \
   return computation_kind() == k##ShortName;                                   \
 }                                                                              \
@@ -1838,9 +1913,23 @@ ClassName* Computation::As##ShortName() {                                      \
   if (!Is##ShortName()) return NULL;                                           \
   return static_cast<ClassName*>(this);                                        \
 }
-FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
-#undef DEFINE_PREDICATE
+FOR_EACH_COMPUTATION(DEFINE_COMPUTATION_PREDICATE)
+#undef DEFINE_COMPUTATION_PREDICATE
 
+#define DEFINE_VALUE_PREDICATE(ShortName, ClassName)                           \
+bool Value::Is##ShortName() const {                                            \
+  return value_kind() == k##ShortName;                                         \
+}                                                                              \
+const ClassName* Value::As##ShortName() const {                                \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<const ClassName*>(this);                                  \
+}                                                                              \
+ClassName* Value::As##ShortName() {                                            \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<ClassName*>(this);                                        \
+}
+FOR_EACH_VALUE(DEFINE_VALUE_PREDICATE)
+#undef DEFINE_VALUE_PREDICATE
 
 // Instructions.
 

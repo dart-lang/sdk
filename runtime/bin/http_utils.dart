@@ -210,7 +210,7 @@ class _HttpUtils {
       String tmp = date.substring(index, pos);
       index = pos + separator.length;
       try {
-        int value = Math.parseInt(tmp);
+        int value = parseInt(tmp);
         return value;
       } catch (FormatException e) {
         throw new HttpException("Invalid HTTP date $date");

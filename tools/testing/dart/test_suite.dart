@@ -699,17 +699,6 @@ class StandardTestSuite implements TestSuite {
     String executable = TestUtils.compilerPath(configuration);
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
-      case 'frog':
-        String libdir = configuration['froglib'];
-        if (libdir == '') {
-          libdir = dartDir.append('frog/lib').toNativePath();
-        }
-        args.addAll(['--libdir=$libdir',
-                     '--compile-only',
-                     '--out=$outputFile']);
-        args.addAll(vmOptions);
-        args.add(inputFile);
-        break;
       case 'dart2js':
       case 'dart2dart':
         if (compiler == 'dart2dart') args.add('--out=$outputFile');
@@ -765,7 +754,6 @@ class StandardTestSuite implements TestSuite {
       case 'none':
       case 'dart2dart':
         return 'application/dart';
-      case 'frog':
       case 'dart2js':
       case 'dartc':
         return 'text/javascript';
@@ -845,10 +833,6 @@ class StandardTestSuite implements TestSuite {
     if (configuration['compiler'] == 'dartc') {
       args.add('--error_format');
       args.add('machine');
-    }
-    if ((configuration['compiler'] == 'frog')
-        && (configuration['runtime'] == 'none')) {
-      args.add('--compile-only');
     }
 
     bool isMultitest = optionsFromFile["isMultitest"];
@@ -1268,8 +1252,6 @@ class TestUtils {
         } else {
           return '${prefix}dart2js$suffix';
         }
-      case 'frog':
-        return 'frog/bin/frog$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -1282,8 +1264,6 @@ class TestUtils {
       case 'dart2js':
       case 'dart2dart':
         return executableName(configuration);
-      case 'frog':
-        return 'frog/bin/frog$suffix';
       default:
         throw "Unknown compiler for: ${configuration['compiler']}";
     }
@@ -1322,10 +1302,7 @@ class TestUtils {
     if (configuration['compiler'] == 'none') {
       return null;  // No separate compiler for dartium tests.
     }
-    var name = configuration['frog'];
-    if (name == '') {
-      name = '${buildDir(configuration)}/${compilerName(configuration)}';
-    }
+    var name = '${buildDir(configuration)}/${compilerName(configuration)}';
     if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }

@@ -9,11 +9,11 @@ class A {
   const A.named2([this.x = 2]);
 }
 
-final a1 = const A(0);
-final a2 = const A.named();
-final a3 = const A.named(1);
-final a4 = const A.named2();
-final a5 = const A.named2(3);
+const a1 = const A(0);
+const a2 = const A.named();
+const a3 = const A.named(1);
+const a4 = const A.named2();
+const a5 = const A.named2(3);
 
 main() {
   Expect.equals(0, a1.x);

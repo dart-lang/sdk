@@ -313,7 +313,7 @@ class _HttpParser {
           case _State.RESPONSE_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType == _MessageType.RESPONSE;
-            int statusCode = Math.parseInt(_method_or_status_code.toString());
+            int statusCode = parseInt(_method_or_status_code.toString());
             if (statusCode < 100 || statusCode > 599) {
               throw new HttpParserException("Invalid response status code");
             } else {
@@ -383,7 +383,7 @@ class _HttpParser {
               if (headerField == "content-length" && !_chunked) {
                 // Ignore the Content-Length header if Transfer-Encoding
                 // is chunked (RFC 2616 section 4.4)
-                _contentLength = Math.parseInt(headerValue);
+                _contentLength = parseInt(headerValue);
               } else if (headerField == "connection") {
                 List<String> tokens = _tokenizeFieldValue(headerValue);
                 for (int i = 0; i < tokens.length; i++) {

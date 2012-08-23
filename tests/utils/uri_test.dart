@@ -118,6 +118,46 @@ main() {
   Uri base = new Uri(urisSample);
   testUriPerRFCs(base);
 
+  Expect.stringEquals(
+      "http://example.com",
+      new Uri.fromString("http://example.com/a/b/c").origin);
+  Expect.stringEquals(
+      "https://example.com",
+      new Uri.fromString("https://example.com/a/b/c").origin);
+  Expect.stringEquals(
+      "http://example.com:1234",
+      new Uri.fromString("http://example.com:1234/a/b/c").origin);
+  Expect.stringEquals(
+      "https://example.com:1234",
+      new Uri.fromString("https://example.com:1234/a/b/c").origin);
+  Expect.throws(
+      () => new Uri.fromString("http:").origin,
+      (e) { return e is IllegalArgumentException; },
+      "origin for uri with empty domain should fail");
+  Expect.throws(
+      () => const Uri.fromComponents("http", null, "", 80, "/a/b/c",
+                       "query", "fragment").origin,
+      (e) { return e is IllegalArgumentException; },
+      "origin for uri with empty domain should fail");
+  Expect.throws(
+      () => const Uri.fromComponents(null, null, "", 80, "/a/b/c",
+                       "query", "fragment").origin,
+      (e) { return e is IllegalArgumentException; },
+      "origin for uri with empty scheme should fail");
+  Expect.throws(
+      () => const Uri.fromComponents("http", null, null, 80, "/a/b/c",
+                       "query", "fragment").origin,
+      (e) { return e is IllegalArgumentException; },
+      "origin for uri with empty domain should fail");
+  Expect.throws(
+      () => new Uri.fromString("http://:80").origin,
+      (e) { return e is IllegalArgumentException; },
+      "origin for uri with empty domain should fail");
+  Expect.throws(
+      () => new Uri.fromString("file://localhost/test.txt").origin,
+      (e) { return e is IllegalArgumentException; },
+      "origin for non-http/https uri should fail");
+
   // URI encode tests
   // Note: dart2js won't handle '\ud800\udc00' and frog
   // won't handle '\u{10000}'. So we cons this up synthetically...

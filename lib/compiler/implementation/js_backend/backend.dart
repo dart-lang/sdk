@@ -62,7 +62,7 @@ class InvocationInfo {
       compiledFunctions.add(function);
 
   void clearTypeInformation() { providedTypes = null; }
-  bool get hasTypeInformation() => providedTypes != null;
+  bool get hasTypeInformation => providedTypes != null;
 
 }
 
@@ -118,7 +118,7 @@ class JavaScriptBackend extends Backend {
 
   final List<Element> invalidateAfterCodegen;
 
-  List<CompilerTask> get tasks() {
+  List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
@@ -286,7 +286,7 @@ class JavaScriptBackend extends Backend {
                                  Selector selector,
                                  HTypeMap types) {
     Map<Selector, InvocationInfo> invocationInfos =
-        invocationInfo.putIfAbsent(node.name,
+        invocationInfo.putIfAbsent(selector.name,
                                    () => new Map<Selector, InvocationInfo>());
     InvocationInfo info = invocationInfos[selector];
     if (info != null) {

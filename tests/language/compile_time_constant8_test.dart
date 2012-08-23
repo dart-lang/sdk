@@ -7,11 +7,11 @@ class A<T> {
   toString() => "a";
 }
 
-final a = const A<int>();
-final b = const A<double>();
+const a = const A<int>();
+const b = const A<double>();
 
-final list1 = const<int> [1, 2];
-final list2 = const [1, 2];
+const list1 = const<int> [1, 2];
+const list2 = const [1, 2];
 main() {
   Expect.isFalse(a === b);
   Expect.isFalse(list1 === list2);

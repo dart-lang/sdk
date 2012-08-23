@@ -6,6 +6,12 @@ _serialize(var message) {
   return new _JsSerializer().traverse(message);
 }
 
+class JsProxy {
+  final _id;
+
+  JsProxy._internal(this._id);
+}
+
 class _JsSerializer extends _Serializer {
 
   visitSendPortSync(SendPortSync x) {
@@ -29,24 +35,53 @@ class _JsSerializer extends _Serializer {
              x._receivePort._isolateId, x._receivePort._portId ];
   }
 
+  visitObject(Object x) {
+    if (x is Function) return visitFunction(x);
+    if (x is JsProxy) return visitJsProxy(x);
+
+    // TODO: Handle DOM elements and proxy other objects.
+    var proxyId = _makeDartProxyRef(x);
+    return [ 'objref', 'dart', proxyId ];
+ }
+
   visitFunction(Function func) {
     return [ 'funcref',
               _makeFunctionRef(func), visitSendPortSync(_sendPort()), null ];
+  }
+
+  visitJsProxy(JsProxy proxy) {
+    return [ 'objref', 'nativejs', proxy._id ];
   }
 }
 
 // Leaking implementation.  Later will be backend specific and hopefully
 // not leaking (at least in most of the cases.)
 // TODO: provide better, backend specific implementation.
-class _FunctionRegistry {
-  final ReceivePortSync _port;
+class _Registry<T> {
+  final String _name;
   int _nextId;
-  final Map<String, Function> _registry;
+  final Map<String, T> _registry;
+
+  _Registry(this._name) : _nextId = 0, _registry = <T>{};
+
+  String _add(T x) {
+    // TODO(vsm): Cache x and reuse id.
+    final id = '$_name-${_nextId++}';
+    _registry[id] = x;
+    return id;
+  }
+
+  T _get(String id) {
+    return _registry[id];
+  }
+}
+
+class _FunctionRegistry extends _Registry<Function> {
+  final ReceivePortSync _port;
 
   _FunctionRegistry() :
-      _port = new ReceivePortSync(),
-      _nextId = 0,
-      _registry = <Function>{} {
+      super('func-ref'),
+      _port = new ReceivePortSync() {
     _port.receive((msg) {
       final id = msg[0];
       final args = msg[1];
@@ -62,17 +97,11 @@ class _FunctionRegistry {
     });
   }
 
-  String _add(Function f) {
-    final id = 'func-ref-${_nextId++}';
-    _registry[id] = f;
-    return id;
-  }
-
-  get _sendPort() => _port.toSendPort();
+  get _sendPort => _port.toSendPort();
 }
 
 _FunctionRegistry __functionRegistry;
-get _functionRegistry() {
+get _functionRegistry {
   if (__functionRegistry === null) __functionRegistry = new _FunctionRegistry();
   return __functionRegistry;
 }
@@ -81,11 +110,32 @@ _makeFunctionRef(f) => _functionRegistry._add(f);
 _sendPort() => _functionRegistry._sendPort;
 /// End of function serialization implementation.
 
+/// Object proxy implementation.
+
+class _DartProxyRegistry extends _Registry<Object> {
+  _DartProxyRegistry() : super('dart-ref');
+}
+
+_DartProxyRegistry __dartProxyRegistry;
+get _dartProxyRegistry {
+  if (__dartProxyRegistry === null) {
+    __dartProxyRegistry = new _DartProxyRegistry();
+  }
+  return __dartProxyRegistry;
+}
+
+_makeDartProxyRef(f) => _dartProxyRegistry._add(f);
+_getDartProxyObj(id) => _dartProxyRegistry._get(id);
+
+/// End of object proxy implementation.
+
 _deserialize(var message) {
   return new _JsDeserializer().deserialize(message);
 }
 
 class _JsDeserializer extends _Deserializer {
+
+  static final _UNSPECIFIED = const Object();
 
   deserializeSendPort(List x) {
     String tag = x[1];
@@ -102,6 +152,43 @@ class _JsDeserializer extends _Deserializer {
     }
   }
 
+  deserializeObject(List x) {
+    String tag = x[0];
+    switch (tag) {
+      case 'funcref': return deserializeFunction(x);
+      case 'objref': return deserializeProxy(x);
+      default: throw 'Illegal object type: $x';
+    }
+  }
+
+  deserializeFunction(List x) {
+    var id = x[1];
+    SendPortSync port = deserializeSendPort(x[2]);
+    // TODO: Support varargs when there is support in the language.
+    return ([arg0 = _UNSPECIFIED, arg1 = _UNSPECIFIED,
+              arg2 = _UNSPECIFIED, arg3 = _UNSPECIFIED]) {
+      var args = [arg0, arg1, arg2, arg3];
+      var last = args.indexOf(_UNSPECIFIED);
+      if (last >= 0) args = args.getRange(0, last);
+      var message = [id, args];
+      return port.callSync(message);
+    };
+  }
+
+  deserializeProxy(x) {
+    String tag = x[1];
+    switch (tag) {
+      case 'nativejs':
+        var id = x[2];
+        return new JsProxy._internal(id);
+      case 'dart':
+        var id = x[2];
+        // TODO(vsm): Check for isolate id.  If the isolate isn't the
+        // current isolate, return a DartProxy.
+        return _getDartProxyObj(id);
+      default: throw 'Illegal proxy: $x';
+    }
+  }
 }
 
 // The receiver is JS.
@@ -195,7 +282,7 @@ class ReceivePortSync {
     _portMap[_portId] = this;
   }
 
-  static int get _isolateId() {
+  static int get _isolateId {
     // TODO(vsm): Make this coherent with existing isolate code.
     if (_cachedIsolateId == null) {
       _cachedIsolateId = _getNewIsolateId();      
@@ -205,7 +292,7 @@ class ReceivePortSync {
 
   static String _getListenerName(isolateId, portId) =>
       'dart-port-$isolateId-$portId'; 
-  String get _listenerName() => _getListenerName(_isolateId, _portId);
+  String get _listenerName => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {
     _callback = callback;

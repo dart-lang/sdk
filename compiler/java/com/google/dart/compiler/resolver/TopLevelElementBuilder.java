@@ -7,7 +7,6 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
@@ -18,6 +17,7 @@ import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -29,13 +29,10 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
-import com.google.dart.compiler.util.apache.ObjectUtils;
-import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Builds all class elements and types of a library. Once all libraries
@@ -77,6 +74,21 @@ public class TopLevelElementBuilder {
     // Fill "library" scope.
     {
       List<Element> exportedElements = Lists.newArrayList();
+      {
+        DartUnit selfUnit = library.getSelfDartUnit();
+        if (selfUnit != null && !selfUnit.getDirectives().isEmpty()
+            && selfUnit.getDirectives().get(0) instanceof DartLibraryDirective) {
+          DartLibraryDirective libraryDirective = (DartLibraryDirective) selfUnit.getDirectives().get(
+              0);
+          if (!libraryDirective.isObsoleteFormat()) {
+            String name = libraryDirective.getLibraryName();
+            if (name != null) {
+              String elementName = "__library_" + name;
+              scope.declareElement(elementName, library.getElement());
+            }
+          }
+        }
+      }
       for (DartUnit unit : library.getUnits()) {
         fillInUnitScope(unit, listener, scope, exportedElements);
       }

@@ -118,16 +118,6 @@ if [ ${DO_OPTIMIZE} == 1 ] ; then
 fi
 
 echo
-echo "=== frog tests ==="
-cd frog 
-./presubmit.py
-FROG_RESULT=$?
-if [ ${FROG_RESULT} != 0 ] ; then
-  TESTS_FAILED=1
-fi
-cd -
-
-echo
 echo "=== Client tests ==="
 echo " Chromium  (Ctrl-C to skip this set of tests)"
 doTest client chromium debug
@@ -158,10 +148,6 @@ fi
 
 if [ ${DARTC_RESULT}  != 0 ] ; then
   echo "*** dartc tests failed"
-fi
-
-if [ ${FROG_RESULT}  != 0 ] ; then
-  echo "*** frog tests failed"
 fi
 
 if [ ${CLIENT_RESULT}  != 0 ] ; then

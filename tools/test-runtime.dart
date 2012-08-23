@@ -6,7 +6,7 @@
 // TODO(ager): Get rid of this version of test.dart when we don't have
 // to worry about the special runtime checkout anymore.
 // This file is identical to test.dart with test suites in the
-// directories samples, client, compiler, frog, and utils removed.
+// directories samples, client, compiler, and utils removed.
 
 #library("test");
 

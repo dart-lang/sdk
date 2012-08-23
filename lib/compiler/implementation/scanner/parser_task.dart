@@ -4,7 +4,7 @@
 
 class ParserTask extends CompilerTask {
   ParserTask(Compiler compiler) : super(compiler);
-  String get name() => 'Parser';
+  String get name => 'Parser';
 
   Node parse(Element element) {
     return measure(() => element.parseNode(compiler));

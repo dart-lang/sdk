@@ -4,6 +4,8 @@
 
 #library("yaml");
 
+#import('dart:math', prefix: 'Math');
+
 #import("deep_equals.dart");
 
 #source("yaml_map.dart");

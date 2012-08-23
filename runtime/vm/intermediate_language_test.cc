@@ -36,7 +36,8 @@ TEST_CASE(DefUseTests) {
   EXPECT(def1->use_list()->next_use() == NULL);
   EXPECT(def2->use_list() == use3);
   EXPECT(def2->use_list()->next_use() == NULL);
-  BindInstr* bind = new BindInstr(BindInstr::kUsed, use2);
+  BindInstr* bind =
+      new BindInstr(BindInstr::kUsed, new BooleanNegateComp(use2));
   bind->RemoveInputUses();
   EXPECT(def1->use_list() == NULL);
   // Test replacing with a definition without uses.
@@ -45,6 +46,24 @@ TEST_CASE(DefUseTests) {
   EXPECT(def1->use_list() == use4);
   EXPECT(def2->use_list() == NULL);
   EXPECT(use4->definition() == def1);
+}
+
+TEST_CASE(OptimizationTests) {
+  Definition* def1 = new PhiInstr(0);
+  Definition* def2 = new PhiInstr(0);
+  UseVal* use1a = new UseVal(def1);
+  UseVal* use1b = new UseVal(def1);
+  EXPECT(use1a->Equals(use1b));
+  UseVal* use2 = new UseVal(def2);
+  EXPECT(!use2->Equals(use1a));
+
+  ConstantVal* c1 = new ConstantVal(Bool::ZoneHandle(Bool::True()));
+  ConstantVal* c2 = new ConstantVal(Bool::ZoneHandle(Bool::True()));
+  EXPECT(c1->Equals(c2));
+  ConstantVal* c3 = new ConstantVal(Object::ZoneHandle());
+  ConstantVal* c4 = new ConstantVal(Object::ZoneHandle());
+  EXPECT(c3->Equals(c4));
+  EXPECT(!c3->Equals(c1));
 }
 
 }  // namespace dart

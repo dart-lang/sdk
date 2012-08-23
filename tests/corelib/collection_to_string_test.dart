@@ -6,12 +6,18 @@
  * Tests for the toString methods on collections (including maps).
  */
 
+#library('collection_to_string');
+#import('dart:math', prefix: 'Math');
+
 // TODO(jjb): seed random number generator when API allows it
 
 final int NUM_TESTS = 300;
 final int MAX_COLLECTION_SIZE = 7;
 
+Math.Random rand;
+
 main() {
+  rand = new Math.Random();
   smokeTest();
   exactTest();
   inexactTest();
@@ -124,7 +130,7 @@ Object randomCollection(int size, StringBuffer stringRep, [bool exact]) {
  */
 Object randomCollectionHelper(int size, bool exact, StringBuffer stringRep,
     List beingMade) {
-  double interfaceFrac = Math.random();
+  double interfaceFrac = rand.nextDouble();
 
   if (exact) {
     if (interfaceFrac < 1/3) {
@@ -261,7 +267,7 @@ Map populateRandomMap(int size, bool exact, StringBuffer stringRep,
 Object randomElement(int size, bool exact, StringBuffer stringRep,
     List beingMade) {
   Object result;
-  double elementTypeFrac = Math.random();
+  double elementTypeFrac = rand.nextDouble();
   if (elementTypeFrac < 1/3) {
     result = random(1000);
     stringRep.add(result);
@@ -281,12 +287,12 @@ Object randomElement(int size, bool exact, StringBuffer stringRep,
 
 /** Returns a random int on [0, max) */
 int random(int max) {
-  return (Math.random() * max).toInt();
+  return rand.nextInt(max);
 }
 
 /** Returns a random boolean value. */
 bool randomBool() {
-  return Math.random() < .5;
+  return rand.nextBool();
 }
 
 /** Returns the alphabetized characters in a string. */

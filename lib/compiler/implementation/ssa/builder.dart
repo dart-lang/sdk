@@ -139,7 +139,7 @@ class SsaBuilderTask extends CompilerTask {
   final Map<SourceString, Selector> selectorsCalledInLoop;
   final JavaScriptBackend backend;
 
-  String get name() => 'SSA builder';
+  String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend)
     : interceptors = new Interceptors(backend.compiler),
@@ -230,7 +230,7 @@ class LocalsHandler {
       : directLocals = new Map<Element, HInstruction>(),
         redirectionMapping = new Map<Element, Element>();
 
-  get typesTask() => builder.compiler.typesTask;
+  get typesTask => builder.compiler.typesTask;
 
   /**
    * Creates a new [LocalsHandler] based on [other]. We only need to
@@ -823,9 +823,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // block is closed.
   HBasicBlock lastOpenedBlock;
 
-  LibraryElement get currentLibrary() => work.element.getLibrary();
-  Compiler get compiler() => builder.compiler;
-  CodeEmitterTask get emitter() => builder.emitter;
+  LibraryElement get currentLibrary => work.element.getLibrary();
+  Compiler get compiler => builder.compiler;
+  CodeEmitterTask get emitter => builder.emitter;
 
   SsaBuilder(SsaBuilderTask builder, WorkItem work)
     : this.builder = builder,
@@ -1065,14 +1065,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (body === null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
+      int arity = body.functionSignature.parameterCount;
       body.functionSignature.forEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
       // TODO(ahe): The constructor name is statically resolved. See
       // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
       // way to do this?
-      SourceString methodName = new SourceString(compiler.namer.getName(body));
-      add(new HInvokeDynamicMethod(null, methodName, bodyCallInputs));
+      SourceString name = new SourceString(compiler.namer.getName(body));
+      // TODO(kasperl): This seems fishy. We shouldn't be inventing all
+      // these selectors. Maybe the resolver can do more of the work
+      // for us here?
+      LibraryElement library = body.getLibrary();
+      Selector selector = new Selector.call(name, library, arity);
+      add(new HInvokeDynamicMethod(selector, bodyCallInputs));
     }
     close(new HReturn(newObject)).addSuccessor(graph.exit);
     return closeFunction();
@@ -1745,8 +1751,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void generateInstanceGetterWithCompiledReceiver(Send send,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
-    SourceString getterName = send.selector.asIdentifier().source;
-    Selector selector = elements.getSelector(send);
+    // TODO(kasperl): This is a convoluted way of checking if we're
+    // generating code for a compound assignment. If we are, we need
+    // to get the selector from the mapping for the AST selector node.
+    Selector selector = (send.asSendSet() === null)
+        ? elements.getSelector(send)
+        : elements.getSelector(send.selector);
+    assert(selector.isGetter());
+    SourceString getterName = selector.name;
     Element staticInterceptor = null;
     if (methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
@@ -1755,9 +1767,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
-      push(new HInvokeInterceptor(selector, getterName, inputs, getter: true));
+      push(new HInvokeInterceptor(selector, inputs));
     } else {
-      push(new HInvokeDynamicGetter(selector, null, getterName, receiver));
+      push(new HInvokeDynamicGetter(selector, null, receiver));
     }
   }
 
@@ -1789,21 +1801,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   HInstruction receiver,
                                                   HInstruction value) {
     assert(Elements.isInstanceSend(send, elements));
-    SourceString dartSetterName = send.selector.asIdentifier().source;
     Selector selector = elements.getSelector(send);
+    assert(selector.isSetter());
+    SourceString setterName = selector.name;
     Element staticInterceptor = null;
     if (methodInterceptionEnabled) {
-      staticInterceptor = interceptors.getStaticSetInterceptor(dartSetterName);
+      staticInterceptor = interceptors.getStaticSetInterceptor(setterName);
     }
     if (staticInterceptor != null) {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
-      add(new HInvokeInterceptor(
-          selector, dartSetterName, inputs, setter: true));
+      add(new HInvokeInterceptor(selector, inputs));
     } else {
-      add(new HInvokeDynamicSetter(selector, null, dartSetterName,
-                                   receiver, value));
+      add(new HInvokeDynamicSetter(selector, null, receiver, value));
     }
     stack.add(value);
   }
@@ -1903,9 +1914,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
-        // TODO(karlklose): We emulate the frog behavior and answer
-        // true to any is check involving a type variable -- both is T
-        // and is !T -- until we have a proper implementation of
+        // TODO(karlklose): We emulate the behavior of the old frog 
+        // compiler and answer true to any is check involving a type variable 
+        // -- both is T and is !T -- until we have a proper implementation of
         // reified generics.
         stack.add(graph.addConstantBool(true));
       } else {
@@ -2039,7 +2050,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.receiver);
       inputs.add(pop());
       addGenericSendArgumentsToList(node.arguments, inputs);
-      push(new HInvokeInterceptor(selector, dartMethodName, inputs));
+      push(new HInvokeInterceptor(selector, inputs));
       return;
     }
 
@@ -2053,8 +2064,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     addDynamicSendArgumentsToList(node, inputs);
 
     // The first entry in the inputs list is the receiver.
-    pushWithPosition(new HInvokeDynamicMethod(selector, dartMethodName, inputs),
-                     node);
+    pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
 
     if (isNotEquals) {
       HNot not = new HNot(popBoolified());
@@ -2211,21 +2221,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitForeignSend(Send node) {
-    Element element = elements[node];
-    if (element.name == const SourceString('JS')) {
+    Selector selector = elements.getSelector(node);
+    SourceString name = selector.name;
+    if (name == const SourceString('JS')) {
       handleForeignJs(node);
-    } else if (element.name == const SourceString('UNINTERCEPTED')) {
+    } else if (name == const SourceString('UNINTERCEPTED')) {
       handleForeignUnintercepted(node);
-    } else if (element.name == const SourceString('JS_HAS_EQUALS')) {
+    } else if (name == const SourceString('JS_HAS_EQUALS')) {
       handleForeignJsHasEquals(node);
-    } else if (element.name == const SourceString('JS_CURRENT_ISOLATE')) {
+    } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
       handleForeignJsCurrentIsolate(node);
-    } else if (element.name == const SourceString('JS_CALL_IN_ISOLATE')) {
+    } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
-    } else if (element.name == const SourceString('DART_CLOSURE_TO_JS')) {
+    } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
       handleForeignDartClosureToJs(node);
     } else {
-      throw "Unknown foreign: ${node.selector}";
+      throw "Unknown foreign: ${selector}";
     }
   }
 
@@ -2405,7 +2416,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    if (node.isConst()) {
+    Element element = elements[node.send];
+    if (Element.isInvalid(element)) {
+      // TODO(karlklose): generate runtime error or noSuchMethodCall, depending
+      // on whether element is null or it is an erroneous element with a
+      // particular error message.
+      compiler.cancel('Unimplemented unresolved constructor call', node: node);
+    } else if (node.isConst()) {
       // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
@@ -2748,13 +2765,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction buildCondition() {
       SourceString name = const SourceString('hasNext');
       Selector call = new Selector.call(name, work.element.getLibrary(), 0);
-      push(new HInvokeDynamicMethod(call, name, <HInstruction>[iterator]));
+      push(new HInvokeDynamicMethod(call, <HInstruction>[iterator]));
       return popBoolified();
     }
     void buildBody() {
       SourceString name = const SourceString('next');
       Selector call = new Selector.call(name, work.element.getLibrary(), 0);
-      push(new HInvokeDynamicMethod(call, name, <HInstruction>[iterator]));
+      push(new HInvokeDynamicMethod(call, <HInstruction>[iterator]));
 
       Element variable;
       if (node.declaredIdentifier.asSend() !== null) {
@@ -3420,7 +3437,7 @@ class SsaBranchBuilder {
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 
-  Compiler get compiler() => builder.compiler;
+  Compiler get compiler => builder.compiler;
 
   void checkNotAborted() {
     if (builder.isAborted()) {

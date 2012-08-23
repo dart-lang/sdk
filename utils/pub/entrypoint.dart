@@ -123,17 +123,16 @@ class Entrypoint {
 
   /**
    * Installs the latest available versions of [dependencies], while leaving
-   * other dependencies as specified by the [LockFile]. Returns a [Future] that
-   * completes when all dependencies are installed.
+   * other dependencies as specified by the [LockFile] if possible. Returns a
+   * [Future] that completes when all dependencies are installed.
    */
   Future updateDependencies(List<String> dependencies) {
     return _loadLockFile().chain((lockFile) {
+      var versionSolver = new VersionSolver(cache.sources, root, lockFile);
       for (var dependency in dependencies) {
-        // TODO(nweiz): How do we want to detect and handle unknown
-        // dependencies here?
-        lockFile.packages.remove(dependency);
+        versionSolver.useLatestVersion(dependency);
       }
-      return resolveVersions(cache.sources, root, lockFile);
+      return versionSolver.solve();
     }).chain(_installDependencies);
   }
 

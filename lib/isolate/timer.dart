@@ -20,3 +20,34 @@ interface Timer default _TimerFactory {
    */
   void cancel();
 }
+
+// TODO(ajohnsen): Patch timer once we have support for patching named
+//                 factory constructors in the VM.
+
+typedef Timer _TimerFactoryClosure(int milliSeconds,
+                                   void callback(Timer timer),
+                                   bool repeating);
+
+// _TimerFactory provides a hook which allows various implementations of this
+// library to provide a concrete class for the Timer interface.
+class _TimerFactory {
+  factory Timer(int milliSeconds, void callback(Timer timer)) {
+    if (_factory == null) {
+      throw new UnsupportedOperationException("Timer interface not supported.");
+    }
+    return _factory(milliSeconds, callback, false);
+  }
+
+  factory Timer.repeating(int milliSeconds, void callback(Timer timer)) {
+    if (_factory == null) {
+      throw new UnsupportedOperationException("Timer interface not supported.");
+    }
+    return _factory(milliSeconds, callback, true);
+  }
+
+  static _TimerFactoryClosure _factory;
+}
+
+void _setTimerFactoryClosure(_TimerFactoryClosure closure) {
+  _TimerFactory._factory = closure;
+}

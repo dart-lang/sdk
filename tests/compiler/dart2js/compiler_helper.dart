@@ -36,10 +36,22 @@ String compileAll(String code) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri);
   compiler.runCompiler(uri);
+  Expect.isFalse(compiler.compilationFailed,
+                 'Unexpected compilation error');
   return compiler.assembledCode;
 }
 
-lego.Element findElement(var compiler, String name) {
+Dynamic compileAndCheck(String code,
+                        String name,
+                        check(MockCompiler compiler, lego.Element element)) {
+  Uri uri = new Uri.fromComponents(scheme: 'source');
+  MockCompiler compiler = compilerFor(code, uri);
+  compiler.runCompiler(uri);
+  lego.Element element = findElement(compiler, name);
+  return check(compiler, element);
+}
+
+lego.Element findElement(compiler, String name) {
   var element = compiler.mainApp.find(buildSourceString(name));
   Expect.isNotNull(element, 'Could not locate $name.');
   return element;
@@ -57,10 +69,10 @@ String getNumberTypeCheck(String variable) {
 
 bool checkNumberOfMatches(Iterator it, int nb) {
   for (int i = 0; i < nb; i++) {
-    Expect.isTrue(it.hasNext());
+    Expect.isTrue(it.hasNext(), "Found less than $nb matches");
     it.next();
   }
-  Expect.isFalse(it.hasNext());
+  Expect.isFalse(it.hasNext(), "Found more than $nb matches");
 }
 
 void compileAndMatch(String code, String entry, RegExp regexp) {

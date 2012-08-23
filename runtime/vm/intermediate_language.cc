@@ -44,6 +44,18 @@ bool Computation::Equals(Computation* other) const {
 }
 
 
+bool UseVal::Equals(Value* other) const {
+  return other->IsUse()
+      && definition() == other->AsUse()->definition();
+}
+
+
+bool ConstantVal::Equals(Value* other) const {
+  return other->IsConstant()
+      && value().raw() == other->AsConstant()->value().raw();
+}
+
+
 bool CheckClassComp::AttributesEqual(Computation* other) const {
   CheckClassComp* other_check = other->AsCheckClass();
   if (other_check == NULL) return false;
@@ -81,7 +93,7 @@ bool UseVal::BindsToConstant() const {
   if (bind == NULL) {
     return false;
   }
-  return bind->computation()->AsConstant() != NULL;
+  return bind->computation()->AsMaterialize() != NULL;
 }
 
 
@@ -91,9 +103,9 @@ bool UseVal::BindsToConstantNull() const {
   if (bind == NULL) {
     return false;
   }
-  ConstantVal* constant = bind->computation()->AsConstant();
+  MaterializeComp* constant = bind->computation()->AsMaterialize();
   if (constant != NULL) {
-    return constant->value().IsNull();
+    return constant->constant_val()->value().IsNull();
   }
   return false;
 }
@@ -103,9 +115,9 @@ const Object& UseVal::BoundConstant() const {
   ASSERT(BindsToConstant());
   BindInstr* bind = definition()->AsBind();
   ASSERT(bind != NULL);
-  ConstantVal* constant = bind->computation()->AsConstant();
+  MaterializeComp* constant = bind->computation()->AsMaterialize();
   ASSERT(constant != NULL);
-  return constant->value();
+  return constant->constant_val()->value();
 }
 
 
@@ -709,6 +721,17 @@ intptr_t UseVal::ResultCid() const {
 }
 
 
+
+RawAbstractType* MaterializeComp::CompileType() const {
+  return constant_val()->CompileType();
+}
+
+
+intptr_t MaterializeComp::ResultCid() const {
+  return constant_val()->ResultCid();
+}
+
+
 RawAbstractType* AssertAssignableComp::CompileType() const {
   const AbstractType& value_compile_type =
       AbstractType::Handle(value()->CompileType());
@@ -962,34 +985,36 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 }
 
 
-RawAbstractType* BinaryOpComp::CompileType() const {
+RawAbstractType* BinarySmiOpComp::CompileType() const {
   ObjectStore* object_store = Isolate::Current()->object_store();
-  if (operands_type() == kMintOperands) {
-    return object_store->mint_type();
-  }
-  if (op_kind() == Token::kSHL) {
-    return Type::IntInterface();
-  }
-  ASSERT(operands_type() == kSmiOperands);
-  return object_store->smi_type();
+  return (op_kind() == Token::kSHL)
+      ? Type::IntInterface()
+      : object_store->smi_type();
 }
 
 
-intptr_t BinaryOpComp::ResultCid() const {
-  if (operands_type() == kMintOperands) {
-    return kMintCid;
-  }
-  ASSERT(operands_type() == kSmiOperands);
+intptr_t BinarySmiOpComp::ResultCid() const {
   return (op_kind() == Token::kSHL) ? kDynamicCid : kSmiCid;
 }
 
 
-RawAbstractType* DoubleBinaryOpComp::CompileType() const {
+RawAbstractType* BinaryMintOpComp::CompileType() const {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  return object_store->mint_type();
+}
+
+
+intptr_t BinaryMintOpComp::ResultCid() const {
+  return kMintCid;
+}
+
+
+RawAbstractType* BinaryDoubleOpComp::CompileType() const {
   return Type::DoubleInterface();
 }
 
 
-intptr_t DoubleBinaryOpComp::ResultCid() const {
+intptr_t BinaryDoubleOpComp::ResultCid() const {
   return kDoubleCid;
 }
 
@@ -1096,9 +1121,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                           original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget,
-                                          instance_reg,
-                                          value_reg);
+                                          kDeoptInstanceGetterSameTarget);
     // Smis do not have instance fields (Smi class is always first).
     Register temp_reg = locs()->temp(0).reg();
     ASSERT(temp_reg != instance_reg);
@@ -1337,16 +1360,6 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UseVal::MakeLocationSummary() const {
-  return NULL;
-}
-
-
-void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(deopt_id(),
@@ -1483,21 +1496,19 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where PushArgument is handled in FrameRegisterAllocator::AllocateRegisters.
-  // Instead of popping the value it is left alone on the simulated frame
-  // and materialized on the physical stack before the call.
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
   // TODO(fschneider): Avoid special-casing for SSA mode here.
-  if (compiler->is_ssa()) {
+  if (compiler->is_optimizing()) {
     ASSERT(locs()->in(0).IsRegister());
     __ PushRegister(locs()->in(0).reg());
   }
 }
 
 
-// Helper to either use the constant value of a defintion or the defintion.
+// Helper to either use the constant value of a definition or the definition.
 static Value* UseDefinition(Definition* defn) {
-  if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
-    return defn->AsBind()->computation()->AsConstant();
+  if (defn->IsBind() && defn->AsBind()->computation()->IsMaterialize()) {
+    return defn->AsBind()->computation()->AsMaterialize()->constant_val();
   } else {
     return new UseVal(defn);
   }

@@ -16,6 +16,7 @@ import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartToSourceVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
@@ -145,7 +146,7 @@ public class DartCompiler {
       this.phases = config.getPhases();
       this.context = context;
       for (LibrarySource library : embedded) {
-        if (SystemLibraryManager.isDartSpec(library.getName())) {
+        if (PackageLibraryManager.isDartSpec(library.getName())) {
           LibrarySource foundLibrary = context.getSystemLibraryFor(library.getName());
           assert(foundLibrary != null);
           embeddedLibraries.add(foundLibrary);
@@ -256,7 +257,7 @@ public class DartCompiler {
             }
 
             if (!incremental
-                || SystemLibraryManager.isDartUri(libSrc.getUri())
+                || PackageLibraryManager.isDartUri(libSrc.getUri())
                 || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
               // If we just parsed unit of library, report problems.
@@ -444,7 +445,7 @@ public class DartCompiler {
         throws IOException {
       String libSpec = libNode.getText();
       LibrarySource dep;
-      if (SystemLibraryManager.isDartSpec(libSpec)) {
+      if (PackageLibraryManager.isDartSpec(libSpec)) {
         dep = context.getSystemLibraryFor(libSpec);
       } else {
         dep = libSrc.getImportFor(libSpec);
@@ -612,7 +613,7 @@ public class DartCompiler {
     private void validateLibraryDirectives() {
       for (LibraryUnit lib : getLibrariesToProcess()) {
         // don't need to validate system libraries
-        if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
+        if (PackageLibraryManager.isDartUri(lib.getSource().getUri())) {
           continue;
         }
         
@@ -655,7 +656,7 @@ public class DartCompiler {
         // check that each imported library has a library directive
         for (LibraryUnit importedLib  : lib.getImportedLibraries()) {
 
-          if (SystemLibraryManager.isDartUri(importedLib.getSource().getUri())) {
+          if (PackageLibraryManager.isDartUri(importedLib.getSource().getUri())) {
             // system libraries are always valid
             continue;
           }
@@ -697,7 +698,7 @@ public class DartCompiler {
             // don't need to check a unit that hasn't changed
             continue;
           }
-          if (unit.getDirectives().size() > 0) {
+          if (invalidDirectivesForPart(unit.getDirectives())) {
             // find corresponding source node for this unit
             for (LibraryNode sourceNode : lib.getSourcePaths()) {
               if (sourceNode == lib.getSelfSourcePath()) {
@@ -715,6 +716,14 @@ public class DartCompiler {
           }
         }
       }
+    }
+
+    private boolean invalidDirectivesForPart(List<DartDirective> directives) {
+      int size = directives.size();
+      if (size == 1) {
+        return !(directives.get(0) instanceof DartPartOfDirective);
+      }
+      return size > 0;
     }
 
     private void setEntryPoint() {
@@ -770,38 +779,34 @@ public class DartCompiler {
           boolean persist = false;
 
           // Compile all the units in this library.
-          for (DartUnit unit : lib.getUnits()) {
-
-            // Don't compile diet units.
-            if (unit.isDiet()) {
-              continue;
-            }
-
-            updateAnalysisTimestamp(unit);
+          for (DartCompilationPhase phase : phases) {
 
             // Run all compiler phases including AST simplification and symbol
             // resolution. This must run in serial.
-            for (DartCompilationPhase phase : phases) {
-              TraceEvent phaseEvent =
-                  Tracer.canTrace() ? Tracer.start(DartEventType.EXEC_PHASE, "phase", phase
-                      .getClass().getCanonicalName(), "lib", lib.getName(), "unit", unit
-                      .getSourceName()) : null;
-              try {
-                unit = phase.exec(unit, context, getTypeProvider());
-              } finally {
-                Tracer.end(phaseEvent);
+            for (DartUnit unit : lib.getUnits()) {
+              
+              // Don't compile diet units.
+              if (unit.isDiet()) {
+                continue;
               }
+
+              unit = phase.exec(unit, context, getTypeProvider());
               if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
                 return;
               }
             }
 
+          }
+
+          for (DartUnit unit : lib.getUnits()) {
+            if (unit.isDiet()) {
+              continue;
+            }
+            updateAnalysisTimestamp(unit);
             // To help support the IDE, notify the listener that this unit is compiled.
             context.unitCompiled(unit);
-
             // Update deps.
             lib.getDeps(context).update(context, unit);
-
             // We analyzed something, so we need to persist the deps.
             persist = true;
           }
@@ -1029,7 +1034,7 @@ public class DartCompiler {
     }
 
     CompilerConfiguration config = new DefaultCompilerConfiguration(compilerOptions);
-    config.getSystemLibraryManager().setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
+    config.getPackageLibraryManager().setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
     return compilerMain(sourceFile, config);
   }
 
@@ -1094,7 +1099,7 @@ public class DartCompiler {
       File outputDirectory = config.getOutputDirectory();
       DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(outputDirectory);
       // Compile the Dart application and its dependencies.
-      SystemLibraryManager libraryManager = config.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = config.getPackageLibraryManager();
       final LibrarySource lib = new UrlLibrarySource(sourceFile.toURI(),libraryManager);
       DefaultDartCompilerListener listener;
       if (config.getCompilerOptions().showSourceFromAst()) {
@@ -1204,7 +1209,7 @@ public class DartCompiler {
   public static LibraryUnit analyzeLibrary(LibrarySource lib, final Map<URI, DartUnit> parsedUnits,
       CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
       throws IOException {
-    final SystemLibraryManager manager = config.getSystemLibraryManager();
+    final PackageLibraryManager manager = config.getPackageLibraryManager();
     final HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
     SelectiveCache selectiveCache = new SelectiveCache() {
       @Override
@@ -1279,17 +1284,17 @@ public class DartCompiler {
       LibraryUnit libUnit = entry.getValue();
       if (!resolvedLibs.containsKey(libUri) && libUnit != null) {
         newLibraries.put(libUri, libUnit);
-        for (DartUnit unit : libUnit.getUnits()) {
-          // Don't analyze diet units.
-          if (unit.isDiet()) {
-            continue;
-          }
-          for (DartCompilationPhase phase : phases) {
+        for (DartCompilationPhase phase : phases) {
+          // Run phase on all units, because "const" phase expects to have fully resolved library.
+          for (DartUnit unit : libUnit.getUnits()) {
+            if (unit.isDiet()) {
+              continue;
+            }
             unit = phase.exec(unit, context, compiler.getTypeProvider());
-            // Ignore errors. Resolver and TypeAnalyzer should be able to cope with
-            // resolution errors.
           }
-          // To help support the IDE, notify the listener that this unit is compiled.
+        }
+        // To help support the IDE, notify the listener that these unit were compiled.
+        for (DartUnit unit : libUnit.getUnits()) {
           context.unitCompiled(unit);
         }
       }

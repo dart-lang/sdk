@@ -7,6 +7,8 @@
 
 #library('crypto');
 
+#import('dart:math');
+
 /**
  * Interface for cryptographic hash functions.
  *

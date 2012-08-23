@@ -7,8 +7,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
   SsaCodeGeneratorTask(JavaScriptBackend backend)
       : this.backend = backend,
         super(backend.compiler);
-  String get name() => 'SSA code generator';
-  NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
+  String get name => 'SSA code generator';
+  NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
 
   js.Fun buildJavaScriptFunction(FunctionElement element,
@@ -27,7 +27,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
-      HTypeMap types = work.compilationContext.types;
+      JavaScriptItemCompilationContext context = work.compilationContext;
+      HTypeMap types = context.types;
       graph.exit.predecessors.forEach((block) {
         assert(block.last is HGoto || block.last is HReturn);
         if (block.last is HReturn) {
@@ -149,7 +150,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Map<Element, String> parameterNames;
 
   js.Block currentContainer;
-  js.Block get body() => currentContainer;
+  js.Block get body => currentContainer;
   List<js.Expression> expressionStack;
   List<js.Block> oldContainerStack;
 
@@ -199,10 +200,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>();
 
-  LibraryElement get currentLibrary() => work.element.getLibrary();
-  Compiler get compiler() => backend.compiler;
-  NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
-  Enqueuer get world() => backend.compiler.enqueuer.codegen;
+  LibraryElement get currentLibrary => work.element.getLibrary();
+  Compiler get compiler => backend.compiler;
+  NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
+  Enqueuer get world => backend.compiler.enqueuer.codegen;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -1403,6 +1404,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
+    SourceString name = node.selector.name;
     String methodName;
     List<js.Expression> arguments;
 
@@ -1411,11 +1413,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.inputs[0] is HForeignNew) {
       // TODO(ahe): The constructor name was statically resolved in
       // SsaBuilder.buildFactory. Is there a cleaner way to do this?
-      methodName = node.name.slowToString();
+      methodName = name.slowToString();
       arguments = visitArguments(node.inputs);
     } else {
       methodName = compiler.namer.instanceMethodInvocationName(
-          currentLibrary, node.name, node.selector);
+          node.selector.library, name, node.selector);
       arguments = visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader !== null;
 
@@ -1441,8 +1443,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (inLoop) backend.builder.functionsCalledInLoop.add(target);
         world.registerDynamicInvocationOf(target);
       } else {
-        if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
-        world.registerDynamicInvocation(node.name, selector);
+        if (inLoop) backend.builder.selectorsCalledInLoop[name] = selector;
+        world.registerDynamicInvocation(name, selector);
       }
     }
     push(jsPropertyCall(object, methodName, arguments), node);
@@ -1451,7 +1453,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
                                    Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
-    if (node.name.isPrivate()) return defaultSelector;
+    if (defaultSelector.name.isPrivate()) return defaultSelector;
     HType receiverHType = types[node.inputs[0]];
     Type receiverType = receiverHType.computeType(compiler);
     if (receiverType !== null) {
@@ -1463,24 +1465,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
-    push(jsPropertyCall(pop(),
-                        compiler.namer.setterName(currentLibrary, node.name),
-                        visitArguments(node.inputs)),
-         node);
-    Selector setter = new Selector.setter(node.name, currentLibrary);
+    Selector setter = node.selector;
+    String name = compiler.namer.setterName(setter.library, setter.name);
+    push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicSetter(
-        node.name, getOptimizedSelectorFor(node, setter));
+        setter.name, getOptimizedSelectorFor(node, setter));
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
-    push(jsPropertyCall(pop(),
-                        compiler.namer.getterName(currentLibrary, node.name),
-                        visitArguments(node.inputs)),
-         node);
-    Selector getter = new Selector.getter(node.name, currentLibrary);
+    Selector getter = node.selector;
+    String name = compiler.namer.getterName(getter.library, getter.name);
+    push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
-        node.name, getOptimizedSelectorFor(node, getter));
+        getter.name, getOptimizedSelectorFor(node, getter));
   }
 
   visitInvokeClosure(HInvokeClosure node) {
@@ -1495,7 +1493,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     if (Elements.isStaticOrTopLevelFunction(node.element) &&
-        node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE) {
+        (node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE ||
+         node.typeCode() == HInvokeStatic.INVOKE_INTERCEPTOR_TYPECODE)) {
       // Register this invocation to collect the types used at all call sites.
       backend.registerStaticInvocation(node, types);
     }
@@ -2030,19 +2029,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Don't count the target method or the receiver in the arity.
     int arity = interceptor.inputs.length - 2;
     HInstruction receiver = interceptor.inputs[1];
-    bool getter = interceptor.getter;
-    SourceString name = interceptor.name;
+    bool isCall = interceptor.selector.isCall();
+    SourceString name = interceptor.selector.name;
 
     if (interceptor.isLengthGetterOnStringOrArray(types)) {
       return 'length';
-    } else if (receiver.isExtendableArray(types) && !getter) {
+    } else if (receiver.isExtendableArray(types) && isCall) {
       if (name == const SourceString('add') && arity == 1) {
         return 'push';
       }
       if (name == const SourceString('removeLast') && arity == 0) {
         return 'pop';
       }
-    } else if (receiver.isString(types) && !getter) {
+    } else if (receiver.isString(types) && isCall) {
       if (name == const SourceString('concat') &&
           arity == 1 &&
           interceptor.inputs[2].isString(types)) {
@@ -2064,7 +2063,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         use(node.inputs[1]);
         js.PropertyAccess access = new js.PropertyAccess.field(pop(), builtin);
-        if (node.getter) {
+        if (node.selector.isGetter()) {
           push(access, node);
           return;
         }

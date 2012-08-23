@@ -29,6 +29,7 @@ final int MINUS_TOKEN = $MINUS;
 final int PERIOD_TOKEN = $PERIOD;
 final int PLUS_TOKEN = $PLUS;
 final int QUESTION_TOKEN = $QUESTION;
+final int AT_TOKEN = $AT;
 final int CLOSE_CURLY_BRACKET_TOKEN = $CLOSE_CURLY_BRACKET;
 final int CLOSE_SQUARE_BRACKET_TOKEN = $CLOSE_SQUARE_BRACKET;
 final int CLOSE_PAREN_TOKEN = $CLOSE_PAREN;
@@ -101,7 +102,7 @@ class Token {
 
   Token(PrecedenceInfo this.info, int this.charOffset);
 
-  get value() => info.value;
+  get value => info.value;
 
   /**
    * Returns the string value for keywords and symbols. For instance 'class' for
@@ -111,17 +112,17 @@ class Token {
    *
    * [stringValue] should only be used for testing keywords and symbols.
    */
-  String get stringValue() => info.value.stringValue;
+  String get stringValue => info.value.stringValue;
 
   /**
    * The kind enum of this token as determined by its [info].
    */
-  int get kind() => info.kind;
+  int get kind => info.kind;
 
   /**
    * The precedence level for this token.
    */
-  int get precedence() => info.precedence;
+  int get precedence => info.precedence;
 
   /**
    * Returns a textual representation of this token to be used for debugging
@@ -139,7 +140,7 @@ class Token {
   /**
    * The number of characters parsed by this token.
    */
-  int get slowCharCount() => slowToString().length;
+  int get slowCharCount => slowToString().length;
 }
 
 /**
@@ -147,7 +148,7 @@ class Token {
  */
 class KeywordToken extends Token {
   final Keyword value;
-  String get stringValue() => value.syntax;
+  String get stringValue => value.syntax;
 
   KeywordToken(Keyword value, int charOffset)
     : this.value = value, super(value.info, charOffset);
@@ -160,7 +161,7 @@ class KeywordToken extends Token {
  */
 class StringToken extends Token {
   final SourceString value;
-  String get stringValue() => value.stringValue;
+  String get stringValue => value.stringValue;
 
   StringToken(PrecedenceInfo info, String value, int charOffset)
     : this.fromSource(info, new SourceString(value), charOffset);
@@ -329,6 +330,9 @@ final PrecedenceInfo SEMICOLON_INFO =
   const PrecedenceInfo(const SourceString(';'), 0, SEMICOLON_TOKEN);
 final PrecedenceInfo COMMA_INFO =
   const PrecedenceInfo(const SourceString(','), 0, COMMA_TOKEN);
+
+final PrecedenceInfo AT_INFO =
+  const PrecedenceInfo(const SourceString('@'), 0, AT_TOKEN);
 
 // Assignment operators.
 final int ASSIGNMENT_PRECEDENCE = 1;

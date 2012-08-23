@@ -57,9 +57,9 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptPolymorphicInstanceCallTestFail) \
   V(DeoptIntegerToDouble) \
   V(DeoptDoubleToDouble) \
-  V(DeoptSmiBinaryOp) \
-  V(DeoptMintBinaryOp) \
-  V(DeoptDoubleBinaryOp) \
+  V(DeoptBinarySmiOp) \
+  V(DeoptBinaryMintOp) \
+  V(DeoptBinaryDoubleOp) \
   V(DeoptInstanceSetterSameTarget) \
   V(DeoptInstanceSetter) \
   V(DeoptSmiEquality) \

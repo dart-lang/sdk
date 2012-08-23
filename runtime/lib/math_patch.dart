@@ -3,15 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // A VM patch of the dart:math library.
-
 patch int parseInt(String str) => MathNatives.parseInt(str);
-
 patch double parseDouble(String str) => MathNatives.parseDouble(str);
-
-patch double atan2(num a, num b) => MathNatives.atan2(a, b);
-
 patch num pow(num x, num exponent) => MathNatives.pow(x, exponent);
-
+patch double atan2(num a, num b) => MathNatives.atan2(a, b);
 patch double sin(num x) => MathNatives.sin(x);
 patch double cos(num x) => MathNatives.cos(x);
 patch double tan(num x) => MathNatives.tan(x);
@@ -43,7 +38,7 @@ class _Random implements Random {
   var _state;
 
   _Random._internal(this._state);
-  
+
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.

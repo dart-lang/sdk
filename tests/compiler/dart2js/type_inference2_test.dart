@@ -14,7 +14,5 @@ sum(param0, param1) {
 
 main() {
   String generated = compile(TEST_ONE, 'sum');
-  // We don't want "i = t0" in the loop-update, but i = <id> + 1.
-  RegExp regexp = new RegExp("i = \\(?$anyIdentifier \\+ \\(1\\)\\)?");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains('++i'));
 }

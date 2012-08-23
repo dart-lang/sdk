@@ -168,9 +168,9 @@ class Selector implements Hashable {
       => operatorName(const SourceString('[]='), false);
 
   int hashCode() => argumentCount + 1000 * namedArguments.length;
-  int get namedArgumentCount() => namedArguments.length;
-  int get positionalArgumentCount() => argumentCount - namedArgumentCount;
-  Type get receiverType() => null;
+  int get namedArgumentCount => namedArguments.length;
+  int get positionalArgumentCount => argumentCount - namedArgumentCount;
+  Type get receiverType => null;
 
   bool applies(Element element, Compiler compiler) {
     if (element.isSetter()) return isSetter();
@@ -361,7 +361,7 @@ class TypedSelector extends Selector {
 
     // A closure can be called through any typed selector:
     // class A {
-    //   get foo() => () => 42;
+    //   get foo => () => 42;
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
     ClassElement other = element.getEnclosingClass();

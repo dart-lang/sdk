@@ -39,6 +39,13 @@ class Math {
 }
 ''';
 
+final ioLib = @'''
+#library('io');
+class Platform {
+  static int operatingSystem;
+}
+''';
+
 testDart2Dart(String src, [void continuation(String s)]) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
@@ -63,6 +70,7 @@ testDart2DartWithLibrary(
       return new Future.immediate(srcLibrary);
     }
     if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
+    if (uri.path.endsWith('/io.dart')) return new Future.immediate(ioLib);
     return new Future.immediate('');
   }
 
@@ -279,16 +287,16 @@ main() {
 }
 ''';
   var expectedResult =
-      'globalfoo(){}var p_globalVar;var globalVarInitialized=6,p_globalVarInitialized2=7;'
-      'class p_A{p_A(){}p_A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
-      'p_globalfoo(){}var globalVar;var p_globalVarInitialized=6,globalVarInitialized2=7;'
+      'globalfoo(){}var globalVar;var globalVarInitialized=6,globalVarInitialized2=7;'
       'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
-      'main(){globalVar; p_globalVarInitialized; globalVarInitialized2; p_globalfoo();'
+      'p_globalfoo(){}var p_globalVar;var p_globalVarInitialized=6,p_globalVarInitialized2=7;'
+      'class p_A{p_A(){}p_A.fromFoo(){}static p_staticfoo(){}foo(){}static final p_field=5;}'
+      'main(){p_globalVar; p_globalVarInitialized; p_globalVarInitialized2; p_globalfoo();'
+         ' p_A.p_field; p_A.p_staticfoo();'
+         ' new p_A(); new p_A.fromFoo(); new p_A().foo();'
+         ' globalVar; globalVarInitialized; globalVarInitialized2; globalfoo();'
          ' A.field; A.staticfoo();'
-         ' new A(); new A.fromFoo(); new A().foo();'
-         ' p_globalVar; globalVarInitialized; p_globalVarInitialized2; globalfoo();'
-         ' p_A.field; p_A.staticfoo();'
-         ' new p_A(); new p_A.fromFoo(); new p_A().foo();}';
+         ' new A(); new A.fromFoo(); new A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -389,11 +397,11 @@ main() {
 ''';
   var expectedResult =
     'topfoo(){}'
-    'class p_A{foo(){}}'
+    'class A{foo(){}}'
     'p_topfoo(){var x=5;}'
-    'class A{num foo(){}A.fromFoo(){}p_A myliba;List<A> mylist;}'
-    'p_A getA()=> null;'
-    'main(){var a=new p_A(); a.foo(); var b=new A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}';
+    'class p_A{num foo(){}p_A.fromFoo(){}A myliba;List<p_A> mylist;}'
+    'A getA()=> null;'
+    'main(){var a=new A(); a.foo(); var b=new p_A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -477,6 +485,173 @@ main() {
   Expect.isTrue(collector.elementNodes[classElement].contains(defaultTypeNode));
 }
 
+testFactoryRename() {
+  var librarySrc = '''
+#library('mylib');
+
+interface I default B { I(); }
+class A implements I { A() {} }
+class B { factory I() {} }
+
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+interface I default B { I(); }
+class A implements I { A() {} }
+class B { factory I() {} }
+
+main() {
+  new I();
+  new A();
+
+  new mylib.I();
+  new mylib.A();
+}
+''';
+  var expectedResult =
+    'interface I default B{I();}'
+    'class A implements I{A(){}}'
+    'class B{factory I(){}}'
+    'interface p_I default p_B{p_I();}'
+    'class p_A implements p_I{p_A(){}}'
+    'class p_B{factory p_I(){}}'
+    'main(){new p_I(); new p_A(); new I(); new A();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testTypeVariablesAreRenamed() {
+  // Somewhat a hack: we require all the references of the identifier
+  // to be renamed in the same way for the whole library. Hence
+  // if we have a class and type variable with the same name, they
+  // both should be renamed.
+  var librarySrc = '''
+#library('mylib');
+typedef void MyFunction<T extends num>(T arg);
+class T {}
+class B<T> {}
+class A<T> extends B<T> { T f; }
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+typedef void MyFunction<T extends num>(T arg);
+class T {}
+class B<T> {}
+class A<T> extends B<T> { T f; }
+
+main() {
+  MyFunction myf1;
+  mylib.MyFunction myf2;
+  new A<int>().f;
+  new T();
+
+  new mylib.A<int>().f;
+  new mylib.T();
+}
+''';
+  var expectedResult =
+    'typedef void MyFunction<T extends num>(T arg);'
+    'class T{}'
+    'class B<T>{}'
+    'class A<T> extends B<T>{T f;}'
+    'typedef void p_MyFunction<p_T extends num>(p_T arg);'
+    'class p_T{}'
+    'class p_B<p_T>{}'
+    'class p_A<p_T> extends p_B<p_T>{p_T f;}'
+    'main(){p_MyFunction myf1; MyFunction myf2; new p_A<int>().f; '
+        'new p_T(); new A<int>().f; new T();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testClassTypeArgumentBound() {
+  var librarySrc = '''
+#library('mylib');
+
+interface I {}
+class A<T extends I> {}
+
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+interface I {}
+class A<T extends I> {}
+
+main() {
+  new A();
+  new mylib.A();
+}
+''';
+  var expectedResult =
+    'interface I{}'
+    'class A<T extends I>{}'
+    'interface p_I{}'
+    'class p_A<p_T extends p_I>{}'
+    'main(){new p_A(); new A();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testDoubleMains() {
+  var librarySrc = '''
+#library('mylib');
+main() {}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+main() {
+  mylib.main();
+}
+''';
+  var expectedResult =
+    'p_main(){}'
+    'main(){p_main();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testInterfaceDefaultAnotherLib() {
+  var librarySrc = '''
+#library('mylib');
+class C<T> {
+  factory I() {}
+}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+interface I<T> default mylib.C<T> {
+  I();
+}
+
+main() {
+  new I();
+}
+''';
+  var expectedResult =
+    'class C<T>{factory I(){}}'
+    'interface I<T> default C<T>{I();}'
+    'main(){new I();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testStaticAccessIoLib() {
+  var src = '''
+#import('dart:io');
+
+main() {
+  Platform.operatingSystem;
+}
+''';
+  var expectedResult = '#import("dart:io", prefix: "p");'
+      'main(){p.Platform.operatingSystem;}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -498,7 +673,7 @@ main() {
   testGetSet();
   testFactoryConstructor();
   testAbstractClass();
-  //testConflictSendsRename();
+  testConflictSendsRename();
   testNoConflictSendsRename();
   testConflictLibraryClassRename();
   testDefaultClassWithArgs();
@@ -507,4 +682,10 @@ main() {
   testLibraryGetSet();
   testFieldTypeOutput();
   testDefaultClassNamePlaceholder();
+  testFactoryRename();
+  testTypeVariablesAreRenamed();
+  testClassTypeArgumentBound();
+  testDoubleMains();
+  testInterfaceDefaultAnotherLib();
+  testStaticAccessIoLib();
 }

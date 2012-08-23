@@ -40,13 +40,13 @@ public abstract class UrlSource implements Source {
   private volatile File sourceFile = null;
   private volatile JarURLConnection jarConn = null;
 
-  protected final SystemLibraryManager systemLibraryManager;
+  protected final PackageLibraryManager packageLibraryManager;
 
   protected UrlSource(URI uri) {
     this(uri,null);
   }
 
-  protected UrlSource(URI uri, SystemLibraryManager slm) {
+  protected UrlSource(URI uri, PackageLibraryManager slm) {
     URI expanded = slm != null ? slm.expandRelativeDartUri(uri) : uri;
     if (expanded == null) {
       // import("dart:typo") case
@@ -54,8 +54,8 @@ public abstract class UrlSource implements Source {
     }
     this.uri = BASE_URI.relativize(expanded.normalize());
     this.absoluteUri = BASE_URI.resolve(expanded);
-    this.systemLibraryManager = slm;
-    if (SystemLibraryManager.isDartUri(this.uri) || SystemLibraryManager.isPackageUri(this.uri)) {
+    this.packageLibraryManager = slm;
+    if (PackageLibraryManager.isDartUri(this.uri) || PackageLibraryManager.isPackageUri(this.uri)) {
       assert slm != null;
       this.shouldCareAboutLastModified = false;
       this.translatedUri = slm.resolveDartUri(this.absoluteUri);
@@ -79,7 +79,7 @@ public abstract class UrlSource implements Source {
 
     this.uri = BASE_URI.relativize(uri);
     this.translatedUri = this.absoluteUri = BASE_URI.resolve(uri);
-    this.systemLibraryManager = null;
+    this.packageLibraryManager = null;
     this.shouldCareAboutLastModified = true;
   }
 

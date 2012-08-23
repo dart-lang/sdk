@@ -7,7 +7,7 @@ class First {
   First() {}
   static var a;
   static var b;
-  static final int c = 1;
+  static const int c = 1;
   static setValues() {
     a = 24;
     b = 10;
@@ -68,7 +68,7 @@ class StaticField1RunNegativeTest {
   testMain() {
     var foo = new StaticField1RunNegativeTest();
     print(x); // Used to compile 'x' and force any errors.
-    var result = foo.x; 
+    var result = foo.x;
   }
 }
 
@@ -96,7 +96,7 @@ class StaticField2RunNegativeTest {
 
 class StaticField2aRunNegativeTest {
   static   /// 04: static type warning, runtime error
-    void m() {} 
+    void m() {}
 
   testMain() {
     var foo = new StaticField2aRunNegativeTest();

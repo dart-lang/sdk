@@ -131,7 +131,6 @@ generic_inheritance_test: Fail # Expect.isTrue(false) fails.
 generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
 instanceof2_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 instanceof3_test: Fail # cannot resolve type UndeclaredType.
-library_private_in_constructor_test: Fail # Issue 2620.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
 named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
@@ -234,6 +233,8 @@ static_top_level_test/02: Fail # Negative language test.
 static_top_level_test/03: Fail # Negative language test.
 static_top_level_test/04: Fail # Negative language test.
 static_top_level_test/05: Fail # Negative language test.
+static_top_level_test/06: Fail # Negative language test.
+static_top_level_test/07: Fail # Negative language test.
 string_interpolation7_negative_test: Fail # Negative language test.
 throw7_negative_test: Fail # Negative language test.
 try_catch_syntax_test/08: Fail # Negative language test.
@@ -281,7 +282,6 @@ double_to_string_as_fixed_test: Fail
 expect_test: Fail
 factory3_test: Fail
 implied_interface_test: Fail
-library_private_in_constructor_test: Fail
 list_test: Fail
 local_function3_test: Fail
 local_function_test: Fail

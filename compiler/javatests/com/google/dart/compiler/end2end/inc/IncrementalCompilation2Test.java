@@ -21,7 +21,7 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -658,7 +658,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   
   public void test_reportMissingSource_withSchema_dart() throws Exception {
     URI uri = new URI("dart:noSuchSource");
-    Source source = new UrlSource(uri, new SystemLibraryManager()) {
+    Source source = new UrlSource(uri, new PackageLibraryManager()) {
       @Override
       public String getName() {
         return null;
@@ -1066,6 +1066,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "  var v4 = query('button[foo=\"bar\"]');",
             "  var v5 = query('div.class');",
             "  var v6 = query('input#id');",
+            "  var v7 = query('select#id');",
             "  // invocation of method",
             "  var m1 = document.query('div');",
             "  // unsupported currently",
@@ -1086,6 +1087,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertInferredElementTypeString(unit, "v4", "ButtonElement");
     assertInferredElementTypeString(unit, "v5", "DivElement");
     assertInferredElementTypeString(unit, "v6", "InputElement");
+    assertInferredElementTypeString(unit, "v7", "SelectElement");
     // invocation of method
     assertInferredElementTypeString(unit, "m1", "DivElement");
     // bad cases, or unsupported now

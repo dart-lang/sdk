@@ -17,11 +17,11 @@ class B extends A {
   const B.named2(x) : super.named2(x + 10);
 }
 
-final b1 = const B(0);
-final b2 = const B.named_();
-final b3 = const B.named(1);
-final b4 = const B.named2_();
-final b5 = const B.named2(3);
+const b1 = const B(0);
+const b2 = const B.named_();
+const b3 = const B.named(1);
+const b4 = const B.named2_();
+const b5 = const B.named2(3);
 
 main() {
   Expect.equals(10, b1.x);

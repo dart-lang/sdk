@@ -6,7 +6,7 @@ class A {
   final x;
   final y;
   const A(a, [b]) : x = a, y = b;
-  static final test = const A(1, b: 2);
+  static const test = const A(1, b: 2);
 }
 
 main() {

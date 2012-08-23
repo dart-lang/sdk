@@ -25,7 +25,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   private final CompilerMetrics compilerMetrics;
 
-  private final SystemLibraryManager systemLibraryManager;
+  private final PackageLibraryManager packageLibraryManager;
 
 
   /**
@@ -39,7 +39,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    * A new instance with the specified {@link CompilerOptions}.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions) {
-    this(compilerOptions, new SystemLibraryManager(compilerOptions.getDartSdkPath(),
+    this(compilerOptions, new PackageLibraryManager(compilerOptions.getDartSdkPath(),
                                                    compilerOptions.getPlatformName()));
   }
 
@@ -47,10 +47,10 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    * A new instance with the specified options and system library manager.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions,
-      SystemLibraryManager libraryManager) {
+      PackageLibraryManager libraryManager) {
     this.compilerOptions = compilerOptions;
     this.compilerMetrics = compilerOptions.showMetrics() ? new CompilerMetrics() : null;
-    this.systemLibraryManager = libraryManager;
+    this.packageLibraryManager = libraryManager;
   }
 
   @Override
@@ -112,17 +112,17 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     }
 
     // Verify the dart system library exists
-    if( null == this.systemLibraryManager.expandRelativeDartUri(systemUri) ) {
+    if( null == this.packageLibraryManager.expandRelativeDartUri(systemUri) ) {
       return null;
     }
 
     // Ensure we are using the short form if it exists
-    URI shortUri = systemLibraryManager.getShortUri(systemUri);
+    URI shortUri = packageLibraryManager.getShortUri(systemUri);
     if (shortUri != null) {
       systemUri = shortUri;
     }
 
-    return new UrlLibrarySource(systemUri, this.systemLibraryManager);
+    return new UrlLibrarySource(systemUri, this.packageLibraryManager);
   }
   
   @Override
@@ -136,7 +136,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
   
   @Override
-  public SystemLibraryManager getSystemLibraryManager() {
-    return systemLibraryManager;
+  public PackageLibraryManager getPackageLibraryManager() {
+    return packageLibraryManager;
   }
 }

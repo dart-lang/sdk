@@ -12,8 +12,8 @@ class SsaOptimizerTask extends CompilerTask {
   SsaOptimizerTask(JavaScriptBackend backend)
     : this.backend = backend,
       super(backend.compiler);
-  String get name() => 'SSA optimizer';
-  Compiler get compiler() => backend.compiler;
+  String get name => 'SSA optimizer';
+  Compiler get compiler => backend.compiler;
 
   void runPhases(HGraph graph, List<OptimizationPhase> phases) {
     for (OptimizationPhase phase in phases) {
@@ -42,6 +42,9 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaDeadPhiEliminator(),
           new SsaGlobalValueNumberer(compiler, types),
           new SsaCodeMotion(),
+          // Previous optimizations may have generated new
+          // opportunities for constant folding.
+          new SsaConstantFolder(backend, work, types),
           new SsaDeadCodeEliminator(types),
           new SsaRegisterRecompilationCandidates(backend, work, types)];
       runPhases(graph, phases);
@@ -105,7 +108,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final WorkItem work;
   final HTypeMap types;
   HGraph graph;
-  Compiler get compiler() => backend.compiler;
+  Compiler get compiler => backend.compiler;
 
   SsaConstantFolder(this.backend, this.work, this.types);
 
@@ -203,11 +206,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (input.isString(types)
-        && node.name == const SourceString('toString')) {
+        && node.selector.name == const SourceString('toString')) {
       return node.inputs[1];
     }
 
-    if (!input.canBePrimitive(types) && !node.getter && !node.setter) {
+    if (!input.canBePrimitive(types) && node.selector.isCall()) {
       bool transformToDynamicInvocation = true;
       if (input.canBeNull(types)) {
         // Check if the method exists on Null. If yes we must not transform
@@ -228,7 +231,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType receiverType = types[node.receiver];
     if (receiverType.isExact()) {
       HBoundedType type = receiverType;
-      Element element = type.lookupMember(node.name);
+      Element element = type.lookupMember(node.selector.name);
       // TODO(ngeoffray): Also fold if it's a getter or variable.
       if (element != null && element.isFunction()) {
         if (node.selector.applies(element, compiler)) {
@@ -250,7 +253,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HBoundedType type = types[node.inputs[1]];
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
         selector,
-        selector.name,
         node.inputs.getRange(1, node.inputs.length - 1));
     if (type.isExact()) {
       HBoundedType concrete = type;
@@ -662,15 +664,11 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
-    Selector selector = new Selector.call(
-        lengthInterceptor.name,
-        lengthInterceptor.getLibrary(),  // TODO(kasperl): Wrong.
-        0);
+    Selector selector = new Selector.getter(
+        const SourceString('length'),
+        lengthInterceptor.getLibrary());  // TODO(kasperl): Wrong.
     HInvokeInterceptor length = new HInvokeInterceptor(
-        selector,
-        const SourceString("length"),
-        <HInstruction>[interceptor, receiver],
-        getter: true);
+        selector, <HInstruction>[interceptor, receiver]);
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
 
@@ -930,7 +928,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         HInstruction other = values.lookup(instruction);
         if (other !== null) {
           assert(other.gvnEquals(instruction) && instruction.gvnEquals(other));
-          block.rewrite(instruction, other);
+          block.rewriteWithBetterUser(instruction, other);
           block.remove(instruction);
         } else {
           values.add(instruction);
@@ -1072,7 +1070,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
           for (final successor in successors) {
             HInstruction toRewrite = values[successor.id].lookup(instruction);
             if (toRewrite != instruction) {
-              successor.rewrite(toRewrite, instruction);
+              successor.rewriteWithBetterUser(toRewrite, instruction);
               successor.remove(toRewrite);
             }
           }
@@ -1186,7 +1184,7 @@ class BaseRecompilationVisitor extends HBaseVisitor {
   final JavaScriptBackend backend;
   final WorkItem work;
   final HTypeMap types;
-  Compiler get compiler() => backend.compiler;
+  Compiler get compiler => backend.compiler;
 
   BaseRecompilationVisitor(this.backend, this.work, this.types);
 

@@ -9,8 +9,8 @@ class StringInterpolationTest {
 
   static void m() {}
 
-  static final int i = 1;
-  static final String a = "<hi>";
+  static const int i = 1;
+  static const String a = "<hi>";
 
   int j;
   int k;

@@ -31,13 +31,7 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
   __ Comment("Deopt stub for id %d", deopt_id_);
   __ Bind(entry_label());
 
-  if (deoptimization_env_ == NULL) {
-    for (intptr_t i = 0; i < registers_.length(); i++) {
-      if (registers_[i] != kNoRegister) {
-        __ pushl(registers_[i]);
-      }
-    }
-  }
+  ASSERT(deoptimization_env_ != NULL);
 
   if (compiler->IsLeaf()) {
     Label L;
@@ -613,15 +607,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
 
 
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
-  LocationSummary* locs = instr->locs();
-  ASSERT(locs != NULL);
-
-  frame_register_allocator()->AllocateRegisters(instr);
-
-  // TODO(vegorov): adjust assertion when we start removing comparison from the
-  // graph when it is merged with a branch.
-  ASSERT(locs->always_calls() ||
-         (locs->input_count() == instr->InputCount()));
+  if (!is_optimizing()) {
+    AllocateRegistersLocally(instr);
+  }
 }
 
 
@@ -948,7 +936,7 @@ void FlowGraphCompiler::CompileGraph() {
   // TODO(vegorov): introduce stack maps and stop initializing all spill slots
   // with null.
   intptr_t uninitialized_slot_count;
-  if (is_ssa_) {
+  if (is_optimizing()) {
     GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
     uninitialized_slot_count =
         entry->spill_slot_count() - copied_parameter_count;
@@ -999,9 +987,8 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      PcDescriptors::Kind kind,
                                      BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
-  ASSERT(frame_register_allocator()->IsSpilled());
   __ call(label);
-  if (is_ssa() && (stack_bitmap != NULL)) {
+  if (is_optimizing() && (stack_bitmap != NULL)) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
   }
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos, try_index);
@@ -1014,9 +1001,8 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
-  ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
-  if (is_ssa() && (stack_bitmap != NULL)) {
+  if (is_optimizing() && (stack_bitmap != NULL)) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
   }
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);

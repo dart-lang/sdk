@@ -21,7 +21,7 @@ import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -232,7 +232,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void onError(SourceInfo errorTarget, ErrorCode errorCode, Object... arguments) {
       Source source = errorTarget.getSource();
       if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
-        if (source != null && SystemLibraryManager.isDartUri(source.getUri())) {
+        if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
           return;
         }
       }

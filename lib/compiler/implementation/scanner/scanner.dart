@@ -231,7 +231,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
     }
 
     if (next === $AT) {
-      return tokenizeRawString(next);
+      return tokenizeAtOrRawString(next);
     }
 
     if (next === $DQ || next === $SQ) {
@@ -672,13 +672,14 @@ class AbstractScanner<T extends SourceString> implements Scanner {
     }
   }
 
-  int tokenizeRawString(int next) {
+  int tokenizeAtOrRawString(int next) {
     int start = byteOffset;
     next = advance();
     if (next === $DQ || next === $SQ) {
       return tokenizeString(next, start, true);
     } else {
-      throw new MalformedInputException("expected ' or \"", charOffset);
+      appendPrecedenceToken(AT_INFO);
+      return next;
     }
   }
 

@@ -23,8 +23,8 @@ class DefaultInitTest {
 }
 
 class A {
-  static final int a = 0;
-  static final int b = 2;
+  static const int a = 0;
+  static const int b = 2;
   static int c;
   int d;
   int e;
@@ -41,7 +41,7 @@ class A {
 // The following tests cover cases described in b/4101270
 
 class B {
-  static final B instance = const B();
+  static const B instance = const B();
   // by putting this field after the static initializer above, the JS code gen
   // was calling the constructor before the setter of this property was defined.
   final int x;
@@ -50,7 +50,7 @@ class B {
 
 class C {
   // forward reference to another class
-  static final D instance = const D();
+  static const D instance = const D();
   C() {}
 }
 

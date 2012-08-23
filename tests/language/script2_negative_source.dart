@@ -6,4 +6,4 @@
 
 #library("Script2NegativeSource");
 
-final int script_2_negative_source = 1;
+const int script_2_negative_source = 1;

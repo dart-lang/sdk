@@ -6,4 +6,4 @@
 
 #library("ScriptLib");
 
-final int script_lib = 1;
+const int script_lib = 1;

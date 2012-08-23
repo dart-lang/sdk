@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
-  int get charOffset() => byteOffset + extraCharOffset;
+  int get charOffset => byteOffset + extraCharOffset;
   final Token tokens;
   Token tail;
   int tokenStart;

@@ -36,8 +36,8 @@
 # ........runtime/
 # ......dart2js/
 # ......isolate/
-# ........isolate_{frog, runtime}.dart
-# ........{frog, runtime}/
+# ........isolate_{dart2js, runtime}.dart
+# ........dart2js/
 # ......dom/
 # ........dom.dart
 # ......html/
@@ -50,6 +50,8 @@
 # ........json_frog.dart
 #.........json.dart
 # ........{frog}/
+# ......mirrors/
+# ........mirrors.dart
 # ......uri/
 # ........uri.dart
 # ......utf/
@@ -58,7 +60,7 @@
 # ....pkg/
 # ......args/
 # ......dartdoc/
-# ......i18n/
+# ......intl/
 # ......logging/
 # ......(more will come here)
 # ....util/
@@ -334,7 +336,8 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'crypto', 'json', 'math', 'uri', 'utf', 'web']:
+  for library in ['_internal', 'crypto', 'json', 'math', 'mirrors', 'uri',
+                  'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
@@ -370,6 +373,7 @@ def Main(argv):
   dest_file = open(join(corelib_dest_dir, 'core_runtime.dart'), 'w')
   dest_file.write('#library("dart:core");\n')
   dest_file.write('#import("dart:coreimpl");\n')
+  dest_file.write('#import("dart:math");\n')
   for filename in corelib_sources:
     dest_file.write('#source("runtime/' + filename + '");\n')
   for filename in corelib_runtime_sources:
@@ -397,6 +401,7 @@ def Main(argv):
   # Construct lib/coreimpl/coreimpl_runtime.dart from whole cloth.
   dest_file = open(join(coreimpl_dest_dir, 'coreimpl_runtime.dart'), 'w')
   dest_file.write('#library("dart:coreimpl");\n')
+  dest_file.write('#import("dart:math");\n')
   for filename in coreimpl_sources:
     dest_file.write('#source("runtime/' + filename + '");\n')
   for filename in coreimpl_runtime_sources:
@@ -410,10 +415,10 @@ def Main(argv):
   os.makedirs(PKG)
 
   #
-  # Create and populate pkg/{args, i18n, logging, unittest}
+  # Create and populate pkg/{args, intl, logging, unittest}
   #
 
-  for library in ['args', 'i18n', 'logging', 'unittest']:
+  for library in ['args', 'intl', 'logging', 'unittest']:
     src_dir = join(HOME, 'pkg', library)
     dest_dir = join(PKG, library)
     os.makedirs(dest_dir)
@@ -421,6 +426,9 @@ def Main(argv):
     for filename in os.listdir(src_dir):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
+    if exists(join(src_dir, 'lib')):
+      copytree(join(src_dir, 'lib'), join(dest_dir, 'lib'),
+           ignore=ignore_patterns('.svn'))
 
   # Create and populate pkg/dartdoc.
   dartdoc_src_dir = join(HOME, 'pkg', 'dartdoc')

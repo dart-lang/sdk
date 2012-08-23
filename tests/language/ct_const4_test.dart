@@ -6,7 +6,7 @@
 #library("CTConst4Test");
 #import("ct_const4_lib.dart", prefix:"mylib");
 
-final A = mylib.B;
+const A = mylib.B;
 
 main() {
   Expect.equals(1, A);

@@ -162,6 +162,11 @@ void ConstantVal::PrintTo(BufferFormatter* f) const {
 }
 
 
+void MaterializeComp::PrintOperandsTo(BufferFormatter* f) const {
+  constant_val()->PrintTo(f);
+}
+
+
 void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'%s",
@@ -376,7 +381,7 @@ void CatchEntryComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void BinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
+void BinarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -384,7 +389,15 @@ void BinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void DoubleBinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
+void BinaryMintOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
+void BinaryDoubleOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Token::Str(op_kind()));
 }
 

@@ -7,7 +7,7 @@
  */
 List<int> stringToCodepoints(String str) {
   List<int> codepoints;
-  // TODO _is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // TODO _is16BitCodeUnit() is used to work around a bug with dart2js
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
@@ -22,7 +22,7 @@ List<int> stringToCodepoints(String str) {
  * Generate a string from the provided Unicode codepoints.
  */
 String codepointsToString(List<int> codepoints) {
-  // TODO _is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // TODO _is16BitCodeUnit() is used to work around a bug with dart2js
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
@@ -38,7 +38,7 @@ String codepointsToString(List<int> codepoints) {
  * Dart compiled to JS.
  */
 bool _test16BitCodeUnit = null;
-// TODO _is16BitCodeUnit() is used to work around a bug with frog/dartc
+// TODO _is16BitCodeUnit() is used to work around a bug with dart2js
 // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
 // removing after this issue is resolved.
 bool _is16BitCodeUnit() {

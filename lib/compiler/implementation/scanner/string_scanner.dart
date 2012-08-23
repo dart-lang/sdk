@@ -56,7 +56,7 @@ class SubstringWrapper implements SourceString {
 
   String toString() => "SubstringWrapper(${slowToString()})";
 
-  String get stringValue() => null;
+  String get stringValue => null;
 
   Iterator<int> iterator() =>
       new StringCodeIterator.substring(internalString, begin, end);

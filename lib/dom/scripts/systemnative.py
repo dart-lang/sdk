@@ -665,7 +665,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         if self._IsArgumentOptionalInWebCore(operation, argument):
           check = '%s !== _null' % argument_names[position]
           # argument_count instead of position + 1 is used here to cover one
-          # complicated case.  Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
+          # complicated case with the effectively optional argument in the middle.
+          # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
           # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
           # y is optional in WebCore, while z is not.
           # In this case, if y !== _null, we'd like to emit foo(x, y, z) invocation, not
@@ -829,22 +830,30 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # Emit arguments.
     start_index = 1 if needs_receiver else 0
     for i, argument in enumerate(arguments):
-      type_info = self._TypeInfo(argument.type.id)
-      self._cpp_impl_includes |= set(type_info.to_native_includes())
-      cpp_arguments.append(type_info.emit_to_native(
-          body_emitter,
+      argument_name = DartDomNameOfAttribute(argument)
+      argument_expression, type, cls, function = self._TypeInfo(argument.type.id).to_native_info(
           argument,
           (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or (argument.ext_attrs.get('Optional') == 'DefaultIsNullString'),
-          # TODO(antonm): all IDs should be renamed when database is generated.
-          # That will allow to get rid of argument_name argument altogether.
-          DartDomNameOfAttribute(argument),
-          'Dart_GetNativeArgument(args, %i)' % (start_index + i),
-          self._interface.id))
+          argument_name,
+          self._interface.id)
+
+      body_emitter.Emit(
+          '\n'
+          '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
+          '        if (exception)\n'
+          '            goto fail;\n',
+          TYPE=type,
+          ARGUMENT_NAME=argument_name,
+          CLS=cls,
+          FUNCTION=function,
+          INDEX=start_index + i)
+      self._cpp_impl_includes.add('"%s.h"' % cls)
+      cpp_arguments.append(argument_expression)
 
     body_emitter.Emit('\n')
 
     if 'NeedsUserGestureCheck' in ext_attrs:
-      cpp_arguments.append('DartUtilities::processingUserGesture');
+      cpp_arguments.append('DartUtilities::processingUserGesture')
 
     invocation_emitter = body_emitter
     if raises_dom_exception:

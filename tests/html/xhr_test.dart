@@ -12,10 +12,10 @@ main() {
   useHtmlConfiguration();
 
   test('XHR No file', () {
-    XMLHttpRequest xhr = new XMLHttpRequest();
+    HttpRequest xhr = new HttpRequest();
     xhr.open("GET", "NonExistingFile", true);
     xhr.on.readyStateChange.add(expectAsync1((event) {
-      if (xhr.readyState == XMLHttpRequest.DONE) {
+      if (xhr.readyState == HttpRequest.DONE) {
         expect(xhr.status, equals(0));
         expect(xhr.responseText, equals(''));
       }
@@ -24,8 +24,8 @@ main() {
   });
 
   test('XHR.get No file', () {
-    new XMLHttpRequest.get("NonExistingFile", expectAsync1((xhr) {
-      expect(xhr.readyState, equals(XMLHttpRequest.DONE));
+    new HttpRequest.get("NonExistingFile", expectAsync1((xhr) {
+      expect(xhr.readyState, equals(HttpRequest.DONE));
       expect(xhr.status, equals(0));
       expect(xhr.responseText, equals(''));
     }));

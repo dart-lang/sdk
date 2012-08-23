@@ -15,6 +15,7 @@
 // IFrame for failed tests/keep IFrame for all tests.
 
 #import('dart:html');
+#import('dart:math');
 #import('unittest.dart');
 
 /** The messages exchanged between master and slave. */
@@ -42,7 +43,7 @@ class _Message {
     messageType = msg.substring(0, idx);
     ++idx;
     int idx2 = msg.indexOf(' ', idx);
-    elapsed = Math.parseInt(msg.substring(idx, idx2));
+    elapsed = parseInt(msg.substring(idx, idx2));
     ++idx2;
     body = msg.substring(idx2);
   }
@@ -90,7 +91,7 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
         String search = window.location.search;
         int pos = search.indexOf('t=');
         String ids = search.substring(pos+2);
-        int id = Math.parseInt(ids);
+        int id = parseInt(ids);
         setSoloTest(id);
         runTests();
       }
@@ -287,7 +288,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
         for (Element t in tests.elements) {
           cb = t.query('.testselect');
           cb.checked = state;
-          var testId = Math.parseInt(t.id.substring(_testIdPrefix.length));
+          var testId = parseInt(t.id.substring(_testIdPrefix.length));
           if (state) {
             enableTest(testId);
           } else {

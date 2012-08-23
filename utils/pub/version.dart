@@ -9,6 +9,8 @@
  */
 #library('version');
 
+#import('dart:math');
+
 #import('utils.dart');
 
 /** A parsed semantic version number. */
@@ -59,9 +61,9 @@ class Version implements Comparable, Hashable, VersionConstraint {
     }
 
     try {
-      int major = Math.parseInt(match[1]);
-      int minor = Math.parseInt(match[2]);
-      int patch = Math.parseInt(match[3]);
+      int major = parseInt(match[1]);
+      int minor = parseInt(match[2]);
+      int patch = parseInt(match[3]);
 
       String preRelease = match[5];
       String build = match[8];
@@ -143,7 +145,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
     var aParts = _splitParts(a);
     var bParts = _splitParts(b);
 
-    for (int i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    for (int i = 0; i < max(aParts.length, bParts.length); i++) {
       var aPart = (i < aParts.length) ? aParts[i] : null;
       var bPart = (i < bParts.length) ? bParts[i] : null;
 
@@ -180,7 +182,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
   List _splitParts(String text) {
     return text.split('.').map((part) {
       try {
-        return Math.parseInt(part);
+        return parseInt(part);
       } catch (FormatException ex) {
         // Not a number.
         return part;

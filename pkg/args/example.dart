@@ -22,17 +22,15 @@ main() {
 
   parser.addOption('compiler', abbr: 'c', defaultsTo: 'none',
       help: 'Specify any compilation step (if needed).',
-      allowed: ['none', 'dart2js', 'dartc', 'frog'],
+      allowed: ['none', 'dart2js', 'dartc'],
       allowedHelp: {
         'none': 'Do not compile the Dart code (run native Dart code on the'
           ' VM).\n(only valid with the following runtimes: vm, drt)',
-        'dart2js': 'Compile dart code to JavaScript by running dart2js (leg).\n'
-          '(only valid with the following runtimes: same as frog)',
+        'dart2js': 'Compile dart code to JavaScript by running dart2js.\n'
+          '(only valid with the following runtimes: d8, drt, chrome\n'
+          'safari, ie, firefox, opera, none (compile only))'
         'dartc': 'Perform static analysis on Dart code by running dartc.\n'
           '(only valid with the following runtimes: none)',
-        'frog': '(DEPRECATED) Compile dart code to JavaScript by running the\n'
-          'frog compiler. (only valid with the following runtimes: d8,\n'
-          'drt, chrome, safari, ie, firefox, opera, none (compile only))'
       });
 
   parser.addOption('runtime', abbr: 'r', defaultsTo: 'vm',
@@ -117,11 +115,9 @@ is 'dart file.dart' and you specify special command
       help: 'Print timing information after running tests',
       defaultsTo: false);
 
-  parser.addOption('frog',    help: 'Path to frog script or executable');
   parser.addOption('dart',    help: 'Path to dart executable');
   parser.addOption('drt',     help: 'Path to DumpRenderTree executable');
   parser.addOption('dartium', help: 'Path to Dartium Chrome executable');
-  parser.addOption('froglib', help: 'Path to frog library');
 
   parser.addFlag('batch', abbr: 'b',
       help: 'Run browser tests in batch mode',

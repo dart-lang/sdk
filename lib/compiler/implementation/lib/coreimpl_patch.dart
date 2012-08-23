@@ -35,31 +35,31 @@ patch class DateImplementation {
         years, month, day, hour, minute, second, millisecond, isUtc);
   }
 
-  patch String get timeZoneName() {
+  patch String get timeZoneName {
     if (isUtc) return "UTC";
     return Primitives.getTimeZoneName(this);
   }
 
-  patch Duration get timeZoneOffset() {
+  patch Duration get timeZoneOffset {
     if (isUtc) return new Duration(0);
     return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
 
-  patch int get year() => Primitives.getYear(this);
+  patch int get year => Primitives.getYear(this);
 
-  patch int get month() => Primitives.getMonth(this);
+  patch int get month => Primitives.getMonth(this);
 
-  patch int get day() => Primitives.getDay(this);
+  patch int get day => Primitives.getDay(this);
 
-  patch int get hour() => Primitives.getHours(this);
+  patch int get hour => Primitives.getHours(this);
 
-  patch int get minute() => Primitives.getMinutes(this);
+  patch int get minute => Primitives.getMinutes(this);
 
-  patch int get second() => Primitives.getSeconds(this);
+  patch int get second => Primitives.getSeconds(this);
 
-  patch int get millisecond() => Primitives.getMilliseconds(this);
+  patch int get millisecond => Primitives.getMilliseconds(this);
 
-  patch int get weekday() => Primitives.getWeekday(this);
+  patch int get weekday => Primitives.getWeekday(this);
 }
 
 

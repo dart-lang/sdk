@@ -51,6 +51,7 @@ final String DEFAULT_INTERCEPTORSLIB = @'''
 
 final String DEFAULT_CORELIB = @'''
   print(var obj) {}
+  assert(x) {}
   interface int extends num {}
   interface double extends num {}
   class bool {}
@@ -79,6 +80,9 @@ class MockCompiler extends Compiler {
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
     parseScript(coreSource, coreLibrary);
+    // We need to set the assert method to avoid calls with a 'null'
+    // target being interpreted as a call to assert.
+    assertMethod = coreLibrary.find(buildSourceString('assert'));
 
     script = new Script(uri, new MockFile(helperSource));
     jsHelperLibrary = new LibraryElement(script);
@@ -88,8 +92,6 @@ class MockCompiler extends Compiler {
     interceptorsLibrary = new LibraryElement(script);
     parseScript(interceptorsSource, interceptorsLibrary);
 
-    scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
-    scanner.importLibrary(interceptorsLibrary, coreLibrary, null);
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
   }
@@ -118,6 +120,8 @@ class MockCompiler extends Compiler {
   void reportDiagnostic(SourceSpan span, String message, var kind) {
     print(message);
   }
+
+  bool get compilationFailed => !errors.isEmpty();
 
   void clearWarnings() {
     warnings = [];
@@ -161,6 +165,10 @@ class MockCompiler extends Compiler {
 
   LibraryElement scanBuiltinLibrary(String name) {
     // Do nothing. The mock core library is already handled in the constructor.
+  }
+
+  void importCoreLibrary(LibraryElement library) {
+    scanner.importLibrary(library, coreLibrary, null);
   }
 
   // The mock library doesn't need any patches.

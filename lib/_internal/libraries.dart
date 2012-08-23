@@ -51,8 +51,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       dart2jsPath: "compiler/implementation/lib/io.dart"),
 
   "isolate": const LibraryInfo(
-      "isolate/isolate_compiler.dart",
-      dart2jsPath: "isolate/isolate_dart2js.dart"),
+      "isolate/isolate.dart"),
 
   "json": const LibraryInfo(
       "json/json.dart"),
@@ -60,6 +59,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "math": const LibraryInfo(
       "math/math.dart",
       dart2jsPatchPath: "compiler/implementation/lib/math.dartp"),
+
+  "mirrors": const LibraryInfo(
+      "mirrors/mirrors.dart"),
 
   // Used by Dartium applications
   "nativewrappers": const LibraryInfo(

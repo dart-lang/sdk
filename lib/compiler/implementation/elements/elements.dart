@@ -106,13 +106,13 @@ class Element implements Hashable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
-  Link<Node> metadata = const EmptyLink<Node>();
+  Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
     assert(getLibrary() !== null);
   }
 
-  Modifiers get modifiers() => null;
+  Modifiers get modifiers => null;
 
   Node parseNode(DiagnosticListener listener) {
     listener.cancel("Internal Error: $this.parseNode", token: position());
@@ -122,8 +122,8 @@ class Element implements Hashable {
     compiler.internalError("$this.computeType.", token: position());
   }
 
-  void addMetadata(Node node) {
-    metadata = metadata.prepend(node);
+  void addMetadata(MetadataAnnotation annotation) {
+    metadata = metadata.prepend(annotation);
   }
 
   bool isFunction() => kind === ElementKind.FUNCTION;
@@ -160,6 +160,9 @@ class Element implements Hashable {
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
+  /** See [ErroneousElement] for documentation. */
+  bool isErroneous() => false;
+
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
@@ -169,7 +172,7 @@ class Element implements Hashable {
   }
 
   bool isAssignable() {
-    if (modifiers != null && modifiers.isFinal()) return false;
+    if (modifiers != null && modifiers.isFinalOrConst()) return false;
     if (isFunction() || isGenerativeConstructor()) return false;
     return true;
   }
@@ -284,9 +287,62 @@ class Element implements Hashable {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
 
-  Link<Type> get allSupertypesAndSelf() {
-    return allSupertypes.prepend(new InterfaceType(this));
+
+  static bool isInvalid(Element e) => e == null || e.isErroneous();
+}
+
+/**
+ * Represents an unresolvable or duplicated element.
+ *
+ * An [ErroneousElement] is used instead of [null] to provide additional
+ * information about the error that caused the element to be unresolvable
+ * or otherwise invalid.
+ *
+ * Accessing any field or calling any method defined on [Element] except
+ * [isValid] will currently throw an exception. (This might change when we
+ * actually want more information on the erroneous element, e.g., the name
+ * of the element we were trying to resolve.)
+ *
+ * Code that cannot not handle an [ErroneousElement] should use
+ *   [: Element.isInvalid(element) :]
+ * to check for unresolvable elements instead of
+ *   [: element == null :].
+ */
+class ErroneousElement extends Element {
+  final Message errorMessage;
+
+  ErroneousElement(this.errorMessage, Element enclosing)
+      : super(const SourceString('erroneous element'), null, enclosing);
+
+  isErroneous() => true;
+
+  unsupported() {
+    throw 'unsupported operation on erroneous element';
   }
+
+  SourceString get name => unsupported();
+  ElementKind get kind => unsupported();
+  Link<MetadataAnnotation> get metadata => unsupported();
+}
+
+class ErroneousFunctionElement extends ErroneousElement
+                               implements FunctionElement {
+  ErroneousFunctionElement(errorMessage, Element enclosing)
+      : super(errorMessage, enclosing);
+
+  get type => unsupported();
+  get cachedNode => unsupported();
+  get functionSignature => unsupported();
+  get patch => unsupported();
+  get defaultImplementation => unsupported();
+  bool get isPatched => unsupported();
+  setPatch(patch) => unsupported();
+  computeSignature(compiler) => unsupported();
+  requiredParameterCount(compiler) => unsupported();
+  optionalParameterCount(compiler) => unsupported();
+  parameterCount(copmiler) => unsupported();
+
+  getLibrary() => enclosingElement.getLibrary();
 }
 
 class ContainerElement extends Element {
@@ -314,7 +370,7 @@ class ScopeContainerElement extends ContainerElement {
 
   void addToScope(Element element, DiagnosticListener listener) {
     if (element.isAccessor()) {
-      addGetterOrSetter(element, localScope[element.name], listener);
+      addAccessorToScope(element, localScope[element.name], listener);
     } else {
       Element existing = localScope.putIfAbsent(element.name, () => element);
       if (existing !== element) {
@@ -329,13 +385,26 @@ class ScopeContainerElement extends ContainerElement {
     return localScope[elementName];
   }
 
-  void addGetterOrSetter(FunctionElement element,
-                         Element existing,
-                         DiagnosticListener listener) {
+  /**
+   * Adds a definition for an [accessor] (getter or setter) to a container.
+   * The definition binds to an abstract field that can hold both a getter
+   * and a setter.
+   *
+   * The abstract field is added once, for the first getter or setter, and
+   * reused if the other one is also added.
+   * The abstract field should not be treated as a proper member of the
+   * container, it's simply a way to return two results for one lookup.
+   * That is, the getter or setter does not have the abstract field as enclosing
+   * element, they are enclosed by the class or compilation unit, as is the
+   * abstract field.
+   */
+  void addAccessorToScope(Element accessor,
+                          Element existing,
+                          DiagnosticListener listener) {
     void reportError(Element other) {
       // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-      listener.cancel('duplicate definition of ${element.name.slowToString()}',
-                      element: element);
+      listener.cancel('duplicate definition of ${accessor.name.slowToString()}',
+                      element: accessor);
       listener.cancel('existing definition', element: other);
     }
 
@@ -344,28 +413,29 @@ class ScopeContainerElement extends ContainerElement {
         reportError(existing);
       } else {
         AbstractFieldElement field = existing;
-        if (element.kind == ElementKind.GETTER) {
-          if (field.getter != null && field.getter != element) {
+        if (accessor.isGetter()) {
+          if (field.getter != null && field.getter != accessor) {
             reportError(field.getter);
           }
-          field.getter = element;
+          field.getter = accessor;
         } else {
-          if (field.setter != null && field.setter != element) {
+          assert(accessor.isSetter());
+          if (field.setter != null && field.setter != accessor) {
             reportError(field.setter);
           }
-          field.setter = element;
+          field.setter = accessor;
         }
       }
     } else {
-      Element container = element.getEnclosingClassOrCompilationUnit();
+      Element container = accessor.getEnclosingClassOrCompilationUnit();
       AbstractFieldElement field =
-          new AbstractFieldElement(element.name, container);
-      if (element.kind == ElementKind.GETTER) {
-        field.getter = element;
+          new AbstractFieldElement(accessor.name, container);
+      if (accessor.isGetter()) {
+        field.getter = accessor;
       } else {
-        field.setter = element;
+        field.setter = accessor;
       }
-      addMember(field, listener);
+      addToScope(field, listener);
     }
   }
 }
@@ -415,7 +485,7 @@ class LibraryElement extends ScopeContainerElement {
   }
 
 
-  bool get isPatched() => patch !== null;
+  bool get isPatched => patch !== null;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -523,7 +593,7 @@ class TypedefElement extends Element implements TypeDeclarationElement {
     return cachedType;
   }
 
-  Link<Type> get typeVariables() => cachedType.typeArguments;
+  Link<Type> get typeVariables => cachedType.typeArguments;
 
   Scope buildScope() =>
       new TypeDeclarationScope(enclosingElement.buildScope(), this);
@@ -538,7 +608,7 @@ class VariableElement extends Element {
   final VariableListElement variables;
   Expression cachedNode; // The send or the identifier in the variables list.
 
-  Modifiers get modifiers() => variables.modifiers;
+  Modifiers get modifiers => variables.modifiers;
 
   VariableElement(SourceString name,
                   VariableListElement this.variables,
@@ -569,7 +639,7 @@ class VariableElement extends Element {
     return variables.computeType(compiler);
   }
 
-  Type get type() => variables.type;
+  Type get type => variables.type;
 
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
@@ -735,7 +805,7 @@ class AbstractFieldElement extends Element {
     }
   }
 
-  Modifiers get modifiers() {
+  Modifiers get modifiers {
     // The resolver ensures that the flags match (ignoring abstract).
     if (getter !== null) {
       return new Modifiers.withFlags(
@@ -781,7 +851,7 @@ class FunctionSignature {
     }
   }
 
-  int get parameterCount() => requiredParameterCount + optionalParameterCount;
+  int get parameterCount => requiredParameterCount + optionalParameterCount;
 }
 
 class FunctionElement extends Element {
@@ -836,7 +906,7 @@ class FunctionElement extends Element {
     defaultImplementation = this;
   }
 
-  bool get isPatched() => patch !== null;
+  bool get isPatched => patch !== null;
 
   /**
    * Applies a patch function to this function. The patch function's body
@@ -996,7 +1066,7 @@ abstract class TypeDeclarationElement implements Element {
 
     // Create types and elements for type variable.
     var arguments = new LinkBuilder<Type>();
-    for (Link<Node> link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
       TypeVariable node = link.head;
       SourceString variableName = node.name.source;
       TypeVariableElement variableElement =
@@ -1021,22 +1091,8 @@ class ClassElement extends ScopeContainerElement
   Type defaultClass;
   Link<Type> interfaces;
   SourceString nativeName;
-
-  int _supertypeLoadState = STATE_NOT_STARTED;
-  int get supertypeLoadState() => _supertypeLoadState;
-  void set supertypeLoadState(int state) {
-    assert(state == _supertypeLoadState + 1);
-    assert(state <= STATE_DONE);
-    _supertypeLoadState = state;
-  }
-
-  int _resolutionState = STATE_NOT_STARTED;
-  int get resolutionState() => _resolutionState;
-  void set resolutionState(int state) {
-    assert(state == _resolutionState + 1);
-    assert(state <= STATE_DONE);
-    _resolutionState = state;
-  }
+  int supertypeLoadState;
+  int resolutionState;
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
@@ -1047,8 +1103,10 @@ class ClassElement extends ScopeContainerElement
   // Lazily applied patch of class members.
   ClassElement patch = null;
 
-  ClassElement(SourceString name, Element enclosing, this.id)
-    : super(name, ElementKind.CLASS, enclosing);
+  ClassElement(SourceString name, Element enclosing, this.id, int initialState)
+    : supertypeLoadState = initialState,
+      resolutionState = initialState,
+      super(name, ElementKind.CLASS, enclosing);
 
   InterfaceType computeType(compiler) {
     if (type == null) {
@@ -1060,9 +1118,9 @@ class ClassElement extends ScopeContainerElement
     return type;
   }
 
-  bool get isPatched() => patch != null;
+  bool get isPatched => patch != null;
 
-  Link<Type> get typeVariables() => type.arguments;
+  Link<Type> get typeVariables => type.arguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -1112,8 +1170,9 @@ class ClassElement extends ScopeContainerElement
   Element lookupSuperInterfaceMember(SourceString memberName,
                                      LibraryElement fromLibrary) {
     bool isPrivate = memberName.isPrivate();
-    for (Type t in interfaces) {
-      Element e = t.element.lookupLocalMember(memberName);
+    for (InterfaceType t in interfaces) {
+      ClassElement cls = t.element;
+      Element e = cls.lookupLocalMember(memberName);
       if (e === null) continue;
       // Private members from a different library are not visible.
       if (isPrivate && fromLibrary !== e.getLibrary()) continue;
@@ -1201,7 +1260,7 @@ class ClassElement extends ScopeContainerElement
     return result;
   }
 
-  bool get hasConstructor() {
+  bool get hasConstructor {
     // Search in scope to be sure we search patched constructors.
     for (var element in localScope.getValues()) {
       if (element.isConstructor()) return true;
@@ -1209,7 +1268,7 @@ class ClassElement extends ScopeContainerElement
     return false;
   }
 
-  Link<Element> get constructors() {
+  Link<Element> get constructors {
     // TODO(ajohnsen): See if we can avoid this method at some point.
     Link<Element> result = const EmptyLink<Element>();
     for (Element member in localMembers) {
@@ -1223,7 +1282,7 @@ class ClassElement extends ScopeContainerElement
    *
    * The returned element may not be resolved yet.
    */
-  ClassElement get superclass() {
+  ClassElement get superclass {
     assert(supertypeLoadState == STATE_DONE);
     return supertype === null ? null : supertype.element;
   }
@@ -1311,21 +1370,25 @@ class ClassElement extends ScopeContainerElement
   ClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.internalErrorOnElement(this, 'unsupported operation');
   }
+
+  Link<Type> get allSupertypesAndSelf {
+    return allSupertypes.prepend(new InterfaceType(this));
+  }
 }
 
 class Elements {
   static bool isLocal(Element element) {
-    return ((element !== null)
+    return !Element.isInvalid(element)
             && !element.isInstanceMember()
             && !isStaticOrTopLevelField(element)
             && !isStaticOrTopLevelFunction(element)
             && (element.kind === ElementKind.VARIABLE ||
                 element.kind === ElementKind.PARAMETER ||
-                element.kind === ElementKind.FUNCTION));
+                element.kind === ElementKind.FUNCTION);
   }
 
   static bool isInstanceField(Element element) {
-    return (element !== null)
+    return !Element.isInvalid(element)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FIELD
                || element.kind === ElementKind.GETTER
@@ -1335,12 +1398,12 @@ class Elements {
   static bool isStaticOrTopLevel(Element element) {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
-    if (element != null
+    if (!Element.isInvalid(element)
         && element.modifiers != null
         && element.modifiers.isStatic()) {
       return true;
     }
-    return (element != null)
+    return !Element.isInvalid(element)
            && !element.isInstanceMember()
            && !element.isPrefix()
            && element.enclosingElement !== null
@@ -1362,7 +1425,7 @@ class Elements {
   }
 
   static bool isInstanceMethod(Element element) {
-    return (element != null)
+    return !Element.isInvalid(element)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FUNCTION);
   }
@@ -1459,7 +1522,7 @@ class LabelElement extends Element {
     target.isContinueTarget = true;
   }
 
-  bool get isTarget() => isBreakTarget || isContinueTarget;
+  bool get isTarget => isBreakTarget || isContinueTarget;
   Node parseNode(DiagnosticListener l) => label;
 
   Token position() => label.getBeginToken();
@@ -1477,7 +1540,7 @@ class TargetElement extends Element {
 
   TargetElement(this.statement, this.nestingLevel, Element enclosingElement)
       : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
-  bool get isTarget() => isBreakTarget || isContinueTarget;
+  bool get isTarget => isBreakTarget || isContinueTarget;
 
   LabelElement addLabel(Label label, String labelName) {
     LabelElement result = new LabelElement(label, labelName, this,
@@ -1488,7 +1551,7 @@ class TargetElement extends Element {
 
   Node parseNode(DiagnosticListener l) => statement;
 
-  bool get isSwitch() => statement is SwitchStatement;
+  bool get isSwitch => statement is SwitchStatement;
 
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();
@@ -1509,9 +1572,47 @@ class TypeVariableElement extends Element {
 
   String toString() => "${enclosingElement.toString()}.${name.slowToString()}";
 
+  Token position() => cachedNode.getBeginToken();
+
   TypeVariableElement cloneTo(Element enclosing, DiagnosticListener listener) {
     TypeVariableElement result =
         new TypeVariableElement(name, enclosing, cachedNode, type, bound);
     return result;
   }
+}
+
+/**
+ * A single metadata annotation.
+ *
+ * For example, consider:
+ *
+ * [:
+ * class Data {
+ *   const Data();
+ * }
+ *
+ * const data = const Data();
+ *
+ * @data
+ * class Foo {}
+ *
+ * @data @data
+ * class Bar {}
+ * :]
+ *
+ * In this example, there are three instances of [MetadataAnnotation]
+ * and they correspond each to a location in the source code where
+ * there is an at-sign, '@'. The [value] of each of these instances
+ * are the same compile-time constant, [: const Data() :].
+ *
+ * The mirror system does not have a concept matching this class.
+ */
+class MetadataAnnotation {
+  /**
+   * The compile-time constant which this annotation resolves to.
+   * In the mirror system, this would be an object mirror.
+   */
+  abstract Constant get value();
+
+  // TODO(ahe): Add more functionality as needed.
 }

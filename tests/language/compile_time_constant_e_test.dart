@@ -15,16 +15,16 @@ class A {
   toString() => "A $x $y $z $t";
 }
 
-final a1 = const A(99, 100);
-final a2 = const A.named(99, 100);
-final a3 = const A.named2(1, 2, 3, 4);
-final a4 = const A();
-final a5 = const A(tt: 100, z: 99);
-final a6 = const A(1, tt: 2);
-final a7 = const A.named(z: 7);
-final a8 = const A.named2();
-final a9 = const A.named2(x: 4, y: 3, z: 2, t: 1);
-final a10 = const A.named2(x: 1, y: 2, z: 3, t: 4);
+const a1 = const A(99, 100);
+const a2 = const A.named(99, 100);
+const a3 = const A.named2(1, 2, 3, 4);
+const a4 = const A();
+const a5 = const A(tt: 100, z: 99);
+const a6 = const A(1, tt: 2);
+const a7 = const A.named(z: 7);
+const a8 = const A.named2();
+const a9 = const A.named2(x: 4, y: 3, z: 2, t: 1);
+const a10 = const A.named2(x: 1, y: 2, z: 3, t: 4);
 
 main() {
   Expect.equals(3, a1.x);

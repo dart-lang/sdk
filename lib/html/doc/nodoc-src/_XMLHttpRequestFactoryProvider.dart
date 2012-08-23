@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _XMLHttpRequestFactoryProvider {
-  factory XMLHttpRequest() => null;
+  factory HttpRequest() => null;
 
-  factory XMLHttpRequest.get(String url, onSuccess(XMLHttpRequest request)) =>
+  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
       null;
 }

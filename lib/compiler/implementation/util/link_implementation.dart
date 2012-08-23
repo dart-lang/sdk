@@ -41,8 +41,8 @@ class LinkFactory<T> {
 }
 
 class LinkTail<T> implements EmptyLink<T> {
-  T get head() => null;
-  Link<T> get tail() => null;
+  T get head => null;
+  Link<T> get tail => null;
 
   const LinkTail();
 

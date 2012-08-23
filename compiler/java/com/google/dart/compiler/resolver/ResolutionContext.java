@@ -10,7 +10,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SubSystem;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -380,7 +380,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   public void onError(SourceInfo sourceInfo, ErrorCode errorCode, Object... arguments) {
     if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
       Source source = sourceInfo.getSource();
-      if (source != null && SystemLibraryManager.isDartUri(source.getUri())) {
+      if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
         return;
       }
     }

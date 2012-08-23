@@ -11,35 +11,6 @@ compare_to2_test: Fail    # Bug 4018
 [ $compiler == dartc ]
 *vm_test: Skip
 
-[ $compiler == frog ]
-# VM or DartC specific tests not to be run by Frog. See language.status.
-*vm_test: Skip
-*vm_negative_test: Skip
-*dartc_test: Skip
-*dartc_negative_test: Skip
-# Note: Correctly skips 4 VMTests that rely on VM internals
-
-compare_to2_test: Fail, Ok    # Requires bigint support.
-const_list_*: Fail # 'const' is not currently checked.
-core_runtime_types_test: Fail
-for_in_test: Fail
-list_test: Fail
-maps_test: Fail
-math_parse_double_test: Fail
-reg_exp_all_matches_test: Fail
-reg_exp4_test: Fail # New test added on 10/28.
-stopwatch_test: Pass,Fail # Issue 2398
-string_pattern_test: Fail
-string_substring_test: Fail
-string_test: Fail  # Needs index out of range checks.
-string_replace_dollar_test: Fail
-
-# New methods (timeZoneName and timeZoneOffset) were not ported to frog.
-date_time7_test: Skip
-
-[ $compiler == frog && $runtime == none ]
-*: Skip
-
 [ $runtime == ff || $runtime == ie ]
 unicode_test: Fail
 

@@ -106,7 +106,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     return type.isPrimitive() && !type.isNull();
   }
 
-  bool get hasTypeGuards() => work.guards.length != 0;
+  bool get hasTypeGuards => work.guards.length != 0;
 
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
@@ -158,6 +158,16 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
         hasTypeGuards) {
       HBasicBlock loopHeader = instruction.block.enclosingLoopHeader;
       if (loopHeader != null && loopHeader.parentLoopHeader != null) {
+        return true;
+      }
+    }
+
+    // If the instruction is used by a phi where a guard would be
+    // valuable, put the guard on that instruction.
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HPhi
+          && user.block.id > instruction.id
+          && typeGuardWouldBeValuable(user, speculativeType)) {
         return true;
       }
     }

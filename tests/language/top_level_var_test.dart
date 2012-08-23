@@ -22,8 +22,8 @@ class TopLevelVarTest {
 }
 
 
-// Ensure that initializers work for both final and non-final variables.
-final int x = 2 * 55 + 1;
+// Ensure that initializers work for both const and non-const variables.
+const int x = 2 * 55 + 1;
 int y = x + 1;
 
 

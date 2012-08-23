@@ -107,6 +107,13 @@
       'dependencies': [
         'utils/apidoc/apidoc.gyp:api_docs',
       ],
-    }
+    },
+    {
+      'target_name': 'samples',
+      'type': 'none',
+      'dependencies': [
+        'samples/sample_extension/sample_extension.gyp:sample_extension',
+      ],
+    },
   ],
 }

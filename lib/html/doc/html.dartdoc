@@ -172,6 +172,10 @@
 #source('interface/HTMLCollection.dartdoc');
 #source('interface/HtmlElement.dartdoc');
 #source('interface/HTMLOptionsCollection.dartdoc');
+#source('interface/HttpRequest.dartdoc');
+#source('interface/HttpRequestException.dartdoc');
+#source('interface/HttpRequestProgressEvent.dartdoc');
+#source('interface/HttpRequestUpload.dartdoc');
 #source('interface/IceCallback.dartdoc');
 #source('interface/IceCandidate.dartdoc');
 #source('interface/IDBAny.dartdoc');
@@ -547,10 +551,6 @@
 #source('interface/Worker.dartdoc');
 #source('interface/WorkerLocation.dartdoc');
 #source('interface/WorkerNavigator.dartdoc');
-#source('interface/XMLHttpRequest.dartdoc');
-#source('interface/XMLHttpRequestException.dartdoc');
-#source('interface/XMLHttpRequestProgressEvent.dartdoc');
-#source('interface/XMLHttpRequestUpload.dartdoc');
 #source('interface/XMLSerializer.dartdoc');
 #source('interface/XPathEvaluator.dartdoc');
 #source('interface/XPathException.dartdoc');

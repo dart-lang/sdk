@@ -4,11 +4,11 @@
 // Test program for array literals.
 
 class ArrayLiteral2Test {
-  static final int LAUREL = 1965;
-  static final int HARDY = 1957;
+  static const int LAUREL = 1965;
+  static const int HARDY = 1957;
 
-  static final LUCKY_DOG = const <int>[ 1919, 1921 ];
-  static final MUSIC_BOX = const [ LAUREL, HARDY ];
+  static const LUCKY_DOG = const <int>[ 1919, 1921 ];
+  static const MUSIC_BOX = const [ LAUREL, HARDY ];
 
   static testMain() {
     Expect.equals(2, LUCKY_DOG.length);
