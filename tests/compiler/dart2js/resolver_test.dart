@@ -718,8 +718,6 @@ map(ResolverVisitor visitor) {
   return elements.map;
 }
 
-length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;
-
 at(Link link, int index) => (index == 0) ? link.head : at(link.tail, index - 1);
 
 List<String> asSortedStrings(Link link) {
