@@ -87,7 +87,7 @@ testDart2DartWithLibrary(
       fileUri('packageRoot'),
       provider,
       handler,
-      const ['--output-type=dart', '--unparse-validation']).then(continuation);
+      const ['--output-type=dart']).then(continuation);
 }
 
 testSignedConstants() {
