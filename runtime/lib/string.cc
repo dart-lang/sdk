@@ -54,6 +54,21 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
+  GET_NATIVE_ARGUMENT(String, receiver, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->At(2));
+
+  intptr_t start = start_obj.Value();
+  intptr_t end = end_obj.Value();
+
+  const String& result = String::Handle(
+      String::SubString(receiver, start, (end - start)));
+  arguments->SetReturn(result);
+}
+
+
+
 DEFINE_NATIVE_ENTRY(String_hashCode, 1) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
   intptr_t hash_val = receiver.Hash();

@@ -31,7 +31,7 @@ class _JSRegExpMatch implements Match {
       assert(endIndex == -1);
       return null;
     }
-    return str.substringUnchecked_(startIndex, endIndex);
+    return str._substringUnchecked(startIndex, endIndex);
   }
 
   String operator [](int groupIdx) {
@@ -105,7 +105,7 @@ patch class JSSyntaxRegExp {
     if (match === null) {
       return null;
     }
-    return str.substringUnchecked_(match[0], match[1]);
+    return str._substringUnchecked(match[0], match[1]);
   }
 
   /* patch */ String get pattern() native "JSSyntaxRegExp_getPattern";

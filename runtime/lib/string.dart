@@ -152,17 +152,11 @@ class StringBase {
     if (startIndex > endIndex) {
       throw new IndexOutOfRangeException(startIndex);
     }
-    return substringUnchecked_(startIndex, endIndex);
+    return _substringUnchecked(startIndex, endIndex);
   }
 
-  String substringUnchecked_(int startIndex, int endIndex) {
-    int len = endIndex - startIndex;
-    List<int> charCodes = new List<int>(len);
-    for (int i = 0; i < len; i++) {
-      charCodes[i] = this.charCodeAt(startIndex + i);
-    }
-    return StringBase.createFromCharCodes(charCodes);
-  }
+  String _substringUnchecked(int startIndex, int endIndex)
+      native "StringBase_substringUnchecked";
 
   String trim() {
     final int len = this.length;
@@ -187,7 +181,7 @@ class StringBase {
       // whitespaces.
       return this;
     } else {
-      return substringUnchecked_(first, last + 1);
+      return _substringUnchecked(first, last + 1);
     }
   }
 
