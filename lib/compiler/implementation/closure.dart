@@ -67,7 +67,7 @@ class ClosureClassElement extends ClassElement {
               // is unique, but also emit closure classes after all other
               // classes (since the emitter sorts classes by their id).
               compiler.getNextFreeClassId(),
-              ClassElement.STATE_DONE) {
+              STATE_DONE) {
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);
     interfaces = const EmptyLink<Type>();

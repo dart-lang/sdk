@@ -987,7 +987,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
-        assert(superClass.resolutionState == ClassElement.STATE_DONE);
+        assert(superClass.resolutionState == STATE_DONE);
         Selector selector =
             new Selector.call(superClass.name, enclosingClass.getLibrary(), 0);
         FunctionElement target = superClass.lookupConstructor(superClass.name);

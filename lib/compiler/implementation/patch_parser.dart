@@ -292,6 +292,9 @@ class PatchMemberListener extends MemberListener implements PatchListener {
 }
 
 // TODO(ahe): Get rid of this class.
+// Note: we never set [annotatedElement] for this class.
 class PatchMetadataAnnotation extends MetadataAnnotation {
   final Constant value = null;
+
+  PatchMetadataAnnotation() : super(STATE_DONE);
 }

@@ -10,7 +10,7 @@ class World {
 
   void populate(Compiler compiler) {
     void addSubtypes(ClassElement cls) {
-      if (cls.resolutionState != ClassElement.STATE_DONE) {
+      if (cls.resolutionState != STATE_DONE) {
         compiler.internalErrorOnElement(
             cls, 'Class "${cls.name.slowToString()}" is not resolved.');
       }

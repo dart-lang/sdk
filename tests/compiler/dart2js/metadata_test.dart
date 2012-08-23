@@ -17,11 +17,11 @@ void testClassMetadata() {
 
   check(compiler, element) {
     Expect.isFalse(element.metadata.isEmpty());
+    Expect.isTrue(element.metadata.tail.isEmpty());
     MetadataAnnotation annotation = element.metadata.head;
-    Expect.isNotNull(annotation);
+    annotation.ensureResolved(compiler);
     Constant value = annotation.value;
-    return; // TODO(ahe): I'm working on the following.
-    Expect.isNotNull(value);
+    Expect.stringEquals('xyz', value.value.slowToString());
   }
 
   compileAndCheck(source, 'Foo', check);
@@ -35,11 +35,11 @@ void testTopLevelMethodMetadata() {
 
   check(compiler, element) {
     Expect.isFalse(element.metadata.isEmpty());
+    Expect.isTrue(element.metadata.tail.isEmpty());
     MetadataAnnotation annotation = element.metadata.head;
-    Expect.isNotNull(annotation);
+    annotation.ensureResolved(compiler);
     Constant value = annotation.value;
-    return; // TODO(ahe): I'm working on the following.
-    Expect.isNotNull(value);
+    Expect.stringEquals('xyz', value.value.slowToString());
   }
 
   compileAndCheck(source, 'main', check);

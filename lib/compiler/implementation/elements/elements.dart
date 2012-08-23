@@ -11,6 +11,10 @@
 #import('../leg.dart');  // TODO(karlklose): we only need type.
 #import('../util/util.dart');
 
+const int STATE_NOT_STARTED = 0;
+const int STATE_STARTED = 1;
+const int STATE_DONE = 2;
+
 class ElementCategory {
   /**
    * Represents things that we don't expect to find when looking in a
@@ -123,6 +127,8 @@ class Element implements Hashable {
   }
 
   void addMetadata(MetadataAnnotation annotation) {
+    assert(annotation.annotatedElement === null);
+    annotation.annotatedElement = this;
     metadata = metadata.prepend(annotation);
   }
 
@@ -1081,10 +1087,6 @@ abstract class TypeDeclarationElement implements Element {
 
 class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
-  static final int STATE_NOT_STARTED = 0;
-  static final int STATE_STARTED = 1;
-  static final int STATE_DONE = 2;
-
   final int id;
   InterfaceType type;
   Type supertype;
@@ -1613,6 +1615,19 @@ class MetadataAnnotation {
    * In the mirror system, this would be an object mirror.
    */
   abstract Constant get value();
+  Element annotatedElement;
+  int resolutionState;
 
-  // TODO(ahe): Add more functionality as needed.
+  MetadataAnnotation([this.resolutionState = STATE_NOT_STARTED]);
+
+  abstract Node parseNode(DiagnosticListener listener);
+
+  MetadataAnnotation ensureResolved(Compiler compiler) {
+    if (resolutionState == STATE_NOT_STARTED) {
+      compiler.resolver.resolveMetadataAnnotation(this);
+    }
+    return this;
+  }
+
+  String toString() => 'MetadataAnnotation($value, $resolutionState)';
 }

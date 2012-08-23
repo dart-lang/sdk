@@ -18,17 +18,17 @@ class PartialClassElement extends ClassElement {
                       Token this.endToken,
                       Element enclosing,
                       int id)
-      : super(name, enclosing, id, ClassElement.STATE_NOT_STARTED);
+      : super(name, enclosing, id, STATE_NOT_STARTED);
 
   void set supertypeLoadState(int state) {
     assert(state == supertypeLoadState + 1);
-    assert(state <= ClassElement.STATE_DONE);
+    assert(state <= STATE_DONE);
     super.supertypeLoadState = state;
   }
 
   void set resolutionState(int state) {
     assert(state == resolutionState + 1);
-    assert(state <= ClassElement.STATE_DONE);
+    assert(state <= STATE_DONE);
     super.resolutionState = state;
   }
 
@@ -62,8 +62,8 @@ class PartialClassElement extends ClassElement {
     PartialClassElement result =
         new PartialClassElement(name, beginToken, endToken, enclosing, id);
 
-    assert(this.supertypeLoadState == ClassElement.STATE_NOT_STARTED);
-    assert(this.resolutionState == ClassElement.STATE_NOT_STARTED);
+    assert(this.supertypeLoadState == STATE_NOT_STARTED);
+    assert(this.resolutionState == STATE_NOT_STARTED);
     assert(this.type === null);
     assert(this.supertype === null);
     assert(this.defaultClass === null);

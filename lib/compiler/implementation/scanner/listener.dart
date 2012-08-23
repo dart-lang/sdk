@@ -1646,7 +1646,13 @@ class PartialMetadataAnnotation extends MetadataAnnotation {
 
   PartialMetadataAnnotation(this.beginToken);
 
-  // TODO(ahe): Add more functionality as needed.
+  Node parseNode(DiagnosticListener listener) {
+    if (cachedNode !== null) return cachedNode;
+    cachedNode = parse(listener,
+                       annotatedElement.getCompilationUnit(),
+                       (p) => p.parseSend(beginToken.next));
+    return cachedNode;
+  }
 }
 
 Node parse(DiagnosticListener diagnosticListener,
