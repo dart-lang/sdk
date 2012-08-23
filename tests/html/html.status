@@ -13,6 +13,7 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+websql_test: Skip #4645 dartium does not support web SQL (and times out executing)
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -57,6 +58,7 @@ localstorage_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
+websql_test: Fail # IE does not support web SQL
 #
 # Investigate and triage the following into bug reports.
 #
@@ -140,6 +142,7 @@ typed_arrays_dataview_test: Fail  # DataView not implemented until Firefox 15.0
 # framework, frog no longer resolves forEach statically, and instead it
 # dynamically binds forEach on a bunch of classes, including HTMLCollection.
 typing_test: Pass
+websql_test: Fail # FF does not support web SQL
 websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
