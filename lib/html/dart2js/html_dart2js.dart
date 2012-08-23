@@ -5276,6 +5276,14 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
+  void addText(String text) {
+    this.insertAdjacentText('beforeend', text);
+  }
+
+  void addHTML(String text) {
+    this.insertAdjacentHTML('beforeend', text);
+  }
+
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(() => const EmptyElementRect(),
                                     new Completer<ElementRect>());
@@ -6093,14 +6101,14 @@ class _ElementRectImpl implements ElementRect {
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectImpl _boundingClientRect; 
+  final _ClientRectImpl _boundingClientRect;
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
     client = new _SimpleClientRect(element.$dom_clientLeft,
                                   element.$dom_clientTop,
-                                  element.$dom_clientWidth, 
-                                  element.$dom_clientHeight), 
+                                  element.$dom_clientWidth,
+                                  element.$dom_clientHeight),
     offset = new _SimpleClientRect(element.$dom_offsetLeft,
                                   element.$dom_offsetTop,
                                   element.$dom_offsetWidth,
@@ -6189,10 +6197,73 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         new Completer<CSSStyleDeclaration>());
   }
 
+  void addText(String text) {
+    this.insertAdjacentText('beforeend', text);
+  }
+
+  void addHTML(String text) {
+    this.insertAdjacentHTML('beforeend', text);
+  }
+
   // Hooks to support custom WebComponents.
   var xtag;
 
   // TODO(vsm): Implement noSuchMethod or similar for dart2js.
+
+  /** @domName Element.insertAdjacentText */
+  void insertAdjacentText(String where, String text) {
+    if (JS('bool', '!!this.insertAdjacentText')) {
+      _insertAdjacentText(where, text);
+    } else {
+      _insertAdjacentNode(where, new Text(text));
+    }
+  }
+
+  void _insertAdjacentText(String where, String text)
+      native 'insertAdjacentText';
+
+  /** @domName Element.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String text) {
+    if (JS('bool', '!!this.insertAdjacentHTML')) {
+      _insertAdjacentHTML(where, text);
+    } else {
+      _insertAdjacentNode(where, new DocumentFragment.html(text));
+    }
+  }
+
+  void _insertAdjacentHTML(String where, String text)
+      native 'insertAdjacentHTML';
+
+  /** @domName Element.insertAdjacentHTML */
+  void insertAdjacentElement(String where, Element element) {
+    if (JS('bool', '!!this.insertAdjacentElement')) {
+      _insertAdjacentElement(where, element);
+    } else {
+      _insertAdjacentNode(where, element);
+    }
+  }
+
+  void _insertAdjacentElement(String where, String text)
+      native 'insertAdjacentElement';
+
+  void _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case 'beforebegin':
+        this.parent.insertBefore(node, this);
+        break;
+      case 'afterbegin':
+        this.insertBefore(node, this.nodes.first);
+        break;
+      case 'beforeend':
+        this.nodes.add(node);
+        break;
+      case 'afterend':
+        this.parent.insertBefore(node, this.nextNode);
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid position ${where}");
+    }
+  }
 
 
   _ElementEventsImpl get on() =>
@@ -6229,12 +6300,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   String webkitdropzone;
 
   void click() native;
-
-  _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
-
-  void insertAdjacentHTML(String where, String html) native;
-
-  void insertAdjacentText(String where, String text) native;
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
@@ -23843,6 +23908,17 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   AttributeMap get dataAttributes();
   void set dataAttributes(Map<String, String> value);
+
+  /**
+   * Adds the specified text as a text node after the last child of this.
+   */
+  void addText(String text);
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this.
+   */
+  void addHTML(String html);
 
   /**
    * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
