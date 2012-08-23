@@ -70,8 +70,6 @@ css_test: Fail
 datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
 exceptions_test: Fail
-hidden_dom_1_test: Fail
-hidden_dom_2_test: Fail
 history_test: Fail
 indexeddb_1_test: Fail
 indexeddb_2_test: Fail
@@ -92,7 +90,6 @@ shadow_dom_test: Fail
 storage_test: Fail
 svg_3_test: Fail
 websocket_test: Fail
-window_nosuchmethod_test: Fail
 window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 fileapi_test: Skip          # BUG(4016)
