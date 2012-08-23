@@ -5454,10 +5454,12 @@ void Object::SetRaw(RawObject* value) {
 
 #if defined(DEBUG)
   Isolate* isolate = Isolate::Current();
-  Heap* isolate_heap = isolate->heap();
-  Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-  ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
-         vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+  if (FLAG_verify_handles) {
+    Heap* isolate_heap = isolate->heap();
+    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+    ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
+           vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+  }
 #endif
   intptr_t cid = raw_->GetClassId();
   if (cid < kNumPredefinedCids) {

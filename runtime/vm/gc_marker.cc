@@ -210,7 +210,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
 
     // TODO(iposva): merge old and code spaces.
-    ASSERT(page_space_->Contains(RawObject::ToAddr(raw_obj)));
     MarkAndPush(raw_obj);
   }
 
