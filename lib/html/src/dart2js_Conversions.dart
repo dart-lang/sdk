@@ -84,15 +84,23 @@ _convertDartToNative_ImageData(ImageData imageData) {
 
 
 /// Converts a JavaScript object with properties into a Dart Map.
+/// Not suitable for nested objects.
 Map _convertNativeToDart_Dictionary(object) {
   // TODO: Implement.
-  return object;
+  var dict = {};
+  for (final key in JS('List', 'Object.getOwnPropertyNames(#)', object)) {
+    dict[key] = JS('var', '#[#]', object, key);
+  }
+  return dict;
 }
 
-/// Converts a Dart map into a JavaScript object with properties.
+/// Converts a flat Dart map into a JavaScript object with properties.
 _convertDartToNative_Dictionary(Map dict) {
-  // TODO: Implement.
-  return dict;
+  var object = JS('var', '{}');
+  dict.forEach((String key, value) {
+      JS('void', '#[#] = #', object, key, value);
+    });
+  return object;
 }
 
 
