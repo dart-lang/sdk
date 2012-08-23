@@ -817,9 +817,12 @@ unwrapException(ex) {
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
         return new NullPointerException();
-      } else if (message.contains(' is not a function')) {
+      } else if (message.contains(' is not a function') ||
+                 message.contains("doesn't support property or method")) {
+        // Examples:
         //  x.foo is not a function
         //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
+        // Object doesn't support property or method 'foo'
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
       }
