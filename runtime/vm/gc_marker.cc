@@ -164,7 +164,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
  private:
   void MarkAndPush(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
-    ASSERT(page_space_->Contains(RawObject::ToAddr(raw_obj)));
+    ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc) ?
+           page_space_->Contains(RawObject::ToAddr(raw_obj)) :
+           true);
 
     // Mark the object and push it on the marking stack.
     ASSERT(!raw_obj->IsMarked());
