@@ -23,7 +23,7 @@ namespace dart {
   V(StringBase, get:length, StringBaseLength)                                  \
   V(IntegerImplementation, toDouble, IntegerToDouble)                          \
   V(Double, toDouble, DoubleToDouble)                                          \
-  V(Math, sqrt, MathSqrt)                                                      \
+  V(::, sqrt, MathSqrt)                                                        \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable

@@ -481,7 +481,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
     return true;
   }
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
-             (class_ids[0] == kSmiCid)) {
+      (class_ids[0] == kSmiCid)) {
     SmiToDoubleComp* s2d_comp = new SmiToDoubleComp(comp);
     instr->set_computation(s2d_comp);
     // Pushed arguments are not removed because SmiToDouble is implemented

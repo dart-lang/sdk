@@ -55,11 +55,13 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.Owner());
   const char* class_name = String::Handle(function_class.Name()).ToCString();
-  // Only core library methods can be intrinsified.
+  // Only core and math library methods can be intrinsified.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
   if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != core_impl_lib.raw())) {
+      (function_class.library() != core_impl_lib.raw()) &&
+      (function_class.library() != math_lib.raw())) {
     return false;
   }
 #define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \

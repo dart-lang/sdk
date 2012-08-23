@@ -64,9 +64,9 @@ namespace dart {
   V(GrowableObjectArray, set:data, GrowableArray_setData)                      \
   V(ImmutableArray, [], ImmutableArray_getIndexed)                             \
   V(ImmutableArray, get:length, ImmutableArray_getLength)                      \
-  V(Math, sqrt, Math_sqrt)                                                     \
-  V(Math, sin, Math_sin)                                                       \
-  V(Math, cos, Math_cos)                                                       \
+  V(::, sqrt, Math_sqrt)                                                       \
+  V(::, sin, Math_sin)                                                         \
+  V(::, cos, Math_cos)                                                         \
   V(Object, ==, Object_equal)                                                  \
   V(FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                 \
   V(FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)           \
