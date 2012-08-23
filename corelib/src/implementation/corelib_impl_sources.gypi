@@ -16,6 +16,7 @@
     'maps.dart',
     'options.dart',
     'queue.dart',
+    'regexp.dart',
     'splay_tree.dart',
     'stopwatch_implementation.dart',
     'string_buffer.dart',

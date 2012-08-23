@@ -1600,7 +1600,10 @@ const char* Class::ApplyPatch(const Class& patch) const {
       // Non-patched function is preserved, all patched functions are added in
       // the loop below.
       new_functions.Add(orig_func);
-    } else if (!func.HasCompatibleParametersWith(orig_func)) {
+    } else if (!func.HasCompatibleParametersWith(orig_func) &&
+               !(func.IsFactory() && orig_func.IsConstructor() &&
+                 (func.num_fixed_parameters() + 1 ==
+                  orig_func.num_fixed_parameters()))) {
       return FormatPatchError("mismatched parameters: %s", member_name);
     }
   }

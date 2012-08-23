@@ -1,9 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class JSRegExpMatch implements Match {
-  JSRegExpMatch(this.regexp, this.str, this._match);
+class _JSRegExpMatch implements Match {
+  _JSRegExpMatch(this.regexp, this.str, this._match);
 
   int start() {
     return _start(0);
@@ -59,21 +59,21 @@ class JSRegExpMatch implements Match {
 }
 
 
-class JSSyntaxRegExp implements RegExp {
-  const factory JSSyntaxRegExp(
+patch class JSSyntaxRegExp {
+  /* patch */ const factory JSSyntaxRegExp(
       String pattern,
       [bool multiLine = false,
        bool ignoreCase = false]) native "JSSyntaxRegExp_factory";
 
-  Match firstMatch(String str) {
+  /* patch */ Match firstMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     if (match === null) {
       return null;
     }
-    return new JSRegExpMatch(this, str, match);
+    return new _JSRegExpMatch(this, str, match);
   }
 
-  Iterable<Match> allMatches(String str) {
+  /* patch */ Iterable<Match> allMatches(String str) {
     List<Match> result = new List<Match>();
     int length = str.length;
     int startIndex = 0;
@@ -82,7 +82,7 @@ class JSSyntaxRegExp implements RegExp {
       if (match == null) {
         break;
       }
-      result.add(new JSRegExpMatch(this, str, match));
+      result.add(new _JSRegExpMatch(this, str, match));
       int endIndex = match[1];
       if (endIndex == length) {
         break;
@@ -95,12 +95,12 @@ class JSSyntaxRegExp implements RegExp {
     return result;
   }
 
-  bool hasMatch(String str) {
+  /* patch */ bool hasMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     return (match === null) ? false : true;
   }
 
-  String stringMatch(String str) {
+  /* patch */ String stringMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     if (match === null) {
       return null;
@@ -108,11 +108,11 @@ class JSSyntaxRegExp implements RegExp {
     return str.substringUnchecked_(match[0], match[1]);
   }
 
-  String get pattern() native "JSSyntaxRegExp_getPattern";
+  /* patch */ String get pattern() native "JSSyntaxRegExp_getPattern";
 
-  bool get multiLine() native "JSSyntaxRegExp_multiLine";
+  /* patch */ bool get multiLine() native "JSSyntaxRegExp_multiLine";
 
-  bool get ignoreCase() native "JSSyntaxRegExp_ignoreCase";
+  /* patch */ bool get ignoreCase() native "JSSyntaxRegExp_ignoreCase";
 
   int get _groupCount() native "JSSyntaxRegExp_getGroupCount";
 
