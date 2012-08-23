@@ -35,7 +35,6 @@ documentfragment_test: Pass, Timeout
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
-indexeddb_3_test: Fail  # Issue 4648 - codegen bug.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
