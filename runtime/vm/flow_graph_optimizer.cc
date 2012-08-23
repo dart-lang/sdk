@@ -447,6 +447,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         comp->ArgumentAt(0)->value(),
         length_offset,
         Type::ZoneHandle(Type::IntInterface()));
+    load->set_result_cid(kSmiCid);
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
@@ -464,6 +465,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         comp->ArgumentAt(0)->value(),
         String::length_offset(),
         Type::ZoneHandle(Type::IntInterface()));
+    load->set_result_cid(kSmiCid);
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);

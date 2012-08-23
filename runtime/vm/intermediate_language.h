@@ -1401,6 +1401,7 @@ class LoadVMFieldComp : public TemplateComputation<1> {
                   const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
+        result_cid_(kDynamicCid),
         original_(NULL) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
@@ -1414,14 +1415,17 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   const AbstractType& type() const { return type_; }
   const InstanceCallComp* original() const { return original_; }
   void set_original(InstanceCallComp* value) { original_ = value; }
+  void set_result_cid(intptr_t value) { result_cid_ = value; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return result_cid_; }
 
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
+  intptr_t result_cid_;
   const InstanceCallComp* original_;  // For optimizations.
   // If non-NULL, the instruction is valid only for the class ids listed.
 
