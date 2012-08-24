@@ -922,7 +922,7 @@ void FlowGraphTypePropagator::VisitBind(BindInstr* bind) {
       still_changing_ = true;
     }
     // Propagate class ids.
-    intptr_t cid = bind->computation()->ResultCid();
+    const intptr_t cid = bind->computation()->ResultCid();
     changed = bind->SetPropagatedCid(cid);
     if (changed) {
       still_changing_ = true;

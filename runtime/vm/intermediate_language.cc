@@ -423,7 +423,9 @@ void Definition::ReplaceUsesWith(Value* value) {
 
 
 bool Definition::SetPropagatedCid(intptr_t cid) {
-  ASSERT(cid != kIllegalCid);
+  if (cid == kIllegalCid) {
+    return false;
+  }
   if (propagated_cid_ == kIllegalCid) {
     // First setting, nothing has changed.
     propagated_cid_ = cid;

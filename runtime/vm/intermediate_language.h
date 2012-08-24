@@ -189,7 +189,7 @@ class Computation : public ZoneAllocated {
   // Compile time type of the computation, which typically depends on the
   // compile time types (and possibly propagated types) of its inputs.
   virtual RawAbstractType* CompileType() const = 0;
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const = 0;
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
@@ -556,6 +556,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -617,6 +618,7 @@ class CurrentContextComp : public TemplateComputation<0> {
   DECLARE_COMPUTATION(CurrentContext)
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
@@ -635,6 +637,7 @@ class StoreContextComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
@@ -664,6 +667,7 @@ class ClosureCallComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ClosureCallNode& ast_node_;
@@ -717,6 +721,7 @@ class InstanceCallComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -750,6 +755,7 @@ class PolymorphicInstanceCallComp : public TemplateComputation<0> {
   DECLARE_CALL_COMPUTATION(PolymorphicInstanceCall)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   InstanceCallComp* instance_call_;
@@ -916,6 +922,7 @@ class StaticCallComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -943,6 +950,7 @@ class LoadLocalComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const LocalVariable& local_;
@@ -975,6 +983,7 @@ class StoreLocalComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const LocalVariable& local_;
@@ -1015,6 +1024,7 @@ class NativeCallComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const NativeBodyNode& ast_node_;
@@ -1044,6 +1054,7 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return original_ != NULL; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
@@ -1079,6 +1090,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return original_ != NULL; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
@@ -1099,6 +1111,7 @@ class LoadStaticFieldComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
@@ -1124,6 +1137,7 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
@@ -1156,6 +1170,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
   InstanceCallComp* original() const { return original_; }
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   intptr_t receiver_type_;
@@ -1193,6 +1208,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
   intptr_t receiver_type() const { return receiver_type_; }
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   intptr_t receiver_type_;
@@ -1215,6 +1231,7 @@ class BooleanNegateComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateComp);
@@ -1296,6 +1313,7 @@ class AllocateObjectComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -1328,6 +1346,7 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -1373,6 +1392,7 @@ class CreateArrayComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -1407,6 +1427,7 @@ class CreateClosureComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ClosureNode& ast_node_;
@@ -1480,6 +1501,7 @@ class StoreVMFieldComp : public TemplateComputation<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t offset_in_bytes_;
@@ -1515,6 +1537,7 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -1551,6 +1574,7 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -1580,6 +1604,7 @@ class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -1606,6 +1631,7 @@ class AllocateContextComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -1628,6 +1654,7 @@ class ChainContextComp : public TemplateComputation<1> {
   Value* context_value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
@@ -1652,6 +1679,7 @@ class CloneContextComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(CloneContext)
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const intptr_t token_pos_;
@@ -1675,6 +1703,7 @@ class CatchEntryComp : public TemplateComputation<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const LocalVariable& exception_var_;
@@ -1699,6 +1728,7 @@ class CheckEitherNonSmiComp : public TemplateComputation<2> {
   DECLARE_COMPUTATION(CheckEitherNonSmi)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool HasSideEffect() const { return false; }
 
@@ -1753,6 +1783,8 @@ class UnboxDoubleComp : public TemplateComputation<1> {
   virtual bool CanDeoptimize() const {
     return value()->ResultCid() != kDoubleCid;
   }
+  // The output is not an instance.
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -1787,6 +1819,8 @@ class UnboxedDoubleBinaryOpComp : public TemplateComputation<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  // The output is not an instance.
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -1947,6 +1981,7 @@ class NumberNegateComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(NumberNegate)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
   InstanceCallComp* instance_call_;
@@ -1967,6 +2002,7 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
   DECLARE_COMPUTATION(CheckStackOverflow)
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const intptr_t token_pos_;
@@ -2032,6 +2068,7 @@ class CheckClassComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(CheckClass)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool AttributesEqual(Computation* other) const;
 
@@ -2062,6 +2099,7 @@ class CheckSmiComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(CheckSmi)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool AttributesEqual(Computation* other) const { return true; }
 
