@@ -80,9 +80,10 @@ subClass() {
 
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
+  print(generated);
   Expect.isTrue(generated.contains(@"""
 $.B = {"":
- ["z", "y", "x"],
+ ["y", "z", "x"],
  super: "A"
 }"""));
 }
