@@ -920,9 +920,15 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(ABOVE_EQUAL, deopt);
       // Note that index is Smi, i.e, times 4.
       ASSERT(kSmiTagShift == 1);
-      __ StoreIntoObject(receiver,
-          FieldAddress(receiver, index, TIMES_4, sizeof(RawArray)),
-          value);
+      if (this->value()->BindsToConstant()) {
+        // Compile time constants are Smi or allocated in the old space.
+        __ movq(FieldAddress(receiver, index, TIMES_4, sizeof(RawArray)),
+            value);
+      } else {
+        __ StoreIntoObject(receiver,
+            FieldAddress(receiver, index, TIMES_4, sizeof(RawArray)),
+            value);
+      }
       break;
 
     case kGrowableObjectArrayCid: {
@@ -933,9 +939,15 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
       // Note that index is Smi, i.e, times 4.
       ASSERT(kSmiTagShift == 1);
-      __ StoreIntoObject(temp,
-          FieldAddress(temp, index, TIMES_4, sizeof(RawArray)),
-          value);
+      if (this->value()->BindsToConstant()) {
+        // Compile time constants are Smi or allocated in the old space.
+        __ movq(FieldAddress(temp, index, TIMES_4, sizeof(RawArray)),
+            value);
+      } else {
+        __ StoreIntoObject(temp,
+            FieldAddress(temp, index, TIMES_4, sizeof(RawArray)),
+            value);
+      }
       break;
     }
 
@@ -976,6 +988,46 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t num_temps = HasICData() ? 1 : 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  if (HasICData()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  return summary;
+}
+
+
+void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register instance_reg = locs()->in(0).reg();
+  Register value_reg = locs()->in(1).reg();
+
+  if (HasICData()) {
+    ASSERT(original() != NULL);
+    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
+                                          original()->try_index(),
+                                          kDeoptInstanceGetterSameTarget);
+    // Smis do not have instance fields (Smi class is always first).
+    Register temp_reg = locs()->temp(0).reg();
+    ASSERT(temp_reg != instance_reg);
+    ASSERT(temp_reg != value_reg);
+    ASSERT(ic_data() != NULL);
+    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
+  }
+  if (this->value()->BindsToConstant()) {
+    // Compile time constants are Smi or allocated in the old space.
+    __ movq(FieldAddress(instance_reg, field().Offset()), value_reg);
+  } else {
+    __ StoreIntoObject(instance_reg,
+        FieldAddress(instance_reg, field().Offset()), value_reg);
+  }
+}
+
+
 LocationSummary* LoadStaticFieldComp::MakeLocationSummary() const {
   return LocationSummary::Make(0,
                                Location::RequiresRegister(),
@@ -987,6 +1039,30 @@ void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   __ LoadObject(result, field());
   __ movq(result, FieldAddress(result, Field::value_offset()));
+}
+
+
+LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
+  LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
+}
+
+
+void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->out().reg() == value);
+
+  __ LoadObject(temp, field());
+  if (this->value()->BindsToConstant()) {
+    // Compile time constants are Smi or allocated in the old space.
+    __ movq(FieldAddress(temp, Field::value_offset()), value);
+  } else {
+    __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
+  }
 }
 
 

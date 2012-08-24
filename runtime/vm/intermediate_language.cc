@@ -1167,41 +1167,6 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t num_temps = HasICData() ? 1 : 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  if (HasICData()) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
-  return summary;
-}
-
-
-void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance_reg = locs()->in(0).reg();
-  Register value_reg = locs()->in(1).reg();
-
-  if (HasICData()) {
-    ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget);
-    // Smis do not have instance fields (Smi class is always first).
-    Register temp_reg = locs()->temp(0).reg();
-    ASSERT(temp_reg != instance_reg);
-    ASSERT(temp_reg != value_reg);
-    ASSERT(ic_data() != NULL);
-    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
-  }
-  __ StoreIntoObject(instance_reg, FieldAddress(instance_reg, field().Offset()),
-                     value_reg);
-}
-
-
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
   return new LocationSummary(0, 0, LocationSummary::kCall);
 }
@@ -1413,25 +1378,6 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                        locs());
   }
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
-}
-
-
-LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
-  ASSERT(locs()->out().reg() == value);
-
-  __ LoadObject(temp, field());
-  __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
 }
 
 
