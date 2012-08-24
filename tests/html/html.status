@@ -81,6 +81,7 @@ js_interop_3_test: Fail
 js_interop_4_test: Fail
 js_interop_func_passing_test: Fail
 js_interop_obj_passing_test: Fail
+js_interop_obj_invoke_test: Fail
 measurement_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
@@ -127,6 +128,7 @@ js_interop_3_test: Fail
 js_interop_4_test: Fail
 js_interop_func_passing_test: Fail
 js_interop_obj_passing_test: Fail
+js_interop_obj_invoke_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail

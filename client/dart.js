@@ -46,68 +46,12 @@ function ReceivePortSync() {
 }
 
 (function() {
-  function RefTable(name) {
-    // TODO(vsm): Fix leaks, particularly in dart2js case.
-    this.name = name;
-    this.map = {};
-    this.id = 0;
-    this.initialized = false;
-  }
-  
-  RefTable.prototype.nextId = function () { return this.id++; }
-
-  RefTable.prototype.makeRef = function (obj) {
-    this.initializeOnce();
-    // TODO(vsm): Cache refs for each obj.
-    var ref = this.name + '-' + this.nextId();
-    this.map[ref] = obj;
-    return ref;
-  }
-
-  RefTable.prototype.initializeOnce = function () {
-    if (!this.initialized) {
-      this.initialize();
-    }
-    this.initialized = true;
-  }
-
-  // Overridable initialization on first use hook.
-  RefTable.prototype.initialize = function () {}
-
-  RefTable.prototype.get = function (ref) {
-    return this.map[ref];
-  }
-
-  function FunctionRefTable() {}
-
-  FunctionRefTable.prototype = new RefTable('func-ref');
-
-  FunctionRefTable.prototype.initialize = function () {
-    var receivePort = new ReceivePortSync();
-    map = this.map;
-    receivePort.receive(function (message) {
-      var id = message[0];
-      var args = message[1];
-      var f = map[id];
-      // TODO(vsm): Should we capture this automatically?
-      return f.apply(null, args);    
-    });
-    this.port = receivePort.toSendPort();
-  }
-
-  var functionRefTable = new FunctionRefTable();
-
-  function JSRefTable() {}
-
-  JSRefTable.prototype = new RefTable('js-ref');
-
-  var jsRefTable = new JSRefTable();
-
-  function DartProxy(id) {
-    // TODO(vsm): Set isolate id.
-    this.id = id;
-  }
-
+  // Serialize:
+  //  - primitives / null: unchanged
+  //  - lists: [ 'list', id, list of recursively serialized elements ]
+  //  - maps: [ 'map', id, map of keys and recursively serialized values ]
+  //  - functions: [ 'funcref', function-proxy-id, function-proxy-send-port ]
+  //  - objects: [ 'objref', object-proxy-id, object-proxy-send-port ]
   function serialize(message) {
     var visited = [];
     function checkedSerialization(obj, serializer) {
@@ -143,13 +87,14 @@ function ReceivePortSync() {
         return [ 'sendport', 'dart', message.isolateId, message.portId ];
       } else if (message instanceof Function) {
         return [ 'funcref', functionRefTable.makeRef(message),
-                 doSerialize(functionRefTable.port) ];
+                 doSerialize(functionRefTable.sendPort) ];
       } else if (message instanceof DartProxy) {
-        return [ 'objref', 'dart', message.id ];
+        return [ 'objref', message._id, doSerialize(message._port) ];
       } else if (message.__proto__ != {}.__proto__) {
         // TODO(vsm): Is the above portable and what we want?
         // Proxy non-map Objects.
-        return [ 'objref', 'nativejs', jsRefTable.makeRef(message) ];
+        return [ 'objref', jsRefTable.makeRef(message),
+                 doSerialize(jsRefTable.sendPort) ];
       } else {
         return checkedSerialization(message, function(id) {
           var keys = Object.getOwnPropertyNames(message);
@@ -232,13 +177,12 @@ function ReceivePortSync() {
   }
 
   function deserializeProxy(message) {
-    var tag = message[1];
-    if (tag == 'nativejs') {
-      var id = message[2];
+    var id = message[1];
+    var port = deserializeSendPort(message[2]);
+    if (port instanceof LocalSendPortSync) {
       return jsRefTable.map[id];
-    } else if (tag == 'dart') {
-      var id = message[2];
-      return new DartProxy(id);
+    } else if (port instanceof DartSendPortSync) {
+      return new DartProxy(port, id);
     }
     throw 'Illegal proxy object: ' + message;
   }
@@ -325,6 +269,104 @@ function ReceivePortSync() {
     dispatchEvent(target, [source, serialized]);
     window.removeEventListener(source, listener, false);
     return deserialize(result);
+  }
+
+  // Proxy support
+
+  function RefTable(name) {
+    // TODO(vsm): Fix leaks, particularly in dart2js case.
+    this.name = name;
+    this.map = {};
+    this.id = 0;
+    this.initialized = false;
+    this.port = new ReceivePortSync();
+    this.sendPort = this.port.toSendPort();
+  }
+
+  RefTable.prototype.nextId = function () { return this.id++; }
+
+  RefTable.prototype.makeRef = function (obj) {
+    this.initializeOnce();
+    // TODO(vsm): Cache refs for each obj.
+    var ref = this.name + '-' + this.nextId();
+    this.map[ref] = obj;
+    return ref;
+  }
+
+  RefTable.prototype.initializeOnce = function () {
+    if (!this.initialized) {
+      this.initialize();
+    }
+    this.initialized = true;
+  }
+
+  // Overridable initialization on first use hook.
+  RefTable.prototype.initialize = function () {}
+
+  RefTable.prototype.get = function (ref) {
+    return this.map[ref];
+  }
+
+  function FunctionRefTable() {}
+
+  FunctionRefTable.prototype = new RefTable('func-ref');
+
+  FunctionRefTable.prototype.initialize = function () {
+    map = this.map;
+    this.port.receive(function (message) {
+      var id = message[0];
+      var args = message[1];
+      var f = map[id];
+      // TODO(vsm): Should we capture this automatically?
+      return f.apply(null, args);
+    });
+  }
+
+  var functionRefTable = new FunctionRefTable();
+
+  function JSRefTable() {}
+
+  JSRefTable.prototype = new RefTable('js-ref');
+
+  JSRefTable.prototype.initialize = function () {
+    map = this.map;
+    this.port.receive(function (message) {
+      // TODO(vsm): Support a mechanism to register a handler here.
+      var receiver = map[message[0]];
+      var method = message[1];
+      var args = message[2];
+      if (method.indexOf("get:") == 0) {
+        // Getter.
+        var field = method.substring(4);
+        if (field in receiver && args.length == 0) {
+          return [ 'return', receiver[field] ];
+        }
+      } else if (method.indexOf("set:") == 0) {
+        // Setter.
+        var field = method.substring(4);
+        if (field in receiver && args.length == 1) {
+          return [ 'return', receiver[field] = args[0] ];
+        }
+      } else {
+        var f = receiver[method];
+        if (f) {
+          try {
+            var result = f.apply(receiver, args);
+            return [ 'return', result ];
+          } catch (e) {
+            return [ 'exception', e ];
+          }
+        }
+      }
+      return [ 'none' ];
+    });
+  }
+
+  var jsRefTable = new JSRefTable();
+
+  function DartProxy(port, id) {
+    this._port = port;
+    this._id = id;
   }
 
   // Leaking implementation.
