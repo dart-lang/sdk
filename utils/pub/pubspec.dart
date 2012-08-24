@@ -38,7 +38,7 @@ class Pubspec {
       dependencies = <PackageRef>[];
 
   /** Whether or not the pubspec has no contents. */
-  bool get isEmpty() =>
+  bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty();
 
   /**

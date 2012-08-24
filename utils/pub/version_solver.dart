@@ -447,7 +447,7 @@ class RemoveConstraint extends ChangeConstraint {
     return _processChange(solver, oldDependency, dependency);
   }
 
-  void undo() {
+  void undo(VersionSolver solver) {
     solver.getDependency(dependent).placeConstraint(depender, _removed);
   }
 }

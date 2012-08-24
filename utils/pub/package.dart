@@ -43,7 +43,7 @@ class Package {
   /**
    * The name of the package.
    */
-  String get name() {
+  String get name {
     if (pubspec.name != null) return pubspec.name;
     if (dir != null) return basename(dir);
     return null;
