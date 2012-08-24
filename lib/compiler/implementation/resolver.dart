@@ -1560,6 +1560,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
+    NodeList arguments = node.typeArguments;
+    if (arguments !== null) {
+      Link<Node> nodes = arguments.nodes;
+      if (nodes.isEmpty()) {
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT, []);
+      } else {
+        resolveTypeRequired(nodes.head);
+        for (nodes = nodes.tail; !nodes.isEmpty(); nodes = nodes.tail) {
+          error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT, []);
+          resolveTypeRequired(nodes.head);
+        }
+      }
+    }
     visit(node.elements);
   }
 

@@ -1311,9 +1311,7 @@ class NodeListener extends ElementListener {
   void handleLiteralList(int count, Token beginToken, Token constKeyword,
                          Token endToken) {
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
-    NodeList typeArguments = popNode();
-    // TODO(ahe): Type arguments are discarded.
-    pushNode(new LiteralList(null, elements, constKeyword));
+    pushNode(new LiteralList(popNode(), elements, constKeyword));
   }
 
   void handleIndexedExpression(Token openSquareBracket,
