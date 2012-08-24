@@ -24,7 +24,6 @@ audioelement_test: Fail # Issue 4517
 blob_constructor_test: Fail # Issue 4517
 css_test: Fail # Issue 4517
 htmlaudioelement_test: Fail # Issue 4517
-indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
@@ -34,7 +33,6 @@ documentfragment_test: Pass, Timeout
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
-indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
@@ -195,10 +193,6 @@ indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Er
 localstorage_test: Fail
 mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff) && $system == linux]
-# DOM errors.
-indexeddb_2_test: Fail # Uncaught error
-
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 fileapi_test: Skip # Issue 3022
 
@@ -216,6 +210,3 @@ fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == ff && $system == windows]
 js_interop_2_test: Fail # Issue 4658.
-
-[ $compiler == dart2js && $runtime == drt && $system == macos ]
-indexeddb_2_test: Fail # Issue 3669.

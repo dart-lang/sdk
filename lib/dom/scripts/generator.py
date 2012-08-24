@@ -504,6 +504,41 @@ dart2js_conversions = {
           Conversion(
               '_convertDartToNative_StringArray', 'List<String>', 'List'),
         },
+
+    'SerializedScriptValue': {
+        'set IDBObjectStore.add':
+          Conversion('_convertDartToNative_SerializedScriptValue',
+                     'Dynamic', 'Dynamic'),
+        'set IDBObjectStore.put':
+          Conversion('_convertDartToNative_SerializedScriptValue',
+                     'Dynamic', 'Dynamic'),
+        'set IDBCursor.update':
+          Conversion('_convertDartToNative_SerializedScriptValue',
+                     'Dynamic', 'Dynamic'),
+        },
+
+
+    # IDBAny is problematic.  Some uses are just a union of other IDB types,
+    # which need no conversion..  Others include data values which require
+    # serialized script value processing.
+    'IDBAny': {
+        'get IDBCursorWithValue.value':
+          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+
+        # This is problematic.  The result property of IDBRequest is used for
+        # all requests.  Read requests like IDBDataStore.getObject need
+        # conversion, but other requests like opening a database return
+        # something that does not need conversion.
+        'get IDBRequest.result':
+          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+
+        # "source: On getting, returns the IDBObjectStore or IDBIndex that the
+        # cursor is iterating. ...".  So we should not try to convert it.
+        'get IDBCursor.source': None,
+
+        # Should be either a DOMString, an Array of DOMStrings or null.
+        'get IDBObjectStore.keyPath': None
+        },
 }
 
 def FindConversion(idl_type, direction, interface, member):
