@@ -1004,6 +1004,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           element: constructor);
     }
 
+    buildFieldInitializers(constructor.enclosingElement, fieldValues);
+
     int index = 0;
     FunctionSignature params = constructor.computeSignature(compiler);
     params.forEachParameter((Element parameter) {
@@ -1088,6 +1090,35 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
+   * Run through the fields of [cls] and add their potential
+   * initializers.
+   */
+  void buildFieldInitializers(ClassElement classElement,
+                              Map<Element, HInstruction> fieldValues) {
+    classElement.forEachInstanceField(
+        includeBackendMembers: true,
+        includeSuperMembers: false,
+        f: (ClassElement enclosingClass, Element member) {
+      TreeElements definitions = compiler.analyzeElement(member);
+      Node node = member.parseNode(compiler);
+      SendSet assignment = node.asSendSet();
+      HInstruction value;
+      if (assignment === null) {
+        value = graph.addConstantNull();
+      } else {
+        Node right = assignment.arguments.head;
+        TreeElements savedElements = elements;
+        elements = definitions;
+        right.accept(this);
+        elements = savedElements;
+        value = pop();
+      }
+      fieldValues[member] = value;
+    });
+  }
+
+
+  /**
    * Build the factory function corresponding to the constructor
    * [functionElement]:
    *  - Initialize fields with the values of the field initializers of the
@@ -1107,10 +1138,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     openFunction(functionElement, function);
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
+
+    // Compile the possible initialization code for local fields and
+    // super fields.
+    buildFieldInitializers(classElement, fieldValues);
+
+    // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.computeSignature(compiler);
     params.forEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
-        // If the [element] is a field-parameter (such as [:this.x:] then
+        // If the [element] is a field-parameter then
         // initialize the field element with its value.
         FieldParameterElement fieldParameterElement = element;
         HInstruction parameterValue = localsHandler.readLocal(element);
@@ -1118,10 +1155,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    List<FunctionElement> constructors = <FunctionElement>[functionElement];
-
     // Analyze the constructor and all referenced constructors and collect
     // initializers and constructor bodies.
+    List<FunctionElement> constructors = <FunctionElement>[functionElement];
     buildInitializers(functionElement, constructors, fieldValues);
 
     // Call the JavaScript constructor with the fields as argument.
@@ -1130,14 +1166,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeBackendMembers: true,
         includeSuperMembers: true,
         f: (ClassElement enclosingClass, Element member) {
-      HInstruction value = fieldValues[member];
-      if (value === null) {
-        // The field has no value in the initializer list. Initialize it
-        // with the declaration-site constant (if any).
-        Constant fieldValue = compiler.constantHandler.compileVariable(member);
-        value = graph.addConstant(fieldValue);
-      }
-      constructorArguments.add(value);
+      constructorArguments.add(fieldValues[member]);
     });
 
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);

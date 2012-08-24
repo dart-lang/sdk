@@ -930,7 +930,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ResolverVisitor(Compiler compiler, Element element)
     : this.mapping  = new TreeElementMapping(),
       this.enclosingElement = element,
-      inInstanceContext = element.isInstanceMember()
+      // When the element is a field, we are actually resolving its
+      // initial value, which should not have access to instance
+      // fields.
+      inInstanceContext = (element.isInstanceMember() && !element.isField())
           || element.isGenerativeConstructor(),
       this.currentClass = element.isMember() ?
                               element.getEnclosingClass() :

@@ -168,6 +168,13 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # Missing che
 Language/11_Statements/03_Variable_Declaration_A03_t04: Fail # Missing check for const initializer
 Language/11_Statements/03_Variable_Declaration_A03_t03: Fail # Missing check for const reassignment
 Language/11_Statements/03_Variable_Declaration_A04_t01: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t03: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t05: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t06: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t01: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t07: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t04: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t02: Fail # Missing check for const initializer
 
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Compile-time error: expected an expression, but got '&&'
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Compile-time error: expected identifier, but got '!'

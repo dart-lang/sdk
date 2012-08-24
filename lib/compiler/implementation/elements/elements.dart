@@ -1303,7 +1303,12 @@ class ClassElement extends ScopeContainerElement
     do {
       if (seen.contains(classElement)) return;
       seen.add(classElement);
-      for (Element element in classElement.localMembers) {
+
+      // Iterate through the members in textual order, which requires
+      // to reverse the data structure [localMembers] we created.
+      // Textual order may be important for certain operations, for
+      // example when emitting the initializers of fields.
+      for (Element element in classElement.localMembers.reverse()) {
         f(classElement, element);
       }
       if (includeBackendMembers) {
