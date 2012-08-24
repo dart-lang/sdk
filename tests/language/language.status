@@ -157,10 +157,6 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
-implicit_this_test/03: Fail # TODO(ahe): Handle abstract getters.
-implicit_this_test/04: Fail # TODO(ahe): Handle abstract getters.
-property_field_override_test: Fail # TODO(ahe): Handle abstract getters.
-
 call_nonexistent_constructor_test: Fail # Issue 1031
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
