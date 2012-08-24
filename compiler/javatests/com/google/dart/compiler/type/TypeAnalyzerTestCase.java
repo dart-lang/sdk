@@ -344,6 +344,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     TypeAnalyzer.Analyzer analyzer =
         new TypeAnalyzer.Analyzer(context, typeProvider, diagnosedAbstractClasses);
     analyzer.setCurrentClass(element.getType());
+    analyzer.pushBasicBlockContext();
     return analyzer;
   }
 
