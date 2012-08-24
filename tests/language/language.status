@@ -77,7 +77,7 @@ disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
-final_syntax_test/*: Skip  # can't handle base case
+const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
