@@ -283,3 +283,13 @@ module core {
         raises(DOMException);
   };
 }
+
+module storage {
+  [Supplemental]
+  interface SQLResultSetRowList {
+    // Change the return type to Dictionary so that rows are exposed in the Dart
+    // API as a Maps, with the appropriate conversion in JavaScript.
+    [Suppressed] DOMObject item(in unsigned long index);
+    [Custom] Dictionary item(in unsigned long index);
+  };
+}

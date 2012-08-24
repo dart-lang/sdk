@@ -11170,7 +11170,10 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList native "*SQLResult
 
   final int length;
 
-  Object item(int index) native;
+  Map item(int index) {
+    return _convertNativeToDart_Dictionary(_item_1(index));
+  }
+  _item_1(index) native "item";
 }
 
 class _SQLTransactionImpl implements SQLTransaction native "*SQLTransaction" {
@@ -29460,7 +29463,7 @@ interface SQLResultSetRowList {
   final int length;
 
   /** @domName SQLResultSetRowList.item */
-  Object item(int index);
+  Map item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37779,11 +37782,7 @@ get _functionRegistry {
 /// Object proxy implementation.
 
 class _DartProxyRegistry extends _Registry<Object> {
-  final ReceivePortSync _port;
-
-  _DartProxyRegistry() :
-      super('dart-ref'),
-      _port = new ReceivePortSync() {
+  _DartProxyRegistry() : super('dart-ref') {
     _port.receive((msg) {
       // TODO(vsm): Support a mechanism to register a handler here.
       throw 'Invocation unsupported on Dart proxies';

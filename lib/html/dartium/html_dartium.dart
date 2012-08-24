@@ -14306,7 +14306,7 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
   int get length() native "SQLResultSetRowList_length_Getter";
 
-  Object item(int index) native "SQLResultSetRowList_item_Callback";
+  Map item(int index) native "SQLResultSetRowList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32337,7 +32337,7 @@ interface SQLResultSetRowList {
   final int length;
 
   /** @domName SQLResultSetRowList.item */
-  Object item(int index);
+  Map item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40887,11 +40887,7 @@ get _functionRegistry {
 /// Object proxy implementation.
 
 class _DartProxyRegistry extends _Registry<Object> {
-  final ReceivePortSync _port;
-
-  _DartProxyRegistry() :
-      super('dart-ref'),
-      _port = new ReceivePortSync() {
+  _DartProxyRegistry() : super('dart-ref') {
     _port.receive((msg) {
       // TODO(vsm): Support a mechanism to register a handler here.
       throw 'Invocation unsupported on Dart proxies';

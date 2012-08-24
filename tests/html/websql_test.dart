@@ -105,9 +105,9 @@ main() {
       .chain(queryTable(tableName, (resultSet) {
         guardAsync(() {
           Expect.equals(1, resultSet.rows.length);
-
-          // Should validate the rowData contents- need to be able to map the JS
-          // object back to regular types.
+          var row = resultSet.rows.item(0);
+          Expect.isTrue(row.containsKey(columnName));
+          Expect.equals('Some text data', row[columnName]);
         });
       }))
       .chain(dropTable(tableName))

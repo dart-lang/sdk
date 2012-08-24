@@ -7142,7 +7142,7 @@ interface SQLResultSetRowList {
 
   final int length;
 
-  Object item(int index);
+  Map item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -6224,7 +6224,7 @@ class _SQLResultSetRowListJs extends _DOMTypeJs implements SQLResultSetRowList n
 
   final int length;
 
-  Object item(int index) native;
+  Map item(int index) native;
 }
 
 class _SQLTransactionJs extends _DOMTypeJs implements SQLTransaction native "*SQLTransaction" {
@@ -19233,7 +19233,7 @@ interface SQLResultSetRowList {
 
   final int length;
 
-  Object item(int index);
+  Map item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
