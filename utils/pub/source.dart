@@ -108,7 +108,7 @@ class Source {
    */
   Future<bool> install(PackageId id, String path) {
     throw "Either install or installToSystemCache must be implemented for "
-      "source $name."
+        "source $name.";
   }
 
   /**
