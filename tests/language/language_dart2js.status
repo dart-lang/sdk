@@ -240,10 +240,7 @@ try_catch_syntax_test/08: Fail # Negative language test.
 disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
 
-final_syntax_test/01: Fail
-final_syntax_test/02: Fail
-final_syntax_test/03: Fail
-final_syntax_test/04: Fail
+const_syntax_test/04: Fail
 
 div_by_zero_test: Fail, OK # Leg only has doubles.
 bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
