@@ -47,19 +47,20 @@ class Platform {
 }
 ''';
 
-testDart2Dart(String src, [void continuation(String s)]) {
+testDart2Dart(String src, [void continuation(String s), bool minify = false]) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
     continuation = (s) { Expect.equals(src, s); };
   }
-  testDart2DartWithLibrary(src, '', continuation);
+  testDart2DartWithLibrary(src, '', continuation, minify);
 }
 
 /**
  * Library name is assumed to be 'mylib' in 'mylib.dart' file.
  */
 testDart2DartWithLibrary(
-    String srcMain, String srcLibrary, [void continuation(String s)]) {
+    String srcMain, String srcLibrary,
+    [void continuation(String s), bool minify = false]) {
   fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
@@ -81,13 +82,16 @@ testDart2DartWithLibrary(
     }
   }
 
+  final options = <String>['--output-type=dart'];
+  if (minify) options.add('--minify');
+
   compile(
       scriptUri,
       fileUri('libraryRoot'),
       fileUri('packageRoot'),
       provider,
       handler,
-      const ['--output-type=dart']).then(continuation);
+      options).then(continuation);
 }
 
 testSignedConstants() {
@@ -674,6 +678,20 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testMinification() {
+  var src = '''
+class ClassWithVeryVeryLongName {}
+main() {
+  new ClassWithVeryVeryLongName();
+}
+''';
+  var expectedResult =
+      'class A{}'
+      'main(){new A();}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); }, minify: true);
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -711,4 +729,5 @@ main() {
   testInterfaceDefaultAnotherLib();
   testStaticAccessIoLib();
   testLocalFunctionPlaceholder();
+  testMinification();
 }

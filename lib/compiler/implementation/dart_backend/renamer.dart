@@ -10,7 +10,8 @@ void renamePlaceholders(
     Compiler compiler,
     PlaceholderCollector placeholderCollector,
     Map<Node, String> renames,
-    Map<LibraryElement, String> imports) {
+    Map<LibraryElement, String> imports,
+    bool minify) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
   final Set<String> usedTopLevelIdentifiers = new Set<String>();
@@ -19,7 +20,7 @@ void renamePlaceholders(
   usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
 
   Generator topLevelGenerator =
-      true ? conservativeGenerator : new MinifyingGenerator('ABCD').generate;
+      minify ? new MinifyingGenerator('ABCD').generate : conservativeGenerator;
   String generateUniqueName(name) {
     String newName = topLevelGenerator(
         name, usedTopLevelIdentifiers.contains);
