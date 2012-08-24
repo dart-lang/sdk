@@ -183,6 +183,10 @@ class MemberListener extends NodeListener {
   }
 
   void addMember(Element memberElement) {
+    for (Link link = metadata; !link.isEmpty(); link = link.tail) {
+      memberElement.addMetadata(link.head);
+    }
+    metadata = const EmptyLink<MetadataAnnotation>();
     enclosingElement.addMember(memberElement, listener);
   }
 }
