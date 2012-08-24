@@ -216,8 +216,9 @@ class MessageKind {
   static final MISSING_FORMALS = const MessageKind(
       "Error: Formal parameters are missing.");
 
+  // TODO(ahe): Change the message below when it becomes an error.
   static final EXTRA_FORMALS = const MessageKind(
-      "Error: Formal parameters not allowed here.");
+      "Warning: Formal parameters will not be allowed here in M1.");
 
   static final COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
