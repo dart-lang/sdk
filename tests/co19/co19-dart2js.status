@@ -119,7 +119,6 @@ LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
-Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
 
 # This test sometimes passes (as a negative test), sometimes it
