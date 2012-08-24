@@ -118,6 +118,31 @@ final String TEST_ELEVEN = @"""
   }
 """;
 
+final String TEST_TWELVE = @"""
+  class A {
+    x(p1, p2) => 1;
+  }
+  class B {
+    x(p1, p2) => x(1, 2);
+  }
+  f(p) => p.x(1);
+  main() {
+    var x;
+    new A().x("x", "y");
+    f(x);
+  }
+""";
+
+final String TEST_13 = @"""
+  class A {
+    x(p1, [p2 = 1]) => 1;
+  }
+  main() {
+    new A().x("x", 1);
+    new A().x("x");
+  }
+""";
+
 void runTest(String test, [List<HType> expectedTypes = null]) {
   compileAndFind(
     test,
@@ -146,6 +171,8 @@ void test() {
   runTest(TEST_NINE, [HType.INTEGER, HType.INTEGER]);
   runTest(TEST_TEN);
   runTest(TEST_ELEVEN);
+  runTest(TEST_TWELVE);
+  runTest(TEST_13);
 }
 
 void main() {
