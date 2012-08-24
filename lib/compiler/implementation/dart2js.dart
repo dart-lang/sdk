@@ -124,6 +124,7 @@ void compile(List<String> argv) {
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
+    new OptionHandler('--minify', passThrough),
     new OptionHandler('--no-colors', (_) => enableColors = false),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
