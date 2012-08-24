@@ -1342,15 +1342,20 @@ class CreateArrayComp : public TemplateComputation<1> {
   CreateArrayComp(intptr_t token_pos,
                   intptr_t try_index,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  const AbstractType& type,
                   Value* element_type)
       : token_pos_(token_pos),
         try_index_(try_index),
-        arguments_(arguments) {
+        arguments_(arguments),
+        type_(type) {
 #if defined(DEBUG)
     for (int i = 0; i < ArgumentCount(); ++i) {
       ASSERT(ArgumentAt(i) != NULL);
     }
     ASSERT(element_type != NULL);
+    ASSERT(type_.IsZoneHandle());
+    ASSERT(!type_.IsNull());
+    ASSERT(type_.IsFinalized());
 #endif
     inputs_[0] = element_type;
   }
@@ -1362,6 +1367,7 @@ class CreateArrayComp : public TemplateComputation<1> {
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   PushArgumentInstr* ArgumentAt(intptr_t i) const { return (*arguments_)[i]; }
+  const AbstractType& type() const { return type_; }
   Value* element_type() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -1372,6 +1378,7 @@ class CreateArrayComp : public TemplateComputation<1> {
   const intptr_t token_pos_;
   const intptr_t try_index_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+  const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
@@ -1491,6 +1498,7 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
       : token_pos_(token_pos),
         try_index_(try_index),
         type_arguments_(type_arguments) {
+    ASSERT(type_arguments.IsZoneHandle());
     ASSERT(instantiator != NULL);
     inputs_[0] = instantiator;
   }

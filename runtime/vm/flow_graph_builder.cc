@@ -1294,11 +1294,14 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     Append(for_value);
     arguments->Add(PushArgument(for_value.value()));
   }
+  const AbstractTypeArguments& type_args =
+      AbstractTypeArguments::ZoneHandle(node->type().arguments());
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
-                                                       node->type_arguments());
+                                                       type_args);
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 arguments,
+                                                node->type(),
                                                 element_type);
   ReturnComputation(create);
 }

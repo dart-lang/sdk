@@ -1254,7 +1254,8 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
   // TODO(regis): This will change once mirrors are supported.
   arguments->Add(new LiteralNode(args_pos, function_name));
   // The third argument is an array containing the original function arguments.
-  ArrayNode* args_array = new ArrayNode(args_pos, TypeArguments::ZoneHandle());
+  ArrayNode* args_array = new ArrayNode(
+      args_pos, Type::ZoneHandle(Type::ListInterface()));
   for (intptr_t i = 1; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
@@ -8060,10 +8061,16 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
+  const Class& list_class = Class::Handle(
+      Type::Handle(Type::ListInterface()).type_class());
+  Type& type = Type::ZoneHandle(
+      Type::New(list_class, type_arguments, type_pos));
+  type ^= ClassFinalizer::FinalizeType(
+      current_class(), type, ClassFinalizer::kCanonicalize);
+  ArrayNode* list = new ArrayNode(TokenPos(), type);
 
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
-  ArrayNode* list = new ArrayNode(TokenPos(), type_arguments);
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const String& dst_name = String::ZoneHandle(Symbols::ListLiteralElement());
@@ -8244,12 +8251,13 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
-  // Parse the map entries. Note: there may be an optional extra
-  // comma after the last entry.
   // The kv_pair array is temporary and of element type Dynamic. It is passed
   // to the factory to initialize a properly typed map.
   ArrayNode* kv_pairs =
-      new ArrayNode(TokenPos(), TypeArguments::ZoneHandle());
+      new ArrayNode(TokenPos(), Type::ZoneHandle(Type::ListInterface()));
+
+  // Parse the map entries. Note: there may be an optional extra
+  // comma after the last entry.
   const String& dst_name = String::ZoneHandle(Symbols::ListLiteralElement());
   while (CurrentToken() != Token::kRBRACE) {
     AstNode* key = NULL;
@@ -8707,7 +8715,8 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
-  ArrayNode* values = new ArrayNode(TokenPos(), TypeArguments::ZoneHandle());
+  ArrayNode* values = new ArrayNode(TokenPos(),
+                                    Type::ZoneHandle(Type::ListInterface()));
   while (CurrentToken() == Token::kSTRING) {
     values->AddElement(new LiteralNode(TokenPos(), *CurrentLiteral()));
     ConsumeToken();

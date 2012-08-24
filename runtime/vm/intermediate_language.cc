@@ -909,8 +909,7 @@ RawAbstractType* InstanceOfComp::CompileType() const {
 
 
 RawAbstractType* CreateArrayComp::CompileType() const {
-  // TODO(regis): Be more specific.
-  return Type::DynamicType();
+  return type().raw();
 }
 
 

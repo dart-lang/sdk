@@ -768,6 +768,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Number>();
   name = Symbols::Number();
   RegisterClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
