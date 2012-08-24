@@ -177,7 +177,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
 
       if (optimized) {
-        FlowGraphOptimizer optimizer(*flow_graph);
+        // TODO(vegorov): we need to compute uses for the
+        // purposes of unboxing. Move unboxing to a later
+        // stage.
+        // Compute the use lists.
+        flow_graph->ComputeUseLists();
+
+        FlowGraphOptimizer optimizer(flow_graph);
         optimizer.ApplyICData();
 
         // Compute the use lists.

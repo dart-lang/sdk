@@ -60,6 +60,8 @@ class FlowGraph: public ZoneAllocated {
     return graph_entry_;
   }
 
+  intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
+
   // Operations on the flow graph.
   void ComputeSSA();
   void ComputeUseLists();
@@ -96,7 +98,6 @@ class FlowGraph: public ZoneAllocated {
   void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
 
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
-  intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.

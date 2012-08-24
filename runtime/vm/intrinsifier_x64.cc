@@ -985,6 +985,7 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1030,6 +1031,7 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1052,6 +1054,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1129,6 +1132,7 @@ static void EmitTrigonometric(Assembler* assembler,
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &alloc_failed,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ fstpl(FieldAddress(RAX, Double::value_offset()));
   __ ret();
@@ -1160,6 +1164,7 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();

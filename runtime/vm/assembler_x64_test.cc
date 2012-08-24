@@ -1320,7 +1320,14 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
   __ movq(RAX, RSP);
   __ movsd(Address(RAX, 0), XMM3);
   __ movsd(XMM4, Address(RAX, 0));
-  __ movsd(XMM0, Address(RSP, 0));
+  __ movsd(XMM7, Address(RSP, 0));
+  __ movaps(XMM6, XMM7);
+  __ movaps(XMM5, XMM6);
+  __ movaps(XMM4, XMM5);
+  __ movaps(XMM3, XMM4);
+  __ movaps(XMM2, XMM3);
+  __ movaps(XMM1, XMM2);
+  __ movaps(XMM0, XMM1);
   __ popq(RAX);
   __ popq(R15);  // Callee saved.
   __ ret();

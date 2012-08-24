@@ -94,13 +94,27 @@ class FlowGraphAllocator : public ValueObject {
   void ProcessOneInstruction(BlockEntryInstr* block, Instruction* instr);
   void ConnectIncomingPhiMoves(BlockEntryInstr* block);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
+  void BlockRegisterLocation(Location loc,
+                             intptr_t from,
+                             intptr_t to,
+                             bool* blocked_registers,
+                             LiveRange** blocking_ranges);
+
+  intptr_t NumberOfRegisters() const { return number_of_registers_; }
 
   // Find all safepoints that are covered by this live range.
   void AssignSafepoints(LiveRange* range);
 
+  void PrepareForAllocation(Location::Kind register_kind,
+                            intptr_t number_of_registers,
+                            const GrowableArray<LiveRange*>& unallocated,
+                            LiveRange** blocking_ranges,
+                            bool* blocked_registers);
+
+
   // Process live ranges sorted by their start and assign registers
   // to them
-  void AllocateCPURegisters();
+  void AllocateUnallocatedRanges();
   void AdvanceActiveIntervals(const intptr_t start);
 
   // Connect split siblings over non-linear control flow edges.
@@ -118,6 +132,7 @@ class FlowGraphAllocator : public ValueObject {
   // Add live range to the list of unallocated live ranges to be processed
   // by the allocator.
   void AddToUnallocated(LiveRange* range);
+  void CompleteRange(LiveRange* range, Location::Kind kind);
 #if defined(DEBUG)
   bool UnallocatedIsSorted();
 #endif
@@ -135,16 +150,16 @@ class FlowGraphAllocator : public ValueObject {
   // evict any interference that can be evicted by splitting and spilling
   // parts of interfering live ranges.  Place non-spilled parts into
   // the list of unallocated ranges.
-  void AssignNonFreeRegister(LiveRange* unallocated, Register reg);
+  void AssignNonFreeRegister(LiveRange* unallocated, intptr_t reg);
   bool EvictIntersection(LiveRange* allocated, LiveRange* unallocated);
-  void RemoveEvicted(Register reg, intptr_t first_evicted);
+  void RemoveEvicted(intptr_t reg, intptr_t first_evicted);
 
   // Find first intersection between unallocated live range and
   // live ranges currently allocated to the given register.
-  intptr_t FirstIntersectionWithAllocated(Register reg,
+  intptr_t FirstIntersectionWithAllocated(intptr_t reg,
                                           LiveRange* unallocated);
 
-  bool UpdateFreeUntil(Register reg,
+  bool UpdateFreeUntil(intptr_t reg,
                        LiveRange* unallocated,
                        intptr_t* cur_free_until,
                        intptr_t* cur_blocked_at);
@@ -170,6 +185,10 @@ class FlowGraphAllocator : public ValueObject {
   void MarkAsObjectAtSafepoints(LiveRange* range);
 
   MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
+
+  Location MakeRegisterLocation(intptr_t reg) {
+    return Location::MachineRegisterLocation(register_kind_, reg);
+  }
 
   void PrintLiveRanges();
 
@@ -204,9 +223,14 @@ class FlowGraphAllocator : public ValueObject {
   // LiveRanges corresponding to SSA values.
   GrowableArray<LiveRange*> live_ranges_;
 
-  // Worklist for register allocator. Always maintained sorted according
-  // to ShouldBeAllocatedBefore predicate.
-  GrowableArray<LiveRange*> unallocated_;
+  GrowableArray<LiveRange*> unallocated_cpu_;
+  GrowableArray<LiveRange*> unallocated_xmm_;
+
+  LiveRange* cpu_regs_[kNumberOfCpuRegisters];
+  LiveRange* xmm_regs_[kNumberOfXmmRegisters];
+
+  bool blocked_cpu_registers_[kNumberOfCpuRegisters];
+  bool blocked_xmm_registers_[kNumberOfXmmRegisters];
 
 #if defined(DEBUG)
   GrowableArray<LiveRange*> temporaries_;
@@ -218,17 +242,28 @@ class FlowGraphAllocator : public ValueObject {
   // List of instructions containing calls.
   GrowableArray<Instruction*> safepoints_;
 
+  Location::Kind register_kind_;
+
+  intptr_t number_of_registers_;
+
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.
   // Those live ranges that end before the start of the current live range are
   // removed from the list and will not be affected.
-  GrowableArray<LiveRange*> cpu_regs_[kNumberOfCpuRegisters];
+  GrowableArray<LiveRange*> registers_[kNumberOfCpuRegisters];
+
+  bool blocked_registers_[kNumberOfCpuRegisters];
+
+
+  // Worklist for register allocator. Always maintained sorted according
+  // to ShouldBeAllocatedBefore predicate.
+  GrowableArray<LiveRange*> unallocated_;
 
   // List of used spill slots. Contains positions after which spill slots
   // become free and can be reused for allocation.
   GrowableArray<intptr_t> spill_slots_;
+  intptr_t cpu_spill_slot_count_;
 
-  bool blocked_cpu_regs_[kNumberOfCpuRegisters];
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
 };
@@ -275,7 +310,9 @@ class BlockInfo : public ZoneAllocated {
 class UsePosition : public ZoneAllocated {
  public:
   UsePosition(intptr_t pos, UsePosition* next, Location* location_slot)
-      : pos_(pos), location_slot_(location_slot), hint_(NULL), next_(next) { }
+      : pos_(pos), location_slot_(location_slot), hint_(NULL), next_(next) {
+    ASSERT(location_slot != NULL);
+  }
 
   Location* location_slot() const { return location_slot_; }
   void set_location_slot(Location* location_slot) {

@@ -20,6 +20,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, use_unboxed_doubles, true, "Try unboxing double values.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -191,28 +192,15 @@ static intptr_t ReceiverClassId(Computation* comp) {
 }
 
 
-// Insert a check computation before an instruction and set the environment
-// of the check to the same as the instruction.
-static void InsertCheckBefore(BindInstr* instr,
-                              Computation* check,
-                              Environment* env) {
-  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
-  check_instr->InsertBefore(instr);
-  ASSERT(env != NULL);
-  // Attach an environment to the check instruction.
-  check_instr->set_env(env);
-}
-
-
-static void AddCheckClass(BindInstr* instr,
-                          InstanceCallComp* comp,
-                          Value* value) {
+void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
+                                       InstanceCallComp* comp,
+                                       Value* value) {
   // Type propagation has not run yet, we cannot eliminate the check.
   CheckClassComp* check = new CheckClassComp(value, comp);
   const ICData& unary_checks =
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
   check->set_ic_data(&unary_checks);
-  InsertCheckBefore(instr, check, instr->env());
+  InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
   // Detach environment from the original instruction because it can't
   // deoptimize.
   instr->set_env(NULL);
@@ -255,6 +243,34 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
     default:
       return false;
   }
+}
+
+
+BindInstr* FlowGraphOptimizer::InsertBefore(Instruction* instr,
+                                            Computation* comp,
+                                            Environment* env,
+                                            BindInstr::UseKind use_kind) {
+  BindInstr* bind = new BindInstr(use_kind, comp);
+  if (env != NULL) bind->set_env(env->Copy());
+  if (use_kind == BindInstr::kUsed) {
+    bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+  }
+  bind->InsertBefore(instr);
+  return bind;
+}
+
+
+BindInstr* FlowGraphOptimizer::InsertAfter(Instruction* instr,
+                                           Computation* comp,
+                                           Environment* env,
+                                           BindInstr::UseKind use_kind) {
+  BindInstr* bind = new BindInstr(use_kind, comp);
+  if (env != NULL) bind->set_env(env->Copy());
+  if (use_kind == BindInstr::kUsed) {
+    bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+  }
+  bind->InsertAfter(instr);
+  return bind;
 }
 
 
@@ -309,9 +325,52 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
 
   ASSERT(comp->ArgumentCount() == 2);
   if (operands_type == kDoubleCid) {
-    BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
-    double_bin_op->set_ic_data(comp->ic_data());
-    instr->set_computation(double_bin_op);
+    if (FLAG_use_unboxed_doubles) {
+      Value* left = comp->ArgumentAt(0)->value();
+      Value* right = comp->ArgumentAt(1)->value();
+
+      // Check that either left or right are not a smi.  Result or a
+      // binary operation with two smis is a smi not a double.
+      InsertBefore(instr,
+                   new CheckEitherNonSmiComp(left, right, comp),
+                   instr->env(),
+                   BindInstr::kUnused);
+
+      // Unbox operands.
+      BindInstr* unbox_left = InsertBefore(
+          instr,
+          new UnboxDoubleComp(left->CopyValue(), comp),
+          instr->env(),
+          BindInstr::kUsed);
+      BindInstr* unbox_right = InsertBefore(
+          instr,
+          new UnboxDoubleComp(right->CopyValue(), comp),
+          instr->env(),
+          BindInstr::kUsed);
+
+      UnboxedDoubleBinaryOpComp* double_bin_op =
+          new UnboxedDoubleBinaryOpComp(op_kind,
+                                        new UseVal(unbox_left),
+                                        new UseVal(unbox_right));
+      double_bin_op->set_ic_data(comp->ic_data());
+      instr->set_computation(double_bin_op);
+
+      if (instr->is_used()) {
+        // Box result.
+        UseVal* use_val = new UseVal(instr);
+        BindInstr* bind = InsertAfter(instr,
+                                      new BoxDoubleComp(use_val, comp),
+                                      NULL,
+                                      BindInstr::kUsed);
+        instr->ReplaceUsesWith(bind);
+      }
+
+      RemovePushArguments(comp);
+    } else {
+      BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
+      double_bin_op->set_ic_data(comp->ic_data());
+      instr->set_computation(double_bin_op);
+    }
   } else if (operands_type == kMintCid) {
     Value* left = comp->ArgumentAt(0)->value();
     Value* right = comp->ArgumentAt(1)->value();
@@ -328,12 +387,14 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     Value* right = comp->ArgumentAt(1)->value();
     // Insert two smi checks and attach a copy of the original
     // environment because the smi operation can still deoptimize.
-    InsertCheckBefore(instr,
-                      new CheckSmiComp(left->CopyValue(), comp),
-                      instr->env()->Copy());
-    InsertCheckBefore(instr,
-                      new CheckSmiComp(right->CopyValue(), comp),
-                      instr->env()->Copy());
+    InsertBefore(instr,
+                 new CheckSmiComp(left->CopyValue(), comp),
+                 instr->env(),
+                 BindInstr::kUnused);
+    InsertBefore(instr,
+                 new CheckSmiComp(right->CopyValue(), comp),
+                 instr->env(),
+                 BindInstr::kUnused);
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
                                                   comp,
                                                   left,
@@ -548,7 +609,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
         // Type propagation has not run yet, we cannot eliminate the check.
         CheckClassComp* check = new CheckClassComp(value, comp);
         check->set_ic_data(&unary_checks);
-        InsertCheckBefore(instr, check, instr->env()->Copy());
+        InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
         // Call can still deoptimize, do not detach environment from instr.
         call_with_checks = false;
       } else {

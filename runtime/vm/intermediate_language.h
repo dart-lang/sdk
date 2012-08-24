@@ -104,7 +104,11 @@ class LocalVariable;
   M(SmiToDouble, SmiToDoubleComp)                                              \
   M(CheckClass, CheckClassComp)                                                \
   M(CheckSmi, CheckSmiComp)                                                    \
-  M(Materialize, MaterializeComp)
+  M(Materialize, MaterializeComp)                                              \
+  M(CheckEitherNonSmi, CheckEitherNonSmiComp)                                  \
+  M(UnboxedDoubleBinaryOp, UnboxedDoubleBinaryOpComp)                          \
+  M(UnboxDouble, UnboxDoubleComp)                                              \
+  M(BoxDouble, BoxDoubleComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -121,6 +125,12 @@ class Definition;
 class Instruction;
 class PushArgumentInstr;
 class Value;
+
+
+enum Representation {
+  kTagged, kUnboxedDouble
+};
+
 
 class Computation : public ZoneAllocated {
  public:
@@ -224,6 +234,10 @@ class Computation : public ZoneAllocated {
   };
 
   virtual ComputationKind computation_kind() const = 0;
+
+  virtual Representation representation() const {
+    return kTagged;
+  }
 
   // Declare predicate for each computation.
 #define DECLARE_PREDICATE(ShortName, ClassName)                                \
@@ -1662,6 +1676,123 @@ class CatchEntryComp : public TemplateComputation<0> {
 };
 
 
+class CheckEitherNonSmiComp : public TemplateComputation<2> {
+ public:
+  CheckEitherNonSmiComp(Value* left,
+                        Value* right,
+                        InstanceCallComp* instance_call)
+      : instance_call_(instance_call) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  DECLARE_COMPUTATION(CheckEitherNonSmi)
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  Value* left() const { return inputs_[0]; }
+
+  Value* right() const { return inputs_[1]; }
+
+  virtual Definition* TryReplace(BindInstr* instr) const;
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiComp);
+};
+
+
+class BoxDoubleComp : public TemplateComputation<1> {
+ public:
+  BoxDoubleComp(Value* value, InstanceCallComp* instance_call)
+      : instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t ResultCid() const;
+
+  DECLARE_COMPUTATION(BoxDouble)
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(BoxDoubleComp);
+};
+
+
+class UnboxDoubleComp : public TemplateComputation<1> {
+ public:
+  UnboxDoubleComp(Value* value, InstanceCallComp* instance_call)
+      : instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual bool CanDeoptimize() const {
+    return value()->ResultCid() != kDoubleCid;
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  DECLARE_COMPUTATION(UnboxDouble)
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxDoubleComp);
+};
+
+
+class UnboxedDoubleBinaryOpComp : public TemplateComputation<2> {
+ public:
+  UnboxedDoubleBinaryOpComp(Token::Kind op_kind,
+                            Value* left,
+                            Value* right)
+      : op_kind_(op_kind) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  DECLARE_COMPUTATION(UnboxedDoubleBinaryOp)
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxedDoubleBinaryOpComp);
+};
+
+
 class BinarySmiOpComp : public TemplateComputation<2> {
  public:
   BinarySmiOpComp(Token::Kind op_kind,
@@ -2133,6 +2264,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   intptr_t lifetime_position() const { return lifetime_position_; }
   void set_lifetime_position(intptr_t pos) {
     lifetime_position_ = pos;
+  }
+
+  virtual Representation representation() const {
+    return kTagged;
   }
 
  private:
@@ -2689,7 +2824,14 @@ class BindInstr : public Definition {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   // Insert this instruction before 'next'.
-  void InsertBefore(BindInstr* next);
+  void InsertBefore(Instruction* next);
+
+  // Insert this instruction after 'prev'.
+  void InsertAfter(Instruction* prev);
+
+  virtual Representation representation() const {
+    return computation()->representation();
+  }
 
  private:
   Computation* computation_;

@@ -1766,6 +1766,158 @@ void BinaryDoubleOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* CheckEitherNonSmiComp::MakeLocationSummary() const {
+  ASSERT((left()->ResultCid() != kDoubleCid) &&
+         (right()->ResultCid() != kDoubleCid));
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+    new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void CheckEitherNonSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = compiler->AddDeoptStub(instance_call_->deopt_id(),
+                                        instance_call_->try_index(),
+                                        kDeoptBinaryDoubleOp);
+
+  Register temp = locs()->temp(0).reg();
+  __ movl(temp, locs()->in(0).reg());
+  __ orl(temp, locs()->in(1).reg());
+  __ testl(temp, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+}
+
+
+LocationSummary* BoxDoubleComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+class BoxDoubleSlowPath : public SlowPathCode {
+ public:
+  explicit BoxDoubleSlowPath(BoxDoubleComp* computation)
+      : computation_(computation) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Bind(entry_label());
+    const Class& double_class = compiler->double_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+    const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+
+    // TODO(vegorov): here stack map needs to be set up correctly to skip
+    // double registers.
+    LocationSummary* locs = computation_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(computation_->instance_call()->token_pos(),
+                           computation_->instance_call()->try_index(),
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    if (EAX != locs->out().reg()) __ movl(locs->out().reg(), EAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  BoxDoubleComp* computation_;
+};
+
+
+void BoxDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out().reg();
+  XmmRegister value = locs()->in(0).xmm_reg();
+
+  AssemblerMacros::TryAllocate(compiler->assembler(),
+                               compiler->double_class(),
+                               slow_path->entry_label(),
+                               Assembler::kFarJump,
+                               out_reg);
+  __ Bind(slow_path->exit_label());
+  __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
+}
+
+
+LocationSummary* UnboxDoubleComp::MakeLocationSummary() const {
+  const intptr_t v_cid = value()->ResultCid();
+
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = (v_cid != kDoubleCid) ? 1 : 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if (v_cid != kDoubleCid) summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresXmmRegister());
+  return summary;
+}
+
+
+void UnboxDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t v_cid = value()->ResultCid();
+
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out().xmm_reg();
+  if (v_cid != kDoubleCid) {
+    Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+                                          instance_call()->try_index(),
+                                          kDeoptBinaryDoubleOp);
+    compiler->LoadDoubleOrSmiToXmm(result,
+                                   value,
+                                   locs()->temp(0).reg(),
+                                   deopt);
+  } else {
+    __ movsd(result, FieldAddress(value, Double::value_offset()));
+  }
+}
+
+
+LocationSummary* UnboxedDoubleBinaryOpComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_in(1, Location::RequiresXmmRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void UnboxedDoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).xmm_reg();
+  XmmRegister right = locs()->in(1).xmm_reg();
+
+  ASSERT(locs()->out().xmm_reg() == left);
+
+  switch (op_kind()) {
+    case Token::kADD: __ addsd(left, right); break;
+    case Token::kSUB: __ subsd(left, right); break;
+    case Token::kMUL: __ mulsd(left, right); break;
+    case Token::kDIV: __ divsd(left, right); break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* UnarySmiOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

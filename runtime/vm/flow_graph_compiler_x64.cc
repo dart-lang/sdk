@@ -885,6 +885,7 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
   AssemblerMacros::TryAllocate(assembler_,
                                double_class_,
                                &call_method,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ Drop(1);
@@ -1114,12 +1115,60 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 }
 
 
+void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+  // TODO(vegorov): consider saving only caller save (volatile) registers.
+  const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
+  if (xmm_regs_count > 0) {
+    // Pointer maps don't support pushed untagged values so we reserve spill
+    // slots at the top of the spill slot area for live XMM registers.
+    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
+        __ movsd(Address(RBP, -stack_offs), xmm_reg);
+        stack_offs += kDoubleSize;
+      }
+    }
+  }
+
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ pushq(reg);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ popq(reg);
+    }
+  }
+
+  const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
+  if (xmm_regs_count > 0) {
+    // Pointer maps don't support pushed untagged values so we reserve spill
+    // slots at the top of the spill slot area for live XMM registers.
+    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
+        __ movsd(xmm_reg, Address(RBP, -stack_offs));
+        stack_offs += kDoubleSize;
+      }
+    }
+  }
+}
+
+
 #undef __
 #define __ compiler_->assembler()->
 
 
 static Address ToStackSlotAddress(Location loc) {
-  ASSERT(loc.IsStackSlot());
   const intptr_t index = loc.stack_index();
   if (index < 0) {
     const intptr_t offset = (1 - index)  * kWordSize;
@@ -1152,6 +1201,23 @@ void ParallelMoveResolver::EmitMove(int index) {
       MoveMemoryToMemory(ToStackSlotAddress(destination),
                          ToStackSlotAddress(source));
     }
+  } else if (source.IsXmmRegister()) {
+    if (destination.IsXmmRegister()) {
+      // Optimization manual recommends using MOVAPS for register
+      // to register moves.
+      __ movaps(destination.xmm_reg(), source.xmm_reg());
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      __ movsd(ToStackSlotAddress(destination), source.xmm_reg());
+    }
+  } else if (source.IsDoubleStackSlot()) {
+    if (destination.IsXmmRegister()) {
+      __ movsd(destination.xmm_reg(), ToStackSlotAddress(source));
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      __ movsd(XMM0, ToStackSlotAddress(source));
+      __ movsd(ToStackSlotAddress(destination), XMM0);
+    }
   } else {
     ASSERT(source.IsConstant());
     if (destination.IsRegister()) {
@@ -1179,6 +1245,20 @@ void ParallelMoveResolver::EmitSwap(int index) {
     Exchange(destination.reg(), ToStackSlotAddress(source));
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(ToStackSlotAddress(destination), ToStackSlotAddress(source));
+  } else if (source.IsXmmRegister() && destination.IsXmmRegister()) {
+    __ movaps(XMM0, source.xmm_reg());
+    __ movaps(source.xmm_reg(), destination.xmm_reg());
+    __ movaps(destination.xmm_reg(), XMM0);
+  } else if (source.IsXmmRegister() || destination.IsXmmRegister()) {
+    ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
+    XmmRegister reg = source.IsXmmRegister() ? source.xmm_reg()
+                                             : destination.xmm_reg();
+    Address slot_address =
+        ToStackSlotAddress(source.IsXmmRegister() ? destination : source);
+
+    __ movsd(XMM0, slot_address);
+    __ movsd(slot_address, reg);
+    __ movaps(reg, XMM0);
   } else {
     UNREACHABLE();
   }

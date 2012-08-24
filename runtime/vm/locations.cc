@@ -49,7 +49,9 @@ const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
     case kRegister: return Assembler::RegisterName(reg());
+    case kXmmRegister: return Assembler::XmmRegisterName(xmm_reg());
     case kStackSlot: return "S";
+    case kDoubleStackSlot: return "DS";
     case kUnallocated:
       switch (policy()) {
         case kAny:
@@ -58,6 +60,8 @@ const char* Location::Name() const {
           return "P";
         case kRequiresRegister:
           return "R";
+        case kRequiresXmmRegister:
+          return "DR";
         case kSameAsFirstInput:
           return "0";
       }

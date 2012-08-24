@@ -785,6 +785,7 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                mint_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   // EBX and EDI are not objects but integer values.
   __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
@@ -1040,6 +1041,7 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1086,6 +1088,7 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1107,6 +1110,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1172,6 +1176,7 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1209,6 +1214,7 @@ static void EmitTrigonometric(Assembler* assembler,
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &alloc_failed,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ fstpl(FieldAddress(EAX, Double::value_offset()));
   __ ret();

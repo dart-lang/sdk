@@ -426,6 +426,14 @@ void Assembler::movsd(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::movaps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x28);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::addsd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
@@ -1787,6 +1795,17 @@ static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
 const char* Assembler::RegisterName(Register reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
   return cpu_reg_names[reg];
+}
+
+
+static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
+  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"
+};
+
+
+const char* Assembler::XmmRegisterName(XmmRegister reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
+  return xmm_reg_names[reg];
 }
 
 

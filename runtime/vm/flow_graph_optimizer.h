@@ -15,8 +15,9 @@ template <typename T> class DirectChainedHashMap;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  explicit FlowGraphOptimizer(const FlowGraph& flow_graph)
-      : FlowGraphVisitor(flow_graph.reverse_postorder()) {}
+  explicit FlowGraphOptimizer(FlowGraph* flow_graph)
+      : FlowGraphVisitor(flow_graph->reverse_postorder()),
+        flow_graph_(flow_graph) { }
   virtual ~FlowGraphOptimizer() {}
 
   void ApplyICData();
@@ -47,6 +48,20 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceSetter(BindInstr* instr, InstanceCallComp* comp);
 
   bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
+
+  void AddCheckClass(BindInstr* instr, InstanceCallComp* comp, Value* value);
+
+  BindInstr* InsertBefore(Instruction* instr,
+                          Computation* comp,
+                          Environment* env,
+                          BindInstr::UseKind use_kind);
+
+  BindInstr* InsertAfter(Instruction* instr,
+                         Computation* comp,
+                         Environment* env,
+                         BindInstr::UseKind use_kind);
+
+  FlowGraph* flow_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };

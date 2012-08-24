@@ -199,27 +199,6 @@ bool FlowGraphCompiler::IsNextBlock(BlockEntryInstr* block_entry) const {
 }
 
 
-void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
-  // TODO(vegorov): consider saving only caller save (volatile) registers.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
-    if (locs->live_registers()->Contains(reg)) {
-      assembler()->PushRegister(reg);
-    }
-  }
-}
-
-
-void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
-    if (locs->live_registers()->Contains(reg)) {
-      assembler()->PopRegister(reg);
-    }
-  }
-}
-
-
 void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
   slow_path_code_.Add(code);
 }
@@ -647,6 +626,9 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         break;
       case Location::kSameAsFirstInput:
         result_location = locs->in(0);
+        break;
+      case Location::kRequiresXmmRegister:
+        UNREACHABLE();
         break;
     }
     locs->set_out(result_location);

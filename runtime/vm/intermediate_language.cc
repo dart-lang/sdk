@@ -188,12 +188,22 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
 }
 
 
-void BindInstr::InsertBefore(BindInstr* next) {
+void BindInstr::InsertBefore(Instruction* next) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   next_ = next;
   previous_ = next->previous_;
   next->previous_ = this;
+  previous_->next_ = this;
+}
+
+
+void BindInstr::InsertAfter(Instruction* prev) {
+  ASSERT(previous_ == NULL);
+  ASSERT(next_ == NULL);
+  previous_ = prev;
+  next_ = prev->next_;
+  next_->previous_ = this;
   previous_->next_ = this;
 }
 
@@ -1024,6 +1034,26 @@ intptr_t BinaryDoubleOpComp::ResultCid() const {
 }
 
 
+RawAbstractType* UnboxedDoubleBinaryOpComp::CompileType() const {
+  return Type::DoubleInterface();
+}
+
+
+RawAbstractType* UnboxDoubleComp::CompileType() const {
+  return Type::null();
+}
+
+
+intptr_t BoxDoubleComp::ResultCid() const {
+  return kDoubleCid;
+}
+
+
+RawAbstractType* BoxDoubleComp::CompileType() const {
+  return Type::DoubleInterface();
+}
+
+
 RawAbstractType* UnarySmiOpComp::CompileType() const {
   return Type::SmiType();
 }
@@ -1051,6 +1081,11 @@ RawAbstractType* CheckClassComp::CompileType() const {
 
 
 RawAbstractType* CheckSmiComp::CompileType() const {
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CheckEitherNonSmiComp::CompileType() const {
   return AbstractType::null();
 }
 
@@ -1087,6 +1122,15 @@ Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
 
 Definition* CheckSmiComp::TryReplace(BindInstr* instr) const {
   return (value()->ResultCid() == kSmiCid) ?  NULL : instr;
+}
+
+
+Definition* CheckEitherNonSmiComp::TryReplace(BindInstr* instr) const {
+  if ((left()->ResultCid() == kDoubleCid) ||
+      (right()->ResultCid() == kDoubleCid)) {
+    return NULL;  // Remove from the graph.
+  }
+  return instr;
 }
 
 

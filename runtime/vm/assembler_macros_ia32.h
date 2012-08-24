@@ -30,6 +30,7 @@ class AssemblerMacros : public AllStatic {
   static void TryAllocate(Assembler* assembler,
                           const Class& cls,
                           Label* failure,
+                          bool near_jump,
                           Register instance_reg);
 
   // Set up a dart frame on entry with a frame pointer and PC information to
