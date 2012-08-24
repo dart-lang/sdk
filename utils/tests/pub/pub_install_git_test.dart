@@ -78,6 +78,32 @@ main() {
     run();
   });
 
+  test('requires the repository name to match the name in the pubspec', () {
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "weird-name": {"git": "../foo.git"}
+        }
+      })
+    ]).scheduleCreate();
+
+    // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
+    // fixed.
+    schedulePub(args: ['install'],
+        error: const RegExp(@'^FormatException: The name you specified for '
+            @'your dependency, "weird-name", doesn' @"'" @'t match the name '
+            @'"foo" \(from "\.\./foo\.git"\)\.'));
+
+    run();
+  });
+
   test('checks out and updates a package from Git', () {
     ensureGit();
 
@@ -309,5 +335,35 @@ main() {
     ]).scheduleValidate();
 
     run();
+  });
+
+  group("(regression)", () {
+    test('checks out a package from Git with a trailing slash', () {
+      ensureGit();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";')
+      ]).scheduleCreate();
+
+      appDir([{"git": "../foo.git/"}]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(cachePath, [
+        dir('git', [
+          dir('cache', [gitPackageCacheDir('foo')]),
+          gitPackageCacheDir('foo')
+        ])
+      ]).scheduleValidate();
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
   });
 }

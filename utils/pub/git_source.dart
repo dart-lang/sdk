@@ -64,8 +64,10 @@ class GitSource extends Source {
    * The package name of a Git repo is the name of the directory into which
    * it'll be cloned.
    */
-  String packageName(description) =>
-    basename(_getUrl(description)).replaceFirst(const RegExp("\.git\$"), "");
+  String packageName(description) {
+    return basename(_getUrl(description)
+        .replaceFirst(const RegExp(@"(\.git)?/?$"), ""));
+  }
 
   /**
    * Ensures [description] is a Git URL.

@@ -110,6 +110,13 @@ class Pubspec {
 
         source.validateDescription(description, fromLockFile: false);
 
+        var nameFromSource = source.packageName(description);
+        if (nameFromSource != name) {
+          throw new FormatException('The name you specified for your '
+              'dependency, "$name", doesn\'t match the name "$nameFromSource" '
+              '(from "$description").');
+        }
+
         dependencies.add(new PackageRef(
             source, versionConstraint, description));
       });
