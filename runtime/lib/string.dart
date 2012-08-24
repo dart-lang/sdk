@@ -232,23 +232,11 @@ class StringBase {
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    List<String> stringList = new List<String>(numValues);
-    int resultLength = 0;
+    var stringList = new ObjectArray(numValues);
     for (int i = 0; i < numValues; i++) {
-      String str = values[i].toString();
-      resultLength += str.length;
-      stringList[i] = str;
+      stringList[i] = values[i].toString();
     }
-    List<int> codepoints = new List<int>(resultLength);
-    int intArrayIx = 0;
-    for (int i = 0; i < numValues; i++) {
-      String str = stringList[i];
-      int strLength = str.length;
-      for (int k = 0; k < strLength; k++) {
-        codepoints[intArrayIx++] = str.charCodeAt(k);
-      }
-    }
-    return StringBase.createFromCharCodes(codepoints);
+    return _concatAll(stringList);
   }
 
   Iterable<Match> allMatches(String str) {

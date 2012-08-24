@@ -14,23 +14,22 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   GET_NATIVE_ARGUMENT(Array, a, arguments->At(0));
   // TODO(srdjan): Check that parameterized type is an int.
-  Zone* zone = Isolate::Current()->current_zone();
+  Zone* zone = isolate->current_zone();
   intptr_t len = a.Length();
 
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
   bool is_two_byte_string = true;
   uint32_t* temp = zone->Alloc<uint32_t>(len);
-  Smi& element = Smi::Handle();
+  Object& index_object = Object::Handle(isolate);
   for (intptr_t i = 0; i < len; i++) {
-    const Object& index_object = Object::Handle(a.At(i));
+    index_object = a.At(i);
     if (!index_object.IsSmi()) {
       GrowableArray<const Object*> args;
       args.Add(&index_object);
       Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
     }
-    element ^= index_object.raw();
-    intptr_t value = element.Value();
+    intptr_t value = Smi::Cast(index_object).Value();
     if (value < 0) {
       GrowableArray<const Object*> args;
       Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
@@ -42,7 +41,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     }
     temp[i] = value;
   }
-  String& result = String::Handle();
+  String& result = String::Handle(isolate);
   if (is_one_byte_string) {
     result ^= OneByteString::New(temp, len, Heap::kNew);
   } else if (is_two_byte_string) {
@@ -63,7 +62,7 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
   intptr_t end = end_obj.Value();
 
   const String& result = String::Handle(
-      String::SubString(receiver, start, (end - start)));
+      isolate, String::SubString(receiver, start, (end - start)));
   arguments->SetReturn(result);
 }
 

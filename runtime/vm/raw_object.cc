@@ -293,7 +293,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         break;
     }
   } else {
-    RawClass* raw_class = Isolate::Current()->class_table()->At(class_id);
+    RawClass* raw_class = visitor->isolate()->class_table()->At(class_id);
     if (Class::IsSignatureClass(raw_class)) {
       RawClosure* raw_obj = reinterpret_cast<RawClosure*>(this);
       size = RawClosure::VisitClosurePointers(raw_obj, visitor);
@@ -590,7 +590,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  RawClass* cls = Isolate::Current()->class_table()->At(raw_obj->GetClassId());
+  RawClass* cls = visitor->isolate()->class_table()->At(raw_obj->GetClassId());
   intptr_t instance_size = cls->ptr()->instance_size_;
   intptr_t num_native_fields = cls->ptr()->num_native_fields_;
 
