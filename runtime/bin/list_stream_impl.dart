@@ -145,7 +145,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
     }
   }
 
-  bool get closed() => _streamMarkedClosed;
+  bool get closed => _streamMarkedClosed;
 
   _BufferList _bufferList;
   bool _streamMarkedClosed = false;

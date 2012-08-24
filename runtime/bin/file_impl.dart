@@ -280,7 +280,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     });
   }
 
-  bool get closed() => _streamMarkedClosed;
+  bool get closed => _streamMarkedClosed;
 
   RandomAccessFile _file;
 
@@ -763,7 +763,7 @@ class _File extends _FileBase implements File {
     return _getDecodedLines(decoder);
   }
 
-  String get name() => _name;
+  String get name => _name;
 
   void _ensureFileService() {
     if (_fileService == null) {
@@ -1139,7 +1139,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
   }
 
-  String get name() => _name;
+  String get name => _name;
 
   void _ensureFileService() {
     if (_fileService == null) {
@@ -1147,7 +1147,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
   }
 
-  bool get closed() => _id == 0;
+  bool get closed => _id == 0;
 
   void _checkNotClosed() {
     if (closed) {

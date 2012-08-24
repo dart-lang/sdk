@@ -105,7 +105,7 @@ interface HttpServer default _HttpServer {
    * used to get the actual port used when a value of 0 for [port] is
    * specified in the [listen] call.
    */
-  int get port();
+  int get port;
 
   /**
    * Sets the error handler that is called when a connection error occurs.
@@ -374,7 +374,7 @@ interface HeaderValue default _HeaderValue {
   /**
    * Gets the map of parameters.
    */
-  Map<String, String> get parameters();
+  Map<String, String> get parameters;
 
   /**
    * Returns the formatted string representation in the form:
@@ -508,65 +508,65 @@ interface HttpRequest default _HttpRequest {
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
    */
-  int get contentLength();
+  int get contentLength;
 
   /**
    * Returns the persistent connection state signaled by the client.
    */
-  bool get persistentConnection();
+  bool get persistentConnection;
 
   /**
    * Returns the method for the request.
    */
-  String get method();
+  String get method;
 
   /**
    * Returns the URI for the request.
    */
-  String get uri();
+  String get uri;
 
   /**
    * Returns the path part of the URI.
    */
-  String get path();
+  String get path;
 
   /**
    * Returns the query string.
    */
-  String get queryString();
+  String get queryString;
 
   /**
    * Returns the parsed query string.
    */
-  Map<String, String> get queryParameters();
+  Map<String, String> get queryParameters;
 
   /**
    * Returns the request headers.
    */
-  HttpHeaders get headers();
+  HttpHeaders get headers;
 
   /**
    * Returns the cookies in the request (from the Cookie header).
    */
-  List<Cookie> get cookies();
+  List<Cookie> get cookies;
 
   /**
    * Returns the input stream for the request. This is used to read
    * the request data.
    */
-  InputStream get inputStream();
+  InputStream get inputStream;
 
   /**
    * Returns the HTTP protocol version used in the request. This will
    * be "1.0" or "1.1".
    */
-  String get protocolVersion();
+  String get protocolVersion;
 
   /**
    * Get information about the client connection. Returns [null] if the socket
    * isn't available.
    */
-  HttpConnectionInfo get connectionInfo();
+  HttpConnectionInfo get connectionInfo;
 }
 
 
@@ -604,12 +604,12 @@ interface HttpResponse default _HttpResponse {
   /**
    * Returns the response headers.
    */
-  HttpHeaders get headers();
+  HttpHeaders get headers;
 
   /**
    * Cookies to set in the client (in the Set-Cookie header).
    */
-  List<Cookie> get cookies();
+  List<Cookie> get cookies;
 
   /**
    * Returns the output stream for the response. This is used to write
@@ -620,7 +620,7 @@ interface HttpResponse default _HttpResponse {
    * send. Calling any methods that will change the header after
    * having retrieved the output stream will throw an exception.
    */
-  OutputStream get outputStream();
+  OutputStream get outputStream;
 
   /**
    * Detach the underlying socket from the HTTP server. When the
@@ -636,7 +636,7 @@ interface HttpResponse default _HttpResponse {
    * Get information about the client connection. Returns [null] if the socket
    * isn't available.
    */
-  HttpConnectionInfo get connectionInfo();
+  HttpConnectionInfo get connectionInfo;
 }
 
 
@@ -754,7 +754,7 @@ interface HttpClientConnection {
   /**
    * Returns the series of redirects this connection has been through.
    */
-  List<RedirectInfo> get redirects();
+  List<RedirectInfo> get redirects;
 
   /**
    * Redirect this connection to a new URL. The default value for
@@ -779,7 +779,7 @@ interface HttpClientConnection {
    * Get information about the client connection. Returns [null] if the socket
    * isn't available.
    */
-  HttpConnectionInfo get connectionInfo();
+  HttpConnectionInfo get connectionInfo;
 }
 
 
@@ -797,12 +797,12 @@ interface HttpClientRequest default _HttpClientRequest {
   /**
    * Returns the request headers.
    */
-  HttpHeaders get headers();
+  HttpHeaders get headers;
 
   /**
    * Cookies to present to the server (in the Cookie header).
    */
-  List<Cookie> get cookies();
+  List<Cookie> get cookies;
 
   /**
    * Gets and sets the requested persistent connection state.
@@ -819,7 +819,7 @@ interface HttpClientRequest default _HttpClientRequest {
    * send. Calling any methods that will change the header after
    * having retrieved the output stream will throw an exception.
    */
-  OutputStream get outputStream();
+  OutputStream get outputStream;
 }
 
 
@@ -830,23 +830,23 @@ interface HttpClientResponse default _HttpClientResponse {
   /**
    * Returns the status code.
    */
-  int get statusCode();
+  int get statusCode;
 
   /**
    * Returns the reason phrase associated with the status code.
    */
-  String get reasonPhrase();
+  String get reasonPhrase;
 
   /**
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
    */
-  int get contentLength();
+  int get contentLength;
 
   /**
    * Gets the persistent connection state returned by the server.
    */
-  bool get persistentConnection();
+  bool get persistentConnection;
 
   /**
    * Returns whether the status code is one of the normal redirect
@@ -854,32 +854,32 @@ interface HttpClientResponse default _HttpClientResponse {
    * [:HttpStatus.MOVED_TEMPORARILY:], [:HttpStatus.SEE_OTHER:] and
    * [:HttpStatus.TEMPORARY_REDIRECT:].
    */
-  bool get isRedirect();
+  bool get isRedirect;
 
   /**
    * Returns the response headers.
    */
-  HttpHeaders get headers();
+  HttpHeaders get headers;
 
   /**
    * Cookies set by the server (from the Set-Cookie header).
    */
-  List<Cookie> get cookies();
+  List<Cookie> get cookies;
 
   /**
    * Returns the input stream for the response. This is used to read
    * the response data.
    */
-  InputStream get inputStream();
+  InputStream get inputStream;
 }
 
 /**
  * Connection information.
  */
 interface HttpConnectionInfo {
-  String get remoteHost();
-  int get remotePort();
-  int get localPort();
+  String get remoteHost;
+  int get remotePort;
+  int get localPort;
 }
 
 
@@ -890,17 +890,17 @@ interface RedirectInfo {
   /**
    * Returns the status code used for the redirect.
    */
-  int get statusCode();
+  int get statusCode;
 
   /**
    * Returns the method used for the redirect.
    */
-  String get method();
+  String get method;
 
   /**
    * Returns the location for the redirect.
    */
-  Uri get location();
+  Uri get location;
 }
 
 
@@ -912,8 +912,8 @@ interface RedirectInfo {
  * this class.
  */
 interface DetachedSocket default _DetachedSocket {
-  Socket get socket();
-  List<int> get unparsedData();
+  Socket get socket;
+  List<int> get unparsedData;
 }
 
 

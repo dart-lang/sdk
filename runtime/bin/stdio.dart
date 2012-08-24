@@ -47,7 +47,7 @@ OutputStream _getStdioOutputStream(int fd) {
 }
 
 
-InputStream get stdin() {
+InputStream get stdin {
   if (_stdin == null) {
     _stdin = _getStdioInputStream();
   }
@@ -55,7 +55,7 @@ InputStream get stdin() {
 }
 
 
-OutputStream get stdout() {
+OutputStream get stdout {
   if (_stdout == null) {
     _stdout = _getStdioOutputStream(1);
   }
@@ -63,7 +63,7 @@ OutputStream get stdout() {
 }
 
 
-OutputStream get stderr() {
+OutputStream get stderr {
   if (_stderr == null) {
     _stderr = _getStdioOutputStream(2);
   }

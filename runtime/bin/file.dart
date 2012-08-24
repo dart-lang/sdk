@@ -223,7 +223,7 @@ interface File default _File {
   /**
    * Get the name of the file.
    */
-  String get name();
+  String get name;
 }
 
 
@@ -370,7 +370,7 @@ interface RandomAccessFile {
   /**
    * Get the name of the file.
    */
-  String get name();
+  String get name;
 }
 
 

@@ -595,7 +595,7 @@ class _HttpParser {
     }
   }
 
-  String get version() {
+  String get version {
     switch (_httpVersion) {
       case _HttpVersion.HTTP10:
         return "1.0";
@@ -607,16 +607,16 @@ class _HttpParser {
     return null;
   }
 
-  int get messageType() => _messageType;
-  int get contentLength() => _contentLength;
-  bool get upgrade() => _connectionUpgrade && _state == _State.UPGRADED;
-  bool get persistentConnection() => _persistentConnection;
+  int get messageType => _messageType;
+  int get contentLength => _contentLength;
+  bool get upgrade => _connectionUpgrade && _state == _State.UPGRADED;
+  bool get persistentConnection => _persistentConnection;
 
   void set responseToMethod(String method) { _responseToMethod = method; }
 
-  bool get isIdle() => _state == _State.START;
+  bool get isIdle => _state == _State.START;
 
-  List<int> get unparsedData() => _unparsedData;
+  List<int> get unparsedData => _unparsedData;
 
   void _bodyEnd() {
     if (dataEnd != null) {

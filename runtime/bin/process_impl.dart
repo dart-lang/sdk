@@ -202,21 +202,21 @@ class _Process extends Process {
                     Socket exitHandler,
                     _ProcessStartStatus status) native "Process_Start";
 
-  InputStream get stdout() {
+  InputStream get stdout {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
     return _in.inputStream;
   }
 
-  InputStream get stderr() {
+  InputStream get stderr {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
     return _err.inputStream;
   }
 
-  OutputStream get stdin() {
+  OutputStream get stdin {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
@@ -378,7 +378,7 @@ class _NonInteractiveProcess {
     }
   }
 
-  Future<ProcessResult> get _result() => _completer.future;
+  Future<ProcessResult> get _result => _completer.future;
 
   Completer<ProcessResult> _completer;
   Process _process;

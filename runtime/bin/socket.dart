@@ -23,7 +23,7 @@ interface ServerSocket default _ServerSocket {
   /**
    * Returns the port used by this socket.
    */
-  int get port();
+  int get port;
 
   /**
    * Closes the socket.
@@ -96,27 +96,27 @@ interface Socket extends Hashable default _Socket {
   /**
    * Returns input stream to the socket.
    */
-  InputStream get inputStream();
+  InputStream get inputStream;
 
   /**
    * Returns output stream of the socket.
    */
-  OutputStream get outputStream();
+  OutputStream get outputStream;
 
   /**
    * Returns the port used by this socket.
    */
-  int get port();
+  int get port;
 
   /**
    * Returns the remote port connected to by this socket.
    */
-  int get remotePort();
+  int get remotePort;
 
   /**
    * Returns the remote host connected to by this socket.
    */
-  String get remoteHost();
+  String get remoteHost;
 
   /**
    * Closes the socket. Calling [close] will never throw an exception

@@ -65,7 +65,7 @@ class _HttpHeaders implements HttpHeaders {
     _noFoldingHeaders.add(name);
   }
 
-  String get host() => _host;
+  String get host => _host;
 
   void set host(String host) {
     _checkMutable();
@@ -73,7 +73,7 @@ class _HttpHeaders implements HttpHeaders {
     _updateHostHeader();
   }
 
-  int get port() => _port;
+  int get port => _port;
 
   void set port(int port) {
     _checkMutable();
@@ -81,7 +81,7 @@ class _HttpHeaders implements HttpHeaders {
     _updateHostHeader();
   }
 
-  Date get ifModifiedSince() {
+  Date get ifModifiedSince {
     List<String> values = _headers["if-modified-since"];
     if (values != null) {
       try {
@@ -100,7 +100,7 @@ class _HttpHeaders implements HttpHeaders {
     _set("if-modified-since", formatted);
   }
 
-  Date get date() {
+  Date get date {
     List<String> values = _headers["date"];
     if (values != null) {
       try {
@@ -119,7 +119,7 @@ class _HttpHeaders implements HttpHeaders {
     _set("date", formatted);
   }
 
-  Date get expires() {
+  Date get expires {
     List<String> values = _headers["expires"];
     if (values != null) {
       try {
@@ -138,7 +138,7 @@ class _HttpHeaders implements HttpHeaders {
     _set("expires", formatted);
   }
 
-  ContentType get contentType() {
+  ContentType get contentType {
     var values = _headers["content-type"];
     if (values != null) {
       return new ContentType.fromString(values[0]);
@@ -313,7 +313,7 @@ class _HeaderValue implements HeaderValue {
     _parse(value);
   }
 
-  Map<String, String> get parameters() {
+  Map<String, String> get parameters {
     if (_parameters == null) _parameters = new Map<String, String>();
     return _parameters;
   }
@@ -431,7 +431,7 @@ class _ContentType extends _HeaderValue implements ContentType {
 
   _ContentType.fromString(String value) : super.fromString(value);
 
-  String get value() => "$_primaryType/$_subType";
+  String get value => "$_primaryType/$_subType";
 
   void set value(String s) {
     int index = s.indexOf("/");
@@ -444,19 +444,19 @@ class _ContentType extends _HeaderValue implements ContentType {
     }
   }
 
-  String get primaryType() => _primaryType;
+  String get primaryType => _primaryType;
 
   void set primaryType(String s) {
     _primaryType = s;
   }
 
-  String get subType() => _subType;
+  String get subType => _subType;
 
   void set subType(String s) {
     _subType = s;
   }
 
-  String get charset() => parameters["charset"];
+  String get charset => parameters["charset"];
 
   void set charset(String s) {
     parameters["charset"] = s;
@@ -610,10 +610,10 @@ class _HttpRequestResponseBase {
     _headResponse = false;
   }
 
-  int get contentLength() => _contentLength;
-  HttpHeaders get headers() => _headers;
+  int get contentLength => _contentLength;
+  HttpHeaders get headers => _headers;
 
-  bool get persistentConnection() {
+  bool get persistentConnection {
     List<String> connection = headers[HttpHeaders.CONNECTION];
     if (_protocolVersion == "1.1") {
       if (connection == null) return true;
@@ -738,9 +738,9 @@ class _HttpRequestResponseBase {
     _bodyBytesWritten += bytes;
   }
 
-  HttpConnectionInfo get connectionInfo() => _httpConnection.connectionInfo;
+  HttpConnectionInfo get connectionInfo => _httpConnection.connectionInfo;
 
-  bool get _done() => _state == DONE;
+  bool get _done => _state == DONE;
 
   int _state;
   bool _headResponse;
@@ -765,13 +765,13 @@ class _HttpRequestResponseBase {
 class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   _HttpRequest(_HttpConnection connection) : super(connection);
 
-  String get method() => _method;
-  String get uri() => _uri;
-  String get path() => _path;
-  String get queryString() => _queryString;
-  Map get queryParameters() => _queryParameters;
+  String get method => _method;
+  String get uri => _uri;
+  String get path => _path;
+  String get queryString => _queryString;
+  Map get queryParameters => _queryParameters;
 
-  List<Cookie> get cookies() {
+  List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
 
     // Parse a Cookie header value according to the rules in RFC 6265.
@@ -838,14 +838,14 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     return _cookies;
   }
 
-  InputStream get inputStream() {
+  InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
     }
     return _inputStream;
   }
 
-  String get protocolVersion() => _protocolVersion;
+  String get protocolVersion => _protocolVersion;
 
   void _onRequestStart(String method, String uri, String version) {
     _method = method;
@@ -927,24 +927,24 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _contentLength = contentLength;
   }
 
-  int get statusCode() => _statusCode;
+  int get statusCode => _statusCode;
   void set statusCode(int statusCode) {
     if (_outputStream != null) throw new HttpException("Header already sent");
     _statusCode = statusCode;
   }
 
-  String get reasonPhrase() => _findReasonPhrase(_statusCode);
+  String get reasonPhrase => _findReasonPhrase(_statusCode);
   void set reasonPhrase(String reasonPhrase) {
     if (_outputStream != null) throw new HttpException("Header already sent");
     _reasonPhrase = reasonPhrase;
   }
 
-  List<Cookie> get cookies() {
+  List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
     return _cookies;
   }
 
-  OutputStream get outputStream() {
+  OutputStream get outputStream {
     if (_state >= DONE) throw new HttpException("Response closed");
     if (_outputStream == null) {
       _outputStream = new _HttpOutputStream(this);
@@ -1170,7 +1170,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
     _requestOrResponse._streamClose();
   }
 
-  bool get closed() => _requestOrResponse._done;
+  bool get closed => _requestOrResponse._done;
 
   void destroy() {
     throw "Not implemented";
@@ -1278,7 +1278,7 @@ class _HttpConnectionBase implements Hashable {
     return new _DetachedSocket(socket, _httpParser.unparsedData);
   }
 
-  HttpConnectionInfo get connectionInfo() {
+  HttpConnectionInfo get connectionInfo {
     if (_socket == null || _closing || _error) return null;
     try {
       _HttpConnectionInfo info = new _HttpConnectionInfo();
@@ -1481,7 +1481,7 @@ class _HttpServer implements HttpServer {
     _connections.clear();
   }
 
-  int get port() {
+  int get port {
     if (_server === null) {
       throw new HttpException("The HttpServer is not listening on a port.");
     }
@@ -1546,12 +1546,12 @@ class _HttpClientRequest
     _contentLength = contentLength;
   }
 
-  List<Cookie> get cookies() {
+  List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
     return _cookies;
   }
 
-  OutputStream get outputStream() {
+  OutputStream get outputStream {
     if (_done) throw new HttpException("Request closed");
     if (_outputStream == null) {
       _outputStream = new _HttpOutputStream(this);
@@ -1647,17 +1647,17 @@ class _HttpClientResponse
     _connection = connection;
   }
 
-  int get statusCode() => _statusCode;
-  String get reasonPhrase() => _reasonPhrase;
+  int get statusCode => _statusCode;
+  String get reasonPhrase => _reasonPhrase;
 
-  bool get isRedirect() {
+  bool get isRedirect {
     return statusCode == HttpStatus.MOVED_PERMANENTLY ||
            statusCode == HttpStatus.FOUND ||
            statusCode == HttpStatus.SEE_OTHER ||
            statusCode == HttpStatus.TEMPORARY_REDIRECT;
   }
 
-  List<Cookie> get cookies() {
+  List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
     _cookies = new List<Cookie>();
     List<String> values = _headers["set-cookie"];
@@ -1669,7 +1669,7 @@ class _HttpClientResponse
     return _cookies;
   }
 
-  InputStream get inputStream() {
+  InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
     }
@@ -1889,7 +1889,7 @@ class _HttpClientConnection
     _client._openUrl(method, url, this);
   }
 
-  List<RedirectInfo> get redirects() => _redirects;
+  List<RedirectInfo> get redirects => _redirects;
 
   Function _onRequest;
   Function _onResponse;
@@ -2158,8 +2158,8 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
 
 class _DetachedSocket implements DetachedSocket {
   _DetachedSocket(this._socket, this._unparsedData);
-  Socket get socket() => _socket;
-  List<int> get unparsedData() => _unparsedData;
+  Socket get socket => _socket;
+  List<int> get unparsedData => _unparsedData;
   Socket _socket;
   List<int> _unparsedData;
 }

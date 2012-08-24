@@ -29,9 +29,9 @@ class _Path implements Path {
     return clean;
   }
 
-  bool get isEmpty() => _path.isEmpty();
-  bool get isAbsolute() => _path.startsWith('/');
-  bool get hasTrailingSeparator() => _path.endsWith('/');
+  bool get isEmpty => _path.isEmpty();
+  bool get isAbsolute => _path.startsWith('/');
+  bool get hasTrailingSeparator => _path.endsWith('/');
 
   String toString() => _path;
 
@@ -77,7 +77,7 @@ class _Path implements Path {
     return makeCanonical();
   }
 
-  bool get isCanonical() {
+  bool get isCanonical {
     // Contains no consecutive path separators.
     // Contains no segments that are '.'.
     // Absolute paths have no segments that are '..'.
@@ -190,27 +190,27 @@ class _Path implements Path {
     }
   }
 
-  String get filenameWithoutExtension() {
+  String get filenameWithoutExtension {
     var name = filename;
     if (name == '.' || name == '..') return name;
     int pos = name.lastIndexOf('.');
     return (pos < 0) ? name : name.substring(0, pos);
   }
 
-  String get extension() {
+  String get extension {
     var name = filename;
     int pos = name.lastIndexOf('.');
     return (pos < 0) ? '' : name.substring(pos + 1);
   }
 
-  Path get directoryPath() {
+  Path get directoryPath {
     int pos = _path.lastIndexOf('/');
     if (pos < 0) return new Path('');
     while (pos > 0 && _path[pos - 1] == '/') --pos;
     return new Path((pos > 0) ? _path.substring(0, pos) : '/');
   }
 
-  String get filename() {
+  String get filename {
     int pos = _path.lastIndexOf('/');
     return _path.substring(pos + 1);
   }

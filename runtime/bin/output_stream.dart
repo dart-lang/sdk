@@ -76,7 +76,7 @@ interface OutputStream {
    * buffered data that has not been written to the communication channel. The
    * onClosed handler will only be called once all data has been written out.
    */
-  bool get closed();
+  bool get closed;
 
   /**
    * Sets the handler that gets called when the internal OS buffers

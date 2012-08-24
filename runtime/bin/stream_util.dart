@@ -41,7 +41,7 @@ class _BaseDataInputStream {
     _checkScheduleCallbacks();
   }
 
-  bool get closed() => _closeCallbackCalled;
+  bool get closed => _closeCallbackCalled;
 
   void set onData(void callback()) {
     _clientDataHandler = callback;
