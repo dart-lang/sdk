@@ -31,6 +31,8 @@ String typeNameInFirefox(obj) {
   if (name == 'Document') return 'HTMLDocument';
   if (name == 'XMLDocument') return 'Document';
   if (name == 'WorkerMessageEvent') return 'MessageEvent';
+  if (name == 'DragEvent') return 'MouseEvent';
+  if (name == 'DataTransfer') return 'Clipboard';
   return name;
 }
 
@@ -44,6 +46,8 @@ String typeNameInIE(obj) {
     return 'HTMLDocument';
   }
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'DataTransfer') return 'Clipboard';
+  if (name == 'DragEvent') return 'MouseEvent';
   if (name == 'HTMLDDElement') return 'HTMLElement';
   if (name == 'HTMLDTElement') return 'HTMLElement';
   if (name == 'HTMLTableDataCellElement') return 'HTMLTableCellElement';
