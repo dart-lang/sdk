@@ -407,8 +407,9 @@ class MockSource extends Source {
           parsed.last, new VersionConstraint.parse(constraint), parsed.first));
     });
 
-    var pubspec = new Pubspec(new Version.parse(version), dependencies);
-    return new Package.inMemory(description, pubspec);
+    var pubspec = new Pubspec(
+        description, new Version.parse(version), dependencies);
+    return new Package.inMemory(pubspec);
   }
 
   void addPackage(Package package) {

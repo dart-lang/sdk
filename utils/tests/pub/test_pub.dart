@@ -228,8 +228,12 @@ Descriptor pubspec(Map contents) {
  * Describes a file named `pubspec.yaml` for an application package with the
  * given [dependencies].
  */
-Descriptor appPubspec(List dependencies) =>
-  pubspec({"dependencies": _dependencyListToMap(dependencies)});
+Descriptor appPubspec(List dependencies) {
+  return pubspec({
+    "name": "myapp",
+    "dependencies": _dependencyListToMap(dependencies)
+  });
+}
 
 /**
  * Describes a file named `pubspec.yaml` for a library package with the given
@@ -439,14 +443,13 @@ void run() {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
-    cleanup().then((_) {
-      registerException(error, future.stackTrace);
-      asyncDone();
-    });
+    cleanup().then((_) => registerException(error, future.stackTrace));
     return true;
   });
 
-  future.chain((_) => cleanup()).then((_) => asyncDone());
+  future.chain((_) => cleanup()).then((_) {
+    asyncDone();
+  });
 }
 
 /**

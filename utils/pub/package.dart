@@ -43,7 +43,11 @@ class Package {
   /**
    * The name of the package.
    */
-  final String name;
+  String get name() {
+    if (pubspec.name != null) return pubspec.name;
+    if (dir != null) return basename(dir);
+    return null;
+  }
 
   /**
    * The package's version.
@@ -62,19 +66,17 @@ class Package {
   Collection<PackageRef> get dependencies => pubspec.dependencies;
 
   /**
-   * Constructs a package with the given name and pubspec. The package will
-   * no directory associated with it.
+   * Constructs a package with the given pubspec. The package will have no
+   * directory associated with it.
    */
-  Package.inMemory(this.name, this.pubspec)
+  Package.inMemory(this.pubspec)
     : dir = null;
 
   /**
    * Constructs a package. This should not be called directly. Instead, acquire
    * packages from [load()].
    */
-  Package._(String dir, this.pubspec)
-    : dir = dir,
-      name = basename(dir);
+  Package._(this.dir, this.pubspec);
 
   /**
    * Returns a debug string for the package.

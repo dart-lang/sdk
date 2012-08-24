@@ -39,7 +39,7 @@ class SdkSource extends Source {
   Future<Pubspec> describe(PackageId id) {
     return readTextFile(join(rootDir, "revision")).transform((revision) {
       var version = new Version.parse("0.0.0-r.${revision.trim()}");
-      return new Pubspec(version, <PackageRef>[]);
+      return new Pubspec(id.name, version, <PackageRef>[]);
     });
   }
 

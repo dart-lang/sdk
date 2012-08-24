@@ -17,7 +17,7 @@ main() {
     ]).scheduleCreate();
 
     dir(appPath, [
-      pubspec({"dependencies": {"foo": null}})
+      pubspec({"name": "myapp", "dependencies": {"foo": null}})
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],

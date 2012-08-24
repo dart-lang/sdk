@@ -106,7 +106,8 @@ class Entrypoint {
    * completes when all dependencies are installed.
    */
   Future installDependencies() {
-    return _loadLockFile()
+    return _validatePubspec()
+      .chain((_) => _loadLockFile())
       .chain((lockFile) => resolveVersions(cache.sources, root, lockFile))
       .chain(_installDependencies);
   }
@@ -117,8 +118,9 @@ class Entrypoint {
    * [Future] that completes when all dependencies are installed.
    */
   Future updateAllDependencies() {
-    return resolveVersions(cache.sources, root, new LockFile.empty()).
-      chain(_installDependencies);
+    return _validatePubspec()
+      .chain((_) => resolveVersions(cache.sources, root, new LockFile.empty()))
+      .chain(_installDependencies);
   }
 
   /**
@@ -127,7 +129,7 @@ class Entrypoint {
    * [Future] that completes when all dependencies are installed.
    */
   Future updateDependencies(List<String> dependencies) {
-    return _loadLockFile().chain((lockFile) {
+    return _validatePubspec().chain((_) => _loadLockFile()).chain((lockFile) {
       var versionSolver = new VersionSolver(cache.sources, root, lockFile);
       for (var dependency in dependencies) {
         versionSolver.useLatestVersion(dependency);
@@ -144,7 +146,7 @@ class Entrypoint {
     return Futures.wait(packageVersions.map((id) {
       if (id.source is RootSource) return new Future.immediate(id);
       return install(id);
-    })).chain(_saveLockFile);
+    })).chain(_saveLockFile).chain(_installSelfReference);
   }
 
   /**
@@ -160,13 +162,13 @@ class Entrypoint {
     var future = readTextFile(lockFilePath);
 
     future.handleException((_) {
-      completer.complete(new LockFile.empty());
-
       // If we failed to load the lockfile but it does exist, something's
       // probably wrong and we should notify the user.
-      fileExists(lockFilePath).then((exists) {
+      fileExists(lockFilePath).transform((exists) {
         if (!exists) return;
         printError("Error reading pubspec.lock: ${future.exception}");
+      }).then((_) {
+        completer.complete(new LockFile.empty());
       });
 
       return true;
@@ -187,5 +189,37 @@ class Entrypoint {
     }
 
     return writeTextFile(join(root.dir, 'pubspec.lock'), lockFile.serialize());
+  }
+
+  /**
+   * Installs a self-referential symlink in the `packages` directory that will
+   * allow a package to import its own files using `package:`.
+   */
+  Future _installSelfReference(_) {
+    var linkPath = join(path, root.name);
+    return exists(linkPath).chain((exists) {
+      if (exists) return new Future.immediate(null);
+      return ensureDir(path).chain((_) => createSymlink(root.dir, linkPath));
+    });
+  }
+
+  /**
+   * Validate that the pubspec for the entrypoint exists and specifies the name
+   * of the root package.
+   */
+  Future _validatePubspec() {
+    var future = new Future.immediate(null);;
+    if (root.pubspec.isEmpty) {
+      future = exists(join(path, "pubspec.yaml")).transform((exists) {
+        if (exists) return;
+        throw 'Could not find a file named "pubspec.yaml" in the directory'
+          '$path.';
+      });
+    }
+
+    return future.transform((_) {
+      if (root.pubspec.name != null) return;
+      throw '"pubspec.yaml" must contain a "name" key.';
+    });
   }
 }
