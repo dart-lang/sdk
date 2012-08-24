@@ -954,7 +954,6 @@ void DebuggerConnectionHandler::HandleMessages() {
 void DebuggerConnectionHandler::WaitForConnection() {
   MonitorLocker ml(&is_connected_);
   while (!IsConnected()) {
-    printf("Waiting for debugger connection...\n");
     dart::Monitor::WaitResult res = ml.Wait(dart::Monitor::kNoTimeout);
     ASSERT(res == dart::Monitor::kNotified);
   }

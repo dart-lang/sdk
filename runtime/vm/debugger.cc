@@ -22,7 +22,7 @@
 
 namespace dart {
 
-static const bool verbose = false;
+DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 
 class RemoteObjectCache : public ZoneAllocated {
  public:
@@ -685,7 +685,7 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // the optimized code will be executed when the callee returns.
 void Debugger::EnsureFunctionIsDeoptimized(const Function& func) {
   if (func.HasOptimizedCode()) {
-    if (verbose) {
+    if (FLAG_verbose_debug) {
       OS::Print("Deoptimizing function %s\n",
                 String::Handle(func.name()).ToCString());
     }
@@ -870,7 +870,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     }
 
     bpt = new CodeBreakpoint(func, best_fit_index);
-    if (verbose) {
+    if (FLAG_verbose_debug) {
       OS::Print("Setting breakpoint in function '%s' (%s:%d) (PC %p)\n",
                 String::Handle(func.name()).ToCString(),
                 String::Handle(bpt->SourceUrl()).ToCString(),
@@ -921,7 +921,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
   }
   bpt = new SourceBreakpoint(nextId(), target_function, first_token_pos);
   RegisterSourceBreakpoint(bpt);
-  if (verbose && !target_function.HasCode()) {
+  if (FLAG_verbose_debug && !target_function.HasCode()) {
     OS::Print("Registering breakpoint for "
               "uncompiled function '%s' at line %d\n",
               target_function.ToFullyQualifiedCString(),
@@ -933,7 +933,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     cbpt->set_src_bpt(bpt);
     SignalBpResolved(bpt);
   } else {
-    if (verbose) {
+    if (FLAG_verbose_debug) {
       OS::Print("Failed to set breakpoint at '%s' line %d\n",
                 String::Handle(bpt->SourceUrl()).ToCString(),
                 bpt->LineNumber());
@@ -984,7 +984,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
   }
   if (script.IsNull()) {
-    if (verbose) {
+    if (FLAG_verbose_debug) {
       OS::Print("Failed to find script with url '%s'\n",
                 script_url.ToCString());
     }
@@ -994,7 +994,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   script.TokenRangeAtLine(line_number, &first_token_idx, &last_token_idx);
   if (first_token_idx < 0) {
     // Script does not contain the given line number.
-    if (verbose) {
+    if (FLAG_verbose_debug) {
       OS::Print("Script '%s' does not contain line number %d\n",
                 script_url.ToCString(), line_number);
     }
@@ -1003,7 +1003,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   const Function& func =
       Function::Handle(lib.LookupFunctionInScript(script, first_token_idx));
   if (func.IsNull()) {
-    if (verbose) {
+    if (FLAG_verbose_debug) {
       OS::Print("No executable code at line %d in '%s'\n",
                 line_number, script_url.ToCString());
     }
@@ -1288,7 +1288,7 @@ void Debugger::SignalBpReached() {
   ASSERT(top_frame != NULL);
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
-  if (verbose) {
+  if (FLAG_verbose_debug) {
     OS::Print(">>> hit %s breakpoint at %s:%d (Address %p)\n",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
@@ -1427,13 +1427,13 @@ void Debugger::NotifyCompilation(const Function& func) {
       Function& closure =
           Function::Handle(owner.LookupClosureFunction(bpt->token_pos()));
       if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {
-        if (verbose) {
+        if (FLAG_verbose_debug) {
           OS::Print("Resetting pending breakpoint to function %s\n",
                     closure.ToFullyQualifiedCString());
         }
         bpt->set_function(closure);
       } else {
-        if (verbose) {
+        if (FLAG_verbose_debug) {
           OS::Print("Enable pending breakpoint for function '%s'\n",
                     String::Handle(lookup_function.name()).ToCString());
         }
