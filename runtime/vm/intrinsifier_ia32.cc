@@ -45,6 +45,11 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ j(NOT_ZERO, &fall_through);
   __ cmpl(EDI, Immediate(0));
   __ j(LESS, &fall_through);
+  // Check for maximum allowed length.
+  const Immediate max_len =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+  __ cmpl(EDI, max_len);
+  __ j(GREATER, &fall_through);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_2, fixed_size));  // EDI is a Smi.
   ASSERT(kSmiTagShift == 1);
