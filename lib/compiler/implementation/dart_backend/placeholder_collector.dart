@@ -11,6 +11,17 @@ class LocalPlaceholder implements Hashable {
       'local_placeholder[id($identifier), nodes($nodes)]';
 }
 
+class FunctionScope {
+  final Set<String> parameterIdentifiers;
+  final Set<LocalPlaceholder> localPlaceholders;
+  FunctionScope()
+      : parameterIdentifiers = new Set<String>(),
+      localPlaceholders = new Set<LocalPlaceholder>();
+  void registerParameter(Identifier node) {
+    parameterIdentifiers.add(node.source.slowToString());
+  }
+}
+
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
@@ -72,7 +83,7 @@ class PlaceholderCollector extends AbstractVisitor {
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
-  final Map<FunctionElement, Set<LocalPlaceholder>> localPlaceholders;
+  final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
@@ -85,7 +96,7 @@ class PlaceholderCollector extends AbstractVisitor {
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
-      localPlaceholders = new Map<FunctionElement, Set<LocalPlaceholder>>(),
+      functionScopes = new Map<FunctionElement, FunctionScope>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>();
 
   void tryMakeConstructorNamePlaceholder(
@@ -186,6 +197,11 @@ class PlaceholderCollector extends AbstractVisitor {
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
+    if (element.isParameter()) {
+      functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
+          .registerParameter(node);
+      return;
+    }
     if (!element.isMember() && !Elements.isStaticOrTopLevel(element)
         && (element.isVariable() || element.isFunction())) {
       makeLocalPlaceholder(node);
@@ -227,20 +243,19 @@ class PlaceholderCollector extends AbstractVisitor {
     unresolvedNodes.add(node);
   }
 
-  void makeLocalPlaceholder(Node node) {
+  void makeLocalPlaceholder(Identifier identifier) {
+    LocalPlaceholder getLocalPlaceholder() {
+      String name = identifier.source.slowToString();
+      return currentLocalPlaceholders.putIfAbsent(name, () {
+        LocalPlaceholder localPlaceholder = new LocalPlaceholder(name);
+        functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
+            .localPlaceholders.add(localPlaceholder);
+        return localPlaceholder;
+      });
+    }
+
     assert(currentElement is FunctionElement);
-    assert(node is Identifier);
-    String identifier = node.asIdentifier().source.slowToString();
-    LocalPlaceholder localPlaceholder =
-        currentLocalPlaceholders.putIfAbsent(identifier,
-            () {
-              LocalPlaceholder localPlaceholder =
-                  new LocalPlaceholder(identifier);
-              localPlaceholders.putIfAbsent(currentElement,
-                  () => new Set<LocalPlaceholder>()).add(localPlaceholder);
-              return localPlaceholder;
-            });
-    localPlaceholder.nodes.add(node);
+    getLocalPlaceholder().nodes.add(identifier);
   }
 
   void internalError(String reason, [Node node]) {

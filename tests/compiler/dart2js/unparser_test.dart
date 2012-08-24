@@ -479,7 +479,7 @@ main() {
   FunctionExpression mainNode = mainElement.parseNode(compiler);
   FunctionExpression fooNode = mainNode.body.statements.nodes.head.function;
   LocalPlaceholder fooPlaceholder =
-      collector.localPlaceholders[mainElement].iterator().next();
+      collector.functionScopes[mainElement].localPlaceholders.iterator().next();
   Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
 }
 
@@ -692,6 +692,34 @@ main() {
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
 
+testClosureLocalsMinified() {
+  var src = '''
+main() {
+  var a = 7;
+  void foo1(a,b) {
+    void foo2(c,d) {
+       var E = a;
+    }
+    foo2(b, a);
+  }
+  foo1(a, 8);
+}
+''';
+  var expectedResult =
+      'main(){'
+        'var f=7; '
+        'void g(a,b){'
+          'void h(c,d){'
+            'var e=a;'
+          '} '
+          'h(b,a);'
+        '} '
+        'g(f,8);'
+      '}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); }, minify: true);
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -730,4 +758,5 @@ main() {
   testStaticAccessIoLib();
   testLocalFunctionPlaceholder();
   testMinification();
+  testClosureLocalsMinified();
 }

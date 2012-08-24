@@ -20,7 +20,8 @@ void renamePlaceholders(
   usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
 
   Generator topLevelGenerator =
-      minify ? new MinifyingGenerator('ABCD').generate : conservativeGenerator;
+      minify ? new MinifyingGenerator('ABCDEFGHIJKLMNOPQRSTUVWXYZ').generate
+          : conservativeGenerator;
   String generateUniqueName(name) {
     String newName = topLevelGenerator(
         name, usedTopLevelIdentifiers.contains);
@@ -70,12 +71,23 @@ void renamePlaceholders(
     String renamedElement = renameElement(element);
     renameNodes(nodes, (_) => renamedElement);
   });
-  sortedForEach(placeholderCollector.localPlaceholders,
-      (element, placeholders) {
+  sortedForEach(placeholderCollector.functionScopes,
+      (functionElement, functionScope) {
+    Set<LocalPlaceholder> placeholders = functionScope.localPlaceholders;
+    Generator localGenerator =
+        minify ? new MinifyingGenerator('abcdefghijklmnopqrstuvwxyz').generate
+            : conservativeGenerator;
+    Set<String> usedLocalIdentifiers = new Set<String>();
     // TODO(smok): Check for conflicts with class fields and take usages
     // into account.
     for (LocalPlaceholder placeholder in placeholders) {
-      renameNodes(placeholder.nodes, (_) => placeholder.identifier);
+      String nextId =
+          localGenerator(placeholder.identifier, (name) =>
+              functionScope.parameterIdentifiers.contains(name)
+                  || usedTopLevelIdentifiers.contains(name)
+                  || usedLocalIdentifiers.contains(name));
+      usedLocalIdentifiers.add(nextId);
+      renameNodes(placeholder.nodes, (_) => nextId);
     }
   });
   sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
