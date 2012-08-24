@@ -17,7 +17,7 @@ unicode_test: Fail
 [ $runtime == opera ]
 *: Skip
 
-[ $runtime == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
