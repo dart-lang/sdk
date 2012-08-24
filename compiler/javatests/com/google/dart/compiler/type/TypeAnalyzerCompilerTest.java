@@ -2573,6 +2573,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(testUnit, "v", "Event");
   }
+  
+  /**
+   * Helpful (but not perfectly satisfying Specification) type of "conditional" is intersection of
+   * then/else types, not just their "least upper bounds". And this corresponds runtime behavior.
+   */
+  public void test_typesPropagation_conditional() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I1 {",
+        "  f1();",
+        "}",
+        "interface I2 {",
+        "  f2();",
+        "}",
+        "class A implements I1, I2 {",
+        "  f1() => 11;",
+        "  f2() => 12;",
+        "}",
+        "class B implements I1, I2 {",
+        "  f1() => 21;",
+        "  f2() => 22;",
+        "}",
+        "main() {",
+        "  var v = true ? new A() : new B();",
+        "  v.f1();",
+        "  v.f2();",
+        "}",
+        "");
+    // no errors, because both f1() and f2() invocations were resolved
+    assertErrors(libraryResult.getErrors());
+    // v.f1() was resolved
+    {
+      DartExpression expression = findExpression(testUnit, "v.f1()");
+      assertNotNull(expression);
+      assertNotNull(expression.getElement());
+    }
+    // v.f2() was resolved
+    {
+      DartExpression expression = findExpression(testUnit, "v.f1()");
+      assertNotNull(expression);
+      assertNotNull(expression.getElement());
+    }
+  }
 
   public void test_getType_binaryExpression() throws Exception {
     analyzeLibrary(

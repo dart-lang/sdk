@@ -1469,7 +1469,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       checkCondition(node.getCondition());
       Type left = typeOf(node.getThenExpression());
       Type right = typeOf(node.getElseExpression());
-      return types.leastUpperBound(left, right);
+      return types.intersection(left, right);
     }
 
     private Type checkCondition(DartExpression condition) {
