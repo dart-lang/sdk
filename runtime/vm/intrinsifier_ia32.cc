@@ -426,6 +426,8 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+  // TODO(srdjan): Enable once crash in apidoc.dart is fixed.
+  return false;
   // In checked mode we need to check the incoming argument.
   if (FLAG_enable_type_checks) return false;
   Label fall_through;
