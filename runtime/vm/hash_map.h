@@ -20,6 +20,8 @@ class DirectChainedHashMap: public ValueObject {
     Resize(kInitialSize);
   }
 
+  DirectChainedHashMap(const DirectChainedHashMap& other);
+
   void Insert(T value);
 
   T Lookup(T value) const;
@@ -48,8 +50,6 @@ class DirectChainedHashMap: public ValueObject {
   // with a given hash.  Colliding elements are stored in linked lists.
   HashMapListElement* lists_;  // The linked lists containing hash collisions.
   intptr_t free_list_head_;  // Unused elements in lists_ are on the free list.
-
-  DISALLOW_COPY_AND_ASSIGN(DirectChainedHashMap);
 };
 
 
@@ -66,6 +66,22 @@ T DirectChainedHashMap<T>::Lookup(T value) const {
     }
   }
   return NULL;
+}
+
+
+template <typename T>
+DirectChainedHashMap<T>::DirectChainedHashMap(const DirectChainedHashMap& other)
+  : ValueObject(),
+    array_size_(other.array_size_),
+    lists_size_(other.lists_size_),
+    count_(other.count_),
+    array_(Isolate::Current()->current_zone()->
+           Alloc<HashMapListElement>(other.array_size_)),
+    lists_(Isolate::Current()->current_zone()->
+           Alloc<HashMapListElement>(other.lists_size_)),
+    free_list_head_(other.free_list_head_) {
+  memmove(array_, other.array_, array_size_ * sizeof(HashMapListElement));
+  memmove(lists_, other.lists_, lists_size_ * sizeof(HashMapListElement));
 }
 
 

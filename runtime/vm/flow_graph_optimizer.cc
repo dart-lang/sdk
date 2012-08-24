@@ -966,27 +966,43 @@ void FlowGraphAnalyzer::Analyze() {
 }
 
 
-void LocalCSE::Optimize() {
-  for (intptr_t i = 0; i < blocks_.length(); ++i) {
-    BlockEntryInstr* entry = blocks_[i];
-    DirectChainedHashMap<BindInstr*> map;
-    ASSERT(map.IsEmpty());
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      BindInstr* instr = it.Current()->AsBind();
-      if (instr == NULL || instr->computation()->HasSideEffect()) continue;
-      BindInstr* result = map.Lookup(instr);
-      if (result == NULL) {
-        map.Insert(instr);
-        continue;
-      }
-      // Replace current with lookup result.
-      instr->ReplaceUsesWith(result);
-      it.RemoveCurrentFromGraph();
-      if (FLAG_trace_optimization) {
-        OS::Print("Replacing v%d with v%d\n",
-                  instr->ssa_temp_index(),
-                  result->ssa_temp_index());
-      }
+void DominatorBasedCSE::Optimize(BlockEntryInstr* graph_entry) {
+  ASSERT(graph_entry->IsGraphEntry());
+  DirectChainedHashMap<BindInstr*> map;
+  OptimizeRecursive(graph_entry, &map);
+}
+
+
+void DominatorBasedCSE::OptimizeRecursive(
+    BlockEntryInstr* block,
+    DirectChainedHashMap<BindInstr*>* map) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    BindInstr* instr = it.Current()->AsBind();
+    if (instr == NULL || instr->computation()->HasSideEffect()) continue;
+    BindInstr* result = map->Lookup(instr);
+    if (result == NULL) {
+      map->Insert(instr);
+      continue;
+    }
+    // Replace current with lookup result.
+    instr->ReplaceUsesWith(result);
+    it.RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing v%d with v%d\n",
+                instr->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+  }
+
+  // Process children in the dominator tree recursively.
+  intptr_t num_children = block->dominated_blocks().length();
+  for (intptr_t i = 0; i < num_children; ++i) {
+    BlockEntryInstr* child = block->dominated_blocks()[i];
+    if (i  < num_children - 1) {
+      DirectChainedHashMap<BindInstr*> child_map(*map);  // Copy map.
+      OptimizeRecursive(child, &child_map);
+    } else {
+      OptimizeRecursive(child, map);  // Reuse map for the last child.
     }
   }
 }

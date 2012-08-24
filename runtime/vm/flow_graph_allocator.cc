@@ -1583,7 +1583,7 @@ bool FlowGraphAllocator::UpdateFreeUntil(Register reg,
       const UsePosition* use =
           allocated->finger()->FirstRegisterBeneficialUse(unallocated->Start());
 
-      if ((use != NULL) && ((use->pos() - start) <= 1)) {
+      if ((use != NULL) && ((ToInstructionStart(use->pos()) - start) <= 1)) {
         // This register is blocked by interval that is used
         // as register in the current instruction and can't
         // be spilled.
