@@ -77,15 +77,22 @@ void renamePlaceholders(
     Generator localGenerator =
         minify ? new MinifyingGenerator('abcdefghijklmnopqrstuvwxyz').generate
             : conservativeGenerator;
+    Set<String> memberIdentifiers = new Set<String>();
+    if (functionElement.getEnclosingClass() !== null) {
+      functionElement.getEnclosingClass().forEachMember(
+          (enclosingClass, member) {
+        memberIdentifiers.add(member.name.slowToString());
+      });
+    }
     Set<String> usedLocalIdentifiers = new Set<String>();
-    // TODO(smok): Check for conflicts with class fields and take usages
-    // into account.
+    // TODO(smok): Take usages into account.
     for (LocalPlaceholder placeholder in placeholders) {
       String nextId =
           localGenerator(placeholder.identifier, (name) =>
               functionScope.parameterIdentifiers.contains(name)
                   || usedTopLevelIdentifiers.contains(name)
-                  || usedLocalIdentifiers.contains(name));
+                  || usedLocalIdentifiers.contains(name)
+                  || memberIdentifiers.contains(name));
       usedLocalIdentifiers.add(nextId);
       renameNodes(placeholder.nodes, (_) => nextId);
     }

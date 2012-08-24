@@ -194,16 +194,21 @@ class PlaceholderCollector extends AbstractVisitor {
   }
 
   void tryMakeLocalPlaceholder(Element element, Identifier node) {
+    bool isOptionalParameter() {
+      FunctionElement function = element.enclosingElement;
+      for (Element parameter in function.functionSignature.optionalParameters) {
+        if (parameter === element) return true;
+      }
+      return false;
+    }
+
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
-    if (element.isParameter()) {
+    if (element.isParameter() && isOptionalParameter()) {
       functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
           .registerParameter(node);
-      return;
-    }
-    if (!element.isMember() && !Elements.isStaticOrTopLevel(element)
-        && (element.isVariable() || element.isFunction())) {
+    } else if (Elements.isLocal(element)) {
       makeLocalPlaceholder(node);
     }
   }
@@ -382,7 +387,7 @@ class PlaceholderCollector extends AbstractVisitor {
     // May get null here in case of A(int this.f());
     if (element !== null) {
       // Rename only local functions.
-      if (element is FunctionElement && element !== currentElement) {
+      if (element !== currentElement) {
         if (node.name !== null) {
           assert(node.name is Identifier);
           tryMakeLocalPlaceholder(element, node.name);

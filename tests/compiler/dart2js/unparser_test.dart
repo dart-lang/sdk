@@ -707,15 +707,43 @@ main() {
 ''';
   var expectedResult =
       'main(){'
-        'var f=7; '
-        'void g(a,b){'
-          'void h(c,d){'
-            'var e=a;'
+        'var a=7; '
+        'void g(a,f){'
+          'void c(e,b){'
+            'var d=a;'
           '} '
-          'h(b,a);'
+          'c(f,a);'
         '} '
-        'g(f,8);'
+        'g(a,8);'
       '}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); }, minify: true);
+}
+
+testParametersMinified() {
+  var src = '''
+class A {
+  var a;
+  static foo(arg1) {
+    // Should not rename arg1 to a.
+    arg1 = 5;
+  }
+}
+
+fooglobal(arg,[optionalarg = 7]) {
+  arg = 6;
+}
+
+main() {
+  new A().a;
+  A.foo(8);
+  fooglobal(8);
+}
+''';
+  var expectedResult =
+      'class A{var a;static B(b){b=5;}}'
+      'C(a,[optionalarg=7]){a=6;}'
+      'main(){new A().a; A.B(8); C(8);}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
@@ -759,4 +787,5 @@ main() {
   testLocalFunctionPlaceholder();
   testMinification();
   testClosureLocalsMinified();
+  testParametersMinified();
 }
