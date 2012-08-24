@@ -422,6 +422,35 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+// Add an element to growable array if it doesn't need to grow, otherwise
+// call into regular code.
+// On stack: growable array (+2), value (+1), return-address (+0).
+bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+  // In checked mode we need to check the incoming argument.
+  if (FLAG_enable_type_checks) return false;
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ movl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
+  // EBX: length.
+  __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
+  // EDI: data.
+  // Compare length with capacity.
+  __ cmpl(EBX, FieldAddress(EDI, GrowableObjectArray::length_offset()));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
+  const Immediate value_one = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
+  // len = len + 1;
+  __ addl(FieldAddress(EAX, GrowableObjectArray::length_offset()), value_one);
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value
+  ASSERT(kSmiTagShift == 1);
+  __ StoreIntoObject(EDI,
+                     FieldAddress(EDI, EBX, TIMES_2, sizeof(RawArray)),
+                     EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Gets the length of a ByteArray.
 bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));

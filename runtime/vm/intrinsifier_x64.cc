@@ -363,6 +363,35 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+// Add an element to growable array if it doesn't need to grow, otherwise
+// call into regular code.
+// On stack: growable array (+2), value (+1), return-address (+0).
+bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+  // In checked mode we need to check the incoming argument.
+  if (FLAG_enable_type_checks) return false;
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  // RCX: length.
+  __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
+  // RDX: data.
+  // Compare length with capacity.
+  __ cmpq(RCX, FieldAddress(RDX, GrowableObjectArray::length_offset()));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
+  const Immediate value_one = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
+  // len = len + 1;
+  __ addq(FieldAddress(RAX, GrowableObjectArray::length_offset()), value_one);
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
+  ASSERT(kSmiTagShift == 1);
+  __ StoreIntoObject(RDX,
+                     FieldAddress(RDX, RCX, TIMES_4, sizeof(RawArray)),
+                     RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, ByteArray::length_offset()));
