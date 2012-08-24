@@ -124,18 +124,18 @@ patch class JSSyntaxRegExp {
 }
 
 class _MatchImplementation implements Match {
+  final String pattern;
+  final String str;
+  final int _start;
+  final int _end;
+  final List<String> _groups;
+
   const _MatchImplementation(
       String this.pattern,
       String this.str,
       int this._start,
       int this._end,
       List<String> this._groups);
-
-  final String pattern;
-  final String str;
-  final int _start;
-  final int _end;
-  final List<String> _groups;
 
   int start() => _start;
   int end() => _end;
@@ -175,7 +175,7 @@ class _AllMatchesIterator implements Iterator<Match> {
       throw const NoMoreElementsException();
     }
 
-    // _next is set by #hasNext
+    // _next is set by [hasNext].
     var next = _next;
     _next = null;
     return next;
@@ -188,6 +188,8 @@ class _AllMatchesIterator implements Iterator<Match> {
       return true;
     }
 
+    // firstMatch actually acts as nextMatch because of
+    // hidden global flag.
     _next = _re.firstMatch(_str);
     if (_next == null) {
       _done = true;
