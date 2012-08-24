@@ -610,7 +610,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
           break;
       }
     }
-    return new HFieldGet.withElement(
+    return new HFieldGet(
         field, node.inputs[0], isFinalOrConst: isFinalOrConst);
   }
 
@@ -618,7 +618,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field === null) return node;
-    return new HFieldSet.withElement(field, node.inputs[0], node.inputs[1]);
+    return new HFieldSet(field, node.inputs[0], node.inputs[1]);
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
