@@ -94,12 +94,12 @@ void arraySet(List array, int index, var value) {
   JS('var', '#[#] = #', array, index, value);
 }
 
-propertyGet(List array, String property) {
-  return JS('var', '#[#]', array, property);
+propertyGet(var object, String property) {
+  return JS('var', '#[#]', object, property);
 }
 
-void propertySet(List array, String property, var value) {
-  JS('var', '#[#] = #', array, property, value);
+void propertySet(var object, String property, var value) {
+  JS('var', '#[#] = #', object, property, value);
 }
 
 newJsObject() {
@@ -316,7 +316,7 @@ List <MetaInfo> buildDynamicMetadata(List<List<String>> inputTable) {
     var set = newJsObject();
     List<String> tagNames = tags.split('|');
     for (int j = 0; j < arrayLength(tagNames); j++) {
-      arraySet(set, arrayGet(tagNames, j), true);
+      propertySet(set, arrayGet(tagNames, j), true);
     }
     result.add(new MetaInfo(tag, tags, set));
   }
