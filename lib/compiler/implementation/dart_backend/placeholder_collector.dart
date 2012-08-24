@@ -413,13 +413,14 @@ class PlaceholderCollector extends AbstractVisitor {
     // Example:
     // lib1: interface I<K> default C<K> {...}
     // lib2: class C<K> {...}
+    TypeDeclarationElement typeElement = currentElement;
     if (currentElement is ClassElement
         && (currentElement as ClassElement).defaultClass !== null) {
-      currentElement = (currentElement as ClassElement).defaultClass.element;
+      typeElement = (currentElement as ClassElement).defaultClass.element;
     }
     // Another poor man type resolution.
     // Find this variable in current element type parameters.
-    for (Type type in currentElement.typeVariables) {
+    for (Type type in typeElement.typeVariables) {
       if (type.name.slowToString() == node.name.source.slowToString()) {
         makeTypePlaceholder(node.name, type);
         break;
