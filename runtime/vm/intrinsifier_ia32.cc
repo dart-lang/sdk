@@ -399,8 +399,8 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 // On stack: growable array (+2), length (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Growable array.
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Length value.
   __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
   __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
@@ -431,9 +431,7 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
-  // TODO(srdjan): Enable once crash in apidoc.dart is fixed.
-  return false;
-  // In checked mode we need to check the incoming argument.
+  // In checked mode we need to type-check the incoming argument.
   if (FLAG_enable_type_checks) return false;
   Label fall_through;
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
@@ -442,7 +440,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
   // EDI: data.
   // Compare length with capacity.
-  __ cmpl(EBX, FieldAddress(EDI, GrowableObjectArray::length_offset()));
+  __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
   const Immediate value_one = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
   // len = len + 1;
@@ -452,6 +450,9 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(EDI,
                      FieldAddress(EDI, EBX, TIMES_2, sizeof(RawArray)),
                      EAX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<int32_t>(Object::null()));
+  __ movl(EAX, raw_null);
   __ ret();
   __ Bind(&fall_through);
   return false;
