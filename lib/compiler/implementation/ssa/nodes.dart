@@ -1514,7 +1514,7 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get left => inputs[1];
   HInstruction get right => inputs[2];
 
-  abstract BinaryOperation get operation();
+  abstract BinaryOperation get operation;
   abstract isBuiltin(HTypeMap types);
 }
 
@@ -1575,7 +1575,7 @@ class HBinaryArithmetic extends HInvokeBinary {
   }
 
   // TODO(1603): The class should be marked as abstract.
-  abstract BinaryOperation get operation();
+  abstract BinaryOperation get operation;
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -1822,7 +1822,7 @@ class HInvokeUnary extends HInvokeStatic {
 
   HType computeLikelyType(HTypeMap types) => HType.NUMBER;
 
-  abstract UnaryOperation get operation();
+  abstract UnaryOperation get operation;
 }
 
 class HNegate extends HInvokeUnary {
@@ -2156,7 +2156,7 @@ class HRelational extends HInvokeBinary {
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
   // TODO(1603): the class should be marked as abstract.
-  abstract BinaryOperation get operation();
+  abstract BinaryOperation get operation;
 }
 
 class HEquals extends HRelational {

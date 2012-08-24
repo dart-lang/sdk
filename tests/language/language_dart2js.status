@@ -42,10 +42,6 @@ arithmetic_test: Fail
 assertion_test: Fail
 
 [ $compiler == dart2js ]
-implicit_this_test/03: Fail # TODO(ahe): Handle abstract getters.
-implicit_this_test/04: Fail # TODO(ahe): Handle abstract getters.
-property_field_override_test: Fail # TODO(ahe): Handle abstract getters.
-
 getter_declaration_negative_test: Fail # This will be fixed when dart2js reject old getter syntax.
 
 function_type_this_parameter_test: Crash # Issue 4417.

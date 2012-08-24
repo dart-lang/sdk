@@ -160,7 +160,7 @@ class Keyword implements SourceString {
 class KeywordState {
   abstract bool isLeaf();
   abstract KeywordState next(int c);
-  abstract Keyword get keyword();
+  abstract Keyword get keyword;
 
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {

@@ -426,7 +426,7 @@ class LiteralStatement extends Statement {
 }
 
 abstract class Expression extends Node {
-  abstract int get precedenceLevel();
+  abstract int get precedenceLevel;
 }
 
 class LiteralExpression extends Expression {

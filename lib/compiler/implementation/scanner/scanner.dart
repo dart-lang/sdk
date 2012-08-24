@@ -65,8 +65,8 @@ class AbstractScanner<T extends SourceString> implements Scanner {
   abstract Token previousToken();
   abstract void beginToken();
   abstract void addToCharOffset(int offset);
-  abstract int get charOffset();
-  abstract int get byteOffset();
+  abstract int get charOffset;
+  abstract int get byteOffset;
   abstract void appendBeginGroup(PrecedenceInfo info, String value);
   abstract int appendEndGroup(PrecedenceInfo info, String value, int openKind);
   abstract void appendGt(PrecedenceInfo info, String value);

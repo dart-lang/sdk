@@ -1059,7 +1059,7 @@ abstract class TypeDeclarationElement implements Element {
    */
   // TODO(johnniwinther): Find a (better) way to decouple [typeVariables] from
   // [Compiler].
-  abstract Link<Type> get typeVariables();
+  abstract Link<Type> get typeVariables;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
@@ -1614,7 +1614,7 @@ class MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  abstract Constant get value();
+  abstract Constant get value;
   Element annotatedElement;
   int resolutionState;
 

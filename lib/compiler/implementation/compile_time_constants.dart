@@ -34,7 +34,7 @@ class Constant implements Hashable {
 }
 
 class PrimitiveConstant extends Constant {
-  abstract get value();
+  abstract get value;
   const PrimitiveConstant();
   bool isPrimitive() => true;
 
@@ -74,7 +74,7 @@ class NullConstant extends PrimitiveConstant {
 }
 
 class NumConstant extends PrimitiveConstant {
-  abstract num get value();
+  abstract num get value;
   const NumConstant();
   bool isNum() => true;
 }

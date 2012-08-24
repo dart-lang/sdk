@@ -56,7 +56,7 @@ class Backend {
   abstract void processNativeClasses(Enqueuer world,
                                      Collection<LibraryElement> libraries);
   abstract void assembleProgram();
-  abstract List<CompilerTask> get tasks();
+  abstract List<CompilerTask> get tasks;
 
   ItemCompilationContext createItemCompilationContext() {
     return new ItemCompilationContext();
