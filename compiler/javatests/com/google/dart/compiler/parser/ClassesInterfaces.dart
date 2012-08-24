@@ -54,8 +54,8 @@ class Baz extends Kuk implements A, B, C {
         case 45:
           break;
     }
-    try { } catch (var e) { }
-    L0: while (false) try { } catch (int e) { } finally { break L0; }
+    try { } catch (e) { }
+    L0: while (false) try { } catch (e) { } finally { break L0; }
     int kongy(x,y) { return 42; }  // This is a comment.
 
     42 is Baz;

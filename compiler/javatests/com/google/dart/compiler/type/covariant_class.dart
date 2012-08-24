@@ -16,24 +16,24 @@ interface D {
 
 class Super {
   A field;
-  A get accessor() { return null; }
+  A get accessor { return null; }
   void set accessor(A newValue) { }
   A method() { return null; }
   
   var untypedField;
-  get untypedAccessor() { return null; }
+  get untypedAccessor { return null; }
   set untypedAccessor(newValue) { }
   untypedMethod() { return null; }
 }
 
 class Sub extends Super {
   B field;
-  B get accessor() { return null; }
+  B get accessor { return null; }
   void set accessor(B newValue) { }
   B method() { return null; }
   
   B untypedField;
-  B get untypedAccessor() { return null; }
+  B get untypedAccessor { return null; }
   set untypedAccessor(B newValue) { }
   B untypedMethod() { return null; }
   

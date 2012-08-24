@@ -41,7 +41,7 @@ class StringBuffer implements OutputStream {
   /**
    * Returns the length of the buffer.
    */
-  int get length() {
+  int get length {
     return length_;
   }
 

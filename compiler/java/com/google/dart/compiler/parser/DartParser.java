@@ -4701,7 +4701,8 @@ public class DartParser extends CompletionHooksParserBase {
       if (peekPseudoKeyword(0, ON_KEYWORD)) {
         beginCatchClause();
         next();
-        DartTypeNode exceptionType = new DartTypeNode(parseQualified());
+        beginTypeAnnotation();
+        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified()));
         DartParameter exception = null;
         DartParameter stackTrace = null;
         if (optional(Token.CATCH)) {
@@ -4717,8 +4718,10 @@ public class DartParser extends CompletionHooksParserBase {
           expectCloseParen();
         } else {
           // Create a dummy identifier that the user cannot reliably reference.
-          DartIdentifier exceptionName = new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis()));
-          exception = new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE);
+          beginCatchParameter();
+          beginIdentifier();
+          DartIdentifier exceptionName = done(new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis())));
+          exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
         }
         DartBlock block = parseBlock();
         catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
@@ -4744,6 +4747,7 @@ public class DartParser extends CompletionHooksParserBase {
             stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
           } else {
             // Old-style parameter
+            //reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
             stackTrace = parseCatchParameter();
           }
         }

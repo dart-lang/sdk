@@ -15,7 +15,7 @@ class Foo {
   static testRethrow() {
     try {
       throw new Foo();
-    } catch(var e, var st) {
+    } catch(e, st) {
       throw;
     }
   }
@@ -24,7 +24,7 @@ class Foo {
     var exception;
     try {
       throw new Foo();
-    } catch(var e, var st) {
+    } catch(e, st) {
       exception = e;
     }
   }
@@ -42,7 +42,7 @@ class Foo {
     var exception;
     try {
       throw new Foo();
-    } catch(var e, var st) {
+    } catch(e, st) {
       exception = e;
     } finally {
       exception = null;
@@ -53,9 +53,9 @@ class Foo {
     var exception;
     try {
       throw new Foo();
-    } catch(Foo e, var st) {
+    } on Foo catch(e, st) {
       exception = e;
-    } catch(Bar e) {
+    } on Bar catch(e) {
       exception = e;
     } finally {
       exception = null;
@@ -66,51 +66,17 @@ class Foo {
     var exception;
     try {
       throw new Foo();
-    } catch (final e) {
+    } catch (e) {
       exception = e;
-    } catch (var e) {
+    } on Map catch (e) {
       exception = e;
-    } catch (Map<int, double> e) {
+    } on int catch (e) {
       exception = e;
-    } catch (final Map<int, double> e) {
+    } catch (e, st) {
       exception = e;
-    } catch (int e) {
+    } on Map catch (e, st) {
       exception = e;
-    } catch (final int e) {
-      exception = e;
-    } catch (final e, final st) {
-      exception = e;
-    } catch (var e, final st) {
-      exception = e;
-    } catch (Map<int, double> e, final st) {
-      exception = e;
-    } catch (int e, final st) {
-      exception = e;
-    } catch (int e, final int st) {
-      exception = e;
-    } catch (final e, var st) {
-      exception = e;
-    } catch (var e, var st) {
-      exception = e;
-    } catch (Map<int, double> e, var st) {
-      exception = e;
-    } catch (int e, var st) {
-      exception = e;
-    } catch (final e, Map<int, double> st) {
-      exception = e;
-    } catch (var e, Map<int, double> st) {
-      exception = e;
-    } catch (Map<int, double> e, Map<int, double> st) {
-      exception = e;
-    } catch (int e, Map<int, double> st) {
-      exception = e;
-    } catch (final e, int st) {
-      exception = e;
-    } catch (var e, int st) {
-      exception = e;
-    } catch (Map<int, double> e, int st) {
-      exception = e;
-    } catch (int e, int st) {
+    } on int catch (e, st) {
       exception = e;
     } finally {
       exception = e;

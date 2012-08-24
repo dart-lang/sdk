@@ -4,7 +4,7 @@
 
 interface SomeClass default SomeClassImpl {
   SomeClass(arg);
-  String get message(); // Added return type
+  String get message; // Added return type
 }
 
 interface SomeInterface2 {
