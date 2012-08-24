@@ -24,8 +24,6 @@ naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == ie ]
 class_test: Fail
-regress/4492_test: Fail # Issue 4499.
-this_phi_elimination_test: Fail # Issue 3542.
 
 [ $checked ]
 parameter_bailout_test: Fail, OK
