@@ -7,9 +7,9 @@
 
 // Write and re-read Maps: simple Maps; Maps with DAGs; Maps with cycles.
 
-final String DB_NAME = 'Test';
-final String STORE_NAME = 'TEST';
-final String VERSION = '1';
+const String DB_NAME = 'Test';
+const String STORE_NAME = 'TEST';
+const String VERSION = '1';
 
 testReadWrite(key, value, check,
               [dbName = DB_NAME,

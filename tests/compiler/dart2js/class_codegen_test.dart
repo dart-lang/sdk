@@ -6,7 +6,7 @@
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 class A { }
 class B { }
 
@@ -16,7 +16,7 @@ main() {
 }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 class A { }
 class B extends A { }
 
@@ -26,7 +26,7 @@ main() {
 }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
 class B extends A { }
 class A { }
 
@@ -36,7 +36,7 @@ main() {
 }
 """;
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
 class A {
   var x;
 }
@@ -51,7 +51,7 @@ main() {
 }
 """;
 
-final String TEST_FIVE = @"""
+const String TEST_FIVE = @"""
 class A {
   var x;
   A(x) : this.x = x {}

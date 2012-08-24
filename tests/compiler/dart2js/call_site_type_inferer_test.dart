@@ -21,35 +21,35 @@ void compileAndFind(String code,
   return check(compiler.backend, member);
 }
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
   class A {
     x(p) => p;
   }
   main() { new A().x("s"); }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
   class A {
     x(p) => p;
   }
   main() { new A().x(1); }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
   class A {
     x(p) => x(p - 1);
   }
   main() { new A().x(1); }
 """;
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
   class A {
     x(p) => x(p - 1);
   }
   main() { new A().x(1.0); }
 """;
 
-final String TEST_FIVE = @"""
+const String TEST_FIVE = @"""
   class A {
     x(p) => p;
   }
@@ -59,7 +59,7 @@ final String TEST_FIVE = @"""
   }
 """;
 
-final String TEST_SIX = @"""
+const String TEST_SIX = @"""
   class A {
     x(p) => p;
   }
@@ -69,7 +69,7 @@ final String TEST_SIX = @"""
   }
 """;
 
-final String TEST_SEVEN = @"""
+const String TEST_SEVEN = @"""
   class A {
     x(p) => x("x");
   }
@@ -78,7 +78,7 @@ final String TEST_SEVEN = @"""
   }
 """;
 
-final String TEST_EIGHT = @"""
+const String TEST_EIGHT = @"""
   class A {
     x(p1, p2) => x(p1, "x");
   }
@@ -87,7 +87,7 @@ final String TEST_EIGHT = @"""
   }
 """;
 
-final String TEST_NINE = @"""
+const String TEST_NINE = @"""
   class A {
     x(p1, p2) => x(p1, p2);
   }
@@ -96,7 +96,7 @@ final String TEST_NINE = @"""
   }
 """;
 
-final String TEST_TEN = @"""
+const String TEST_TEN = @"""
   class A {
     x(p1, p2) => x(p1, p2);
   }
@@ -109,7 +109,7 @@ final String TEST_TEN = @"""
   }
 """;
 
-final String TEST_ELEVEN = @"""
+const String TEST_ELEVEN = @"""
   class A {
     x(p1, p2) => x(1, 2);
   }
@@ -118,7 +118,7 @@ final String TEST_ELEVEN = @"""
   }
 """;
 
-final String TEST_TWELVE = @"""
+const String TEST_TWELVE = @"""
   class A {
     x(p1, p2) => 1;
   }
@@ -133,7 +133,7 @@ final String TEST_TWELVE = @"""
   }
 """;
 
-final String TEST_13 = @"""
+const String TEST_13 = @"""
   class A {
     x(p1, [p2 = 1]) => 1;
   }

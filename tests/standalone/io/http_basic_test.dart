@@ -53,9 +53,9 @@ class TestServerMain {
 
 
 class TestServerCommand {
-  static final START = 0;
-  static final STOP = 1;
-  static final CHUNKED_ENCODING = 2;
+  static const START = 0;
+  static const STOP = 1;
+  static const CHUNKED_ENCODING = 2;
 
   TestServerCommand.start() : _command = START;
   TestServerCommand.stop() : _command = STOP;
@@ -70,9 +70,9 @@ class TestServerCommand {
 
 
 class TestServerStatus {
-  static final STARTED = 0;
-  static final STOPPED = 1;
-  static final ERROR = 2;
+  static const STARTED = 0;
+  static const STOPPED = 1;
+  static const ERROR = 2;
 
   TestServerStatus.started(this._port) : _state = STARTED;
   TestServerStatus.stopped() : _state = STOPPED;

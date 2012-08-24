@@ -5,9 +5,9 @@
 
 // Test for IDBKeyRange and IDBCursor.
 
-final String DB_NAME = 'Test';
-final String STORE_NAME = 'TEST';
-final String VERSION = '1';
+const String DB_NAME = 'Test';
+const String STORE_NAME = 'TEST';
+const String VERSION = '1';
 
 class Test {
   var db;

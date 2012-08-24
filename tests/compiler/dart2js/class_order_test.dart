@@ -5,7 +5,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 class A { foo() => 499; }
 class B { bar() => 499; }
 class C { gee() => 499; }
@@ -17,7 +17,7 @@ void main() {
 }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 class A extends B { foo() => 499; }
 class B extends C { bar() => 499; }
 class C { gee() => 499; }

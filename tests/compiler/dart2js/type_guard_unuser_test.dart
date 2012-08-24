@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 foo(a) {
   int c = foo(true);
   if (a) c = foo(2);
@@ -13,7 +13,7 @@ foo(a) {
 """;
 
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 bar(a) {}
 foo(d) {
   int a = 1;
@@ -23,13 +23,13 @@ foo(d) {
 }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
 foo(int param1, int param2) {
   return 0 + param1 + param2;
 }
 """;
 
-final String TEST_THREE_WITH_BAILOUT = @"""
+const String TEST_THREE_WITH_BAILOUT = @"""
 foo(int param1, int param2) {
   var t;
   for (int i = 0; i < 1; i++) {

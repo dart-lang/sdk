@@ -5,7 +5,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 void foo(bar) {
   var a = 1;
   if (bar) {
@@ -17,7 +17,7 @@ void foo(bar) {
 }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 void main() {
   var t = 0;
   for (var i = 0; i == 0; i = i + 1) {
@@ -27,7 +27,7 @@ void main() {
 }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
 foo(b, c, d) {
   var val = 42;
   if (b) {
@@ -40,7 +40,7 @@ foo(b, c, d) {
 }
 """;
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
 foo() {
   var cond1 = true;
   var cond2 = false;

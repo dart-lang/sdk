@@ -6,28 +6,28 @@
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
 
-final String TEST_INVOCATION0 = @"""
+const String TEST_INVOCATION0 = @"""
 main() {
   var o = null;
   o();
 }
 """;
 
-final String TEST_INVOCATION1 = @"""
+const String TEST_INVOCATION1 = @"""
 main() {
   var o = null;
   o(1);
 }
 """;
 
-final String TEST_INVOCATION2 = @"""
+const String TEST_INVOCATION2 = @"""
 main() {
   var o = null;
   o(1, 2);
 }
 """;
 
-final String TEST_BAILOUT = @"""
+const String TEST_BAILOUT = @"""
 class A {
   var x;
   foo() {

@@ -10,7 +10,7 @@
 #source("process_test_util.dart");
 
 class TestController {
-  static final int numTests = 4;
+  static const int numTests = 4;
   static int numCompletedTests = 0;
 
   // Used as TestCase.completedCallback.

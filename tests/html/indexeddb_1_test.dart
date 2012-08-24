@@ -3,9 +3,9 @@
 #import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
-final String DB_NAME = 'Test';
-final String STORE_NAME = 'TEST';
-final String VERSION = '1';
+const String DB_NAME = 'Test';
+const String STORE_NAME = 'TEST';
+const String VERSION = '1';
 
 testReadWrite(key, value, check,
               [dbName = DB_NAME,

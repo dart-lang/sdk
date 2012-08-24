@@ -19,7 +19,7 @@ class Bug4342163 {
 }
 
 class StaticFunctionDef {
-  static final int one = 1;
+  static const int one = 1;
   static var fn1;
   static var fn2;
   static var fn3;

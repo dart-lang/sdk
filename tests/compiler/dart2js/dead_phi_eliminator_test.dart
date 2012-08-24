@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 void foo(bar) {
   var toBeRemoved = 1;
   if (bar) {

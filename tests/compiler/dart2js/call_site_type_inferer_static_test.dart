@@ -20,52 +20,52 @@ void compileAndFind(String code,
 }
 
 // The 'f' function has an 'if' to make it non-inlinable.
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f("s"); }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f(1); }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f(1); f(2); }
 """;
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f(1.1); }
 """;
 
-final String TEST_FIVE = @"""
+const String TEST_FIVE = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f(1); f(2.2); }
 """;
 
-final String TEST_SIX = @"""
+const String TEST_SIX = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f(1.1); f(2); }
 """;
 
-final String TEST_SEVEN = @"""
+const String TEST_SEVEN = @"""
   f(p) { if (p == null) return p; return p; }
   main() { f(1); f("s"); }
 """;
 
-final String TEST_EIGHT = @"""
+const String TEST_EIGHT = @"""
   f(p1, p2) { if (p1 == null) return p1; return p2; }
   main() { f(1, 2); f(1, "s"); }
 """;
 
-final String TEST_NINE = @"""
+const String TEST_NINE = @"""
   f(p1, p2) { if (p1 == null) return p1; return p2; }
   main() { f("s", 2); f(1, "s"); }
 """;
 
-final String TEST_TEN = @"""
+const String TEST_TEN = @"""
   f(p) { if (p == null) return p; return p; }
   g(p) { if (p== null) return null; return p(1); }
   main() { f(1); g(f); }

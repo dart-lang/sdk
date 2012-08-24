@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final x = const { 'a': 3, 'a': 4 };
-final y = const { 'a': 10, 'b': 11, 'a': 12, 'b': 13, 'a': 14 };
-final z = const { '__proto__': 496,
+const x = const { 'a': 3, 'a': 4 };
+const y = const { 'a': 10, 'b': 11, 'a': 12, 'b': 13, 'a': 14 };
+const z = const { '__proto__': 496,
                   '__proto__': 497,
                   '__proto__': 498,
                   '__proto__': 499 };

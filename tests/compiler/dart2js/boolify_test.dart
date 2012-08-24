@@ -5,7 +5,7 @@
 #library("boolified_operator_test.dart");
 #import("compiler_helper.dart");
 
-final String TEST = @"""
+const String TEST = @"""
 foo() {
   var a = foo();
   if (!a) return 1;

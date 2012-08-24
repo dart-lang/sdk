@@ -24,9 +24,9 @@ class MapLiteralTest {
   }
 
   testLocalInit() {
-    // Test construction of static final map literals
+    // Test construction of static const map literals
     var map1 = {"a":1, "b":2};
-    // Test construction of static final map literals, with numbers
+    // Test construction of static const map literals, with numbers
     var map2 = {"1":1, "2":2};
 
     Expect.equals(1, map1["a"]);
@@ -40,10 +40,10 @@ class MapLiteralTest {
 class StaticInit  {
   StaticInit() {}
 
-  // Test construction of static final map literals
-  static final map1 = const {"a":1, "b":2};
-  // Test construction of static final map literals, with numbers
-  static final map2 = const {"1":1, "2":2};
+  // Test construction of static const map literals
+  static const map1 = const {"a":1, "b":2};
+  // Test construction of static const map literals, with numbers
+  static const map2 = const {"1":1, "2":2};
 
   test() {
     Expect.equals(1, map1["a"]);

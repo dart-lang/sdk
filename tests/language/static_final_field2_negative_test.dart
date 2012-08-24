@@ -4,7 +4,7 @@
 // Disallow re-assignment of a final static variable.
 
 class A {
-  static final x = 1;
+  static const x = 1;
 }
 
 main() {

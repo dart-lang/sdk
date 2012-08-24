@@ -15,9 +15,9 @@
 
 class EchoServerGame {
 
-  static final MSGSIZE = 10;
-  static final MESSAGES = 100;
-  static final FIRSTCHAR = 65;
+  static const MSGSIZE = 10;
+  static const MESSAGES = 100;
+  static const FIRSTCHAR = 65;
 
   EchoServerGame.start()
       : _receivePort = new ReceivePort(),
@@ -141,7 +141,7 @@ void startEchoServer() {
 
 class EchoServer extends TestingServer {
 
-  static final int MSGSIZE = EchoServerGame.MSGSIZE;
+  static const int MSGSIZE = EchoServerGame.MSGSIZE;
 
   void onConnection(Socket connection) {
     InputStream inputStream;

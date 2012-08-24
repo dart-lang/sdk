@@ -8,7 +8,7 @@
 #import("dart:isolate");
 #source("testing_server.dart");
 
-final CONNECTIONS = 200;
+const CONNECTIONS = 200;
 
 class SocketManyConnectionsTest {
 

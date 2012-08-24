@@ -22,7 +22,7 @@ class WarningMessage {
   toString() => message.toString();
 }
 
-final String DEFAULT_HELPERLIB = @'''
+const String DEFAULT_HELPERLIB = @'''
   lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} eqNull(a) {} eqq() {}
@@ -40,7 +40,7 @@ final String DEFAULT_HELPERLIB = @'''
   interface JavaScriptIndexingBehavior {}
   S() {}''';
 
-final String DEFAULT_INTERCEPTORSLIB = @'''
+const String DEFAULT_INTERCEPTORSLIB = @'''
   add$1(receiver, value) {}
   get$length(receiver) {}
   filter(receiver, predicate) {}
@@ -49,7 +49,7 @@ final String DEFAULT_INTERCEPTORSLIB = @'''
   next(receiver) {}
   hasNext(receiver) {}''';
 
-final String DEFAULT_CORELIB = @'''
+const String DEFAULT_CORELIB = @'''
   print(var obj) {}
   assert(x) {}
   interface int extends num {}

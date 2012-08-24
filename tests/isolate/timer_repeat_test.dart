@@ -8,8 +8,8 @@
 
 class TimerRepeatTest {
 
-  static final int _TIMEOUT = 500;
-  static final int _ITERATIONS = 5;
+  static const int _TIMEOUT = 500;
+  static const int _ITERATIONS = 5;
 
   static void testRepeatTimer() {
 

@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 foo(a) {
   int x = 0;
   for (int i = 0; i < 10; i++) {
@@ -14,7 +14,7 @@ foo(a) {
 }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 foo(a) {
   int x = 0;
   int i = 0;
@@ -26,7 +26,7 @@ foo(a) {
 }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
 foo(a) {
   int x = 0;
   for (int i in a) {
@@ -37,7 +37,7 @@ foo(a) {
 """;
 
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
 foo(a) {
   int x = 0;
   for (int i = 0; i < 10; i++) {
@@ -48,7 +48,7 @@ foo(a) {
 }
 """;
 
-final String TEST_FIVE = @"""
+const String TEST_FIVE = @"""
 foo(a) {
   int x = 0;
   int i = 0;
@@ -61,7 +61,7 @@ foo(a) {
 }
 """;
 
-final String TEST_SIX = @"""
+const String TEST_SIX = @"""
 foo(a) {
   int x = 0;
   for (int i in a) {

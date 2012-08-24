@@ -55,8 +55,8 @@ class WebSocketMessageCollector {
 
 
 // Web socket constants.
-final int FRAME_OPCODE_TEXT = 1;
-final int FRAME_OPCODE_BINARY = 2;
+const int FRAME_OPCODE_TEXT = 1;
+const int FRAME_OPCODE_BINARY = 2;
 
 
 // Function for building a web socket frame.

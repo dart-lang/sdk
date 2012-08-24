@@ -32,10 +32,10 @@ main() {
   Expect.equals("42Hello", B3); /// 10: compile-time error
 }
 
-final F0 = 42;
-final F1;                 /// 03: continued
-final int F2 = 87;
-final int F3;             /// 04: continued
+const F0 = 42;
+const F1;                 /// 03: continued
+const int F2 = 87;
+const int F3;             /// 04: continued
 
 class Point {
   final x, y;
@@ -45,20 +45,20 @@ class Point {
 
 // Check that compile time expressions can include invocations of
 // user-defined const constructors.
-final P0 = const Point(0, 0);
-final P1 = const Point(0, 0) + 1; /// 05: continued
-final P2 = new Point(0, 0);       /// 06: continued
-final P3 = new Point(0, 0) + 1;   /// 07: continued
+const P0 = const Point(0, 0);
+const P1 = const Point(0, 0) + 1; /// 05: continued
+const P2 = new Point(0, 0);       /// 06: continued
+const P3 = new Point(0, 0) + 1;   /// 07: continued
 
 // Check that we cannot have cyclic references in compile time
 // expressions.
-final A0 = 42;
-final A1 = A0 + 1;
-final A2 = A3 + 1; /// 08: continued
-final A3 = A2 + 1; /// 08: continued
+const A0 = 42;
+const A1 = A0 + 1;
+const A2 = A3 + 1; /// 08: continued
+const A3 = A2 + 1; /// 08: continued
 
 class C0 {
-  static final X = const C1();
+  static const X = const C1();
 }
 
 class C1 {
@@ -69,7 +69,7 @@ class C1 {
 }
 
 // Check that sub-expressions of binary + are numeric.
-final B0 = 42;
-final B1 = "Hello";
-final B2 = "$B1 $B0";
-final B3 = B0 + B1; /// 10: continued
+const B0 = 42;
+const B1 = "Hello";
+const B2 = "$B1 $B0";
+const B3 = B0 + B1; /// 10: continued

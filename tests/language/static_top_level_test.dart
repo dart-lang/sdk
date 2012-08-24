@@ -4,12 +4,12 @@
 
 static method() { }                    /// 00: compile-time error
 static var field;                      /// 01: compile-time error
-static final finalField = 42;          /// 02: compile-time error
+static const finalField = 42;          /// 02: compile-time error
 static const constant = 123;           /// 03: compile-time error
 
 static int typedMethod() => 87;        /// 04: compile-time error
 static int typedField;                 /// 05: compile-time error
-static final int typedFinalField = 99; /// 06: compile-time error
+static const int typedFinalField = 99; /// 06: compile-time error
 static const int typedConstant = 1;    /// 07: compile-time error
 
 void main() {

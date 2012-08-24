@@ -368,7 +368,7 @@ testFunctionSubtyping() {
   Expect.isFalse(isSubtype([intType, intType], intType, [intType], intType));
 }
 
-final CLASS_WITH_METHODS = '''
+const CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
   untypedOneArgumentMethod(argument) {}

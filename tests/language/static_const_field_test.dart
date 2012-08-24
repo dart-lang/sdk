@@ -1,34 +1,34 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Dart test program for testing static final fields.
+// Dart test program for testing static const fields.
 
-interface Spain {
-  static final AG = "Antoni Gaudi";
-  static final SD = "Salvador Dali";
+abstract class Spain {
+  static const AG = "Antoni Gaudi";
+  static const SD = "Salvador Dali";
 }
 
-interface Switzerland {
-  static final AG = "Alberto Giacometti";
-  static final LC = "Le Corbusier";
+abstract class Switzerland {
+  static const AG = "Alberto Giacometti";
+  static const LC = "Le Corbusier";
 }
 
 class A implements Switzerland {
   const A() : n = 5;
   final n;
-  static final a = const A();
-  static final b = 3 + 5;
-  static final c = A.b + 7;
-  static final d = const A();
-  static final s1 = "hula";
-  static final s2 = "hula";
-  static final s3 = "hop";
-  static final d1 = 1.1;
-  static final d2 = 0.55 + 0.55;
-  static final artist2 = Switzerland.AG;
-  static final architect1 = Spain.AG;
-  static final array1 = const <int>[1, 2];
-  static final map1 = const {"Monday": 1, "Tuesday": 2, };
+  static const a = const A();
+  static const b = 3 + 5;
+  static const c = A.b + 7;
+  static const d = const A();
+  static const s1 = "hula";
+  static const s2 = "hula";
+  static const s3 = "hop";
+  static const d1 = 1.1;
+  static const d2 = 0.55 + 0.55;
+  static const artist2 = Switzerland.AG;
+  static const architect1 = Spain.AG;
+  static const array1 = const <int>[1, 2];
+  static const map1 = const {"Monday": 1, "Tuesday": 2, };
 }
 
 class StaticFinalFieldTest {

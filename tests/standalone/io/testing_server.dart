@@ -4,9 +4,9 @@
 
 class TestingServer {
 
-  static final HOST = "127.0.0.1";
-  static final INIT = 0;
-  static final SHUTDOWN = -1;
+  static const HOST = "127.0.0.1";
+  static const INIT = 0;
+  static const SHUTDOWN = -1;
 
   abstract void onConnection(Socket connection);
 

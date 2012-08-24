@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String FIB = @"""
+const String FIB = @"""
 fib(n) {
   if (n <= 1) return 1;
   return add(fib(n - 1), fib(n - 2));

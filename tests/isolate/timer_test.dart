@@ -8,9 +8,9 @@
 
 class TimerTest {
 
-  static final int _STARTTIMEOUT = 1050;
-  static final int _DECREASE = 200;
-  static final int _ITERATIONS = 5;
+  static const int _STARTTIMEOUT = 1050;
+  static const int _DECREASE = 200;
+  static const int _ITERATIONS = 5;
 
   static void testSimpleTimer() {
 

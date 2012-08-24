@@ -4,8 +4,8 @@
 // Test for instance field initializer expressions.
 
 class Cheese {
-  static final mild = 1;
-  static final stinky = 2;
+  static const mild = 1;
+  static const stinky = 2;
 
   // Instance fields with initializer expression.
   String name = "";
@@ -25,7 +25,7 @@ class Cheese {
   Cheese.initFieldParam(this.name, this.smell) {
   }
 
-  // Test that static final field Cheese.mild is not shadowed
+  // Test that static const field Cheese.mild is not shadowed
   // by the parameter mild when compiling the field initializer
   // for instance field smell.
   Cheese.hideAndSeek(var mild) : name = mild {

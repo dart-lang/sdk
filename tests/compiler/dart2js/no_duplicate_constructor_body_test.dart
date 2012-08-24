@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String CODE = """
+const String CODE = """
 class A {
   A(String b) { b.length; }
 }

@@ -21,7 +21,7 @@ testUnparseMember(String member) {
   Expect.equals(member, node.unparse());
 }
 
-final coreLib = @'''
+const coreLib = @'''
 #library('corelib');
 class Object {}
 interface bool {}
@@ -40,7 +40,7 @@ class Math {
 }
 ''';
 
-final ioLib = @'''
+const ioLib = @'''
 #library('io');
 class Platform {
   static int operatingSystem;
@@ -198,8 +198,8 @@ testVariableDefinitions() {
   testDart2Dart('foo(f,g){}main(){foo(1,2);}');
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
   // A couple of static/finals inside a class.
-  testDart2Dart('main(){A.a; A.b;}class A{static final String a="5";'
-      'static final String b="4";}');
+  testDart2Dart('main(){A.a; A.b;}class A{static const String a="5";'
+      'static const String b="4";}');
   // Class member of typedef-ed function type.
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
@@ -251,7 +251,7 @@ class A {
   A.fromFoo(){}
   static staticfoo(){}
   foo(){}
-  static final field = 5;
+  static const field = 5;
 }
 ''';
   var mainSrc = '''
@@ -266,7 +266,7 @@ class A {
   A.fromFoo(){}
   static staticfoo(){}
   foo(){}
-  static final field = 5;
+  static const field = 5;
 }
 
 main() {
@@ -293,9 +293,9 @@ main() {
 ''';
   var expectedResult =
       'globalfoo(){}var globalVar;var globalVarInitialized=6,globalVarInitialized2=7;'
-      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static const field=5;}'
       'p_globalfoo(){}var p_globalVar;var p_globalVarInitialized=6,p_globalVarInitialized2=7;'
-      'class p_A{p_A(){}p_A.fromFoo(){}static p_staticfoo(){}foo(){}static final p_field=5;}'
+      'class p_A{p_A(){}p_A.fromFoo(){}static p_staticfoo(){}foo(){}static const p_field=5;}'
       'main(){p_globalVar; p_globalVarInitialized; p_globalVarInitialized2; p_globalfoo();'
          ' p_A.p_field; p_A.p_staticfoo();'
          ' new p_A(); new p_A.fromFoo(); new p_A().foo();'
@@ -319,7 +319,7 @@ class A {
   A.fromFoo(){}
   static staticfoo(){}
   foo(){}
-  static final field = 5;
+  static const field = 5;
 }
 ''';
   var mainSrc = '''
@@ -332,7 +332,7 @@ class MyA {
   MyA.myfromFoo(){}
   static mystaticfoo(){}
   myfoo(){}
-  static final myfield = 5;
+  static const myfield = 5;
 }
 
 main() {
@@ -353,9 +353,9 @@ main() {
 ''';
   var expectedResult =
       'globalfoo(){}'
-      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static const field=5;}'
       'myglobalfoo(){}'
-      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}static final myfield=5;}'
+      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}static const myfield=5;}'
       'main(){myglobalfoo(); MyA.myfield; MyA.mystaticfoo(); new MyA();'
           ' new MyA.myfromFoo(); new MyA().myfoo(); globalfoo(); A.field;'
           ' A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}';
