@@ -299,9 +299,6 @@ class Compiler implements DiagnosticListener {
   bool hasIsolateSupport() => isolateLibrary !== null;
 
   void onLibraryLoaded(LibraryElement library, Uri uri) {
-    if (uri.toString() == 'dart:isolate') {
-      enableIsolateSupport(library);
-    }
     if (dynamicClass !== null) {
       // When loading the built-in libraries, dynamicClass is null. We
       // take advantage of this as core and coreimpl import js_helper

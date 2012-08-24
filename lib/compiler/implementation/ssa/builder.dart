@@ -3582,14 +3582,7 @@ class InlineWeeder extends AbstractVisitor {
   }
 
   void visitSend(Node node) {
-    Element element = elements[node];
-    // Native methods rely on the names of the arguments. If we inline they
-    // could change.
-    if (!Element.isInvalid(element) && element.kind == ElementKind.FOREIGN) {
-      tooDifficult = true;
-    } else {
-      node.visitChildren(this);
-    }
+    node.visitChildren(this);
   }
 
   visitLoop(Node node) {

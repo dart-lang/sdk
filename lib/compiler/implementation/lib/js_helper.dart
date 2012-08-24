@@ -1184,3 +1184,11 @@ listSuperNativeTypeCast(value, property) {
  */
 interface JavaScriptIndexingBehavior {
 }
+
+/**
+ * Called by generated code when a method that must be statically
+ * resolved cannot be found.
+ */
+void throwNoSuchMethod(obj, name, arguments) {
+  throw new NoSuchMethodException(obj, name, arguments);
+}

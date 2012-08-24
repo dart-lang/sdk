@@ -2325,7 +2325,7 @@ class HLiteralList extends HInstruction {
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 
-  HType get guaranteedType => HType.MUTABLE_ARRAY;
+  HType get guaranteedType => HType.EXTENDABLE_ARRAY;
 
   void prepareGvn(HTypeMap types) {
     assert(!hasSideEffects(types));

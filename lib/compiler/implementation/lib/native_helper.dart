@@ -11,7 +11,7 @@ String typeNameInChrome(obj) {
 }
 
 String typeNameInSafari(obj) {
-  String name = constructorNameFallback(obj);
+  String name = JS('String', '#', constructorNameFallback(obj));
   // Safari is very similar to Chrome.
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
@@ -20,13 +20,13 @@ String typeNameInSafari(obj) {
 }
 
 String typeNameInOpera(obj) {
-  String name = constructorNameFallback(obj);
+  String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
   return name;
 }
 
 String typeNameInFirefox(obj) {
-  String name = constructorNameFallback(obj);
+  String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
   if (name == 'Document') return 'HTMLDocument';
   if (name == 'XMLDocument') return 'Document';
@@ -35,7 +35,7 @@ String typeNameInFirefox(obj) {
 }
 
 String typeNameInIE(obj) {
-  String name = constructorNameFallback(obj);
+  String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
   if (name == 'Document') {
     // IE calls both HTML and XML documents 'Document', so we check for the
@@ -65,17 +65,46 @@ String constructorNameFallback(obj) {
     // the constructor name even for more specialized objects so
     // we have to fall through to the toString() based implementation
     // below in that case.
-    if (JS('String', "typeof(#)", name) === 'string'
-        && !name.isEmpty()
+    if (name is String
+        && name !== ''
         && name !== 'Object'
         && name !== 'Function.prototype') {  // Can happen in Opera.
       return name;
     }
   }
   String string = JS('String', 'Object.prototype.toString.call(#)', obj);
-  return string.substring(8, string.length - 1);
+  return JS('String', '#.substring(8, # - 1)', string, string.length);
 }
 
+// TODO(ngeoffray): stop using this method once our optimizers can
+// change str1.contains(str2) into str1.indexOf(str2) != -1.
+bool contains(String userAgent, String name) {
+  return JS('int', '#.indexOf(#)', userAgent, name) != -1;
+}
+
+int arrayLength(List array) {
+  return JS('int', '#.length', array);
+}
+
+arrayGet(List array, int index) {
+  return JS('var', '#[#]', array, index);
+}
+
+void arraySet(List array, int index, var value) {
+  JS('var', '#[#] = #', array, index, value);
+}
+
+propertyGet(List array, String property) {
+  return JS('var', '#[#]', array, property);
+}
+
+void propertySet(List array, String property, var value) {
+  JS('var', '#[#] = #', array, property, value);
+}
+
+newJsObject() {
+  return JS('var', '{}');
+}
 
 /**
  * Returns the function to use to get the type name of an object.
@@ -85,15 +114,15 @@ Function getFunctionForTypeNameOf() {
   if (JS('String', 'typeof(navigator)') !== 'object') return typeNameInChrome;
 
   String userAgent = JS('String', "navigator.userAgent");
-  if (userAgent.contains(const RegExp('Chrome|DumpRenderTree'))) {
+  if (contains(userAgent, 'Chrome') || contains(userAgent, 'DumpRenderTree')) {
     return typeNameInChrome;
-  } else if (userAgent.contains('Firefox')) {
+  } else if (contains(userAgent, 'Firefox')) {
     return typeNameInFirefox;
-  } else if (userAgent.contains('MSIE')) {
+  } else if (contains(userAgent, 'MSIE')) {
     return typeNameInIE;
-  } else if (userAgent.contains('Opera')) {
+  } else if (contains(userAgent, 'Opera')) {
     return typeNameInOpera;
-  } else if (userAgent.contains('Safari')) {
+  } else if (contains(userAgent, 'Safari')) {
     return typeNameInSafari;
   } else {
     return constructorNameFallback;
@@ -116,7 +145,8 @@ String getTypeNameOf(var obj) {
 }
 
 String toStringForNativeObject(var obj) {
-  return 'Instance of ${getTypeNameOf(obj)}';
+  String name = JS('String', '#', getTypeNameOf(obj));
+  return 'Instance of $name';
 }
 
 /**
@@ -128,14 +158,6 @@ void defineProperty(var obj, String property, var value) {
       obj,
       property,
       value);
-}
-
-/**
- * Helper method to throw a [NoSuchMethodException] for a invalid call
- * on a native object.
- */
-void throwNoSuchMethod(obj, name, arguments) {
-  throw new NoSuchMethodException(obj, name, arguments);
 }
 
 /**
@@ -157,17 +179,17 @@ dynamicBind(var obj,
   var method = JS('var', '#[#]', methods, tag);
 
   if (method === null && _dynamicMetadata !== null) {
-    for (int i = 0; i < _dynamicMetadata.length; i++) {
-      MetaInfo entry = _dynamicMetadata[i];
-      if (entry.set.contains(tag)) {
-        method = JS('var', '#[#]', methods, entry.tag);
+    for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
+      MetaInfo entry = arrayGet(_dynamicMetadata, i);
+      if (JS('bool', '#', propertyGet(entry._set, tag))) {
+        method = propertyGet(methods, entry._tag);
         if (method !== null) break;
       }
     }
   }
 
   if (method === null) {
-    method = JS('var', "#['Object']", methods);
+    method = propertyGet(methods, 'Object');
   }
 
   var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
@@ -179,12 +201,12 @@ dynamicBind(var obj,
     method = JS('var',
         'function () {'
           'if (Object.getPrototypeOf(this) === #) {'
-            '#(this, #, Array.prototype.slice.call(arguments));'
+            'throw new TypeError(# + " is not a function");'
           '} else {'
             'return Object.prototype[#].apply(this, arguments);'
           '}'
         '}',
-      proto, DART_CLOSURE_TO_JS(throwNoSuchMethod), name, name);
+      proto, name, name);
   }
 
   if (JS('bool', '!#.hasOwnProperty(#)', proto, name)) {
@@ -222,7 +244,7 @@ dynamicFunction(name) {
   // If there is a method attached to the Dart Object class, use it as
   // the method to call in case no method is registered for that type.
   var dartMethod = JS('var', 'Object.getPrototypeOf(#)[#]', const Object(), name);
-  if (dartMethod !== null) JS('void', "#['Object'] = #", methods, dartMethod);
+  if (dartMethod !== null) propertySet(methods, 'Object', dartMethod);
 
   var bind = JS('var',
       'function() {'
@@ -243,20 +265,20 @@ class MetaInfo {
   /**
    * The type name this [MetaInfo] relates to.
    */
-  String tag;
+  String _tag;
 
   /**
    * A string containing the names of subtypes of [tag], separated by
    * '|'.
    */
-  String tags;
+  String _tags;
 
   /**
    * A list of names of subtypes of [tag].
    */
-  Set<String> set;
+  Object _set;
 
-  MetaInfo(this.tag, this.tags, this.set);
+  MetaInfo(this._tag, this._tags, this._set);
 }
 
 List<MetaInfo> get _dynamicMetadata {
@@ -288,13 +310,13 @@ void set _dynamicMetadata(List<MetaInfo> table) {
  */
 List <MetaInfo> buildDynamicMetadata(List<List<String>> inputTable) {
   List<MetaInfo> result = <MetaInfo>[];
-  for (int i = 0; i < inputTable.length; i++) {
-    String tag = inputTable[i][0];
-    String tags = inputTable[i][1];
-    Set<String> set = new Set<String>();
+  for (int i = 0; i < arrayLength(inputTable); i++) {
+    String tag = JS('String', '#', arrayGet(arrayGet(inputTable, i), 0));
+    String tags = JS('String', '#', arrayGet(arrayGet(inputTable, i), 1));
+    var set = newJsObject();
     List<String> tagNames = tags.split('|');
-    for (int j = 0; j < tagNames.length; j++) {
-      set.add(tagNames[j]);
+    for (int j = 0; j < arrayLength(tagNames); j++) {
+      arraySet(set, arrayGet(tagNames, j), true);
     }
     result.add(new MetaInfo(tag, tags, set));
   }

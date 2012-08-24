@@ -2030,6 +2030,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           interceptor.inputs[2].isString(types)) {
         return '+';
       }
+      if (name == const SourceString('split') &&
+          arity == 1 &&
+          interceptor.inputs[2].isString(types)) {
+        return 'split';
+      }
     }
 
     return null;
