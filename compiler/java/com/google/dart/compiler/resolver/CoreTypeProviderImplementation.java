@@ -117,8 +117,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
 
   @Override
   public InterfaceType getArrayLiteralType(Type elementType) {
-    return objectArrayType.subst(
-        Arrays.asList(elementType), objectArrayType.getElement().getTypeParameters());
+    return getArrayType(elementType);
   }
 
   @Override
@@ -148,8 +147,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
 
   @Override
   public InterfaceType getMapLiteralType(Type key, Type value) {
-    return mapLiteralType.subst(
-        Arrays.asList(key, value), mapLiteralType.getElement().getTypeParameters());
+    return getMapType(key, value);
   }
 
   @Override

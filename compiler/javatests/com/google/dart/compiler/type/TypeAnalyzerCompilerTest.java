@@ -2777,6 +2777,54 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
+  public void test_typesPropagation_arrayLiteral_singleType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a = [1, 2, 3];",
+        "  var v = a[0];",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v", "int");
+  }
+
+  public void test_typesPropagation_arrayLiteral_mixedTypes() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a = [1, 2, '3'];",
+        "  var v = a[0];",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v", "[Comparable, Hashable]");
+  }
+
+  public void test_typesPropagation_mapLiteral_singleType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var m = {'1': 1, '2' : 2, '3' : 3};",
+        "  var v = m['1'];",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v", "int");
+  }
+
+  public void test_typesPropagation_mapLiteral_mixedTypes() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var m = {'1': 1, '2' : 2, '3' : 3.0};",
+        "  var v = m['1'];",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v", "num");
+  }
+
   public void test_getType_binaryExpression() throws Exception {
     analyzeLibrary(
         "f(var arg) {",

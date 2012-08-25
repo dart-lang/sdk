@@ -56,8 +56,8 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     private final DynamicType dynamicType = Types.newDynamicType();
 
     @Override
-    public InterfaceType getArrayLiteralType(Type value) {
-      throw new AssertionError();
+    public InterfaceType getArrayLiteralType(Type elementType) {
+      return getArrayType(elementType);
     }
 
     @Override
@@ -103,7 +103,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
 
     @Override
     public InterfaceType getMapLiteralType(Type key, Type value) {
-      throw new AssertionError();
+      return getMapType(key, value);
     }
 
     @Override
