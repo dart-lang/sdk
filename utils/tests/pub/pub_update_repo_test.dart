@@ -75,4 +75,104 @@ main() {
 
     run();
   });
+
+  test("removes a dependency that's been removed from the pubspec", () {
+    servePackages([
+      package("foo", "1.0.0"),
+      package("bar", "1.0.0")
+    ]);
+
+    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    packagesDir({
+      "foo": "1.0.0",
+      "bar": "1.0.0"
+    }).scheduleValidate();
+
+    appDir([dependency("foo")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    packagesDir({
+      "foo": "1.0.0",
+      "bar": null
+    }).scheduleValidate();
+
+    run();
+  });
+
+  test("removes a transitive dependency that's no longer depended on", () {
+    servePackages([
+      package("foo", "1.0.0", [dependency("shared-dep")]),
+      package("bar", "1.0.0", [
+        dependency("shared-dep"),
+        dependency("bar-dep")
+      ]),
+      package("shared-dep", "1.0.0"),
+      package("bar-dep", "1.0.0")
+    ]);
+
+    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    packagesDir({
+      "foo": "1.0.0",
+      "bar": "1.0.0",
+      "shared-dep": "1.0.0",
+      "bar-dep": "1.0.0",
+    }).scheduleValidate();
+
+    appDir([dependency("foo")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    packagesDir({
+      "foo": "1.0.0",
+      "bar": null,
+      "shared-dep": "1.0.0",
+      "bar-dep": null,
+    }).scheduleValidate();
+
+    run();
+  });
+
+  test("updates dependencies whose constraints have been removed", () {
+    servePackages([
+      package("foo", "1.0.0", [dependency("shared-dep")]),
+      package("bar", "1.0.0", [dependency("shared-dep", "<2.0.0")]),
+      package("shared-dep", "1.0.0"),
+      package("shared-dep", "2.0.0")
+    ]);
+
+    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    packagesDir({
+      "foo": "1.0.0",
+      "bar": "1.0.0",
+      "shared-dep": "1.0.0"
+    }).scheduleValidate();
+
+    appDir([dependency("foo")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    packagesDir({
+      "foo": "1.0.0",
+      "bar": null,
+      "shared-dep": "2.0.0"
+    }).scheduleValidate();
+
+    run();
+  });
 }

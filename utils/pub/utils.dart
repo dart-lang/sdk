@@ -81,6 +81,16 @@ only(Iterable iter) {
 }
 
 /**
+ * Returns a set containing all elements in [minuend] that are not in
+ * [subtrahend].
+ */
+Set setMinus(Collection minuend, Collection subtrahend) {
+  var minuendSet = new Set.from(minuend);
+  minuendSet.removeAll(subtrahend);
+  return minuendSet;
+}
+
+/**
  * Replace each instance of [matcher] in [source] with the return value of [fn].
  */
 String replace(String source, Pattern matcher, String fn(Match)) {

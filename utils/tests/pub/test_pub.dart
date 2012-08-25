@@ -56,6 +56,11 @@ TarFileDescriptor tar(Pattern name, [List<Descriptor> contents]) =>
     new TarFileDescriptor(name, contents);
 
 /**
+ * Creates a new [NothingDescriptor] with [name].
+ */
+NothingDescriptor nothing(String name) => new NothingDescriptor(name);
+
+/**
  * The current [HttpServer] created using [serve].
  */
 var _server;
@@ -301,11 +306,17 @@ DirectoryDescriptor gitPackageCacheDir(String name, [int modifier]) {
  * Describes the `packages/` directory containing all the given [packages],
  * which should be name/version pairs. The packages will be validated against
  * the format produced by the mock package server.
+ *
+ * A package with a null version should not be installed.
  */
 DirectoryDescriptor packagesDir(Map<String, String> packages) {
   var contents = <Descriptor>[];
   packages.forEach((name, version) {
-    contents.add(packageDir(name, version));
+    if (version == null) {
+      contents.add(nothing(name));
+    } else {
+      contents.add(packageDir(name, version));
+    }
   });
   return dir(packagesPath, contents);
 }
@@ -1018,6 +1029,31 @@ class TarFileDescriptor extends Descriptor {
           sourceStream, sinkStream, onClosed: tempDir.deleteRecursively);
     });
     return sinkStream;
+  }
+}
+
+/**
+ * A descriptor that validates that no file exists with the given name.
+ */
+class NothingDescriptor extends Descriptor {
+  NothingDescriptor(String name) : super(name);
+
+  Future create(dir) => new Future.immediate(null);
+  Future delete(dir) => new Future.immediate(null);
+
+  Future validate(String dir) {
+    return exists(join(dir, name)).transform((exists) {
+      if (exists) Expect.fail('File $name in $dir should not exist.');
+    });
+  }
+
+  InputStream load(List<String> path) {
+    if (path.isEmpty()) {
+      throw "Can't load the contents of $name: it doesn't exist.";
+    } else {
+      throw "Can't load ${Strings.join(path, '/')} from within $name: $name "
+        "doesn't exist.";
+    }
   }
 }
 
