@@ -1558,7 +1558,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
   }
 
-  public void test_metadataOverride_OK_method() throws Exception {
+  public void test_metadataCommentOverride_OK_method() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -1572,7 +1572,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
-  public void test_metadataOverride_Bad_method() throws Exception {
+  public void test_metadataCommentOverride_Bad_method() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -3414,7 +3414,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_TYPE, 3, 1, 4));
   }
 
-  public void test_metadata_deprecated_1() throws Exception {
+  public void test_metadataComment_deprecated_1() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "// @deprecated",
@@ -3443,7 +3443,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 17, 5, 1));
   }
 
-  public void test_metadata_deprecated_2() throws Exception {
+  public void test_metadataComment_deprecated_2() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "// @deprecated",
@@ -3462,6 +3462,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 9, 7, 1),
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 10, 7, 1),
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 10, 9, 7));
+  }
+  
+  public void test_metadata_resolving() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const test = 0;",
+        "",
+        "@test",
+        "class A {",
+        "  @test",
+        "  m(@test p) {",
+        "    @test var v = 0;",
+        "  }",
+        "}",
+        "",
+        "f(@test p) {}",
+        "",
+        "@test typedef F();",
+        "",
+        "");
+    // @deprecated should be resolved at every place, so no errors
+    assertErrors(libraryResult.getErrors());
   }
 
   public void test_assignMethod() throws Exception {

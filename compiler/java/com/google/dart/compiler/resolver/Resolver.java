@@ -46,6 +46,7 @@ import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeWithMetadata;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPartOfDirective;
@@ -236,6 +237,7 @@ public class Resolver {
 
     @Override
     public Element visitFunctionTypeAlias(DartFunctionTypeAlias alias) {
+      alias.getMetadata().accept(this);
       getContext().pushFunctionAliasScope(alias);
       resolveFunctionAlias(alias);
 
@@ -274,6 +276,7 @@ public class Resolver {
         onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
       }
       checkClassTypeVariables(classElement);
+      cls.getMetadata().accept(this);
 
       // Push new resolution context.
       ResolutionContext previousContext = context;
@@ -602,7 +605,14 @@ public class Resolver {
     }
 
     @Override
+    public Element visitTypeParameter(DartTypeParameter node) {
+      node.getMetadata().accept(this);
+      return super.visitTypeParameter(node);
+    }
+
+    @Override
     public MethodElement visitMethodDefinition(DartMethodDefinition node) {
+      node.getMetadata().accept(this);
       MethodElement member = node.getElement();
       ResolutionContext previousContext = context;
       context = context.extend(member.getName());
@@ -619,6 +629,7 @@ public class Resolver {
       // scope of the default expressions so we can report better errors.
       for (DartParameter parameter : parameters) {
         assert parameter.getElement() != null;
+        parameter.getMetadata().accept(this);
 
         if (!(parameter.getQualifier() instanceof DartThisExpression)) {
           getContext().declare(
@@ -710,6 +721,7 @@ public class Resolver {
 
     @Override
     public Element visitFieldDefinition(DartFieldDefinition node) {
+      node.getMetadata().accept(this);
       visit(node.getFields());
       return null;
     }
@@ -721,6 +733,7 @@ public class Resolver {
 
     @Override
     public Element visitParameter(DartParameter x) {
+      x.getMetadata().accept(this);
       Element element = super.visitParameter(x);
       resolve(x.getDefaultExpr());
       getContext().declare(
@@ -729,6 +742,12 @@ public class Resolver {
       return element;
     }
 
+    @Override
+    public Element visitVariable(DartVariable node) {
+      node.getMetadata().accept(this);
+      return super.visitVariable(node);
+    }
+    
     public VariableElement resolveVariable(DartVariable x, Modifiers modifiers) {
       // Visit the initializer first.
       resolve(x.getValue());
@@ -993,9 +1012,16 @@ public class Resolver {
       }
       return null;
     }
-    
+
+    @Override
+    public Element visitDirective(DartDirective node) {
+      node.getMetadata().accept(this);
+      return super.visitDirective(node);
+    }
+
     @Override
     public Element visitPartOfDirective(DartPartOfDirective node) {
+      node.getMetadata().accept(this);
       String elementName = "__library_" + node.getLibraryName();
       Element element = context.getScope().findElement(null, elementName);
       if (ElementKind.of(element) == ElementKind.LIBRARY) {
