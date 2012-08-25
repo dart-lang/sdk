@@ -361,6 +361,10 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   // specific than any type.
   bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
+  // Compile time constants, Bool, Smi and Nulls do not need to update
+  // the store buffer.
+  bool NeedsStoreBuffer() const;
+
   virtual bool Equals(Value* other) const = 0;
 
   virtual Value* CopyValue() = 0;

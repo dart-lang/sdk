@@ -901,12 +901,12 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(ABOVE_EQUAL, deopt);
       // Note that index is Smi, i.e, times 2.
       ASSERT(kSmiTagShift == 1);
-      if (this->value()->BindsToConstant()) {
-        // Compile time constants are Smi or allocated in the old space.
-        __ movl(FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
+      if (this->value()->NeedsStoreBuffer()) {
+        __ StoreIntoObject(receiver,
+            FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
             value);
       } else {
-        __ StoreIntoObject(receiver,
+        __ StoreIntoObjectNoBarrier(receiver,
             FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
             value);
       }
@@ -919,12 +919,12 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
       // Note that index is Smi, i.e, times 2.
       ASSERT(kSmiTagShift == 1);
-      if (this->value()->BindsToConstant()) {
-        // Compile time constants are Smi or allocated in the old space.
-        __ movl(FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
+      if (this->value()->NeedsStoreBuffer()) {
+        __ StoreIntoObject(temp,
+            FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
             value);
       } else {
-        __ StoreIntoObject(temp,
+        __ StoreIntoObjectNoBarrier(temp,
             FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
             value);
       }
@@ -998,11 +998,11 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(ic_data() != NULL);
     compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
   }
-  if (this->value()->BindsToConstant()) {
-    // Compile time constants are Smi or allocated in the old space.
-    __ movl(FieldAddress(instance_reg, field().Offset()), value_reg);
-  } else {
+  if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(instance_reg,
+        FieldAddress(instance_reg, field().Offset()), value_reg);
+  } else {
+    __ StoreIntoObjectNoBarrier(instance_reg,
         FieldAddress(instance_reg, field().Offset()), value_reg);
   }
 }
@@ -1037,11 +1037,11 @@ void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out().reg() == value);
 
   __ LoadObject(temp, field());
-  if (this->value()->BindsToConstant()) {
-    // Compile time constants are Smi or allocated in the old space.
-    __ movl(FieldAddress(temp, Field::value_offset()), value);
-  } else {
+  if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
+  } else {
+    __ StoreIntoObjectNoBarrier(
+        temp, FieldAddress(temp, Field::value_offset()), value);
   }
 }
 

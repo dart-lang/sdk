@@ -292,6 +292,15 @@ bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
 }
 
 
+bool Value::NeedsStoreBuffer() const {
+  const intptr_t cid = ResultCid();
+  if ((cid == kSmiCid) || (cid == kBoolCid) || (cid == kNullCid)) {
+    return false;
+  }
+  return !BindsToConstant();
+}
+
+
 RawAbstractType* PhiInstr::CompileType() const {
   ASSERT(!HasPropagatedType());
   // Since type propagation has not yet occured, we are reaching this phi via a
@@ -1432,8 +1441,13 @@ void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register dest_reg = locs()->in(1).reg();
   ASSERT(value_reg == locs()->out().reg());
 
-  __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
-                     value_reg);
+  if (value()->NeedsStoreBuffer()) {
+    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                       value_reg);
+  } else {
+    __ StoreIntoObjectNoBarrier(
+        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
+  }
 }
 
 
