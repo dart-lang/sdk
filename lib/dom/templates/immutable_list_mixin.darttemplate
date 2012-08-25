@@ -13,15 +13,15 @@
   // From Collection<$E>:
 
   void add($E value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast($E value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<$E> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f($E element)) => _Collections.forEach(this, f);
@@ -40,7 +40,7 @@
   // From List<$E>:
 
   void sort(int compare($E a, $E b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf($E element, [int start = 0]) =>
@@ -54,20 +54,20 @@
   $E last() => this[length - 1];
 
   $E removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<$E> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [$E initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<$E> getRange(int start, int rangeLength) =>
