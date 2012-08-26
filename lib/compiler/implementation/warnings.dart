@@ -220,6 +220,15 @@ class MessageKind {
   static final EXTRA_FORMALS = const MessageKind(
       "Warning: Formal parameters will not be allowed here in M1.");
 
+  static final CONSTRUCTOR_WITH_RETURN_TYPE = const MessageKind(
+      "Error: cannot have return type for constructor.");
+
+  static final ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
+      "Error: cannot have final modifier on method.");
+
+  static final ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
+      "Error: illegal constructor modifiers: #{1}.");
+
   static final COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

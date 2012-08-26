@@ -114,6 +114,9 @@ class ResolverTask extends CompilerTask {
       }
       FunctionExpression tree = element.parseNode(compiler);
       if (isConstructor) {
+        if (tree.returnType !== null) {
+          error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
+        }
         resolveConstructorImplementation(element, tree);
       }
       ResolverVisitor visitor = new ResolverVisitor(compiler, element);
@@ -273,6 +276,27 @@ class ResolverTask extends CompilerTask {
   void checkMembers(ClassElement cls) {
     if (cls === compiler.objectClass) return;
     cls.forEachMember((holder, member) {
+
+      // Check modifiers.
+      if (member.isFunction() && member.modifiers.isFinal()) {
+        compiler.reportMessage(
+          compiler.spanFromElement(member),
+          MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
+          api.Diagnostic.ERROR);
+      }
+      if (member.isConstructor()) {
+        final mismatchedFlagsBits =
+          member.modifiers.flags &
+          (Modifiers.FLAG_STATIC | Modifiers.FLAG_ABSTRACT);
+        if (mismatchedFlagsBits != 0) {
+          final mismatchedFlags =
+            new Modifiers.withFlags(null, mismatchedFlagsBits);
+          compiler.reportMessage(
+            compiler.spanFromElement(member),
+            MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error([mismatchedFlags]),
+            api.Diagnostic.ERROR);
+        }
+      }
       checkAbstractField(member);
       checkValidOverride(member, cls.lookupSuperMember(member.name));
     });

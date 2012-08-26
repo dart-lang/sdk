@@ -157,7 +157,6 @@ const_constructor_syntax_test/01: Fail # Negative language test.
 const_constructor_syntax_test/02: Fail # Negative language test.
 const_constructor_syntax_test/03: Fail # Negative language test.
 const_constructor_syntax_test/04: Fail # Negative language test.
-const_factory_negative_test: Fail # Negative language test.
 const_field_negative_test: Fail # Negative language test.
 const_init4_negative_test: Fail # Negative language test.
 const_init_negative_test: Fail # Negative language test.
