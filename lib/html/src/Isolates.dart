@@ -27,7 +27,7 @@ int _localNextElementId = 0;
 
 const _DART_ID = 'data-dart_id';
 
-var _elementId(Element e) {
+_elementId(Element e) {
   if (e.attributes.containsKey(_DART_ID)) return e.attributes[_DART_ID];
   var id = '$_isolateId-${_localNextElementId++}';
   e.attributes[_DART_ID] = id;
