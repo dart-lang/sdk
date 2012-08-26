@@ -37682,6 +37682,26 @@ class JsProxy {
   }
 }
 
+int _localNextElementId = 0;
+
+const _DART_ID = 'data-dart_id';
+
+var _elementId(Element e) {
+  if (e.attributes.containsKey(_DART_ID)) return e.attributes[_DART_ID];
+  var id = '$_isolateId-${_localNextElementId++}';
+  e.attributes[_DART_ID] = id;
+  return id;
+}
+
+Element _getElement(var id) {
+  var list = queryAll('[$_DART_ID="$id"]');
+  if (list.length > 1) throw 'Non unique ID: $id';
+  if (list.length == 0) {
+    throw 'Only elements attached to document can be serialized: $id';
+  }
+  return list[0];
+}
+
 class _JsSerializer extends _Serializer {
 
   visitSendPortSync(SendPortSync x) {
@@ -37708,6 +37728,7 @@ class _JsSerializer extends _Serializer {
   visitObject(Object x) {
     if (x is Function) return visitFunction(x);
     if (x is JsProxy) return visitJsProxy(x);
+    if (x is Element) return visitElement(x);
 
     // TODO: Handle DOM elements and proxy other objects.
     var proxyId = _dartProxyRegistry._add(x);
@@ -37723,6 +37744,14 @@ class _JsSerializer extends _Serializer {
 
   visitJsProxy(JsProxy proxy) {
     return [ 'objref', proxy._id, visitSendPortSync(proxy._port) ];
+  }
+
+  visitElement(Element element) {
+    var id = _elementId(element);
+    // Verify that the element is connected to the document.
+    // Otherwise, we will not be able to find it on the other side.
+    _getElement(id);
+    return [ 'element', id ];
   }
 }
 
@@ -37828,6 +37857,7 @@ class _JsDeserializer extends _Deserializer {
     switch (tag) {
       case 'funcref': return deserializeFunction(x);
       case 'objref': return deserializeProxy(x);
+      case 'element': return deserializeElement(x);
       default: throw 'Illegal object type: $x';
     }
   }
@@ -37854,6 +37884,11 @@ class _JsDeserializer extends _Deserializer {
     // TODO(vsm): Support this case.
     if (port is _RemoteSendPortSync) throw 'Remote Dart proxies unsupported';
     throw 'Illegal proxy: $port';
+  }
+
+  deserializeElement(x) {
+    var id = x[1];
+    return _getElement(id);
   }
 }
 
@@ -37991,6 +38026,8 @@ class ReceivePortSync {
     }
   }
 }
+
+get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = document.$dom_createEvent('TextEvent');

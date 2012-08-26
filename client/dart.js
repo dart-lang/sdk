@@ -88,6 +88,12 @@ function ReceivePortSync() {
       } else if (message instanceof Function) {
         return [ 'funcref', functionRefTable.makeRef(message),
                  doSerialize(functionRefTable.sendPort) ];
+      } else if (message instanceof HTMLElement) {
+        var id = elementId(message);
+        // Verify that the element is connected to the document.
+        // Otherwise, we will not be able to find it on the other side.
+        getElement(id);
+        return [ 'element', id ];
       } else if (message instanceof DartProxy) {
         return [ 'objref', message._id, doSerialize(message._port) ];
       } else if (message.__proto__ != {}.__proto__) {
@@ -126,6 +132,7 @@ function ReceivePortSync() {
       case 'list': return deserializeList(message);
       case 'funcref': return deserializeFunction(message);
       case 'objref': return deserializeProxy(message);
+      case 'element': return deserializeElement(message);
       default: throw 'unimplemented';
     }
   }
@@ -185,6 +192,11 @@ function ReceivePortSync() {
       return new DartProxy(port, id);
     }
     throw 'Illegal proxy object: ' + message;
+  }
+
+  function deserializeElement(message) {
+    var id = message[1];
+    return getElement(id);
   }
 
   window.registerPort = function(name, port) {
@@ -375,5 +387,25 @@ function ReceivePortSync() {
     return function() {
       return sendPort.callSync([ref, Array.prototype.slice.call(arguments)]);
     }
+  }
+
+  var localNextElementId = 0;
+  var _DART_ID = 'data-dart_id';
+  
+  function elementId(e) {
+    if (e.hasAttribute(_DART_ID)) return e.getAttribute(_DART_ID);
+    var id = (localNextElementId++).toString();
+    e.setAttribute(_DART_ID, id);
+    return id;
+  }
+
+  function getElement(id) {
+    var list = document.querySelectorAll('[' + _DART_ID + '="' + id + '"]');
+
+    if (list.length > 1) throw 'Non unique ID: ' + id;
+    if (list.length == 0) {
+      throw 'Element must be attached to the document: ' + id;
+    }
+    return list[0];    
   }
 })();
