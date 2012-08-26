@@ -99,8 +99,6 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
 named_parameters4_test: Fail # Unimplemented non-matching static call
-named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
-named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
 operator6_test: Fail # Constant folding of bit-operations does not agree with runtime behavior. Issue 2887.
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
