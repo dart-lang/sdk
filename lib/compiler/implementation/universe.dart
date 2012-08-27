@@ -172,7 +172,10 @@ class Selector implements Hashable {
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
   Type get receiverType => null;
 
-  bool applies(Element element, Compiler compiler) {
+  bool applies(Element element, Compiler compiler)
+      => appliesUntyped(element, compiler);
+
+  bool appliesUntyped(Element element, Compiler compiler) {
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
     if (element.isField()) return isGetter() || isSetter() || isCall();
@@ -298,11 +301,15 @@ class Selector implements Hashable {
 
   bool operator ==(other) {
     if (other is !Selector) return false;
+    return receiverType === other.receiverType
+        && equalsUntyped(other);
+  }
+
+  bool equalsUntyped(Selector other) {
     return name == other.name
            && library === other.library
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
-           && receiverType === other.receiverType
            && sameNames(namedArguments, other.namedArguments);
   }
 
@@ -366,23 +373,23 @@ class TypedSelector extends Selector {
     // }
     ClassElement other = element.getEnclosingClass();
     if (other.superclass === compiler.closureClass) {
-      return super.applies(element, compiler);
+      return appliesUntyped(element, compiler);
     }
 
     ClassElement self = receiverType.element;
     // TODO(ngeoffray): tree-shake on interfaces.
     if (self.isInterface() || other.isSubclassOf(self)) {
-      return super.applies(element, compiler);
+      return appliesUntyped(element, compiler);
     }
 
     if (!self.isInterface() && self.isSubclassOf(other)) {
       // Resolve an invocation of [element.name] on [self]. If it
       // is found, this selector is a candidate.
-      return hasElementIn(self, element) && super.applies(element, compiler);
+      return hasElementIn(self, element) && appliesUntyped(element, compiler);
     }
 
     return false;
   }
 
-  toString() => 'Selector($kind, $name, $argumentCount, type=$receiverType)';
+  toString() => 'Selector($kind, "${name.slowToString()}", $argumentCount, type=$receiverType)';
 }

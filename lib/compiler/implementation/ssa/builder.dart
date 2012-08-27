@@ -178,11 +178,22 @@ class SsaBuilderTask extends CompilerTask {
           backend.optimisticParameterTypesWithRecompilationOnTypeChange(
               element);
       if (parameterTypes != null) {
+        // TODO(kasperl): Allow this also for static elements.
+        if (element.isMember()) {
+          backend.optimizedFunctions.add(element);
+          backend.optimizedTypes[element] = parameterTypes;
+        }
         FunctionSignature signature = element.computeSignature(compiler);
         int i = 0;
         signature.forEachParameter((Element param) {
           builder.parameters[param].guaranteedType = parameterTypes[i++];
         });
+      } else {
+        // TODO(kasperl): Allow this also for static elements.
+        if (element.isMember()) {
+          backend.optimizedFunctions.remove(element);
+          backend.optimizedTypes.remove(element);
+        }
       }
 
       if (compiler.tracer.enabled) {
@@ -2036,8 +2047,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
-        // TODO(karlklose): We emulate the behavior of the old frog 
-        // compiler and answer true to any is check involving a type variable 
+        // TODO(karlklose): We emulate the behavior of the old frog
+        // compiler and answer true to any is check involving a type variable
         // -- both is T and is !T -- until we have a proper implementation of
         // reified generics.
         stack.add(graph.addConstantBool(true));

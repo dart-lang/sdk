@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class SsaCodeGeneratorTask extends CompilerTask {
+
   final JavaScriptBackend backend;
+
   SsaCodeGeneratorTask(JavaScriptBackend backend)
       : this.backend = backend,
         super(backend.compiler);
