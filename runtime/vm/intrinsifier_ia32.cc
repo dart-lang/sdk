@@ -45,6 +45,11 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ j(NOT_ZERO, &fall_through);
   __ cmpl(EDI, Immediate(0));
   __ j(LESS, &fall_through);
+  // Check for maximum allowed length.
+  const Immediate max_len =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+  __ cmpl(EDI, max_len);
+  __ j(GREATER, &fall_through);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_2, fixed_size));  // EDI is a Smi.
   ASSERT(kSmiTagShift == 1);
@@ -212,7 +217,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
     __ CompareObject(EAX, Type::ZoneHandle(Type::IntInterface()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
-    __ CompareObject(EAX, Type::ZoneHandle(Type::NumberInterface()));
+    __ CompareObject(EAX, Type::ZoneHandle(Type::Number()));
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     __ Bind(&checked_ok);
   }
@@ -394,8 +399,8 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 // On stack: growable array (+2), length (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Growable array.
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Length value.
   __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
   __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
@@ -419,6 +424,38 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
                      EBX);
   __ ret();
   return true;
+}
+
+
+// Add an element to growable array if it doesn't need to grow, otherwise
+// call into regular code.
+// On stack: growable array (+2), value (+1), return-address (+0).
+bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+  // In checked mode we need to type-check the incoming argument.
+  if (FLAG_enable_type_checks) return false;
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ movl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
+  // EBX: length.
+  __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
+  // EDI: data.
+  // Compare length with capacity.
+  __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
+  const Immediate value_one = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
+  // len = len + 1;
+  __ addl(FieldAddress(EAX, GrowableObjectArray::length_offset()), value_one);
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value
+  ASSERT(kSmiTagShift == 1);
+  __ StoreIntoObject(EDI,
+                     FieldAddress(EDI, EBX, TIMES_2, sizeof(RawArray)),
+                     EAX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<int32_t>(Object::null()));
+  __ movl(EAX, raw_null);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
 
 
@@ -754,6 +791,7 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                mint_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   // EBX and EDI are not objects but integer values.
   __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
@@ -1009,6 +1047,7 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1055,6 +1094,7 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1076,6 +1116,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1141,6 +1182,7 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1178,6 +1220,7 @@ static void EmitTrigonometric(Assembler* assembler,
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &alloc_failed,
+                               Assembler::kNearJump,
                                EAX);  // Result register.
   __ fstpl(FieldAddress(EAX, Double::value_offset()));
   __ ret();

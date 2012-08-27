@@ -2,24 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ListFactory<E> {
-
-  factory List.from(Iterable<E> other) {
-    GrowableObjectArray<E> list = new GrowableObjectArray<E>();
-    for (final e in other) {
-      list.add(e);
-    }
-    return list;
-  }
-
-  factory List([int length = null]) {
-    if (length === null) {
-      return new GrowableObjectArray<E>();
-    } else {
-      return new ObjectArray<E>(length);
-    }
-  }
-}
 
 // TODO(srdjan): Use shared array implementation.
 class ObjectArray<E> implements List<E> {

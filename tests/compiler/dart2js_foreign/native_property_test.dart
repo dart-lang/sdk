@@ -15,19 +15,19 @@ class A  {
   void setX(int value);
 
   @native
-  int get X();
+  int get X;
 
   @native
   set X(int value);
 
   @native
-  int get Y();
+  int get Y;
 
   @native
   set Y(int value);
 
   @native('return this._z;')
-  int get Z();
+  int get Z;
 
   @native('this._z = value;')
   set Z(int value);

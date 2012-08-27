@@ -8,7 +8,7 @@
 #import('dart:html');
 #import('dart:isolate');
 
-final testData = const [1, '2', 'true'];
+const testData = const [1, '2', 'true'];
 
 void testIsolateEntry() {
   var fun1 = window.lookupPort('fun1');

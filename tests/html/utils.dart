@@ -21,7 +21,15 @@ verifyGraph(expected, actual) {
     // Cycle or DAG?
     for (int i = 0; i < eItems.length; i++) {
       if (expected === eItems[i]) {
-        Expect.identical(aItems[i], actual, message(path, 'back or side edge'));
+        Expect.identical(aItems[i], actual,
+                         message(path, 'missing back or side edge'));
+        return;
+      }
+    }
+    for (int i = 0; i < aItems.length; i++) {
+      if (actual === aItems[i]) {
+        Expect.identical(eItems[i], expected,
+                         message(path, 'extra back or side edge'));
         return;
       }
     }

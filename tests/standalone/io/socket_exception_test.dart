@@ -9,8 +9,8 @@
 
 class SocketExceptionTest {
 
-  static final PORT = 0;
-  static final HOST = "127.0.0.1";
+  static const PORT = 0;
+  static const HOST = "127.0.0.1";
 
   static void serverSocketExceptionTest() {
     bool exceptionCaught = false;

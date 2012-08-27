@@ -28,6 +28,7 @@
 #source('../../../../corelib/src/list.dart');
 #source('../../../../corelib/src/map.dart');
 #source('../../../../corelib/src/num.dart');
+#source('../../../../corelib/src/object.dart');
 #source('../../../../corelib/src/options.dart');
 #source('../../../../corelib/src/pattern.dart');
 #source('../../../../corelib/src/queue.dart');
@@ -44,13 +45,5 @@ void print(var obj) {
     Primitives.printString(obj);
   } else {
     Primitives.printString(obj.toString());
-  }
-}
-
-class Object {
-  String toString() => Primitives.objectToString(this);
-
-  void noSuchMethod(String name, List args) {
-    throw new NoSuchMethodException(this, name, args);
   }
 }

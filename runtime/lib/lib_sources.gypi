@@ -13,7 +13,7 @@
     'error.dart',
     'error.h',
     'literal_factory.dart',
-    'object.cc',
-    'object.dart',
+    'weak_property.cc',
+    'weak_property.dart',
   ],
 }

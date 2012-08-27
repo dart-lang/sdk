@@ -24,7 +24,7 @@ class DartString implements Iterable<int> {
     return new ConsDartString(first, second);
   }
   const DartString();
-  abstract int get length();
+  abstract int get length;
   bool isEmpty() => length == 0;
   abstract Iterator<int> iterator();
   abstract String slowToString();
@@ -41,7 +41,7 @@ class DartString implements Iterable<int> {
     return true;
   }
   String toString() => "DartString#${length}:${slowToString()}";
-  abstract SourceString get source();
+  abstract SourceString get source;
 }
 
 

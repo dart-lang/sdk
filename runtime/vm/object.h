@@ -561,16 +561,16 @@ class Class : public Object {
   // TODO(regis): Implement RemoveDirectSubclass for class unloading support.
 
   // Check if this class represents the class of null.
-  bool IsNullClass() const { return raw() == Object::null_class(); }
+  bool IsNullClass() const { return id() == kNullCid; }
 
   // Check if this class represents the 'Dynamic' class.
-  bool IsDynamicClass() const { return raw() == Object::dynamic_class(); }
+  bool IsDynamicClass() const { return id() == kDynamicCid; }
 
   // Check if this class represents the 'void' class.
-  bool IsVoidClass() const { return raw() == Object::void_class(); }
+  bool IsVoidClass() const { return id() == kVoidCid; }
 
   // Check if this class represents the 'Object' class.
-  bool IsObjectClass() const;
+  bool IsObjectClass() const { return id() == kInstanceCid; }
 
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
@@ -874,14 +874,14 @@ class AbstractType : public Object {
   // Check if this type represents the 'double' interface.
   bool IsDoubleInterface() const;
 
-  // Check if this type represents the 'num' interface.
-  bool IsNumberInterface() const;
+  // Check if this type represents the 'num' type.
+  bool IsNumberType() const;
 
   // Check if this type represents the 'String' interface.
   bool IsStringInterface() const;
 
-  // Check if this type represents the 'Function' interface.
-  bool IsFunctionInterface() const;
+  // Check if this type represents the 'Function' type.
+  bool IsFunctionType() const;
 
   // Check if this type represents the 'List' interface.
   bool IsListInterface() const;
@@ -989,17 +989,23 @@ class Type : public AbstractType {
   // The 'int' interface type.
   static RawType* IntInterface();
 
+  // The 'Smi' type.
+  static RawType* SmiType();
+
+  // The 'Mint' type.
+  static RawType* MintType();
+
   // The 'double' interface type.
   static RawType* DoubleInterface();
 
   // The 'num' interface type.
-  static RawType* NumberInterface();
+  static RawType* Number();
 
   // The 'String' interface type.
   static RawType* StringInterface();
 
   // The 'Function' interface type.
-  static RawType* FunctionInterface();
+  static RawType* Function();
 
   // The 'List' interface type.
   static RawType* ListInterface();
@@ -2977,6 +2983,7 @@ class ApiError : public Error {
 
  private:
   void set_message(const String& message) const;
+  static RawApiError* New();
 
   HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
   friend class Class;
@@ -3001,6 +3008,7 @@ class LanguageError : public Error {
 
  private:
   void set_message(const String& message) const;
+  static RawLanguageError* New();
 
   HEAP_OBJECT_IMPLEMENTATION(LanguageError, Error);
   friend class Class;
@@ -3142,6 +3150,7 @@ class Number : public Instance {
     return false;
   }
   OBJECT_IMPLEMENTATION(Number, Instance);
+  friend class Class;
 };
 
 
@@ -5227,6 +5236,15 @@ class ExternalFloat64Array : public ByteArray {
 };
 
 
+// DartFunction represents the abstract Dart class 'Function'.
+class DartFunction : public Instance {
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(DartFunction, Instance);
+  friend class Class;
+  friend class Instance;
+};
+
+
 class Closure : public Instance {
  public:
   RawFunction* function() const { return raw_ptr()->function_; }
@@ -5442,10 +5460,12 @@ void Object::SetRaw(RawObject* value) {
 
 #if defined(DEBUG)
   Isolate* isolate = Isolate::Current();
-  Heap* isolate_heap = isolate->heap();
-  Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-  ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
-         vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+  if (FLAG_verify_handles) {
+    Heap* isolate_heap = isolate->heap();
+    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+    ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
+           vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+  }
 #endif
   intptr_t cid = raw_->GetClassId();
   if (cid < kNumPredefinedCids) {

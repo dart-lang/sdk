@@ -5,6 +5,16 @@
 #library('libraries');
 
 /**
+ * A bit flag used by [LibraryInfo] indicating that a library is used by dart2js
+ */
+final int DART2JS_PLATFORM = 1;
+
+/**
+ * A bit flag used by [LibraryInfo] indicating that a library is used by the VM
+ */
+final int VM_PLATFORM = 2;
+
+/**
  * Mapping of "dart:" library name (e.g. "core") to information about that library.
  * This information is structured such that Dart Editor can parse this file
  * and extract the necessary information without executing it
@@ -15,11 +25,14 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   // Used by VM applications
   "builtin": const LibraryInfo(
       "builtin/builtin_runtime.dart",
-      category: "Server"),
+      category: "Server",
+      platforms: VM_PLATFORM),
 
+  // Is moving to pkg directory
   "compiler": const LibraryInfo(
       "compiler/compiler.dart",
-      category: "Tools"),
+      category: "Tools",
+      platforms: 0),
 
   "core": const LibraryInfo(
       "core/core_runtime.dart",
@@ -37,8 +50,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   // dom/dom_frog.dart is a placeholder for dartium dom
   "dom_deprecated": const LibraryInfo(
       "dom/dom_dart2js.dart",
+      implementation: true,
       dart2jsPath: "dom/dart2js/dom_dart2js.dart",
-      internal: true),
+      documented: false),
 
   "html": const LibraryInfo(
       "html/html_dartium.dart",
@@ -67,11 +81,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "nativewrappers": const LibraryInfo(
       "html/nativewrappers.dart",
       category: "Client",
-      implementation: true),
-
-  "unittest": const LibraryInfo(
-      "unittest/unittest.dart",
-      category: "Tools"),
+      implementation: true,
+      documented: false,
+      platforms: VM_PLATFORM),
 
   "uri": const LibraryInfo(
       "uri/uri.dart"),
@@ -86,13 +98,15 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "_js_helper": const LibraryInfo(
       "compiler/implementation/lib/js_helper.dart",
       category: "Internal",
-      internal: true),
+      documented: false,
+      platforms: DART2JS_PLATFORM),
 
   // Used by dart2js
   "_interceptors": const LibraryInfo(
       "compiler/implementation/lib/interceptors.dart",
       category: "Internal",
-      internal: true),
+      documented: false,
+      platforms: DART2JS_PLATFORM),
 };
 
 /**
@@ -114,19 +128,27 @@ class LibraryInfo {
   /**
    * Path to the dart2js library's *.dart file relative to this file
    * or null if dart2js uses the common library path defined above.
+   * Access using the [#getDart2JsPath()] method.
    */
   final String dart2jsPath;
 
   /**
    * Path to the dart2js library's patch file relative to this file
    * or null if no dart2js patch file associated with this library.
+   * Access using the [#getDart2JsPatchPath()] method.
    */
   final String dart2jsPatchPath;
 
   /**
-   * True if this library is internal and should not be shown to the user
+   * True if this library is documented and should be shown to the user
    */
-  final bool internal;
+  final bool documented;
+
+  /**
+   * Bit flags indicating which platforms consume this library
+   * See [DART2JS_LIBRARY] and [VM_LIBRARY]
+   */
+  final int platforms;
 
   /**
    * True if the library contains implementation details for another library.
@@ -137,7 +159,17 @@ class LibraryInfo {
    */
   final bool implementation;
 
-  const LibraryInfo(this.path, [this.category = "Shared",
-           this.dart2jsPath, this.dart2jsPatchPath,
-           this.implementation = false, this.internal = false]);
+  const LibraryInfo(this.path, [
+           this.category = "Shared",
+           this.dart2jsPath,
+           this.dart2jsPatchPath,
+           this.implementation = false,
+           this.documented = true,
+           this.platforms = DART2JS_PLATFORM | VM_PLATFORM]);
+
+  bool isDart2JsLibrary() => (platforms & DART2JS_PLATFORM) != 0;
+  bool isVmLibrary() => (platforms & VM_PLATFORM) != 0;
+
+  String getDart2JsPath() => dart2jsPath != null ? "lib/$dart2jsPath" : "lib/$path";
+  String getDart2jsPatchPath() => dart2jsPatchPath != null ? "lib/$dart2jsPatchPath" : null;
 }

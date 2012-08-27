@@ -226,8 +226,7 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 
 
 // For parsing a compilation unit.
-Parser::Parser(const Script& script,
-               const Library& library)
+Parser::Parser(const Script& script, const Library& library)
     : script_(script),
       tokens_iterator_(TokenStream::Handle(script.tokens()), 0),
       token_kind_(Token::kILLEGAL),
@@ -1255,7 +1254,8 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
   // TODO(regis): This will change once mirrors are supported.
   arguments->Add(new LiteralNode(args_pos, function_name));
   // The third argument is an array containing the original function arguments.
-  ArrayNode* args_array = new ArrayNode(args_pos, TypeArguments::ZoneHandle());
+  ArrayNode* args_array = new ArrayNode(
+      args_pos, Type::ZoneHandle(Type::ListInterface()));
   for (intptr_t i = 1; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
@@ -1788,7 +1788,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   LocalVariable* phase_parameter = new LocalVariable(
        ctor_pos,
        String::ZoneHandle(Symbols::PhaseParameter()),
-       Type::ZoneHandle(Type::IntInterface()));
+       Type::ZoneHandle(Type::SmiType()));
   current_block_->scope->AddVariable(phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
@@ -1856,7 +1856,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   params.AddFinalParameter(
       TokenPos(),
       &String::ZoneHandle(Symbols::PhaseParameter()),
-      &Type::ZoneHandle(Type::IntInterface()));
+      &Type::ZoneHandle(Type::SmiType()));
 
   if (func.is_const()) {
     params.SetImplicitlyFinal();
@@ -2069,6 +2069,22 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   Function& saved_innermost_function =
       Function::Handle(innermost_function().raw());
   innermost_function_ = func.raw();
+
+  // Check to ensure we don't have classes with native fields in libraries
+  // which do not have a native resolver. This check is delayed until the class
+  // is actually used. Invocation of a function in the class is the first point
+  // of use. Access of const static fields in the class do not trigger an error.
+  if (current_class().num_native_fields() != 0) {
+    const Library& lib = Library::Handle(current_class().library());
+    if (lib.native_entry_resolver() == NULL) {
+      const String& cls_name = String::Handle(current_class().Name());
+      const String& lib_name = String::Handle(lib.url());
+      ErrorMsg(current_class().token_pos(),
+               "class '%s' is trying to extend a native fields class, "
+               "but library '%s' has no native resolvers",
+               cls_name.ToCString(), lib_name.ToCString());
+    }
+  }
 
   if (func.IsConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
@@ -2317,7 +2333,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     method->params.AddFinalParameter(
         TokenPos(),
         &String::ZoneHandle(Symbols::PhaseParameter()),
-        &Type::ZoneHandle(Type::IntInterface()));
+        &Type::ZoneHandle(Type::SmiType()));
   }
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
@@ -3062,7 +3078,7 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(TokenPos(),
                            &String::ZoneHandle(Symbols::PhaseParameter()),
-                           &Type::ZoneHandle(Type::IntInterface()));
+                           &Type::ZoneHandle(Type::SmiType()));
 
   AddFormalParamsToFunction(&params, ctor);
   // The body of the constructor cannot modify the type of the constructed
@@ -3520,6 +3536,38 @@ RawArray* Parser::ParseInterfaceList() {
 }
 
 
+// Add 'interface' to 'interface_list' if it is not already in the list.
+// An error is reported if the interface conflicts with an interface already in
+// the list with the same class, but different type arguments.
+// Non-conflicting duplicates are ignored without error.
+void Parser::AddInterfaceIfUnique(intptr_t interfaces_pos,
+                                  const GrowableObjectArray& interface_list,
+                                  const AbstractType& interface) {
+  String& interface_class_name = String::Handle(interface.ClassName());
+  String& existing_interface_class_name = String::Handle();
+  String& interface_name = String::Handle();
+  String& existing_interface_name = String::Handle();
+  AbstractType& other_interface = AbstractType::Handle();
+  for (intptr_t i = 0; i < interface_list.Length(); i++) {
+    other_interface ^= interface_list.At(i);
+    existing_interface_class_name = other_interface.ClassName();
+    if (interface_class_name.Equals(existing_interface_class_name)) {
+      // Same interface class name, now check names of type arguments.
+      interface_name = interface.Name();
+      existing_interface_name = other_interface.Name();
+      // TODO(regis): Revisit depending on the outcome of issue 4905685.
+      if (!interface_name.Equals(existing_interface_name)) {
+        ErrorMsg(interfaces_pos,
+                 "interface '%s' conflicts with interface '%s'",
+                 String::Handle(interface.UserVisibleName()).ToCString(),
+                 String::Handle(other_interface.UserVisibleName()).ToCString());
+      }
+    }
+  }
+  interface_list.Add(interface);
+}
+
+
 void Parser::AddInterfaces(intptr_t interfaces_pos,
                            const Class& cls,
                            const Array& interfaces) {
@@ -3533,7 +3581,6 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
     all_interfaces.Add(interface);
   }
   // Now add the new interfaces.
-  AbstractType& conflicting = AbstractType::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= interfaces.At(i);
@@ -3550,15 +3597,7 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
                  String::Handle(interface.UserVisibleName()).ToCString());
       }
     }
-    if (!ClassFinalizer::AddInterfaceIfUnique(all_interfaces,
-                                              interface,
-                                              &conflicting)) {
-      ASSERT(!conflicting.IsNull());
-      ErrorMsg(interfaces_pos,
-               "interface '%s' conflicts with interface '%s'",
-               String::Handle(interface.UserVisibleName()).ToCString(),
-               String::Handle(conflicting.UserVisibleName()).ToCString());
-    }
+    AddInterfaceIfUnique(interfaces_pos, all_interfaces, interface);
   }
   cls_interfaces = Array::MakeArray(all_interfaces);
   cls.set_interfaces(cls_interfaces);
@@ -4473,7 +4512,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // parameterized type to be patched after the actual type is known.
     // We temporarily use the class of the Function interface.
     const Class& unknown_signature_class = Class::Handle(
-        Type::Handle(Type::FunctionInterface()).type_class());
+        Type::Handle(Type::Function()).type_class());
     function_type = Type::New(
         unknown_signature_class, TypeArguments::Handle(), ident_pos);
     function_type.set_is_finalized_instantiated();  // No finalization needed.
@@ -4640,11 +4679,11 @@ bool Parser::TryParseTypeParameter() {
 bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   bool no_check = type.IsDynamicType();
   if ((CurrentToken() == Token::kINTEGER) &&
-      (no_check || type.IsIntInterface() || type.IsNumberInterface())) {
+      (no_check || type.IsIntInterface() || type.IsNumberType())) {
     *value = CurrentIntegerLiteral();
     return true;
   } else if ((CurrentToken() == Token::kDOUBLE) &&
-      (no_check || type.IsDoubleInterface() || type.IsNumberInterface())) {
+      (no_check || type.IsDoubleInterface() || type.IsNumberType())) {
     *value = CurrentDoubleLiteral();
     return true;
   } else if ((CurrentToken() == Token::kSTRING) &&
@@ -8022,10 +8061,16 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
+  const Class& list_class = Class::Handle(
+      Type::Handle(Type::ListInterface()).type_class());
+  Type& type = Type::ZoneHandle(
+      Type::New(list_class, type_arguments, type_pos));
+  type ^= ClassFinalizer::FinalizeType(
+      current_class(), type, ClassFinalizer::kCanonicalize);
+  ArrayNode* list = new ArrayNode(TokenPos(), type);
 
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
-  ArrayNode* list = new ArrayNode(TokenPos(), type_arguments);
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const String& dst_name = String::ZoneHandle(Symbols::ListLiteralElement());
@@ -8206,12 +8251,13 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
-  // Parse the map entries. Note: there may be an optional extra
-  // comma after the last entry.
   // The kv_pair array is temporary and of element type Dynamic. It is passed
   // to the factory to initialize a properly typed map.
   ArrayNode* kv_pairs =
-      new ArrayNode(TokenPos(), TypeArguments::ZoneHandle());
+      new ArrayNode(TokenPos(), Type::ZoneHandle(Type::ListInterface()));
+
+  // Parse the map entries. Note: there may be an optional extra
+  // comma after the last entry.
   const String& dst_name = String::ZoneHandle(Symbols::ListLiteralElement());
   while (CurrentToken() != Token::kRBRACE) {
     AstNode* key = NULL;
@@ -8669,7 +8715,8 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
-  ArrayNode* values = new ArrayNode(TokenPos(), TypeArguments::ZoneHandle());
+  ArrayNode* values = new ArrayNode(TokenPos(),
+                                    Type::ZoneHandle(Type::ListInterface()));
   while (CurrentToken() == Token::kSTRING) {
     values->AddElement(new LiteralNode(TokenPos(), *CurrentLiteral()));
     ConsumeToken();

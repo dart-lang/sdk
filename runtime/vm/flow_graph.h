@@ -56,11 +56,24 @@ class FlowGraph: public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
+  GraphEntryInstr* graph_entry() const {
+    return graph_entry_;
+  }
+
+  intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
+
   // Operations on the flow graph.
   void ComputeSSA();
+  void ComputeUseLists();
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
+
+#ifdef DEBUG
+  // Validation methods for debugging.
+  bool ResetUseLists();
+  bool ValidateUseLists();
+#endif  // DEBUG
 
  private:
   void DiscoverBlocks();
@@ -91,7 +104,6 @@ class FlowGraph: public ZoneAllocated {
   void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
 
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
-  intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.

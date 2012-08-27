@@ -445,6 +445,8 @@ RawClass* Object::CreateAndRegisterInterface(const char* cname,
 void Object::RegisterClass(const Class& cls,
                            const String& name,
                            const Library& lib) {
+  ASSERT(name.Length() > 0);
+  ASSERT(name.CharAt(0) != '_');
   cls.set_name(name);
   lib.AddClass(cls);
 }
@@ -453,6 +455,8 @@ void Object::RegisterClass(const Class& cls,
 void Object::RegisterPrivateClass(const Class& cls,
                                   const String& public_class_name,
                                   const Library& lib) {
+  ASSERT(public_class_name.Length() > 0);
+  ASSERT(public_class_name.CharAt(0) == '_');
   String& str = String::Handle();
   str = lib.PrivateName(public_class_name);
   cls.set_name(str);
@@ -627,8 +631,8 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
-  name = Symbols::WeakProperty();
-  RegisterClass(cls, name, core_impl_lib);
+  name = Symbols::_WeakProperty();
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -753,15 +757,21 @@ RawError* Object::Init(Isolate* isolate) {
   cls = object_store->stacktrace_class();
   cls.set_super_type(type);
 
-  cls = CreateAndRegisterInterface("Function", script, core_lib);
+  // Note: The abstract class Function is represented by VM class
+  // DartFunction, not VM class Function.
+  name = Symbols::Function();
+  cls = Class::New<DartFunction>();
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_function_interface(type);
+  object_store->set_function_type(type);
 
-  cls = CreateAndRegisterInterface("num", script, core_lib);
+  cls = Class::New<Number>();
+  name = Symbols::Number();
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_number_interface(type);
+  object_store->set_number_type(type);
 
   cls = CreateAndRegisterInterface("int", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -1032,6 +1042,12 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
+
+  // Some classes are not stored in the object store. Yet we still need to
+  // create their Class object so that they get put into the class_table
+  // (as a side effect of Class::New()).
+  cls = Class::New<DartFunction>();
+  cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
@@ -1597,7 +1613,10 @@ const char* Class::ApplyPatch(const Class& patch) const {
       // Non-patched function is preserved, all patched functions are added in
       // the loop below.
       new_functions.Add(orig_func);
-    } else if (!func.HasCompatibleParametersWith(orig_func)) {
+    } else if (!func.HasCompatibleParametersWith(orig_func) &&
+               !(func.IsFactory() && orig_func.IsConstructor() &&
+                 (func.num_fixed_parameters() + 1 ==
+                  orig_func.num_fixed_parameters()))) {
       return FormatPatchError("mismatched parameters: %s", member_name);
     }
   }
@@ -1745,9 +1764,9 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_type_arguments_instance_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
-  const Type& function_interface = Type::Handle(Type::FunctionInterface());
+  const Type& function_type = Type::Handle(Type::Function());
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
-  interfaces.SetAt(0, function_interface);
+  interfaces.SetAt(0, function_type);
   result.set_interfaces(interfaces);
   // Unless the signature function already has a signature class, create a
   // canonical signature class by having the signature function point back to
@@ -1894,11 +1913,6 @@ void Class::set_allocation_stub(const Code& value) const {
   ASSERT(!value.IsNull());
   ASSERT(raw_ptr()->allocation_stub_ == Code::null());
   StorePointer(&raw_ptr()->allocation_stub_, value.raw());
-}
-
-
-bool Class::IsObjectClass() const {
-  return id() == kInstanceCid;
 }
 
 
@@ -2560,9 +2574,9 @@ bool AbstractType::IsDoubleInterface() const {
 }
 
 
-bool AbstractType::IsNumberInterface() const {
+bool AbstractType::IsNumberType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::NumberInterface()).type_class());
+      (type_class() == Type::Handle(Type::Number()).type_class());
 }
 
 
@@ -2572,9 +2586,9 @@ bool AbstractType::IsStringInterface() const {
 }
 
 
-bool AbstractType::IsFunctionInterface() const {
+bool AbstractType::IsFunctionType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::FunctionInterface()).type_class());
+      (type_class() == Type::Handle(Type::Function()).type_class());
 }
 
 
@@ -2685,13 +2699,23 @@ RawType* Type::IntInterface() {
 }
 
 
+RawType* Type::SmiType() {
+  return Isolate::Current()->object_store()->smi_type();
+}
+
+
+RawType* Type::MintType() {
+  return Isolate::Current()->object_store()->mint_type();
+}
+
+
 RawType* Type::DoubleInterface() {
   return Isolate::Current()->object_store()->double_interface();
 }
 
 
-RawType* Type::NumberInterface() {
-  return Isolate::Current()->object_store()->number_interface();
+RawType* Type::Number() {
+  return Isolate::Current()->object_store()->number_type();
 }
 
 
@@ -2700,8 +2724,8 @@ RawType* Type::StringInterface() {
 }
 
 
-RawType* Type::FunctionInterface() {
-  return Isolate::Current()->object_store()->function_interface();
+RawType* Type::Function() {
+  return Isolate::Current()->object_store()->function_type();
 }
 
 
@@ -7817,6 +7841,15 @@ const char* Error::ToCString() const {
 }
 
 
+RawApiError* ApiError::New() {
+  ASSERT(Object::api_error_class() != Class::null());
+  RawObject* raw = Object::Allocate(ApiError::kClassId,
+                                    ApiError::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawApiError*>(raw);
+}
+
+
 RawApiError* ApiError::New(const String& message, Heap::Space space) {
   ASSERT(Object::api_error_class() != Class::null());
   ApiError& result = ApiError::Handle();
@@ -7845,6 +7878,15 @@ const char* ApiError::ToErrorCString() const {
 
 const char* ApiError::ToCString() const {
   return "ApiError";
+}
+
+
+RawLanguageError* LanguageError::New() {
+  ASSERT(Object::language_error_class() != Class::null());
+  RawObject* raw = Object::Allocate(LanguageError::kClassId,
+                                    LanguageError::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawLanguageError*>(raw);
 }
 
 
@@ -9232,7 +9274,10 @@ RawString* String::SubString(const String& str,
   ASSERT(!str.IsNull());
   ASSERT(begin_index >= 0);
   ASSERT(length >= 0);
-  if (begin_index >= str.Length()) {
+  if (begin_index <= str.Length() && length == 0) {
+    return Symbols::Empty();
+  }
+  if (begin_index > str.Length()) {
     return String::null();
   }
   String& result = String::Handle();
@@ -10857,6 +10902,11 @@ void Closure::set_function(const Function& value) const {
 }
 
 
+const char* DartFunction::ToCString() const {
+  return "Function type class";
+}
+
+
 const char* Closure::ToCString() const {
   const Function& fun = Function::Handle(function());
   const bool is_implicit_closure = fun.IsImplicitClosureFunction();
@@ -11136,7 +11186,7 @@ RawWeakProperty* WeakProperty::New(Heap::Space space) {
 
 
 const char* WeakProperty::ToCString() const {
-  return "WeakProperty";
+  return "_WeakProperty";
 }
 
 }  // namespace dart

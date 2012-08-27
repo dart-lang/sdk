@@ -169,6 +169,9 @@ class ParamInfo(object):
     self.dart_type = dart_type
     self.is_optional = is_optional
 
+  def Copy(self):
+    return ParamInfo(self.name, self.type_id, self.dart_type, self.is_optional)
+
   def __repr__(self):
     content = 'name = %s, type_id = %s, dart_type = %s, is_optional = %s' % (
         self.name, self.type_id, self.dart_type, self.is_optional)
@@ -413,6 +416,15 @@ class OperationInfo(object):
     else:
       return self.type_name
 
+  def CopyAndWidenDefaultParameters(self):
+    """Returns equivalent OperationInfo, but default parameters are Dynamic."""
+    info = copy.copy(self)
+    info.param_infos = [param.Copy() for param in self.param_infos]
+    for param in info.param_infos:
+      if param.is_optional:
+        param.dart_type = 'Dynamic'
+    return info
+
 
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""
@@ -449,6 +461,96 @@ def TypeName(type_ids, interface):
 
 # ------------------------------------------------------------------------------
 
+class Conversion(object):
+  """Represents a way of converting between types."""
+  def __init__(self, name, input_type, output_type):
+    # input_type is the type of the API input (and the argument type of the
+    # conversion function)
+    # output_type is the type of the API output (and the result type of the
+    # conversion function)
+    self.function_name = name
+    self.input_type = input_type
+    self.output_type = output_type
+
+#  TYPE -> "DIRECTION INTERFACE.MEMBER" -> conversion
+#  TYPE -> "DIRECTION INTERFACE.*" -> conversion
+#  TYPE -> "DIRECTION" -> conversion
+#
+# where DIRECTION is 'get' for getters and operation return values, 'set' for
+# setters and operation arguments.  INTERFACE and MEMBER are the idl names.
+#
+dart2js_conversions = {
+    'IDBKey': {
+        'get':
+          Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
+        'set':
+          Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
+        },
+    'ImageData': {
+        'get':
+          Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
+        'set':
+          Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic')
+        },
+    'Dictionary': {
+        'get':
+          Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
+        'set':
+          Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
+        },
+
+    'DOMString[]': {
+        'set':
+          Conversion(
+              '_convertDartToNative_StringArray', 'List<String>', 'List'),
+        },
+
+    'SerializedScriptValue': {
+        'set IDBObjectStore.add':
+          Conversion('_convertDartToNative_SerializedScriptValue',
+                     'Dynamic', 'Dynamic'),
+        'set IDBObjectStore.put':
+          Conversion('_convertDartToNative_SerializedScriptValue',
+                     'Dynamic', 'Dynamic'),
+        'set IDBCursor.update':
+          Conversion('_convertDartToNative_SerializedScriptValue',
+                     'Dynamic', 'Dynamic'),
+        },
+
+
+    # IDBAny is problematic.  Some uses are just a union of other IDB types,
+    # which need no conversion..  Others include data values which require
+    # serialized script value processing.
+    'IDBAny': {
+        'get IDBCursorWithValue.value':
+          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+
+        # This is problematic.  The result property of IDBRequest is used for
+        # all requests.  Read requests like IDBDataStore.getObject need
+        # conversion, but other requests like opening a database return
+        # something that does not need conversion.
+        'get IDBRequest.result':
+          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+
+        # "source: On getting, returns the IDBObjectStore or IDBIndex that the
+        # cursor is iterating. ...".  So we should not try to convert it.
+        'get IDBCursor.source': None,
+
+        # Should be either a DOMString, an Array of DOMStrings or null.
+        'get IDBObjectStore.keyPath': None
+        },
+}
+
+def FindConversion(idl_type, direction, interface, member):
+  table = dart2js_conversions.get(idl_type)
+  if table:
+    return (table.get('%s %s.%s' % (direction, interface, member)) or
+            table.get('%s %s.*' % (direction, interface)) or
+            table.get(direction))
+  return None
+
+# ------------------------------------------------------------------------------
+
 class IDLTypeInfo(object):
   def __init__(self, idl_type, data):
     self._idl_type = idl_type
@@ -466,25 +568,22 @@ class IDLTypeInfo(object):
   def requires_v8_scope(self):
     return self._data.requires_v8_scope
 
-  def to_native_info(self, idl_node, accept_null, name, interface_name):
+  def to_native_info(self, idl_node, interface_name):
     cls = 'Dart%s' % self.idl_type()
 
     if 'Callback' in idl_node.ext_attrs:
-      function_name = 'create'
-      if accept_null:
-        function_name += 'WithNullCheck'
-      return name, 'RefPtr<%s>' % self.native_type(), cls, function_name
+      return '%s', 'RefPtr<%s>' % self.native_type(), cls, 'create'
 
     if self.custom_to_native():
       type = 'RefPtr<%s>' % self.native_type()
-      argument = '%s.get()' % name
+      argument_expression_template = '%s.get()'
     else:
       type = '%s*' % self.native_type()
       if isinstance(self, SVGTearOffIDLTypeInfo) and not interface_name.endswith('List'):
-        argument = '%s->propertyReference()' % name
+        argument_expression_template = '%s->propertyReference()'
       else:
-        argument = name
-    return argument, type, cls, 'toNative'
+        argument_expression_template = '%s'
+    return argument_expression_template, type, cls, 'toNative'
 
   def custom_to_native(self):
     return self._data.custom_to_native
@@ -559,25 +658,21 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
   def __init__(self, data, item_info):
     super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', data, item_info)
 
-  def to_native_info(self, idl_node, accept_null, name, interface_name):
-    assert not accept_null
-    return name, 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
+  def to_native_info(self, idl_node, interface_name):
+    return '%s', 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
 
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
 
-  def to_native_info(self, idl_node, accept_null, name, interface_name):
-    function_name = 'dartTo%s' % self._capitalized_native_type()
-    if accept_null:
-      function_name += 'WithNullCheck'
+  def to_native_info(self, idl_node, interface_name):
     type = self.native_type()
     if type == 'SerializedScriptValue':
       type = 'RefPtr<%s>' % type
     if type == 'String':
       type = 'DartStringAdapter'
-    return name, type, 'DartUtilities', function_name
+    return '%s', type, 'DartUtilities', 'dartTo%s' % self._capitalized_native_type()
 
   def parameter_type(self):
     if self.native_type() == 'String':

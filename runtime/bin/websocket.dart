@@ -169,7 +169,7 @@ interface MessageEvent extends Event default _WebSocketMessageEvent {
    * depending on whether it is a text or binary message. If the
    * message is empty [message] will be [:null:]
    */
-  get data();
+  get data;
 }
 
 
@@ -180,19 +180,19 @@ interface CloseEvent extends Event default _WebSocketCloseEvent {
   /**
    * Returns whether the connection was closed cleanly or not.
    */
-  bool get wasClean();
+  bool get wasClean;
 
   /**
    * Returns the web socket connection close code provided by the
    * server.
    */
-  int get code();
+  int get code;
 
   /**
    * Returns the web socket connection close reason provided by the
    * server.
    */
-  String get reason();
+  String get reason;
 }
 
 
@@ -221,12 +221,12 @@ interface WebSocket default _WebSocket {
   /**
    * Returns the current state of the connection.
    */
-  int get readyState();
+  int get readyState;
 
   /**
    * Returns the number of bytes currently buffered for transmission.
    */
-  int get bufferedAmount();
+  int get bufferedAmount;
 
   /**
    * Sets the callback to be called when a web socket connection has
@@ -251,7 +251,7 @@ interface WebSocket default _WebSocket {
    * web socket connection is established this string reflects the
    * extensions used by the server.
    */
-  String get extensions();
+  String get extensions;
 
   /**
    * The protocol property is initially the empty string. After the
@@ -259,7 +259,7 @@ interface WebSocket default _WebSocket {
    * selected by the server. If no subprotocol is negotiated the
    * value will remain [:null:].
    */
-  String get protocol();
+  String get protocol;
 
   /**
    * Closes the web socket connection.

@@ -12,8 +12,8 @@
 #import("dart:io");
 #import("dart:isolate");
 
-final SERVERSHUTDOWN = -1;
-final ITERATIONS = 10;
+const SERVERSHUTDOWN = -1;
+const ITERATIONS = 10;
 
 
 class SocketClose {
@@ -211,7 +211,7 @@ void startSocketCloseServer() {
 
 class SocketCloseServer {
 
-  static final HOST = "127.0.0.1";
+  static const HOST = "127.0.0.1";
 
   SocketCloseServer() : super() {}
 

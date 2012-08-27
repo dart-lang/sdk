@@ -29,24 +29,24 @@ interface Path extends Hashable default _Path {
   /**
    * Is this path the empty string?
    */
-  bool get isEmpty();
+  bool get isEmpty;
 
   /**
    * Is this path an absolute path, beginning with a path separator?
    */
-  bool get isAbsolute();
+  bool get isAbsolute;
 
   /**
    * Does this path end with a path separator?
    */
-  bool get hasTrailingSeparator();
+  bool get hasTrailingSeparator;
 
   /**
    * Does this path contain no consecutive path separators, no segments that
    * are '.' unless the path is exactly '.', and segments that are '..' only
    * as the leading segments on a relative path?
    */
-  bool get isCanonical();
+  bool get isCanonical;
 
   /**
    * Make a path canonical by dropping segments that are '.', cancelling
@@ -142,7 +142,7 @@ interface Path extends Hashable default _Path {
    *     new Path('/src').directoryPath == '/'
    *     Note: new Path('/D:/src').directoryPath == '/D:'
    */
-  Path get directoryPath();
+  Path get directoryPath;
 
   /**
    * The part of the path after the last path separator, or the entire path if
@@ -151,7 +151,7 @@ interface Path extends Hashable default _Path {
    *     new Path('images/DSC_0027.jpg).filename == 'DSC_0027.jpg'
    *     new Path('users/fred/').filename == ''
    */
-  String get filename();
+  String get filename;
 
   /**
    * The part of [filename] before the last '.', or the entire filename if it
@@ -162,7 +162,7 @@ interface Path extends Hashable default _Path {
    *     new Path('not what I would call a path').filenameWithoutExtension
    *     would return 'not what I would call a path'.
    */
-  String get filenameWithoutExtension();
+  String get filenameWithoutExtension;
 
   /**
    * The part of [filename] after the last '.', or '' if [filename]
@@ -171,5 +171,5 @@ interface Path extends Hashable default _Path {
    *     new Path('tiger.svg').extension == 'svg'
    *     new Path('/src/dart/dart_secrets').extension == ''
    */
-  String get extension();
+  String get extension;
 }

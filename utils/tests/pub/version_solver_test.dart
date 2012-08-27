@@ -378,7 +378,7 @@ class MockSource extends Source {
   final Map<String, Map<Version, Package>> _packages;
 
   final String name;
-  bool get shouldCache() => true;
+  bool get shouldCache => true;
 
   MockSource(this.name)
       : _packages = <String, Map<Version, Package>>{};
@@ -407,8 +407,9 @@ class MockSource extends Source {
           parsed.last, new VersionConstraint.parse(constraint), parsed.first));
     });
 
-    var pubspec = new Pubspec(new Version.parse(version), dependencies);
-    return new Package.inMemory(description, pubspec);
+    var pubspec = new Pubspec(
+        description, new Version.parse(version), dependencies);
+    return new Package.inMemory(pubspec);
   }
 
   void addPackage(Package package) {

@@ -90,6 +90,7 @@ namespace dart {
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
+    V(DartFunction)                                                            \
     V(Closure)                                                                 \
 
 #define CLASS_LIST(V)                                                          \
@@ -1382,6 +1383,11 @@ class RawExternalFloat64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array);
 
   ExternalByteArrayData<double>* external_data_;
+};
+
+
+class RawDartFunction : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(DartFunction);
 };
 
 

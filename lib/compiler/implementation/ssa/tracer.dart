@@ -266,12 +266,13 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
-    return 'get ${temporaryId(node.receiver)}.${node.fieldName.slowToString()}';
+    String fieldName = node.element.name.slowToString();
+    return 'get ${temporaryId(node.receiver)}.$fieldName}';
   }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
-    String fieldName = node.fieldName.slowToString();
+    String fieldName = node.element.name.slowToString();
     return 'set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 

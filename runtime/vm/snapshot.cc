@@ -59,8 +59,11 @@ static RawType* GetType(ObjectStore* object_store, int index) {
     case kNullType: return object_store->null_type();
     case kDynamicType: return object_store->dynamic_type();
     case kVoidType: return object_store->void_type();
-    case kFunctionInterface: return object_store->function_interface();
-    case kNumberInterface: return object_store->number_interface();
+    case kFunctionType: return object_store->function_type();
+    case kNumberType: return object_store->number_type();
+    case kSmiType: return object_store->smi_type();
+    case kMintType: return object_store->mint_type();
+    case kDoubleType: return object_store->double_type();
     case kDoubleInterface: return object_store->double_interface();
     case kIntInterface: return object_store->int_interface();
     case kBoolInterface: return object_store->bool_interface();
@@ -84,10 +87,16 @@ static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
     return kDynamicType;
   } else if (raw_type == object_store->void_type()) {
     return kVoidType;
-  } else if (raw_type == object_store->function_interface()) {
-    return kFunctionInterface;
-  } else if (raw_type == object_store->number_interface()) {
-    return kNumberInterface;
+  } else if (raw_type == object_store->function_type()) {
+    return kFunctionType;
+  } else if (raw_type == object_store->number_type()) {
+    return kNumberType;
+  } else if (raw_type == object_store->smi_type()) {
+    return kSmiType;
+  } else if (raw_type == object_store->mint_type()) {
+    return kMintType;
+  } else if (raw_type == object_store->double_type()) {
+    return kDoubleType;
   } else if (raw_type == object_store->double_interface()) {
     return kDoubleInterface;
   } else if (raw_type == object_store->int_interface()) {
@@ -414,7 +423,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id, bool is_signature_class) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
-    ASSERT((class_id >= kInstanceCid) && (class_id <= kWeakPropertyCid));
+    ASSERT((class_id >= kInstanceCid) && (class_id <= kDartFunctionCid));
     return isolate()->class_table()->At(class_id);
   }
   cls_ = Object::class_class();
@@ -531,6 +540,16 @@ RawLiteralToken* SnapshotReader::NewLiteralToken() {
 RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
   ALLOC_NEW_OBJECT(GrowableObjectArray,
                    object_store()->growable_object_array_class());
+}
+
+
+RawApiError* SnapshotReader::NewApiError() {
+  ALLOC_NEW_OBJECT(ApiError, Object::api_error_class());
+}
+
+
+RawLanguageError* SnapshotReader::NewLanguageError() {
+  ALLOC_NEW_OBJECT(LanguageError, Object::language_error_class());
 }
 
 

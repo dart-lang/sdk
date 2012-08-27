@@ -397,6 +397,14 @@ void BinaryMintOpComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void UnboxedDoubleBinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void BinaryDoubleOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Token::Str(op_kind()));
 }
@@ -405,6 +413,16 @@ void BinaryDoubleOpComp::PrintOperandsTo(BufferFormatter* f) const {
 void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
+}
+
+
+void CheckClassComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(", cid={");
+  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); i++) {
+    f->Print("%d ", ic_data()->GetReceiverClassIdAt(i));
+  }
+  f->Print("}");
 }
 
 
@@ -548,6 +566,18 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
   if (HasICData()) {
     PrintICData(f, *ic_data());
   }
+}
+
+
+void StrictCompareAndBranchInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s", DebugName());
+  f->Print("if ");
+  left()->PrintTo(f);
+  f-> Print(" %s ", Token::Str(kind()));
+  right()->PrintTo(f);
+  f->Print(" goto (%d, %d)",
+            true_successor()->block_id(),
+            false_successor()->block_id());
 }
 
 
@@ -796,6 +826,18 @@ void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s ", DebugName());
+  f->Print("if ");
+  left()->PrintTo(f);
+  f-> Print(" %s ", Token::Str(kind()));
+  right()->PrintTo(f);
+  f->Print(" goto (B%d, B%d)",
+            true_successor()->block_id(),
+            false_successor()->block_id());
+}
+
+
+void StrictCompareAndBranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
   left()->PrintTo(f);

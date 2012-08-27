@@ -1311,16 +1311,7 @@ class NodeListener extends ElementListener {
   void handleLiteralList(int count, Token beginToken, Token constKeyword,
                          Token endToken) {
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
-    NodeList typeArguments = popNode();
-    TypeAnnotation type = null;
-    if (typeArguments !== null) {
-      if (typeArguments.length() != 1) {
-        error('Type annotations for list literal should have a single type',
-              constKeyword.next);
-      }
-      type = typeArguments.iterator().next();
-    }
-    pushNode(new LiteralList(type, elements, constKeyword));
+    pushNode(new LiteralList(popNode(), elements, constKeyword));
   }
 
   void handleIndexedExpression(Token openSquareBracket,
@@ -1646,7 +1637,13 @@ class PartialMetadataAnnotation extends MetadataAnnotation {
 
   PartialMetadataAnnotation(this.beginToken);
 
-  // TODO(ahe): Add more functionality as needed.
+  Node parseNode(DiagnosticListener listener) {
+    if (cachedNode !== null) return cachedNode;
+    cachedNode = parse(listener,
+                       annotatedElement.getCompilationUnit(),
+                       (p) => p.parseSend(beginToken.next));
+    return cachedNode;
+  }
 }
 
 Node parse(DiagnosticListener diagnosticListener,

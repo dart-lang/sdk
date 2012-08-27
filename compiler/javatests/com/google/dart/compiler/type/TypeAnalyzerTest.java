@@ -55,9 +55,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("List<String> strings = <String>['x'];");
     analyze("List array = ['x'];");
     analyze("List array = <String>['x'];");
-    analyze("List<int> ints = ['x'];");
-    analyzeFail("List<int> ints = <String>['x'];",
-                TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("List<int> ints = ['x'];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("List<int> ints = <String>['x'];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testBadInitializers() {

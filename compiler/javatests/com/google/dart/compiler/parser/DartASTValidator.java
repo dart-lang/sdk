@@ -593,12 +593,12 @@ public class DartASTValidator extends ASTVisitor<Void> {
       int nodeEnd = nodeStart + nodeLength;
       int parentStart = parent.getSourceInfo().getOffset();
       int parentEnd = parentStart + parent.getSourceInfo().getLength();
-      if (parentStart > nodeStart) {
+      if (parentStart > nodeStart && !isExceptionForNesting(node)) {
         errors.add("Invalid source start (" + nodeStart + ") for "
             + node.getClass().getName() + " inside "
             + parent.getClass().getName() + " (" + parentStart + ")");
       }
-      if (nodeEnd > parentEnd) {
+      if (nodeEnd > parentEnd && !isExceptionForNesting(node)) {
         errors.add("Invalid source end (" + nodeEnd + ") for "
             + node.getClass().getName() + " inside "
             + parent.getClass().getName() + " (" + parentStart + ")");
@@ -609,6 +609,21 @@ public class DartASTValidator extends ASTVisitor<Void> {
         || node instanceof DartSyntheticErrorExpression) {
       errors.add("Parser error at (" + nodeStart + ")");
     }
+  }
+
+  /**
+   * Return {@code true} if the given node is an exception to the rule that nodes must nest lexically
+   * within their parents. The one exception currently recognized is a DartTypeNode whose parent is
+   * a DartParameter within a DartCatchBlock. This exception exists because the type has been moved
+   * outside the parameter (following the 'on' keyword) but we didn't update the AST structure to
+   * reflect this change.
+   *
+   * @param node the node being tested
+   * @return {@code true} if the given node is an exception to the rule that nodes must nest lexically
+   * within their parents
+   */
+  private boolean isExceptionForNesting(DartNode node) {
+    return (node instanceof DartTypeNode) && (node.getParent() instanceof DartParameter) && (node.getParent().getParent() instanceof DartCatchBlock);
   }
 
   @Override

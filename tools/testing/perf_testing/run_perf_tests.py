@@ -843,9 +843,9 @@ class DromaeoTest(RuntimePerformanceTest):
                 FIRST_CHROMEDRIVER):
               # If we don't have a stashed a different chromedriver just use
               # the regular chromedriver.
-              self.test.test_runner.RunCmd(os.path.join(
+              self.test.test_runner.RunCmd([os.path.join(
                   TOP_LEVEL_DIR, 'tools', 'testing', 'webdriver_test_setup.py'),
-                  '-f', '-s', '-p')
+                  '-f', '-p', '-s'])
             elif not os.path.exists(dartium_chromedriver_path):
               stdout, _ = self.test.test_runner.GetArchive('chromedriver')
             # Move original chromedriver for storage.

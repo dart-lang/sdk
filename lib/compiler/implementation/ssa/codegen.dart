@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class SsaCodeGeneratorTask extends CompilerTask {
+
   final JavaScriptBackend backend;
+
   SsaCodeGeneratorTask(JavaScriptBackend backend)
       : this.backend = backend,
         super(backend.compiler);
@@ -1492,9 +1494,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    if (Elements.isStaticOrTopLevelFunction(node.element) &&
-        (node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE ||
-         node.typeCode() == HInvokeStatic.INVOKE_INTERCEPTOR_TYPECODE)) {
+    if (true &&
+        (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE ||
+         node.typeCode() == HInstruction.INVOKE_INTERCEPTOR_TYPECODE)) {
       // Register this invocation to collect the types used at all call sites.
       backend.registerStaticInvocation(node, types);
     }
@@ -1551,22 +1553,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    String name =
-        compiler.namer.instanceFieldName(node.library, node.fieldName);
+    String name = compiler.namer.getName(node.element);
     use(node.receiver);
     push(new js.PropertyAccess.field(pop(), name), node);
-    if (node.element == null) {
-      // If we don't have an element we register a dynamic field getter.
-      // This might lead to unnecessary getters, but these cases should be
-      // rare.
-      Selector getter = new Selector.getter(node.fieldName, node.library);
-      world.registerDynamicGetter(node.fieldName, getter);
-    } else {
-      HType receiverHType = types[node.receiver];
-      Type type = receiverHType.computeType(compiler);
-      if (type != null) {
-        world.registerFieldGetter(node.element.name, node.library, type);
-      }
+    HType receiverHType = types[node.receiver];
+    Type type = receiverHType.computeType(compiler);
+    if (type != null) {
+      world.registerFieldGetter(
+          node.element.name, node.element.getLibrary(), type);
     }
   }
 
@@ -1584,42 +1578,33 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    if (node.element != null &&
-        work.element.isGenerativeConstructorBody() &&
+    if (work.element.isGenerativeConstructorBody() &&
         node.element.isMember() &&
         node.value.hasGuaranteedType() &&
         node.block.dominates(currentGraph.exit)) {
       backend.updateFieldConstructorSetters(node.element,
                                             node.value.guaranteedType);
     }
-    String name =
-        compiler.namer.instanceFieldName(node.library, node.fieldName);
-    if (node.element == null) {
-      // If we don't have an element we register a dynamic field setter.
-      // This might lead to unnecessary setters, but these cases should be
-      // rare.
-      Selector setter = new Selector.setter(node.fieldName, node.library);
-      world.registerDynamicSetter(node.fieldName, setter);
-    } else {
-      Type type = types[node.receiver].computeType(compiler);
-      if (type != null) {
-        if (!work.element.isGenerativeConstructorBody()) {
-          world.registerFieldSetter(node.element.name, node.library, type);
-        }
-        // Determine the types seen so far for the field. If only number
-        // types have been seen and the value of the field set is a
-        // simple number computation only depending on that field, we
-        // can safely keep the number type for the field.
-        HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
-        HType initializersType =
-            backend.typeFromInitializersSoFar(node.element);
-        HType fieldType = fieldSettersType.union(initializersType);
-        if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
-            isSimpleFieldNumberComputation(node.value, node)) {
-          backend.updateFieldSetters(node.element, HType.NUMBER);
-        } else {
-          backend.updateFieldSetters(node.element, types[node.value]);
-        }
+    String name = compiler.namer.getName(node.element);
+    Type type = types[node.receiver].computeType(compiler);
+    if (type != null) {
+      if (!work.element.isGenerativeConstructorBody()) {
+        world.registerFieldSetter(
+            node.element.name, node.element.getLibrary(), type);
+      }
+      // Determine the types seen so far for the field. If only number
+      // types have been seen and the value of the field set is a
+      // simple number computation only depending on that field, we
+      // can safely keep the number type for the field.
+      HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
+      HType initializersType =
+          backend.typeFromInitializersSoFar(node.element);
+      HType fieldType = fieldSettersType.union(initializersType);
+      if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
+          isSimpleFieldNumberComputation(node.value, node)) {
+        backend.updateFieldSetters(node.element, HType.NUMBER);
+      } else {
+        backend.updateFieldSetters(node.element, types[node.value]);
       }
     }
     use(node.receiver);
@@ -1698,8 +1683,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         CodeBuffer buffer = new CodeBuffer();
         handler.writeConstant(buffer, constant);
         push(new js.LiteralString(buffer.toString()));
+      } else if (constant.isFunction()) {
+        FunctionConstant function = constant;
+        world.registerStaticUse(function.element);
+        push(new js.VariableUse(
+            compiler.namer.isolateAccess(function.element)));
       } else {
-        compiler.internalError("Forgot constant $constant");
+        compiler.internalError(
+            "The compiler does not know how generate code for "
+            "constant $constant");
       }
     } else {
       js.VariableUse currentIsolateUse =
@@ -2046,6 +2038,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           arity == 1 &&
           interceptor.inputs[2].isString(types)) {
         return '+';
+      }
+      if (name == const SourceString('split') &&
+          arity == 1 &&
+          interceptor.inputs[2].isString(types)) {
+        return 'split';
       }
     }
 

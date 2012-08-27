@@ -655,7 +655,17 @@ class Parser {
           (value === '=>')) {
         isField = false;
         break;
-      } else if ((value === '=') || (value === ';') || (value === ',')) {
+      } else if (value === ';') {
+        if (getOrSet != null) {
+          // If we found a "get" keyword, this must be an abstract
+          // getter.
+          isField = (getOrSet.stringValue !== 'get');
+          // TODO(ahe): This feels like a hack.
+        } else {
+          isField = true;
+        }
+        break;
+      } else if ((value === '=') || (value === ',')) {
         isField = true;
         break;
       } else {

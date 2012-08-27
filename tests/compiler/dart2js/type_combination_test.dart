@@ -9,29 +9,29 @@ class Type {
   final String str;
 }
 
-final CONFLICTING = HType.CONFLICTING;
-final UNKNOWN = HType.UNKNOWN;
-final BOOLEAN = HType.BOOLEAN;
-final NUMBER = HType.NUMBER;
-final INTEGER = HType.INTEGER;
-final DOUBLE = HType.DOUBLE;
-final INDEXABLE_PRIMITIVE = HType.INDEXABLE_PRIMITIVE;
-final STRING = HType.STRING;
-final READABLE_ARRAY = HType.READABLE_ARRAY;
-final MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
-final EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
-final NON_PRIMITIVE1 = const HBoundedType.nonNull(const Type("type1"));
-final NON_PRIMITIVE2 = const HBoundedType.nonNull(const Type("type2"));
-final POTENTIAL_ARRAY =
+const CONFLICTING = HType.CONFLICTING;
+const UNKNOWN = HType.UNKNOWN;
+const BOOLEAN = HType.BOOLEAN;
+const NUMBER = HType.NUMBER;
+const INTEGER = HType.INTEGER;
+const DOUBLE = HType.DOUBLE;
+const INDEXABLE_PRIMITIVE = HType.INDEXABLE_PRIMITIVE;
+const STRING = HType.STRING;
+const READABLE_ARRAY = HType.READABLE_ARRAY;
+const MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
+const EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
+const NON_PRIMITIVE1 = const HBoundedType.nonNull(const Type("type1"));
+const NON_PRIMITIVE2 = const HBoundedType.nonNull(const Type("type2"));
+const POTENTIAL_ARRAY =
     const HBoundedPotentialPrimitiveArray(const Type('type 3'), true);
-final POTENTIAL_STRING =
+const POTENTIAL_STRING =
     const HBoundedPotentialPrimitiveString(const Type('type 4'), true);
-final BOOLEAN_OR_NULL = HType.BOOLEAN_OR_NULL;
-final NUMBER_OR_NULL = HType.NUMBER_OR_NULL;
-final INTEGER_OR_NULL = HType.INTEGER_OR_NULL;
-final DOUBLE_OR_NULL = HType.DOUBLE_OR_NULL;
-final STRING_OR_NULL = HType.STRING_OR_NULL;
-final NULL = HType.NULL;
+const BOOLEAN_OR_NULL = HType.BOOLEAN_OR_NULL;
+const NUMBER_OR_NULL = HType.NUMBER_OR_NULL;
+const INTEGER_OR_NULL = HType.INTEGER_OR_NULL;
+const DOUBLE_OR_NULL = HType.DOUBLE_OR_NULL;
+const STRING_OR_NULL = HType.STRING_OR_NULL;
+const NULL = HType.NULL;
 
 void testUnion() {
   Expect.equals(CONFLICTING, CONFLICTING.union(CONFLICTING));

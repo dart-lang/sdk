@@ -44,6 +44,11 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ j(NOT_ZERO, &fall_through);
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &fall_through);
+  // Check for maximum allowed length.
+  const Immediate max_len =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
+  __ cmpq(RDI, max_len);
+  __ j(GREATER, &fall_through);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
   ASSERT(kSmiTagShift == 1);
@@ -336,7 +341,7 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
-  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length.
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
   __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
@@ -360,6 +365,38 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
                      RBX);
   __ ret();
   return true;
+}
+
+
+// Add an element to growable array if it doesn't need to grow, otherwise
+// call into regular code.
+// On stack: growable array (+2), value (+1), return-address (+0).
+bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+  // In checked mode we need to check the incoming argument.
+  if (FLAG_enable_type_checks) return false;
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
+  // RCX: length.
+  __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
+  // RDX: data.
+  // Compare length with capacity.
+  __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
+  const Immediate value_one = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
+  // len = len + 1;
+  __ addq(FieldAddress(RAX, GrowableObjectArray::length_offset()), value_one);
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
+  ASSERT(kSmiTagShift == 1);
+  __ StoreIntoObject(RDX,
+                     FieldAddress(RDX, RCX, TIMES_4, sizeof(RawArray)),
+                     RAX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<int64_t>(Object::null()));
+  __ movq(RAX, raw_null);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
 
 
@@ -954,6 +991,7 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
@@ -999,6 +1037,7 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1021,6 +1060,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
@@ -1098,6 +1138,7 @@ static void EmitTrigonometric(Assembler* assembler,
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &alloc_failed,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ fstpl(FieldAddress(RAX, Double::value_offset()));
   __ ret();
@@ -1129,6 +1170,7 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                &fall_through,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();

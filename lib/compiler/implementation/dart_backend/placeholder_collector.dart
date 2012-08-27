@@ -11,6 +11,17 @@ class LocalPlaceholder implements Hashable {
       'local_placeholder[id($identifier), nodes($nodes)]';
 }
 
+class FunctionScope {
+  final Set<String> parameterIdentifiers;
+  final Set<LocalPlaceholder> localPlaceholders;
+  FunctionScope()
+      : parameterIdentifiers = new Set<String>(),
+      localPlaceholders = new Set<LocalPlaceholder>();
+  void registerParameter(Identifier node) {
+    parameterIdentifiers.add(node.source.slowToString());
+  }
+}
+
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
@@ -72,7 +83,7 @@ class PlaceholderCollector extends AbstractVisitor {
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
-  final Map<FunctionElement, Set<LocalPlaceholder>> localPlaceholders;
+  final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
@@ -85,7 +96,7 @@ class PlaceholderCollector extends AbstractVisitor {
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
-      localPlaceholders = new Map<FunctionElement, Set<LocalPlaceholder>>(),
+      functionScopes = new Map<FunctionElement, FunctionScope>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>();
 
   void tryMakeConstructorNamePlaceholder(
@@ -183,11 +194,21 @@ class PlaceholderCollector extends AbstractVisitor {
   }
 
   void tryMakeLocalPlaceholder(Element element, Identifier node) {
+    bool isOptionalParameter() {
+      FunctionElement function = element.enclosingElement;
+      for (Element parameter in function.functionSignature.optionalParameters) {
+        if (parameter === element) return true;
+      }
+      return false;
+    }
+
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
-    if (element.isVariable()
-        || (element.isFunction() && !Elements.isStaticOrTopLevel(element))) {
+    if (element.isParameter() && isOptionalParameter()) {
+      functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
+          .registerParameter(node);
+    } else if (Elements.isLocal(element)) {
       makeLocalPlaceholder(node);
     }
   }
@@ -227,19 +248,19 @@ class PlaceholderCollector extends AbstractVisitor {
     unresolvedNodes.add(node);
   }
 
-  void makeLocalPlaceholder(Node node) {
+  void makeLocalPlaceholder(Identifier identifier) {
+    LocalPlaceholder getLocalPlaceholder() {
+      String name = identifier.source.slowToString();
+      return currentLocalPlaceholders.putIfAbsent(name, () {
+        LocalPlaceholder localPlaceholder = new LocalPlaceholder(name);
+        functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
+            .localPlaceholders.add(localPlaceholder);
+        return localPlaceholder;
+      });
+    }
+
     assert(currentElement is FunctionElement);
-    assert(node is Identifier);
-    String identifier = node.asIdentifier().source.slowToString();
-    LocalPlaceholder localPlaceholder =
-        currentLocalPlaceholders.putIfAbsent(identifier,
-            () {
-              LocalPlaceholder localPlaceholder =
-                  new LocalPlaceholder(identifier);
-              localPlaceholders.putIfAbsent(currentElement,
-                  () => new Set<LocalPlaceholder>()).add(localPlaceholder);
-              return localPlaceholder;
-            });
+    getLocalPlaceholder().nodes.add(identifier);
   }
 
   void internalError(String reason, [Node node]) {
@@ -297,14 +318,10 @@ class PlaceholderCollector extends AbstractVisitor {
     } else {
       typeDeclarationElement = currentElement.getEnclosingClass();
     }
-    if (typeDeclarationElement !== null && isPlainTypeName(node)) {
-      SourceString name = node.typeName.asIdentifier().source;
-      for (TypeVariableType parameter in typeDeclarationElement.typeVariables) {
-        if (parameter.name == name) {
-          makeTypePlaceholder(node, parameter);
-          return;
-        }
-      }
+    if (typeDeclarationElement !== null && isPlainTypeName(node)
+        && tryResolveAndCollectTypeVariable(
+               typeDeclarationElement, node.typeName)) {
+      return;
     }
     final type = compiler.resolveTypeAnnotation(currentElement, node);
     if (type is InterfaceType || type is TypedefType) {
@@ -366,7 +383,7 @@ class PlaceholderCollector extends AbstractVisitor {
     // May get null here in case of A(int this.f());
     if (element !== null) {
       // Rename only local functions.
-      if (element is FunctionElement && element !== currentElement) {
+      if (element !== currentElement) {
         if (node.name !== null) {
           assert(node.name is Identifier);
           tryMakeLocalPlaceholder(element, node.name);
@@ -390,25 +407,31 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
-  visitTypeVariable(TypeVariable node) {
-    assert(currentElement is TypedefElement || currentElement is ClassElement);
+  bool tryResolveAndCollectTypeVariable(
+      TypeDeclarationElement typeDeclaration, Identifier name) {
     // Hack for case when interface and default class are in different
     // libraries, try to resolve type variable to default class type arg.
     // Example:
     // lib1: interface I<K> default C<K> {...}
     // lib2: class C<K> {...}
-    if (currentElement is ClassElement
-        && (currentElement as ClassElement).defaultClass !== null) {
-      currentElement = (currentElement as ClassElement).defaultClass.element;
+    if (typeDeclaration is ClassElement
+        && (typeDeclaration as ClassElement).defaultClass !== null) {
+      typeDeclaration = (typeDeclaration as ClassElement).defaultClass.element;
     }
     // Another poor man type resolution.
-    // Find this variable in current element type parameters.
-    for (Type type in currentElement.typeVariables) {
-      if (type.name.slowToString() == node.name.source.slowToString()) {
-        makeTypePlaceholder(node.name, type);
-        break;
+    // Find this variable in enclosing type declaration parameters.
+    for (Type type in typeDeclaration.typeVariables) {
+      if (type.name.slowToString() == name.source.slowToString()) {
+        makeTypePlaceholder(name, type);
+        return true;
       }
     }
+    return false;
+  }
+
+  visitTypeVariable(TypeVariable node) {
+    assert(currentElement is TypedefElement || currentElement is ClassElement);
+    tryResolveAndCollectTypeVariable(currentElement, node.name);
     node.visitChildren(this);
   }
 

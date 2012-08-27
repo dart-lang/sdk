@@ -124,7 +124,7 @@ class _SocketBase {
     }
   }
 
-  int get port() {
+  int get port {
     if (_port === null) {
       _port = _getPort();
     }
@@ -480,7 +480,7 @@ class _Socket extends _SocketBase implements Socket {
 
   bool _isPipe() => _pipe;
 
-  InputStream get inputStream() {
+  InputStream get inputStream {
     if (_inputStream == null) {
       if (_handlerMap[_SocketBase._IN_EVENT] !== null ||
           _handlerMap[_SocketBase._CLOSE_EVENT] !== null) {
@@ -492,7 +492,7 @@ class _Socket extends _SocketBase implements Socket {
     return _inputStream;
   }
 
-  OutputStream get outputStream() {
+  OutputStream get outputStream {
     if (_outputStream == null) {
       if (_handlerMap[_SocketBase._OUT_EVENT] !== null) {
         throw new StreamException(
@@ -556,14 +556,14 @@ class _Socket extends _SocketBase implements Socket {
     }
   }
 
-  int get remotePort() {
+  int get remotePort {
     if (_remotePort === null) {
       remoteHost;
     }
     return _remotePort;
   }
 
-  String get remoteHost() {
+  String get remoteHost {
     if (_remoteHost === null) {
       List peer = _getRemotePeer();
       _remoteHost = peer[0];

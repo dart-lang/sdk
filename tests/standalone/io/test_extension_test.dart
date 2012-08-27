@@ -11,7 +11,7 @@
 // tools/testing/dart/multitest.dart
 // into copying the files into the generated_tests directory.
 // TODO(3919): Rewrite this test, not as a multitest, to copy them manually.
-final dummyString = '''
+const dummyString = '''
 #source('test_extension_tester.dart');
 #source('test_extension.dart');
 ''';

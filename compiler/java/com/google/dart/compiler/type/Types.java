@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,6 +63,60 @@ public class Types {
     }
   }
 
+  public Type intersection(Type t, Type s) {
+    return intersection(ImmutableList.of(t, s));
+  }
+    
+  public Type intersection(List<Type> types) {
+    // prepare all super types
+    List<List<InterfaceType>> superTypesLists = Lists.newArrayList();
+    List<Set<InterfaceType>> superTypesSets = Lists.newArrayList();
+    for (Type type : types) {
+      List<InterfaceType> superTypes = getSuperTypes(type);
+      superTypesLists.add(superTypes);
+      superTypesSets.add(Sets.newHashSet(superTypes));
+    }
+    // find intersection of super types
+    LinkedList<InterfaceType> interTypes = Lists.newLinkedList();
+    if (superTypesLists.size() > 0) {
+      for (InterfaceType superType : superTypesLists.get(0)) {
+        boolean inAll = true;
+        for (Set<InterfaceType> superTypesSet : superTypesSets) {
+          if (!superTypesSet.contains(superType)) {
+            inAll = false;
+            break;
+          }
+        }
+        if (inAll) {
+          interTypes.add(superType);
+        }
+      }
+    }
+    // try to remove sub-types already covered by existing types
+    for (Iterator<InterfaceType> i = interTypes.descendingIterator(); i.hasNext();) {
+      InterfaceType subType = i.next();
+      boolean hasSuperType = false;
+      for (InterfaceType superType : interTypes) {
+        if (superType != subType && isSubtype(superType, subType)) {
+          hasSuperType = true;
+          break;
+        }
+      }
+      if (hasSuperType) {
+        i.remove();
+      }
+    }
+    // use single type
+    if (interTypes.size() == 0) {
+      return typeProvider.getObjectType();
+    }
+    if (interTypes.size() == 1) {
+      return interTypes.get(0);
+    }
+    // create union
+    return new InterfaceTypeUnion(interTypes);
+  }
+
   /**
    * @return list of the super-types (if class type given) or super-interfaces (if interface type
    *         given) from most specific to least specific.
@@ -69,18 +125,15 @@ public class Types {
     List<InterfaceType> types = Lists.newArrayList();
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
-      if (interfaceType.getElement().isInterface()) {
-        types.add(interfaceType);
-        for (InterfaceType intf : interfaceType.getElement().getInterfaces()) {
-          intf = asSupertype(interfaceType, intf);
-          types.addAll(getSuperTypes(intf));
-        }
-      } else {
-        InterfaceType st = interfaceType;
-        while (st != null) {
-          types.add(st);
-          st = asSupertype(st, st.getElement().getSupertype());
-        }
+      types.add(interfaceType);
+      for (InterfaceType intf : interfaceType.getElement().getInterfaces()) {
+        intf = asSupertype(interfaceType, intf);
+        types.addAll(getSuperTypes(intf));
+      }
+      if (!interfaceType.getElement().isInterface()) {
+        InterfaceType superClass = interfaceType.getElement().getSupertype();
+        superClass= asSupertype(interfaceType, superClass);
+        types.addAll(getSuperTypes(superClass));
       }
     }
     return types;

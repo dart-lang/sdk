@@ -16,6 +16,7 @@ class Constant implements Hashable {
   bool isList() => false;
   bool isMap() => false;
   bool isConstructedObject() => false;
+  bool isFunction() => false;
   /** Returns true if the constant is null, a bool, a number or a string. */
   bool isPrimitive() => false;
   /** Returns true if the constant is a list, a map or a constructed object. */
@@ -33,8 +34,38 @@ class Constant implements Hashable {
   abstract List<Constant> getDependencies();
 }
 
+class FunctionConstant extends Constant {
+  Element element;
+
+  FunctionConstant(this.element);
+
+  bool isFunction() => true;
+
+  bool operator ==(var other) {
+    if (other is !FunctionConstant) return false;
+    return other.element === element;
+  }
+
+  String toString() => element.toString();
+  List<Constant> getDependencies() => const <Constant>[];
+  DartString toDartString() {
+    return new DartString.literal(element.name.slowToString());
+  }
+
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
+    compiler.internalError(
+        "A constant function does not need specific JS code");
+  }
+
+  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
+    buffer.add(handler.compiler.namer.isolatePropertiesAccess(element));
+  }
+
+  int hashCode() => element.hashCode();
+}
+
 class PrimitiveConstant extends Constant {
-  abstract get value();
+  abstract get value;
   const PrimitiveConstant();
   bool isPrimitive() => true;
 
@@ -74,7 +105,7 @@ class NullConstant extends PrimitiveConstant {
 }
 
 class NumConstant extends PrimitiveConstant {
-  abstract num get value();
+  abstract num get value;
   const NumConstant();
   bool isNum() => true;
 }
@@ -499,7 +530,10 @@ class ConstantHandler extends CompilerTask {
   String get name => 'ConstantHandler';
 
   void registerCompileTimeConstant(Constant constant) {
-    Function ifAbsentThunk = (() => compiler.namer.getFreshGlobalName("CTC"));
+    Function ifAbsentThunk = (() {
+      return constant.isFunction()
+          ? null : compiler.namer.getFreshGlobalName("CTC");
+    });
     compiledConstants.putIfAbsent(constant, ifAbsentThunk);
   }
 
@@ -844,6 +878,12 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         error(send);
       }
       return compiler.compileVariable(element);
+    } else if (Elements.isStaticOrTopLevelFunction(element)
+               && send.isPropertyAccess) {
+      compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
+      Constant constant = new FunctionConstant(element);
+      compiler.constantHandler.registerCompileTimeConstant(constant);
+      return constant;
     } else if (send.isPrefix) {
       assert(send.isOperator);
       Constant receiverConstant = evaluate(send.receiver);
@@ -1131,7 +1171,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
-        assert(superClass.resolutionState == ClassElement.STATE_DONE);
+        assert(superClass.resolutionState == STATE_DONE);
         FunctionElement targetConstructor =
             superClass.lookupConstructor(superClass.name);
         if (targetConstructor === null) {

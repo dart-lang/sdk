@@ -115,6 +115,10 @@ class _Directory {
 class _DirectoryLister {
 }
 
+void _exit(int exitCode) {
+  throw new UnsupportedOperationException("exit($exitCode)");
+}
+
 class _Process {
   static Process start(String executable,
                        List<String> arguments,

@@ -64,8 +64,10 @@ class GitSource extends Source {
    * The package name of a Git repo is the name of the directory into which
    * it'll be cloned.
    */
-  String packageName(description) =>
-    basename(_getUrl(description)).replaceFirst(const RegExp("\.git\$"), "");
+  String packageName(description) {
+    return basename(_getUrl(description)
+        .replaceFirst(const RegExp(@"(\.git)?/?$"), ""));
+  }
 
   /**
    * Ensures [description] is a Git URL.
@@ -122,8 +124,8 @@ class GitSource extends Source {
     return exists(path).chain((exists) {
       if (!exists) return _clone(_getUrl(id), path);
 
-      return runProcess("git", ["pull", "--force"], workingDir: path,
-          pipeStdout: true, pipeStderr: true).transform((result) {
+      return runProcess("git", ["pull", "--force"], workingDir: path)
+          .transform((result) {
         if (!result.success) throw 'Git failed.';
         return null;
       });
@@ -135,7 +137,7 @@ class GitSource extends Source {
    */
   Future<String> _revisionAt(PackageId id) {
     return runProcess("git", ["rev-parse", _getEffectiveRef(id)],
-        workingDir: _repoCachePath(id), pipeStderr: true).transform((result) {
+        workingDir: _repoCachePath(id)).transform((result) {
       if (!result.success) throw 'Git failed.';
       return result.stdout[0];
     });
@@ -155,8 +157,7 @@ class GitSource extends Source {
    * Clones the repo at the URI [from] to the path [to] on the local filesystem.
    */
   Future _clone(String from, String to) {
-    return runProcess("git", ["clone", from, to], pipeStdout: true,
-        pipeStderr: true).transform((result) {
+    return runProcess("git", ["clone", from, to]).transform((result) {
       if (!result.success) throw 'Git failed.';
       return null;
     });
@@ -166,8 +167,8 @@ class GitSource extends Source {
    * Checks out the reference [ref] in [repoPath].
    */
   Future _checkOut(String repoPath, String ref) {
-    return runProcess("git", ["checkout", ref], pipeStdout: true,
-        pipeStderr: true, workingDir: repoPath).transform((result) {
+    return runProcess("git", ["checkout", ref], workingDir: repoPath)
+        .transform((result) {
       if (!result.success) throw 'Git failed.';
       return null;
     });

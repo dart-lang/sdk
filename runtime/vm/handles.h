@@ -6,6 +6,7 @@
 #define VM_HANDLES_H_
 
 #include "vm/allocation.h"
+#include "vm/flags.h"
 
 namespace dart {
 
@@ -57,6 +58,7 @@ namespace dart {
 // Forward declarations.
 class ObjectPointerVisitor;
 
+DECLARE_FLAG(bool, verify_handles);
 
 class HandleVisitor {
  public:

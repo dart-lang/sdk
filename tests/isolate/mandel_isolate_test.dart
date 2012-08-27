@@ -7,9 +7,9 @@
 #import('dart:math');
 #import('../../pkg/unittest/unittest.dart');
 
-final TERMINATION_MESSAGE = -1;
-final N = 100;
-final ISOLATES = 20;
+const TERMINATION_MESSAGE = -1;
+const N = 100;
+const ISOLATES = 20;
 
 main() {
   test("Render Mandelbrot in parallel", () {

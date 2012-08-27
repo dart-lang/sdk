@@ -28,6 +28,7 @@ class Library;
 class Object;
 class ObjectStore;
 class RawAbstractTypeArguments;
+class RawApiError;
 class RawArray;
 class RawBigint;
 class RawClass;
@@ -38,6 +39,7 @@ class RawFourByteString;
 class RawFunction;
 class RawGrowableObjectArray;
 class RawImmutableArray;
+class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
 class RawLiteralToken;
@@ -232,6 +234,8 @@ class SnapshotReader : public BaseReader {
   RawScript* NewScript();
   RawLiteralToken* NewLiteralToken();
   RawGrowableObjectArray* NewGrowableObjectArray();
+  RawApiError* NewApiError();
+  RawLanguageError* NewLanguageError();
 
  private:
   class BackRefNode : public ZoneAllocated {
@@ -283,6 +287,7 @@ class SnapshotReader : public BaseReader {
   Array& tokens_;  // Temporary tokens handle.
   GrowableArray<BackRefNode*> backward_references_;
 
+  friend class ApiError;
   friend class Array;
   friend class Class;
   friend class Context;
@@ -293,6 +298,7 @@ class SnapshotReader : public BaseReader {
   friend class ImmutableArray;
   friend class InstantiatedTypeArguments;
   friend class JSRegExp;
+  friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
   friend class LiteralToken;

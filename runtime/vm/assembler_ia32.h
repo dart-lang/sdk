@@ -330,6 +330,8 @@ class Assembler : public ValueObject {
   void movsd(const Address& dst, XmmRegister src);
   void movsd(XmmRegister dst, XmmRegister src);
 
+  void movaps(XmmRegister dst, XmmRegister src);
+
   void addsd(XmmRegister dst, XmmRegister src);
   void addsd(XmmRegister dst, const Address& src);
   void subsd(XmmRegister dst, XmmRegister src);
@@ -581,6 +583,7 @@ class Assembler : public ValueObject {
   const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
+  static const char* XmmRegisterName(XmmRegister reg);
 
  private:
   AssemblerBuffer buffer_;

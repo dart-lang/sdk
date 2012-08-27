@@ -55,7 +55,7 @@ class _SocketInputStream implements SocketInputStream {
     }
   }
 
-  bool get closed() => _closed;
+  bool get closed => _closed;
 
   void set onData(void callback()) {
     _socket._onData = callback;
@@ -136,7 +136,7 @@ class _SocketOutputStream
     _closed = true;
   }
 
-  bool get closed() => _closed;
+  bool get closed => _closed;
 
   void set onNoPendingWrites(void callback()) {
     _onNoPendingWrites = callback;

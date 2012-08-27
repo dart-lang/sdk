@@ -471,7 +471,7 @@ function(collectedClasses) {
         }
         String fieldName = isShadowed
             ? namer.shadowedFieldName(member)
-            : namer.instanceFieldName(library, name);
+            : namer.getName(member);
         // Getters and setters with suffixes will be generated dynamically.
         buffer.add('"$fieldName');
         if (needsDynamicGetter || needsDynamicSetter) {

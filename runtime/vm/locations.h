@@ -35,6 +35,9 @@ class Location : public ValueObject {
   static const intptr_t kStackIndexBias =
       static_cast<intptr_t>(1) << (kBitsForPayload - 1);
 
+  static const intptr_t kMachineRegisterMask = 0x6;
+  static const intptr_t kMachineRegister = 0x6;
+
  public:
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
@@ -52,13 +55,18 @@ class Location : public ValueObject {
     // contains register allocation policy.
     kUnallocated = 2,
 
-    // Register location represents a fixed register.  Payload contains
-    // register code.
-    kRegister = 3,
-
     // Spill slot allocated by the register allocator.  Payload contains
     // a spill index.
-    kStackSlot = 4,
+    kStackSlot = 3,
+    kDoubleStackSlot = 4,
+
+    // Register location represents a fixed register.  Payload contains
+    // register code.
+    kRegister = 6,
+
+    // XmmRegister location represents a fixed xmm register.  Payload contains
+    // its code.
+    kXmmRegister = 7,
   };
 
   Location() : value_(kInvalidLocation) {
@@ -92,6 +100,7 @@ class Location : public ValueObject {
     kAny,
     kPrefersRegister,
     kRequiresRegister,
+    kRequiresXmmRegister,
     kSameAsFirstInput,
   };
 
@@ -118,6 +127,10 @@ class Location : public ValueObject {
 
   static Location RequiresRegister() {
     return UnallocatedLocation(kRequiresRegister);
+  }
+
+  static Location RequiresXmmRegister() {
+    return UnallocatedLocation(kRequiresXmmRegister);
   }
 
   // The location of the first input to the instruction will be
@@ -150,6 +163,37 @@ class Location : public ValueObject {
     return static_cast<Register>(payload());
   }
 
+  // XmmRegister locations.
+  static Location XmmRegisterLocation(XmmRegister reg) {
+    return Location(kXmmRegister, static_cast<uword>(reg));
+  }
+
+  bool IsXmmRegister() const {
+    return kind() == kXmmRegister;
+  }
+
+  XmmRegister xmm_reg() const {
+    ASSERT(IsXmmRegister());
+    return static_cast<XmmRegister>(payload());
+  }
+
+  static bool IsMachineRegisterKind(Kind kind) {
+    return (kind & kMachineRegisterMask) == kMachineRegister;
+  }
+
+  static Location MachineRegisterLocation(Kind kind, intptr_t reg) {
+    return Location(kind, reg);
+  }
+
+  bool IsMachineRegister() const {
+    return IsMachineRegisterKind(kind());
+  }
+
+  intptr_t register_code() const {
+    ASSERT(IsMachineRegister());
+    return static_cast<intptr_t>(payload());
+  }
+
   // Spill slots.
   static Location StackSlot(intptr_t stack_index) {
     ASSERT((-kStackIndexBias <= stack_index) &&
@@ -164,8 +208,23 @@ class Location : public ValueObject {
     return kind() == kStackSlot;
   }
 
+  static Location DoubleStackSlot(intptr_t stack_index) {
+    ASSERT((-kStackIndexBias <= stack_index) &&
+           (stack_index < kStackIndexBias));
+    Location loc(kDoubleStackSlot,
+                 static_cast<uword>(kStackIndexBias + stack_index));
+    // Ensure that sign is preserved.
+    ASSERT(loc.stack_index() == stack_index);
+    return loc;
+  }
+
+  bool IsDoubleStackSlot() const {
+    return kind() == kDoubleStackSlot;
+  }
+
+
   intptr_t stack_index() const {
-    ASSERT(IsStackSlot());
+    ASSERT(IsStackSlot() || IsDoubleStackSlot());
     // Decode stack index manually to preserve sign.
     return payload() - kStackIndexBias;
   }
@@ -199,7 +258,7 @@ class Location : public ValueObject {
   typedef BitField<uword, kBitsForKind, kBitsForPayload> PayloadField;
 
   // Layout for kUnallocated locations payload.
-  typedef BitField<Policy, 0, 2> PolicyField;
+  typedef BitField<Policy, 0, 3> PolicyField;
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a
@@ -210,20 +269,49 @@ class Location : public ValueObject {
 
 class RegisterSet : public ValueObject {
  public:
-  RegisterSet() : registers_(0) {
+  RegisterSet() : cpu_registers_(0), xmm_registers_(0) {
     ASSERT(kNumberOfCpuRegisters < (kWordSize * kBitsPerByte));
+    ASSERT(kNumberOfXmmRegisters < (kWordSize * kBitsPerByte));
   }
 
-  void Add(Register reg) {
-    registers_ |= (1 << reg);
+
+  void Add(Location loc) {
+    if (loc.IsRegister()) {
+      cpu_registers_ |= (1 << loc.reg());
+    } else if (loc.IsXmmRegister()) {
+      xmm_registers_ |= (1 << loc.xmm_reg());
+    }
   }
 
-  bool Contains(Register reg) {
-    return (registers_ & (1 << reg)) != 0;
+  void Remove(Location loc) {
+    if (loc.IsRegister()) {
+      cpu_registers_ &= ~(1 << loc.reg());
+    } else if (loc.IsXmmRegister()) {
+      xmm_registers_ &= ~(1 << loc.xmm_reg());
+    }
+  }
+
+  bool ContainsRegister(Register reg) {
+    return (cpu_registers_ & (1 << reg)) != 0;
+  }
+
+  bool ContainsXmmRegister(XmmRegister xmm_reg) {
+    return (xmm_registers_ & (1 << xmm_reg)) != 0;
+  }
+
+  intptr_t xmm_regs_count() {
+    intptr_t count = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; reg_idx++) {
+      if (ContainsXmmRegister(static_cast<XmmRegister>(reg_idx))) {
+        count++;
+      }
+    }
+    return count;
   }
 
  private:
-  intptr_t registers_;
+  intptr_t cpu_registers_;
+  intptr_t xmm_registers_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterSet);
 };

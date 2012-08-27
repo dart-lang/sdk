@@ -11,8 +11,8 @@
 
 // TODO(jjb): seed random number generator when API allows it
 
-final int NUM_TESTS = 300;
-final int MAX_COLLECTION_SIZE = 7;
+const int NUM_TESTS = 300;
+const int MAX_COLLECTION_SIZE = 7;
 
 Math.Random rand;
 

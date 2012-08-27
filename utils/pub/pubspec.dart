@@ -16,6 +16,11 @@
  */
 class Pubspec {
   /**
+   * This package's name.
+   */
+  final String name;
+
+  /**
    * This package's version.
    */
   final Version version;
@@ -25,17 +30,23 @@ class Pubspec {
    */
   List<PackageRef> dependencies;
 
-  Pubspec(this.version, this.dependencies);
+  Pubspec(this.name, this.version, this.dependencies);
 
   Pubspec.empty()
-    : version = Version.none,
+    : name = null,
+      version = Version.none,
       dependencies = <PackageRef>[];
+
+  /** Whether or not the pubspec has no contents. */
+  bool get isEmpty =>
+    name == null && version == Version.none && dependencies.isEmpty();
 
   /**
    * Parses the pubspec whose text is [contents]. If the pubspec doesn't define
    * version for itself, it defaults to [Version.none].
    */
   factory Pubspec.parse(String contents, SourceRegistry sources) {
+    var name = null;
     var version = Version.none;
     var dependencies = <PackageRef>[];
 
@@ -47,6 +58,8 @@ class Pubspec {
     if (parsedPubspec is! Map) {
       throw new FormatException('The pubspec must be a YAML mapping.');
     }
+
+    if (parsedPubspec.containsKey('name')) name = parsedPubspec['name'];
 
     if (parsedPubspec.containsKey('version')) {
       version = new Version.parse(parsedPubspec['version']);
@@ -97,11 +110,18 @@ class Pubspec {
 
         source.validateDescription(description, fromLockFile: false);
 
+        var nameFromSource = source.packageName(description);
+        if (nameFromSource != name) {
+          throw new FormatException('The name you specified for your '
+              'dependency, "$name", doesn\'t match the name "$nameFromSource" '
+              '(from "$description").');
+        }
+
         dependencies.add(new PackageRef(
             source, versionConstraint, description));
       });
     }
 
-    return new Pubspec(version, dependencies);
+    return new Pubspec(name, version, dependencies);
   }
 }

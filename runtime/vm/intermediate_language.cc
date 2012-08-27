@@ -73,20 +73,6 @@ bool CheckClassComp::AttributesEqual(Computation* other) const {
 }
 
 
-UseVal::UseVal(Definition* definition)
-    : definition_(definition), next_use_(NULL), previous_use_(NULL) {
-  AddToUseList();
-}
-
-
-void UseVal::SetDefinition(Definition* definition) {
-  ASSERT(definition != NULL);
-  RemoveFromUseList();
-  definition_ = definition;
-  AddToUseList();
-}
-
-
 // Returns true if the value represents a constant.
 bool UseVal::BindsToConstant() const {
   BindInstr* bind = definition()->AsBind();
@@ -121,42 +107,16 @@ const Object& UseVal::BoundConstant() const {
 }
 
 
-void UseVal::RemoveFromUseList() {
-  ASSERT(definition_ != NULL);
-  if (next_use_ != NULL) {
-    next_use_->previous_use_ = previous_use_;
-  }
-  if (previous_use_ != NULL) {
-    previous_use_->next_use_ = next_use_;
-  } else {
-    // This is the head of the list.
-    ASSERT(definition_->use_list() == this);
-    definition_->set_use_list(next_use_);
-  }
-  previous_use_ = next_use_ = NULL;
-  definition_ = NULL;
-}
-
-
-void UseVal::AddToUseList() {
-  ASSERT(next_use_ == NULL && previous_use_ == NULL && definition_ != NULL);
-  UseVal* head = definition_->use_list();
-  if (head != NULL) {
-    next_use_ = head;
-    head->previous_use_ = this;
-  }
-  definition_->set_use_list(this);
-}
-
-
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
-  // Only core library methods can be recognized.
+  // Only core and math library methods can be recognized.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Class& function_class = Class::Handle(function.Owner());
   if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != core_impl_lib.raw())) {
+      (function_class.library() != core_impl_lib.raw()) &&
+      (function_class.library() != math_lib.raw())) {
     return kUnknown;
   }
   const String& recognize_name = String::Handle(function.name());
@@ -208,7 +168,7 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
-  ASSERT(!IsBranch());
+  ASSERT(!IsControl());
   ASSERT(!IsThrow());
   ASSERT(!IsReturn());
   ASSERT(!IsReThrow());
@@ -224,17 +184,26 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   // that the instruction is removed from the graph.
   set_previous(NULL);
   set_next(NULL);
-  ASSERT(!IsDefinition() || AsDefinition()->use_list() == NULL);
   return return_previous ? prev_instr : next_instr;
 }
 
 
-void BindInstr::InsertBefore(BindInstr* next) {
+void BindInstr::InsertBefore(Instruction* next) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   next_ = next;
   previous_ = next->previous_;
   next->previous_ = this;
+  previous_->next_ = this;
+}
+
+
+void BindInstr::InsertAfter(Instruction* prev) {
+  ASSERT(previous_ == NULL);
+  ASSERT(next_ == NULL);
+  previous_ = prev;
+  next_ = prev->next_;
+  next_->previous_ = this;
   previous_->next_ = this;
 }
 
@@ -323,6 +292,15 @@ bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
 }
 
 
+bool Value::NeedsStoreBuffer() const {
+  const intptr_t cid = ResultCid();
+  if ((cid == kSmiCid) || (cid == kBoolCid) || (cid == kNullCid)) {
+    return false;
+  }
+  return !BindsToConstant();
+}
+
+
 RawAbstractType* PhiInstr::CompileType() const {
   ASSERT(!HasPropagatedType());
   // Since type propagation has not yet occured, we are reaching this phi via a
@@ -403,28 +381,61 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 }
 
 
+void UseVal::AddToInputUseList() {
+  set_next_use(definition()->input_use_list());
+  definition()->set_input_use_list(this);
+}
+
+
+void UseVal::AddToEnvUseList() {
+  set_next_use(definition()->env_use_list());
+  definition()->set_env_use_list(this);
+}
+
+
 void Definition::ReplaceUsesWith(Definition* other) {
-  UseVal* head = use_list();
-  if (head == NULL) return;
-
-  UseVal* current = head;
-  while (current->next_use() != NULL) {
-    current->definition_ = other;
-    current = current->next_use();
+  ASSERT(other != NULL);
+  ASSERT(this != other);
+  while (input_use_list_ != NULL) {
+    UseVal* current = input_use_list_;
+    input_use_list_ = input_use_list_->next_use();
+    current->set_definition(other);
+    current->AddToInputUseList();
   }
-  current->definition_ = other;
-
-  if (other->use_list() != NULL) {
-    current->next_use_ = other->use_list();
-    other->use_list()->previous_use_ = current;
+  while (env_use_list_ != NULL) {
+    UseVal* current = env_use_list_;
+    env_use_list_ = env_use_list_->next_use();
+    current->set_definition(other);
+    current->AddToEnvUseList();
   }
-  other->set_use_list(head);
-  set_use_list(NULL);
+}
+
+
+void Definition::ReplaceUsesWith(Value* value) {
+  ASSERT(value != NULL);
+  if (value->IsUse()) {
+    ReplaceUsesWith(value->AsUse()->definition());
+    return;
+  }
+  ASSERT(value->IsConstant());
+  while (input_use_list_ != NULL) {
+    Instruction* instr = input_use_list_->instruction();
+    instr->SetInputAt(input_use_list_->use_index(), value);
+    input_use_list_ = input_use_list_->next_use();
+  }
+  while (env_use_list_ != NULL) {
+    Environment* env = env_use_list_->instruction()->env();
+    ASSERT(env != NULL);
+    env->values()[env_use_list_->use_index()] = value;
+    env_use_list_ = env_use_list_->next_use();
+  }
 }
 
 
 bool Definition::SetPropagatedCid(intptr_t cid) {
-  ASSERT(cid != kIllegalCid);
+  if (cid == kIllegalCid) {
+    return false;
+  }
   if (propagated_cid_ == kIllegalCid) {
     // First setting, nothing has changed.
     propagated_cid_ = cid;
@@ -547,7 +558,7 @@ void BlockEntryInstr::DiscoverBlocks(
   Instruction* next_instr = next();
   while ((next_instr != NULL) &&
          !next_instr->IsBlockEntry() &&
-         !next_instr->IsBranch()) {
+         !next_instr->IsControl()) {
     if (vars != NULL) {
       next_instr->RecordAssignedVars(vars, fixed_parameter_count);
     }
@@ -568,7 +579,7 @@ void BlockEntryInstr::DiscoverBlocks(
 }
 
 
-void BranchInstr::DiscoverBlocks(
+void ControlInstruction::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
@@ -648,12 +659,12 @@ BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
 }
 
 
-intptr_t BranchInstr::SuccessorCount() const {
+intptr_t ControlInstruction::SuccessorCount() const {
   return 2;
 }
 
 
-BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
+BlockEntryInstr* ControlInstruction::SuccessorAt(intptr_t index) const {
   if (index == 0) return true_successor_;
   if (index == 1) return false_successor_;
   UNREACHABLE();
@@ -910,8 +921,7 @@ RawAbstractType* InstanceOfComp::CompileType() const {
 
 
 RawAbstractType* CreateArrayComp::CompileType() const {
-  // TODO(regis): Be more specific.
-  return Type::DynamicType();
+  return type().raw();
 }
 
 
@@ -936,7 +946,15 @@ RawAbstractType* AllocateObjectWithBoundsCheckComp::CompileType() const {
 
 RawAbstractType* LoadVMFieldComp::CompileType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
-  return type().raw();
+  // Keep it as null for debug purposes and do not return Dynamic in production
+  // mode, since misuse of the type would remain undetected.
+  if (type().IsNull()) {
+    return AbstractType::null();
+  }
+  if (FLAG_enable_type_checks) {
+    return type().raw();
+  }
+  return Type::DynamicType();
 }
 
 
@@ -986,10 +1004,7 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 
 
 RawAbstractType* BinarySmiOpComp::CompileType() const {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  return (op_kind() == Token::kSHL)
-      ? Type::IntInterface()
-      : object_store->smi_type();
+  return (op_kind() == Token::kSHL) ? Type::IntInterface() : Type::SmiType();
 }
 
 
@@ -998,9 +1013,20 @@ intptr_t BinarySmiOpComp::ResultCid() const {
 }
 
 
+bool BinarySmiOpComp::CanDeoptimize() const {
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      return false;
+    default:
+      return true;
+  }
+}
+
+
 RawAbstractType* BinaryMintOpComp::CompileType() const {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  return object_store->mint_type();
+  return Type::MintType();
 }
 
 
@@ -1019,8 +1045,28 @@ intptr_t BinaryDoubleOpComp::ResultCid() const {
 }
 
 
+RawAbstractType* UnboxedDoubleBinaryOpComp::CompileType() const {
+  return Type::DoubleInterface();
+}
+
+
+RawAbstractType* UnboxDoubleComp::CompileType() const {
+  return Type::null();
+}
+
+
+intptr_t BoxDoubleComp::ResultCid() const {
+  return kDoubleCid;
+}
+
+
+RawAbstractType* BoxDoubleComp::CompileType() const {
+  return Type::DoubleInterface();
+}
+
+
 RawAbstractType* UnarySmiOpComp::CompileType() const {
-  return Type::IntInterface();
+  return Type::SmiType();
 }
 
 
@@ -1045,32 +1091,76 @@ RawAbstractType* CheckClassComp::CompileType() const {
 }
 
 
+RawAbstractType* CheckSmiComp::CompileType() const {
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CheckEitherNonSmiComp::CompileType() const {
+  return AbstractType::null();
+}
+
+
+// Optimizations that eliminate or simplify individual computations.
+Definition* Computation::TryReplace(BindInstr* instr) const {
+  return instr;
+}
+
+
+Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
+  UseVal* left_use = left()->AsUse();
+  UseVal* right_use = right()->AsUse();
+  if ((right_use == NULL) || (left_use == NULL)) return instr;
+  if (!right_use->BindsToConstant()) return instr;
+  const Object& right_constant = right_use->BoundConstant();
+  Definition* left = left_use->definition();
+  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
+  // Handles e === true.
+  if ((kind() == Token::kEQ_STRICT) &&
+      (right_constant.raw() == Bool::True()) &&
+      (left_use->ResultCid() == kBoolCid)) {
+    // Remove the constant from the graph.
+    BindInstr* right = right_use->definition()->AsBind();
+    if (right != NULL) {
+      right->RemoveFromGraph();
+    }
+    // Return left subexpression as the replacement for this instruction.
+    return left;
+  }
+  return instr;
+}
+
+
+Definition* CheckClassComp::TryReplace(BindInstr* instr) const {
+  const intptr_t v_cid = value()->ResultCid();
+  const intptr_t num_checks = ic_data()->NumberOfChecks();
+  if ((num_checks == 1) &&
+      (v_cid == ic_data()->GetReceiverClassIdAt(0))) {
+    // No checks needed.
+    return NULL;
+  }
+  return instr;
+}
+
+
+Definition* CheckSmiComp::TryReplace(BindInstr* instr) const {
+  return (value()->ResultCid() == kSmiCid) ?  NULL : instr;
+}
+
+
+Definition* CheckEitherNonSmiComp::TryReplace(BindInstr* instr) const {
+  if ((left()->ResultCid() == kDoubleCid) ||
+      (right()->ResultCid() == kDoubleCid)) {
+    return NULL;  // Remove from the graph.
+  }
+  return instr;
+}
+
+
 // Shared code generation methods (EmitNativeCode, MakeLocationSummary, and
 // PrepareEntry). Only assembly code that can be shared across all architectures
 // can be used. Machine specific register allocation and code generation
 // is located in intermediate_language_<arch>.cc
-
-
-// True iff. the arguments to a call will be properly pushed and can
-// be popped after the call.
-template <typename T> static bool VerifyCallComputation(T* comp) {
-  // Argument values should be consecutive temps.
-  //
-  // TODO(kmillikin): implement stack height tracking so we can also assert
-  // they are on top of the stack.
-  intptr_t previous = -1;
-  for (int i = 0; i < comp->ArgumentCount(); ++i) {
-    Value* val = comp->ArgumentAt(i);
-    if (!val->IsUse()) return false;
-    intptr_t current = val->AsUse()->definition()->temp_index();
-    if (i != 0) {
-      if (current != (previous + 1)) return false;
-    }
-    previous = current;
-  }
-  return true;
-}
-
 
 #define __ compiler->assembler()->
 
@@ -1099,41 +1189,6 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t num_temps = HasICData() ? 1 : 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  if (HasICData()) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
-  return summary;
-}
-
-
-void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance_reg = locs()->in(0).reg();
-  Register value_reg = locs()->in(1).reg();
-
-  if (HasICData()) {
-    ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget);
-    // Smis do not have instance fields (Smi class is always first).
-    Register temp_reg = locs()->temp(0).reg();
-    ASSERT(temp_reg != instance_reg);
-    ASSERT(temp_reg != value_reg);
-    ASSERT(ic_data() != NULL);
-    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
-  }
-  __ StoreIntoObject(instance_reg, FieldAddress(instance_reg, field().Offset()),
-                     value_reg);
-}
-
-
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
   return new LocationSummary(0, 0, LocationSummary::kCall);
 }
@@ -1145,7 +1200,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 token_pos(),
                                 try_index(),
                                 kThrowRuntimeEntry,
-                                locs()->stack_bitmap());
+                                locs());
   __ int3();
 }
 
@@ -1160,7 +1215,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 token_pos(),
                                 try_index(),
                                 kReThrowRuntimeEntry,
-                                locs()->stack_bitmap());
+                                locs());
   __ int3();
 }
 
@@ -1203,8 +1258,8 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
-void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                        Condition true_condition) {
+void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                               Condition true_condition) {
   if (compiler->IsNextBlock(false_successor())) {
     // If the next block is the false successor we will fall through to it.
     __ j(true_condition, compiler->GetBlockLabel(true_successor()));
@@ -1243,31 +1298,6 @@ LocationSummary* StoreContextComp::MakeLocationSummary() const {
 void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Nothing to do.  Context register were loaded by register allocator.
   ASSERT(locs()->in(0).reg() == CTX);
-}
-
-
-Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
-  UseVal* left_use = left()->AsUse();
-  UseVal* right_use = right()->AsUse();
-  if ((right_use == NULL) || (left_use == NULL)) return NULL;
-  if (!right_use->BindsToConstant()) return NULL;
-  const Object& right_constant = right_use->BoundConstant();
-  Definition* left = left_use->definition();
-  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
-  // Handles e === true.
-  if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant.raw() == Bool::True()) &&
-      (left_use->ResultCid() == kBoolCid)) {
-    // Remove the constant from the graph.
-    BindInstr* right = right_use->definition()->AsBind();
-    if (right != NULL) {
-      right->set_use_list(NULL);
-      right->RemoveFromGraph();
-    }
-    // Return left subexpression as the replacement for this instruction.
-    return left;
-  }
-  return NULL;
 }
 
 
@@ -1312,7 +1342,7 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &StubCode::CallClosureFunctionLabel(),
                          PcDescriptors::kOther,
-                         locs()->stack_bitmap());
+                         locs());
   __ Drop(argument_count);
 }
 
@@ -1334,7 +1364,7 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  ArgumentCount(),
                                  argument_names(),
                                  checked_argument_count(),
-                                 locs()->stack_bitmap());
+                                 locs());
 }
 
 
@@ -1355,7 +1385,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                function(),
                                ArgumentCount(),
                                argument_names(),
-                               locs()->stack_bitmap());
+                               locs());
   __ Bind(&done);
 }
 
@@ -1367,28 +1397,9 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                        try_index(),
                                        dst_type(),
                                        dst_name(),
-                                       locs()->stack_bitmap());
+                                       locs());
   }
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
-}
-
-
-LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
-  ASSERT(locs()->out().reg() == value);
-
-  __ LoadObject(temp, field());
-  __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
 }
 
 
@@ -1443,8 +1454,13 @@ void StoreVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register dest_reg = locs()->in(1).reg();
   ASSERT(value_reg == locs()->out().reg());
 
-  __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
-                     value_reg);
+  if (value()->NeedsStoreBuffer()) {
+    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                       value_reg);
+  } else {
+    __ StoreIntoObjectNoBarrier(
+        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
+  }
 }
 
 
@@ -1461,7 +1477,7 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &label,
                          PcDescriptors::kOther,
-                         locs()->stack_bitmap());
+                         locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
@@ -1478,7 +1494,7 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(), try_index(), &label,
                          PcDescriptors::kOther,
-                         locs()->stack_bitmap());
+                         locs());
   __ Drop(2);  // Discard type arguments and receiver.
 }
 
@@ -1523,6 +1539,25 @@ Environment::Environment(const GrowableArray<Definition*>& definitions,
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     values_.Add(UseDefinition(definitions[i]));
   }
+}
+
+
+// Copies the environment and updates the environment use lists.
+void Environment::CopyTo(Instruction* instr) const {
+  Environment* copy = new Environment(values().length(),
+                                      fixed_parameter_count());
+  GrowableArray<Value*>* values_copy = copy->values_ptr();
+  for (intptr_t i = 0; i < values().length(); ++i) {
+    Value* value = values()[i]->CopyValue();
+    values_copy->Add(value);
+    UseVal* use = value->AsUse();
+    if (use != NULL) {
+      use->set_instruction(instr);
+      use->set_use_index(i);
+      use->AddToEnvUseList();
+    }
+  }
+  instr->set_env(copy);
 }
 
 

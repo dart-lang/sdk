@@ -206,11 +206,7 @@ class Unparser implements Visitor {
 
   visitLiteralList(LiteralList node) {
     addToken(node.constKeyword);
-    if (node.type !== null) {
-      sb.add('<');
-      visit(node.type);
-      sb.add('>');
-    }
+    visit(node.typeArguments);
     visit(node.elements);
   }
 

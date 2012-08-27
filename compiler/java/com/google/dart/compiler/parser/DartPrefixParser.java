@@ -40,7 +40,6 @@ public class DartPrefixParser extends DartParser {
     this.prefixes = prefixes;
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   protected DartImportDirective parseImportDirective() {
     DartImportDirective directive = super.parseImportDirective();

@@ -238,6 +238,8 @@ class Namer {
         return getterName(element.getLibrary(), element.name);
       } else if (element.kind == ElementKind.SETTER) {
         return setterName(element.getLibrary(), element.name);
+      } else if (element.kind == ElementKind.FIELD) {
+        return instanceFieldName(element.getLibrary(), element.name);
       } else {
         compiler.internalError('getName for bad kind: ${element.kind}',
                                node: element.parseNode(compiler));

@@ -149,12 +149,10 @@ mod(var a, var b) {
     int result = JS('num', @'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
-    // TODO(floitsch): Find cleaner way of forcing the type.
-    b = JS('num', '#', b);
-    if (b < 0) {
-      return result - b;
+    if (JS('num', '#', b) < 0) {
+      return result - JS('num', '#', b);
     } else {
-      return result + b;
+      return result + JS('num', '#', b);
     }
   }
   return UNINTERCEPTED(a % b);
@@ -162,10 +160,7 @@ mod(var a, var b) {
 
 tdiv(var a, var b) {
   if (checkNumbers(a, b)) {
-    // TODO(floitsch): Find cleaner way of forcing the type.
-    a = JS('num', '#', a);
-    b = JS('num', '#', b);
-    return (a / b).truncate();
+    return (JS('num', @'# / #', a, b)).truncate();
   }
   return UNINTERCEPTED(a ~/ b);
 }
@@ -229,13 +224,10 @@ le$slow(var a, var b) {
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    // TODO(floitsch): Find cleaner way of forcing the type.
-    a = JS('num', '#', a);
-    b = JS('num', '#', b);
-    if (b < 0) throw new IllegalArgumentException(b);
+    if (JS('num', '#', b) < 0) throw new IllegalArgumentException(b);
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
-    if (b > 31) return 0;
+    if (JS('bool', @'# > 31', b)) return 0;
     return JS('num', @'(# << #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a << b);
@@ -244,15 +236,12 @@ shl(var a, var b) {
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    // TODO(floitsch): Find cleaner way of forcing the type.
-    a = JS('num', '#', a);
-    b = JS('num', '#', b);
-    if (b < 0) throw new IllegalArgumentException(b);
-    if (a > 0) {
+    if (JS('num', '#', b) < 0) throw new IllegalArgumentException(b);
+    if (JS('num', '#', a) > 0) {
       // JavaScript only looks at the last 5 bits of the shift-amount. In JS
       // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
       // computation when that happens.
-      if (b > 31) return 0;
+      if (JS('bool', @'# > 31', b)) return 0;
       // Given that 'a' is positive we must not use '>>'. Otherwise a number
       // that has the 31st bit set would be treated as negative and shift in
       // ones.
@@ -261,7 +250,7 @@ shr(var a, var b) {
     // For negative numbers we just clamp the shift-by amount. 'a' could be
     // negative but not have its 31st bit set. The ">>" would then shift in
     // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
-    if (b > 31) b = 31;
+    if (JS('num', '#', b) > 31) b = 31;
     return JS('num', @'(# >> #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a >> b);
@@ -744,6 +733,8 @@ class MathNatives {
 captureStackTrace(ex) {
   if (ex === null) ex = const NullPointerException();
   var jsError = JS('Object', @'new Error()');
+  JS('void', @'#.name = #', jsError, ex);
+  JS('void', @'#.description = #', jsError, ex);
   JS('void', @'#.dartException = #', jsError, ex);
   JS('void', @'''#.toString = #''', jsError,
      DART_CLOSURE_TO_JS(toStringWrapper));
@@ -815,9 +806,12 @@ unwrapException(ex) {
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
         return new NullPointerException();
-      } else if (message.contains(' is not a function')) {
+      } else if (message.contains(' is not a function') ||
+                 message.contains("doesn't support property or method")) {
+        // Examples:
         //  x.foo is not a function
         //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
+        // Object doesn't support property or method 'foo'
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
       }
@@ -1178,4 +1172,12 @@ listSuperNativeTypeCast(value, property) {
  * visible to anyone, and is only injected into special libraries.
  */
 interface JavaScriptIndexingBehavior {
+}
+
+/**
+ * Called by generated code when a method that must be statically
+ * resolved cannot be found.
+ */
+void throwNoSuchMethod(obj, name, arguments) {
+  throw new NoSuchMethodException(obj, name, arguments);
 }

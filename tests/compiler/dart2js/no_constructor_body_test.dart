@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST = @"""
+const String TEST = @"""
 class A {
   A.foo() {}
   A();

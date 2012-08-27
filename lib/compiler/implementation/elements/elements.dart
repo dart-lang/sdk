@@ -11,6 +11,10 @@
 #import('../leg.dart');  // TODO(karlklose): we only need type.
 #import('../util/util.dart');
 
+const int STATE_NOT_STARTED = 0;
+const int STATE_STARTED = 1;
+const int STATE_DONE = 2;
+
 class ElementCategory {
   /**
    * Represents things that we don't expect to find when looking in a
@@ -123,6 +127,8 @@ class Element implements Hashable {
   }
 
   void addMetadata(MetadataAnnotation annotation) {
+    assert(annotation.annotatedElement === null);
+    annotation.annotatedElement = this;
     metadata = metadata.prepend(annotation);
   }
 
@@ -298,10 +304,10 @@ class Element implements Hashable {
  * information about the error that caused the element to be unresolvable
  * or otherwise invalid.
  *
- * Accessing any field or calling any method defined on [Element] except
- * [isValid] will currently throw an exception. (This might change when we
- * actually want more information on the erroneous element, e.g., the name
- * of the element we were trying to resolve.)
+ * Accessing any field or calling any method defined on [ErroneousElement]
+ * except [isErroneous] will currently throw an exception. (This might
+ * change when we actually want more information on the erroneous element,
+ * e.g., the name of the element we were trying to resolve.)
  *
  * Code that cannot not handle an [ErroneousElement] should use
  *   [: Element.isInvalid(element) :]
@@ -1053,7 +1059,7 @@ abstract class TypeDeclarationElement implements Element {
    */
   // TODO(johnniwinther): Find a (better) way to decouple [typeVariables] from
   // [Compiler].
-  abstract Link<Type> get typeVariables();
+  abstract Link<Type> get typeVariables;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
@@ -1081,10 +1087,6 @@ abstract class TypeDeclarationElement implements Element {
 
 class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
-  static final int STATE_NOT_STARTED = 0;
-  static final int STATE_STARTED = 1;
-  static final int STATE_DONE = 2;
-
   final int id;
   InterfaceType type;
   Type supertype;
@@ -1301,7 +1303,12 @@ class ClassElement extends ScopeContainerElement
     do {
       if (seen.contains(classElement)) return;
       seen.add(classElement);
-      for (Element element in classElement.localMembers) {
+
+      // Iterate through the members in textual order, which requires
+      // to reverse the data structure [localMembers] we created.
+      // Textual order may be important for certain operations, for
+      // example when emitting the initializers of fields.
+      for (Element element in classElement.localMembers.reverse()) {
         f(classElement, element);
       }
       if (includeBackendMembers) {
@@ -1612,7 +1619,20 @@ class MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  abstract Constant get value();
+  abstract Constant get value;
+  Element annotatedElement;
+  int resolutionState;
 
-  // TODO(ahe): Add more functionality as needed.
+  MetadataAnnotation([this.resolutionState = STATE_NOT_STARTED]);
+
+  abstract Node parseNode(DiagnosticListener listener);
+
+  MetadataAnnotation ensureResolved(Compiler compiler) {
+    if (resolutionState == STATE_NOT_STARTED) {
+      compiler.resolver.resolveMetadataAnnotation(this);
+    }
+    return this;
+  }
+
+  String toString() => 'MetadataAnnotation($value, $resolutionState)';
 }

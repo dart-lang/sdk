@@ -16,7 +16,7 @@
 /** A parsed semantic version number. */
 class Version implements Comparable, Hashable, VersionConstraint {
   /** No released version: i.e. "0.0.0". */
-  static Version get none() => new Version(0, 0, 0);
+  static Version get none => new Version(0, 0, 0);
 
   static final _PARSE_REGEX = const RegExp(
       @'^'                                        // Start at beginning.
@@ -84,7 +84,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
   bool operator <=(Version other) => compareTo(other) <= 0;
   bool operator >=(Version other) => compareTo(other) >= 0;
 
-  bool get isEmpty() => false;
+  bool get isEmpty => false;
 
   /** Tests if [other] matches this version exactly. */
   bool allows(Version other) => this == other;
@@ -231,7 +231,7 @@ interface VersionConstraint default _VersionConstraintFactory {
   /**
    * Returns `true` if this constraint allows no versions.
    */
-  bool get isEmpty();
+  bool get isEmpty;
 
   /**
    * Returns `true` if this constraint allows [version].
@@ -274,7 +274,7 @@ class VersionRange implements VersionConstraint {
            includeMax == other.includeMax;
   }
 
-  bool get isEmpty() => false;
+  bool get isEmpty => false;
 
   /** Tests if [other] matches falls within this version range. */
   bool allows(Version other) {
@@ -369,7 +369,7 @@ class VersionRange implements VersionConstraint {
 class _EmptyVersion implements VersionConstraint {
   const _EmptyVersion();
 
-  bool get isEmpty() => true;
+  bool get isEmpty => true;
   bool allows(Version other) => false;
   VersionConstraint intersect(VersionConstraint other) => this;
   String toString() => '<empty>';

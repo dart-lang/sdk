@@ -2,6 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/** Exit the Dart VM process with the given [status] code. */
+void exit(int status) {
+  if (status is !int) {
+    throw new IllegalArgumentException("int status expected");
+  }
+  _exit(status);
+}
+
 /**
  * [Process] is used to start new processes using the static
  * [start] and [run] methods.
@@ -51,7 +59,7 @@ class Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  abstract InputStream get stdout();
+  abstract InputStream get stdout;
 
   /**
    * Returns an input stream of the process stderr.
@@ -59,7 +67,7 @@ class Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  abstract InputStream get stderr();
+  abstract InputStream get stderr;
 
   /**
    * Returns an output stream to the process stdin.
@@ -67,7 +75,7 @@ class Process {
    * Throws an [UnsupportedOperationException] if the process is
    * non-interactive.
    */
-  abstract OutputStream get stdin();
+  abstract OutputStream get stdin;
 
   /**
    * Set the start handler which gets invoked when the process is
@@ -121,17 +129,17 @@ interface ProcessResult {
   /**
    * Exit code for the process.
    */
-  int get exitCode();
+  int get exitCode;
 
   /**
    * Standard output from the process as a string.
    */
-  String get stdout();
+  String get stdout;
 
   /**
    * Standard error from the process as a string.
    */
-  String get stderr();
+  String get stderr;
 }
 
 

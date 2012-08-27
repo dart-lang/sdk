@@ -448,6 +448,12 @@ class StandardTestSuite implements TestSuite {
 
     case 'dart2dart':
       var compilerArguments = new List.from(args);
+      var additionalFlags =
+          configuration['additional-compiler-flags'].split(' ');
+      for (final flag in additionalFlags) {
+        if (flag.isEmpty()) continue;
+        compilerArguments.add(flag);
+      }
       compilerArguments.add('--output-type=dart');
       String tempDir = createOutputDirectory(info.filePath, '');
       compilerArguments.add('--out=$tempDir/out.dart');

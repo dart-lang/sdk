@@ -97,6 +97,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
     super(ctx);
   }
 
+  protected void beginArgumentDefinitionTest() {
+    begin();
+  }
+
   protected void beginArrayLiteral() {
     begin();
   }

@@ -33,4 +33,11 @@ DEFINE_NATIVE_ENTRY(WeakProperty_getValue, 1) {
   arguments->SetReturn(value);
 }
 
+
+DEFINE_NATIVE_ENTRY(WeakProperty_setValue, 2) {
+  GET_NATIVE_ARGUMENT(WeakProperty, weak_property, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Instance, value, arguments->At(1));
+  weak_property.set_value(value);
+}
+
 }  // namespace dart

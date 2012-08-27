@@ -5,7 +5,7 @@
 
 #import("compiler_helper.dart");
 
-final String NUMBER_FOLDING = """
+const String NUMBER_FOLDING = """
 void main() {
   var a = 4;
   var b = 3;
@@ -13,7 +13,7 @@ void main() {
 }
 """;
 
-final String NEGATIVE_NUMBER_FOLDING = """
+const String NEGATIVE_NUMBER_FOLDING = """
 void main() {
   var a = 4;
   var b = -3;
@@ -21,7 +21,7 @@ void main() {
 }
 """;
 
-final String NULL_EQUALS_FOLDING = """
+const String NULL_EQUALS_FOLDING = """
 foo(a, b, c, d) {
   if (a == null) return 1;
   if (null == b) return 2;

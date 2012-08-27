@@ -18,13 +18,13 @@ interface _StringDecoder {
 
   // Get the string data decoded since the last call to [decode] or
   // [decodeLine]. Returns null if no decoded data is available.
-  String get decoded();
+  String get decoded;
 
   // Get the string data decoded since the last call to [decode] or
   // [decodeLine] up to the next line break present. Returns null if
   // no line break is present. The line break character sequence is
   // discarded.
-  String get decodedLine();
+  String get decodedLine;
 }
 
 
@@ -77,9 +77,9 @@ class _StringDecoderBase implements _StringDecoder {
     return _result.isEmpty();
   }
 
-  int get lineBreaks() => _lineBreaks;
+  int get lineBreaks => _lineBreaks;
 
-  String get decoded() {
+  String get decoded {
     if (isEmpty()) return null;
 
     String result;
@@ -98,7 +98,7 @@ class _StringDecoderBase implements _StringDecoder {
     return result;
   }
 
-  String get decodedLine() {
+  String get decodedLine {
     if (_lineBreakEnds.isEmpty()) return null;
     int lineEnd = _lineBreakEnds.removeFirst();
     int terminationSequenceLength = 1;
@@ -376,9 +376,9 @@ class _StringInputStream implements StringInputStream {
 
   int available() => _decoder.available();
 
-  Encoding get encoding() => _encoding;
+  Encoding get encoding => _encoding;
 
-  bool get closed() => _inputClosed && _decoder.isEmpty();
+  bool get closed => _inputClosed && _decoder.isEmpty();
 
   void set onData(void callback()) {
     _clientDataHandler = callback;

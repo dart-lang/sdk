@@ -76,7 +76,7 @@ interface InputStream {
    * Returns whether the stream is closed. There will be no more data
    * to read.
    */
-  bool get closed();
+  bool get closed;
 
   /**
    * Sets the handler that gets called when data is available.
@@ -148,12 +148,12 @@ interface StringInputStream default _StringInputStream {
    * Returns whether the stream has been closed. There might still be
    * more data to read.
    */
-  bool get closed();
+  bool get closed;
 
   /**
    * Returns the encoding used to decode the binary data into characters.
    */
-  Encoding get encoding();
+  Encoding get encoding;
 
   /**
    * Sets the handler that gets called when data is available. The two
@@ -205,12 +205,12 @@ interface ChunkedInputStream default _ChunkedInputStream {
    * Returns whether the stream has been closed. There might still be
    * more data to read.
    */
-  bool get closed();
+  bool get closed;
 
   /**
    * Returns the chunk size used by this stream.
    */
-  int get chunkSize();
+  int get chunkSize;
 
   /**
    * Sets the chunk size used by this stream.

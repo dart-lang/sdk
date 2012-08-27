@@ -20,6 +20,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, use_unboxed_doubles, true, "Try unboxing double values.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -34,15 +35,18 @@ void FlowGraphOptimizer::OptimizeComputations() {
       BindInstr* instr = it.Current()->AsBind();
       if (instr != NULL) {
         Definition* result = instr->computation()->TryReplace(instr);
-        if (result != NULL) {
-          // Replace uses and remove the current instructions via the iterator.
-          instr->ReplaceUsesWith(result);
-          it.RemoveCurrentFromGraph();
-          if (FLAG_trace_optimization) {
-            OS::Print("Replacing v%d with v%d\n",
-                      instr->ssa_temp_index(),
-                      result->ssa_temp_index());
+        if (result != instr) {
+          if (result != NULL) {
+            instr->ReplaceUsesWith(result);
+            if (FLAG_trace_optimization) {
+              OS::Print("Replacing v%d with v%d\n",
+                        instr->ssa_temp_index(),
+                        result->ssa_temp_index());
+            }
+          } else if (FLAG_trace_optimization) {
+              OS::Print("Removing v%d.\n", instr->ssa_temp_index());
           }
+          it.RemoveCurrentFromGraph();
         }
       }
     }
@@ -150,12 +154,7 @@ static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
   for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     PushArgumentInstr* push = comp->ArgumentAt(i);
-    // TODO(zerny): Currently the register allocator replaces unused pushes with
-    // their definitions. To do so here, we need first to link uses to their
-    // instructions and input index. Here push->ReplaceUsesWith requires that
-    // push->value() is a UseVal.
-    // (See FlowGraphAllocator::EliminateEnvironmentUses).
-    push->set_use_list(NULL);
+    push->ReplaceUsesWith(push->value());
     push->RemoveFromGraph();
   }
 }
@@ -194,19 +193,15 @@ static intptr_t ReceiverClassId(Computation* comp) {
 }
 
 
-static void AddCheckClass(BindInstr* instr,
-                          InstanceCallComp* comp,
-                          Value* value) {
+void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
+                                       InstanceCallComp* comp,
+                                       Value* value) {
   // Type propagation has not run yet, we cannot eliminate the check.
   CheckClassComp* check = new CheckClassComp(value, comp);
   const ICData& unary_checks =
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
   check->set_ic_data(&unary_checks);
-  BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
-  ASSERT(instr->env() != NULL);  // Always the case with SSA.
-  // Attach the original environment to the check instruction.
-  check_instr->set_env(instr->env());
-  check_instr->InsertBefore(instr);
+  InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
 }
 
 
@@ -225,18 +220,21 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
       // Fall through.
     case kArrayCid:
     case kGrowableObjectArrayCid: {
+      Value* array = comp->ArgumentAt(0)->value();
+      Value* index = comp->ArgumentAt(1)->value();
+      // Insert class check and index smi checks and attach a copy of the
+      // original environment because the operation can still deoptimize.
+      AddCheckClass(instr, comp, array->CopyValue());
+      InsertBefore(instr,
+                   new CheckSmiComp(index->CopyValue(), comp),
+                   instr->env(),
+                   BindInstr::kUnused);
       Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedComp(comp->ArgumentAt(0)->value(),
-                                       comp->ArgumentAt(1)->value(),
-                                       class_id,
-                                       comp);
+        array_op = new LoadIndexedComp(array, index, class_id, comp);
       } else {
-        array_op = new StoreIndexedComp(comp->ArgumentAt(0)->value(),
-                                        comp->ArgumentAt(1)->value(),
-                                        comp->ArgumentAt(2)->value(),
-                                        class_id,
-                                        comp);
+        Value* value = comp->ArgumentAt(2)->value();
+        array_op = new StoreIndexedComp(array, index, value, class_id, comp);
       }
       array_op->set_ic_data(comp->ic_data());
       instr->set_computation(array_op);
@@ -246,6 +244,34 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
     default:
       return false;
   }
+}
+
+
+BindInstr* FlowGraphOptimizer::InsertBefore(Instruction* instr,
+                                            Computation* comp,
+                                            Environment* env,
+                                            BindInstr::UseKind use_kind) {
+  BindInstr* bind = new BindInstr(use_kind, comp);
+  if (env != NULL) env->CopyTo(bind);
+  if (use_kind == BindInstr::kUsed) {
+    bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+  }
+  bind->InsertBefore(instr);
+  return bind;
+}
+
+
+BindInstr* FlowGraphOptimizer::InsertAfter(Instruction* instr,
+                                           Computation* comp,
+                                           Environment* env,
+                                           BindInstr::UseKind use_kind) {
+  BindInstr* bind = new BindInstr(use_kind, comp);
+  if (env != NULL) env->CopyTo(bind);
+  if (use_kind == BindInstr::kUsed) {
+    bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+  }
+  bind->InsertAfter(instr);
+  return bind;
 }
 
 
@@ -300,9 +326,52 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
 
   ASSERT(comp->ArgumentCount() == 2);
   if (operands_type == kDoubleCid) {
-    BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
-    double_bin_op->set_ic_data(comp->ic_data());
-    instr->set_computation(double_bin_op);
+    if (FLAG_use_unboxed_doubles) {
+      Value* left = comp->ArgumentAt(0)->value();
+      Value* right = comp->ArgumentAt(1)->value();
+
+      // Check that either left or right are not a smi.  Result or a
+      // binary operation with two smis is a smi not a double.
+      InsertBefore(instr,
+                   new CheckEitherNonSmiComp(left, right, comp),
+                   instr->env(),
+                   BindInstr::kUnused);
+
+      // Unbox operands.
+      BindInstr* unbox_left = InsertBefore(
+          instr,
+          new UnboxDoubleComp(left->CopyValue(), comp),
+          instr->env(),
+          BindInstr::kUsed);
+      BindInstr* unbox_right = InsertBefore(
+          instr,
+          new UnboxDoubleComp(right->CopyValue(), comp),
+          instr->env(),
+          BindInstr::kUsed);
+
+      UnboxedDoubleBinaryOpComp* double_bin_op =
+          new UnboxedDoubleBinaryOpComp(op_kind,
+                                        new UseVal(unbox_left),
+                                        new UseVal(unbox_right));
+      double_bin_op->set_ic_data(comp->ic_data());
+      instr->set_computation(double_bin_op);
+
+      if (instr->is_used()) {
+        // Box result.
+        UseVal* use_val = new UseVal(instr);
+        BindInstr* bind = InsertAfter(instr,
+                                      new BoxDoubleComp(use_val, comp),
+                                      NULL,
+                                      BindInstr::kUsed);
+        instr->ReplaceUsesWith(bind);
+      }
+
+      RemovePushArguments(comp);
+    } else {
+      BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
+      double_bin_op->set_ic_data(comp->ic_data());
+      instr->set_computation(double_bin_op);
+    }
   } else if (operands_type == kMintCid) {
     Value* left = comp->ArgumentAt(0)->value();
     Value* right = comp->ArgumentAt(1)->value();
@@ -317,6 +386,16 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     ASSERT(operands_type == kSmiCid);
     Value* left = comp->ArgumentAt(0)->value();
     Value* right = comp->ArgumentAt(1)->value();
+    // Insert two smi checks and attach a copy of the original
+    // environment because the smi operation can still deoptimize.
+    InsertBefore(instr,
+                 new CheckSmiComp(left->CopyValue(), comp),
+                 instr->env(),
+                 BindInstr::kUnused);
+    InsertBefore(instr,
+                 new CheckSmiComp(right->CopyValue(), comp),
+                 instr->env(),
+                 BindInstr::kUnused);
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
                                                   comp,
                                                   left,
@@ -339,7 +418,14 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   ASSERT(comp->ArgumentCount() == 1);
   Computation* unary_op = NULL;
   if (HasOneSmi(*comp->ic_data())) {
-    unary_op = new UnarySmiOpComp(op_kind, comp, comp->ArgumentAt(0)->value());
+    Value* value = comp->ArgumentAt(0)->value();
+    InsertBefore(instr,
+                 new CheckSmiComp(value->CopyValue(), comp),
+                 instr->env(),
+                 BindInstr::kUnused);
+    unary_op = new UnarySmiOpComp(op_kind,
+                                  (op_kind == Token::kNEGATE) ? comp : NULL,
+                                  value);
   } else if (HasOneDouble(*comp->ic_data()) && (op_kind == Token::kNEGATE)) {
     unary_op = new NumberNegateComp(comp, comp->ArgumentAt(0)->value());
   }
@@ -391,12 +477,13 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         String::Handle(Field::NameFromGetter(comp->function_name()));
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
-    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
+
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+    // Detach environment from the original instruction because it can't
+    // deoptimize.
     instr->set_env(NULL);
     LoadInstanceFieldComp* load =
-        new LoadInstanceFieldComp(field,
-                                  comp->ArgumentAt(0)->value(),
-                                  NULL);  // Can not deoptimize.
+        new LoadInstanceFieldComp(field, comp->ArgumentAt(0)->value());
     instr->set_computation(load);
     RemovePushArguments(comp);
     return true;
@@ -429,7 +516,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->ArgumentAt(0)->value(),
         length_offset,
-        Type::ZoneHandle(Type::IntInterface()));
+        Type::ZoneHandle(Type::SmiType()));
+    load->set_result_cid(kSmiCid);
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
@@ -446,7 +534,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->ArgumentAt(0)->value(),
         String::length_offset(),
-        Type::ZoneHandle(Type::IntInterface()));
+        Type::ZoneHandle(Type::SmiType()));
+    load->set_result_cid(kSmiCid);
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
@@ -481,7 +570,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
     return true;
   }
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
-             (class_ids[0] == kSmiCid)) {
+      (class_ids[0] == kSmiCid)) {
     SmiToDoubleComp* s2d_comp = new SmiToDoubleComp(comp);
     instr->set_computation(s2d_comp);
     // Pushed arguments are not removed because SmiToDouble is implemented
@@ -519,9 +608,24 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
     }
     const intptr_t kMaxChecks = 4;
     if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
-      PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
       const ICData& unary_checks =
           ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+      bool call_with_checks;
+      // TODO(srdjan): Add check class comp for mixed smi/non-smi.
+      if (HasOneTarget(unary_checks) &&
+          (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
+        Value* value = comp->ArgumentAt(0)->value()->CopyValue();
+        // Type propagation has not run yet, we cannot eliminate the check.
+        CheckClassComp* check = new CheckClassComp(value, comp);
+        check->set_ic_data(&unary_checks);
+        InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
+        // Call can still deoptimize, do not detach environment from instr.
+        call_with_checks = false;
+      } else {
+        call_with_checks = true;
+      }
+      PolymorphicInstanceCallComp* call =
+          new PolymorphicInstanceCallComp(comp, call_with_checks);
       call->set_ic_data(&unary_checks);
       instr->set_computation(call);
     }
@@ -572,13 +676,14 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value());
+  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+  // Detach environment from the original instruction because it can't
+  // deoptimize.
   instr->set_env(NULL);
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),
-      comp->ArgumentAt(1)->value(),
-      NULL);  // Can not deoptimize.
+      comp->ArgumentAt(1)->value());
   instr->set_computation(store);
   RemovePushArguments(comp);
   return true;
@@ -634,21 +739,6 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_receiver_class_id(kNumberCid);
   }
-}
-
-
-void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
-  if ((instr->kind() != Token::kEQ) &&
-      (instr->kind() != Token::kNE)) {
-    return;
-  }
-  if (!instr->left()->BindsToConstantNull() &&
-      !instr->right()->BindsToConstantNull()) {
-    return;
-  }
-  Token::Kind strict_kind = (instr->kind() == Token::kEQ) ?
-      Token::kEQ_STRICT : Token::kNE_STRICT;
-  instr->set_kind(strict_kind);
 }
 
 
@@ -828,7 +918,7 @@ void FlowGraphTypePropagator::VisitBind(BindInstr* bind) {
       still_changing_ = true;
     }
     // Propagate class ids.
-    intptr_t cid = bind->computation()->ResultCid();
+    const intptr_t cid = bind->computation()->ResultCid();
     changed = bind->SetPropagatedCid(cid);
     if (changed) {
       still_changing_ = true;
@@ -933,27 +1023,43 @@ void FlowGraphAnalyzer::Analyze() {
 }
 
 
-void LocalCSE::Optimize() {
-  for (intptr_t i = 0; i < blocks_.length(); ++i) {
-    BlockEntryInstr* entry = blocks_[i];
-    DirectChainedHashMap<BindInstr*> map;
-    ASSERT(map.IsEmpty());
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      BindInstr* instr = it.Current()->AsBind();
-      if (instr == NULL || instr->computation()->HasSideEffect()) continue;
-      BindInstr* result = map.Lookup(instr);
-      if (result == NULL) {
-        map.Insert(instr);
-        continue;
-      }
-      // Replace current with lookup result.
-      instr->ReplaceUsesWith(result);
-      it.RemoveCurrentFromGraph();
-      if (FLAG_trace_optimization) {
-        OS::Print("Replacing v%d with v%d\n",
-                  instr->ssa_temp_index(),
-                  result->ssa_temp_index());
-      }
+void DominatorBasedCSE::Optimize(BlockEntryInstr* graph_entry) {
+  ASSERT(graph_entry->IsGraphEntry());
+  DirectChainedHashMap<BindInstr*> map;
+  OptimizeRecursive(graph_entry, &map);
+}
+
+
+void DominatorBasedCSE::OptimizeRecursive(
+    BlockEntryInstr* block,
+    DirectChainedHashMap<BindInstr*>* map) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    BindInstr* instr = it.Current()->AsBind();
+    if (instr == NULL || instr->computation()->HasSideEffect()) continue;
+    BindInstr* result = map->Lookup(instr);
+    if (result == NULL) {
+      map->Insert(instr);
+      continue;
+    }
+    // Replace current with lookup result.
+    instr->ReplaceUsesWith(result);
+    it.RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing v%d with v%d\n",
+                instr->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+  }
+
+  // Process children in the dominator tree recursively.
+  intptr_t num_children = block->dominated_blocks().length();
+  for (intptr_t i = 0; i < num_children; ++i) {
+    BlockEntryInstr* child = block->dominated_blocks()[i];
+    if (i  < num_children - 1) {
+      DirectChainedHashMap<BindInstr*> child_map(*map);  // Copy map.
+      OptimizeRecursive(child, &child_map);
+    } else {
+      OptimizeRecursive(child, map);  // Reuse map for the last child.
     }
   }
 }

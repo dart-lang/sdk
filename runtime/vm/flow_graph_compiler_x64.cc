@@ -241,7 +241,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
     return false;
   }
-  if (type.IsFunctionInterface()) {
+  if (type.IsFunctionType()) {
     // Check if instance is a closure.
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -254,7 +254,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(Type::Handle(Type::NumberInterface()), NULL)) {
+  if (type.IsSubtypeOf(Type::Handle(Type::Number()), NULL)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -343,7 +343,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
     __ CompareObject(RDI, Type::ZoneHandle(Type::IntInterface()));
     __ j(EQUAL,  is_instance_lbl);
-    __ CompareObject(RDI, Type::ZoneHandle(Type::NumberInterface()));
+    __ CompareObject(RDI, Type::ZoneHandle(Type::Number()));
     __ j(EQUAL,  is_instance_lbl);
     // Smi must be handled in runtime.
     __ jmp(&fall_through);
@@ -454,7 +454,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
                                            intptr_t try_index,
                                            const AbstractType& type,
                                            bool negate_result,
-                                           BitmapBuilder* stack_bitmap) {
+                                           LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
 
   const Immediate raw_null =
@@ -495,7 +495,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
     __ LoadObject(RAX, test_cache);
     __ pushq(RAX);
     GenerateCallRuntime(deopt_id, token_pos, try_index,
-                        kInstanceofRuntimeEntry, stack_bitmap);
+                        kInstanceofRuntimeEntry, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -539,7 +539,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                                                  intptr_t try_index,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
-                                                 BitmapBuilder* stack_bitmap) {
+                                                 LocationSummary* locs) {
   ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
@@ -568,7 +568,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                         token_pos,
                         try_index,
                         kMalformedTypeErrorRuntimeEntry,
-                        stack_bitmap);
+                        locs);
     // We should never return here.
     __ int3();
 
@@ -598,7 +598,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                       token_pos,
                       try_index,
                       kTypeCheckRuntimeEntry,
-                      stack_bitmap);
+                      locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -770,12 +770,17 @@ void FlowGraphCompiler::CopyParameters() {
     // stack.
     __ addq(RSP, Immediate(StackSize() * kWordSize));
   }
+  // The calls immediately below have empty stackmaps because we have just
+  // dropped the spill slots.
+  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
   if (function.IsClosureFunction()) {
-    GenerateCallRuntime(Isolate::kNoDeoptId,
-                        0,
-                        CatchClauseNode::kInvalidTryIndex,
-                        kClosureArgumentMismatchRuntimeEntry,
-                        NULL);
+    // We do not use GenerateCallRuntime because of the non-standard (empty)
+    // stackmap used here.
+    __ CallRuntime(kClosureArgumentMismatchRuntimeEntry);
+    AddCurrentDescriptor(PcDescriptors::kOther,
+                         Isolate::kNoDeoptId,
+                         0,  // No token position.
+                         CatchClauseNode::kInvalidTryIndex);
   } else {
     ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
@@ -795,15 +800,25 @@ void FlowGraphCompiler::CopyParameters() {
     // R10 : arguments descriptor array.
     __ call(&StubCode::CallNoSuchMethodFunctionLabel());
   }
+  if (is_optimizing()) {
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                      empty_stack_bitmap);
+  }
 
   if (FLAG_trace_functions) {
     __ pushq(RAX);  // Preserve result.
     __ PushObject(Function::ZoneHandle(function.raw()));
-    GenerateCallRuntime(Isolate::kNoDeoptId,
-                        0,
-                        CatchClauseNode::kInvalidTryIndex,
-                        kTraceFunctionExitRuntimeEntry,
-                        NULL);
+    // We do not use GenerateCallRuntime because of the non-standard (empty)
+    // stackmap used here.
+    __ CallRuntime(kTraceFunctionExitRuntimeEntry);
+    AddCurrentDescriptor(PcDescriptors::kOther,
+                         Isolate::kNoDeoptId,
+                         0,  // No token position.
+                         CatchClauseNode::kInvalidTryIndex);
+    if (is_optimizing()) {
+      stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                        empty_stack_bitmap);
+    }
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
   }
@@ -870,6 +885,7 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
   AssemblerMacros::TryAllocate(assembler_,
                                double_class_,
                                &call_method,
+                               Assembler::kNearJump,
                                RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ Drop(1);
@@ -905,6 +921,16 @@ void FlowGraphCompiler::CompileGraph() {
   } else {
     AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
   }
+
+  // For optimized code, keep a bitmap of the frame in order to build
+  // stackmaps for GC safepoints in the prologue.
+  LocationSummary* prologue_locs = NULL;
+  if (is_optimizing()) {
+    // Spill slots are allocated but not initialized.
+    prologue_locs = new LocationSummary(0, 0, LocationSummary::kCall);
+    prologue_locs->stack_bitmap()->SetLength(StackSize());
+  }
+
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
@@ -928,7 +954,7 @@ void FlowGraphCompiler::CompileGraph() {
                             function.token_pos(),
                             CatchClauseNode::kInvalidTryIndex,
                             kClosureArgumentMismatchRuntimeEntry,
-                            NULL);
+                            prologue_locs);
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -938,26 +964,15 @@ void FlowGraphCompiler::CompileGraph() {
     CopyParameters();
   }
 
-  // Initialize (non-argument) stack allocated slots to null.
-  //
-  // TODO(vegorov): introduce stack maps and stop initializing all spill slots
-  // with null.
-  intptr_t uninitialized_slot_count;
-  if (is_optimizing()) {
-    GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
-    uninitialized_slot_count =
-        entry->spill_slot_count() - copied_parameter_count;
-  } else {
-    uninitialized_slot_count = local_count;
-  }
-  const intptr_t slot_base = parsed_function().first_stack_local_index();
-
-  if (uninitialized_slot_count > 0) {
+  // In unoptimized code, initialize (non-argument) stack allocated slots to
+  // null.
+  if (!is_optimizing() && (local_count > 0)) {
     __ Comment("Initialize spill slots");
+    const intptr_t slot_base = parsed_function().first_stack_local_index();
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movq(RAX, raw_null);
-    for (intptr_t i = 0; i < uninitialized_slot_count; ++i) {
+    for (intptr_t i = 0; i < local_count; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
       __ movq(Address(RBP, (slot_base - i) * kWordSize), RAX);
     }
@@ -993,13 +1008,11 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      intptr_t try_index,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
-                                     BitmapBuilder* stack_bitmap) {
+                                     LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ call(label);
-  if (is_optimizing() && (stack_bitmap != NULL)) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
-  }
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos, try_index);
+  RecordSafepoint(locs);
 }
 
 
@@ -1007,41 +1020,49 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             intptr_t token_pos,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry,
-                                            BitmapBuilder* stack_bitmap) {
+                                            LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ CallRuntime(entry);
-  if (is_optimizing() && (stack_bitmap != NULL)) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
-  }
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);
+  RecordSafepoint(locs);
 }
 
 
-intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
-                                             const ICData& ic_data,
-                                             const Array& arguments_descriptor,
-                                             intptr_t argument_count) {
+void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
+                                         const ICData& ic_data,
+                                         const Array& arguments_descriptor,
+                                         intptr_t argument_count,
+                                         intptr_t deopt_id,
+                                         intptr_t token_pos,
+                                         intptr_t try_index,
+                                         LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, arguments_descriptor);
 
   __ call(target_label);
-  const intptr_t descr_offset = assembler()->CodeSize();
+  AddCurrentDescriptor(PcDescriptors::kIcCall, deopt_id, token_pos, try_index);
+  RecordSafepoint(locs);
+
   __ Drop(argument_count);
-  return descr_offset;
 }
 
 
-intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
-                                           const Array& arguments_descriptor,
-                                           intptr_t argument_count) {
+void FlowGraphCompiler::EmitStaticCall(const Function& function,
+                                       const Array& arguments_descriptor,
+                                       intptr_t argument_count,
+                                       intptr_t deopt_id,
+                                       intptr_t token_pos,
+                                       intptr_t try_index,
+                                       LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, function);
   __ LoadObject(R10, arguments_descriptor);
   __ call(&StubCode::CallStaticFunctionLabel());
-  const intptr_t descr_offset = assembler()->CodeSize();
+  AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos,
+                       try_index);
+  RecordSafepoint(locs);
   __ Drop(argument_count);
-  return descr_offset;
 }
 
 
@@ -1094,12 +1115,60 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 }
 
 
+void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+  // TODO(vegorov): consider saving only caller save (volatile) registers.
+  const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
+  if (xmm_regs_count > 0) {
+    // Pointer maps don't support pushed untagged values so we reserve spill
+    // slots at the top of the spill slot area for live XMM registers.
+    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
+        __ movsd(Address(RBP, -stack_offs), xmm_reg);
+        stack_offs += kDoubleSize;
+      }
+    }
+  }
+
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ pushq(reg);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ popq(reg);
+    }
+  }
+
+  const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
+  if (xmm_regs_count > 0) {
+    // Pointer maps don't support pushed untagged values so we reserve spill
+    // slots at the top of the spill slot area for live XMM registers.
+    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
+        __ movsd(xmm_reg, Address(RBP, -stack_offs));
+        stack_offs += kDoubleSize;
+      }
+    }
+  }
+}
+
+
 #undef __
 #define __ compiler_->assembler()->
 
 
 static Address ToStackSlotAddress(Location loc) {
-  ASSERT(loc.IsStackSlot());
   const intptr_t index = loc.stack_index();
   if (index < 0) {
     const intptr_t offset = (1 - index)  * kWordSize;
@@ -1132,6 +1201,23 @@ void ParallelMoveResolver::EmitMove(int index) {
       MoveMemoryToMemory(ToStackSlotAddress(destination),
                          ToStackSlotAddress(source));
     }
+  } else if (source.IsXmmRegister()) {
+    if (destination.IsXmmRegister()) {
+      // Optimization manual recommends using MOVAPS for register
+      // to register moves.
+      __ movaps(destination.xmm_reg(), source.xmm_reg());
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      __ movsd(ToStackSlotAddress(destination), source.xmm_reg());
+    }
+  } else if (source.IsDoubleStackSlot()) {
+    if (destination.IsXmmRegister()) {
+      __ movsd(destination.xmm_reg(), ToStackSlotAddress(source));
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      __ movsd(XMM0, ToStackSlotAddress(source));
+      __ movsd(ToStackSlotAddress(destination), XMM0);
+    }
   } else {
     ASSERT(source.IsConstant());
     if (destination.IsRegister()) {
@@ -1159,6 +1245,20 @@ void ParallelMoveResolver::EmitSwap(int index) {
     Exchange(destination.reg(), ToStackSlotAddress(source));
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(ToStackSlotAddress(destination), ToStackSlotAddress(source));
+  } else if (source.IsXmmRegister() && destination.IsXmmRegister()) {
+    __ movaps(XMM0, source.xmm_reg());
+    __ movaps(source.xmm_reg(), destination.xmm_reg());
+    __ movaps(destination.xmm_reg(), XMM0);
+  } else if (source.IsXmmRegister() || destination.IsXmmRegister()) {
+    ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
+    XmmRegister reg = source.IsXmmRegister() ? source.xmm_reg()
+                                             : destination.xmm_reg();
+    Address slot_address =
+        ToStackSlotAddress(source.IsXmmRegister() ? destination : source);
+
+    __ movsd(XMM0, slot_address);
+    __ movsd(slot_address, reg);
+    __ movaps(reg, XMM0);
   } else {
     UNREACHABLE();
   }

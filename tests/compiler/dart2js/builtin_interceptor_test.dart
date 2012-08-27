@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 foo(String a) {
   // index into the parameter and move into a loop to make sure we'll get a
   // type guard.
@@ -15,19 +15,19 @@ foo(String a) {
 }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 foo() {
   return "foo".length;
 }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
 foo() {
   return @"foo".length;
 }
 """;
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
 foo() {
   return new List().add(2);
 }

@@ -162,6 +162,7 @@ class HGraph {
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
+    if (constant.isFunction()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
     return new HBoundedType.exact(objectConstant.type);
   }
@@ -758,6 +759,40 @@ class HInstruction implements Hashable {
   // Other flags.
   static final int FLAG_USE_GVN              = FLAG_DEPENDS_ON_SOMETHING + 1;
 
+  // Type codes.
+  static final int UNDEFINED_TYPECODE = -1;
+  static final int BOOLIFY_TYPECODE = 0;
+  static final int TYPE_GUARD_TYPECODE = 1;
+  static final int BOUNDS_CHECK_TYPECODE = 2;
+  static final int INTEGER_CHECK_TYPECODE = 3;
+  static final int INVOKE_INTERCEPTOR_TYPECODE = 4;
+  static final int ADD_TYPECODE = 5;
+  static final int DIVIDE_TYPECODE = 6;
+  static final int MODULO_TYPECODE = 7;
+  static final int MULTIPLY_TYPECODE = 8;
+  static final int SUBTRACT_TYPECODE = 9;
+  static final int TRUNCATING_DIVIDE_TYPECODE = 10;
+  static final int SHIFT_LEFT_TYPECODE = 11;
+  static final int SHIFT_RIGHT_TYPECODE = 12;
+  static final int BIT_OR_TYPECODE = 13;
+  static final int BIT_AND_TYPECODE = 14;
+  static final int BIT_XOR_TYPECODE = 15;
+  static final int NEGATE_TYPECODE = 16;
+  static final int BIT_NOT_TYPECODE = 17;
+  static final int NOT_TYPECODE = 18;
+  static final int EQUALS_TYPECODE = 19;
+  static final int IDENTITY_TYPECODE = 20;
+  static final int GREATER_TYPECODE = 21;
+  static final int GREATER_EQUAL_TYPECODE = 22;
+  static final int LESS_TYPECODE = 23;
+  static final int LESS_EQUAL_TYPECODE = 24;
+  static final int STATIC_TYPECODE = 25;
+  static final int STATIC_STORE_TYPECODE = 26;
+  static final int FIELD_GET_TYPECODE = 27;
+  static final int TYPE_CONVERSION_TYPECODE = 28;
+  static final int BAILOUT_TARGET_TYPECODE = 29;
+  static final int INVOKE_STATIC_TYPECODE = 30;
+
   HInstruction(this.inputs)
       : id = idCounter++,
         usedBy = <HInstruction>[];
@@ -890,7 +925,7 @@ class HInstruction implements Hashable {
 
   // These methods should be overwritten by instructions that
   // participate in global value numbering.
-  int typeCode() => -1;
+  int typeCode() => HInstruction.UNDEFINED_TYPECODE;
   bool typeEquals(HInstruction other) => false;
   bool dataEquals(HInstruction other) => false;
 
@@ -1056,7 +1091,7 @@ class HBoolify extends HInstruction {
   HType get guaranteedType => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
-  int typeCode() => 0;
+  int typeCode() => HInstruction.BOOLIFY_TYPECODE;
   bool typeEquals(other) => other is HBoolify;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1091,7 +1126,7 @@ class HBailoutTarget extends HInstruction {
   bool isStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
-  int typeCode() => 29;
+  int typeCode() => HInstruction.BAILOUT_TARGET_TYPECODE;
   bool typeEquals(other) => other is HBailoutTarget;
   bool dataEquals(HBailoutTarget other) => other.state == state;
 }
@@ -1119,7 +1154,7 @@ class HTypeGuard extends HCheck {
   bool isStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
-  int typeCode() => 1;
+  int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
 }
@@ -1144,7 +1179,7 @@ class HBoundsCheck extends HCheck {
   HType get guaranteedType => HType.INTEGER;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
-  int typeCode() => 2;
+  int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
   bool typeEquals(other) => other is HBoundsCheck;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1168,7 +1203,7 @@ class HIntegerCheck extends HCheck {
   }
 
   accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
-  int typeCode() => 3;
+  int typeCode() => HInstruction.INTEGER_CHECK_TYPECODE;
   bool typeEquals(other) => other is HIntegerCheck;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1255,9 +1290,6 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  static final int INVOKE_INTERCEPTOR_TYPECODE = 4;
-  static final int INVOKE_STATIC_TYPECODE = 30;
-
   /** The first input must be the target. */
   HInvokeStatic(inputs, [HType knownType = HType.UNKNOWN]) : super(inputs) {
     guaranteedType = knownType;
@@ -1265,7 +1297,7 @@ class HInvokeStatic extends HInvoke {
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
-  int typeCode() => INVOKE_STATIC_TYPECODE;
+  int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
   Element get element => target.element;
   HStatic get target => inputs[0];
 
@@ -1344,42 +1376,35 @@ class HInvokeInterceptor extends HInvokeStatic {
     if (isLengthGetterOnStringOrArray(types)) {
       setUseGvn();
       clearAllSideEffects();
-      setDependsOnSomething();
+      // If the input is a string, we know the length cannot change.
+      // We cannot do the same thing for non-extendable array because
+      // we don't express that type yet: a mutable array might be
+      // extendable.
+      if (!inputs[1].isString(types)) setDependsOnSomething();
     } else {
       setAllSideEffects();
     }
   }
 
-  int typeCode() => HInvokeStatic.INVOKE_INTERCEPTOR_TYPECODE;
+  int typeCode() => HInstruction.INVOKE_INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) => selector == other.selector;
 }
 
 abstract class HFieldAccess extends HInstruction {
   final Element element;
-  final SourceString fieldName;
-  final LibraryElement library;
 
-  HFieldAccess(this.fieldName, this.library, List<HInstruction> inputs)
-      : element = null, super(inputs);
-
-  HFieldAccess.withElement(Element element, List<HInstruction> inputs)
+  HFieldAccess(Element element, List<HInstruction> inputs)
       : this.element = element,
-        fieldName = element.name,
-        library = element.getLibrary(),
         super(inputs);
 }
 
 class HFieldGet extends HFieldAccess {
   final bool isFinalOrConst;
 
-  HFieldGet(SourceString name, LibraryElement library, HInstruction receiver,
+  HFieldGet(Element element, HInstruction receiver,
             [this.isFinalOrConst = false])
-      : super(name, library, <HInstruction>[receiver]);
-
-  HFieldGet.withElement(Element element, HInstruction receiver,
-                        [this.isFinalOrConst = false])
-      : super.withElement(element, <HInstruction>[receiver]);
+      : super(element, <HInstruction>[receiver]);
 
   HInstruction get receiver => inputs[0];
 
@@ -1391,23 +1416,17 @@ class HFieldGet extends HFieldAccess {
     if (!isFinalOrConst) setDependsOnSomething();
   }
 
-  int typeCode() => 27;
+  int typeCode() => HInstruction.FIELD_GET_TYPECODE;
   bool typeEquals(other) => other is HFieldGet;
   bool dataEquals(HFieldGet other) => element == other.element;
-  String toString() => "FieldGet ${element == null ? fieldName : element}";
+  String toString() => "FieldGet $element";
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(SourceString name,
-            LibraryElement library,
+  HFieldSet(Element element,
             HInstruction receiver,
             HInstruction value)
-      : super(name, library, <HInstruction>[receiver, value]);
-
-  HFieldSet.withElement(Element element,
-                        HInstruction receiver,
-                        HInstruction value)
-      : super.withElement(element, <HInstruction>[receiver, value]);
+      : super(element, <HInstruction>[receiver, value]);
 
   HInstruction get receiver => inputs[0];
   HInstruction get value => inputs[1];
@@ -1419,12 +1438,11 @@ class HFieldSet extends HFieldAccess {
   }
 
   bool isStatement(HTypeMap types) => true;
-  String toString() => "FieldSet ${element == null ? fieldName : element}";
+  String toString() => "FieldSet $element";
 }
 
 class HLocalGet extends HFieldGet {
-  HLocalGet(Element element, HLocalValue local)
-      : super.withElement(element, local);
+  HLocalGet(Element element, HLocalValue local) : super(element, local);
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
@@ -1441,7 +1459,7 @@ class HLocalGet extends HFieldGet {
 
 class HLocalSet extends HFieldSet {
   HLocalSet(Element element, HLocalValue local, HInstruction value)
-      : super.withElement(element, local, value);
+      : super(element, local, value);
 
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
@@ -1497,7 +1515,7 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get left => inputs[1];
   HInstruction get right => inputs[2];
 
-  abstract BinaryOperation get operation();
+  abstract BinaryOperation get operation;
   abstract isBuiltin(HTypeMap types);
 }
 
@@ -1558,7 +1576,7 @@ class HBinaryArithmetic extends HInvokeBinary {
   }
 
   // TODO(1603): The class should be marked as abstract.
-  abstract BinaryOperation get operation();
+  abstract BinaryOperation get operation;
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -1567,7 +1585,7 @@ class HAdd extends HBinaryArithmetic {
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
   AddOperation get operation => const AddOperation();
-  int typeCode() => 5;
+  int typeCode() => HInstruction.ADD_TYPECODE;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1590,7 +1608,7 @@ class HDivide extends HBinaryArithmetic {
   }
 
   DivideOperation get operation => const DivideOperation();
-  int typeCode() => 6;
+  int typeCode() => HInstruction.DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1601,7 +1619,7 @@ class HModulo extends HBinaryArithmetic {
   accept(HVisitor visitor) => visitor.visitModulo(this);
 
   ModuloOperation get operation => const ModuloOperation();
-  int typeCode() => 7;
+  int typeCode() => HInstruction.MODULO_TYPECODE;
   bool typeEquals(other) => other is HModulo;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1612,7 +1630,7 @@ class HMultiply extends HBinaryArithmetic {
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
   MultiplyOperation get operation => const MultiplyOperation();
-  int typeCode() => 8;
+  int typeCode() => HInstruction.MULTIPLY_TYPECODE;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1623,7 +1641,7 @@ class HSubtract extends HBinaryArithmetic {
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
   SubtractOperation get operation => const SubtractOperation();
-  int typeCode() => 9;
+  int typeCode() => HInstruction.SUBTRACT_TYPECODE;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1658,7 +1676,7 @@ class HTruncatingDivide extends HBinaryArithmetic {
 
   TruncatingDivideOperation get operation
       => const TruncatingDivideOperation();
-  int typeCode() => 10;
+  int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1714,7 +1732,7 @@ class HShiftLeft extends HBinaryBitOp {
   }
 
   ShiftLeftOperation get operation => const ShiftLeftOperation();
-  int typeCode() => 11;
+  int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1728,7 +1746,7 @@ class HShiftRight extends HBinaryBitOp {
   bool isBuiltin(HTypeMap types) => false;
 
   ShiftRightOperation get operation => const ShiftRightOperation();
-  int typeCode() => 12;
+  int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1739,7 +1757,7 @@ class HBitOr extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   BitOrOperation get operation => const BitOrOperation();
-  int typeCode() => 13;
+  int typeCode() => HInstruction.BIT_OR_TYPECODE;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1750,7 +1768,7 @@ class HBitAnd extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   BitAndOperation get operation => const BitAndOperation();
-  int typeCode() => 14;
+  int typeCode() => HInstruction.BIT_AND_TYPECODE;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1761,7 +1779,7 @@ class HBitXor extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   BitXorOperation get operation => const BitXorOperation();
-  int typeCode() => 15;
+  int typeCode() => HInstruction.BIT_XOR_TYPECODE;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1805,7 +1823,7 @@ class HInvokeUnary extends HInvokeStatic {
 
   HType computeLikelyType(HTypeMap types) => HType.NUMBER;
 
-  abstract UnaryOperation get operation();
+  abstract UnaryOperation get operation;
 }
 
 class HNegate extends HInvokeUnary {
@@ -1813,7 +1831,7 @@ class HNegate extends HInvokeUnary {
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
   NegateOperation get operation => const NegateOperation();
-  int typeCode() => 16;
+  int typeCode() => HInstruction.NEGATE_TYPECODE;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1841,7 +1859,7 @@ class HBitNot extends HInvokeUnary {
   }
 
   BitNotOperation get operation => const BitNotOperation();
-  int typeCode() => 17;
+  int typeCode() => HInstruction.BIT_NOT_TYPECODE;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1969,7 +1987,7 @@ class HNot extends HInstruction {
   }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
-  int typeCode() => 18;
+  int typeCode() => HInstruction.NOT_TYPECODE;
   bool typeEquals(other) => other is HNot;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2139,7 +2157,7 @@ class HRelational extends HInvokeBinary {
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
   // TODO(1603): the class should be marked as abstract.
-  abstract BinaryOperation get operation();
+  abstract BinaryOperation get operation;
 }
 
 class HEquals extends HRelational {
@@ -2189,7 +2207,7 @@ class HEquals extends HRelational {
   }
 
   EqualsOperation get operation => const EqualsOperation();
-  int typeCode() => 19;
+  int typeCode() => HInstruction.EQUALS_TYPECODE;
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2209,7 +2227,7 @@ class HIdentity extends HRelational {
       => HType.UNKNOWN;
 
   IdentityOperation get operation => const IdentityOperation();
-  int typeCode() => 20;
+  int typeCode() => HInstruction.IDENTITY_TYPECODE;
   bool typeEquals(other) => other is HIdentity;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2220,7 +2238,7 @@ class HGreater extends HRelational {
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
   GreaterOperation get operation => const GreaterOperation();
-  int typeCode() => 21;
+  int typeCode() => HInstruction.GREATER_TYPECODE;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2231,7 +2249,7 @@ class HGreaterEqual extends HRelational {
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
   GreaterEqualOperation get operation => const GreaterEqualOperation();
-  int typeCode() => 22;
+  int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2242,7 +2260,7 @@ class HLess extends HRelational {
   accept(HVisitor visitor) => visitor.visitLess(this);
 
   LessOperation get operation => const LessOperation();
-  int typeCode() => 23;
+  int typeCode() => HInstruction.LESS_TYPECODE;
   bool typeEquals(other) => other is HLess;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2253,7 +2271,7 @@ class HLessEqual extends HRelational {
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
   LessEqualOperation get operation => const LessEqualOperation();
-  int typeCode() => 24;
+  int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2285,7 +2303,7 @@ class HStatic extends HInstruction {
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
   int gvnHashCode() => super.gvnHashCode() ^ element.hashCode();
-  int typeCode() => 25;
+  int typeCode() => HInstruction.STATIC_TYPECODE;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
   bool isCodeMotionInvariant() => !element.isAssignable();
@@ -2297,7 +2315,7 @@ class HStaticStore extends HInstruction {
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
-  int typeCode() => 26;
+  int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
   bool isStatement(HTypeMap types) => true;
@@ -2308,7 +2326,7 @@ class HLiteralList extends HInstruction {
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 
-  HType get guaranteedType => HType.MUTABLE_ARRAY;
+  HType get guaranteedType => HType.EXTENDABLE_ARRAY;
 
   void prepareGvn(HTypeMap types) {
     assert(!hasSideEffects(types));
@@ -2438,7 +2456,7 @@ class HTypeConversion extends HCheck {
   bool isStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
-  int typeCode() => 28;
+  int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeConversion;
   bool dataEquals(HTypeConversion other) {
     return type == other.type && kind == other.kind;

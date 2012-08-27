@@ -96,7 +96,16 @@ class Enqueuer {
     if (elements === null) {
       elements = getCachedElements(element);
     }
+
     queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
+
+    // Enable isolate support if we start using something from the
+    // isolate library.
+    LibraryElement library = element.getLibrary();
+    if (!compiler.hasIsolateSupport()
+        && library.uri.toString() == 'dart:isolate') {
+      compiler.enableIsolateSupport(library);
+    }
   }
 
   void eagerRecompile(Element element) {

@@ -23,6 +23,7 @@ $!GENERATED_DART_FILES
 #source('../../html/src/Measurement.dart');
 #source('../../html/src/Serialization.dart');
 #source('../../html/src/shared_FactoryProviders.dart');
+#source('../../html/src/dart2js_Conversions.dart');
 #source('../../html/src/dart2js_DOMImplementation.dart');
 #source('../../html/src/dart2js_FactoryProviders.dart');
 #source('../../html/src/dart2js_IDBKeyRangeFactoryProvider.dart');
@@ -43,6 +44,13 @@ _DocumentImpl get _document() native "return document;";
 
 Element query(String selector) => _document.query(selector);
 ElementList queryAll(String selector) => _document.queryAll(selector);
+
+/// Marker for defaulted arguments.
+class _Default {
+  const _Default();
+}
+
+final _default = const _Default();
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.

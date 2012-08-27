@@ -5,7 +5,6 @@
 [ $compiler == none ]
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
-expando_test: Fail
 compare_to2_test: Fail    # Bug 4018
 
 [ $compiler == dartc ]
@@ -18,7 +17,7 @@ unicode_test: Fail
 [ $runtime == opera ]
 *: Skip
 
-[ $runtime == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
@@ -55,11 +54,9 @@ string_base_vm_test: Fail, OK # VM specific test.
 core_runtime_types_test: Fail
 
 [ $compiler == dart2js && $runtime == ie ]
-const_list_literal_test: Fail # BUG(3304): Maybe this doesn't time out?
 date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
 reg_exp_all_matches_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
-core_runtime_types_test: Fail
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

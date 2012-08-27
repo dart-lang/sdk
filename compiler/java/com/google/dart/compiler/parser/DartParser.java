@@ -699,6 +699,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     beginLiteral();
     expect(Token.STRING);
+    @SuppressWarnings("unused")
     DartStringLiteral resourceUri = done(DartStringLiteral.get(ctx.getTokenString()));
     expectCloseParen();
     expect(Token.SEMICOLON);
@@ -1594,6 +1595,7 @@ public class DartParser extends CompletionHooksParserBase {
       // accepted, but eventually parameters should be disallowed.
       parameters = new ArrayList<DartParameter>();
     } else {
+      //reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
       parameters = parseFormalParameterList();
     }
 
@@ -1860,8 +1862,10 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartFieldDefinition parseFieldDeclaration(Modifiers modifiers, DartTypeNode type) {
     List<DartField> fields = new ArrayList<DartField>();
+    List<DartAnnotation> metadata = parseMetadata();
     do {
       beginVariableDeclaration();
+      List<DartAnnotation> fieldMetadata = parseMetadata();
       DartIdentifier name = parseIdentifier();
       DartExpression value = null;
       if (optional(Token.ASSIGN)) {
@@ -1873,9 +1877,13 @@ public class DartParser extends CompletionHooksParserBase {
       if (modifiers.isExternal()) {
         reportError(name, ParserErrorCode.EXTERNAL_ONLY_METHOD);
       }
-      fields.add(done(new DartField(name, modifiers, null, value)));
+      DartField field = done(new DartField(name, modifiers, null, value));
+      field.setMetadata(fieldMetadata);
+      fields.add(field);
     } while (optional(Token.COMMA));
-    return done(new DartFieldDefinition(type, fields));
+    DartFieldDefinition definition = new DartFieldDefinition(type, fields);
+    definition.setMetadata(metadata);
+    return done(definition);
   }
 
   /**
@@ -3049,6 +3057,8 @@ public class DartParser extends CompletionHooksParserBase {
    * error that needs to be handled in an enclosing context.
    */
   private static class StringInterpolationParseError extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public StringInterpolationParseError() {
       super();
     }
@@ -3419,10 +3429,20 @@ public class DartParser extends CompletionHooksParserBase {
       case STRING_LAST_SEGMENT:
         throw new StringInterpolationParseError();
 
+      case CONDITIONAL:
+        return parseArgumentDefinitionTest();
+
       default: {
         return parseLiteral();
       }
     }
+  }
+
+  private DartExpression parseArgumentDefinitionTest() {
+    beginArgumentDefinitionTest();
+    int operatorOffset = position();
+    expect(Token.CONDITIONAL);
+    return done(new DartUnaryExpression(Token.CONDITIONAL, operatorOffset, parseIdentifier(), true));
   }
 
   private DartExpression parseConstructorInvocation(boolean isConst) {
@@ -3758,6 +3778,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartVariable> idents = new ArrayList<DartVariable>();
     do {
       beginVariableDeclaration();
+      List<DartAnnotation> metadata = parseMetadata();
       DartIdentifier name = parseIdentifier();
       DartExpression value = null;
       if (isParsingInterface) {
@@ -3766,7 +3787,9 @@ public class DartParser extends CompletionHooksParserBase {
       } else if (optional(Token.ASSIGN)) {
         value = parseExpression();
       }
-      idents.add(done(new DartVariable(name, value)));
+      DartVariable variable = done(new DartVariable(name, value));
+      variable.setMetadata(metadata);
+      idents.add(variable);
     } while (optional(Token.COMMA));
 
     return idents;
@@ -3855,7 +3878,14 @@ public class DartParser extends CompletionHooksParserBase {
       labels.add(parseIdentifier());
       expect(Token.COLON);
     }
+    List<DartAnnotation> metadata = parseMetadata();
     DartStatement statement = parseNonLabelledStatement();
+    if (!metadata.isEmpty() && statement instanceof DartVariableStatement) {
+      DartVariableStatement variableStatement = (DartVariableStatement) statement;
+      if (!variableStatement.getVariables().isEmpty()) {
+        variableStatement.getVariables().get(0).setMetadata(metadata);
+      }
+    }
     for (int i = labels.size() - 1; i >= 0; i--) {
       statement = done(new DartLabel(labels.get(i), statement));
     }
@@ -4631,6 +4661,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartParameter parseCatchParameter() {
     beginCatchParameter();
+    List<DartAnnotation> metadata = parseMetadata();
     DartTypeNode type = null;
     Modifiers modifiers = Modifiers.NONE;
     boolean isDeclared = false;
@@ -4650,7 +4681,9 @@ public class DartParser extends CompletionHooksParserBase {
     if (!isDeclared) {
       reportError(name, ParserErrorCode.EXPECTED_VAR_FINAL_OR_TYPE);
     }
-    return done(new DartParameter(name, type, null, null, modifiers));
+    DartParameter parameter = done(new DartParameter(name, type, null, null, modifiers));
+    parameter.setMetadata(metadata);
+    return parameter;
   }
 
   /**
@@ -4700,14 +4733,17 @@ public class DartParser extends CompletionHooksParserBase {
       if (peekPseudoKeyword(0, ON_KEYWORD)) {
         beginCatchClause();
         next();
-        DartTypeNode exceptionType = new DartTypeNode(parseQualified());
+        beginTypeAnnotation();
+        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified()));
         DartParameter exception = null;
         DartParameter stackTrace = null;
         if (optional(Token.CATCH)) {
           expect(Token.LPAREN);
           beginCatchParameter();
+          List<DartAnnotation> metadata = parseMetadata();
           DartIdentifier exceptionName = parseIdentifier();
           exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
+          exception.setMetadata(metadata);
           if (optional(Token.COMMA)) {
             beginCatchParameter();
             DartIdentifier stackName = parseIdentifier();
@@ -4716,8 +4752,12 @@ public class DartParser extends CompletionHooksParserBase {
           expectCloseParen();
         } else {
           // Create a dummy identifier that the user cannot reliably reference.
-          DartIdentifier exceptionName = new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis()));
-          exception = new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE);
+          beginCatchParameter();
+          List<DartAnnotation> metadata = parseMetadata();
+          beginIdentifier();
+          DartIdentifier exceptionName = done(new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis())));
+          exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
+          exception.setMetadata(metadata);
         }
         DartBlock block = parseBlock();
         catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
@@ -4728,20 +4768,26 @@ public class DartParser extends CompletionHooksParserBase {
         DartParameter exception;
         if (match(Token.IDENTIFIER) && (peek(1) == Token.COMMA || peek(1) == Token.RPAREN)) {
           beginCatchParameter();
+          List<DartAnnotation> metadata = parseMetadata();
           DartIdentifier exceptionName = parseIdentifier();
           exception = done(new DartParameter(exceptionName, null , null, null, Modifiers.NONE));
+          exception.setMetadata(metadata);
         } else {
           // Old-style parameter
+          //reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
           exception = parseCatchParameter();
         }
         DartParameter stackTrace = null;
         if (optional(Token.COMMA)) {
           if (match(Token.IDENTIFIER) && peek(1) == Token.RPAREN) {
             beginCatchParameter();
+            List<DartAnnotation> metadata = parseMetadata();
             DartIdentifier stackName = parseIdentifier();
             stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
+            stackTrace.setMetadata(metadata);
           } else {
             // Old-style parameter
+            //reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
             stackTrace = parseCatchParameter();
           }
         }

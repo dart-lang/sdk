@@ -19,7 +19,7 @@ class A {
     return param + x;
   }
   
-  type5 get X() {
+  type5 get X {
     return x;
   }
 

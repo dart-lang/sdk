@@ -47,7 +47,7 @@ class _LocalMirrorSystemImpl implements MirrorSystem {
     return _voidType;
   }
 
-  String toString() => "MirrorSystem for isolate '$debugName'";
+  String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
 
 abstract class _LocalMirrorImpl implements Mirror {

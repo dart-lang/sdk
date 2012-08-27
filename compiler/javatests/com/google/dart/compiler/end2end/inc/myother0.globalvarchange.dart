@@ -8,7 +8,7 @@ class Other0 {
   int field_;
 
   Other0() : this.field_ = 42 { }
-  int get field() { return field_; }
+  int get field { return field_; }
 }
 
 num globalVar = 42;    // changed return type from int to num

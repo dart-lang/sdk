@@ -133,13 +133,13 @@ class _ScalarNode extends _Node {
    * Returns the string representation of the scalar. After composition, this is
    * equal to the canonical serialization of the value of the scalar.
    */
-  String get content() => _content != null ? _content : canonicalContent;
+  String get content => _content != null ? _content : canonicalContent;
 
   /**
    * Returns the canonical serialization of the value of the scalar. If the
    * value isn't given, the result of this will be "null".
    */
-  String get canonicalContent() {
+  String get canonicalContent {
     if (value == null || value is bool || value is int) return '$value';
 
     if (value is num) {

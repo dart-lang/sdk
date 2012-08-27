@@ -25,6 +25,13 @@ _DocumentImpl get _document() native "return document;";
 Element query(String selector) => _document.query(selector);
 ElementList queryAll(String selector) => _document.queryAll(selector);
 
+/// Marker for defaulted arguments.
+class _Default {
+  const _Default();
+}
+
+final _default = const _Default();
+
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
@@ -3891,7 +3898,20 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void closePath() native;
 
-  _ImageDataImpl createImageData(imagedata_OR_sw, [num sh]) native;
+  ImageData createImageData(imagedata_OR_sw, [sh = _default]) {
+    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) &&
+        _default == sh) {
+      var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
+      return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
+    }
+    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) &&
+        (sh is num || sh == null)) {
+      return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _createImageData_1(imagedata) native "createImageData";
+  _createImageData_2(num sw, num sh) native "createImageData";
 
   _CanvasGradientImpl createLinearGradient(num x0, num y0, num x1, num y1) native;
 
@@ -3909,7 +3929,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
-  _ImageDataImpl getImageData(num sx, num sy, num sw, num sh) native;
+  ImageData getImageData(num sx, num sy, num sw, num sh) {
+    return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
+  }
+  _getImageData_1(sx, sy, sw, sh) native "getImageData";
 
   bool isPointInPath(num x, num y) native;
 
@@ -3919,7 +3942,27 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void moveTo(num x, num y) native;
 
-  void putImageData(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) native;
+  void putImageData(ImageData imagedata, num dx, num dy, [dirtyX = _default, dirtyY = _default, dirtyWidth = _default, dirtyHeight = _default]) {
+    if (_default == dirtyX &&
+        _default == dirtyY &&
+        _default == dirtyWidth &&
+        _default == dirtyHeight) {
+      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+      _putImageData_1(imagedata_1, dx, dy);
+      return;
+    }
+    if ((dirtyX is num || dirtyX == null) &&
+        (dirtyY is num || dirtyY == null) &&
+        (dirtyWidth is num || dirtyWidth == null) &&
+        (dirtyHeight is num || dirtyHeight == null)) {
+      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+      _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  void _putImageData_1(imagedata, dx, dy) native "putImageData";
+  void _putImageData_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "putImageData";
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
@@ -3963,9 +4006,32 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void translate(num tx, num ty) native;
 
-  _ImageDataImpl webkitGetImageDataHD(num sx, num sy, num sw, num sh) native;
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
+    return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
+  }
+  _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
-  void webkitPutImageDataHD(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) native;
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [dirtyX = _default, dirtyY = _default, dirtyWidth = _default, dirtyHeight = _default]) {
+    if (_default == dirtyX &&
+        _default == dirtyY &&
+        _default == dirtyWidth &&
+        _default == dirtyHeight) {
+      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+      _webkitPutImageDataHD_1(imagedata_1, dx, dy);
+      return;
+    }
+    if ((dirtyX is num || dirtyX == null) &&
+        (dirtyY is num || dirtyY == null) &&
+        (dirtyWidth is num || dirtyWidth == null) &&
+        (dirtyHeight is num || dirtyHeight == null)) {
+      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+      _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "webkitPutImageDataHD";
 }
 
 class _CharacterDataImpl extends _NodeImpl implements CharacterData native "*CharacterData" {
@@ -4439,15 +4505,15 @@ class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior na
   // From Collection<String>:
 
   void add(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(String element)) => _Collections.forEach(this, f);
@@ -4466,7 +4532,7 @@ class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior na
   // From List<String>:
 
   void sort(int compare(String a, String b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
@@ -4480,20 +4546,20 @@ class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior na
   String last() => this[length - 1];
 
   String removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -4667,9 +4733,53 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
 
   _DirectoryReaderImpl createReader() native;
 
-  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]) native;
+  void getDirectory(String path, [options = _default, successCallback = _default, errorCallback = _default]) {
+    if (_default != errorCallback) {
+      var options_1 = _convertDartToNative_Dictionary(options);
+      _getDirectory_1(path, options_1, successCallback, errorCallback);
+      return;
+    }
+    if (_default != successCallback) {
+      var options_2 = _convertDartToNative_Dictionary(options);
+      _getDirectory_2(path, options_2, successCallback);
+      return;
+    }
+    if (_default != options) {
+      var options_3 = _convertDartToNative_Dictionary(options);
+      _getDirectory_3(path, options_3);
+      return;
+    }
+    _getDirectory_4(path);
+    return;
+  }
+  void _getDirectory_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native "getDirectory";
+  void _getDirectory_2(path, options, EntryCallback successCallback) native "getDirectory";
+  void _getDirectory_3(path, options) native "getDirectory";
+  void _getDirectory_4(path) native "getDirectory";
 
-  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]) native;
+  void getFile(String path, [options = _default, successCallback = _default, errorCallback = _default]) {
+    if (_default != errorCallback) {
+      var options_1 = _convertDartToNative_Dictionary(options);
+      _getFile_1(path, options_1, successCallback, errorCallback);
+      return;
+    }
+    if (_default != successCallback) {
+      var options_2 = _convertDartToNative_Dictionary(options);
+      _getFile_2(path, options_2, successCallback);
+      return;
+    }
+    if (_default != options) {
+      var options_3 = _convertDartToNative_Dictionary(options);
+      _getFile_3(path, options_3);
+      return;
+    }
+    _getFile_4(path);
+    return;
+  }
+  void _getFile_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native "getFile";
+  void _getFile_2(path, options, EntryCallback successCallback) native "getFile";
+  void _getFile_3(path, options) native "getFile";
+  void _getFile_4(path) native "getFile";
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
@@ -4678,9 +4788,17 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
   _DirectoryReaderSyncImpl createReader() native;
 
-  _DirectoryEntrySyncImpl getDirectory(String path, Map flags) native;
+  _DirectoryEntrySyncImpl getDirectory(String path, Map flags) {
+    var flags_1 = _convertDartToNative_Dictionary(flags);
+    return _getDirectory_1(path, flags_1);
+  }
+  _DirectoryEntrySyncImpl _getDirectory_1(path, flags) native "getDirectory";
 
-  _FileEntrySyncImpl getFile(String path, Map flags) native;
+  _FileEntrySyncImpl getFile(String path, Map flags) {
+    var flags_1 = _convertDartToNative_Dictionary(flags);
+    return _getFile_1(path, flags_1);
+  }
+  _FileEntrySyncImpl _getFile_1(path, flags) native "getFile";
 
   void removeRecursively() native;
 }
@@ -6788,15 +6906,15 @@ class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*Fil
   // From Collection<File>:
 
   void add(File value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(File value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<File> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(File element)) => _Collections.forEach(this, f);
@@ -6815,7 +6933,7 @@ class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*Fil
   // From List<File>:
 
   void sort(int compare(File a, File b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(File element, [int start = 0]) =>
@@ -6829,20 +6947,20 @@ class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*Fil
   File last() => this[length - 1];
 
   File removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<File> getRange(int start, int rangeLength) =>
@@ -7001,15 +7119,15 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   // From Collection<num>:
 
   void add(num value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(num element)) => _Collections.forEach(this, f);
@@ -7028,7 +7146,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   // From List<num>:
 
   void sort(int compare(num a, num b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
@@ -7042,20 +7160,20 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   num last() => this[length - 1];
 
   num removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -7092,15 +7210,15 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   // From Collection<num>:
 
   void add(num value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(num element)) => _Collections.forEach(this, f);
@@ -7119,7 +7237,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   // From List<num>:
 
   void sort(int compare(num a, num b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
@@ -7133,20 +7251,20 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   num last() => this[length - 1];
 
   num removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -7350,15 +7468,15 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   // From Collection<Node>:
 
   void add(Node value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
@@ -7377,7 +7495,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   // From List<Node>:
 
   void sort(int compare(Node a, Node b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -7391,20 +7509,20 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -7605,24 +7723,41 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final String direction;
 
-  final Dynamic key;
+  Dynamic get key() => _convertNativeToDart_IDBKey(this._key);
+  Dynamic get _key() native "return this.key;";
 
-  final Dynamic primaryKey;
+  Dynamic get primaryKey() => _convertNativeToDart_IDBKey(this._primaryKey);
+  Dynamic get _primaryKey() native "return this.primaryKey;";
 
   final Dynamic source;
 
   void advance(int count) native;
 
-  void continueFunction([key]) native "continue";
+  void continueFunction([key = _default]) {
+    if (_default != key) {
+      var key_1 = _convertDartToNative_IDBKey(key);
+      _continueFunction_1(key_1);
+      return;
+    }
+    _continueFunction_2();
+    return;
+  }
+  void _continueFunction_1(key) native "continue";
+  void _continueFunction_2() native "continue";
 
   _IDBRequestImpl delete() native;
 
-  _IDBRequestImpl update(value) native;
+  _IDBRequestImpl update(value) {
+    var value_1 = _convertDartToNative_SerializedScriptValue(value);
+    return _update_1(value_1);
+  }
+  _IDBRequestImpl _update_1(value) native "update";
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  final Dynamic value;
+  Dynamic get value() => _convertNativeToDart_IDBAny(this._value);
+  Dynamic get _value() native "return this.value;";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7684,7 +7819,15 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   void close() native;
 
-  _IDBObjectStoreImpl createObjectStore(String name, [Map options]) native;
+  _IDBObjectStoreImpl createObjectStore(String name, [options = _default]) {
+    if (_default != options) {
+      var options_1 = _convertDartToNative_Dictionary(options);
+      return _createObjectStore_1(name, options_1);
+    }
+    return _createObjectStore_2(name);
+  }
+  _IDBObjectStoreImpl _createObjectStore_1(name, options) native "createObjectStore";
+  _IDBObjectStoreImpl _createObjectStore_2(name) native "createObjectStore";
 
   void deleteObjectStore(String name) native;
 
@@ -7748,7 +7891,12 @@ class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBData
 
 class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
-  int cmp(first, second) native;
+  int cmp(first, second) {
+    var first_1 = _convertDartToNative_IDBKey(first);
+    var second_2 = _convertDartToNative_IDBKey(second);
+    return _cmp_1(first_1, second_2);
+  }
+  int _cmp_1(first, second) native "cmp";
 
   _IDBVersionChangeRequestImpl deleteDatabase(String name) native;
 
@@ -7769,15 +7917,152 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestImpl count([key_OR_range]) native;
+  _IDBRequestImpl count([key_OR_range = _default]) {
+    if (_default == key_OR_range) {
+      return _count_1();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
+      return _count_2(key_OR_range);
+    }
+    if (_default != key_OR_range) {
+      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
+      return _count_3(key_1);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _count_1() native "count";
+  _IDBRequestImpl _count_2(_IDBKeyRangeImpl range) native "count";
+  _IDBRequestImpl _count_3(key) native "count";
 
-  _IDBRequestImpl get(key) native;
+  _IDBRequestImpl get(key) {
+    if ((key is IDBKeyRange || key == null)) {
+      return _get_1(key);
+    }
+    if (_default != key) {
+      var key_1 = _convertDartToNative_IDBKey(key);
+      return _get_2(key_1);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _get_1(_IDBKeyRangeImpl key) native "get";
+  _IDBRequestImpl _get_2(key) native "get";
 
-  _IDBRequestImpl getKey(key) native;
+  _IDBRequestImpl getKey(key) {
+    if ((key is IDBKeyRange || key == null)) {
+      return _getKey_1(key);
+    }
+    if (_default != key) {
+      var key_1 = _convertDartToNative_IDBKey(key);
+      return _getKey_2(key_1);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _getKey_1(_IDBKeyRangeImpl key) native "getKey";
+  _IDBRequestImpl _getKey_2(key) native "getKey";
 
-  _IDBRequestImpl openCursor([key_OR_range, direction]) native;
+  _IDBRequestImpl openCursor([key_OR_range = _default, direction = _default]) {
+    if (_default == key_OR_range &&
+        _default == direction) {
+      return _openCursor_1();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        _default == direction) {
+      return _openCursor_2(key_OR_range);
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
+      return _openCursor_3(key_OR_range, direction);
+    }
+    if (_default != key_OR_range &&
+        _default == direction) {
+      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openCursor_4(key_1);
+    }
+    if (_default != key_OR_range &&
+        (direction is String || direction == null)) {
+      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openCursor_5(key_2, direction);
+    }
+    if (_default == key_OR_range &&
+        _default == direction) {
+      return _openCursor_6();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        _default == direction) {
+      return _openCursor_7(key_OR_range);
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is int || direction == null)) {
+      return _openCursor_8(key_OR_range, direction);
+    }
+    if (_default != key_OR_range &&
+        (direction is int || direction == null)) {
+      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openCursor_9(key_3, direction);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _openCursor_1() native "openCursor";
+  _IDBRequestImpl _openCursor_2(_IDBKeyRangeImpl range) native "openCursor";
+  _IDBRequestImpl _openCursor_3(_IDBKeyRangeImpl range, String direction) native "openCursor";
+  _IDBRequestImpl _openCursor_4(key) native "openCursor";
+  _IDBRequestImpl _openCursor_5(key, String direction) native "openCursor";
+  _IDBRequestImpl _openCursor_6() native "openCursor";
+  _IDBRequestImpl _openCursor_7(_IDBKeyRangeImpl range) native "openCursor";
+  _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
+  _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
-  _IDBRequestImpl openKeyCursor([key_OR_range, direction]) native;
+  _IDBRequestImpl openKeyCursor([key_OR_range = _default, direction = _default]) {
+    if (_default == key_OR_range &&
+        _default == direction) {
+      return _openKeyCursor_1();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        _default == direction) {
+      return _openKeyCursor_2(key_OR_range);
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
+      return _openKeyCursor_3(key_OR_range, direction);
+    }
+    if (_default != key_OR_range &&
+        _default == direction) {
+      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openKeyCursor_4(key_1);
+    }
+    if (_default != key_OR_range &&
+        (direction is String || direction == null)) {
+      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openKeyCursor_5(key_2, direction);
+    }
+    if (_default == key_OR_range &&
+        _default == direction) {
+      return _openKeyCursor_6();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        _default == direction) {
+      return _openKeyCursor_7(key_OR_range);
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is int || direction == null)) {
+      return _openKeyCursor_8(key_OR_range, direction);
+    }
+    if (_default != key_OR_range &&
+        (direction is int || direction == null)) {
+      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openKeyCursor_9(key_3, direction);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _openKeyCursor_1() native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_2(_IDBKeyRangeImpl range) native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_3(_IDBKeyRangeImpl range, String direction) native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_4(key) native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_5(key, String direction) native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_6() native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_7(_IDBKeyRangeImpl range) native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_8(_IDBKeyRangeImpl range, int direction) native "openKeyCursor";
+  _IDBRequestImpl _openKeyCursor_9(key, int direction) native "openKeyCursor";
 }
 
 class _IDBKeyImpl implements IDBKey native "*IDBKey" {
@@ -7785,11 +8070,13 @@ class _IDBKeyImpl implements IDBKey native "*IDBKey" {
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
-  final Dynamic lower;
+  Dynamic get lower() => _convertNativeToDart_IDBKey(this._lower);
+  Dynamic get _lower() native "return this.lower;";
 
   final bool lowerOpen;
 
-  final Dynamic upper;
+  Dynamic get upper() => _convertNativeToDart_IDBKey(this._upper);
+  Dynamic get _upper() native "return this.upper;";
 
   final bool upperOpen;
 }
@@ -7806,25 +8093,158 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _IDBTransactionImpl transaction;
 
-  _IDBRequestImpl add(value, [key]) native;
+  _IDBRequestImpl add(value, [key = _default]) {
+    if (_default != key) {
+      var value_1 = _convertDartToNative_SerializedScriptValue(value);
+      var key_2 = _convertDartToNative_IDBKey(key);
+      return _add_1(value_1, key_2);
+    }
+    var value_3 = _convertDartToNative_SerializedScriptValue(value);
+    return _add_2(value_3);
+  }
+  _IDBRequestImpl _add_1(value, key) native "add";
+  _IDBRequestImpl _add_2(value) native "add";
 
   _IDBRequestImpl clear() native;
 
-  _IDBRequestImpl count([key_OR_range]) native;
+  _IDBRequestImpl count([key_OR_range = _default]) {
+    if (_default == key_OR_range) {
+      return _count_1();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
+      return _count_2(key_OR_range);
+    }
+    if (_default != key_OR_range) {
+      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
+      return _count_3(key_1);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _count_1() native "count";
+  _IDBRequestImpl _count_2(_IDBKeyRangeImpl range) native "count";
+  _IDBRequestImpl _count_3(key) native "count";
 
-  _IDBIndexImpl createIndex(String name, keyPath, [Map options]) native;
+  _IDBIndexImpl createIndex(String name, keyPath, [options = _default]) {
+    if ((keyPath is List<String> || keyPath == null) &&
+        _default == options) {
+      List keyPath_1 = _convertDartToNative_StringArray(keyPath);
+      return _createIndex_1(name, keyPath_1);
+    }
+    if ((keyPath is List<String> || keyPath == null) &&
+        (options is Map || options == null)) {
+      List keyPath_2 = _convertDartToNative_StringArray(keyPath);
+      var options_3 = _convertDartToNative_Dictionary(options);
+      return _createIndex_2(name, keyPath_2, options_3);
+    }
+    if ((keyPath is String || keyPath == null) &&
+        _default == options) {
+      return _createIndex_3(name, keyPath);
+    }
+    if ((keyPath is String || keyPath == null) &&
+        (options is Map || options == null)) {
+      var options_4 = _convertDartToNative_Dictionary(options);
+      return _createIndex_4(name, keyPath, options_4);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBIndexImpl _createIndex_1(name, List keyPath) native "createIndex";
+  _IDBIndexImpl _createIndex_2(name, List keyPath, options) native "createIndex";
+  _IDBIndexImpl _createIndex_3(name, String keyPath) native "createIndex";
+  _IDBIndexImpl _createIndex_4(name, String keyPath, options) native "createIndex";
 
-  _IDBRequestImpl delete(key_OR_keyRange) native;
+  _IDBRequestImpl delete(key_OR_keyRange) {
+    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
+      return _delete_1(key_OR_keyRange);
+    }
+    if (_default != key_OR_keyRange) {
+      var key_1 = _convertDartToNative_IDBKey(key_OR_keyRange);
+      return _delete_2(key_1);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _delete_1(_IDBKeyRangeImpl keyRange) native "delete";
+  _IDBRequestImpl _delete_2(key) native "delete";
 
   void deleteIndex(String name) native;
 
-  _IDBRequestImpl getObject(key) native "get";
+  _IDBRequestImpl getObject(key) {
+    if ((key is IDBKeyRange || key == null)) {
+      return _getObject_1(key);
+    }
+    if (_default != key) {
+      var key_1 = _convertDartToNative_IDBKey(key);
+      return _getObject_2(key_1);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _getObject_1(_IDBKeyRangeImpl key) native "get";
+  _IDBRequestImpl _getObject_2(key) native "get";
 
   _IDBIndexImpl index(String name) native;
 
-  _IDBRequestImpl openCursor([key_OR_range, direction]) native;
+  _IDBRequestImpl openCursor([key_OR_range = _default, direction = _default]) {
+    if (_default == key_OR_range &&
+        _default == direction) {
+      return _openCursor_1();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        _default == direction) {
+      return _openCursor_2(key_OR_range);
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
+      return _openCursor_3(key_OR_range, direction);
+    }
+    if (_default != key_OR_range &&
+        _default == direction) {
+      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openCursor_4(key_1);
+    }
+    if (_default != key_OR_range &&
+        (direction is String || direction == null)) {
+      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openCursor_5(key_2, direction);
+    }
+    if (_default == key_OR_range &&
+        _default == direction) {
+      return _openCursor_6();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        _default == direction) {
+      return _openCursor_7(key_OR_range);
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is int || direction == null)) {
+      return _openCursor_8(key_OR_range, direction);
+    }
+    if (_default != key_OR_range &&
+        (direction is int || direction == null)) {
+      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
+      return _openCursor_9(key_3, direction);
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  _IDBRequestImpl _openCursor_1() native "openCursor";
+  _IDBRequestImpl _openCursor_2(_IDBKeyRangeImpl range) native "openCursor";
+  _IDBRequestImpl _openCursor_3(_IDBKeyRangeImpl range, String direction) native "openCursor";
+  _IDBRequestImpl _openCursor_4(key) native "openCursor";
+  _IDBRequestImpl _openCursor_5(key, String direction) native "openCursor";
+  _IDBRequestImpl _openCursor_6() native "openCursor";
+  _IDBRequestImpl _openCursor_7(_IDBKeyRangeImpl range) native "openCursor";
+  _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
+  _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
-  _IDBRequestImpl put(value, [key]) native;
+  _IDBRequestImpl put(value, [key = _default]) {
+    if (_default != key) {
+      var value_1 = _convertDartToNative_SerializedScriptValue(value);
+      var key_2 = _convertDartToNative_IDBKey(key);
+      return _put_1(value_1, key_2);
+    }
+    var value_3 = _convertDartToNative_SerializedScriptValue(value);
+    return _put_2(value_3);
+  }
+  _IDBRequestImpl _put_1(value, key) native "put";
+  _IDBRequestImpl _put_2(value) native "put";
 }
 
 class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest native "*IDBOpenDBRequest" {
@@ -7860,7 +8280,8 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 
   final String readyState;
 
-  final Dynamic result;
+  Dynamic get result() => _convertNativeToDart_IDBAny(this._result);
+  Dynamic get _result() native "return this.result;";
 
   final Dynamic source;
 
@@ -8196,15 +8617,15 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
@@ -8223,7 +8644,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   // From List<int>:
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -8237,20 +8658,20 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   int last() => this[length - 1];
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -8287,15 +8708,15 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
@@ -8314,7 +8735,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   // From List<int>:
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -8328,20 +8749,20 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   int last() => this[length - 1];
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -8378,15 +8799,15 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
@@ -8405,7 +8826,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   // From List<int>:
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -8419,20 +8840,20 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   int last() => this[length - 1];
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -8907,15 +9328,15 @@ class _MediaListImpl implements MediaList, JavaScriptIndexingBehavior native "*M
   // From Collection<String>:
 
   void add(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(String element)) => _Collections.forEach(this, f);
@@ -8934,7 +9355,7 @@ class _MediaListImpl implements MediaList, JavaScriptIndexingBehavior native "*M
   // From List<String>:
 
   void sort(int compare(String a, String b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
@@ -8948,20 +9369,20 @@ class _MediaListImpl implements MediaList, JavaScriptIndexingBehavior native "*M
   String last() => this[length - 1];
 
   String removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -9301,7 +9722,12 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
 
   void disconnect() native;
 
-  void _observe(_NodeImpl target, Map options) native "observe";
+  void _observe(_NodeImpl target, Map options) {
+    var options_1 = _convertDartToNative_Dictionary(options);
+    __observe_1(target, options_1);
+    return;
+  }
+  void __observe_1(_NodeImpl target, options) native "observe";
 
   List<MutationRecord> takeRecords() native;
 
@@ -9412,15 +9838,15 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   // From Collection<Node>:
 
   void add(Node value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
@@ -9439,7 +9865,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   // From List<Node>:
 
   void sort(int compare(Node a, Node b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -9453,20 +9879,20 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -9529,7 +9955,18 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   _GamepadListImpl webkitGetGamepads() native;
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [errorCallback = _default]) {
+    if (_default != errorCallback) {
+      var options_1 = _convertDartToNative_Dictionary(options);
+      _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
+      return;
+    }
+    var options_2 = _convertDartToNative_Dictionary(options);
+    _webkitGetUserMedia_2(options_2, successCallback);
+    return;
+  }
+  void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native "webkitGetUserMedia";
+  void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native "webkitGetUserMedia";
 }
 
 class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -10315,13 +10752,39 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  void addStream(_MediaStreamImpl stream, [Map mediaStreamHints]) native;
+  void addStream(_MediaStreamImpl stream, [mediaStreamHints = _default]) {
+    if (_default != mediaStreamHints) {
+      var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
+      _addStream_1(stream, mediaStreamHints_1);
+      return;
+    }
+    _addStream_2(stream);
+    return;
+  }
+  void _addStream_1(_MediaStreamImpl stream, mediaStreamHints) native "addStream";
+  void _addStream_2(_MediaStreamImpl stream) native "addStream";
 
   void close() native;
 
-  _SessionDescriptionImpl createAnswer(String offer, [Map mediaHints]) native;
+  _SessionDescriptionImpl createAnswer(String offer, [mediaHints = _default]) {
+    if (_default != mediaHints) {
+      var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
+      return _createAnswer_1(offer, mediaHints_1);
+    }
+    return _createAnswer_2(offer);
+  }
+  _SessionDescriptionImpl _createAnswer_1(offer, mediaHints) native "createAnswer";
+  _SessionDescriptionImpl _createAnswer_2(offer) native "createAnswer";
 
-  _SessionDescriptionImpl createOffer([Map mediaHints]) native;
+  _SessionDescriptionImpl createOffer([mediaHints = _default]) {
+    if (_default != mediaHints) {
+      var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
+      return _createOffer_1(mediaHints_1);
+    }
+    return _createOffer_2();
+  }
+  _SessionDescriptionImpl _createOffer_1(mediaHints) native "createOffer";
+  _SessionDescriptionImpl _createOffer_2() native "createOffer";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
@@ -10335,7 +10798,17 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, _SessionDescriptionImpl desc) native;
 
-  void startIce([Map iceOptions]) native;
+  void startIce([iceOptions = _default]) {
+    if (_default != iceOptions) {
+      var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
+      _startIce_1(iceOptions_1);
+      return;
+    }
+    _startIce_2();
+    return;
+  }
+  void _startIce_1(iceOptions) native "startIce";
+  void _startIce_2() native "startIce";
 }
 
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
@@ -10697,7 +11170,10 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList native "*SQLResult
 
   final int length;
 
-  Object item(int index) native;
+  Map item(int index) {
+    return _convertNativeToDart_Dictionary(_item_1(index));
+  }
+  _item_1(index) native "item";
 }
 
 class _SQLTransactionImpl implements SQLTransaction native "*SQLTransaction" {
@@ -14556,15 +15032,15 @@ class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior 
   // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<StyleSheet> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
@@ -14583,7 +15059,7 @@ class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior 
   // From List<StyleSheet>:
 
   void sort(int compare(StyleSheet a, StyleSheet b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(StyleSheet element, [int start = 0]) =>
@@ -14597,20 +15073,20 @@ class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior 
   StyleSheet last() => this[length - 1];
 
   StyleSheet removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
@@ -15038,15 +15514,15 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   // From Collection<Touch>:
 
   void add(Touch value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(Touch value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Touch> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(Touch element)) => _Collections.forEach(this, f);
@@ -15065,7 +15541,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   // From List<Touch>:
 
   void sort(int compare(Touch a, Touch b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(Touch element, [int start = 0]) =>
@@ -15079,20 +15555,20 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   Touch last() => this[length - 1];
 
   Touch removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Touch initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<Touch> getRange(int start, int rangeLength) =>
@@ -15223,15 +15699,15 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
@@ -15250,7 +15726,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   // From List<int>:
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -15264,20 +15740,20 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   int last() => this[length - 1];
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -15314,15 +15790,15 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
@@ -15341,7 +15817,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   // From List<int>:
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -15355,20 +15831,20 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   int last() => this[length - 1];
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -15405,15 +15881,15 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
@@ -15432,7 +15908,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   // From List<int>:
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -15446,20 +15922,20 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   int last() => this[length - 1];
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -16419,13 +16895,94 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, _ArrayBufferViewImpl pixels]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format = _default, type = _default, pixels = _default]) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        (format is int || format == null) &&
+        (type is int || type == null) &&
+        (pixels is ArrayBufferView || pixels == null)) {
+      _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        _default == format &&
+        _default == type &&
+        _default == pixels) {
+      var pixels_1 = _convertDartToNative_ImageData(border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        _default == format &&
+        _default == type &&
+        _default == pixels) {
+      _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        _default == format &&
+        _default == type &&
+        _default == pixels) {
+      _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        _default == format &&
+        _default == type &&
+        _default == pixels) {
+      _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  void _texImage2D_1(target, level, internalformat, width, height, int border, int format, int type, _ArrayBufferViewImpl pixels) native "texImage2D";
+  void _texImage2D_2(target, level, internalformat, format, type, pixels) native "texImage2D";
+  void _texImage2D_3(target, level, internalformat, format, type, _ImageElementImpl image) native "texImage2D";
+  void _texImage2D_4(target, level, internalformat, format, type, _CanvasElementImpl canvas) native "texImage2D";
+  void _texImage2D_5(target, level, internalformat, format, type, _VideoElementImpl video) native "texImage2D";
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, _ArrayBufferViewImpl pixels]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type = _default, pixels = _default]) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        (type is int || type == null) &&
+        (pixels is ArrayBufferView || pixels == null)) {
+      _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        _default == type &&
+        _default == pixels) {
+      var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        _default == type &&
+        _default == pixels) {
+      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        _default == type &&
+        _default == pixels) {
+      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        _default == type &&
+        _default == pixels) {
+      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, int type, _ArrayBufferViewImpl pixels) native "texSubImage2D";
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native "texSubImage2D";
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, _ImageElementImpl image) native "texSubImage2D";
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, _CanvasElementImpl canvas) native "texSubImage2D";
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, _VideoElementImpl video) native "texSubImage2D";
 
   void uniform1f(_WebGLUniformLocationImpl location, num x) native;
 
@@ -28906,7 +29463,7 @@ interface SQLResultSetRowList {
   final int length;
 
   /** @domName SQLResultSetRowList.item */
-  Object item(int index);
+  Map item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37109,9 +37666,40 @@ _serialize(var message) {
 }
 
 class JsProxy {
+  SendPortSync _port;
   final _id;
 
-  JsProxy._internal(this._id);
+  JsProxy._internal(this._port, this._id);
+
+  noSuchMethod(method, args) {
+    var result = _port.callSync([_id, method, args]);
+    switch (result[0]) {
+      case 'return': return result[1];
+      case 'exception': throw result[1];
+      case 'none': throw new NoSuchMethodException(this, method, args);
+      default: throw 'Invalid return value';
+    }
+  }
+}
+
+int _localNextElementId = 0;
+
+const _DART_ID = 'data-dart_id';
+
+_elementId(Element e) {
+  if (e.attributes.containsKey(_DART_ID)) return e.attributes[_DART_ID];
+  var id = '$_isolateId-${_localNextElementId++}';
+  e.attributes[_DART_ID] = id;
+  return id;
+}
+
+Element _getElement(var id) {
+  var list = queryAll('[$_DART_ID="$id"]');
+  if (list.length > 1) throw 'Non unique ID: $id';
+  if (list.length == 0) {
+    throw 'Only elements attached to document can be serialized: $id';
+  }
+  return list[0];
 }
 
 class _JsSerializer extends _Serializer {
@@ -37120,7 +37708,7 @@ class _JsSerializer extends _Serializer {
     if (x is _JsSendPortSync) return visitJsSendPortSync(x);
     if (x is _LocalSendPortSync) return visitLocalSendPortSync(x);
     if (x is _RemoteSendPortSync) return visitRemoteSendPortSync(x);
-    throw "Illegal underlying port $x";
+    throw "Unknown port type $x";
   }
 
   visitJsSendPortSync(_JsSendPortSync x) {
@@ -37140,19 +37728,30 @@ class _JsSerializer extends _Serializer {
   visitObject(Object x) {
     if (x is Function) return visitFunction(x);
     if (x is JsProxy) return visitJsProxy(x);
+    if (x is Element) return visitElement(x);
 
     // TODO: Handle DOM elements and proxy other objects.
-    var proxyId = _makeDartProxyRef(x);
-    return [ 'objref', 'dart', proxyId ];
+    var proxyId = _dartProxyRegistry._add(x);
+    return [ 'objref', proxyId,
+             visitSendPortSync(_dartProxyRegistry._sendPort) ];
  }
 
   visitFunction(Function func) {
     return [ 'funcref',
-              _makeFunctionRef(func), visitSendPortSync(_sendPort()), null ];
+             _functionRegistry._add(func),
+             visitSendPortSync(_functionRegistry._sendPort), null ];
   }
 
   visitJsProxy(JsProxy proxy) {
-    return [ 'objref', 'nativejs', proxy._id ];
+    return [ 'objref', proxy._id, visitSendPortSync(proxy._port) ];
+  }
+
+  visitElement(Element element) {
+    var id = _elementId(element);
+    // Verify that the element is connected to the document.
+    // Otherwise, we will not be able to find it on the other side.
+    _getElement(id);
+    return [ 'element', id ];
   }
 }
 
@@ -37163,8 +37762,12 @@ class _Registry<T> {
   final String _name;
   int _nextId;
   final Map<String, T> _registry;
+  final ReceivePortSync _port;
 
-  _Registry(this._name) : _nextId = 0, _registry = <T>{};
+  _Registry(this._name) :
+      _nextId = 0,
+      _registry = <T>{},
+      _port = new ReceivePortSync();
 
   String _add(T x) {
     // TODO(vsm): Cache x and reuse id.
@@ -37176,14 +37779,12 @@ class _Registry<T> {
   T _get(String id) {
     return _registry[id];
   }
+
+  get _sendPort => _port.toSendPort();
 }
 
 class _FunctionRegistry extends _Registry<Function> {
-  final ReceivePortSync _port;
-
-  _FunctionRegistry() :
-      super('func-ref'),
-      _port = new ReceivePortSync() {
+  _FunctionRegistry() : super('func-ref') {
     _port.receive((msg) {
       final id = msg[0];
       final args = msg[1];
@@ -37198,8 +37799,6 @@ class _FunctionRegistry extends _Registry<Function> {
       }
     });
   }
-
-  get _sendPort => _port.toSendPort();
 }
 
 _FunctionRegistry __functionRegistry;
@@ -37207,15 +37806,17 @@ get _functionRegistry {
   if (__functionRegistry === null) __functionRegistry = new _FunctionRegistry();
   return __functionRegistry;
 }
-
-_makeFunctionRef(f) => _functionRegistry._add(f);
-_sendPort() => _functionRegistry._sendPort;
 /// End of function serialization implementation.
 
 /// Object proxy implementation.
 
 class _DartProxyRegistry extends _Registry<Object> {
-  _DartProxyRegistry() : super('dart-ref');
+  _DartProxyRegistry() : super('dart-ref') {
+    _port.receive((msg) {
+      // TODO(vsm): Support a mechanism to register a handler here.
+      throw 'Invocation unsupported on Dart proxies';
+    });
+  }
 }
 
 _DartProxyRegistry __dartProxyRegistry;
@@ -37225,9 +37826,6 @@ get _dartProxyRegistry {
   }
   return __dartProxyRegistry;
 }
-
-_makeDartProxyRef(f) => _dartProxyRegistry._add(f);
-_getDartProxyObj(id) => _dartProxyRegistry._get(id);
 
 /// End of object proxy implementation.
 
@@ -37259,6 +37857,7 @@ class _JsDeserializer extends _Deserializer {
     switch (tag) {
       case 'funcref': return deserializeFunction(x);
       case 'objref': return deserializeProxy(x);
+      case 'element': return deserializeElement(x);
       default: throw 'Illegal object type: $x';
     }
   }
@@ -37278,18 +37877,18 @@ class _JsDeserializer extends _Deserializer {
   }
 
   deserializeProxy(x) {
-    String tag = x[1];
-    switch (tag) {
-      case 'nativejs':
-        var id = x[2];
-        return new JsProxy._internal(id);
-      case 'dart':
-        var id = x[2];
-        // TODO(vsm): Check for isolate id.  If the isolate isn't the
-        // current isolate, return a DartProxy.
-        return _getDartProxyObj(id);
-      default: throw 'Illegal proxy: $x';
-    }
+    var id = x[1];
+    var port = deserializeSendPort(x[2]);
+    if (port is _JsSendPortSync) return new JsProxy._internal(port, id);
+    if (port is _LocalSendPortSync) return _dartProxyRegistry._get(id);
+    // TODO(vsm): Support this case.
+    if (port is _RemoteSendPortSync) throw 'Remote Dart proxies unsupported';
+    throw 'Illegal proxy: $port';
+  }
+
+  deserializeElement(x) {
+    var id = x[1];
+    return _getElement(id);
   }
 }
 
@@ -37427,6 +38026,8 @@ class ReceivePortSync {
     }
   }
 }
+
+get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = document.$dom_createEvent('TextEvent');
@@ -37872,6 +38473,403 @@ class _SVGSVGElementFactoryProvider {
     return el;
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// Conversions for IDBKey.
+//
+// Per http://www.w3.org/TR/IndexedDB/#key-construct
+//
+// "A value is said to be a valid key if it is one of the following types: Array
+// JavaScript objects [ECMA-262], DOMString [WEBIDL], Date [ECMA-262] or float
+// [WEBIDL]. However Arrays are only valid keys if every item in the array is
+// defined and is a valid key (i.e. sparse arrays can not be valid keys) and if
+// the Array doesn't directly or indirectly contain itself. Any non-numeric
+// properties are ignored, and thus does not affect whether the Array is a valid
+// key. Additionally, if the value is of type float, it is only a valid key if
+// it is not NaN, and if the value is of type Date it is only a valid key if its
+// [[PrimitiveValue]] internal property, as defined by [ECMA-262], is not NaN."
+
+// What is required is to ensure that an Lists in the key are actually
+// JavaScript arrays, and any Dates are JavaScript Dates.
+
+// Conversions for ImageData
+//
+// On Firefox, the returned ImageData is a plain object.
+
+class _TypedImageData implements ImageData {
+  final Uint8ClampedArray data;
+  final int height;
+  final int width;
+
+  _TypedImageData(this.data, this.height, this.width);
+}
+
+ImageData _convertNativeToDart_ImageData(nativeImageData) {
+  if (nativeImageData is ImageData) return nativeImageData;
+
+  // On Firefox the above test fails because imagedata is a plain object.
+  // So we create a _TypedImageData.
+
+  return new _TypedImageData(
+      JS('var', '#.data', nativeImageData),
+      JS('var', '#.height', nativeImageData),
+      JS('var', '#.width', nativeImageData));
+}
+
+// We can get rid of this conversion if _TypedImageData implements the fields
+// with native names.
+_convertDartToNative_ImageData(ImageData imageData) {
+  if (imageData is _ImageDataImpl) return imageData;
+  return JS('Object', '{data: #, height: #, width: #}',
+            imageData.data, imageData.height, imageData.width);
+}
+
+
+/// Converts a JavaScript object with properties into a Dart Map.
+/// Not suitable for nested objects.
+Map _convertNativeToDart_Dictionary(object) {
+  if (object == null) return null;
+  var dict = {};
+  for (final key in JS('List', 'Object.getOwnPropertyNames(#)', object)) {
+    dict[key] = JS('var', '#[#]', object, key);
+  }
+  return dict;
+}
+
+/// Converts a flat Dart map into a JavaScript object with properties.
+_convertDartToNative_Dictionary(Map dict) {
+  if (dict == null) return null;
+  var object = JS('var', '{}');
+  dict.forEach((String key, value) {
+      JS('void', '#[#] = #', object, key, value);
+    });
+  return object;
+}
+
+
+/**
+ * Ensures that the input is a JavaScript Array.
+ *
+ * Creates a new JavaScript array if necessary, otherwise returns the original.
+ */
+List _convertDartToNative_StringArray(List<String> input) {
+  // TODO(sra).  Implement this.
+  return input;
+}
+
+
+// -----------------------------------------------------------------------------
+
+/**
+ * Converts a native IDBKey into a Dart object.
+ *
+ * May return the original input.  May mutate the original input (but will be
+ * idempotent if mutation occurs).  It is assumed that this conversion happens
+ * on native IDBKeys on all paths that return IDBKeys from native DOM calls.
+ *
+ * If necessary, JavaScript Dates are converted into Dart Dates.
+ */
+_convertNativeToDart_IDBKey(nativeKey) {
+  containsDate(object) {
+    if (_isJavaScriptDate(object)) return true;
+    if (object is List) {
+      for (int i = 0; i < object.length; i++) {
+        if (containsDate(object[i])) return true;
+      }
+    }
+    return false;  // number, string.
+  }
+  if (containsDate(nativeKey)) {
+    throw const NotImplementedException('IDBKey containing Date');
+  }
+  // TODO: Cache conversion somewhere?
+  return nativeKey;
+}
+
+/**
+ * Converts a Dart object into a valid IDBKey.
+ *
+ * May return the original input.  Does not mutate input.
+ *
+ * If necessary, [dartKey] may be copied to ensure all lists are converted into
+ * JavaScript Arrays and Dart Dates into JavaScript Dates.
+ */
+_convertDartToNative_IDBKey(dartKey) {
+  // TODO: Implement.
+  return dartKey;
+}
+
+
+
+// May modify original.  If so, action is idempotent.
+_convertNativeToDart_IDBAny(object) {
+  return _convertNativeToDart_AcceptStructuredClone(object);
+}
+
+/// Converts a Dart value into
+_convertDartToNative_SerializedScriptValue(value) {
+  return _convertDartToNative_PrepareForStructuredClone(value);
+}
+
+
+/**
+ * Converts a Dart value into a JavaScript SerializedScriptValue.  Returns the
+ * original input or a functional 'copy'.  Does not mutate the original.
+ *
+ * The main transformation is the translation of Dart Maps are converted to
+ * JavaScript Objects.
+ *
+ * The algorithm is essentially a dry-run of the structured clone algorithm
+ * described at
+ * http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#structured-clone
+ * https://www.khronos.org/registry/typedarray/specs/latest/#9
+ *
+ */
+_convertDartToNative_PrepareForStructuredClone(value) {
+
+  // TODO(sra): Replace slots with identity hash table.
+  var values = [];
+  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
+
+  int findSlot(value) {
+    int length = values.length;
+    for (int i = 0; i < length; i++) {
+      if (values[i] === value) return i;
+    }
+    values.add(value);
+    copies.add(null);
+    return length;
+  }
+  readSlot(int i) => copies[i];
+  writeSlot(int i, x) { copies[i] = x; }
+  cleanupSlots() {}  // Will be needed if we mark objects with a property.
+
+  // Returns the input, or a clone of the input.
+  walk(e) {
+    if (e == null) return e;
+    if (e is bool) return e;
+    if (e is num) return e;
+    if (e is String) return e;
+    if (e is Date) {
+      // TODO(sra).
+      throw const NotImplementedException('structured clone of Date');
+    }
+    if (e is RegExp) {
+      // TODO(sra).
+      throw const NotImplementedException('structured clone of RegExp');
+    }
+
+    // The browser's internal structured cloning algorithm will copy certain
+    // types of object, but it will copy only its own implementations and not
+    // just any Dart implementations of the interface.
+
+    // TODO(sra): The JavaScript objects suitable for direct cloning by the
+    // structured clone algorithm could be tagged with an private interface.
+
+    if (e is _FileImpl) return e;
+    if (e is File) {
+      throw const NotImplementedException('structured clone of File');
+    }
+
+    if (e is _BlobImpl) return e;
+    if (e is Blob) {
+      throw const NotImplementedException('structured clone of Blob');
+    }
+
+    if (e is _FileListImpl) return e;
+    if (e is FileList) {
+      throw const NotImplementedException('structured clone of FileList');
+    }
+
+    // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
+    if (e is _ImageDataImpl) return e;
+    if (e is ImageData) {
+      throw const NotImplementedException('structured clone of FileList');
+    }
+
+    if (e is _ArrayBufferImpl) return e;
+    if (e is ArrayBuffer) {
+      throw const NotImplementedException('structured clone of ArrayBuffer');
+    }
+
+    if (e is _ArrayBufferViewImpl) return e;
+    if (e is ArrayBufferView) {
+      throw const NotImplementedException('structured clone of ArrayBufferView');
+    }
+
+    if (e is Map) {
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      copy = JS('var', '{}');
+      writeSlot(slot, copy);
+      e.forEach((key, value) {
+          JS('void', '#[#] = #', copy, key, walk(value));
+        });
+      return copy;
+    }
+
+    if (e is List) {
+      // Since a JavaScript Array is an instance of Dart List it is possible to
+      // avoid making a copy of the list if there is no need to copy anything
+      // reachable from the array.  We defer creating a new array until a cycle
+      // is detected or a subgraph was copied.
+      int length = e.length;
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) {
+        if (true == copy) {  // Cycle, so commit to making a copy.
+          copy = JS('List', 'new Array(#)', length);
+          writeSlot(slot, copy);
+        }
+        return copy;
+      }
+
+      int i = 0;
+
+      if (_isJavaScriptArray(e) &&
+          // We have to copy immutable lists, otherwise the structured clone
+          // algorithm will copy the .immutable$list marker property, making the
+          // list immutable when received!
+          !_isImmutableJavaScriptArray(e)) {
+        writeSlot(slot, true);  // Deferred copy.
+        for ( ; i < length; i++) {
+          var element = e[i];
+          var elementCopy = walk(element);
+          if (elementCopy !== element) {
+            copy = readSlot(slot);   // Cyclic reference may have created it.
+            if (true == copy) {
+              copy = JS('List', 'new Array(#)', length);
+              writeSlot(slot, copy);
+            }
+            for (int j = 0; j < i; j++) {
+              copy[j] = e[j];
+            }
+            copy[i] = elementCopy;
+            i++;
+            break;
+          }
+        }
+        if (copy == null) {
+          copy = e;
+          writeSlot(slot, copy);
+        }
+      } else {
+        // Not a JavaScript Array.  We are forced to make a copy.
+        copy = JS('List', 'new Array(#)', length);
+        writeSlot(slot, copy);
+      }
+
+      for ( ; i < length; i++) {
+        copy[i] = walk(e[i]);
+      }
+      return copy;
+    }
+
+    throw const NotImplementedException('structured clone of other type');
+  }
+
+  var copy = walk(value);
+  cleanupSlots();
+  return copy;
+}
+
+/**
+ * Converts a native value into a Dart object.
+ *
+ * May return the original input.  May mutate the original input (but will be
+ * idempotent if mutation occurs).  It is assumed that this conversion happens
+ * on native serializable script values such values from native DOM calls.
+ *
+ * [object] is the result of a structured clone operation.
+ *
+ * If necessary, JavaScript Dates are converted into Dart Dates.
+ */
+_convertNativeToDart_AcceptStructuredClone(object) {
+
+  // TODO(sra): Replace slots with identity hash table that works on non-dart
+  // objects.
+  var values = [];
+  var copies = [];
+
+  int findSlot(value) {
+    int length = values.length;
+    for (int i = 0; i < length; i++) {
+      if (values[i] === value) return i;
+    }
+    values.add(value);
+    copies.add(null);
+    return length;
+  }
+  readSlot(int i) => copies[i];
+  writeSlot(int i, x) { copies[i] = x; }
+
+  walk(e) {
+    if (e == null) return e;
+    if (e is bool) return e;
+    if (e is num) return e;
+    if (e is String) return e;
+
+    if (_isJavaScriptDate(e)) {
+      // TODO(sra).
+      throw const NotImplementedException('structured clone of Date');
+    }
+
+    if (_isJavaScriptRegExp(e)) {
+      // TODO(sra).
+      throw const NotImplementedException('structured clone of RegExp');
+    }
+
+    if (_isJavaScriptSimpleObject(e)) {
+      // TODO(sra): Swizzle the prototype for one of a Map implementation that
+      // uses the properies as storage.
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      copy = {};
+
+      writeSlot(slot, copy);
+      for (final key in JS('List', 'Object.keys(#)', e)) {
+        copy[key] = walk(JS('var', '#[#]', e, key));
+      }
+      return copy;
+    }
+
+    if (_isJavaScriptArray(e)) {
+      // Since a JavaScript Array is an instance of Dart List, we can modify it
+      // in-place.
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      writeSlot(slot, e);
+
+      int length = e.length;
+      for (int i = 0; i < length; i++) {
+        e[i] = walk(e[i]);
+      }
+      return e;
+    }
+
+    // Assume anything else is already a valid Dart object, either by having
+    // already been processed, or e.g. a clonable native class.
+    return e;
+  }
+
+  var copy = walk(object);
+  return copy;
+}
+
+
+bool _isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
+bool _isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
+bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
+bool _isJavaScriptSimpleObject(value) =>
+    JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
+bool _isImmutableJavaScriptArray(value) =>
+    JS('bool', @'!!(#.immutable$list)', value);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

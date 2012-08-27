@@ -8,10 +8,10 @@
 
 class MultipleTimerTest {
 
-  static final int TIMEOUT1 = 1000;
-  static final int TIMEOUT2 = 2000;
-  static final int TIMEOUT3 = 500;
-  static final int TIMEOUT4 = 1500;
+  static const int TIMEOUT1 = 1000;
+  static const int TIMEOUT2 = 2000;
+  static const int TIMEOUT3 = 500;
+  static const int TIMEOUT4 = 1500;
 
   static void testMultipleTimer() {
 

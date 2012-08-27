@@ -5,41 +5,41 @@
 #library("boolified_operator_test.dart");
 #import("compiler_helper.dart");
 
-final String TEST_EQUAL = @"""
+const String TEST_EQUAL = @"""
 foo(param0, param1) {
   if (param0 == param1) return 0;
   return 1;
 }
 """;
 
-final String TEST_EQUAL_NULL = @"""
+const String TEST_EQUAL_NULL = @"""
 foo(param0) {
   if (param0 == null) return 0;
   return 1;
 }
 """;
 
-final String TEST_LESS = @"""
+const String TEST_LESS = @"""
 foo(param0, param1) {
   if (param0 < param1) return 0;
   return 1;
 }
 """;
 
-final String TEST_LESS_EQUAL = @"""
+const String TEST_LESS_EQUAL = @"""
 foo(param0, param1) {
   if (param0 <= param1) return 0;
   return 1;
 }
 """;
-final String TEST_GREATER = @"""
+const String TEST_GREATER = @"""
 foo(param0, param1) {
   if (param0 > param1) return 0;
   return 1;
 }
 """;
 
-final String TEST_GREATER_EQUAL = @"""
+const String TEST_GREATER_EQUAL = @"""
 foo(param0, param1) {
   if (param0 >= param1) return 0;
   return 1;

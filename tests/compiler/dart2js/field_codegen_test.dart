@@ -6,13 +6,13 @@
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
 
-final String TEST_NULL0 = @"""
+const String TEST_NULL0 = @"""
 class A { static var x; }
 
 main() { return A.x; }
 """;
 
-final String TEST_NULL1 = @"""
+const String TEST_NULL1 = @"""
 var x;
 
 main() { return x; }

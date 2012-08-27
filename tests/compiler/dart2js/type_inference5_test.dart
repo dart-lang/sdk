@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 foo(j) {
   var a = [1, 2, 3];
   for (var i = j; i < 3; i++) {

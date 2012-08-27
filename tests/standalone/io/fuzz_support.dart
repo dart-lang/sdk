@@ -6,7 +6,7 @@
 
 #import('dart:io');
 
-final typeMapping = const {
+const typeMapping = const {
   'null': null,
   'int': 0,
   'bigint': 18446744073709551617,

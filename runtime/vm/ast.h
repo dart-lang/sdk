@@ -246,11 +246,13 @@ class ArgumentListNode : public AstNode {
 
 class ArrayNode : public AstNode {
  public:
-  ArrayNode(intptr_t token_pos, const AbstractTypeArguments& type_arguments)
+  ArrayNode(intptr_t token_pos, const AbstractType& type)
       : AstNode(token_pos),
-        type_arguments_(type_arguments),
-        elements_(4) {
-    ASSERT(type_arguments_.IsZoneHandle());
+        type_(type),
+        elements_() {
+    ASSERT(type_.IsZoneHandle());
+    ASSERT(!type_.IsNull());
+    ASSERT(type_.IsFinalized());
   }
 
   void VisitChildren(AstNodeVisitor* visitor) const;
@@ -263,14 +265,12 @@ class ArrayNode : public AstNode {
   }
   void AddElement(AstNode* expr) { elements_.Add(expr); }
 
-  const AbstractTypeArguments& type_arguments() const {
-    return type_arguments_;
-  }
+  const AbstractType& type() const { return type_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(ArrayNode);
 
  private:
-  const AbstractTypeArguments& type_arguments_;
+  const AbstractType& type_;
   GrowableArray<AstNode*> elements_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ArrayNode);

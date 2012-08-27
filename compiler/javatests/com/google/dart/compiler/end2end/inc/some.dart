@@ -4,7 +4,7 @@
 
 interface SomeClass default SomeClassImpl {
   SomeClass(arg);
-  get message();
+  get message;
 }
 
 interface SomeInterface2 {

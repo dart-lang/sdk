@@ -114,6 +114,9 @@ class ResolverTask extends CompilerTask {
       }
       FunctionExpression tree = element.parseNode(compiler);
       if (isConstructor) {
+        if (tree.returnType !== null) {
+          error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
+        }
         resolveConstructorImplementation(element, tree);
       }
       ResolverVisitor visitor = new ResolverVisitor(compiler, element);
@@ -153,8 +156,8 @@ class ResolverTask extends CompilerTask {
     }
     ClassElement defaultClass = defaultType.element;
     defaultClass.ensureResolved(compiler);
-    assert(defaultClass.resolutionState == ClassElement.STATE_DONE);
-    assert(defaultClass.supertypeLoadState == ClassElement.STATE_DONE);
+    assert(defaultClass.resolutionState == STATE_DONE);
+    assert(defaultClass.supertypeLoadState == STATE_DONE);
     if (defaultClass.isInterface()) {
       error(node, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
             [defaultClass.name]);
@@ -220,26 +223,26 @@ class ResolverTask extends CompilerTask {
    */
   void loadSupertypes(ClassElement cls, Node from) {
     compiler.withCurrentElement(cls, () => measure(() {
-      if (cls.supertypeLoadState == ClassElement.STATE_DONE) return;
-      if (cls.supertypeLoadState == ClassElement.STATE_STARTED) {
+      if (cls.supertypeLoadState == STATE_DONE) return;
+      if (cls.supertypeLoadState == STATE_STARTED) {
         compiler.reportMessage(
           compiler.spanFromNode(from),
           MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
           api.Diagnostic.ERROR);
-        cls.supertypeLoadState = ClassElement.STATE_DONE;
+        cls.supertypeLoadState = STATE_DONE;
         cls.allSupertypes = const EmptyLink<Type>().prepend(
             compiler.objectClass.computeType(compiler));
         // TODO(ahe): We should also set cls.supertype here to avoid
         // creating a malformed class hierarchy.
         return;
       }
-      cls.supertypeLoadState = ClassElement.STATE_STARTED;
+      cls.supertypeLoadState = STATE_STARTED;
       compiler.withCurrentElement(cls, () {
         // TODO(ahe): Cache the node in cls.
         cls.parseNode(compiler).accept(new ClassSupertypeResolver(compiler,
                                                                   cls));
-        if (cls.supertypeLoadState != ClassElement.STATE_DONE) {
-          cls.supertypeLoadState = ClassElement.STATE_DONE;
+        if (cls.supertypeLoadState != STATE_DONE) {
+          cls.supertypeLoadState = STATE_DONE;
         }
       });
     }));
@@ -257,22 +260,43 @@ class ResolverTask extends CompilerTask {
    * [:element.ensureResolved(compiler):].
    */
   void resolveClass(ClassElement element) {
-    assert(element.resolutionState == ClassElement.STATE_NOT_STARTED);
-    element.resolutionState = ClassElement.STATE_STARTED;
     compiler.withCurrentElement(element, () => measure(() {
+      assert(element.resolutionState == STATE_NOT_STARTED);
+      element.resolutionState = STATE_STARTED;
       ClassNode tree = element.parseNode(compiler);
       loadSupertypes(element, tree);
 
       ClassResolverVisitor visitor =
         new ClassResolverVisitor(compiler, element);
       visitor.visit(tree);
-      element.resolutionState = ClassElement.STATE_DONE;
+      element.resolutionState = STATE_DONE;
     }));
   }
 
   void checkMembers(ClassElement cls) {
     if (cls === compiler.objectClass) return;
     cls.forEachMember((holder, member) {
+
+      // Check modifiers.
+      if (member.isFunction() && member.modifiers.isFinal()) {
+        compiler.reportMessage(
+          compiler.spanFromElement(member),
+          MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
+          api.Diagnostic.ERROR);
+      }
+      if (member.isConstructor()) {
+        final mismatchedFlagsBits =
+          member.modifiers.flags &
+          (Modifiers.FLAG_STATIC | Modifiers.FLAG_ABSTRACT);
+        if (mismatchedFlagsBits != 0) {
+          final mismatchedFlags =
+            new Modifiers.withFlags(null, mismatchedFlagsBits);
+          compiler.reportMessage(
+            compiler.spanFromElement(member),
+            MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error([mismatchedFlags]),
+            api.Diagnostic.ERROR);
+        }
+      }
       checkAbstractField(member);
       checkValidOverride(member, cls.lookupSuperMember(member.name));
     });
@@ -415,6 +439,22 @@ class ResolverTask extends CompilerTask {
                             element);
   }
 
+  void resolveMetadataAnnotation(MetadataAnnotation annotation) {
+    compiler.withCurrentElement(annotation.annotatedElement, () => measure(() {
+      assert(annotation.resolutionState == STATE_NOT_STARTED);
+      annotation.resolutionState = STATE_STARTED;
+
+      Node node = annotation.parseNode(compiler);
+      ResolverVisitor visitor =
+          new ResolverVisitor(compiler, annotation.annotatedElement);
+      node.accept(visitor);
+      annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
+          node, visitor.mapping);
+
+      annotation.resolutionState = STATE_DONE;
+    }));
+  }
+
   error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError message = new ResolutionError(kind, arguments);
     compiler.reportError(node, message);
@@ -505,7 +545,7 @@ class InitializerResolver {
     ClassElement superClass = classElement.superclass;
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass !== null);
-      assert(superClass.resolutionState == ClassElement.STATE_DONE);
+      assert(superClass.resolutionState == STATE_DONE);
       SourceString name = const SourceString('');
       Selector call = new Selector.call(name, classElement.getLibrary(), 0);
       var element = resolveSuperOrThis(constructor, true, true,
@@ -914,7 +954,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ResolverVisitor(Compiler compiler, Element element)
     : this.mapping  = new TreeElementMapping(),
       this.enclosingElement = element,
-      inInstanceContext = element.isInstanceMember()
+      // When the element is a field, we are actually resolving its
+      // initial value, which should not have access to instance
+      // fields.
+      inInstanceContext = (element.isInstanceMember() && !element.isField())
           || element.isGenerativeConstructor(),
       this.currentClass = element.isMember() ?
                               element.getEnclosingClass() :
@@ -1514,13 +1557,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * [null], if there is no corresponding constructor, class or library.
    */
   FunctionElement resolveConstructor(NewExpression node) {
-    FunctionElement constructor =
-        node.accept(new ConstructorResolver(compiler, this));
     TypeAnnotation annotation = getTypeAnnotationFromSend(node.send);
     // TODO(karlklose): clean up: the type should be resolved in the
     // constructor resolver visitor to avoid visiting the node twice.
     resolveTypeRequired(annotation);
-    return constructor;
+    ConstructorResolver visitor =
+        new ConstructorResolver(compiler, this, node.isConst());
+    return node.accept(visitor);
   }
 
   Type resolveTypeRequired(TypeAnnotation node) {
@@ -1544,6 +1587,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
+    NodeList arguments = node.typeArguments;
+    if (arguments !== null) {
+      Link<Node> nodes = arguments.nodes;
+      if (nodes.isEmpty()) {
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT, []);
+      } else {
+        resolveTypeRequired(nodes.head);
+        for (nodes = nodes.tail; !nodes.isEmpty(); nodes = nodes.tail) {
+          error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT, []);
+          resolveTypeRequired(nodes.head);
+        }
+      }
+    }
     visit(node.elements);
   }
 
@@ -1876,7 +1932,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   Type visitClassNode(ClassNode node) {
     compiler.ensure(element !== null);
-    compiler.ensure(element.resolutionState == ClassElement.STATE_STARTED);
+    compiler.ensure(element.resolutionState == STATE_STARTED);
 
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
@@ -2336,8 +2392,11 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
+  final bool inConstContext;
 
-  ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
+  ConstructorResolver(Compiler compiler, this.resolver,
+                      [bool this.inConstContext = false])
+      : super(compiler);
 
   visitNode(Node node) {
     throw 'not supported';
@@ -2354,11 +2413,16 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         fullConstructorName = '$fullConstructorName'
                               '.${constructorName.slowToString()}';
       }
-      ResolutionWarning warning  =
-          new ResolutionWarning(MessageKind.CANNOT_FIND_CONSTRUCTOR,
-                                [fullConstructorName]);
-      compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousFunctionElement(warning.message, cls);
+      if (inConstContext) {
+        error(diagnosticNode, MessageKind.CANNOT_FIND_CONSTRUCTOR,
+              [fullConstructorName]);
+      } else {
+        ResolutionWarning warning  =
+            new ResolutionWarning(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+                                  [fullConstructorName]);
+        compiler.reportWarning(diagnosticNode, warning);
+        return new ErroneousFunctionElement(warning.message, cls);
+      }
     }
     return result;
   }

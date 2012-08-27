@@ -28,12 +28,12 @@
 #import('utils.dart');
 #import('version.dart');
 
-Version get pubVersion() => new Version(0, 0, 0);
+Version get pubVersion => new Version(0, 0, 0);
 
 /**
  * The commands that Pub understands.
  */
-Map<String, PubCommand> get pubCommands() => {
+Map<String, PubCommand> get pubCommands => {
   'help': new HelpCommand(),
   'list': new ListCommand(),
   'install': new InstallCommand(),
@@ -45,7 +45,7 @@ Map<String, PubCommand> get pubCommands() => {
  * The parser for arguments that are global to Pub rather than specific to a
  * single command.
  */
-ArgParser get pubArgParser() {
+ArgParser get pubArgParser {
   var parser = new ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false,
     help: 'Prints this usage information');
@@ -150,18 +150,18 @@ class PubCommand {
   /**
    * A one-line description of this command.
    */
-  abstract String get description();
+  abstract String get description;
 
   /**
    * How to invoke this command (e.g. `"pub install [package]"`).
    */
-  abstract String get usage();
+  abstract String get usage;
 
   /**
    * Override this to define command-specific options. The results will be made
    * available in [commandOptions].
    */
-  ArgParser get commandParser() => new ArgParser();
+  ArgParser get commandParser => new ArgParser();
 
   void run(SystemCache cache_, ArgResults globalOptions_,
       List<String> commandArgs) {

@@ -41,7 +41,7 @@ v2*: Skip
 [ $runtime == safari && $system == macos ]
 v2*: Skip
 
-[ $runtime == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]

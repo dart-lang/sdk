@@ -37,8 +37,12 @@ public class ASTVisitor<R> {
     return null;
   }
 
-  public R visitDirective(DartDirective node) {
+  public R visitNodeWithMetadata(DartNodeWithMetadata node) {
     return visitNode(node);
+  }
+  
+  public R visitDirective(DartDirective node) {
+    return visitNodeWithMetadata(node);
   }
 
   public R visitInvocation(DartInvocation node) {
@@ -66,7 +70,7 @@ public class ASTVisitor<R> {
   }
 
   public R visitDeclaration(DartDeclaration<?> node) {
-    return visitNode(node);
+    return visitNodeWithMetadata(node);
   }
 
   public R visitClassMember(DartClassMember<?> node) {
@@ -166,7 +170,7 @@ public class ASTVisitor<R> {
   }
 
   public R visitFieldDefinition(DartFieldDefinition node) {
-    return visitNode(node);
+    return visitNodeWithMetadata(node);
   }
 
   public R visitForInStatement(DartForInStatement node) {

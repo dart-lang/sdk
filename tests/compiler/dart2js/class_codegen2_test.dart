@@ -6,7 +6,7 @@
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
 
-final String TEST_ONE = @"""
+const String TEST_ONE = @"""
 class A { foo() => 499; }
 class B { bar() => 42; }
 
@@ -16,7 +16,7 @@ main() {
 }
 """;
 
-final String TEST_TWO = @"""
+const String TEST_TWO = @"""
 class A {
   foo() => 499;
   bar() => 42;
@@ -28,7 +28,7 @@ main() {
 }
 """;
 
-final String TEST_THREE = @"""
+const String TEST_THREE = @"""
 class A {
   foo() => 499;
   bar() => 42;
@@ -72,7 +72,7 @@ main() {
 }
 """;
 
-final String TEST_FOUR = @"""
+const String TEST_FOUR = @"""
 class A { foo() => 499; }
 
 foo(f) { f(); }

@@ -646,7 +646,7 @@ class Literal<T> extends Expression {
 
   Literal(Token this.token, DecodeErrorHandler this.handler);
 
-  abstract T get value();
+  abstract T get value;
 
   visitChildren(Visitor visitor) {}
 
@@ -780,8 +780,8 @@ class StringQuoting {
   * Superclass for classes representing string literals.
   */
 class StringNode extends Expression {
-  abstract DartString get dartString();
-  abstract bool get isInterpolation();
+  abstract DartString get dartString;
+  abstract bool get isInterpolation;
 
   StringNode asStringNode() => this;
 }
@@ -817,12 +817,12 @@ class LiteralNull extends Literal<SourceString> {
 }
 
 class LiteralList extends Expression {
-  final TypeAnnotation type;
+  final NodeList typeArguments;
   final NodeList elements;
 
   final Token constKeyword;
 
-  LiteralList(this.type, this.elements, this.constKeyword);
+  LiteralList(this.typeArguments, this.elements, this.constKeyword);
 
   bool isConst() => constKeyword !== null;
 
@@ -830,13 +830,13 @@ class LiteralList extends Expression {
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
   visitChildren(Visitor visitor) {
-    if (type !== null) type.accept(visitor);
+    if (typeArguments !== null) typeArguments.accept(visitor);
     elements.accept(visitor);
   }
 
   Token getBeginToken() {
     if (constKeyword !== null) return constKeyword;
-    return firstBeginToken(type, elements);
+    return firstBeginToken(typeArguments, elements);
   }
 
   Token getEndToken() => elements.getEndToken();
@@ -1009,7 +1009,7 @@ class VariableDefinitions extends Statement {
 }
 
 class Loop extends Statement {
-  abstract Expression get condition();
+  abstract Expression get condition;
   final Statement body;
 
   Loop(this.body);

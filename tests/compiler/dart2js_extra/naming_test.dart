@@ -19,7 +19,7 @@ class MyException {
 }
 
 class debugger {
-  static final int __PROTO__ = 5;
+  static const int __PROTO__ = 5;
 
   int x;
 

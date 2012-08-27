@@ -5,7 +5,7 @@
 // Check that oen cannot access a static getter through super.
 
 class A {
-  static get x() {}
+  static get x {}
 }
 
 class B {

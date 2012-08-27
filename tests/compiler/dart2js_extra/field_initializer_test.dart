@@ -5,21 +5,21 @@
 class A {
   static var a;
   static var b = c;
-  static final var c = 499;
-  static final var d = c;
-  static final var e = d;
-  static final var f = B.g;
-  static final var h = true;
-  static final var i = false;
-  static final var j = n;
-  static final var k = 4.99;
-  static final var l;
-  static final var m = l;
-  static final var n = 42;
+  static const var c = 499;
+  static const var d = c;
+  static const var e = d;
+  static const var f = B.g;
+  static const var h = true;
+  static const var i = false;
+  static const var j = n;
+  static const var k = 4.99;
+  static const var l;
+  static const var m = l;
+  static const var n = 42;
 }
 
 class B {
-  static final var g = A.c;
+  static const var g = A.c;
 }
 
 testInitialValues() {

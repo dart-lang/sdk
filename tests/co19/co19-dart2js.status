@@ -119,7 +119,6 @@ LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
-Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
 
 # This test sometimes passes (as a negative test), sometimes it
@@ -168,6 +167,13 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # Missing che
 Language/11_Statements/03_Variable_Declaration_A03_t04: Fail # Missing check for const initializer
 Language/11_Statements/03_Variable_Declaration_A03_t03: Fail # Missing check for const reassignment
 Language/11_Statements/03_Variable_Declaration_A04_t01: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t03: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t05: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t06: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t01: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t07: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t04: Fail # Missing check for const initializer
+Language/07_Classes/4_Instance_Variables_A01_t02: Fail # Missing check for const initializer
 
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Compile-time error: expected an expression, but got '&&'
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Compile-time error: expected identifier, but got '!'
@@ -182,7 +188,6 @@ Language/10_Expressions/20_Equality_A02_t02: Fail # Compile-time error: unexpect
 Language/10_Expressions/20_Equality_A02_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A02_t04: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t01: Fail # Compile-time error: unexpected token 'equals'
-Language/10_Expressions/20_Equality_A03_t02: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t03: Fail # Compile-time error: unexpected token 'equals'
 LibTest/core/Futures/wait_A01_t02: Fail # Runtime error: 1
 Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Runtime error: Expect.equals(expected: <1.2>, actual: <1.1>) fails.
@@ -296,6 +301,8 @@ LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, Pass
 LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, Pass
 LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 
+Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 171
+
 
 [ $compiler == dart2js && $checked ]
 # Leg does not support checked mode yet.
@@ -310,15 +317,21 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 # Issues with co19 test suite.
 #
 # If you add anything here, either file a bug against the Dart
-# langauge specification, co19 test suite, or add a comment that ahe@
+# language specification, co19 test suite, or add a comment that ahe@
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
 Language/07_Classes/2_Getters_A01_t03: Fail, OK # co19 issue 170.
 Language/07_Classes/3_Setters_A01_t03: Fail, OK # Bad test: assumes eager loading.
+Language/07_Classes/5_Constructors_A02_t03: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/07_Classes/07_Classes_A02_t32: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t08: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/06_Lists_A08_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -411,7 +424,10 @@ LibTest/core/int/compareTo_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 testing missing assertion.
 LibTest/core/int/isEven_A01_t01: Fail, OK # Not in API.
 LibTest/core/int/isOdd_A01_t01: Fail, OK # Not in API.
-LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Requires big int.
+# The following test will start to fail when dart2js fixes issue 2887 (constant
+# folding with runtime-semantics).
+# It should then be marked as:  Fail, OK # Requires big int.
+LibTest/core/int/operator_NOT_A01_t01: Pass
 LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail, Pass # Requires big int unless type inference fools us.
@@ -611,13 +627,6 @@ Language/07_Classes/07_Classes_A02_t07: Fail # @compile-error
 Language/07_Classes/07_Classes_A02_t09: Fail # @compile-error
 Language/07_Classes/07_Classes_A02_t10: Fail # @compile-error
 Language/07_Classes/07_Classes_A02_t11: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t25: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t26: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t27: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t28: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t29: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t31: Fail # @compile-error
-Language/07_Classes/07_Classes_A02_t33: Fail # @compile-error
 Language/07_Classes/07_Classes_A03_t02: Fail # @compile-error
 Language/07_Classes/07_Classes_A03_t03: Fail # @compile-error
 Language/07_Classes/07_Classes_A03_t04: Fail # @compile-error
@@ -665,16 +674,11 @@ Language/07_Classes/3_Setters_A03_t05: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t06: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t07: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t08: Fail # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail # @compile-error
-Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t05: Fail # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t06: Fail # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail # @compile-error

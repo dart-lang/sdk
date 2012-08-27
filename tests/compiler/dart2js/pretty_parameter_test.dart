@@ -5,19 +5,19 @@
 
 #import("compiler_helper.dart");
 
-final String FOO = @"""
+const String FOO = @"""
 void foo(var a, var b) {
 }
 """;
 
 
-final String BAR = @"""
+const String BAR = @"""
 void bar(var eval, var $eval) {
 }
 """;
 
 
-final String PARAMETER_AND_TEMP = @"""
+const String PARAMETER_AND_TEMP = @"""
 void bar(var t0, var b) {
   {
     var t0 = 2;
@@ -32,7 +32,7 @@ void bar(var t0, var b) {
 }
 """;
 
-final String NO_LOCAL = @"""
+const String NO_LOCAL = @"""
 foo(bar, baz) {
   if (bar) {
     baz = 2;
@@ -43,7 +43,7 @@ foo(bar, baz) {
 }
 """;
 
-final String MULTIPLE_PHIS_ONE_LOCAL = @"""
+const String MULTIPLE_PHIS_ONE_LOCAL = @"""
 foo(param1, param2, param3) {
   var a = 2;
   if (param1) {
@@ -57,7 +57,7 @@ foo(param1, param2, param3) {
 }
 """;
 
-final String PARAMETER_INIT = @"""
+const String PARAMETER_INIT = @"""
 int foo(var start, bool test) {
   var result = start;
   if (test) {

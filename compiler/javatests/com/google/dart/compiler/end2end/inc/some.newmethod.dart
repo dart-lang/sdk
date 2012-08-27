@@ -4,7 +4,7 @@
 
 interface SomeClass default SomeClassImpl {
   SomeClass(arg);
-  String get message();
+  String get message;
   newMethod();
 }
 

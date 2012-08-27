@@ -34,7 +34,7 @@ DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
 DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-DEFINE_FLAG(bool, local_cse, true, "Do local subexpression elimination.");
+DEFINE_FLAG(bool, cse, true, "Do common subexpression elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
@@ -163,9 +163,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       flow_graph = builder.BuildGraph();
 
       // Transform to SSA.
-      if (optimized) {
-        flow_graph->ComputeSSA();
-      }
+      if (optimized) flow_graph->ComputeSSA();
 
       if (FLAG_print_flow_graph) {
         OS::Print("Before Optimizations\n");
@@ -179,19 +177,30 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
 
       if (optimized) {
-        FlowGraphOptimizer optimizer(*flow_graph);
+        // TODO(vegorov): we need to compute uses for the
+        // purposes of unboxing. Move unboxing to a later
+        // stage.
+        // Compute the use lists.
+        flow_graph->ComputeUseLists();
+
+        FlowGraphOptimizer optimizer(flow_graph);
         optimizer.ApplyICData();
+
+        // Compute the use lists.
+        flow_graph->ComputeUseLists();
 
         // Propagate types and eliminate more type tests.
         FlowGraphTypePropagator propagator(*flow_graph);
         propagator.PropagateTypes();
 
+        // Verify that the use lists are still valid.
+        DEBUG_ASSERT(flow_graph->ValidateUseLists());
+
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();
 
-        if (FLAG_local_cse) {
-          LocalCSE local_cse(*flow_graph);
-          local_cse.Optimize();
+        if (FLAG_cse) {
+          DominatorBasedCSE::Optimize(flow_graph->graph_entry());
         }
 
         // Perform register allocation on the SSA graph.
@@ -515,7 +524,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         false,  // not const function.
         false,  // not abstract
         false,  // not external.
-        Class::Handle(Type::Handle(Type::FunctionInterface()).type_class()),
+        Class::Handle(Type::Handle(Type::Function()).type_class()),
         fragment->token_pos()));
 
     func.set_result_type(Type::Handle(Type::DynamicType()));

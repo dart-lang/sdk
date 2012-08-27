@@ -7,4 +7,4 @@
 class X {
   const X();
 }
-final X x = const X();
+const X x = const X();

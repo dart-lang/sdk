@@ -5,6 +5,7 @@
 #library('root_source');
 
 #import('package.dart');
+#import('pubspec.dart');
 #import('source.dart');
 
 /**
@@ -21,7 +22,7 @@ class RootSource extends Source {
   RootSource(this.package);
 
   Future<Pubspec> describe(PackageId id) {
-    return Future<Pubspec>.immediate(package.pubspec);
+    return new Future<Pubspec>.immediate(package.pubspec);
   }
 
   Future<bool> install(PackageId id, String destPath) {

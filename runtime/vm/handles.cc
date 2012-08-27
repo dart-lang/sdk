@@ -17,6 +17,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, verify_handles, false, "Verify handles.");
 DEFINE_DEBUG_FLAG(bool, trace_handles_count,
                   false, "Trace count of handles allocated.");
 

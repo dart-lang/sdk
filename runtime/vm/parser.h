@@ -28,7 +28,7 @@ struct CatchParamDesc;
 struct FieldInitExpression;
 
 // The class ParsedFunction holds the result of parsing a function.
-class ParsedFunction : ValueObject {
+class ParsedFunction : public ValueObject {
  public:
   static const int kFirstLocalSlotIndex = -2;
 
@@ -105,7 +105,7 @@ class ParsedFunction : ValueObject {
 };
 
 
-class Parser : ValueObject {
+class Parser : public ValueObject {
  public:
   Parser(const Script& script, const Library& library);
   Parser(const Script& script, const Function& function, intptr_t token_pos);
@@ -313,9 +313,10 @@ class Parser : ValueObject {
   void CheckConstFieldsInitialized(const Class& cls);
   void AddImplicitConstructor(ClassDesc* members);
   void CheckConstructorCycles(ClassDesc* members);
-  void ParseInitializedInstanceFields(const Class& cls,
-           LocalVariable* receiver,
-           GrowableArray<Field*>* initialized_fields);
+  void ParseInitializedInstanceFields(
+      const Class& cls,
+      LocalVariable* receiver,
+      GrowableArray<Field*>* initialized_fields);
   void CheckDuplicateFieldInit(intptr_t init_pos,
                                GrowableArray<Field*>* initialized_fields,
                                Field* field);
@@ -332,6 +333,9 @@ class Parser : ValueObject {
   String& ParseNativeDeclaration();
   // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* ParseInterfaceList();
+  void AddInterfaceIfUnique(intptr_t interfaces_pos,
+                            const GrowableObjectArray& interface_list,
+                            const AbstractType& interface);
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
                      const Array& interfaces);

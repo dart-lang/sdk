@@ -12,14 +12,14 @@ interface TestException2 {
 
 a() {
   try {
-  } catch (var e) {
+  } catch (e) {
   } finally {
   }
 }
 
 b() {
   try {
-  } catch (var e) {
+  } catch (e) {
   }
 }
 
@@ -31,15 +31,15 @@ c() {
 
 d() {
   try  {
-  } catch (TestException1 e) {
-  } catch (TestException2 e) {
+  } on TestException1 catch (e) {
+  } on TestException2 catch (e) {
   }
 }
 
 e() {
   try  {
-  } catch (TestException1 e) {
-  } catch (TestException2 e) {
+  } on TestException1 catch (e) {
+  } on TestException2 catch (e) {
   } finally {
   }
 }

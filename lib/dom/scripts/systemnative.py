@@ -830,13 +830,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # Emit arguments.
     start_index = 1 if needs_receiver else 0
     for i, argument in enumerate(arguments):
-      argument_name = DartDomNameOfAttribute(argument)
-      argument_expression, type, cls, function = self._TypeInfo(argument.type.id).to_native_info(
-          argument,
-          (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or (argument.ext_attrs.get('Optional') == 'DefaultIsNullString'),
-          argument_name,
-          self._interface.id)
+      argument_expression_template, type, cls, function = \
+          self._TypeInfo(argument.type.id).to_native_info(argument, self._interface.id)
 
+      if ((IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
+          (argument.ext_attrs.get('Optional') == 'DefaultIsNullString')):
+        function += 'WithNullCheck'
+
+      argument_name = DartDomNameOfAttribute(argument)
       body_emitter.Emit(
           '\n'
           '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
@@ -848,7 +849,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           FUNCTION=function,
           INDEX=start_index + i)
       self._cpp_impl_includes.add('"%s.h"' % cls)
-      cpp_arguments.append(argument_expression)
+      cpp_arguments.append(argument_expression_template % argument_name)
 
     body_emitter.Emit('\n')
 

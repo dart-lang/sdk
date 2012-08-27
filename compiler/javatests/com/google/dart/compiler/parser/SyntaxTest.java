@@ -957,6 +957,36 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(0, metadata.getArguments().size());
   }
 
+  public void test_metadata_localVariable() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const annotation = 0;",
+        "class A {",
+        "  test() {",
+        "    @annotation",
+        "    var v = 0;",
+        "  }",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    DartClass classA = (DartClass) unit.getTopLevelNodes().get(1);
+
+    DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
+    assertEquals("test", method.getName().toSource());
+    assertEquals(0, method.getMetadata().size());
+
+    DartVariableStatement statement = (DartVariableStatement) method.getFunction().getBody().getStatements().get(0);
+    DartVariable variable = statement.getVariables().get(0);
+    assertEquals("v", variable.getName().toSource());
+    assertEquals(1, variable.getMetadata().size());
+    DartAnnotation metadata = variable.getMetadata().get(0);
+    assertNotNull(metadata);
+    DartExpression name = metadata.getName();
+    assertTrue(name instanceof DartIdentifier);
+    assertEquals("annotation", name.toSource());
+    assertEquals(0, metadata.getArguments().size());
+  }
+
   public void test_metadata_constructor() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1191,6 +1221,29 @@ public class SyntaxTest extends AbstractParserTest {
             "}"),
             ParserErrorCode.EXPECTED_ARRAY_OR_MAP_LITERAL, 2, 9,
             ParserErrorCode.EXPECTED_TOKEN, 2, 15);
+  }
+
+  public void test_abstractMethod_withModifier() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "class C {",
+        "  abstract m(a, b, c);",
+        "}"));
+  }
+
+  public void test_abstractMethod_withoutModifier() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "class C {",
+        "  m(a, b, c);",
+        "}"));
+  }
+
+  public void test_argumentDefinitionTest() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "class C {",
+        "  m([p = 0]) {",
+        "    return ?p;",
+        "  }",
+        "}"));
   }
 
   public void test_assignToNonAssignable() throws Exception {

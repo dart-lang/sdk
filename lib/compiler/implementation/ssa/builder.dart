@@ -178,11 +178,22 @@ class SsaBuilderTask extends CompilerTask {
           backend.optimisticParameterTypesWithRecompilationOnTypeChange(
               element);
       if (parameterTypes != null) {
+        // TODO(kasperl): Allow this also for static elements.
+        if (element.isMember()) {
+          backend.optimizedFunctions.add(element);
+          backend.optimizedTypes[element] = parameterTypes;
+        }
         FunctionSignature signature = element.computeSignature(compiler);
         int i = 0;
         signature.forEachParameter((Element param) {
           builder.parameters[param].guaranteedType = parameterTypes[i++];
         });
+      } else {
+        // TODO(kasperl): Allow this also for static elements.
+        if (element.isMember()) {
+          backend.optimizedFunctions.remove(element);
+          backend.optimizedTypes.remove(element);
+        }
       }
 
       if (compiler.tracer.enabled) {
@@ -413,7 +424,7 @@ class LocalsHandler {
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
-      HInstruction fieldGet = new HFieldGet.withElement(redirect, receiver);
+      HInstruction fieldGet = new HFieldGet(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -425,7 +436,7 @@ class LocalsHandler {
       // the box.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      HInstruction lookup = new HFieldGet.withElement(redirect, box);
+      HInstruction lookup = new HFieldGet(redirect, box);
       builder.add(lookup);
       return lookup;
     } else {
@@ -485,7 +496,7 @@ class LocalsHandler {
       // be accessed directly.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      builder.add(new HFieldSet.withElement(redirect, box, value));
+      builder.add(new HFieldSet(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
       HLocalValue local = getLocal(element);
@@ -837,9 +848,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
       parameters = new Map<Element, HParameterValue>(),
+      inliningStack = <InliningState>[],
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
+
+  static final MAX_INLINING_DEPTH = 3;
+  static final MAX_INLINING_SOURCE_SIZE = 100;
+  List<InliningState> inliningStack;
+  Element returnElement = null;
 
   void disableMethodInterception() {
     assert(methodInterceptionEnabled);
@@ -900,6 +917,84 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return bodyElement;
   }
 
+  InliningState enterInlinedMethod(PartialFunctionElement function,
+                                   Selector selector,
+                                   Link<Node> arguments) {
+    // Once we start to compile the arguments we must be sure that we don't
+    // abort.
+    List<HInstruction> compiledArguments = new List<HInstruction>();
+    bool succeeded = addStaticSendArgumentsToList(selector,
+                                                  arguments,
+                                                  function,
+                                                  compiledArguments);
+    assert(succeeded);
+
+    InliningState state =
+        new InliningState(function, returnElement, elements, stack);
+    inliningStack.add(state);
+    stack = <HInstruction>[];
+    returnElement = new Element(const SourceString("result"),
+                                ElementKind.VARIABLE,
+                                function);
+    localsHandler.updateLocal(returnElement, graph.addConstantNull());
+    elements = compiler.enqueuer.resolution.getCachedElements(function);
+    FunctionSignature signature = function.computeSignature(compiler);
+    int index = 0;
+    signature.forEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[index++];
+      localsHandler.updateLocal(parameter, argument);
+      potentiallyCheckType(argument, parameter);
+    });
+    return state;
+  }
+
+  void leaveInlinedMethod(InliningState state) {
+    InliningState poppedState = inliningStack.removeLast();
+    assert(state == poppedState);
+    elements = state.oldElements;
+    stack.add(localsHandler.readLocal(returnElement));
+    returnElement = state.oldReturnElement;
+    assert(stack.length == 1);
+    state.oldStack.add(stack[0]);
+    stack = state.oldStack;
+  }
+
+  bool tryInlineMethod(Element element,
+                       Selector selector,
+                       Link<Node> arguments) {
+    if (element.kind != ElementKind.FUNCTION) return false;
+    if (element is !PartialFunctionElement) return false;
+    if (inliningStack.length > MAX_INLINING_DEPTH) return false;
+    // Don't inline recursive calls. We use the same elements for the inlined
+    // functions and would thus clobber our local variables.
+    if (work.element == element) return false;
+    for (int i = 0; i < inliningStack.length; i++) {
+      if (inliningStack[i].function == element) return false;
+    }
+    // TODO(ngeoffray): Inlining currently does not work in the presence of
+    // private calls.
+    if (currentLibrary != element.getLibrary()) return false;
+    PartialFunctionElement function = element;
+    int sourceSize =
+        function.endToken.charOffset - function.beginToken.charOffset;
+    if (sourceSize > MAX_INLINING_SOURCE_SIZE) return false;
+    if (!selector.applies(function, compiler)) return false;
+    FunctionExpression functionExpression = function.parseNode(compiler);
+    TreeElements newElements =
+        compiler.enqueuer.resolution.getCachedElements(function);
+    if (newElements === null) {
+      compiler.internalError("Element not resolved: $function");
+    }
+    if (!InlineWeeder.canBeInlined(functionExpression, newElements)) {
+      return false;
+    }
+
+    InliningState state = enterInlinedMethod(function, selector, arguments);
+    functionExpression.body.accept(this);
+    leaveInlinedMethod(state);
+    return true;
+  }
+
   void inlineSuperOrRedirect(FunctionElement constructor,
                              Selector selector,
                              Link<Node> arguments,
@@ -919,6 +1014,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           "Parameters and arguments didn't match for super/redirect call",
           element: constructor);
     }
+
+    buildFieldInitializers(constructor.enclosingElement, fieldValues);
 
     int index = 0;
     FunctionSignature params = constructor.computeSignature(compiler);
@@ -987,7 +1084,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
-        assert(superClass.resolutionState == ClassElement.STATE_DONE);
+        assert(superClass.resolutionState == STATE_DONE);
         Selector selector =
             new Selector.call(superClass.name, enclosingClass.getLibrary(), 0);
         FunctionElement target = superClass.lookupConstructor(superClass.name);
@@ -1002,6 +1099,35 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
   }
+
+  /**
+   * Run through the fields of [cls] and add their potential
+   * initializers.
+   */
+  void buildFieldInitializers(ClassElement classElement,
+                              Map<Element, HInstruction> fieldValues) {
+    classElement.forEachInstanceField(
+        includeBackendMembers: true,
+        includeSuperMembers: false,
+        f: (ClassElement enclosingClass, Element member) {
+      TreeElements definitions = compiler.analyzeElement(member);
+      Node node = member.parseNode(compiler);
+      SendSet assignment = node.asSendSet();
+      HInstruction value;
+      if (assignment === null) {
+        value = graph.addConstantNull();
+      } else {
+        Node right = assignment.arguments.head;
+        TreeElements savedElements = elements;
+        elements = definitions;
+        right.accept(this);
+        elements = savedElements;
+        value = pop();
+      }
+      fieldValues[member] = value;
+    });
+  }
+
 
   /**
    * Build the factory function corresponding to the constructor
@@ -1023,10 +1149,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     openFunction(functionElement, function);
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
+
+    // Compile the possible initialization code for local fields and
+    // super fields.
+    buildFieldInitializers(classElement, fieldValues);
+
+    // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.computeSignature(compiler);
     params.forEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
-        // If the [element] is a field-parameter (such as [:this.x:] then
+        // If the [element] is a field-parameter then
         // initialize the field element with its value.
         FieldParameterElement fieldParameterElement = element;
         HInstruction parameterValue = localsHandler.readLocal(element);
@@ -1034,10 +1166,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    List<FunctionElement> constructors = <FunctionElement>[functionElement];
-
     // Analyze the constructor and all referenced constructors and collect
     // initializers and constructor bodies.
+    List<FunctionElement> constructors = <FunctionElement>[functionElement];
     buildInitializers(functionElement, constructors, fieldValues);
 
     // Call the JavaScript constructor with the fields as argument.
@@ -1046,14 +1177,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeBackendMembers: true,
         includeSuperMembers: true,
         f: (ClassElement enclosingClass, Element member) {
-      HInstruction value = fieldValues[member];
-      if (value === null) {
-        // The field has no value in the initializer list. Initialize it
-        // with the declaration-site constant (if any).
-        Constant fieldValue = compiler.constantHandler.compileVariable(member);
-        value = graph.addConstant(fieldValue);
-      }
-      constructorArguments.add(value);
+      constructorArguments.add(fieldValues[member]);
     });
 
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
@@ -1871,6 +1995,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  void pushInvokeHelper3(Element helper, HInstruction a0, HInstruction a1,
+                         HInstruction a2) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
   visitOperatorSend(node) {
     assert(node.selector is Operator);
     if (!methodInterceptionEnabled) {
@@ -1914,8 +2047,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
-        // TODO(karlklose): We emulate the behavior of the old frog 
-        // compiler and answer true to any is check involving a type variable 
+        // TODO(karlklose): We emulate the behavior of the old frog
+        // compiler and answer true to any is check involving a type variable
         // -- both is T and is !T -- until we have a proper implementation of
         // reified generics.
         stack.add(graph.addConstantBool(true));
@@ -2363,6 +2496,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
+
+    if (tryInlineMethod(element, selector, node.arguments)) return;
+
     HInstruction target = new HStatic(element);
     add(target);
     var inputs = <HInstruction>[];
@@ -2376,6 +2512,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
       HInvokeStatic instruction = new HInvokeStatic(inputs);
+      // TODO(ngeoffray): Only do this if knowing the return type is
+      // useful.
       HType returnType =
           builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
               work.element, element);
@@ -2418,10 +2556,29 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
     if (Element.isInvalid(element)) {
-      // TODO(karlklose): generate runtime error or noSuchMethodCall, depending
-      // on whether element is null or it is an erroneous element with a
-      // particular error message.
-      compiler.cancel('Unimplemented unresolved constructor call', node: node);
+      ErroneousElement error = element;
+      Message message = error.errorMessage;
+      if (message.kind === MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+        Element helper =
+            compiler.findHelper(const SourceString('throwNoSuchMethod'));
+        DartString receiverLiteral = new DartString.literal('');
+        HInstruction receiver = graph.addConstantString(receiverLiteral, node);
+        String constructorName = 'constructor ${message.arguments[0]}';
+        DartString nameLiteral = new DartString.literal(constructorName);
+        HInstruction name = graph.addConstantString(nameLiteral, node.send);
+        List<HInstruction> inputs = <HInstruction>[];
+        node.send.arguments.forEach((argumentNode) {
+          visit(argumentNode);
+          HInstruction value = pop();
+          inputs.add(value);
+        });
+        HInstruction arguments = new HLiteralList(inputs);
+        add(arguments);
+        pushInvokeHelper3(helper, receiver, name, arguments);
+      } else {
+        compiler.cancel('Unimplemented unresolved constructor call',
+                        node: node);
+      }
     } else if (node.isConst()) {
       // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
@@ -2617,7 +2774,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.expression);
       value = pop();
     }
-    close(attachPosition(new HReturn(value), node)).addSuccessor(graph.exit);
+    if (!inliningStack.isEmpty()) {
+      localsHandler.updateLocal(returnElement, value);
+    } else {
+      close(attachPosition(new HReturn(value), node)).addSuccessor(graph.exit);
+    }
   }
 
   visitThrow(Throw node) {
@@ -3419,6 +3580,84 @@ class StringBuilderVisitor extends AbstractVisitor {
     builder.add(instruction);
     return instruction;
   }
+}
+
+/**
+ * This class visits the method that is a candidate for inlining and
+ * finds whether it is too difficult to inline.
+ */
+class InlineWeeder extends AbstractVisitor {
+  final TreeElements elements;
+  bool seenReturn = false;
+  bool tooDifficult = false;
+
+  InlineWeeder(this.elements);
+
+  static bool canBeInlined(FunctionExpression functionExpression,
+                           TreeElements elements) {
+    InlineWeeder weeder = new InlineWeeder(elements);
+    weeder.visit(functionExpression.body);
+    if (weeder.tooDifficult) return false;
+    return true;
+  }
+
+  void visit(Node node) {
+    node.accept(this);
+  }
+
+  void visitNode(Node node) {
+    if (seenReturn) {
+      tooDifficult = true;
+    } else {
+      node.visitChildren(this);
+    }
+  }
+
+  void visitFunctionExpression(Node node) {
+    tooDifficult = true;
+  }
+
+  void visitFunctionDeclaration(Node node) {
+    tooDifficult = true;
+  }
+
+  void visitSend(Node node) {
+    node.visitChildren(this);
+  }
+
+  visitLoop(Node node) {
+    node.visitChildren(this);
+    if (seenReturn) tooDifficult = true;
+  }
+
+  void visitReturn(Node node) {
+    if (seenReturn || node.getBeginToken().stringValue === 'native') {
+      tooDifficult = true;
+      return;
+    }
+    node.visitChildren(this);
+    seenReturn = true;
+  }
+
+  void visitTryStatement(Node node) {
+    tooDifficult = true;
+  }
+
+  void visitThrow(Node node) {
+    tooDifficult = true;
+  }
+}
+
+class InliningState {
+  final PartialFunctionElement function;
+  final Element oldReturnElement;
+  final TreeElements oldElements;
+  final List<HInstruction> oldStack;
+
+  InliningState(this.function,
+                this.oldReturnElement,
+                this.oldElements,
+                this.oldStack);
 }
 
 class SsaBranch {

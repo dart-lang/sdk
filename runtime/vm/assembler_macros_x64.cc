@@ -19,6 +19,7 @@ DECLARE_FLAG(bool, inline_alloc);
 void AssemblerMacros::TryAllocate(Assembler* assembler,
                                   const Class& cls,
                                   Label* failure,
+                                  bool near_jump,
                                   Register instance_reg) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
@@ -30,7 +31,7 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
     // instance_reg: potential next object start.
     __ movq(TMP, Immediate(heap->EndAddress()));
     __ cmpq(instance_reg, Address(TMP, 0));
-    __ j(ABOVE_EQUAL, failure, Assembler::kNearJump);
+    __ j(ABOVE_EQUAL, failure, near_jump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     __ movq(TMP, Immediate(heap->TopAddress()));

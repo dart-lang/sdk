@@ -28,26 +28,36 @@ class SsaInstructionMerger extends HBaseVisitor {
     visitDominatorTree(graph);
   }
 
+  void analyzeInput(HInstruction input) {
+    if (!generateAtUseSite.contains(input)
+        && !input.isCodeMotionInvariant()
+        && input.usedBy.length == 1
+        && input is !HPhi) {
+      expectedInputs.add(input);
+    }
+  }
+
   void visitInstruction(HInstruction instruction) {
     // A code motion invariant instruction is dealt before visiting it.
     assert(!instruction.isCodeMotionInvariant());
-    for (HInstruction input in instruction.inputs) {
-      if (!generateAtUseSite.contains(input)
-          && !input.isCodeMotionInvariant()
-          && input.usedBy.length == 1
-          && input is !HPhi) {
-        expectedInputs.add(input);
-      }
-    }
+    instruction.inputs.forEach(analyzeInput);
   }
 
   // The codegen might use the input multiple times, so it must not be
   // set generate at use site.
   void visitIs(HIs instruction) {}
 
-  // A check method must not have its input generated at use site,
-  // because it's using it multiple times.
-  void visitCheck(HCheck instruction) {}
+  // A bounds check method must not have its first input generated at use site,
+  // because it's using it twice.
+  void visitBoundsCheck(HBoundsCheck instruction) {
+    for (int i = 1; i < instruction.inputs.length; i++) {
+      analyzeInput(instruction.inputs[i]);
+    }
+  }
+
+  // An integer check method must not have its input generated at use site,
+  // because it's using it twice.
+  void visitIntegerCheck(HIntegerCheck instruction) {}
 
   // A type guard should not generate its input at use site, otherwise
   // they would not be alive.

@@ -276,11 +276,8 @@ void TestGraphVisitor::ReturnValue(Value* value) {
   }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Value* constant_true = Bind(Constant(bool_true));
-  BranchInstr* branch = new BranchInstr(condition_token_pos(),
-                                        owner()->try_index(),
-                                        value,
-                                        constant_true,
-                                        Token::kEQ_STRICT);
+  StrictCompareAndBranchInstr* branch =
+      new StrictCompareAndBranchInstr(value, constant_true, Token::kEQ_STRICT);
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
@@ -290,11 +287,25 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 
 void TestGraphVisitor::MergeBranchWithComparison(ComparisonComp* comp) {
   ASSERT(!FLAG_enable_type_checks);
-  BranchInstr* branch = new BranchInstr(condition_token_pos(),
-                                        owner()->try_index(),
-                                        comp->left(),
-                                        comp->right(),
-                                        comp->kind());
+  ControlInstruction* branch;
+  if (Token::IsStrictEqualityOperator(comp->kind())) {
+    branch = new StrictCompareAndBranchInstr(comp->left(),
+                                             comp->right(),
+                                             comp->kind());
+  } else if (Token::IsEqualityOperator(comp->kind()) &&
+             (comp->left()->BindsToConstantNull() ||
+              comp->right()->BindsToConstantNull())) {
+    branch = new StrictCompareAndBranchInstr(
+        comp->left(),
+        comp->right(),
+        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT);
+  } else {
+    branch = new BranchInstr(condition_token_pos(),
+                             owner()->try_index(),
+                             comp->left(),
+                             comp->right(),
+                             comp->kind());
+  }
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
@@ -306,11 +317,10 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateComp* comp) {
   ASSERT(!FLAG_enable_type_checks);
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Value* constant_true = Bind(Constant(bool_true));
-  BranchInstr* branch = new BranchInstr(condition_token_pos(),
-                                        owner()->try_index(),
-                                        comp->value(),
-                                        constant_true,
-                                        Token::kNE_STRICT);
+  StrictCompareAndBranchInstr* branch =
+      new StrictCompareAndBranchInstr(comp->value(),
+                                      constant_true,
+                                      Token::kNE_STRICT);
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
@@ -1294,11 +1304,14 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     Append(for_value);
     arguments->Add(PushArgument(for_value.value()));
   }
+  const AbstractTypeArguments& type_args =
+      AbstractTypeArguments::ZoneHandle(node->type().arguments());
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
-                                                       node->type_arguments());
+                                                       type_args);
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 arguments,
+                                                node->type(),
                                                 element_type);
   ReturnComputation(create);
 }
@@ -1973,7 +1986,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   node->instance()->Visit(&for_instance);
   Append(for_instance);
   LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-      node->field(), for_instance.value(), NULL);  // Can not deoptimize.
+      node->field(), for_instance.value());
   ReturnComputation(load);
 }
 
@@ -1996,7 +2009,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        dst_name);
   }
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
-      node->field(), for_instance.value(), store_value, NULL);
+      node->field(), for_instance.value(), store_value);
   ReturnComputation(store);
 }
 

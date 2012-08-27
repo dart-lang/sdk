@@ -24,7 +24,7 @@ class SdkSource extends Source {
    */
   final String _rootDir;
 
-  String get rootDir() {
+  String get rootDir {
     if (_rootDir != null) return _rootDir;
     throw "Pub can't find the Dart SDK. Please set the DART_SDK environment "
       "variable to the Dart SDK directory.";
@@ -39,7 +39,7 @@ class SdkSource extends Source {
   Future<Pubspec> describe(PackageId id) {
     return readTextFile(join(rootDir, "revision")).transform((revision) {
       var version = new Version.parse("0.0.0-r.${revision.trim()}");
-      return new Pubspec(version, <PackageRef>[]);
+      return new Pubspec(id.name, version, <PackageRef>[]);
     });
   }
 
