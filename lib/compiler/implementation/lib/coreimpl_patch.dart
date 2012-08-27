@@ -36,6 +36,22 @@ patch class StringImplementation {
 }
 
 
+// Patch for List implementation.
+// TODO(ager): Split out into date_patch.dart and allow #source
+// in patch files?
+patch class ListImplementation<E> {
+  patch factory List([int length]) => Primitives.newList(length);
+
+  patch static List _from(Iterable other) {
+    List result = new List();
+    for (var element in other) {
+      result.add(element);
+    }
+    return result;
+  }
+}
+
+
 // Patch for Date implementation.
 // TODO(ager): Split out into date_patch.dart and allow #source
 // in patch files?

@@ -56,16 +56,3 @@ class StringBase {
     return array;
   }
 }
-
-class ListFactory<E> {
-  factory List([int length]) => Primitives.newList(length);
-  factory List.from(Iterable<E> other) {
-    List<E> result = new List<E>();
-    // TODO(ahe): Use for-in when it is implemented correctly.
-    Iterator<E> iterator = other.iterator();
-    while (iterator.hasNext()) {
-      result.add(iterator.next());
-    }
-    return result;
-  }
-}
