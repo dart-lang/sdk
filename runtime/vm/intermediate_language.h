@@ -1932,8 +1932,9 @@ class UnarySmiOpComp : public TemplateComputation<1> {
  public:
   UnarySmiOpComp(Token::Kind op_kind,
                  InstanceCallComp* instance_call,
-                Value* value)
+                 Value* value)
       : op_kind_(op_kind), instance_call_(instance_call) {
+    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
@@ -1947,7 +1948,7 @@ class UnarySmiOpComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(UnarySmiOp)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
   virtual intptr_t ResultCid() const { return kSmiCid; }
 
  private:

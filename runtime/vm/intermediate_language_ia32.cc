@@ -1962,38 +1962,23 @@ LocationSummary* UnarySmiOpComp::MakeLocationSummary() const {
 
 
 void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT(!ic_data.IsNull());
-  ASSERT(ic_data.num_args_tested() == 1);
-  // TODO(srdjan): Implement for more checks.
-  ASSERT(ic_data.NumberOfChecks() == 1);
-  intptr_t test_class_id;
-  Function& target = Function::Handle();
-  ic_data.GetOneClassCheckAt(0, &test_class_id, &target);
-
   Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-  ASSERT(value == result);
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
-                                        kDeoptUnaryOp);
-  if (test_class_id == kSmiCid) {
-    __ testl(value, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt);
-    switch (op_kind()) {
-      case Token::kNEGATE:
-        __ negl(value);
-        __ j(OVERFLOW, deopt);
-        break;
-      case Token::kBIT_NOT:
-        __ notl(value);
-        __ andl(value, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
-        break;
-      default:
-        UNREACHABLE();
+  ASSERT(value == locs()->out().reg());
+  switch (op_kind()) {
+    case Token::kNEGATE: {
+      Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+                                            instance_call()->try_index(),
+                                            kDeoptUnaryOp);
+      __ negl(value);
+      __ j(OVERFLOW, deopt);
+      break;
     }
-  } else {
-    UNREACHABLE();
+    case Token::kBIT_NOT:
+      __ notl(value);
+      __ andl(value, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

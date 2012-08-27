@@ -418,7 +418,14 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   ASSERT(comp->ArgumentCount() == 1);
   Computation* unary_op = NULL;
   if (HasOneSmi(*comp->ic_data())) {
-    unary_op = new UnarySmiOpComp(op_kind, comp, comp->ArgumentAt(0)->value());
+    Value* value = comp->ArgumentAt(0)->value();
+    InsertBefore(instr,
+                 new CheckSmiComp(value->CopyValue(), comp),
+                 instr->env(),
+                 BindInstr::kUnused);
+    unary_op = new UnarySmiOpComp(op_kind,
+                                  (op_kind == Token::kNEGATE) ? comp : NULL,
+                                  value);
   } else if (HasOneDouble(*comp->ic_data()) && (op_kind == Token::kNEGATE)) {
     unary_op = new NumberNegateComp(comp, comp->ArgumentAt(0)->value());
   }
