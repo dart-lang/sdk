@@ -473,9 +473,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
 
     AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
     LoadInstanceFieldComp* load =
-        new LoadInstanceFieldComp(field,
-                                  comp->ArgumentAt(0)->value(),
-                                  NULL);  // Can not deoptimize.
+        new LoadInstanceFieldComp(field, comp->ArgumentAt(0)->value());
     instr->set_computation(load);
     RemovePushArguments(comp);
     return true;
@@ -672,8 +670,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),
-      comp->ArgumentAt(1)->value(),
-      NULL);  // Can not deoptimize.
+      comp->ArgumentAt(1)->value());
   instr->set_computation(store);
   RemovePushArguments(comp);
   return true;

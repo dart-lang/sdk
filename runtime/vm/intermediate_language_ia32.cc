@@ -949,32 +949,17 @@ LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
 void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
-
-  if (HasICData()) {
-    ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget);
-    // Smis do not have instance fields (Smi class is always first).
-    // Use 'result' as temporary register.
-    ASSERT(result_reg != instance_reg);
-    ASSERT(ic_data() != NULL);
-    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, result_reg, deopt);
-  }
   __ movl(result_reg, FieldAddress(instance_reg, field().Offset()));
 }
 
 
 LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t num_temps = HasICData() ? 1 : 0;
+  const intptr_t num_temps =  0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  if (HasICData()) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
   return summary;
 }
 
@@ -982,19 +967,6 @@ LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
 void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register value_reg = locs()->in(1).reg();
-
-  if (HasICData()) {
-    ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->try_index(),
-                                          kDeoptInstanceGetterSameTarget);
-    // Smis do not have instance fields (Smi class is always first).
-    Register temp_reg = locs()->temp(0).reg();
-    ASSERT(temp_reg != instance_reg);
-    ASSERT(temp_reg != value_reg);
-    ASSERT(ic_data() != NULL);
-    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, temp_reg, deopt);
-  }
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(instance_reg,
         FieldAddress(instance_reg, field().Offset()), value_reg);
@@ -2362,7 +2334,6 @@ void StrictCompareAndBranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmpl(left, right);
   Condition cond = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   EmitBranchOnCondition(compiler, cond);
-  return;
 }
 
 
@@ -2378,14 +2349,6 @@ LocationSummary* CheckClassComp::MakeLocationSummary() const {
 
 
 void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t v_cid = value()->ResultCid();
-  const intptr_t num_checks = ic_data()->NumberOfChecks();
-  if ((num_checks == 1) &&
-      (v_cid == ic_data()->GetReceiverClassIdAt(0))) {
-    // No checks needed.
-    // TODO(srdjan): Should the computation have been removed instead?
-    return;
-  }
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
@@ -2396,6 +2359,7 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(ZERO, deopt);
   __ LoadClassId(temp, value);
   Label is_ok;
+  const intptr_t num_checks = ic_data()->NumberOfChecks();
   const bool use_near_jump = num_checks < 5;
   for (intptr_t i = 0; i < num_checks; i++) {
     __ cmpl(temp, Immediate(ic_data()->GetReceiverClassIdAt(i)));

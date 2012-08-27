@@ -1040,11 +1040,7 @@ class NativeCallComp : public TemplateComputation<0> {
 
 class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
-  // Set 'original' to NULL if LoadInstanceFieldComp cannot deoptimize.
-  LoadInstanceFieldComp(const Field& field,
-                        Value* instance,
-                        InstanceCallComp* original)
-      : field_(field), original_(original) {
+  LoadInstanceFieldComp(const Field& field, Value* instance) : field_(field) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
@@ -1053,16 +1049,14 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   const Field& field() const { return field_; }
   Value* instance() const { return inputs_[0]; }
-  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return original_ != NULL; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
-  const InstanceCallComp* original_;  // For optimizations.
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -1070,12 +1064,10 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
 class StoreInstanceFieldComp : public TemplateComputation<2> {
  public:
-  // Set 'original' to NULL if StoreInstanceFieldComp cannot deoptimize.
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
-                         Value* value,
-                         InstanceCallComp* original)  // Maybe NULL.
-      : field_(field), original_(original) {
+                         Value* value)
+      : field_(field) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
     inputs_[0] = instance;
@@ -1089,16 +1081,13 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
-  const InstanceCallComp* original() const { return original_; }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return original_ != NULL; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
-  const InstanceCallComp* original_;  // For optimizations.
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
@@ -2082,6 +2071,8 @@ class CheckClassComp : public TemplateComputation<1> {
 
   intptr_t deopt_id() const { return original_->deopt_id(); }
   intptr_t try_index() const { return original_->try_index(); }
+
+  virtual Definition* TryReplace(BindInstr* instr) const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

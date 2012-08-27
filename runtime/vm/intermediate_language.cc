@@ -1131,6 +1131,18 @@ Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
 }
 
 
+Definition* CheckClassComp::TryReplace(BindInstr* instr) const {
+  const intptr_t v_cid = value()->ResultCid();
+  const intptr_t num_checks = ic_data()->NumberOfChecks();
+  if ((num_checks == 1) &&
+      (v_cid == ic_data()->GetReceiverClassIdAt(0))) {
+    // No checks needed.
+    return NULL;
+  }
+  return instr;
+}
+
+
 Definition* CheckSmiComp::TryReplace(BindInstr* instr) const {
   return (value()->ResultCid() == kSmiCid) ?  NULL : instr;
 }
