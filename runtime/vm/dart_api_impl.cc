@@ -815,7 +815,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   }
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle(isolate));
-  SnapshotWriter writer(Snapshot::kFull, buffer, ApiReallocate);
+  FullSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteFullSnapshot();
   *size = writer.BytesWritten();
   return Api::Success(isolate);
@@ -946,24 +946,24 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
                                    intptr_t* data) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, &allocator);
-
   writer.WriteMessage(len, data);
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(
-      port_id, Message::kIllegalPort, buffer, Message::kNormalPriority));
+      port_id, Message::kIllegalPort, buffer, writer.BytesWritten(),
+      Message::kNormalPriority));
 }
 
 
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, allocator);
-
   writer.WriteCMessage(message);
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(
-      port_id, Message::kIllegalPort, buffer, Message::kNormalPriority));
+      port_id, Message::kIllegalPort, buffer, writer.BytesWritten(),
+      Message::kNormalPriority));
 }
 
 
@@ -973,11 +973,11 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   DARTSCOPE_NOCHECKS(isolate);
   const Object& object = Object::Handle(isolate, Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
-  SnapshotWriter writer(Snapshot::kMessage, &data, &allocator);
-  writer.WriteObject(object.raw());
-  writer.FinalizeBuffer();
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(object);
+  intptr_t len = writer.BytesWritten();
   return PortMap::PostMessage(new Message(
-      port_id, Message::kIllegalPort, data, Message::kNormalPriority));
+      port_id, Message::kIllegalPort, data, len, Message::kNormalPriority));
 }
 
 
@@ -3827,7 +3827,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
   if (!snapshot->IsScriptSnapshot()) {
     return Api::NewError("%s expects parameter 'buffer' to be a script type"
-                         " snapshot", CURRENT_FUNC);
+                         " snapshot.", CURRENT_FUNC);
   }
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());
@@ -3836,7 +3836,10 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
     return Api::NewError("%s: A script has already been loaded from '%s'.",
                          CURRENT_FUNC, library_url.ToCString());
   }
-  SnapshotReader reader(snapshot, isolate);
+  SnapshotReader reader(snapshot->content(),
+                        snapshot->length(),
+                        snapshot->kind(),
+                        isolate);
   const Object& tmp = Object::Handle(isolate, reader.ReadObject());
   if (!tmp.IsLibrary()) {
     return Api::NewError("%s: Unable to deserialize snapshot correctly.",

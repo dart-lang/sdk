@@ -145,9 +145,12 @@ intptr_t BaseReader::ReadSmiValue() {
 }
 
 
-SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
-    : BaseReader(snapshot->content(), snapshot->length()),
-      kind_(snapshot->kind()),
+SnapshotReader::SnapshotReader(const uint8_t* buffer,
+                               intptr_t size,
+                               Snapshot::Kind kind,
+                               Isolate* isolate)
+    : BaseReader(buffer, size),
+      kind_(kind),
       isolate_(isolate),
       cls_(Class::Handle()),
       obj_(Object::Handle()),
@@ -156,7 +159,7 @@ SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
       type_(AbstractType::Handle()),
       type_arguments_(AbstractTypeArguments::Handle()),
       tokens_(Array::Handle()),
-      backward_references_((snapshot->kind() == Snapshot::kFull) ?
+      backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {
 }
@@ -857,12 +860,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 }
 
 
-void SnapshotWriter::WriteFullSnapshot() {
-  ASSERT(kind_ == Snapshot::kFull);
+void FullSnapshotWriter::WriteFullSnapshot() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
+
+  // Reserve space in the output buffer for a snapshot header.
+  ReserveHeader();
 
   // Write out all the objects in the object store of the isolate which
   // is the root set for all dart allocated objects at this point.
@@ -872,8 +877,8 @@ void SnapshotWriter::WriteFullSnapshot() {
   // Write out all forwarded objects.
   WriteForwardedObjects();
 
-  // Finalize the snapshot buffer.
-  FinalizeBuffer();
+  FillHeader(kind());
+  UnmarkAll();
 }
 
 
@@ -1128,10 +1133,10 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
 
   // Write out the library object.
+  ReserveHeader();
   WriteObject(lib.raw());
-
-  // Finalize the snapshot buffer.
-  FinalizeBuffer();
+  FillHeader(kind());
+  UnmarkAll();
 }
 
 
@@ -1145,5 +1150,13 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
     }
   }
 }
+
+
+void MessageWriter::WriteMessage(const Object& obj) {
+  ASSERT(kind() == Snapshot::kMessage);
+  WriteObject(obj.raw());
+  UnmarkAll();
+}
+
 
 }  // namespace dart

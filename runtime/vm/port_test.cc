@@ -121,8 +121,11 @@ TEST_CASE(PortMap_PostMessage) {
   Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_EQ(0, handler.notify_count);
 
+  const char* message = "msg";
+  intptr_t message_len = strlen(message) + 1;
+
   EXPECT(PortMap::PostMessage(new Message(
-      port, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
+      port, 0, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
       Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
@@ -132,8 +135,11 @@ TEST_CASE(PortMap_PostMessage) {
 
 
 TEST_CASE(PortMap_PostMessageInvalidPort) {
+  const char* message = "msg";
+  intptr_t message_len = strlen(message) + 1;
+
   EXPECT(!PortMap::PostMessage(new Message(
-      0, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
+      0, 0, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
       Message::kNormalPriority)));
 }
 

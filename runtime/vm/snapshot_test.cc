@@ -36,6 +36,16 @@ static bool Equals(const Object& expected, const Object& actual) {
     }
     return false;
   }
+  if (expected.IsBool()) {
+    if (actual.IsBool()) {
+      Bool& bl1 = Bool::Handle();
+      Bool& bl2 = Bool::Handle();
+      bl1 ^= expected.raw();
+      bl2 ^= actual.raw();
+      return bl1.value() == bl2.value();
+    }
+    return false;
+  }
   return false;
 }
 
@@ -50,14 +60,6 @@ static uint8_t* zone_allocator(
     uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   Zone* zone = Isolate::Current()->current_zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
-}
-
-
-static Dart_CObject* DecodeMessage(uint8_t* message,
-                                   intptr_t length,
-                                   ReAlloc allocator) {
-  ApiMessageReader message_reader(message, length, allocator);
-  return message_reader.ReadMessage();
 }
 
 
@@ -122,9 +124,8 @@ static void CheckEncodeDecodeMessage(Dart_CObject* root) {
   ApiMessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteCMessage(root);
 
-  Dart_CObject* new_root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                         writer.BytesWritten(),
-                                         &zone_allocator);
+  ApiMessageReader api_reader(buffer, writer.BytesWritten(), &zone_allocator);
+  Dart_CObject* new_root = api_reader.ReadMessage();
 
   // Check that the two messages are the same.
   CompareDartCObjects(root, new_root);
@@ -135,24 +136,21 @@ TEST_CASE(SerializeNull) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Object& null_object = Object::Handle();
-  writer.WriteObject(null_object.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(null_object);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(null_object, serialized_object));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kNull, root->type);
   CheckEncodeDecodeMessage(root);
@@ -164,24 +162,21 @@ TEST_CASE(SerializeSmi1) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Smi& smi = Smi::Handle(Smi::New(124));
-  writer.WriteObject(smi.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(smi);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kInt32, root->type);
   EXPECT_EQ(smi.Value(), root->value.as_int32);
@@ -194,24 +189,21 @@ TEST_CASE(SerializeSmi2) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Smi& smi = Smi::Handle(Smi::New(-1));
-  writer.WriteObject(smi.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(smi);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kInt32, root->type);
   EXPECT_EQ(smi.Value(), root->value.as_int32);
@@ -222,22 +214,19 @@ TEST_CASE(SerializeSmi2) {
 Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
-  writer.WriteObject(mint.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  MessageWriter writer(&buffer, &zone_allocator);
+  writer.WriteMessage(mint);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(serialized_object.IsMint());
 
   // Read object back from the snapshot into a C structure.
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   CheckEncodeDecodeMessage(root);
   return root;
@@ -294,50 +283,25 @@ TEST_CASE(SerializeDouble) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Double& dbl = Double::Handle(Double::New(101.29));
-  writer.WriteObject(dbl.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(dbl);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(dbl, serialized_object));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kDouble, root->type);
   EXPECT_EQ(dbl.value(), root->value.as_double);
   CheckEncodeDecodeMessage(root);
-}
-
-
-TEST_CASE(SerializeBool) {
-  Zone zone(Isolate::Current());
-
-  // Write snapshot with object content.
-  uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
-  const Bool& bool1 = Bool::Handle(Bool::True());
-  const Bool& bool2 = Bool::Handle(Bool::False());
-  writer.WriteObject(bool1.raw());
-  writer.WriteObject(bool2.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
-
-  // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
-  EXPECT(Bool::True() == reader.ReadObject());
-  EXPECT(Bool::False() == reader.ReadObject());
 }
 
 
@@ -346,19 +310,23 @@ TEST_CASE(SerializeTrue) {
 
   // Write snapshot with true object.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Bool& bl = Bool::Handle(Bool::True());
-  writer.WriteObject(bl.raw());
-  writer.FinalizeBuffer();
+  writer.WriteMessage(bl);
+  intptr_t buffer_len = writer.BytesWritten();
 
-  // Create a snapshot object using the buffer.
-  Snapshot::SetupFromBuffer(buffer);
+  // Read object back from the snapshot.
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
+  const Object& serialized_object = Object::Handle(reader.ReadObject());
+  fprintf(stderr, "%s / %s\n", bl.ToCString(), serialized_object.ToCString());
+
+  EXPECT(Equals(bl, serialized_object));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kBool, root->type);
   EXPECT_EQ(true, root->value.as_bool);
@@ -371,19 +339,21 @@ TEST_CASE(SerializeFalse) {
 
   // Write snapshot with false object.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Bool& bl = Bool::Handle(Bool::False());
-  writer.WriteObject(bl.raw());
-  writer.FinalizeBuffer();
+  writer.WriteMessage(bl);
+  intptr_t buffer_len = writer.BytesWritten();
 
-  // Create a snapshot object using the buffer.
-  Snapshot::SetupFromBuffer(buffer);
+  // Read object back from the snapshot.
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
+  const Object& serialized_object = Object::Handle(reader.ReadObject());
+  EXPECT(Equals(bl, serialized_object));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kBool, root->type);
   EXPECT_EQ(false, root->value.as_bool);
@@ -401,16 +371,14 @@ TEST_CASE(SerializeBigint) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Bigint& bigint = Bigint::Handle(Bigint::New(DART_INT64_C(0xfffffffff)));
-  writer.WriteObject(bigint.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(bigint);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
 
@@ -418,9 +386,8 @@ TEST_CASE(SerializeBigint) {
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   // Bigint not supported.
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kBigint, root->type);
@@ -432,15 +399,13 @@ TEST_CASE(SerializeBigint) {
 Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
-  writer.WriteObject(bigint.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  MessageWriter writer(&buffer, &zone_allocator);
+  writer.WriteMessage(bigint);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   Bigint& serialized_bigint = Bigint::Handle();
   serialized_bigint ^= reader.ReadObject();
   const char *str1 = BigintOperations::ToHexCString(bigint, allocator);
@@ -452,9 +417,8 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   // Bigint not supported.
   EXPECT_NOTNULL(root);
   CheckEncodeDecodeMessage(root);
@@ -489,11 +453,10 @@ TEST_CASE(SerializeBigint2) {
   CheckBigint("-0x9876543210987654321098765432109876543210");
 }
 
-
 TEST_CASE(SerializeSingletons) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &malloc_allocator);
+  MessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteObject(Object::class_class());
   writer.WriteObject(Object::null_class());
   writer.WriteObject(Object::type_class());
@@ -511,13 +474,11 @@ TEST_CASE(SerializeSingletons) {
   writer.WriteObject(Object::exception_handlers_class());
   writer.WriteObject(Object::context_class());
   writer.WriteObject(Object::context_scope_class());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage,
+                        Isolate::Current());
   EXPECT(Object::class_class() == reader.ReadObject());
   EXPECT(Object::null_class() == reader.ReadObject());
   EXPECT(Object::type_class() == reader.ReadObject());
@@ -545,26 +506,23 @@ TEST_CASE(SerializeString) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   static const char* cstr = "This string shall be serialized";
   String& str = String::Handle(String::New(cstr));
-  writer.WriteObject(str.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(str);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   String& serialized_str = String::Handle();
   serialized_str ^= reader.ReadObject();
   EXPECT(str.Equals(serialized_str));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject::kString, root->type);
   EXPECT_STREQ(cstr, root->value.as_string);
   CheckEncodeDecodeMessage(root);
@@ -576,7 +534,7 @@ TEST_CASE(SerializeArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const int kArrayLength = 10;
   Array& array = Array::Handle(Array::New(kArrayLength));
   Smi& smi = Smi::Handle();
@@ -584,23 +542,20 @@ TEST_CASE(SerializeArray) {
     smi ^= Smi::New(i);
     array.SetAt(i, smi);
   }
-  writer.WriteObject(array.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(array);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
   EXPECT(array.Equals(serialized_array));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject::kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   for (int i = 0; i < kArrayLength; i++) {
@@ -617,26 +572,23 @@ TEST_CASE(SerializeEmptyArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const int kArrayLength = 0;
   Array& array = Array::Handle(Array::New(kArrayLength));
-  writer.WriteObject(array.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(array);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
   EXPECT(array.Equals(serialized_array));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject::kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   EXPECT(root->value.as_array.values == NULL);
@@ -649,30 +601,27 @@ TEST_CASE(SerializeByteArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const int kByteArrayLength = 256;
   Uint8Array& byte_array =
       Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
   for (int i = 0; i < kByteArrayLength; i++) {
     byte_array.SetAt(i, i);
   }
-  writer.WriteObject(byte_array.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(byte_array);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   ByteArray& serialized_byte_array = ByteArray::Handle();
   serialized_byte_array ^= reader.ReadObject();
   EXPECT(serialized_byte_array.IsByteArray());
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject::kUint8Array, root->type);
   EXPECT_EQ(kByteArrayLength, root->value.as_byte_array.length);
   for (int i = 0; i < kByteArrayLength; i++) {
@@ -687,32 +636,49 @@ TEST_CASE(SerializeEmptyByteArray) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const int kByteArrayLength = 0;
   Uint8Array& byte_array =
       Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
-  writer.WriteObject(byte_array.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  writer.WriteMessage(byte_array);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, buffer_len,
+                        Snapshot::kMessage, Isolate::Current());
   ByteArray& serialized_byte_array = ByteArray::Handle();
   serialized_byte_array ^= reader.ReadObject();
   EXPECT(serialized_byte_array.IsByteArray());
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject::kUint8Array, root->type);
   EXPECT_EQ(kByteArrayLength, root->value.as_byte_array.length);
   EXPECT(root->value.as_byte_array.values == NULL);
   CheckEncodeDecodeMessage(root);
 }
+
+
+class TestSnapshotWriter : public SnapshotWriter {
+ public:
+  TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc) {
+    ASSERT(buffer != NULL);
+    ASSERT(alloc != NULL);
+  }
+  ~TestSnapshotWriter() { }
+
+  // Writes just a script object
+  void WriteScript(const Script& script) {
+    WriteObject(script.raw());
+    UnmarkAll();
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TestSnapshotWriter);
+};
 
 
 TEST_CASE(SerializeScript) {
@@ -736,17 +702,14 @@ TEST_CASE(SerializeScript) {
   lib.Register();
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 
-  // Write snapshot with object content.
+  // Write snapshot with script content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kScript, &buffer, &malloc_allocator);
-  writer.WriteObject(script.raw());
-  writer.FinalizeBuffer();
-
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  TestSnapshotWriter writer(&buffer, &malloc_allocator);
+  writer.WriteScript(script);
 
   // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
+  SnapshotReader reader(buffer, writer.BytesWritten(),
+                        Snapshot::kScript, Isolate::Current());
   Script& serialized_script = Script::Handle();
   serialized_script ^= reader.ReadObject();
 
@@ -843,7 +806,7 @@ UNIT_TEST_CASE(FullSnapshot) {
     Isolate* isolate = Isolate::Current();
     Zone zone(isolate);
     HandleScope scope(isolate);
-    SnapshotWriter writer(Snapshot::kFull, &buffer, &malloc_allocator);
+    FullSnapshotWriter writer(&buffer, &malloc_allocator);
     writer.WriteFullSnapshot();
   }
 
@@ -897,7 +860,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     OS::PrintErr("Without Snapshot: %dus\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    SnapshotWriter writer(Snapshot::kFull, &buffer, &malloc_allocator);
+    FullSnapshotWriter writer(&buffer, &malloc_allocator);
     writer.WriteFullSnapshot();
 
     // Invoke a function which returns an object.
@@ -1064,9 +1027,8 @@ TEST_CASE(IntArrayMessage) {
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
-  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                     writer.BytesWritten(),
-                                     &zone_allocator);
+  ApiMessageReader api_reader(buffer, writer.BytesWritten(), &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject::kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   for (int i = 0; i < kArrayLength; i++) {
@@ -1088,15 +1050,14 @@ static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
 
   // Serialize the list into a message.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  MessageWriter writer(&buffer, &zone_allocator);
   const Object& list = Object::Handle(Api::UnwrapHandle(result));
-  writer.WriteObject(list.raw());
-  writer.FinalizeBuffer();
+  writer.WriteMessage(list);
+  intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot into a C structure.
-  return DecodeMessage(buffer + Snapshot::kHeaderSize,
-                       writer.BytesWritten(),
-                       &zone_allocator);
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  return api_reader.ReadMessage();
 }
 
 
@@ -1140,17 +1101,16 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     {
       Zone zone(Isolate::Current());
       uint8_t* buffer;
-      SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+      MessageWriter writer(&buffer, &zone_allocator);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
-      writer.WriteObject(smi.raw());
-      writer.FinalizeBuffer();
+      writer.WriteMessage(smi);
+      intptr_t buffer_len = writer.BytesWritten();
 
       // Read object back from the snapshot into a C structure.
       ApiNativeScope scope;
-      Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                         writer.BytesWritten(),
-                                         &zone_allocator);
+      ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+      Dart_CObject* root = api_reader.ReadMessage();
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kInt32, root->type);
       EXPECT_EQ(42, root->value.as_int32);
@@ -1159,17 +1119,16 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     {
       Zone zone(Isolate::Current());
       uint8_t* buffer;
-      SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+      MessageWriter writer(&buffer, &zone_allocator);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
-      writer.WriteObject(bigint.raw());
-      writer.FinalizeBuffer();
+      writer.WriteMessage(bigint);
+      intptr_t buffer_len = writer.BytesWritten();
 
       // Read object back from the snapshot into a C structure.
       ApiNativeScope scope;
-      Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                         writer.BytesWritten(),
-                                         &zone_allocator);
+      ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+      Dart_CObject* root = api_reader.ReadMessage();
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kBigint, root->type);
       EXPECT_STREQ("-424242424242424242424242424242424242",
@@ -1179,17 +1138,16 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     {
       Zone zone(Isolate::Current());
       uint8_t* buffer;
-      SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+      MessageWriter writer(&buffer, &zone_allocator);
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(string_result);
-      writer.WriteObject(str.raw());
-      writer.FinalizeBuffer();
+      writer.WriteMessage(str);
+      intptr_t buffer_len = writer.BytesWritten();
 
       // Read object back from the snapshot into a C structure.
       ApiNativeScope scope;
-      Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
-                                         writer.BytesWritten(),
-                                         &zone_allocator);
+      ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+      Dart_CObject* root = api_reader.ReadMessage();
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kString, root->type);
       EXPECT_STREQ("Hello, world!", root->value.as_string);

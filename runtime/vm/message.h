@@ -32,11 +32,12 @@ class Message {
   //
   // If reply_port is kIllegalPort, then there is no reply port.
   Message(Dart_Port dest_port, Dart_Port reply_port,
-          uint8_t* data, Priority priority)
+          uint8_t* data, intptr_t len, Priority priority)
       : next_(NULL),
         dest_port_(dest_port),
         reply_port_(reply_port),
         data_(data),
+        len_(len),
         priority_(priority) {}
   ~Message() {
     free(data_);
@@ -45,6 +46,7 @@ class Message {
   Dart_Port dest_port() const { return dest_port_; }
   Dart_Port reply_port() const { return reply_port_; }
   uint8_t* data() const { return data_; }
+  intptr_t len() const { return len_; }
   Priority priority() const { return priority_; }
 
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
@@ -56,6 +58,7 @@ class Message {
   Dart_Port dest_port_;
   Dart_Port reply_port_;
   uint8_t* data_;
+  intptr_t len_;
   Priority priority_;
 
   DISALLOW_COPY_AND_ASSIGN(Message);

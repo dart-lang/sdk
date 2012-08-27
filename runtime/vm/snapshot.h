@@ -101,6 +101,10 @@ enum SerializeState {
 
 
 // Structure capturing the raw snapshot.
+//
+// TODO(turnidge): Remove this class once the snapshot does not have a
+// header anymore.  This is pending on making the embedder pass in the
+// length of their snapshot.
 class Snapshot {
  public:
   enum Kind {
@@ -123,7 +127,6 @@ class Snapshot {
   bool IsMessageSnapshot() const { return kind_ == kMessage; }
   bool IsScriptSnapshot() const { return kind_ == kScript; }
   bool IsFullSnapshot() const { return kind_ == kFull; }
-  int32_t Size() const { return length_ + sizeof(Snapshot); }
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
 
   static intptr_t length_offset() { return OFFSET_OF(Snapshot, length_); }
@@ -183,7 +186,10 @@ class BaseReader {
 // Reads a snapshot into objects.
 class SnapshotReader : public BaseReader {
  public:
-  SnapshotReader(const Snapshot* snapshot, Isolate* isolate);
+  SnapshotReader(const uint8_t* buffer,
+                 intptr_t size,
+                 Snapshot::Kind kind,
+                 Isolate* isolate);
   ~SnapshotReader() { }
 
   Isolate* isolate() const { return isolate_; }
@@ -364,23 +370,23 @@ class BaseWriter {
     stream_.WriteBytes(addr, len);
   }
 
-  // Finalize the serialized buffer by filling in the header information
-  // which comprises of a flag(snaphot kind) and the length of
-  // serialzed bytes.
-  void FinalizeBuffer(Snapshot::Kind kind) {
-    int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind;
-  }
-
  protected:
   BaseWriter(uint8_t** buffer, ReAlloc alloc) : stream_(buffer, alloc) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
-    // Make room for recording snapshot buffer size.
-    stream_.set_current(*buffer + Snapshot::kHeaderSize);
   }
   ~BaseWriter() { }
+
+  void ReserveHeader() {
+    // Make room for recording snapshot buffer size.
+    stream_.set_current(stream_.buffer() + Snapshot::kHeaderSize);
+  }
+
+  void FillHeader(Snapshot::Kind kind) {
+    int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
+    data[Snapshot::kLengthIndex] = stream_.bytes_written();
+    data[Snapshot::kSnapshotFlagIndex] = kind;
+  }
 
  private:
   WriteStream stream_;
@@ -390,7 +396,7 @@ class BaseWriter {
 
 
 class SnapshotWriter : public BaseWriter {
- public:
+ protected:
   SnapshotWriter(Snapshot::Kind kind, uint8_t** buffer, ReAlloc alloc)
       : BaseWriter(buffer, alloc),
         kind_(kind),
@@ -398,28 +404,17 @@ class SnapshotWriter : public BaseWriter {
         class_table_(Isolate::Current()->class_table()),
         forward_list_() {
   }
-  ~SnapshotWriter() { }
 
+ public:
   // Snapshot kind.
   Snapshot::Kind kind() const { return kind_; }
-
-  // Finalize the serialized buffer by filling in the header information
-  // which comprises of a flag(full/partial snaphot) and the length of
-  // serialzed bytes.
-  void FinalizeBuffer() {
-    BaseWriter::FinalizeBuffer(kind_);
-    UnmarkAll();
-  }
 
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
 
-  // Writes a full snapshot of the Isolate.
-  void WriteFullSnapshot();
-
   uword GetObjectTags(RawObject* raw);
 
- private:
+ protected:
   class ForwardObjectNode : public ZoneAllocated {
    public:
     ForwardObjectNode(RawObject* raw, uword tags, SerializeState state)
@@ -457,6 +452,7 @@ class SnapshotWriter : public BaseWriter {
 
   ObjectStore* object_store() const { return object_store_; }
 
+ private:
   Snapshot::Kind kind_;
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
@@ -477,6 +473,23 @@ class SnapshotWriter : public BaseWriter {
 };
 
 
+class FullSnapshotWriter : public SnapshotWriter {
+ public:
+  FullSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
+      : SnapshotWriter(Snapshot::kFull, buffer, alloc) {
+    ASSERT(buffer != NULL);
+    ASSERT(alloc != NULL);
+  }
+  ~FullSnapshotWriter() { }
+
+  // Writes a full snapshot of the Isolate.
+  void WriteFullSnapshot();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
+};
+
+
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
   ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
@@ -491,6 +504,22 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);
+};
+
+
+class MessageWriter : public SnapshotWriter {
+ public:
+  MessageWriter(uint8_t** buffer, ReAlloc alloc)
+      : SnapshotWriter(Snapshot::kMessage, buffer, alloc) {
+    ASSERT(buffer != NULL);
+    ASSERT(alloc != NULL);
+  }
+  ~MessageWriter() { }
+
+  void WriteMessage(const Object& obj);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
 
 

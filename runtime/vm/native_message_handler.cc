@@ -49,12 +49,7 @@ bool NativeMessageHandler::HandleMessage(Message* message) {
   // Enter a native scope for handling the message. This will create a
   // zone for allocating the objects for decoding the message.
   ApiNativeScope scope;
-
-  int32_t length = reinterpret_cast<int32_t*>(
-      message->data())[Snapshot::kLengthIndex];
-  ApiMessageReader reader(message->data() + Snapshot::kHeaderSize,
-                          length,
-                          zone_allocator);
+  ApiMessageReader reader(message->data(), message->len(), zone_allocator);
   Dart_CObject* object = reader.ReadMessage();
   (*func())(message->dest_port(), message->reply_port(), object);
   delete message;

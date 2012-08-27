@@ -124,11 +124,8 @@ class ApiMessageWriter : public BaseWriter {
   // Writes a message of integers.
   void WriteMessage(intptr_t field_count, intptr_t *data);
 
+  // Writes a message with a single object.
   void WriteCMessage(Dart_CObject* object);
-
-  void FinalizeBuffer() {
-    BaseWriter::FinalizeBuffer(Snapshot::kMessage);
-  }
 
  private:
   static const intptr_t kDartCObjectTypeBits = 4;

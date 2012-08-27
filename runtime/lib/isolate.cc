@@ -42,15 +42,6 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-static uint8_t* SerializeObject(const Instance& obj) {
-  uint8_t* result = NULL;
-  SnapshotWriter writer(Snapshot::kMessage, &result, &allocator);
-  writer.WriteObject(obj.raw());
-  writer.FinalizeBuffer();
-  return result;
-}
-
-
 static void StoreError(Isolate* isolate, const Object& obj) {
   ASSERT(obj.IsError());
   Error& error = Error::Handle();
@@ -144,11 +135,15 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
   GET_NATIVE_ARGUMENT(Smi, reply_id, arguments->At(1));
   // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NATIVE_ARGUMENT(Instance, obj, arguments->At(2));
-  uint8_t* data = SerializeObject(obj);
+
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(
-      send_id.Value(), reply_id.Value(), data, Message::kNormalPriority));
+  PortMap::PostMessage(new Message(send_id.Value(), reply_id.Value(),
+                                   data, writer.BytesWritten(),
+                                   Message::kNormalPriority));
 }
 
 
