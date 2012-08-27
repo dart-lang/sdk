@@ -140,7 +140,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     _closeFile();
   }
 
-  static final int _bufferLength = 64 * 1024;
+  static const int _bufferLength = 64 * 1024;
 
   RandomAccessFile _openedFile;
   List<int> _data;
@@ -153,8 +153,8 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
 class _PendingOperation {
   const _PendingOperation(this._id);
-  static final _PendingOperation CLOSE = const _PendingOperation(0);
-  static final _PendingOperation FLUSH = const _PendingOperation(1);
+  static const _PendingOperation CLOSE = const _PendingOperation(0);
+  static const _PendingOperation FLUSH = const _PendingOperation(1);
   final int _id;
 }
 
@@ -306,34 +306,34 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
 // Helper class containing static file helper methods.
 class _FileUtils {
-  static final EXISTS_REQUEST = 0;
-  static final CREATE_REQUEST = 1;
-  static final DELETE_REQUEST = 2;
-  static final OPEN_REQUEST = 3;
-  static final FULL_PATH_REQUEST = 4;
-  static final DIRECTORY_REQUEST = 5;
-  static final CLOSE_REQUEST = 6;
-  static final POSITION_REQUEST = 7;
-  static final SET_POSITION_REQUEST = 8;
-  static final TRUNCATE_REQUEST = 9;
-  static final LENGTH_REQUEST = 10;
-  static final LENGTH_FROM_NAME_REQUEST = 11;
-  static final LAST_MODIFIED_REQUEST = 12;
-  static final FLUSH_REQUEST = 13;
-  static final READ_BYTE_REQUEST = 14;
-  static final WRITE_BYTE_REQUEST = 15;
-  static final READ_LIST_REQUEST = 16;
-  static final WRITE_LIST_REQUEST = 17;
-  static final WRITE_STRING_REQUEST = 18;
+  static const EXISTS_REQUEST = 0;
+  static const CREATE_REQUEST = 1;
+  static const DELETE_REQUEST = 2;
+  static const OPEN_REQUEST = 3;
+  static const FULL_PATH_REQUEST = 4;
+  static const DIRECTORY_REQUEST = 5;
+  static const CLOSE_REQUEST = 6;
+  static const POSITION_REQUEST = 7;
+  static const SET_POSITION_REQUEST = 8;
+  static const TRUNCATE_REQUEST = 9;
+  static const LENGTH_REQUEST = 10;
+  static const LENGTH_FROM_NAME_REQUEST = 11;
+  static const LAST_MODIFIED_REQUEST = 12;
+  static const FLUSH_REQUEST = 13;
+  static const READ_BYTE_REQUEST = 14;
+  static const WRITE_BYTE_REQUEST = 15;
+  static const READ_LIST_REQUEST = 16;
+  static const WRITE_LIST_REQUEST = 17;
+  static const WRITE_STRING_REQUEST = 18;
 
-  static final SUCCESS_RESPONSE = 0;
-  static final ILLEGAL_ARGUMENT_RESPONSE = 1;
-  static final OSERROR_RESPONSE = 2;
-  static final FILE_CLOSED_RESPONSE = 3;
+  static const SUCCESS_RESPONSE = 0;
+  static const ILLEGAL_ARGUMENT_RESPONSE = 1;
+  static const OSERROR_RESPONSE = 2;
+  static const FILE_CLOSED_RESPONSE = 3;
 
-  static final ERROR_RESPONSE_ERROR_TYPE = 0;
-  static final OSERROR_RESPONSE_ERROR_CODE = 1;
-  static final OSERROR_RESPONSE_MESSAGE = 2;
+  static const ERROR_RESPONSE_ERROR_TYPE = 0;
+  static const OSERROR_RESPONSE_ERROR_CODE = 1;
+  static const OSERROR_RESPONSE_MESSAGE = 2;
 
   static List ensureFastAndSerializableBuffer(
       List buffer, int offset, int bytes) {

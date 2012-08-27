@@ -1937,7 +1937,7 @@ class _SocketConnection {
 
 
 class _HttpClient implements HttpClient {
-  static final int DEFAULT_EVICTION_TIMEOUT = 60000;
+  static const int DEFAULT_EVICTION_TIMEOUT = 60000;
 
   _HttpClient() : _openSockets = new Map(),
                   _activeSockets = new Set(),

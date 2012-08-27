@@ -101,9 +101,9 @@ interface InputStream {
  * String encodings.
  */
 class Encoding {
-  static final Encoding UTF_8 = const Encoding._internal("UTF-8");
-  static final Encoding ISO_8859_1 = const Encoding._internal("ISO-8859-1");
-  static final Encoding ASCII = const Encoding._internal("ASCII");
+  static const Encoding UTF_8 = const Encoding._internal("UTF-8");
+  static const Encoding ISO_8859_1 = const Encoding._internal("ISO-8859-1");
+  static const Encoding ASCII = const Encoding._internal("ASCII");
   const Encoding._internal(String this.name);
   final String name;
 }

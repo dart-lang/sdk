@@ -2565,7 +2565,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (has_initializer) {
       ConsumeToken();
       init_value = Object::sentinel();
-      // For static final fields, the initialization expression
+      // For static const fields, the initialization expression
       // will be parsed through the kConstImplicitGetter method
       // invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
@@ -2602,7 +2602,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
 
-    // For static final fields, set value to "uninitialized" and
+    // For static const fields, set value to "uninitialized" and
     // create a kConstImplicitGetter getter method.
     if (field->has_static && has_initializer) {
       class_field.set_value(init_value);
@@ -3633,8 +3633,13 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
                var_name.ToCString());
     }
 
-    field = Field::New(
-         var_name, is_static, is_final, is_const, current_class(), name_pos);
+    // TODO(hausner): const and final are equivalent at the moment.
+    field = Field::New(var_name,
+                       is_static,
+                       is_final || is_const,  // Const fields are also final.
+                       is_const || is_final,
+                       current_class(),
+                       name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(Instance::null()));
     top_level->fields.Add(field);

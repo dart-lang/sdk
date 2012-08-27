@@ -75,12 +75,12 @@ class _Random implements Random {
   }
 
   // Constants used by the algorithm or masking.
-  static final _MASK_32 = (1 << 32) - 1;
-  static final _MASK_64 = (1 << 64) - 1;
-  static final _POW2_32 = 1 << 32;
-  static final _POW2_53_D = 1.0 * (1 << 53);
+  static const _MASK_32 = (1 << 32) - 1;
+  static const _MASK_64 = (1 << 64) - 1;
+  static const _POW2_32 = 1 << 32;
+  static const _POW2_53_D = 1.0 * (1 << 53);
 
-  static final _A = 0xffffda61;
+  static const _A = 0xffffda61;
 
   // Use a singleton Random object to get a new seed if no seed was passed.
   static var _prng = null;

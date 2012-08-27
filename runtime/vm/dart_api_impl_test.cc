@@ -2544,8 +2544,8 @@ TEST_CASE(FieldAccess) {
       "  final _final_instance_fld;\n"
       "  static var static_fld;\n"
       "  static var _static_fld;\n"
-      "  static final final_static_fld = 'final static';\n"
-      "  static final _final_static_fld = 'hidden final static';\n"
+      "  static const const_static_fld = 'const static';\n"
+      "  static const _const_static_fld = 'hidden const static';\n"
       "\n"
       "  get instance_getset_fld() { return _gs_fld1; }\n"
       "  void set instance_getset_fld(var value) { _gs_fld1 = value; }\n"
@@ -2563,8 +2563,8 @@ TEST_CASE(FieldAccess) {
       "}\n"
       "var top_fld;\n"
       "var _top_fld;\n"
-      "final final_top_fld = 'final top';\n"
-      "final _final_top_fld = 'hidden final top';\n"
+      "const const_top_fld = 'const top';\n"
+      "const _const_top_fld = 'hidden const top';\n"
       "\n"
       "get top_getset_fld() { return _gs_fld5; }\n"
       "void set top_getset_fld(var value) { _gs_fld5 = value; }\n"
@@ -2669,16 +2669,16 @@ TEST_CASE(FieldAccess) {
   TestFieldOk(cls, name, false, "hidden static");
 
   // Static final field.
-  name = Dart_NewString("final_static_fld");
+  name = Dart_NewString("const_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, true, "final static");
+  TestFieldOk(cls, name, true, "const static");
 
-  // Hidden static final field.
-  name = Dart_NewString("_final_static_fld");
+  // Hidden static const field.
+  name = Dart_NewString("_const_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, true, "hidden final static");
+  TestFieldOk(cls, name, true, "hidden const static");
 
   // Static non-inherited field.  Not found at any level.
   name = Dart_NewString("non_inherited_fld");
@@ -2711,16 +2711,16 @@ TEST_CASE(FieldAccess) {
   TestFieldOk(lib, name, false, "hidden top");
 
   // Top-Level final field.
-  name = Dart_NewString("final_top_fld");
+  name = Dart_NewString("const_top_fld");
   TestFieldNotFound(cls, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(lib, name, true, "final top");
+  TestFieldOk(lib, name, true, "const top");
 
   // Hidden top-level final field.
-  name = Dart_NewString("_final_top_fld");
+  name = Dart_NewString("_const_top_fld");
   TestFieldNotFound(cls, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(lib, name, true, "hidden final top");
+  TestFieldOk(lib, name, true, "hidden const top");
 
   // Top-Level get/set field.
   name = Dart_NewString("top_getset_fld");
@@ -2813,7 +2813,7 @@ TEST_CASE(InjectNativeFields1) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -2862,7 +2862,7 @@ TEST_CASE(InjectNativeFields2) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -2890,7 +2890,7 @@ TEST_CASE(InjectNativeFields3) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -2931,7 +2931,7 @@ TEST_CASE(InjectNativeFields4) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3043,7 +3043,7 @@ TEST_CASE(NativeFieldAccess) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3094,7 +3094,7 @@ TEST_CASE(ImplicitNativeFieldAccess) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3120,7 +3120,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain1() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3187,7 +3187,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
 TEST_CASE(GetStaticField_RunsInitializer) {
   const char* kScriptChars =
       "class TestClass  {\n"
-      "  static final int fld1 = 7;\n"
+      "  static const int fld1 = 7;\n"
       "  static int fld2 = 11;\n"
       "  static void testMain() {\n"
       "  }\n"
@@ -3904,7 +3904,7 @@ TEST_CASE(InvokeClosure) {
       "  }\n"
       "  int fld1;\n"
       "  final int fld2;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "Function testMain1() {\n"
       "  InvokeClosure obj = new InvokeClosure(10, 20);\n"
@@ -4541,8 +4541,8 @@ TEST_CASE(VariableReflection) {
       "  final _d = '_d';\n"
       "  static var e = 'e';\n"
       "  static var _f = '_f';\n"
-      "  static final g = 'g';\n"
-      "  static final _h = '_h';\n"
+      "  static const g = 'g';\n"
+      "  static const _h = '_h';\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -4565,14 +4565,14 @@ TEST_CASE(VariableReflection) {
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("_b static", buffer.buf());
 
-  // Lookup a final top-level variable.
+  // Lookup a const top-level variable.
   var = Dart_LookupVariable(lib, Dart_NewString("c"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("c static final", buffer.buf());
 
-  // Lookup a private final top-level variable.
+  // Lookup a private const top-level variable.
   var = Dart_LookupVariable(lib, Dart_NewString("_d"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
@@ -4621,14 +4621,14 @@ TEST_CASE(VariableReflection) {
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("_f static", buffer.buf());
 
-  // Lookup a final static variable.
+  // Lookup a const static variable.
   var = Dart_LookupVariable(cls, Dart_NewString("g"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("g static final", buffer.buf());
 
-  // Lookup a private final static variable.
+  // Lookup a private const static variable.
   var = Dart_LookupVariable(cls, Dart_NewString("_h"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));

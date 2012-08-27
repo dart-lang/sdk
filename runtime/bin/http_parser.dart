@@ -5,22 +5,22 @@
 // Global constants.
 class _Const {
   // Bytes for "HTTP".
-  static final HTTP = const [72, 84, 84, 80];
+  static const HTTP = const [72, 84, 84, 80];
   // Bytes for "HTTP/1.".
-  static final HTTP1DOT = const [72, 84, 84, 80, 47, 49, 46];
+  static const HTTP1DOT = const [72, 84, 84, 80, 47, 49, 46];
   // Bytes for "HTTP/1.0".
-  static final HTTP10 = const [72, 84, 84, 80, 47, 49, 46, 48];
+  static const HTTP10 = const [72, 84, 84, 80, 47, 49, 46, 48];
   // Bytes for "HTTP/1.1".
-  static final HTTP11 = const [72, 84, 84, 80, 47, 49, 46, 49];
+  static const HTTP11 = const [72, 84, 84, 80, 47, 49, 46, 49];
 
-  static final END_CHUNKED = const [0x30, 13, 10, 13, 10];
+  static const END_CHUNKED = const [0x30, 13, 10, 13, 10];
 
   // Bytes for '()<>@,;:\\"/[]?={} \t'.
-  static final SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
+  static const SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
                                    91, 93, 63, 61, 123, 125, 32, 9];
 
   // Bytes for '()<>@,;:\\"/[]?={} \t\r\n'.
-  static final SEPARATORS_AND_CR_LF = const [40, 41, 60, 62, 64, 44, 59, 58, 92,
+  static const SEPARATORS_AND_CR_LF = const [40, 41, 60, 62, 64, 44, 59, 58, 92,
                                              34, 47, 91, 93, 63, 61, 123, 125,
                                              32, 9, 13, 10];
 }
@@ -28,67 +28,67 @@ class _Const {
 
 // Frequently used character codes.
 class _CharCode {
-  static final int HT = 9;
-  static final int LF = 10;
-  static final int CR = 13;
-  static final int SP = 32;
-  static final int COMMA = 44;
-  static final int DASH = 45;
-  static final int SLASH = 47;
-  static final int ZERO = 48;
-  static final int ONE = 49;
-  static final int COLON = 58;
-  static final int SEMI_COLON = 59;
+  static const int HT = 9;
+  static const int LF = 10;
+  static const int CR = 13;
+  static const int SP = 32;
+  static const int COMMA = 44;
+  static const int DASH = 45;
+  static const int SLASH = 47;
+  static const int ZERO = 48;
+  static const int ONE = 49;
+  static const int COLON = 58;
+  static const int SEMI_COLON = 59;
 }
 
 
 // States of the HTTP parser state machine.
 class _State {
-  static final int START = 0;
-  static final int METHOD_OR_RESPONSE_HTTP_VERSION = 1;
-  static final int RESPONSE_HTTP_VERSION = 2;
-  static final int REQUEST_LINE_METHOD = 3;
-  static final int REQUEST_LINE_URI = 4;
-  static final int REQUEST_LINE_HTTP_VERSION = 5;
-  static final int REQUEST_LINE_ENDING = 6;
-  static final int RESPONSE_LINE_STATUS_CODE = 7;
-  static final int RESPONSE_LINE_REASON_PHRASE = 8;
-  static final int RESPONSE_LINE_ENDING = 9;
-  static final int HEADER_START = 10;
-  static final int HEADER_FIELD = 11;
-  static final int HEADER_VALUE_START = 12;
-  static final int HEADER_VALUE = 13;
-  static final int HEADER_VALUE_FOLDING_OR_ENDING = 14;
-  static final int HEADER_VALUE_FOLD_OR_END = 15;
-  static final int HEADER_ENDING = 16;
+  static const int START = 0;
+  static const int METHOD_OR_RESPONSE_HTTP_VERSION = 1;
+  static const int RESPONSE_HTTP_VERSION = 2;
+  static const int REQUEST_LINE_METHOD = 3;
+  static const int REQUEST_LINE_URI = 4;
+  static const int REQUEST_LINE_HTTP_VERSION = 5;
+  static const int REQUEST_LINE_ENDING = 6;
+  static const int RESPONSE_LINE_STATUS_CODE = 7;
+  static const int RESPONSE_LINE_REASON_PHRASE = 8;
+  static const int RESPONSE_LINE_ENDING = 9;
+  static const int HEADER_START = 10;
+  static const int HEADER_FIELD = 11;
+  static const int HEADER_VALUE_START = 12;
+  static const int HEADER_VALUE = 13;
+  static const int HEADER_VALUE_FOLDING_OR_ENDING = 14;
+  static const int HEADER_VALUE_FOLD_OR_END = 15;
+  static const int HEADER_ENDING = 16;
 
-  static final int CHUNK_SIZE_STARTING_CR = 17;
-  static final int CHUNK_SIZE_STARTING_LF = 18;
-  static final int CHUNK_SIZE = 19;
-  static final int CHUNK_SIZE_EXTENSION = 20;
-  static final int CHUNK_SIZE_ENDING = 21;
-  static final int CHUNKED_BODY_DONE_CR = 22;
-  static final int CHUNKED_BODY_DONE_LF = 23;
-  static final int BODY = 24;
-  static final int CLOSED = 25;
-  static final int UPGRADED = 26;
-  static final int FAILURE = 27;
+  static const int CHUNK_SIZE_STARTING_CR = 17;
+  static const int CHUNK_SIZE_STARTING_LF = 18;
+  static const int CHUNK_SIZE = 19;
+  static const int CHUNK_SIZE_EXTENSION = 20;
+  static const int CHUNK_SIZE_ENDING = 21;
+  static const int CHUNKED_BODY_DONE_CR = 22;
+  static const int CHUNKED_BODY_DONE_LF = 23;
+  static const int BODY = 24;
+  static const int CLOSED = 25;
+  static const int UPGRADED = 26;
+  static const int FAILURE = 27;
 
-  static final int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
+  static const int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
 }
 
 // HTTP version of the request or response being parsed.
 class _HttpVersion {
-  static final int UNDETERMINED = 0;
-  static final int HTTP10 = 1;
-  static final int HTTP11 = 2;
+  static const int UNDETERMINED = 0;
+  static const int HTTP10 = 1;
+  static const int HTTP11 = 2;
 }
 
 // States of the HTTP parser state machine.
 class _MessageType {
-  static final int UNDETERMINED = 0;
-  static final int REQUEST = 1;
-  static final int RESPONSE = 0;
+  static const int UNDETERMINED = 0;
+  static const int REQUEST = 1;
+  static const int RESPONSE = 0;
 }
 
 

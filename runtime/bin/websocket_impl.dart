@@ -2,32 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 class _WebSocketMessageType {
-  static final int NONE = 0;
-  static final int BINARY = 1;
-  static final int TEXT = 2;
+  static const int NONE = 0;
+  static const int BINARY = 1;
+  static const int TEXT = 2;
 }
 
 
 class _WebSocketOpcode {
-  static final int CONTINUATION = 0;
-  static final int TEXT = 1;
-  static final int BINARY = 2;
-  static final int RESERVED_3 = 3;
-  static final int RESERVED_4 = 4;
-  static final int RESERVED_5 = 5;
-  static final int RESERVED_6 = 6;
-  static final int RESERVED_7 = 7;
-  static final int CLOSE = 8;
-  static final int PING = 9;
-  static final int PONG = 10;
-  static final int RESERVED_B = 11;
-  static final int RESERVED_C = 12;
-  static final int RESERVED_D = 13;
-  static final int RESERVED_E = 14;
-  static final int RESERVED_F = 15;
+  static const int CONTINUATION = 0;
+  static const int TEXT = 1;
+  static const int BINARY = 2;
+  static const int RESERVED_3 = 3;
+  static const int RESERVED_4 = 4;
+  static const int RESERVED_5 = 5;
+  static const int RESERVED_6 = 6;
+  static const int RESERVED_7 = 7;
+  static const int CLOSE = 8;
+  static const int PING = 9;
+  static const int PONG = 10;
+  static const int RESERVED_B = 11;
+  static const int RESERVED_C = 12;
+  static const int RESERVED_D = 13;
+  static const int RESERVED_E = 14;
+  static const int RESERVED_F = 15;
 }
 
 /**
@@ -44,13 +44,13 @@ class _WebSocketOpcode {
  *
  */
 class _WebSocketProtocolProcessor {
-  static final int START = 0;
-  static final int LEN_FIRST = 1;
-  static final int LEN_REST = 2;
-  static final int MASK = 3;
-  static final int PAYLOAD = 4;
-  static final int CLOSED = 5;
-  static final int FAILURE = 6;
+  static const int START = 0;
+  static const int LEN_FIRST = 1;
+  static const int LEN_REST = 2;
+  static const int MASK = 3;
+  static const int PAYLOAD = 4;
+  static const int CLOSED = 5;
+  static const int FAILURE = 6;
 
   _WebSocketProtocolProcessor() {
     _prepareForNextFrame();

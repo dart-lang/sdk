@@ -55,7 +55,7 @@ class _JSRegExpMatch implements Match {
   final RegExp regexp;
   final String str;
   final List<int> _match;
-  static final int MATCH_PAIR = 2;
+  static const int MATCH_PAIR = 2;
 }
 
 

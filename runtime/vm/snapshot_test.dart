@@ -9,7 +9,7 @@ class Fields  {
   int fld1;
   final int fld2;
   static int fld3;
-  static final int fld4 = 10;
+  static const int fld4 = 10;
   bool fld5;
 }
 class FieldsTest {
@@ -388,7 +388,7 @@ class SumBenchmark extends BenchmarkBase {
 
 // H e l p e r   f u n c t i o n s   f o r   s o r t s
 class Random {
-  static final int INITIAL_SEED = 74755;
+  static const int INITIAL_SEED = 74755;
   int seed;
   Random() : seed = INITIAL_SEED {}
 
@@ -1058,12 +1058,12 @@ class ComparingBenchmark {
 
 class Benchmark1 {
 
-  static final MESSAGES = 10000;
-  static final INIT_MESSAGE = 0;
-  static final TERMINATION_MESSAGE = -1;
-  static final WARMUP_TIME = 1000;
-  static final RUN_TIME = 1000;
-  static final RUNS = 5;
+  static const MESSAGES = 10000;
+  static const INIT_MESSAGE = 0;
+  static const TERMINATION_MESSAGE = -1;
+  static const WARMUP_TIME = 1000;
+  static const RUN_TIME = 1000;
+  static const RUNS = 5;
 
 
   static int run() {
@@ -1231,17 +1231,17 @@ isolate_negative_test_main() {
 // ---------------------------------------------------------------------------
 
 class MessageTest {
-  static final List list1 = const ["Hello", "World", "Hello", 0xfffffffffff];
-  static final List list2 = const [null, list1, list1, list1, list1];
-  static final List list3 = const [list2, 2.0, true, false, 0xfffffffffff];
-  static final Map map1 = const {
+  static const List list1 = const ["Hello", "World", "Hello", 0xfffffffffff];
+  static const List list2 = const [null, list1, list1, list1, list1];
+  static const List list3 = const [list2, 2.0, true, false, 0xfffffffffff];
+  static const Map map1 = const {
     "a=1" : 1, "b=2" : 2, "c=3" : 3,
   };
-  static final Map map2 = const {
+  static const Map map2 = const {
     "list1" : list1, "list2" : list2, "list3" : list3,
   };
-  static final List list4 = const [map1, map2];
-  static final List elms = const [
+  static const List list4 = const [map1, map2];
+  static const List elms = const [
       list1, list2, list3, list4,
   ];
 
@@ -1422,9 +1422,9 @@ void count_main() {
 // tests/isolate/mandel_isolate_test.dart
 // ---------------------------------------------------------------------------
 
-final TERMINATION_MESSAGE = -1;
-final N = 100;
-final ISOLATES = 20;
+const TERMINATION_MESSAGE = -1;
+const N = 100;
+const ISOLATES = 20;
 
 mandel_main() {
   test("Render Mandelbrot in parallel", () {

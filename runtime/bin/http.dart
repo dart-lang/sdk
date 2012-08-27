@@ -6,49 +6,49 @@
  * HTTP status codes.
  */
 interface HttpStatus {
-  static final int CONTINUE = 100;
-  static final int SWITCHING_PROTOCOLS = 101;
-  static final int OK = 200;
-  static final int CREATED = 201;
-  static final int ACCEPTED = 202;
-  static final int NON_AUTHORITATIVE_INFORMATION = 203;
-  static final int NO_CONTENT = 204;
-  static final int RESET_CONTENT = 205;
-  static final int PARTIAL_CONTENT = 206;
-  static final int MULTIPLE_CHOICES = 300;
-  static final int MOVED_PERMANENTLY = 301;
-  static final int FOUND = 302;
-  static final int MOVED_TEMPORARILY = 302; // Common alias for FOUND.
-  static final int SEE_OTHER = 303;
-  static final int NOT_MODIFIED = 304;
-  static final int USE_PROXY = 305;
-  static final int TEMPORARY_REDIRECT = 307;
-  static final int BAD_REQUEST = 400;
-  static final int UNAUTHORIZED = 401;
-  static final int PAYMENT_REQUIRED = 402;
-  static final int FORBIDDEN = 403;
-  static final int NOT_FOUND = 404;
-  static final int METHOD_NOT_ALLOWED = 405;
-  static final int NOT_ACCEPTABLE = 406;
-  static final int PROXY_AUTHENTICATION_REQUIRED = 407;
-  static final int REQUEST_TIMEOUT = 408;
-  static final int CONFLICT = 409;
-  static final int GONE = 410;
-  static final int LENGTH_REQUIRED = 411;
-  static final int PRECONDITION_FAILED = 412;
-  static final int REQUEST_ENTITY_TOO_LARGE = 413;
-  static final int REQUEST_URI_TOO_LONG = 414;
-  static final int UNSUPPORTED_MEDIA_TYPE = 415;
-  static final int REQUESTED_RANGE_NOT_SATISFIABLE = 416;
-  static final int EXPECTATION_FAILED = 417;
-  static final int INTERNAL_SERVER_ERROR = 500;
-  static final int NOT_IMPLEMENTED = 501;
-  static final int BAD_GATEWAY = 502;
-  static final int SERVICE_UNAVAILABLE = 503;
-  static final int GATEWAY_TIMEOUT = 504;
-  static final int HTTP_VERSION_NOT_SUPPORTED = 505;
+  static const int CONTINUE = 100;
+  static const int SWITCHING_PROTOCOLS = 101;
+  static const int OK = 200;
+  static const int CREATED = 201;
+  static const int ACCEPTED = 202;
+  static const int NON_AUTHORITATIVE_INFORMATION = 203;
+  static const int NO_CONTENT = 204;
+  static const int RESET_CONTENT = 205;
+  static const int PARTIAL_CONTENT = 206;
+  static const int MULTIPLE_CHOICES = 300;
+  static const int MOVED_PERMANENTLY = 301;
+  static const int FOUND = 302;
+  static const int MOVED_TEMPORARILY = 302; // Common alias for FOUND.
+  static const int SEE_OTHER = 303;
+  static const int NOT_MODIFIED = 304;
+  static const int USE_PROXY = 305;
+  static const int TEMPORARY_REDIRECT = 307;
+  static const int BAD_REQUEST = 400;
+  static const int UNAUTHORIZED = 401;
+  static const int PAYMENT_REQUIRED = 402;
+  static const int FORBIDDEN = 403;
+  static const int NOT_FOUND = 404;
+  static const int METHOD_NOT_ALLOWED = 405;
+  static const int NOT_ACCEPTABLE = 406;
+  static const int PROXY_AUTHENTICATION_REQUIRED = 407;
+  static const int REQUEST_TIMEOUT = 408;
+  static const int CONFLICT = 409;
+  static const int GONE = 410;
+  static const int LENGTH_REQUIRED = 411;
+  static const int PRECONDITION_FAILED = 412;
+  static const int REQUEST_ENTITY_TOO_LARGE = 413;
+  static const int REQUEST_URI_TOO_LONG = 414;
+  static const int UNSUPPORTED_MEDIA_TYPE = 415;
+  static const int REQUESTED_RANGE_NOT_SATISFIABLE = 416;
+  static const int EXPECTATION_FAILED = 417;
+  static const int INTERNAL_SERVER_ERROR = 500;
+  static const int NOT_IMPLEMENTED = 501;
+  static const int BAD_GATEWAY = 502;
+  static const int SERVICE_UNAVAILABLE = 503;
+  static const int GATEWAY_TIMEOUT = 504;
+  static const int HTTP_VERSION_NOT_SUPPORTED = 505;
   // Client generated status code.
-  static final int NETWORK_CONNECT_TIMEOUT_ERROR = 599;
+  static const int NETWORK_CONNECT_TIMEOUT_ERROR = 599;
 }
 
 
@@ -123,55 +123,55 @@ interface HttpServer default _HttpServer {
  * case-insensitive.
  */
 interface HttpHeaders default _HttpHeaders {
-  static final ACCEPT = "Accept";
-  static final ACCEPT_CHARSET = "Accept-Charset";
-  static final ACCEPT_ENCODING = "Accept-Encoding";
-  static final ACCEPT_LANGUAGE = "Accept-Language";
-  static final ACCEPT_RANGES = "Accept-Ranges";
-  static final AGE = "Age";
-  static final ALLOW = "Allow";
-  static final AUTHORIZATION = "Authorization";
-  static final CACHE_CONTROL = "Cache-Control";
-  static final CONNECTION = "Connection";
-  static final CONTENT_ENCODING = "Content-Encoding";
-  static final CONTENT_LANGUAGE = "Content-Language";
-  static final CONTENT_LENGTH = "Content-Length";
-  static final CONTENT_LOCATION = "Content-Location";
-  static final CONTENT_MD5 = "Content-MD5";
-  static final CONTENT_RANGE = "Content-Range";
-  static final CONTENT_TYPE = "Content-Type";
-  static final DATE = "Date";
-  static final ETAG = "ETag";
-  static final EXPECT = "Expect";
-  static final EXPIRES = "Expires";
-  static final FROM = "From";
-  static final HOST = "Host";
-  static final IF_MATCH = "If-Match";
-  static final IF_MODIFIED_SINCE = "If-Modified-Since";
-  static final IF_NONE_MATCH = "If-None-Match";
-  static final IF_RANGE = "If-Range";
-  static final IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
-  static final LAST_MODIFIED = "Last-Modified";
-  static final LOCATION = "Location";
-  static final MAX_FORWARDS = "Max-Forwards";
-  static final PRAGMA = "Pragma";
-  static final PROXY_AUTHENTICATE = "Proxy-Authenticate";
-  static final PROXY_AUTHORIZATION = "Proxy-Authorization";
-  static final RANGE = "Range";
-  static final REFERER = "Referer";
-  static final RETRY_AFTER = "Retry-After";
-  static final SERVER = "Server";
-  static final TE = "TE";
-  static final TRAILER = "Trailer";
-  static final TRANSFER_ENCODING = "Transfer-Encoding";
-  static final UPGRADE = "Upgrade";
-  static final USER_AGENT = "User-Agent";
-  static final VARY = "Vary";
-  static final VIA = "Via";
-  static final WARNING = "Warning";
-  static final WWW_AUTHENTICATE = "WWW-Authenticate";
+  static const ACCEPT = "Accept";
+  static const ACCEPT_CHARSET = "Accept-Charset";
+  static const ACCEPT_ENCODING = "Accept-Encoding";
+  static const ACCEPT_LANGUAGE = "Accept-Language";
+  static const ACCEPT_RANGES = "Accept-Ranges";
+  static const AGE = "Age";
+  static const ALLOW = "Allow";
+  static const AUTHORIZATION = "Authorization";
+  static const CACHE_CONTROL = "Cache-Control";
+  static const CONNECTION = "Connection";
+  static const CONTENT_ENCODING = "Content-Encoding";
+  static const CONTENT_LANGUAGE = "Content-Language";
+  static const CONTENT_LENGTH = "Content-Length";
+  static const CONTENT_LOCATION = "Content-Location";
+  static const CONTENT_MD5 = "Content-MD5";
+  static const CONTENT_RANGE = "Content-Range";
+  static const CONTENT_TYPE = "Content-Type";
+  static const DATE = "Date";
+  static const ETAG = "ETag";
+  static const EXPECT = "Expect";
+  static const EXPIRES = "Expires";
+  static const FROM = "From";
+  static const HOST = "Host";
+  static const IF_MATCH = "If-Match";
+  static const IF_MODIFIED_SINCE = "If-Modified-Since";
+  static const IF_NONE_MATCH = "If-None-Match";
+  static const IF_RANGE = "If-Range";
+  static const IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
+  static const LAST_MODIFIED = "Last-Modified";
+  static const LOCATION = "Location";
+  static const MAX_FORWARDS = "Max-Forwards";
+  static const PRAGMA = "Pragma";
+  static const PROXY_AUTHENTICATE = "Proxy-Authenticate";
+  static const PROXY_AUTHORIZATION = "Proxy-Authorization";
+  static const RANGE = "Range";
+  static const REFERER = "Referer";
+  static const RETRY_AFTER = "Retry-After";
+  static const SERVER = "Server";
+  static const TE = "TE";
+  static const TRAILER = "Trailer";
+  static const TRANSFER_ENCODING = "Transfer-Encoding";
+  static const UPGRADE = "Upgrade";
+  static const USER_AGENT = "User-Agent";
+  static const VARY = "Vary";
+  static const VIA = "Via";
+  static const WARNING = "Warning";
+  static const WWW_AUTHENTICATE = "WWW-Authenticate";
 
-  static final GENERAL_HEADERS = const [CACHE_CONTROL,
+  static const GENERAL_HEADERS = const [CACHE_CONTROL,
                                         CONNECTION,
                                         DATE,
                                         PRAGMA,
@@ -181,7 +181,7 @@ interface HttpHeaders default _HttpHeaders {
                                         VIA,
                                         WARNING];
 
-  static final ENTITY_HEADERS = const [ALLOW,
+  static const ENTITY_HEADERS = const [ALLOW,
                                        CONTENT-ENCODING,
                                        CONTENT-LANGUAGE,
                                        CONTENT-LENGTH,
@@ -193,7 +193,7 @@ interface HttpHeaders default _HttpHeaders {
                                        LAST-MODIFIED];
 
 
-  static final RESPONSE_HEADERS = const [ACCEPT-RANGES,
+  static const RESPONSE_HEADERS = const [ACCEPT-RANGES,
                                          AGE,
                                          ETAG,
                                          LOCATION,
@@ -203,7 +203,7 @@ interface HttpHeaders default _HttpHeaders {
                                          VARY,
                                          WWW-AUTHENTICATE];
 
-  static final REQUEST_HEADERS = const [ACCEPT,
+  static const REQUEST_HEADERS = const [ACCEPT,
                                         ACCEPT-CHARSET,
                                         ACCEPT-ENCODING,
                                         ACCEPT-LANGUAGE,
@@ -650,7 +650,7 @@ interface HttpResponse default _HttpResponse {
  * to force close the idle sockets.
  */
 interface HttpClient default _HttpClient {
-  static final int DEFAULT_HTTP_PORT = 80;
+  static const int DEFAULT_HTTP_PORT = 80;
 
   HttpClient();
 

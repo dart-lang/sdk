@@ -205,10 +205,10 @@ interface WebSocket default _WebSocket {
   /**
    * Possible states of the connection.
    */
-  static final int CONNECTING = 0;
-  static final int OPEN = 1;
-  static final int CLOSING = 2;
-  static final int CLOSED = 3;
+  static const int CONNECTING = 0;
+  static const int OPEN = 1;
+  static const int CLOSING = 2;
+  static const int CLOSED = 3;
 
   /**
    * Create a new web socket connection. The URL supplied in [url]
