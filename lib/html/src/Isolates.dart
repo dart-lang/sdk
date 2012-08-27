@@ -78,6 +78,11 @@ class _JsSerializer extends _Serializer {
  }
 
   visitFunction(Function func) {
+    // Look for a cached serialization first.  The cached version
+    // should point to the original port.
+    var serialized = _deserializedFunctionTable.find(func);
+    if (serialized != null) return serialized;
+    // Create a new serialization forwarding to this port.
     return [ 'funcref',
              _functionRegistry._add(func),
              visitSendPortSync(_functionRegistry._sendPort), null ];
@@ -174,6 +179,34 @@ _deserialize(var message) {
   return new _JsDeserializer().deserialize(message);
 }
 
+// TODO(vsm): Replace this with a hash map once functions are
+// hashable.
+class _DeserializedFunctionTable {
+  List data;
+  _DeserializedFunctionTable() {
+    data = [];
+  }
+
+  find(Function f) {
+    for (var item in data) {
+      if (f == item[0]) return item[1];
+    }
+    return null;
+  }
+
+  add(Function f, x) {
+    data.add([f, x]);
+  }
+}
+
+_DeserializedFunctionTable __deserializedFunctionTable = null;
+get _deserializedFunctionTable {
+  if (__deserializedFunctionTable == null) {
+    __deserializedFunctionTable = new _DeserializedFunctionTable();
+  }
+  return __deserializedFunctionTable;
+}
+
 class _JsDeserializer extends _Deserializer {
 
   static const _UNSPECIFIED = const Object();
@@ -205,9 +238,15 @@ class _JsDeserializer extends _Deserializer {
 
   deserializeFunction(List x) {
     var id = x[1];
+    // If the sendPort is local, just return the underlying function.
+    // Otherwise, create a new function that forwards to the remote
+    // port.
     SendPortSync port = deserializeSendPort(x[2]);
+    if (port is _LocalSendPortSync) {
+      return _functionRegistry._get(id);
+    }
     // TODO: Support varargs when there is support in the language.
-    return ([arg0 = _UNSPECIFIED, arg1 = _UNSPECIFIED,
+    var f = ([arg0 = _UNSPECIFIED, arg1 = _UNSPECIFIED,
               arg2 = _UNSPECIFIED, arg3 = _UNSPECIFIED]) {
       var args = [arg0, arg1, arg2, arg3];
       var last = args.indexOf(_UNSPECIFIED);
@@ -215,6 +254,8 @@ class _JsDeserializer extends _Deserializer {
       var message = [id, args];
       return port.callSync(message);
     };
+    _deserializedFunctionTable.add(f, x);
+    return f;
   }
 
   deserializeProxy(x) {
