@@ -87,7 +87,7 @@ public class Types {
             break;
           }
         }
-        if (inAll) {
+        if (inAll && !interTypes.contains(superType)) {
           interTypes.add(superType);
         }
       }
