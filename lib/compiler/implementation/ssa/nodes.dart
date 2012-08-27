@@ -162,6 +162,7 @@ class HGraph {
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
+    if (constant.isFunction()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
     return new HBoundedType.exact(objectConstant.type);
   }

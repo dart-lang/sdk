@@ -1683,8 +1683,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         CodeBuffer buffer = new CodeBuffer();
         handler.writeConstant(buffer, constant);
         push(new js.LiteralString(buffer.toString()));
+      } else if (constant.isFunction()) {
+        FunctionConstant function = constant;
+        world.registerStaticUse(function.element);
+        push(new js.VariableUse(
+            compiler.namer.isolateAccess(function.element)));
       } else {
-        compiler.internalError("Forgot constant $constant");
+        compiler.internalError(
+            "The compiler does not know how generate code for "
+            "constant $constant");
       }
     } else {
       js.VariableUse currentIsolateUse =
