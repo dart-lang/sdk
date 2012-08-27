@@ -3336,7 +3336,7 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
-  Environment* Copy() const;
+  void CopyTo(Instruction* instr) const;
 
   void PrintTo(BufferFormatter* f) const;
 

@@ -1542,14 +1542,22 @@ Environment::Environment(const GrowableArray<Definition*>& definitions,
 }
 
 
-Environment* Environment::Copy() const {
+// Copies the environment and updates the environment use lists.
+void Environment::CopyTo(Instruction* instr) const {
   Environment* copy = new Environment(values().length(),
                                       fixed_parameter_count());
   GrowableArray<Value*>* values_copy = copy->values_ptr();
   for (intptr_t i = 0; i < values().length(); ++i) {
-    values_copy->Add(values()[i]->CopyValue());
+    Value* value = values()[i]->CopyValue();
+    values_copy->Add(value);
+    UseVal* use = value->AsUse();
+    if (use != NULL) {
+      use->set_instruction(instr);
+      use->set_use_index(i);
+      use->AddToEnvUseList();
+    }
   }
-  return copy;
+  instr->set_env(copy);
 }
 
 

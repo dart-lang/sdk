@@ -252,7 +252,7 @@ BindInstr* FlowGraphOptimizer::InsertBefore(Instruction* instr,
                                             Environment* env,
                                             BindInstr::UseKind use_kind) {
   BindInstr* bind = new BindInstr(use_kind, comp);
-  if (env != NULL) bind->set_env(env->Copy());
+  if (env != NULL) env->CopyTo(bind);
   if (use_kind == BindInstr::kUsed) {
     bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
@@ -266,7 +266,7 @@ BindInstr* FlowGraphOptimizer::InsertAfter(Instruction* instr,
                                            Environment* env,
                                            BindInstr::UseKind use_kind) {
   BindInstr* bind = new BindInstr(use_kind, comp);
-  if (env != NULL) bind->set_env(env->Copy());
+  if (env != NULL) env->CopyTo(bind);
   if (use_kind == BindInstr::kUsed) {
     bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
