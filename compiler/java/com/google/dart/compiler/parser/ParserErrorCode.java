@@ -109,6 +109,7 @@ public enum ParserErrorCode implements ErrorCode {
   NO_SOUP_FOR_YOU("Too many errors"),
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
+  ONLY_FACTORIES_CAN_REDIRECT("Only factory constructors can redirect to another constructor"),
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),

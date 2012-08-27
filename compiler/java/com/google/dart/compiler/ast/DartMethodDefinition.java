@@ -30,6 +30,19 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
     }
   }
 
+  public static DartMethodDefinition create(DartExpression name,
+                                            DartFunction function,
+                                            Modifiers modifiers,
+                                            DartTypeNode redirectedTypeName,
+                                            DartIdentifier redirectedConstructorName) {
+    if (redirectedTypeName == null) {
+      return new DartMethodDefinition(name, function, modifiers);
+    } else {
+      return new DartMethodWithRedirectionDefinition(name, function, modifiers, redirectedTypeName,
+                                                     redirectedConstructorName);
+    }
+  }
+
   private DartMethodDefinition(DartExpression name, DartFunction function, Modifiers modifiers) {
     super(name, modifiers);
     this.function = becomeParentOf(function);
@@ -51,6 +64,14 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
 
   public List<DartInitializer> getInitializers() {
     return Collections.emptyList();
+  }
+
+  public DartTypeNode getRedirectedTypeName() {
+    return null;
+  }
+
+  public DartIdentifier getRedirectedConstructorName() {
+    return null;
   }
 
   @Override
@@ -85,6 +106,37 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
     public void visitChildren(ASTVisitor<?> visitor) {
       super.visitChildren(visitor);
       initializers.accept(visitor);
+    }
+  }
+
+  private static class DartMethodWithRedirectionDefinition extends DartMethodDefinition {
+    private DartTypeNode redirectedTypeName;
+    private DartIdentifier redirectedConstructorName;
+
+    DartMethodWithRedirectionDefinition(DartExpression name,
+                                         DartFunction function,
+                                         Modifiers modifiers,
+                                         DartTypeNode redirectedTypeName,
+                                         DartIdentifier redirectedConstructorName) {
+      super(name, function, modifiers);
+      this.redirectedTypeName = becomeParentOf(redirectedTypeName);
+    }
+
+    @Override
+    public DartTypeNode getRedirectedTypeName() {
+      return redirectedTypeName;
+    }
+
+    @Override
+    public DartIdentifier getRedirectedConstructorName() {
+      return redirectedConstructorName;
+    }
+
+    @Override
+    public void visitChildren(ASTVisitor<?> visitor) {
+      super.visitChildren(visitor);
+      safelyVisitChild(redirectedTypeName, visitor);
+      safelyVisitChild(redirectedConstructorName, visitor);
     }
   }
 }

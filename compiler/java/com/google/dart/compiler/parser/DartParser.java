@@ -1457,6 +1457,25 @@ public class DartParser extends CompletionHooksParserBase {
     }
     done(name);
     List<DartParameter> formals = parseFormalParameterList();
+
+    // Parse redirecting factory
+    if (match(Token.ASSIGN)) {
+      next();
+      if (!modifiers.isFactory()) {
+        reportError(position(), ParserErrorCode.ONLY_FACTORIES_CAN_REDIRECT);
+      }
+      modifiers = modifiers.makeRedirectedConstructor();
+      DartTypeNode redirectedTypeName = parseTypeAnnotation();
+      DartIdentifier redirectedConstructorName = null;
+      if (optional(Token.PERIOD)) {
+        redirectedConstructorName = parseIdentifier();
+      }
+      expect(Token.SEMICOLON);
+      DartFunction function = doneWithoutConsuming(new DartFunction(formals, null, null));
+      return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
+                                         redirectedConstructorName);
+    }
+
     DartFunction function;
     if (peekPseudoKeyword(0, NATIVE_KEYWORD)) {
       modifiers = modifiers.makeNative();
@@ -1619,6 +1638,25 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
       }
+    }
+
+    // Parse redirecting factory
+    DartTypeNode redirectedTypeName = null;
+    DartIdentifier redirectedConstructorName = null;
+    if (match(Token.ASSIGN)) {
+      next();
+      if (!modifiers.isFactory()) {
+        reportError(position(), ParserErrorCode.ONLY_FACTORIES_CAN_REDIRECT);
+      }
+      modifiers = modifiers.makeRedirectedConstructor();
+      redirectedTypeName = parseTypeAnnotation();
+      if (optional(Token.PERIOD)) {
+        redirectedConstructorName = parseIdentifier();
+      }
+      expect(Token.SEMICOLON);
+      DartFunction function = doneWithoutConsuming(new DartFunction(parameters, null, returnType));
+      return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
+                                         redirectedConstructorName);
     }
 
     // Parse initializer expressions for constructors.

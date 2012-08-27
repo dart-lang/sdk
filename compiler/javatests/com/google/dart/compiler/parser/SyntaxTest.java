@@ -7,6 +7,7 @@ package com.google.dart.compiler.parser;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
@@ -19,7 +20,6 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
-import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -59,6 +59,20 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("test.dart", Joiner.on('\n').join(
         "main() {",
         "  try { {'1' : 1, '2' : 2}['1']++; } catch(var e) {}",
+        "}"));
+  }
+
+  public void test_redirectingFactoryConstructor_const() {
+    parseUnit("redirecting.dart", Joiner.on("\n").join(
+        "class B {",
+        "  const factory B.n(int x) = A.m;",
+        "}"));
+  }
+
+  public void test_redirectingFactoryConstructor_nonConst() {
+    parseUnit("redirecting.dart", Joiner.on("\n").join(
+        "class B {",
+        "  factory B.n(int x) = A.m;",
         "}"));
   }
 
