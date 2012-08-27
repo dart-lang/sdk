@@ -30,6 +30,7 @@ import java.util.Map;
  * within the source range of its parent, and the source ranges of sibling nodes never overlap.
  */
 public final class SourceInfo implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   /**
    * The unknown {@link SourceInfo}.

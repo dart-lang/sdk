@@ -27,6 +27,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   private final Type nullType;
   private final InterfaceType fallThroughError;
   private final InterfaceType mapType;
+  @SuppressWarnings("unused")
   private final InterfaceType mapLiteralType;
   private final InterfaceType objectArrayType;
   private final InterfaceType objectType;

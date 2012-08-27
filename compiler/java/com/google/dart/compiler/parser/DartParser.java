@@ -699,6 +699,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     beginLiteral();
     expect(Token.STRING);
+    @SuppressWarnings("unused")
     DartStringLiteral resourceUri = done(DartStringLiteral.get(ctx.getTokenString()));
     expectCloseParen();
     expect(Token.SEMICOLON);
@@ -3056,6 +3057,8 @@ public class DartParser extends CompletionHooksParserBase {
    * error that needs to be handled in an enclosing context.
    */
   private static class StringInterpolationParseError extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public StringInterpolationParseError() {
       super();
     }

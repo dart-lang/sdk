@@ -19,6 +19,7 @@ import java.util.List;
 public class PackageLibraryManager {
 
   public static class NotADartShortUriException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
     public NotADartShortUriException(String uriString) {
       super("Expected dart:<short name>, got: " + uriString);
