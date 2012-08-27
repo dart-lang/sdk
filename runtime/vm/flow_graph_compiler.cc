@@ -461,7 +461,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t arg_count,
                                         const Array& arg_names,
                                         Label* deopt,
-                                        Label* done,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         intptr_t try_index,
@@ -491,9 +490,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     assembler()->Bind(&next_test);
   }
   assembler()->Bind(&match_found);
-  if (done != NULL) {
-    assembler()->jmp(done);
-  }
 }
 
 

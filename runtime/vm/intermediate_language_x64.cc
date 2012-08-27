@@ -729,7 +729,6 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                               kNumArguments,
                               Array::Handle(),  // No named arguments.
                               deopt,  // Deoptimize target.
-                              NULL,   // Fallthrough when done.
                               deopt_id(),
                               token_pos(),
                               try_index(),
@@ -2144,40 +2143,25 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  locs());
     return;
   }
-  Label handle_smi;
-  Label* is_smi_label =
-      ic_data()->GetReceiverClassIdAt(0) == kSmiCid ?  &handle_smi : deopt;
 
   // Load receiver into RAX.
   __ movq(RAX,
       Address(RSP, (instance_call()->ArgumentCount() - 1) * kWordSize));
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(ZERO, is_smi_label);
   Label done;
+  __ movq(RDI, Immediate(kSmiCid));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &done);
   __ LoadClassId(RDI, RAX);
+  __ Bind(&done);
   compiler->EmitTestAndCall(*ic_data(),
                             RDI,  // Class id register.
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
                             deopt,
-                            (is_smi_label == &handle_smi) ? &done : NULL,
                             instance_call()->deopt_id(),
                             instance_call()->token_pos(),
                             instance_call()->try_index(),
                             locs());
-  if (is_smi_label == &handle_smi) {
-    __ Bind(&handle_smi);
-    ASSERT(ic_data()->GetReceiverClassIdAt(0) == kSmiCid);
-    const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(0));
-    compiler->GenerateStaticCall(instance_call()->deopt_id(),
-                                 instance_call()->token_pos(),
-                                 instance_call()->try_index(),
-                                 target,
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 locs());
-  }
-  __ Bind(&done);
 }
 
 
