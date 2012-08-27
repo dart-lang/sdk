@@ -123,6 +123,14 @@ main() {
     Expect.setEquals(['foo', 'baz'], classes);
   });
 
+  test('toggle', () {
+    final classes = makeClassSet();
+    classes.toggle('bar');
+    Expect.setEquals(['foo', 'baz'], classes);
+    classes.toggle('qux');
+    Expect.setEquals(['foo', 'baz', 'qux'], classes);
+  });
+
   test('addAll', () {
     final classes = makeClassSet();
     classes.addAll(['bar', 'qux', 'bip']);

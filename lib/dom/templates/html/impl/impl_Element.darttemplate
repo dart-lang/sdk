@@ -470,7 +470,7 @@ class _DataAttributeMap implements AttributeMap {
   String _strip(String key) => key.substring(5);
 }
 
-class _CssClassSet implements Set<String> {
+class _CssClassSet implements CSSClassSet {
 
   final _ElementImpl _element;
 
@@ -497,6 +497,8 @@ class _CssClassSet implements Set<String> {
 
   bool isEmpty() => _read().isEmpty();
 
+  bool get isFrozen() => false;
+
   int get length() =>_read().length;
 
   // interface Collection - END
@@ -513,6 +515,19 @@ class _CssClassSet implements Set<String> {
   bool remove(String value) {
     Set<String> s = _read();
     bool result = s.remove(value);
+    _write(s);
+    return result;
+  }
+
+  bool toggle(String value) {
+    Set<String> s = _read();
+    bool result = false;
+    if (s.contains(value)) {
+      s.remove(value);
+    } else {
+      s.add(value);
+      result = true;
+    }
     _write(s);
     return result;
   }
@@ -624,14 +639,14 @@ class _ElementRectImpl implements ElementRect {
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectImpl _boundingClientRect; 
+  final _ClientRectImpl _boundingClientRect;
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
     client = new _SimpleClientRect(element.$dom_clientLeft,
                                   element.$dom_clientTop,
-                                  element.$dom_clientWidth, 
-                                  element.$dom_clientHeight), 
+                                  element.$dom_clientWidth,
+                                  element.$dom_clientHeight),
     offset = new _SimpleClientRect(element.$dom_offsetLeft,
                                   element.$dom_offsetTop,
                                   element.$dom_offsetWidth,

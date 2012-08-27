@@ -5193,6 +5193,18 @@ class EmptyElementRect implements ElementRect {
   const EmptyElementRect();
 }
 
+class _FrozenCSSClassSet extends _CssClassSet {
+  _FrozenCSSClassSet() : super(null);
+
+  void _write(Set s) {
+    throw const UnsupportedOperationException(
+        'frozen class set cannot be modified');
+  }
+  Set<String> _read() => new Set<String>();
+
+  bool get isFrozen() => true;
+}
+
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native "*DocumentFragment" {
   ElementList _elements;
 
@@ -5291,8 +5303,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   Element get offsetParent() => null;
   Element get parent() => null;
   Map<String, String> get attributes() => const {};
-  // Issue 174: this should be a const set.
-  Set<String> get classes() => new Set<String>();
+  CSSClassSet get classes() => new _FrozenCSSClassSet();
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new Element.tag('div').style;
   Future<CSSStyleDeclaration> get computedStyle() =>
@@ -5927,7 +5938,7 @@ class _DataAttributeMap implements AttributeMap {
   String _strip(String key) => key.substring(5);
 }
 
-class _CssClassSet implements Set<String> {
+class _CssClassSet implements CSSClassSet {
 
   final _ElementImpl _element;
 
@@ -5954,6 +5965,8 @@ class _CssClassSet implements Set<String> {
 
   bool isEmpty() => _read().isEmpty();
 
+  bool get isFrozen() => false;
+
   int get length() =>_read().length;
 
   // interface Collection - END
@@ -5970,6 +5983,19 @@ class _CssClassSet implements Set<String> {
   bool remove(String value) {
     Set<String> s = _read();
     bool result = s.remove(value);
+    _write(s);
+    return result;
+  }
+
+  bool toggle(String value) {
+    Set<String> s = _read();
+    bool result = false;
+    if (s.contains(value)) {
+      s.remove(value);
+    } else {
+      s.add(value);
+      result = true;
+    }
     _write(s);
     return result;
   }
@@ -6081,14 +6107,14 @@ class _ElementRectImpl implements ElementRect {
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectImpl _boundingClientRect; 
+  final _ClientRectImpl _boundingClientRect;
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
     client = new _SimpleClientRect(element.$dom_clientLeft,
                                   element.$dom_clientTop,
-                                  element.$dom_clientWidth, 
-                                  element.$dom_clientHeight), 
+                                  element.$dom_clientWidth,
+                                  element.$dom_clientHeight),
     offset = new _SimpleClientRect(element.$dom_offsetLeft,
                                   element.$dom_offsetTop,
                                   element.$dom_offsetWidth,
@@ -11718,7 +11744,7 @@ class _AttributeClassSet extends _CssClassSet {
 }
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGElement" {
-  Set<String> get classes() {
+  CSSClassSet get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
@@ -23793,6 +23819,20 @@ interface NodeSelector {
   List<Element> queryAll(String selectors);
 }
 
+interface CSSClassSet extends Set<String> {
+  /**
+   * Adds the class [token] to the element if it is not on it, removes it if it
+   * is.
+   */
+  bool toggle(String token);
+
+  /**
+   * Returns [:true:] classes cannot be added or removed from this
+   * [:CSSClassSet:].
+   */
+  bool get isFrozen();
+}
+
 /// @domName Element
 interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element.html(String html);
@@ -23810,7 +23850,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   void set elements(Collection<Element> value);
 
   /** @domName className, classList */
-  Set<String> get classes();
+  CSSClassSet get classes();
 
   void set classes(Collection<String> value);
 

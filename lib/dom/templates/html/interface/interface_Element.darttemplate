@@ -47,6 +47,20 @@ interface NodeSelector {
   List<Element> queryAll(String selectors);
 }
 
+interface CSSClassSet extends Set<String> {
+  /**
+   * Adds the class [token] to the element if it is not on it, removes it if it
+   * is.
+   */
+  bool toggle(String token);
+
+  /**
+   * Returns [:true:] classes cannot be added or removed from this
+   * [:CSSClassSet:].
+   */
+  bool get isFrozen();
+}
+
 $!COMMENT
 interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   Element.html(String html);
@@ -64,7 +78,7 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   void set elements(Collection<Element> value);
 
   /** @domName className, classList */
-  Set<String> get classes();
+  CSSClassSet get classes();
 
   void set classes(Collection<String> value);
 

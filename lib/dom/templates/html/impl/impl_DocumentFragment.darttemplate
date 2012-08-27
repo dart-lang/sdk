@@ -126,6 +126,18 @@ class EmptyElementRect implements ElementRect {
   const EmptyElementRect();
 }
 
+class _FrozenCSSClassSet extends _CssClassSet {
+  _FrozenCSSClassSet() : super(null);
+
+  void _write(Set s) {
+    throw const UnsupportedOperationException(
+        'frozen class set cannot be modified');
+  }
+  Set<String> _read() => new Set<String>();
+
+  bool get isFrozen() => true;
+}
+
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   ElementList _elements;
 
@@ -224,8 +236,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   Element get offsetParent() => null;
   Element get parent() => null;
   Map<String, String> get attributes() => const {};
-  // Issue 174: this should be a const set.
-  Set<String> get classes() => new Set<String>();
+  CSSClassSet get classes() => new _FrozenCSSClassSet();
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new Element.tag('div').style;
   Future<CSSStyleDeclaration> get computedStyle() =>

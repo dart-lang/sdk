@@ -113,7 +113,7 @@ class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
         "Manifest can't be set for XML documents.");
   }
 
-  Set<String> get classes() => documentEl.classes;
+  CSSClassSet get classes() => documentEl.classes;
 
   ElementList get elements() => documentEl.elements;
 

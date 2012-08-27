@@ -81,6 +81,7 @@ main() {
     var emptyFragment = new DocumentFragment();
     expectUnsupported(() => emptyFragment.attributes = {});
     expectUnsupported(() => emptyFragment.classes = []);
+    expectUnsupported(() => emptyFragment.classes.add('foo'));
     expectUnsupported(() => emptyFragment.dataAttributes = {});
     expectUnsupported(() => emptyFragment.contentEditable = "true");
     expectUnsupported(() => emptyFragment.dir);
