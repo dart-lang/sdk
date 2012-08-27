@@ -569,6 +569,18 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void StrictCompareAndBranchInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s", DebugName());
+  f->Print("if ");
+  left()->PrintTo(f);
+  f-> Print(" %s ", Token::Str(kind()));
+  right()->PrintTo(f);
+  f->Print(" goto (%d, %d)",
+            true_successor()->block_id(),
+            false_successor()->block_id());
+}
+
+
 void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   for (intptr_t i = 0; i < moves_.length(); i++) {
@@ -814,6 +826,18 @@ void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s ", DebugName());
+  f->Print("if ");
+  left()->PrintTo(f);
+  f-> Print(" %s ", Token::Str(kind()));
+  right()->PrintTo(f);
+  f->Print(" goto (B%d, B%d)",
+            true_successor()->block_id(),
+            false_successor()->block_id());
+}
+
+
+void StrictCompareAndBranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
   left()->PrintTo(f);

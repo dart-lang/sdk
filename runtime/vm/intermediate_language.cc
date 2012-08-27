@@ -168,7 +168,7 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
-  ASSERT(!IsBranch());
+  ASSERT(!IsControl());
   ASSERT(!IsThrow());
   ASSERT(!IsReturn());
   ASSERT(!IsReThrow());
@@ -557,7 +557,7 @@ void BlockEntryInstr::DiscoverBlocks(
   Instruction* next_instr = next();
   while ((next_instr != NULL) &&
          !next_instr->IsBlockEntry() &&
-         !next_instr->IsBranch()) {
+         !next_instr->IsControl()) {
     if (vars != NULL) {
       next_instr->RecordAssignedVars(vars, fixed_parameter_count);
     }
@@ -578,7 +578,7 @@ void BlockEntryInstr::DiscoverBlocks(
 }
 
 
-void BranchInstr::DiscoverBlocks(
+void ControlInstruction::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
@@ -658,12 +658,12 @@ BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
 }
 
 
-intptr_t BranchInstr::SuccessorCount() const {
+intptr_t ControlInstruction::SuccessorCount() const {
   return 2;
 }
 
 
-BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
+BlockEntryInstr* ControlInstruction::SuccessorAt(intptr_t index) const {
   if (index == 0) return true_successor_;
   if (index == 1) return false_successor_;
   UNREACHABLE();
@@ -1245,8 +1245,8 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
-void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                        Condition true_condition) {
+void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                               Condition true_condition) {
   if (compiler->IsNextBlock(false_successor())) {
     // If the next block is the false successor we will fall through to it.
     __ j(true_condition, compiler->GetBlockLabel(true_successor()));

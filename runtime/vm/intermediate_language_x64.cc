@@ -449,7 +449,6 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
                                    Token::Kind kind,
                                    BranchInstr* branch,
                                    intptr_t deopt_id,
-                                   intptr_t token_pos,
                                    intptr_t try_index) {
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   Register left = locs.in(0).reg();
@@ -551,7 +550,6 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 Token::Kind kind,
                                 BranchInstr* branch,
                                 intptr_t deopt_id,
-                                intptr_t token_pos,
                                 intptr_t try_index) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
@@ -608,7 +606,6 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    Token::Kind kind,
                                    BranchInstr* branch,
                                    intptr_t deopt_id,
-                                   intptr_t token_pos,
                                    intptr_t try_index) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
@@ -635,20 +632,20 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_class_id() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
-                        deopt_id(), token_pos(), try_index());
+                        deopt_id(), try_index());
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
     // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
     EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
-                           deopt_id(), token_pos(), try_index());
+                           deopt_id(), try_index());
     return;
   }
   const bool is_checked_strict_equal =
       HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
   if (is_checked_strict_equal) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), NULL,
-                           deopt_id(), token_pos(), try_index());
+                           deopt_id(), try_index());
     return;
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
@@ -696,12 +693,12 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
 void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operands_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,
-                        deopt_id(), token_pos(), try_index());
+                        deopt_id(), try_index());
     return;
   }
   if (operands_class_id() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,
-                           deopt_id(), token_pos(), try_index());
+                           deopt_id(), try_index());
     return;
   }
 
@@ -2263,15 +2260,6 @@ static bool IsCheckedStrictEquals(const ICData& ic_data, Token::Kind kind) {
 
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
-  if ((kind() == Token::kEQ_STRICT) || (kind() == Token::kNE_STRICT)) {
-    const int kNumInputs = 2;
-    const int kNumTemps = 0;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    return locs;
-  }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     if (ICDataWithBothClassIds(*ic_data(), kSmiCid) ||
         ICDataWithBothClassIds(*ic_data(), kDoubleCid) ||
@@ -2309,29 +2297,21 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if ((kind() == Token::kEQ_STRICT) || (kind() == Token::kNE_STRICT)) {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    __ cmpq(left, right);
-    Condition cond = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-    EmitBranchOnCondition(compiler, cond);
-    return;
-  }
   // Relational or equality.
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     if (ICDataWithBothClassIds(*ic_data(), kSmiCid)) {
       EmitSmiComparisonOp(compiler, *locs(), kind(), this,
-                          deopt_id(), token_pos(), try_index());
+                          deopt_id(), try_index());
       return;
     }
     if (ICDataWithBothClassIds(*ic_data(), kDoubleCid)) {
       EmitDoubleComparisonOp(compiler, *locs(), kind(), this,
-                             deopt_id(), token_pos(), try_index());
+                             deopt_id(), try_index());
       return;
     }
     if (IsCheckedStrictEquals(*ic_data(), kind())) {
       EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), this,
-                             deopt_id(), token_pos(), try_index());
+                             deopt_id(), try_index());
       return;
     }
     // TODO(srdjan): Add Smi/Double, Double/Smi comparisons.
@@ -2374,6 +2354,27 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   __ CompareObject(RAX, compiler->bool_true());
   EmitBranchOnCondition(compiler, branch_condition);
+}
+
+
+LocationSummary* StrictCompareAndBranchInstr::MakeLocationSummary() const {
+  const int kNumInputs = 2;
+  const int kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  return locs;
+}
+
+
+void StrictCompareAndBranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ cmpq(left, right);
+  Condition cond = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
+  EmitBranchOnCondition(compiler, cond);
+  return;
 }
 
 

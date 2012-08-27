@@ -731,21 +731,6 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
 }
 
 
-void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
-  if ((instr->kind() != Token::kEQ) &&
-      (instr->kind() != Token::kNE)) {
-    return;
-  }
-  if (!instr->left()->BindsToConstantNull() &&
-      !instr->right()->BindsToConstantNull()) {
-    return;
-  }
-  Token::Kind strict_kind = (instr->kind() == Token::kEQ) ?
-      Token::kEQ_STRICT : Token::kNE_STRICT;
-  instr->set_kind(strict_kind);
-}
-
-
 void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
   instr->computation()->Accept(this, instr);
 }

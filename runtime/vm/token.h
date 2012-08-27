@@ -218,6 +218,10 @@ class Token {
     return kEQ <= tok && tok <= kNE_STRICT;
   }
 
+  static bool IsStrictEqualityOperator(Kind tok) {
+    return (tok == kEQ_STRICT) || (tok == kNE_STRICT);
+  }
+
   static bool IsTypeTestOperator(Kind tok) {
     return (tok == kIS) || (tok == kISNOT);
   }

@@ -2176,6 +2176,7 @@ FOR_EACH_VALUE(DEFINE_VALUE_PREDICATE)
   M(ReThrow)                                                                   \
   M(Goto)                                                                      \
   M(Branch)                                                                    \
+  M(StrictCompareAndBranch)
 
 
 // Forward declarations for Instruction classes.
@@ -2209,6 +2210,7 @@ class Instruction : public ZoneAllocated {
   }
   virtual bool IsDefinition() const { return false; }
   virtual Definition* AsDefinition() { return NULL; }
+  virtual bool IsControl() const { return false; }
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -2234,7 +2236,7 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsBranch());
+    ASSERT(!IsControl());
     ASSERT(!IsPhi());
     ASSERT(instr == NULL || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
@@ -3148,55 +3150,11 @@ class GotoInstr : public TemplateInstruction<0> {
 };
 
 
-class BranchInstr : public TemplateInstruction<2> {
+class ControlInstruction : public Instruction {
  public:
-  BranchInstr(intptr_t token_pos,
-              intptr_t try_index,
-              Value* left,
-              Value* right,
-              Token::Kind kind)
-      : deopt_id_(Isolate::kNoDeoptId),
-        ic_data_(NULL),
-        token_pos_(token_pos),
-        try_index_(try_index),
-        kind_(kind),
-        true_successor_(NULL),
-        false_successor_(NULL) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
-    ASSERT(Token::IsEqualityOperator(kind) ||
-           Token::IsRelationalOperator(kind) ||
-           Token::IsTypeTestOperator(kind));
-    Isolate* isolate = Isolate::Current();
-    deopt_id_ = isolate->GetNextDeoptId();
-    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
-  }
+  ControlInstruction() : true_successor_(NULL), false_successor_(NULL) { }
 
-  DECLARE_INSTRUCTION(Branch)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-  Token::Kind kind() const { return kind_; }
-  void set_kind(Token::Kind kind) {
-    ASSERT(Token::IsEqualityOperator(kind) ||
-           Token::IsRelationalOperator(kind) ||
-           Token::IsTypeTestOperator(kind));
-    kind_ = kind;
-  }
-
-  intptr_t deopt_id() const { return deopt_id_; }
-
-  const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
-  }
-
-  intptr_t token_pos() const { return token_pos_;}
-  intptr_t try_index() const { return try_index_; }
+  virtual bool IsControl() const { return true; }
 
   TargetEntryInstr* true_successor() const { return true_successor_; }
   TargetEntryInstr* false_successor() const { return false_successor_; }
@@ -3216,25 +3174,138 @@ class BranchInstr : public TemplateInstruction<2> {
       intptr_t variable_count,
       intptr_t fixed_parameter_count);
 
-  virtual LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
+
+ private:
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(ControlInstruction);
+};
+
+
+template<intptr_t N>
+class TemplateControlInstruction: public ControlInstruction {
+ public:
+  TemplateControlInstruction<N>() : locs_(NULL) { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(value != NULL);
+    inputs_[i] = value;
+  }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  virtual LocationSummary* MakeLocationSummary() const = 0;
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  LocationSummary* locs_;
+};
+
+
+class BranchInstr : public TemplateControlInstruction<2> {
+ public:
+  BranchInstr(intptr_t token_pos,
+              intptr_t try_index,
+              Value* left,
+              Value* right,
+              Token::Kind kind)
+      : deopt_id_(Isolate::kNoDeoptId),
+        ic_data_(NULL),
+        token_pos_(token_pos),
+        try_index_(try_index),
+        kind_(kind) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+    ASSERT(!Token::IsStrictEqualityOperator(kind));
+    ASSERT(Token::IsEqualityOperator(kind) ||
+           Token::IsRelationalOperator(kind) ||
+           Token::IsTypeTestOperator(kind));
+    Isolate* isolate = Isolate::Current();
+    deopt_id_ = isolate->GetNextDeoptId();
+    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
+  }
+
+  DECLARE_INSTRUCTION(Branch)
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  Token::Kind kind() const { return kind_; }
+
+  intptr_t deopt_id() const { return deopt_id_; }
+
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
+
+  intptr_t token_pos() const { return token_pos_;}
+  intptr_t try_index() const { return try_index_; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
   intptr_t deopt_id_;
-  ICData* ic_data_;
+  const ICData* ic_data_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  Token::Kind kind_;
-  TargetEntryInstr* true_successor_;
-  TargetEntryInstr* false_successor_;
+  const Token::Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
+};
+
+
+class StrictCompareAndBranchInstr : public TemplateControlInstruction<2> {
+ public:
+  StrictCompareAndBranchInstr(Value* left, Value* right, Token::Kind kind)
+        : kind_(kind) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+    ASSERT(Token::IsStrictEqualityOperator(kind));
+  }
+
+  DECLARE_INSTRUCTION(StrictCompareAndBranch)
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  Token::Kind kind() const { return kind_; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
+
+ private:
+  const Token::Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(StrictCompareAndBranchInstr);
 };
 
 
