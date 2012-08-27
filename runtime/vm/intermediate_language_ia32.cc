@@ -794,12 +794,14 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
          (receiver_type() == kArrayCid) ||
          (receiver_type() == kImmutableArrayCid));
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = receiver_type() == kGrowableObjectArrayCid ? 1 : 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
+  if (receiver_type() == kGrowableObjectArrayCid) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
@@ -809,7 +811,6 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register receiver = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register result = locs()->out().reg();
-  Register temp = locs()->temp(0).reg();
 
   const DeoptReasonId deopt_reason =
       (receiver_type() == kGrowableObjectArrayCid) ?
@@ -818,14 +819,6 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                         original()->try_index(),
                                         deopt_reason);
-
-  __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
-  __ j(ZERO, deopt);
-  __ CompareClassId(receiver, receiver_type(), temp);
-  __ j(NOT_EQUAL, deopt);
-
-  __ testl(index, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
 
   switch (receiver_type()) {
     case kArrayCid:
@@ -861,13 +854,15 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
          (receiver_type() == kArrayCid));
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = receiver_type() == kGrowableObjectArrayCid ? 1 : 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, Location::RequiresRegister());
   locs->set_in(2, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
+  if (receiver_type() == kGrowableObjectArrayCid) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
   locs->set_out(Location::NoLocation());
   return locs;
 }
@@ -877,19 +872,10 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register receiver = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register value = locs()->in(2).reg();
-  Register temp = locs()->temp(0).reg();
 
   Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                         original()->try_index(),
                                         kDeoptStoreIndexed);
-
-  __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
-  __ j(ZERO, deopt);
-  __ CompareClassId(receiver, receiver_type(), temp);
-  __ j(NOT_EQUAL, deopt);
-
-  __ testl(index, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
 
   switch (receiver_type()) {
     case kArrayCid:
@@ -910,6 +896,7 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
 
     case kGrowableObjectArrayCid: {
+      Register temp = locs()->temp(0).reg();
       __ cmpl(index,
               FieldAddress(receiver, GrowableObjectArray::length_offset()));
       __ j(ABOVE_EQUAL, deopt);

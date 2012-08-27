@@ -202,9 +202,6 @@ void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
   check->set_ic_data(&unary_checks);
   InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
-  // Detach environment from the original instruction because it can't
-  // deoptimize.
-  instr->set_env(NULL);
 }
 
 
@@ -223,18 +220,21 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
       // Fall through.
     case kArrayCid:
     case kGrowableObjectArrayCid: {
+      Value* array = comp->ArgumentAt(0)->value();
+      Value* index = comp->ArgumentAt(1)->value();
+      // Insert class check and index smi checks and attach a copy of the
+      // original environment because the operation can still deoptimize.
+      AddCheckClass(instr, comp, array->CopyValue());
+      InsertBefore(instr,
+                   new CheckSmiComp(index->CopyValue(), comp),
+                   instr->env(),
+                   BindInstr::kUnused);
       Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedComp(comp->ArgumentAt(0)->value(),
-                                       comp->ArgumentAt(1)->value(),
-                                       class_id,
-                                       comp);
+        array_op = new LoadIndexedComp(array, index, class_id, comp);
       } else {
-        array_op = new StoreIndexedComp(comp->ArgumentAt(0)->value(),
-                                        comp->ArgumentAt(1)->value(),
-                                        comp->ArgumentAt(2)->value(),
-                                        class_id,
-                                        comp);
+        Value* value = comp->ArgumentAt(2)->value();
+        array_op = new StoreIndexedComp(array, index, value, class_id, comp);
       }
       array_op->set_ic_data(comp->ic_data());
       instr->set_computation(array_op);
@@ -472,6 +472,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     ASSERT(!field.IsNull());
 
     AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+    // Detach environment from the original instruction because it can't
+    // deoptimize.
+    instr->set_env(NULL);
     LoadInstanceFieldComp* load =
         new LoadInstanceFieldComp(field, comp->ArgumentAt(0)->value());
     instr->set_computation(load);
@@ -667,6 +670,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   ASSERT(!field.IsNull());
 
   AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+  // Detach environment from the original instruction because it can't
+  // deoptimize.
+  instr->set_env(NULL);
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
       comp->ArgumentAt(0)->value(),

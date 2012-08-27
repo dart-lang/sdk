@@ -834,14 +834,6 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         original()->try_index(),
                                         deopt_reason);
 
-  __ testq(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
-  __ j(ZERO, deopt);
-  __ CompareClassId(receiver, receiver_type());
-  __ j(NOT_EQUAL, deopt);
-
-  __ testq(index, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
-
   switch (receiver_type()) {
     case kArrayCid:
     case kImmutableArrayCid:
@@ -901,14 +893,6 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                         original()->try_index(),
                                         kDeoptStoreIndexed);
-
-  __ testq(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
-  __ j(ZERO, deopt);
-  __ CompareClassId(receiver, receiver_type());
-  __ j(NOT_EQUAL, deopt);
-
-  __ testq(index, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
 
   switch (receiver_type()) {
     case kArrayCid:
