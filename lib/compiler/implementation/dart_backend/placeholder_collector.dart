@@ -318,14 +318,10 @@ class PlaceholderCollector extends AbstractVisitor {
     } else {
       typeDeclarationElement = currentElement.getEnclosingClass();
     }
-    if (typeDeclarationElement !== null && isPlainTypeName(node)) {
-      SourceString name = node.typeName.asIdentifier().source;
-      for (TypeVariableType parameter in typeDeclarationElement.typeVariables) {
-        if (parameter.name == name) {
-          makeTypePlaceholder(node, parameter);
-          return;
-        }
-      }
+    if (typeDeclarationElement !== null && isPlainTypeName(node)
+        && tryResolveAndCollectTypeVariable(
+               typeDeclarationElement, node.typeName)) {
+      return;
     }
     final type = compiler.resolveTypeAnnotation(currentElement, node);
     if (type is InterfaceType || type is TypedefType) {
@@ -411,26 +407,31 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
-  visitTypeVariable(TypeVariable node) {
-    assert(currentElement is TypedefElement || currentElement is ClassElement);
+  bool tryResolveAndCollectTypeVariable(
+      TypeDeclarationElement typeDeclaration, Identifier name) {
     // Hack for case when interface and default class are in different
     // libraries, try to resolve type variable to default class type arg.
     // Example:
     // lib1: interface I<K> default C<K> {...}
     // lib2: class C<K> {...}
-    TypeDeclarationElement typeElement = currentElement;
-    if (currentElement is ClassElement
-        && (currentElement as ClassElement).defaultClass !== null) {
-      typeElement = (currentElement as ClassElement).defaultClass.element;
+    if (typeDeclaration is ClassElement
+        && (typeDeclaration as ClassElement).defaultClass !== null) {
+      typeDeclaration = (typeDeclaration as ClassElement).defaultClass.element;
     }
     // Another poor man type resolution.
-    // Find this variable in current element type parameters.
-    for (Type type in typeElement.typeVariables) {
-      if (type.name.slowToString() == node.name.source.slowToString()) {
-        makeTypePlaceholder(node.name, type);
-        break;
+    // Find this variable in enclosing type declaration parameters.
+    for (Type type in typeDeclaration.typeVariables) {
+      if (type.name.slowToString() == name.source.slowToString()) {
+        makeTypePlaceholder(name, type);
+        return true;
       }
     }
+    return false;
+  }
+
+  visitTypeVariable(TypeVariable node) {
+    assert(currentElement is TypedefElement || currentElement is ClassElement);
+    tryResolveAndCollectTypeVariable(currentElement, node.name);
     node.visitChildren(this);
   }
 

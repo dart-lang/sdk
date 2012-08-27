@@ -748,6 +748,39 @@ main() {
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
 
+testTypeVariablesInDifferentLibraries() {
+// This is a simplified version of what we have in
+// lib/compiler/implementation/util.
+  var librarySrc = '''
+#library('mylib');
+#import('script.dart');
+interface Iterable<K> {}
+
+interface Link<T> extends Iterable<T> default LinkFactory<T> {
+  Link();
+}
+''';
+  var mainSrc = '''
+#library('script.dart');
+#import('mylib.dart');
+
+class LinkFactory<T> {
+  factory Link() {}
+}
+
+main() {
+  new Link<int>();
+}
+''';
+  var expectedResult =
+    'interface Iterable<K>{}'
+    'interface Link<T> extends Iterable<T> default LinkFactory<T>{Link();}'
+    'class LinkFactory<T>{factory Link(){}}'
+    'main(){new Link<int>();}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -788,4 +821,5 @@ main() {
   testMinification();
   testClosureLocalsMinified();
   testParametersMinified();
+  testTypeVariablesInDifferentLibraries();
 }
