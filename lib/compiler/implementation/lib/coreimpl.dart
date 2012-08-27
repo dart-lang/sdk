@@ -24,6 +24,7 @@
 #source('../../../../corelib/src/implementation/splay_tree.dart');
 #source('../../../../corelib/src/implementation/stopwatch_implementation.dart');
 #source('../../../../corelib/src/implementation/arrays.dart');
+#source('../../../../corelib/src/implementation/string.dart');
 #source('../../../../corelib/src/implementation/string_buffer.dart');
 
 #source('mockimpl.dart');

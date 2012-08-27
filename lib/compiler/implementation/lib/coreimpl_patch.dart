@@ -18,6 +18,24 @@ patch class ObjectImplementation {
 }
 
 
+// Patch for String implementation.
+// TODO(ager): Split out into date_patch.dart and allow #source
+// in patch files?
+patch class StringImplementation {
+  patch static _fromCharCodes(List<int> charCodes) {
+    return StringBase.createFromCharCodes(charCodes);
+  }
+
+  patch String join(List<String> strings, String separator) {
+    return StringBase.join(strings, separator);
+  }
+
+  patch String concatAll(List<String> strings) {
+    return StringBase.concatAll(strings);
+  }
+}
+
+
 // Patch for Date implementation.
 // TODO(ager): Split out into date_patch.dart and allow #source
 // in patch files?
