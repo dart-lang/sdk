@@ -193,9 +193,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         FlowGraphTypePropagator propagator(*flow_graph);
         propagator.PropagateTypes();
 
-        // TODO(zerny): Here we assume that the use lists remain valid after
-        // type propagation. We should construct a use-list validator to make
-        // this explicit in DEBUG mode.
+        // Verify that the use lists are still valid.
+        DEBUG_ASSERT(flow_graph->ValidateUseLists());
 
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();

@@ -69,6 +69,12 @@ class FlowGraph: public ZoneAllocated {
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
 
+#ifdef DEBUG
+  // Validation methods for debugging.
+  bool ResetUseLists();
+  bool ValidateUseLists();
+#endif  // DEBUG
+
  private:
   void DiscoverBlocks();
 

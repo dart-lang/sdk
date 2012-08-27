@@ -65,55 +65,132 @@ void FlowGraph::DiscoverBlocks() {
 
 
 #ifdef DEBUG
-// Helper class to check consistency of the use list construction.  Clears all
-// use-list data in one pass which is then used for assertions when building the
-// use lists.
-class DefUseCleanup : public FlowGraphVisitor {
- public:
-  explicit DefUseCleanup(FlowGraph* flow_graph)
-      : FlowGraphVisitor(flow_graph->preorder()) { }
-  void CleanupInstruction(Instruction* instr) {
-    JoinEntryInstr* join = instr->AsJoinEntry();
-    if (join != NULL && join->phis() != NULL) {
-      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
-        PhiInstr* phi = (*join->phis())[i];
-        if (phi != NULL) CleanupInstruction(phi);
-      }
-    }
-    Definition* defn = instr->AsDefinition();
-    if (defn != NULL) {
-      defn->set_input_use_list(NULL);
-      defn->set_env_use_list(NULL);
-    }
-    for (intptr_t i = 0; i < instr->InputCount(); ++i) {
-      UseVal* use = instr->InputAt(i)->AsUse();
+// Debugging code to verify the construction of use lists.
+
+static intptr_t MembershipCount(UseVal* use, UseVal* list) {
+  intptr_t count = 0;
+  while (list != NULL) {
+    if (list == use) ++count;
+    list = list->next_use();
+  }
+  return count;
+}
+
+
+static void ResetUseListsInInstruction(Instruction* instr) {
+  Definition* defn = instr->AsDefinition();
+  if (defn != NULL) {
+    defn->set_input_use_list(NULL);
+    defn->set_env_use_list(NULL);
+  }
+  for (intptr_t i = 0; i < instr->InputCount(); ++i) {
+    UseVal* use = instr->InputAt(i)->AsUse();
+    if (use == NULL) continue;
+    use->set_instruction(NULL);
+    use->set_use_index(-1);
+    use->set_next_use(NULL);
+  }
+  if (instr->env() != NULL) {
+    for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
+      UseVal* use = instr->env()->values()[i]->AsUse();
       if (use == NULL) continue;
       use->set_instruction(NULL);
       use->set_use_index(-1);
       use->set_next_use(NULL);
     }
-    if (instr->env() != NULL) {
-      for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
-        UseVal* use = instr->env()->values()[i]->AsUse();
-        if (use == NULL) continue;
-        use->set_instruction(NULL);
-        use->set_use_index(-1);
-        use->set_next_use(NULL);
+  }
+}
+
+
+bool FlowGraph::ResetUseLists() {
+  // Reset definitions referenced from the start environment.
+  for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
+    UseVal* env_use = graph_entry_->start_env()->values()[i]->AsUse();
+    if (env_use != NULL) ResetUseListsInInstruction(env_use->definition());
+  }
+  // Reset phis in join entries and the instructions in each block.
+  for (intptr_t i = 0; i < preorder_.length(); ++i) {
+    BlockEntryInstr* entry = preorder_[i];
+    JoinEntryInstr* join = entry->AsJoinEntry();
+    if (join != NULL && join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi != NULL) ResetUseListsInInstruction(phi);
       }
     }
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      ResetUseListsInInstruction(it.Current());
+    }
   }
-#define DEFINE_VISIT(type)                                                     \
-  virtual void Visit##type(type##Instr* instr) { CleanupInstruction(instr); }
-  FOR_EACH_INSTRUCTION(DEFINE_VISIT)
-#undef DEFINE_VISIT
-};
+  return true;  // Return true so we can ASSERT the reset code.
+}
+
+
+static void ValidateUseListsInInstruction(Instruction* instr) {
+  ASSERT(instr != NULL);
+  ASSERT(!instr->IsJoinEntry());
+  for (intptr_t i = 0; i < instr->InputCount(); ++i) {
+    UseVal* use = instr->InputAt(i)->AsUse();
+    if (use == NULL) continue;
+    ASSERT(use->use_index() == i);
+    ASSERT(1 == MembershipCount(use, use->definition()->input_use_list()));
+  }
+  Environment* env = instr->env();
+  if (env != NULL) {
+    for (intptr_t i = 0; i < env->values().length(); ++i) {
+      UseVal* use = env->values()[i]->AsUse();
+      if (use == NULL) continue;
+      ASSERT(use->use_index() == i);
+      ASSERT(1 == MembershipCount(use, use->definition()->env_use_list()));
+    }
+  }
+  Definition* defn = instr->AsDefinition();
+  if (defn != NULL) {
+    for (UseVal* use = defn->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      ASSERT(defn == use->definition());
+      ASSERT(use == use->instruction()->InputAt(use->use_index()));
+    }
+    for (UseVal* use = defn->env_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      ASSERT(defn == use->definition());
+      ASSERT(use == use->instruction()->env()->values()[use->use_index()]);
+    }
+  }
+}
+
+
+bool FlowGraph::ValidateUseLists() {
+  // Validate definitions referenced from the start environment.
+  for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
+    UseVal* env_use = graph_entry_->start_env()->values()[i]->AsUse();
+    if (env_use != NULL) ValidateUseListsInInstruction(env_use->definition());
+  }
+  // Validate phis in join entries and the instructions in each block.
+  for (intptr_t i = 0; i < preorder_.length(); ++i) {
+    BlockEntryInstr* entry = preorder_[i];
+    JoinEntryInstr* join = entry->AsJoinEntry();
+    if (join != NULL && join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi != NULL) ValidateUseListsInInstruction(phi);
+      }
+    }
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      ValidateUseListsInInstruction(it.Current());
+    }
+  }
+  return true;  // Return true so we can ASSERT validation.
+}
 #endif  // DEBUG
 
 
 static void ClearUseLists(Definition* defn) {
   ASSERT(defn != NULL);
-  ASSERT(defn->input_use_list() == NULL);
-  ASSERT(defn->env_use_list() == NULL);
+  DEBUG_ASSERT(defn->input_use_list() == NULL);
+  DEBUG_ASSERT(defn->env_use_list() == NULL);
   defn->set_input_use_list(NULL);
   defn->set_env_use_list(NULL);
 }
@@ -124,9 +201,11 @@ static void RecordInputUses(Instruction* instr) {
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     UseVal* use = instr->InputAt(i)->AsUse();
     if (use == NULL) continue;
-    ASSERT(use->instruction() == NULL);
-    ASSERT(use->use_index() == -1);
-    ASSERT(use->next_use() == NULL);
+    DEBUG_ASSERT(use->instruction() == NULL);
+    DEBUG_ASSERT(use->use_index() == -1);
+    DEBUG_ASSERT(use->next_use() == NULL);
+    DEBUG_ASSERT(0 == MembershipCount(use,
+                                      use->definition()->input_use_list()));
     use->set_instruction(instr);
     use->set_use_index(i);
     use->AddToInputUseList();
@@ -140,9 +219,10 @@ static void RecordEnvUses(Instruction* instr) {
   for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
     UseVal* use = instr->env()->values()[i]->AsUse();
     if (use == NULL) continue;
-    ASSERT(use->instruction() == NULL);
-    ASSERT(use->use_index() == -1);
-    ASSERT(use->next_use() == NULL);
+    DEBUG_ASSERT(use->instruction() == NULL);
+    DEBUG_ASSERT(use->use_index() == -1);
+    DEBUG_ASSERT(use->next_use() == NULL);
+    DEBUG_ASSERT(0 == MembershipCount(use, use->definition()->env_use_list()));
     use->set_instruction(instr);
     use->set_use_index(i);
     use->AddToEnvUseList();
@@ -183,9 +263,11 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
         if (phi == NULL) continue;
         UseVal* use = phi->InputAt(pred_index)->AsUse();
         if (use == NULL) continue;
-        ASSERT(use->instruction() == NULL);
-        ASSERT(use->use_index() == -1);
-        ASSERT(use->next_use() == NULL);
+        DEBUG_ASSERT(use->instruction() == NULL);
+        DEBUG_ASSERT(use->use_index() == -1);
+        DEBUG_ASSERT(use->next_use() == NULL);
+        DEBUG_ASSERT(0 == MembershipCount(use,
+                                          use->definition()->input_use_list()));
         use->set_instruction(phi);
         use->set_use_index(pred_index);
         use->AddToInputUseList();
@@ -196,11 +278,9 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
 
 
 void FlowGraph::ComputeUseLists() {
-#ifdef DEBUG
-  DefUseCleanup cleanup(this);
-  cleanup.VisitBlocks();
-#endif  // DEBUG
+  DEBUG_ASSERT(ResetUseLists());
   ComputeUseListsRecursive(graph_entry_);
+  DEBUG_ASSERT(ValidateUseLists());
 }
 
 

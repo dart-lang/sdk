@@ -395,6 +395,7 @@ void UseVal::AddToEnvUseList() {
 
 void Definition::ReplaceUsesWith(Definition* other) {
   ASSERT(other != NULL);
+  ASSERT(this != other);
   while (input_use_list_ != NULL) {
     UseVal* current = input_use_list_;
     input_use_list_ = input_use_list_->next_use();
@@ -1534,10 +1535,7 @@ Environment* Environment::Copy() const {
                                       fixed_parameter_count());
   GrowableArray<Value*>* values_copy = copy->values_ptr();
   for (intptr_t i = 0; i < values().length(); ++i) {
-    Value* val = values()[i];
-    values_copy->Add(val->IsUse()
-                     ? UseDefinition(values()[i]->AsUse()->definition())
-                     : val);
+    values_copy->Add(values()[i]->CopyValue());
   }
   return copy;
 }
