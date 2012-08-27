@@ -391,5 +391,8 @@ class TypedSelector extends Selector {
     return false;
   }
 
-  toString() => 'Selector($kind, "${name.slowToString()}", $argumentCount, type=$receiverType)';
+  toString() {
+    return 'Selector($kind, "${name.slowToString()}", '
+           '$argumentCount, type=$receiverType)';
+  }
 }
