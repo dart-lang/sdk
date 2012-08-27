@@ -15,6 +15,7 @@
     'hash_map_set.dart',
     'linked_hash_map.dart',
     'maps.dart',
+    'object.dart',
     'options.dart',
     'queue.dart',
     'regexp.dart',

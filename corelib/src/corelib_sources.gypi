@@ -22,6 +22,7 @@
     'map.dart',
     'list.dart',
     'num.dart',
+    'object.dart',
     'options.dart',
     'pattern.dart',
     'queue.dart',

@@ -17,6 +17,7 @@
 #source('../../../../corelib/src/implementation/hash_map_set.dart');
 #source('../../../../corelib/src/implementation/linked_hash_map.dart');
 #source('../../../../corelib/src/implementation/maps.dart');
+#source('../../../../corelib/src/implementation/object.dart');
 #source('../../../../corelib/src/implementation/options.dart');
 #source('../../../../corelib/src/implementation/queue.dart');
 #source('../../../../corelib/src/implementation/regexp.dart');

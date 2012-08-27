@@ -188,7 +188,6 @@ Language/10_Expressions/20_Equality_A02_t02: Fail # Compile-time error: unexpect
 Language/10_Expressions/20_Equality_A02_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A02_t04: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t01: Fail # Compile-time error: unexpected token 'equals'
-Language/10_Expressions/20_Equality_A03_t02: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t03: Fail # Compile-time error: unexpected token 'equals'
 LibTest/core/Futures/wait_A01_t02: Fail # Runtime error: 1
 Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Runtime error: Expect.equals(expected: <1.2>, actual: <1.1>) fails.
