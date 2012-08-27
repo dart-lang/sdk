@@ -5,7 +5,7 @@
 /**
  * An [Expando] allows adding new properties to objects.
  */
-interface Expando<T> default _Expando<T> {
+interface Expando<T> default ExpandoImplementation<T> {
 
   /**
    * The name of the this [Expando] as passed to the constructor. If

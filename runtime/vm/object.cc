@@ -629,6 +629,12 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  cls = Class::New<WeakProperty>();
+  object_store->set_weak_property_class(cls);
+  name = Symbols::_WeakProperty();
+  RegisterPrivateClass(cls, name, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
@@ -744,11 +750,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
   name = Symbols::_ExternalFloat64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<WeakProperty>();
-  object_store->set_weak_property_class(cls);
-  name = Symbols::_WeakProperty();
   RegisterPrivateClass(cls, name, core_lib);
 
   // Set the super type of class Stacktrace to Object type so that the

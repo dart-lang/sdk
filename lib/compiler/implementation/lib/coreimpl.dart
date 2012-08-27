@@ -12,6 +12,7 @@
 #source('../../../../corelib/src/implementation/dual_pivot_quicksort.dart');
 #source('../../../../corelib/src/implementation/duration_implementation.dart');
 #source('../../../../corelib/src/implementation/exceptions.dart');
+#source('../../../../corelib/src/implementation/expando.dart');
 #source('../../../../corelib/src/implementation/future_implementation.dart');
 #source('../../../../corelib/src/implementation/hash_map_set.dart');
 #source('../../../../corelib/src/implementation/linked_hash_map.dart');

@@ -13,6 +13,7 @@
     'date_patch.dart',
     'double.cc',
     'double.dart',
+    'expando_patch.dart',
     'growable_array.cc',
     'growable_array.dart',
     'immutable_map.dart',
@@ -27,5 +28,7 @@
     'stopwatch_patch.dart',
     'string.cc',
     'string.dart',
+    'weak_property.dart',
+    'weak_property.cc',
   ],
 }

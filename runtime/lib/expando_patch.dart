@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _Expando<T> implements Expando<T> {
-  final String name;
-
-  const _Expando([String this.name]);
-
-  T operator[](Object object) {
-    checkType(object);
-    var weakProperty = find(this);
+patch class ExpandoImplementation<T> {
+  /* patch */ T operator[](Object object) {
+    _checkType(object);
+    var weakProperty = _find(this);
     var list = weakProperty.value;
     var doCompact = false;
     var result = null;
@@ -30,9 +26,9 @@ class _Expando<T> implements Expando<T> {
     return result;
   }
 
-  void operator[]=(Object object, T value) {
-    checkType(object);
-    var weakProperty = find(this);
+  /* patch */ void operator[]=(Object object, T value) {
+    _checkType(object);
+    var weakProperty = _find(this);
     var list = weakProperty.value;
     var doCompact = false;
     int i = 0;
@@ -59,9 +55,7 @@ class _Expando<T> implements Expando<T> {
     }
   }
 
-  String toString() => "Expando:$name";
-
-  static checkType(object) {
+  static _checkType(object) {
     if (object === null) {
       throw new NullPointerException();
     }
@@ -70,29 +64,29 @@ class _Expando<T> implements Expando<T> {
     }
   }
 
-  static find(expando) {
-    if (data === null) data = new List();
+  static _find(expando) {
+    if (_data === null) _data = new List();
     var doCompact = false;
     int i = 0;
-    for (; i < data.length; ++i) {
-      var key = data[i].key;
+    for (; i < _data.length; ++i) {
+      var key = _data[i].key;
       if (key == expando) {
         break;
       }
       if (key === null) {
         doCompact = true;
-        data[i] = null;
+        _data[i] = null;
       }
     }
-    if (i == data.length) {
-      data.add(new _WeakProperty(expando, new List()));
+    if (i == _data.length) {
+      _data.add(new _WeakProperty(expando, new List()));
     }
-    var result = data[i];
+    var result = _data[i];
     if (doCompact) {
-      data = data.filter((e) => (e !== null));
+      _data = _data.filter((e) => (e !== null));
     }
     return result;
   }
 
-  static List data;
+  static List _data;
 }
