@@ -23,15 +23,46 @@ patch class ObjectImplementation {
 // in patch files?
 patch class StringImplementation {
   patch static _fromCharCodes(List<int> charCodes) {
-    return StringBase.createFromCharCodes(charCodes);
+    checkNull(charCodes);
+    if (!isJsArray(charCodes)) {
+      if (charCodes is !List) throw new IllegalArgumentException(charCodes);
+      charCodes = new List.from(charCodes);
+    }
+    return Primitives.stringFromCharCodes(charCodes);
   }
 
   patch String join(List<String> strings, String separator) {
-    return StringBase.join(strings, separator);
+    checkNull(strings);
+    checkNull(separator);
+    if (separator is !String) throw new IllegalArgumentException(separator);
+    return stringJoinUnchecked(_toJsStringArray(strings), separator);
   }
 
   patch String concatAll(List<String> strings) {
-    return StringBase.concatAll(strings);
+    return stringJoinUnchecked(_toJsStringArray(strings), "");
+  }
+
+  static List _toJsStringArray(List<String> strings) {
+    checkNull(strings);
+    var array;
+    final length = strings.length;
+    if (isJsArray(strings)) {
+      array = strings;
+      for (int i = 0; i < length; i++) {
+        final string = strings[i];
+        checkNull(string);
+        if (string is !String) throw new IllegalArgumentException(string);
+      }
+    } else {
+      array = new List(length);
+      for (int i = 0; i < length; i++) {
+        final string = strings[i];
+        checkNull(string);
+        if (string is !String) throw new IllegalArgumentException(string);
+        array[i] = string;
+      }
+    }
+    return array;
   }
 }
 
