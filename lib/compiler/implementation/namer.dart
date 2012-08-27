@@ -33,7 +33,7 @@ class Namer {
   /** Some closures must contain their name. The name is stored in
     * [STATIC_CLOSURE_NAME_NAME]. */
   final String STATIC_CLOSURE_NAME_NAME = @'$name';
-  static final SourceString CLOSURE_INVOCATION_NAME =
+  static const SourceString CLOSURE_INVOCATION_NAME =
       Compiler.CALL_OPERATOR_NAME;
 
 
@@ -176,7 +176,7 @@ class Namer {
     return name;
   }
 
-  static final String LIBRARY_PREFIX = "lib";
+  static const String LIBRARY_PREFIX = "lib";
 
   /**
    * Returns a preferred JS-id for the given top-level or static element.

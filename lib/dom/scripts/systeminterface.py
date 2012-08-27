@@ -163,7 +163,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
       self._EmitConstant(self._members_emitter, constant)
 
   def _EmitConstant(self, emitter, constant):
-    emitter.Emit('\n  static final $TYPE$NAME = $VALUE;\n',
+    emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
                  NAME=constant.id,
                  TYPE=TypeOrNothing(self._DartType(constant.type.id),
                                     constant.type.id),

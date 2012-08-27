@@ -6,7 +6,7 @@ class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name => "Type checker";
 
-  static final bool LOG_FAILURES = false;
+  static const bool LOG_FAILURES = false;
 
   void check(Node tree, TreeElements elements) {
     measure(() {
@@ -64,9 +64,9 @@ class StatementType implements Type {
 
   const StatementType(this.stringName);
 
-  static final RETURNING = const StatementType('<returning>');
-  static final NOT_RETURNING = const StatementType('<not returning>');
-  static final MAYBE_RETURNING = const StatementType('<maybe returning>');
+  static const RETURNING = const StatementType('<returning>');
+  static const NOT_RETURNING = const StatementType('<not returning>');
+  static const MAYBE_RETURNING = const StatementType('<maybe returning>');
 
   /** Combine the information about two control-flow edges that are joined. */
   StatementType join(StatementType other) {

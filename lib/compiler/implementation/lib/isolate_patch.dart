@@ -400,7 +400,7 @@ class _WorkerStub implements _ManagerStub native "*Worker" {
   abstract void terminate();
 }
 
-final String _SPAWNED_SIGNAL = "spawned";
+const String _SPAWNED_SIGNAL = "spawned";
 
 class _IsolateNatives {
 

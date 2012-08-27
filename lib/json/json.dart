@@ -58,56 +58,56 @@ class JSONParseException {
 }
 
 class _JsonParser {
-  static final int BACKSPACE = 8;
-  static final int TAB = 9;
-  static final int NEW_LINE = 10;
-  static final int FORM_FEED = 12;
-  static final int CARRIAGE_RETURN = 13;
-  static final int SPACE = 32;
-  static final int QUOTE = 34;
-  static final int PLUS = 43;
-  static final int COMMA = 44;
-  static final int MINUS = 45;
-  static final int DOT = 46;
-  static final int SLASH = 47;
-  static final int CHAR_0 = 48;
-  static final int CHAR_1 = 49;
-  static final int CHAR_2 = 50;
-  static final int CHAR_3 = 51;
-  static final int CHAR_4 = 52;
-  static final int CHAR_5 = 53;
-  static final int CHAR_6 = 54;
-  static final int CHAR_7 = 55;
-  static final int CHAR_8 = 56;
-  static final int CHAR_9 = 57;
-  static final int COLON = 58;
-  static final int CHAR_CAPITAL_E = 69;
-  static final int LBRACKET = 91;
-  static final int BACKSLASH = 92;
-  static final int RBRACKET = 93;
-  static final int CHAR_B = 98;
-  static final int CHAR_E = 101;
-  static final int CHAR_F = 102;
-  static final int CHAR_N = 110;
-  static final int CHAR_R = 114;
-  static final int CHAR_T = 116;
-  static final int CHAR_U = 117;
-  static final int LBRACE = 123;
-  static final int RBRACE = 125;
+  static const int BACKSPACE = 8;
+  static const int TAB = 9;
+  static const int NEW_LINE = 10;
+  static const int FORM_FEED = 12;
+  static const int CARRIAGE_RETURN = 13;
+  static const int SPACE = 32;
+  static const int QUOTE = 34;
+  static const int PLUS = 43;
+  static const int COMMA = 44;
+  static const int MINUS = 45;
+  static const int DOT = 46;
+  static const int SLASH = 47;
+  static const int CHAR_0 = 48;
+  static const int CHAR_1 = 49;
+  static const int CHAR_2 = 50;
+  static const int CHAR_3 = 51;
+  static const int CHAR_4 = 52;
+  static const int CHAR_5 = 53;
+  static const int CHAR_6 = 54;
+  static const int CHAR_7 = 55;
+  static const int CHAR_8 = 56;
+  static const int CHAR_9 = 57;
+  static const int COLON = 58;
+  static const int CHAR_CAPITAL_E = 69;
+  static const int LBRACKET = 91;
+  static const int BACKSLASH = 92;
+  static const int RBRACKET = 93;
+  static const int CHAR_B = 98;
+  static const int CHAR_E = 101;
+  static const int CHAR_F = 102;
+  static const int CHAR_N = 110;
+  static const int CHAR_R = 114;
+  static const int CHAR_T = 116;
+  static const int CHAR_U = 117;
+  static const int LBRACE = 123;
+  static const int RBRACE = 125;
 
-  static final int STRING_LITERAL = QUOTE;
-  static final int NUMBER_LITERAL = MINUS;
-  static final int NULL_LITERAL = CHAR_N;
-  static final int FALSE_LITERAL = CHAR_F;
-  static final int TRUE_LITERAL = CHAR_T;
+  static const int STRING_LITERAL = QUOTE;
+  static const int NUMBER_LITERAL = MINUS;
+  static const int NULL_LITERAL = CHAR_N;
+  static const int FALSE_LITERAL = CHAR_F;
+  static const int TRUE_LITERAL = CHAR_T;
 
-  static final int WHITESPACE = SPACE;
+  static const int WHITESPACE = SPACE;
 
-  static final int LAST_ASCII = RBRACE;
+  static const int LAST_ASCII = RBRACE;
 
-  static final String NULL_STRING = "null";
-  static final String TRUE_STRING = "true";
-  static final String FALSE_STRING = "false";
+  static const String NULL_STRING = "null";
+  static const String TRUE_STRING = "true";
+  static const String FALSE_STRING = "false";
 
 
   static parse(String json) {

@@ -24,7 +24,7 @@ class LibraryInfo {
 /**
  * Specifies the location of Dart platform libraries.
  */
-final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
+const Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
     = const <String, LibraryInfo> {
   "core": const LibraryInfo(
       "lib/compiler/implementation/lib/core.dart"),

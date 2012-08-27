@@ -379,7 +379,7 @@ class Primitives {
   }
 
   /** [: @"$".charCodeAt(0) :] */
-  static final int DOLLAR_CHAR_VALUE = 36;
+  static const int DOLLAR_CHAR_VALUE = 36;
 
   static String objectTypeName(Object object) {
     String name = constructorNameFallback(object);

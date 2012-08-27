@@ -131,9 +131,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    *   variable = expression
    * which are also valid as parts of a "var" declaration.
    */
-  static final int TYPE_STATEMENT = 0;
-  static final int TYPE_EXPRESSION = 1;
-  static final int TYPE_DECLARATION = 2;
+  static const int TYPE_STATEMENT = 0;
+  static const int TYPE_EXPRESSION = 1;
+  static const int TYPE_DECLARATION = 2;
 
   /**
    * Whether we are currently generating expressions instead of statements.

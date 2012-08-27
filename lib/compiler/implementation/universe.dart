@@ -73,11 +73,11 @@ class SelectorKind {
   final String name;
   const SelectorKind(this.name);
 
-  static final SelectorKind GETTER = const SelectorKind('getter');
-  static final SelectorKind SETTER = const SelectorKind('setter');
-  static final SelectorKind CALL = const SelectorKind('call');
-  static final SelectorKind OPERATOR = const SelectorKind('operator');
-  static final SelectorKind INDEX = const SelectorKind('index');
+  static const SelectorKind GETTER = const SelectorKind('getter');
+  static const SelectorKind SETTER = const SelectorKind('setter');
+  static const SelectorKind CALL = const SelectorKind('call');
+  static const SelectorKind OPERATOR = const SelectorKind('operator');
+  static const SelectorKind INDEX = const SelectorKind('index');
 
   toString() => name;
 }

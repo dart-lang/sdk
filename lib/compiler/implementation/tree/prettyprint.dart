@@ -11,7 +11,7 @@
 class PrettyPrinter implements Visitor {
 
   /** String used to represent one level of indent. */
-  static final String INDENT = "  ";
+  static const String INDENT = "  ";
 
   StringBuffer sb;
   int depth;

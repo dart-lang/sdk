@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final bool VERBOSE = false;
+const bool VERBOSE = false;
 
 /**
  * A parser event listener that does nothing except throw exceptions

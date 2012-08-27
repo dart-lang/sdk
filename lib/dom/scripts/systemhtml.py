@@ -669,7 +669,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
   def AddConstant(self, constant):
     type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
-    self._members_emitter.Emit('\n  static final $TYPE$NAME = $VALUE;\n',
+    self._members_emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
                                NAME=constant.id,
                                TYPE=type,
                                VALUE=constant.value)

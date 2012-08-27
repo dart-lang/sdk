@@ -13,33 +13,33 @@ interface KeyLocation {
    * of the key, and did not originate from the numeric keypad (or did not
    * originate with a virtual key corresponding to the numeric keypad).
    */
-  static final int STANDARD = 0;
+  static const int STANDARD = 0;
 
   /**
    * The event key is in the left key location.
    */
-  static final int LEFT = 1;
+  static const int LEFT = 1;
 
   /**
    * The event key is in the right key location.
    */
-  static final int RIGHT = 2;
+  static const int RIGHT = 2;
 
   /**
    * The event key originated on the numeric keypad or with a virtual key
    * corresponding to the numeric keypad.
    */
-  static final int NUMPAD = 3;
+  static const int NUMPAD = 3;
 
   /**
    * The event key originated on a mobile device, either on a physical
    * keypad or a virtual keyboard.
    */
-  static final int MOBILE = 4;
+  static const int MOBILE = 4;
 
   /**
    * The event key originated on a game controller or a joystick on a mobile
    * device.
    */
-  static final int JOYSTICK = 5;
+  static const int JOYSTICK = 5;
 }

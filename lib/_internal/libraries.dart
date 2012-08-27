@@ -7,12 +7,12 @@
 /**
  * A bit flag used by [LibraryInfo] indicating that a library is used by dart2js
  */
-final int DART2JS_PLATFORM = 1;
+const int DART2JS_PLATFORM = 1;
 
 /**
  * A bit flag used by [LibraryInfo] indicating that a library is used by the VM
  */
-final int VM_PLATFORM = 2;
+const int VM_PLATFORM = 2;
 
 /**
  * Mapping of "dart:" library name (e.g. "core") to information about that library.
@@ -20,7 +20,7 @@ final int VM_PLATFORM = 2;
  * and extract the necessary information without executing it
  * while other tools can access via execution.
  */
-final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
+const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   // Used by VM applications
   "builtin": const LibraryInfo(

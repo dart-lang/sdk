@@ -14,7 +14,7 @@
 #import('filenames.dart');
 #import('util/uri_extras.dart');
 
-final String LIBRARY_ROOT = '../../../..';
+const String LIBRARY_ROOT = '../../../..';
 
 typedef void HandleOption(String option);
 

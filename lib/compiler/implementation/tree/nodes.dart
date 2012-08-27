@@ -708,41 +708,41 @@ class LiteralBool extends Literal<bool> {
 
 
 class StringQuoting {
-  static final StringQuoting SINGLELINE_DQ =
+  static const StringQuoting SINGLELINE_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 1);
-  static final StringQuoting RAW_SINGLELINE_DQ =
+  static const StringQuoting RAW_SINGLELINE_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 1);
-  static final StringQuoting MULTILINE_DQ =
+  static const StringQuoting MULTILINE_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 3);
-  static final StringQuoting RAW_MULTILINE_DQ =
+  static const StringQuoting RAW_MULTILINE_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 3);
-  static final StringQuoting MULTILINE_NL_DQ =
+  static const StringQuoting MULTILINE_NL_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 4);
-  static final StringQuoting RAW_MULTILINE_NL_DQ =
+  static const StringQuoting RAW_MULTILINE_NL_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 4);
-  static final StringQuoting MULTILINE_NL2_DQ =
+  static const StringQuoting MULTILINE_NL2_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 5);
-  static final StringQuoting RAW_MULTILINE_NL2_DQ =
+  static const StringQuoting RAW_MULTILINE_NL2_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 5);
-  static final StringQuoting SINGLELINE_SQ =
+  static const StringQuoting SINGLELINE_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 1);
-  static final StringQuoting RAW_SINGLELINE_SQ =
+  static const StringQuoting RAW_SINGLELINE_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 1);
-  static final StringQuoting MULTILINE_SQ =
+  static const StringQuoting MULTILINE_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 3);
-  static final StringQuoting RAW_MULTILINE_SQ =
+  static const StringQuoting RAW_MULTILINE_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 3);
-  static final StringQuoting MULTILINE_NL_SQ =
+  static const StringQuoting MULTILINE_NL_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 4);
-  static final StringQuoting RAW_MULTILINE_NL_SQ =
+  static const StringQuoting RAW_MULTILINE_NL_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 4);
-  static final StringQuoting MULTILINE_NL2_SQ =
+  static const StringQuoting MULTILINE_NL2_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 5);
-  static final StringQuoting RAW_MULTILINE_NL2_SQ =
+  static const StringQuoting RAW_MULTILINE_NL2_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 5);
 
 
-  static final List<StringQuoting> mapping = const <StringQuoting>[
+  static const List<StringQuoting> mapping = const <StringQuoting>[
     SINGLELINE_DQ,
     RAW_SINGLELINE_DQ,
     MULTILINE_DQ,
@@ -1096,13 +1096,13 @@ class Modifiers extends Node {
   /** Bit pattern to easy check what modifiers are present. */
   final int flags;
 
-  static final int FLAG_STATIC = 1;
-  static final int FLAG_ABSTRACT = FLAG_STATIC << 1;
-  static final int FLAG_FINAL = FLAG_ABSTRACT << 1;
-  static final int FLAG_VAR = FLAG_FINAL << 1;
-  static final int FLAG_CONST = FLAG_VAR << 1;
-  static final int FLAG_FACTORY = FLAG_CONST << 1;
-  static final int FLAG_EXTERNAL = FLAG_FACTORY << 1;
+  static const int FLAG_STATIC = 1;
+  static const int FLAG_ABSTRACT = FLAG_STATIC << 1;
+  static const int FLAG_FINAL = FLAG_ABSTRACT << 1;
+  static const int FLAG_VAR = FLAG_FINAL << 1;
+  static const int FLAG_CONST = FLAG_VAR << 1;
+  static const int FLAG_FACTORY = FLAG_CONST << 1;
+  static const int FLAG_EXTERNAL = FLAG_FACTORY << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 

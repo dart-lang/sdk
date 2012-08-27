@@ -7,12 +7,12 @@
  * If true, print a warning for each method that was resolved, but not
  * compiled.
  */
-final bool REPORT_EXCESS_RESOLUTION = false;
+const bool REPORT_EXCESS_RESOLUTION = false;
 
 /**
  * If true, trace information on pass2 optimizations.
  */
-final bool REPORT_PASS2_OPTIMIZATIONS = false;
+const bool REPORT_PASS2_OPTIMIZATIONS = false;
 
 /**
  * Contains backend-specific data that is used throughout the compilation of
@@ -142,21 +142,21 @@ class Compiler implements DiagnosticListener {
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
 
-  static final SourceString MAIN = const SourceString('main');
-  static final SourceString CALL_OPERATOR_NAME = const SourceString('call');
-  static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
-  static final SourceString NO_SUCH_METHOD_EXCEPTION =
+  static const SourceString MAIN = const SourceString('main');
+  static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
+  static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static const SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
-  static final SourceString START_ROOT_ISOLATE =
+  static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
   Stopwatch progress;
 
-  static final int PHASE_SCANNING = 0;
-  static final int PHASE_RESOLVING = 1;
-  static final int PHASE_COMPILING = 2;
-  static final int PHASE_RECOMPILING = 3;
+  static const int PHASE_SCANNING = 0;
+  static const int PHASE_RESOLVING = 1;
+  static const int PHASE_COMPILING = 2;
+  static const int PHASE_RECOMPILING = 3;
   int phase;
 
   bool compilationFailed = false;

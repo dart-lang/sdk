@@ -12,7 +12,7 @@ class _MeasurementRequest<T> {
   _MeasurementRequest(this.computeValue, this.completer);
 }
 
-final _MEASUREMENT_MESSAGE = "DART-MEASURE";
+const _MEASUREMENT_MESSAGE = "DART-MEASURE";
 List<_MeasurementRequest> _pendingRequests;
 List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
 bool _nextMeasurementFrameScheduled = false;

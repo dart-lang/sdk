@@ -40,24 +40,24 @@ abstract class HType {
     }
   }
 
-  static final HType CONFLICTING = const HConflictingType();
-  static final HType UNKNOWN = const HUnknownType();
-  static final HType BOOLEAN = const HBooleanType();
-  static final HType NUMBER = const HNumberType();
-  static final HType INTEGER = const HIntegerType();
-  static final HType DOUBLE = const HDoubleType();
-  static final HType INDEXABLE_PRIMITIVE = const HIndexablePrimitiveType();
-  static final HType STRING = const HStringType();
-  static final HType READABLE_ARRAY = const HReadableArrayType();
-  static final HType MUTABLE_ARRAY = const HMutableArrayType();
-  static final HType EXTENDABLE_ARRAY = const HExtendableArrayType();
-  static final HType NULL = const HNullType();
+  static const HType CONFLICTING = const HConflictingType();
+  static const HType UNKNOWN = const HUnknownType();
+  static const HType BOOLEAN = const HBooleanType();
+  static const HType NUMBER = const HNumberType();
+  static const HType INTEGER = const HIntegerType();
+  static const HType DOUBLE = const HDoubleType();
+  static const HType INDEXABLE_PRIMITIVE = const HIndexablePrimitiveType();
+  static const HType STRING = const HStringType();
+  static const HType READABLE_ARRAY = const HReadableArrayType();
+  static const HType MUTABLE_ARRAY = const HMutableArrayType();
+  static const HType EXTENDABLE_ARRAY = const HExtendableArrayType();
+  static const HType NULL = const HNullType();
 
-  static final HType BOOLEAN_OR_NULL = const HBooleanOrNullType();
-  static final HType NUMBER_OR_NULL = const HNumberOrNullType();
-  static final HType INTEGER_OR_NULL = const HIntegerOrNullType();
-  static final HType DOUBLE_OR_NULL = const HDoubleOrNullType();
-  static final HType STRING_OR_NULL = const HStringOrNullType();
+  static const HType BOOLEAN_OR_NULL = const HBooleanOrNullType();
+  static const HType NUMBER_OR_NULL = const HNumberOrNullType();
+  static const HType INTEGER_OR_NULL = const HIntegerOrNullType();
+  static const HType DOUBLE_OR_NULL = const HDoubleOrNullType();
+  static const HType STRING_OR_NULL = const HStringOrNullType();
 
   bool isConflicting() => this === CONFLICTING;
   bool isUnknown() => this === UNKNOWN;

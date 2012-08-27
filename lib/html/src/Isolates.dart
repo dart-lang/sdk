@@ -176,7 +176,7 @@ _deserialize(var message) {
 
 class _JsDeserializer extends _Deserializer {
 
-  static final _UNSPECIFIED = const Object();
+  static const _UNSPECIFIED = const Object();
 
   deserializeSendPort(List x) {
     String tag = x[1];

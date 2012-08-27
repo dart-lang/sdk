@@ -6,57 +6,57 @@
  * A keyword in the Dart programming language.
  */
 class Keyword implements SourceString {
-  static final Keyword BREAK = const Keyword("break");
-  static final Keyword CASE = const Keyword("case");
-  static final Keyword CATCH = const Keyword("catch");
-  static final Keyword CLASS = const Keyword("class");
-  static final Keyword CONST = const Keyword("const");
-  static final Keyword CONTINUE = const Keyword("continue");
-  static final Keyword DEFAULT = const Keyword("default");
-  static final Keyword DO = const Keyword("do");
-  static final Keyword ELSE = const Keyword("else");
-  static final Keyword EXTENDS = const Keyword("extends");
-  static final Keyword FALSE = const Keyword("false");
-  static final Keyword FINAL = const Keyword("final");
-  static final Keyword FINALLY = const Keyword("finally");
-  static final Keyword FOR = const Keyword("for");
-  static final Keyword IF = const Keyword("if");
-  static final Keyword IN = const Keyword("in");
-  static final Keyword IS = const Keyword("is", info: IS_INFO);
-  static final Keyword NEW = const Keyword("new");
-  static final Keyword NULL = const Keyword("null");
-  static final Keyword RETURN = const Keyword("return");
-  static final Keyword SUPER = const Keyword("super");
-  static final Keyword SWITCH = const Keyword("switch");
-  static final Keyword THIS = const Keyword("this");
-  static final Keyword THROW = const Keyword("throw");
-  static final Keyword TRUE = const Keyword("true");
-  static final Keyword TRY = const Keyword("try");
-  static final Keyword VAR = const Keyword("var");
-  static final Keyword VOID = const Keyword("void");
-  static final Keyword WHILE = const Keyword("while");
+  static const Keyword BREAK = const Keyword("break");
+  static const Keyword CASE = const Keyword("case");
+  static const Keyword CATCH = const Keyword("catch");
+  static const Keyword CLASS = const Keyword("class");
+  static const Keyword CONST = const Keyword("const");
+  static const Keyword CONTINUE = const Keyword("continue");
+  static const Keyword DEFAULT = const Keyword("default");
+  static const Keyword DO = const Keyword("do");
+  static const Keyword ELSE = const Keyword("else");
+  static const Keyword EXTENDS = const Keyword("extends");
+  static const Keyword FALSE = const Keyword("false");
+  static const Keyword FINAL = const Keyword("final");
+  static const Keyword FINALLY = const Keyword("finally");
+  static const Keyword FOR = const Keyword("for");
+  static const Keyword IF = const Keyword("if");
+  static const Keyword IN = const Keyword("in");
+  static const Keyword IS = const Keyword("is", info: IS_INFO);
+  static const Keyword NEW = const Keyword("new");
+  static const Keyword NULL = const Keyword("null");
+  static const Keyword RETURN = const Keyword("return");
+  static const Keyword SUPER = const Keyword("super");
+  static const Keyword SWITCH = const Keyword("switch");
+  static const Keyword THIS = const Keyword("this");
+  static const Keyword THROW = const Keyword("throw");
+  static const Keyword TRUE = const Keyword("true");
+  static const Keyword TRY = const Keyword("try");
+  static const Keyword VAR = const Keyword("var");
+  static const Keyword VOID = const Keyword("void");
+  static const Keyword WHILE = const Keyword("while");
 
   // Pseudo keywords:
-  static final Keyword ABSTRACT = const Keyword("abstract", isPseudo: true);
-  static final Keyword AS = const Keyword("as", info: AS_INFO, isPseudo: true);
-  static final Keyword ASSERT = const Keyword("assert", isPseudo: true);
-  static final Keyword EXTERNAL = const Keyword("external", isPseudo: true);
-  static final Keyword FACTORY = const Keyword("factory", isPseudo: true);
-  static final Keyword GET = const Keyword("get", isPseudo: true);
-  static final Keyword IMPLEMENTS = const Keyword("implements", isPseudo: true);
-  static final Keyword IMPORT = const Keyword("import", isPseudo: true);
-  static final Keyword INTERFACE = const Keyword("interface", isPseudo: true);
-  static final Keyword LIBRARY = const Keyword("library", isPseudo: true);
-  static final Keyword NATIVE = const Keyword("native", isPseudo: true);
-  static final Keyword NEGATE = const Keyword("negate", isPseudo: true);
-  static final Keyword OPERATOR = const Keyword("operator", isPseudo: true);
-  static final Keyword ON = const Keyword("on", isPseudo: true);
-  static final Keyword SET = const Keyword("set", isPseudo: true);
-  static final Keyword SOURCE = const Keyword("source", isPseudo: true);
-  static final Keyword STATIC = const Keyword("static", isPseudo: true);
-  static final Keyword TYPEDEF = const Keyword("typedef", isPseudo: true);
+  static const Keyword ABSTRACT = const Keyword("abstract", isPseudo: true);
+  static const Keyword AS = const Keyword("as", info: AS_INFO, isPseudo: true);
+  static const Keyword ASSERT = const Keyword("assert", isPseudo: true);
+  static const Keyword EXTERNAL = const Keyword("external", isPseudo: true);
+  static const Keyword FACTORY = const Keyword("factory", isPseudo: true);
+  static const Keyword GET = const Keyword("get", isPseudo: true);
+  static const Keyword IMPLEMENTS = const Keyword("implements", isPseudo: true);
+  static const Keyword IMPORT = const Keyword("import", isPseudo: true);
+  static const Keyword INTERFACE = const Keyword("interface", isPseudo: true);
+  static const Keyword LIBRARY = const Keyword("library", isPseudo: true);
+  static const Keyword NATIVE = const Keyword("native", isPseudo: true);
+  static const Keyword NEGATE = const Keyword("negate", isPseudo: true);
+  static const Keyword OPERATOR = const Keyword("operator", isPseudo: true);
+  static const Keyword ON = const Keyword("on", isPseudo: true);
+  static const Keyword SET = const Keyword("set", isPseudo: true);
+  static const Keyword SOURCE = const Keyword("source", isPseudo: true);
+  static const Keyword STATIC = const Keyword("static", isPseudo: true);
+  static const Keyword TYPEDEF = const Keyword("typedef", isPseudo: true);
 
-  static final List<Keyword> values = const <Keyword> [
+  static const List<Keyword> values = const <Keyword> [
       AS,
       BREAK,
       CASE,

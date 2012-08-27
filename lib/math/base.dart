@@ -9,42 +9,42 @@
  *
  * Typically written as "e".
  */
-final double E = 2.718281828459045;
+const double E = 2.718281828459045;
 
 /**
  * Natural logarithm of 10.
  */
-final double LN10 =  2.302585092994046;
+const double LN10 =  2.302585092994046;
 
 /**
  * Natural logarithm of 2.
  */
-final double LN2 =  0.6931471805599453;
+const double LN2 =  0.6931471805599453;
 
 /**
  * Base-2 logarithm of [E].
  */
-final double LOG2E = 1.4426950408889634;
+const double LOG2E = 1.4426950408889634;
 
 /**
  * Base-10 logarithm of [E].
  */
-final double LOG10E = 0.4342944819032518;
+const double LOG10E = 0.4342944819032518;
 
 /**
  * The PI constant.
  */
-final double PI = 3.1415926535897932;
+const double PI = 3.1415926535897932;
 
 /**
  * Square root of 1/2.
  */
-final double SQRT1_2 = 0.7071067811865476;
+const double SQRT1_2 = 0.7071067811865476;
 
 /**
  * Square root of 2.
  */
-final double SQRT2 = 1.4142135623730951;
+const double SQRT2 = 1.4142135623730951;
 
 /**
  * Parses a [String] representation of an [int], and returns an [int].

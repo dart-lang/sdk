@@ -20,31 +20,31 @@ class ElementCategory {
    * Represents things that we don't expect to find when looking in a
    * scope.
    */
-  static final int NONE = 0;
+  static const int NONE = 0;
 
   /** Field, parameter, or variable. */
-  static final int VARIABLE = 1;
+  static const int VARIABLE = 1;
 
   /** Function, method, or foreign function. */
-  static final int FUNCTION = 2;
+  static const int FUNCTION = 2;
 
-  static final int CLASS = 4;
+  static const int CLASS = 4;
 
-  static final int PREFIX = 8;
+  static const int PREFIX = 8;
 
   /** Constructor or factory. */
-  static final int FACTORY = 16;
+  static const int FACTORY = 16;
 
-  static final int ALIAS = 32;
+  static const int ALIAS = 32;
 
-  static final int SUPER = 64;
+  static const int SUPER = 64;
 
   /** Type variable */
-  static final int TYPE_VARIABLE = 128;
+  static const int TYPE_VARIABLE = 128;
 
-  static final int IMPLIES_TYPE = CLASS | ALIAS | TYPE_VARIABLE;
+  static const int IMPLIES_TYPE = CLASS | ALIAS | TYPE_VARIABLE;
 
-  static final int IS_EXTENDABLE = CLASS | ALIAS;
+  static const int IS_EXTENDABLE = CLASS | ALIAS;
 }
 
 class ElementKind {
@@ -53,54 +53,54 @@ class ElementKind {
 
   const ElementKind(String this.id, this.category);
 
-  static final ElementKind VARIABLE =
+  static const ElementKind VARIABLE =
     const ElementKind('variable', ElementCategory.VARIABLE);
-  static final ElementKind PARAMETER =
+  static const ElementKind PARAMETER =
     const ElementKind('parameter', ElementCategory.VARIABLE);
   // Parameters in constructors that directly initialize fields. For example:
   // [:A(this.field):].
-  static final ElementKind FIELD_PARAMETER =
+  static const ElementKind FIELD_PARAMETER =
     const ElementKind('field_parameter', ElementCategory.VARIABLE);
-  static final ElementKind FUNCTION =
+  static const ElementKind FUNCTION =
     const ElementKind('function', ElementCategory.FUNCTION);
-  static final ElementKind CLASS =
+  static const ElementKind CLASS =
     const ElementKind('class', ElementCategory.CLASS);
-  static final ElementKind FOREIGN =
+  static const ElementKind FOREIGN =
     const ElementKind('foreign', ElementCategory.FUNCTION);
-  static final ElementKind GENERATIVE_CONSTRUCTOR =
+  static const ElementKind GENERATIVE_CONSTRUCTOR =
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
-  static final ElementKind FIELD =
+  static const ElementKind FIELD =
     const ElementKind('field', ElementCategory.VARIABLE);
-  static final ElementKind VARIABLE_LIST =
+  static const ElementKind VARIABLE_LIST =
     const ElementKind('variable_list', ElementCategory.NONE);
-  static final ElementKind FIELD_LIST =
+  static const ElementKind FIELD_LIST =
     const ElementKind('field_list', ElementCategory.NONE);
-  static final ElementKind GENERATIVE_CONSTRUCTOR_BODY =
+  static const ElementKind GENERATIVE_CONSTRUCTOR_BODY =
       const ElementKind('generative_constructor_body', ElementCategory.NONE);
-  static final ElementKind COMPILATION_UNIT =
+  static const ElementKind COMPILATION_UNIT =
       const ElementKind('compilation_unit', ElementCategory.NONE);
-  static final ElementKind GETTER =
+  static const ElementKind GETTER =
     const ElementKind('getter', ElementCategory.NONE);
-  static final ElementKind SETTER =
+  static const ElementKind SETTER =
     const ElementKind('setter', ElementCategory.NONE);
-  static final ElementKind TYPE_VARIABLE =
+  static const ElementKind TYPE_VARIABLE =
     const ElementKind('type_variable', ElementCategory.TYPE_VARIABLE);
-  static final ElementKind ABSTRACT_FIELD =
+  static const ElementKind ABSTRACT_FIELD =
     const ElementKind('abstract_field', ElementCategory.VARIABLE);
-  static final ElementKind LIBRARY =
+  static const ElementKind LIBRARY =
     const ElementKind('library', ElementCategory.NONE);
-  static final ElementKind COMPILATION_UNIT_OVERRIDE =
+  static const ElementKind COMPILATION_UNIT_OVERRIDE =
     const ElementKind('compilation_unit_override', ElementCategory.NONE);
-  static final ElementKind PREFIX =
+  static const ElementKind PREFIX =
     const ElementKind('prefix', ElementCategory.PREFIX);
-  static final ElementKind TYPEDEF =
+  static const ElementKind TYPEDEF =
     const ElementKind('typedef', ElementCategory.ALIAS);
 
-  static final ElementKind STATEMENT =
+  static const ElementKind STATEMENT =
     const ElementKind('statement', ElementCategory.NONE);
-  static final ElementKind LABEL =
+  static const ElementKind LABEL =
     const ElementKind('label', ElementCategory.NONE);
-  static final ElementKind VOID =
+  static const ElementKind VOID =
     const ElementKind('void', ElementCategory.NONE);
 
   toString() => id;
@@ -1460,7 +1460,7 @@ class Elements {
     return new SourceString('$r\$$s');
   }
 
-  static final SourceString OPERATOR_EQUALS =
+  static const SourceString OPERATOR_EQUALS =
       const SourceString(@'operator$eq');
 
   static SourceString constructOperatorName(SourceString receiver,

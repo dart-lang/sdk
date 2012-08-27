@@ -4,10 +4,10 @@
 
 #library('colors');
 
-final String GREEN_COLOR = '\u001b[32m';
-final String RED_COLOR = '\u001b[31m';
-final String MAGENTA_COLOR = '\u001b[35m';
-final String NO_COLOR = '\u001b[0m';
+const String GREEN_COLOR = '\u001b[32m';
+const String RED_COLOR = '\u001b[31m';
+const String MAGENTA_COLOR = '\u001b[35m';
+const String NO_COLOR = '\u001b[0m';
 
 String wrap(String string, String color) => "${color}$string${NO_COLOR}";
 String green(String string) => wrap(string, GREEN_COLOR);

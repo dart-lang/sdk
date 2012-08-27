@@ -853,8 +853,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     localsHandler = new LocalsHandler(this);
   }
 
-  static final MAX_INLINING_DEPTH = 3;
-  static final MAX_INLINING_SOURCE_SIZE = 100;
+  static const MAX_INLINING_DEPTH = 3;
+  static const MAX_INLINING_SOURCE_SIZE = 100;
   List<InliningState> inliningStack;
   Element returnElement = null;
 
@@ -1900,7 +1900,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void generateGetter(Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.kind == ElementKind.FIELD && !element.isAssignable()) {
-        // A static final. Get its constant value and inline it.
+        // A static const. Get its constant value and inline it.
         Constant value = compiler.constantHandler.compileVariable(element);
         stack.add(graph.addConstant(value));
       } else {

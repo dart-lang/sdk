@@ -52,22 +52,22 @@ bool _is16BitCodeUnit() {
 /**
  * Invalid codepoints or encodings may be substituted with the value U+fffd.
  */
-final int UNICODE_REPLACEMENT_CHARACTER_CODEPOINT = 0xfffd;
-final int UNICODE_BOM = 0xfeff;
-final int UNICODE_UTF_BOM_LO = 0xff;
-final int UNICODE_UTF_BOM_HI = 0xfe;
+const int UNICODE_REPLACEMENT_CHARACTER_CODEPOINT = 0xfffd;
+const int UNICODE_BOM = 0xfeff;
+const int UNICODE_UTF_BOM_LO = 0xff;
+const int UNICODE_UTF_BOM_HI = 0xfe;
 
-final int UNICODE_BYTE_ZERO_MASK = 0xff;
-final int UNICODE_BYTE_ONE_MASK = 0xff00;
-final int UNICODE_VALID_RANGE_MAX = 0x10ffff;
-final int UNICODE_PLANE_ONE_MAX = 0xffff;
-final int UNICODE_UTF16_RESERVED_LO = 0xd800;
-final int UNICODE_UTF16_RESERVED_HI = 0xdfff;
-final int UNICODE_UTF16_OFFSET = 0x10000;
-final int UNICODE_UTF16_SURROGATE_UNIT_0_BASE = 0xd800;
-final int UNICODE_UTF16_SURROGATE_UNIT_1_BASE = 0xdc00;
-final int UNICODE_UTF16_HI_MASK = 0xffc00;
-final int UNICODE_UTF16_LO_MASK = 0x3ff;
+const int UNICODE_BYTE_ZERO_MASK = 0xff;
+const int UNICODE_BYTE_ONE_MASK = 0xff00;
+const int UNICODE_VALID_RANGE_MAX = 0x10ffff;
+const int UNICODE_PLANE_ONE_MAX = 0xffff;
+const int UNICODE_UTF16_RESERVED_LO = 0xd800;
+const int UNICODE_UTF16_RESERVED_HI = 0xdfff;
+const int UNICODE_UTF16_OFFSET = 0x10000;
+const int UNICODE_UTF16_SURROGATE_UNIT_0_BASE = 0xd800;
+const int UNICODE_UTF16_SURROGATE_UNIT_1_BASE = 0xdc00;
+const int UNICODE_UTF16_HI_MASK = 0xffc00;
+const int UNICODE_UTF16_LO_MASK = 0x3ff;
 
 /**
  * Encode code points as UTF16 code units.

@@ -222,14 +222,14 @@ class DietParserTask extends CompilerTask {
  * tags come in the correct order.
  */
 class TagState {
-  static final int NO_TAG_SEEN = 0;
-  static final int LIBRARY = 1;
-  static final int IMPORT = 2;
-  static final int SOURCE = 3;
-  static final int RESOURCE = 4;
+  static const int NO_TAG_SEEN = 0;
+  static const int LIBRARY = 1;
+  static const int IMPORT = 2;
+  static const int SOURCE = 3;
+  static const int RESOURCE = 4;
 
   /** Next state. */
-  static final List<int> NEXT =
+  static const List<int> NEXT =
       const <int>[NO_TAG_SEEN,
                   IMPORT, // Only one library tag is allowed.
                   IMPORT,
