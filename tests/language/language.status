@@ -81,8 +81,6 @@ const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
-interface_constants_test: Fail # Issue 3549
-ct_const_test: Fail # Issue 3549
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530

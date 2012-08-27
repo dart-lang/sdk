@@ -13,8 +13,9 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -51,7 +52,6 @@ import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
-import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
@@ -1168,7 +1168,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
       } else {
         if (isParsingInterface
-            && (peek(0) != Token.FINAL)) {
+            && peek(0) != Token.FINAL && peek(0) != Token.CONST) {
           reportError(position(), ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE);
         }
         modifiers = modifiers.makeStatic();
