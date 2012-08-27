@@ -4088,6 +4088,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }.doTest(unit);
   }
 
+  /**
+   * A constructor name always begins with the name of its immediately enclosing class, and may
+   * optionally be followed by a dot and an identifier id. It is a compile-time error if id is the
+   * name of a member declared in the immediately enclosing class.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3989
+   */
+  public void test_constructorName_sameAsMemberName() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.foo() {}",
+        "  foo() {}",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER, 3, 3, 5));
+  }
+
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,
       final Class<T> clazz,
