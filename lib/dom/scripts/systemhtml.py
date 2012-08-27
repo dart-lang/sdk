@@ -14,6 +14,8 @@ from systeminterface import *
 _js_custom_members = set([
     'IDBDatabase.transaction',
     'IFrameElement.contentWindow',
+    'MouseEvent.offsetX',
+    'MouseEvent.offsetY',
     'Window.document',
     'Window.top',
     'Window.location',

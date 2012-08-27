@@ -9650,6 +9650,9 @@ class _ModElementImpl extends _ElementImpl implements ModElement native "*HTMLMo
 
   String dateTime;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseEvent" {
 
@@ -9668,10 +9671,6 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   final _NodeImpl fromElement;
 
   final bool metaKey;
-
-  final int offsetX;
-
-  final int offsetY;
 
   final _EventTargetImpl relatedTarget;
 
@@ -9692,6 +9691,38 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   final int y;
 
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
+
+
+  int get offsetX() {
+    if (JS('bool', '!!this.offsetX')) {
+      return this._offsetX;
+    } else {
+      // Firefox does not support offsetX.
+      var target = this.target;
+      if (!(target is Element)) {
+        throw const UnsupportedOperationException(
+            'offsetX is only supported on elements');
+      }
+      return this.clientX - this.target.$dom_getBoundingClientRect().left;
+    }
+  }
+
+  int get offsetY() {
+    if (JS('bool', '!!this.offsetY')) {
+      return this._offsetY;
+    } else {
+      // Firefox does not support offsetY.
+      var target = this.target;
+      if (!(target is Element)) {
+        throw const UnsupportedOperationException(
+            'offsetX is only supported on elements');
+      }
+      return this.clientY - this.target.$dom_getBoundingClientRect().top;
+    }
+  }
+
+  int get _offsetX() native 'return this.offsetX';
+  int get _offsetY() native 'return this.offsetY';
 }
 
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
