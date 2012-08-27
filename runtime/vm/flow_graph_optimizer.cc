@@ -614,11 +614,8 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
       // TODO(srdjan): Add check class comp for mixed smi/non-smi.
       if (HasOneTarget(unary_checks) &&
           (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
-        Value* value = comp->ArgumentAt(0)->value()->CopyValue();
         // Type propagation has not run yet, we cannot eliminate the check.
-        CheckClassComp* check = new CheckClassComp(value, comp);
-        check->set_ic_data(&unary_checks);
-        InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
+        AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
         // Call can still deoptimize, do not detach environment from instr.
         call_with_checks = false;
       } else {
