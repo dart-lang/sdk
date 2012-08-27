@@ -1224,7 +1224,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     // The exception is signature classes, which are compiler generated and
     // represent a function type, therefore implementing the Function interface.
     if (!cls_belongs_to_core_lib) {
-      if (interface.IsBoolInterface() ||
+      if (interface.IsBoolType() ||
           interface.IsNumberType() ||
           interface.IsIntInterface() ||
           interface.IsDoubleInterface() ||

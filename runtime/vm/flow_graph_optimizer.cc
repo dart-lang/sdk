@@ -791,7 +791,7 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
       comp->value()->BindsToConstant() &&
       !comp->value()->BindsToConstantNull() &&
       comp->value()->CompileTypeIsMoreSpecificThan(
-          Type::Handle(Type::BoolInterface()))) {
+          Type::Handle(Type::BoolType()))) {
     // TODO(regis): Remove is_eliminated_ field and support.
     comp->eliminate();
 
@@ -814,7 +814,7 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        comp->token_pos(),
                                        comp->value(),
-                                       Type::Handle(Type::BoolInterface()),
+                                       Type::Handle(Type::BoolType()),
                                        name,
                                        comp->is_eliminated());
     }

@@ -560,7 +560,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
   name = Symbols::Bool();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
@@ -788,11 +788,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_interface(type);
 
-  cls = CreateAndRegisterInterface("bool", script, core_lib);
-  pending_classes.Add(cls, Heap::kOld);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_bool_interface(type);
-
   cls = CreateAndRegisterInterface("List", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -802,6 +797,10 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_byte_array_interface(type);
+
+  cls = object_store->bool_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_bool_type(type);
 
   cls = object_store->smi_class();
   type = Type::NewNonParameterizedType(cls);
@@ -1166,8 +1165,6 @@ RawString* Class::UserVisibleName() const {
     case kExternalTwoByteStringCid:
     case kExternalFourByteStringCid:
       return Symbols::New("String");
-    case kBoolCid:
-      return Symbols::New("bool");
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
@@ -2556,9 +2553,9 @@ RawString* AbstractType::ClassName() const {
 }
 
 
-bool AbstractType::IsBoolInterface() const {
+bool AbstractType::IsBoolType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::BoolInterface()).type_class());
+      (type_class() == Type::Handle(Type::BoolType()).type_class());
 }
 
 
@@ -2689,8 +2686,8 @@ RawType* Type::ObjectType() {
 }
 
 
-RawType* Type::BoolInterface() {
-  return Isolate::Current()->object_store()->bool_interface();
+RawType* Type::BoolType() {
+  return Isolate::Current()->object_store()->bool_type();
 }
 
 

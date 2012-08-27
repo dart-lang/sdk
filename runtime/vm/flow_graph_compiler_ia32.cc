@@ -231,7 +231,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Bool interface can be implemented only by core class Bool.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
-  if (type.IsBoolInterface()) {
+  if (type.IsBoolType()) {
     __ cmpl(kClassIdReg, Immediate(kBoolCid));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);

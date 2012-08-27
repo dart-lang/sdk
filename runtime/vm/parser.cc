@@ -4691,11 +4691,11 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
     *value = CurrentLiteral()->raw();
     return true;
   } else if ((CurrentToken() == Token::kTRUE) &&
-      (no_check || type.IsBoolInterface())) {
+      (no_check || type.IsBoolType())) {
     *value = Bool::True();
     return true;
   } else if ((CurrentToken() == Token::kFALSE) &&
-      (no_check || type.IsBoolInterface())) {
+      (no_check || type.IsBoolType())) {
     *value = Bool::False();
     return true;
   } else if (CurrentToken() == Token::kNULL) {

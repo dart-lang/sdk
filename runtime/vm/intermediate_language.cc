@@ -755,7 +755,7 @@ RawAbstractType* AssertAssignableComp::CompileType() const {
 
 
 RawAbstractType* AssertBooleanComp::CompileType() const {
-  return Type::BoolInterface();
+  return Type::BoolType();
 }
 
 
@@ -812,7 +812,7 @@ RawAbstractType* StoreLocalComp::CompileType() const {
 
 
 RawAbstractType* StrictCompareComp::CompileType() const {
-  return Type::BoolInterface();
+  return Type::BoolType();
 }
 
 
@@ -821,10 +821,10 @@ RawAbstractType* EqualityCompareComp::CompileType() const {
   if ((receiver_class_id() == kSmiCid) ||
       (receiver_class_id() == kDoubleCid) ||
       (receiver_class_id() == kNumberCid)) {
-    return Type::BoolInterface();
+    return Type::BoolType();
   }
   if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
-    return Type::BoolInterface();
+    return Type::BoolType();
   }
   return Type::DynamicType();
 }
@@ -849,7 +849,7 @@ RawAbstractType* RelationalOpComp::CompileType() const {
       (operands_class_id() == kDoubleCid) ||
       (operands_class_id() == kNumberCid)) {
     // Known/library relational ops that are guaranteed to return Boolean.
-    return Type::BoolInterface();
+    return Type::BoolType();
   }
   return Type::DynamicType();
 }
@@ -911,12 +911,12 @@ RawAbstractType* StoreStaticFieldComp::CompileType() const {
 
 
 RawAbstractType* BooleanNegateComp::CompileType() const {
-  return Type::BoolInterface();
+  return Type::BoolType();
 }
 
 
 RawAbstractType* InstanceOfComp::CompileType() const {
-  return Type::BoolInterface();
+  return Type::BoolType();
 }
 
 

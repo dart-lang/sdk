@@ -865,8 +865,8 @@ class AbstractType : public Object {
         Class::Handle(type_class()).IsObjectClass();
   }
 
-  // Check if this type represents the 'bool' interface.
-  bool IsBoolInterface() const;
+  // Check if this type represents the 'bool' type.
+  bool IsBoolType() const;
 
   // Check if this type represents the 'int' interface.
   bool IsIntInterface() const;
@@ -983,8 +983,8 @@ class Type : public AbstractType {
   // The 'Object' type.
   static RawType* ObjectType();
 
-  // The 'bool' interface type.
-  static RawType* BoolInterface();
+  // The 'bool' type.
+  static RawType* BoolType();
 
   // The 'int' interface type.
   static RawType* IntInterface();
@@ -3888,6 +3888,7 @@ class ExternalFourByteString : public String {
 };
 
 
+// Class Bool implements Dart core class bool.
 class Bool : public Instance {
  public:
   bool value() const {

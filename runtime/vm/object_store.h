@@ -140,10 +140,8 @@ class ObjectStore {
     external_four_byte_string_class_ = value.raw();
   }
 
-  RawType* bool_interface() const { return bool_interface_; }
-  void set_bool_interface(const Type& value) {
-    bool_interface_ = value.raw();
-  }
+  RawType* bool_type() const { return bool_type_; }
+  void set_bool_type(const Type& value) { bool_type_ = value.raw(); }
 
   RawClass* bool_class() const { return bool_class_; }
   void set_bool_class(const Class& value) { bool_class_ = value.raw(); }
@@ -492,7 +490,7 @@ class ObjectStore {
   RawClass* external_one_byte_string_class_;
   RawClass* external_two_byte_string_class_;
   RawClass* external_four_byte_string_class_;
-  RawType* bool_interface_;
+  RawType* bool_type_;
   RawClass* bool_class_;
   RawType* list_interface_;
   RawClass* array_class_;

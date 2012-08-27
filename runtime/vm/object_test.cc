@@ -2354,10 +2354,10 @@ TEST_CASE(ObjectPrinting) {
   EXPECT_STREQ("2", Smi::Handle(Smi::New(2)).ToCString());
   EXPECT_STREQ("-15", Smi::Handle(Smi::New(-15)).ToCString());
 
-  // Bool class and true/false values.
+  // bool class and true/false values.
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Class& bool_class = Class::Handle(object_store->bool_class());
-  EXPECT_STREQ("Library:'dart:coreimpl' Class: Bool",
+  EXPECT_STREQ("Library:'dart:core' Class: bool",
                bool_class.ToCString());
   EXPECT_STREQ("true", Bool::Handle(Bool::True()).ToCString());
   EXPECT_STREQ("false", Bool::Handle(Bool::False()).ToCString());

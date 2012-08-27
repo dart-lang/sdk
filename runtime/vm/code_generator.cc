@@ -660,7 +660,7 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
   const intptr_t location = GetCallerLocation();
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(0));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
-  const Type& bool_interface = Type::Handle(Type::BoolInterface());
+  const Type& bool_interface = Type::Handle(Type::BoolType());
   const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   const String& bool_type_name =

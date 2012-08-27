@@ -91,7 +91,7 @@ class ObjectPointerVisitor;
   V(Mint, "Mint")                                                              \
   V(Bigint, "Bigint")                                                          \
   V(Double, "Double")                                                          \
-  V(Bool, "Bool")                                                              \
+  V(Bool, "bool")                                                              \
   V(ObjectArray, "ObjectArray")                                                \
   V(GrowableObjectArray, "GrowableObjectArray")                                \
   V(ImmutableArray, "ImmutableArray")                                          \
