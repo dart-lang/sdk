@@ -47,7 +47,7 @@ class _Null {
   const _Null();
 }
 
-const _null = const _Null();
+final _null = const _Null();
 
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 
@@ -5918,14 +5918,6 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
-  void addText(String text) {
-    this.insertAdjacentText('beforeend', text);
-  }
-
-  void addHTML(String text) {
-    this.insertAdjacentHTML('beforeend', text);
-  }
-
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(() => const EmptyElementRect(),
                                     new Completer<ElementRect>());
@@ -7112,14 +7104,14 @@ class _ElementRectImpl implements ElementRect {
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectImpl _boundingClientRect;
+  final _ClientRectImpl _boundingClientRect; 
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
     client = new _SimpleClientRect(element.$dom_clientLeft,
                                   element.$dom_clientTop,
-                                  element.$dom_clientWidth,
-                                  element.$dom_clientHeight),
+                                  element.$dom_clientWidth, 
+                                  element.$dom_clientHeight), 
     offset = new _SimpleClientRect(element.$dom_offsetLeft,
                                   element.$dom_offsetTop,
                                   element.$dom_offsetWidth,
@@ -7208,14 +7200,6 @@ class _ElementImpl extends _NodeImpl implements Element {
         new Completer<CSSStyleDeclaration>());
   }
 
-  void addText(String text) {
-    this.insertAdjacentText('beforeend', text);
-  }
-
-  void addHTML(String text) {
-    this.insertAdjacentHTML('beforeend', text);
-  }
-
   // Hooks to support custom WebComponents.
   var xtag;
 
@@ -7226,7 +7210,6 @@ class _ElementImpl extends _NodeImpl implements Element {
       return dynamicUnknownElementDispatcher(this, name, args);
     }
   }
-
 
 
   _ElementEventsImpl get on() =>
@@ -7337,9 +7320,9 @@ class _ElementImpl extends _NodeImpl implements Element {
 // Temporary dispatch hook to support WebComponents.
 Function dynamicUnknownElementDispatcher;
 
-const _START_TAG_REGEXP = const RegExp('<(\\w+)');
+final _START_TAG_REGEXP = const RegExp('<(\\w+)');
 class _ElementFactoryProvider {
-  static const _CUSTOM_PARENT_TAG_MAP = const {
+  static final _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',
     'head' : 'html',
     'caption' : 'table',
@@ -13025,7 +13008,7 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
   }
 
    // TODO: Change to a set when const Sets are available.
-  static const _boolKeys =
+  static final _boolKeys =
     const {'childList': true,
            'attributes': true,
            'characterData': true,
@@ -26676,17 +26659,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   AttributeMap get dataAttributes();
   void set dataAttributes(Map<String, String> value);
-
-  /**
-   * Adds the specified text as a text node after the last child of this.
-   */
-  void addText(String text);
-
-  /**
-   * Parses the specified text as HTML and adds the resulting node after the
-   * last child of this.
-   */
-  void addHTML(String html);
 
   /**
    * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,

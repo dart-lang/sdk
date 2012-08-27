@@ -85,14 +85,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   Element get parent();
 
-  void addText(String text) {
-    this.insertAdjacentText('beforeend', text);
-  }
-
-  void addHTML(String text) {
-    this.insertAdjacentHTML('beforeend', text);
-  }
-
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
