@@ -3426,10 +3426,20 @@ public class DartParser extends CompletionHooksParserBase {
       case STRING_LAST_SEGMENT:
         throw new StringInterpolationParseError();
 
+      case CONDITIONAL:
+        return parseArgumentDefinitionTest();
+
       default: {
         return parseLiteral();
       }
     }
+  }
+
+  private DartExpression parseArgumentDefinitionTest() {
+    beginArgumentDefinitionTest();
+    int operatorOffset = position();
+    expect(Token.CONDITIONAL);
+    return done(new DartUnaryExpression(Token.CONDITIONAL, operatorOffset, parseIdentifier(), true));
   }
 
   private DartExpression parseConstructorInvocation(boolean isConst) {

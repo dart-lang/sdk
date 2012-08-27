@@ -2426,6 +2426,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           return node.isPrefix() ? returnType : type;
         }
+        case CONDITIONAL:
+          return boolType;
         default:
           throw internalError(node, "unknown operator %s", operator.toString());
       }

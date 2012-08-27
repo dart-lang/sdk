@@ -1223,6 +1223,29 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.EXPECTED_TOKEN, 2, 15);
   }
 
+  public void test_abstractMethod_withModifier() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "class C {",
+        "  abstract m(a, b, c);",
+        "}"));
+  }
+
+  public void test_abstractMethod_withoutModifier() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "class C {",
+        "  m(a, b, c);",
+        "}"));
+  }
+
+  public void test_argumentDefinitionTest() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "class C {",
+        "  m([p = 0]) {",
+        "    return ?p;",
+        "  }",
+        "}"));
+  }
+
   public void test_assignToNonAssignable() throws Exception {
     parseUnit("phony_assign_to_non_assignable.dart",
         Joiner.on("\n").join(

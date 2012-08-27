@@ -20,7 +20,7 @@ public class DartUnaryExpression extends DartExpression {
   private MethodNodeElement element;
 
   public DartUnaryExpression(Token operator, int operatorOffset, DartExpression arg, boolean isPrefix) {
-    assert operator.isUnaryOperator() || operator == Token.SUB;
+    assert operator.isUnaryOperator() || operator == Token.SUB || operator == Token.CONDITIONAL;
     this.operator = operator;
     this.operatorOffset = operatorOffset;
     this.arg = becomeParentOf(arg);
