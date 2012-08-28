@@ -239,8 +239,7 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   // kDeoptAtCall will not emit code, but will only generate deoptimization
   // information.
   const intptr_t deopt_index = deopt_stubs_.length();
-  const intptr_t kNoTryIndex = -1;
-  AddDeoptStub(deopt_id, kNoTryIndex, kDeoptAtCall);
+  AddDeoptStub(deopt_id, kDeoptAtCall);
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kDeoptIndex,
                                        assembler()->CodeSize(),
                                        deopt_id,
@@ -260,10 +259,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
 
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       intptr_t try_index,
                                        DeoptReasonId reason) {
-  DeoptimizationStub* stub =
-      new DeoptimizationStub(deopt_id, try_index, reason);
+  DeoptimizationStub* stub = new DeoptimizationStub(deopt_id, reason);
   ASSERT(is_optimizing_);
   ASSERT(pending_deoptimization_env_ != NULL);
   stub->set_deoptimization_env(pending_deoptimization_env_);

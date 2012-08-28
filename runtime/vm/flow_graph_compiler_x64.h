@@ -184,9 +184,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordSafepoint(LocationSummary* locs);
 
-  Label* AddDeoptStub(intptr_t deopt_id,
-                      intptr_t try_index_,
-                      DeoptReasonId reason);
+  Label* AddDeoptStub(intptr_t deopt_id, DeoptReasonId reason);
 
   void AddDeoptIndexAtCall(intptr_t deopt_id, intptr_t token_pos);
 

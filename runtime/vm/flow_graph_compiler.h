@@ -61,10 +61,8 @@ class ParallelMoveResolver : public ValueObject {
 class DeoptimizationStub : public ZoneAllocated {
  public:
   DeoptimizationStub(intptr_t deopt_id,
-                     intptr_t try_index,
                      DeoptReasonId reason)
       : deopt_id_(deopt_id),
-        try_index_(try_index),
         reason_(reason),
         deoptimization_env_(NULL),
         entry_label_() {}
@@ -82,7 +80,6 @@ class DeoptimizationStub : public ZoneAllocated {
 
  private:
   const intptr_t deopt_id_;
-  const intptr_t try_index_;
   const DeoptReasonId reason_;
   const Environment* deoptimization_env_;
   Label entry_label_;

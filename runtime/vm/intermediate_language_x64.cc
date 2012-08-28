@@ -363,7 +363,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   ASSERT(ic_data.NumberOfChecks() > 0);
   ASSERT(ic_data.num_args_tested() == 1);
-  Label* deopt = compiler->AddDeoptStub(deopt_id, try_index, kDeoptEquality);
+  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
   Register left = locs->in(0).reg();
   Register right = locs->in(1).reg();
   __ testq(left, Immediate(kSmiTagMask));
@@ -448,15 +448,12 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
                                    BranchInstr* branch,
-                                   intptr_t deopt_id,
-                                   intptr_t try_index) {
+                                   intptr_t deopt_id) {
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
   Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        try_index,
-                                        kDeoptEquality);
+  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
   __ testq(left, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   // 'left' is not Smi.
@@ -549,8 +546,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
                                 BranchInstr* branch,
-                                intptr_t deopt_id,
-                                intptr_t try_index) {
+                                intptr_t deopt_id) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
   const bool left_is_smi = (branch == NULL) ?
@@ -559,9 +555,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
       false : (branch->right()->ResultCid() == kSmiCid);
   if (!left_is_smi || !right_is_smi) {
     Register temp = locs.temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                          try_index,
-                                          kDeoptSmiCompareSmi);
+    Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptSmiCompareSmi);
     __ movq(temp, left);
     __ orq(temp, right);
     __ testq(temp, Immediate(kSmiTagMask));
@@ -605,15 +599,12 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
                                    BranchInstr* branch,
-                                   intptr_t deopt_id,
-                                   intptr_t try_index) {
+                                   intptr_t deopt_id) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
   // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
   Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        try_index,
-                                        kDeoptDoubleComparison);
+  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptDoubleComparison);
   compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
   compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
 
@@ -629,27 +620,26 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BranchInstr* kNoBranch = NULL;
   if (receiver_class_id() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
-    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
-                        deopt_id(), try_index());
+    EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch, deopt_id());
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
     // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
-                           deopt_id(), try_index());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch, deopt_id());
     return;
   }
   const bool is_checked_strict_equal =
       HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
   if (is_checked_strict_equal) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), NULL,
-                           deopt_id(), try_index());
+    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
+                           deopt_id());
     return;
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), NULL, *ic_data(),
+    EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
                                deopt_id(), token_pos(), try_index());
   } else {
     Register left = locs()->in(0).reg();
@@ -692,13 +682,11 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
 
 void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operands_class_id() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,
-                        deopt_id(), try_index());
+    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL, deopt_id());
     return;
   }
   if (operands_class_id() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,
-                           deopt_id(), try_index());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL, deopt_id());
     return;
   }
 
@@ -710,9 +698,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(left);
   __ pushq(right);
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                          try_index(),
-                                          kDeoptRelationalOp);
+    Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptRelationalOp);
 
     // Load class into RDI. Since this is a call, any register except
     // the fixed input registers would be ok.
@@ -1102,7 +1088,6 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->try_index(),
                                           kDeoptInstanceGetterSameTarget);
     // Smis do not have instance fields (Smi class is always first).
     // Use 'result' as temporary register.
@@ -1484,7 +1469,6 @@ void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     default:
       deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                     instance_call()->try_index(),
                                      kDeoptBinarySmiOp);
   }
   switch (op_kind()) {
@@ -1650,7 +1634,6 @@ void BinaryMintOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == result);
   ASSERT(op_kind() == Token::kBIT_AND);
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
                                         kDeoptBinaryMintOp);
   Label mint_static_call, smi_static_call, non_smi, smi_smi, done;
   __ testq(left, Immediate(kSmiTagMask));  // Is receiver Smi?
@@ -1757,7 +1740,6 @@ void BinaryDoubleOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(left, Address(RSP, kWordSize));
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
                                         kDeoptBinaryDoubleOp);
 
   // Binary operation of two Smi's produces a Smi not a double.
@@ -1799,7 +1781,6 @@ LocationSummary* CheckEitherNonSmiComp::MakeLocationSummary() const {
 
 void CheckEitherNonSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call_->deopt_id(),
-                                        instance_call_->try_index(),
                                         kDeoptBinaryDoubleOp);
 
   Register temp = locs()->temp(0).reg();
@@ -1895,7 +1876,6 @@ void UnboxDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const XmmRegister result = locs()->out().xmm_reg();
   if (v_cid != kDoubleCid) {
     Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                          instance_call()->try_index(),
                                           kDeoptBinaryDoubleOp);
     compiler->LoadDoubleOrSmiToXmm(result,
                                    value,
@@ -1952,7 +1932,6 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kNEGATE: {
       Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                            instance_call()->try_index(),
                                             kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
@@ -1995,7 +1974,6 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   ASSERT(value == result);
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
                                         kDeoptUnaryOp);
   if (test_class_id == kDoubleCid) {
     Register temp = locs()->temp(0).reg();
@@ -2044,7 +2022,6 @@ void DoubleToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
                                         kDeoptDoubleToDouble);
 
   __ testq(value, Immediate(kSmiTagMask));
@@ -2064,7 +2041,6 @@ void SmiToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
                                         kDeoptIntegerToDouble);
 
   const Class& double_class = compiler->double_class();
@@ -2100,7 +2076,6 @@ LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
 
 void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->try_index(),
                                         kDeoptPolymorphicInstanceCallTestFail);
   if (!HasICData() || (ic_data()->NumberOfChecks() == 0)) {
     __ jmp(deopt);
@@ -2201,18 +2176,16 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Relational or equality.
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     if (ICDataWithBothClassIds(*ic_data(), kSmiCid)) {
-      EmitSmiComparisonOp(compiler, *locs(), kind(), this,
-                          deopt_id(), try_index());
+      EmitSmiComparisonOp(compiler, *locs(), kind(), this, deopt_id());
       return;
     }
     if (ICDataWithBothClassIds(*ic_data(), kDoubleCid)) {
-      EmitDoubleComparisonOp(compiler, *locs(), kind(), this,
-                             deopt_id(), try_index());
+      EmitDoubleComparisonOp(compiler, *locs(), kind(), this, deopt_id());
       return;
     }
     if (IsCheckedStrictEquals(*ic_data(), kind())) {
       EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), this,
-                             deopt_id(), try_index());
+                             deopt_id());
       return;
     }
     // TODO(srdjan): Add Smi/Double, Double/Smi comparisons.
@@ -2293,7 +2266,6 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        try_index(),
                                         kDeoptCheckClass);
   ASSERT(ic_data()->GetReceiverClassIdAt(0) != kSmiCid);
   __ testq(value, Immediate(kSmiTagMask));
@@ -2331,7 +2303,6 @@ LocationSummary* CheckSmiComp::MakeLocationSummary() const {
 void CheckSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        try_index(),
                                         kDeoptCheckSmi);
   __ testq(value, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
@@ -2353,7 +2324,6 @@ void CheckArrayBoundComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       (array_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        try_index(),
                                         deopt_reason);
   switch (array_type()) {
     case kArrayCid:
