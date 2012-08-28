@@ -532,7 +532,7 @@ void PageSpaceController::EvaluateGarbageCollection(
                                                      desired_utilization_);
       intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
                                                 PageSpace::kPageSize);
-      intptr_t growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
+      int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
       grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
     } else {
       grow_heap_ = heap_growth_rate_;
