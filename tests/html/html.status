@@ -200,6 +200,9 @@ mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 fileapi_test: Skip # Issue 3022
 
+[ $compiler == dart2js && $runtime == chrome ]
+cssstyledeclaration_test: Fail # Issue 4777
+
 [ $compiler == dart2js && $runtime == ff ]
 cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
 xhr_test: Skip # Timeout
