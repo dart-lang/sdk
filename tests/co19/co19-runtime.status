@@ -169,6 +169,8 @@ LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # Promise removed (co19 issue #79)
+LibTest/core/List/sort_A01_t02: Fail, OK # (co19 issue #179)
+LibTest/core/List/sort_A01_t03: Fail, OK # (co19 issue #179)
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail

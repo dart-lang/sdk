@@ -249,7 +249,6 @@ optimization_test: Pass
 
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
 reg_exp3_test: Fail, OK # Expects exception from const constructor.
-list_test: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
 
 
 [ $compiler == dart2js && $mode == release ]

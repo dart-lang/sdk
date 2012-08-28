@@ -8,10 +8,6 @@ class GrowableObjectArray<T> implements List<T> {
         "GrowableObjectArray can only be allocated by the VM");
   }
 
-  void copyFrom(List src, int srcStart, int dstStart, int count) {
-    Arrays.copy(src, srcStart, this, dstStart, count);
-  }
-
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");

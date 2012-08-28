@@ -38,7 +38,7 @@ class GrowableObjectArrayTest {
     GrowableObjectArray mapped = array.map(testMap);
 
     Expect.equals(5, mapped.length);
-   
+
     Expect.equals(3, mapped[0]);
     Expect.equals(4, mapped[1]);
     Expect.equals(5, mapped[2]);
@@ -46,7 +46,7 @@ class GrowableObjectArrayTest {
     Expect.equals(3, mapped[4]);
 
     Expect.equals(5, array.length);
-   
+
     Expect.equals(1, array[0]);
     Expect.equals(2, array[1]);
     Expect.equals(3, array[2]);
@@ -90,11 +90,11 @@ class GrowableObjectArrayTest {
     for (int i = 0; i < 10; i++) {
       array.add(i);
     }
-    array.copyFrom(array, 7, 8, 2);
+    array.setRange(8, 2, array, 7);
     Expect.equals(7, array[7]);
     Expect.equals(7, array[8]);
     Expect.equals(8, array[9]);
-    array.copyFrom(array, 5, 4, 2);
+    array.setRange(4, 2, array, 5);
     Expect.equals(5, array[4]);
     Expect.equals(6, array[5]);
     Expect.equals(6, array[6]);

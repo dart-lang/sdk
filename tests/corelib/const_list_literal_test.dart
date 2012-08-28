@@ -52,12 +52,7 @@ class ConstListLiteralTest {
 
     exception = null;
     try {
-      list.copyFrom([1], 0, 0, 1);
-    } catch (NoSuchMethodException e) {
-      // TODO(ahe): While we are resolving CL 9839101, we have two
-      // cases: the VMs implementation class has a method named
-      // copyFrom, dart2js does not.
-      exception = e;
+      list.setRange(0, 1, [1], 0);
     } catch (UnsupportedOperationException e) {
       exception = e;
     }

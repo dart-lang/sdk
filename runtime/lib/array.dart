@@ -18,14 +18,6 @@ class ObjectArray<E> implements List<E> {
 
   int get length() native "ObjectArray_getLength";
 
-  void copyFrom(List src, int srcStart, int dstStart, int count) {
-    if (src is ObjectArray) {
-      _copyFromObjectArray(src, srcStart, dstStart, count);
-    } else {
-      Arrays.copy(src, srcStart, this, dstStart, count);
-    }
-  }
-
   void _copyFromObjectArray(ObjectArray src,
                             int srcStart,
                             int dstStart,
@@ -36,7 +28,11 @@ class ObjectArray<E> implements List<E> {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
-    copyFrom(from, startFrom, start, length);
+      if (from is ObjectArray) {
+      _copyFromObjectArray(from, startFrom, start, length);
+    } else {
+      Arrays.copy(from, startFrom, this, start, length);
+    }
   }
 
   void removeRange(int start, int length) {

@@ -60,10 +60,6 @@ class FilteredElementList implements ElementList {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw const NotImplementedException();
-  }
-
   void setRange(int start, int length, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }

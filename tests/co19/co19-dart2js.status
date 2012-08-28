@@ -397,8 +397,8 @@ Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
-LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
-LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
+LibTest/core/List/sort_A01_t02: Fail, OK # (co19 issue #179)
+LibTest/core/List/sort_A01_t03: Fail, OK # (co19 issue #179)
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Match/str_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Math/exp_A01_t01: Fail, Pass, OK # TODO(floitsch): Review.

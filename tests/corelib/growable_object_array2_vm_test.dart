@@ -29,11 +29,11 @@ class GrowableObjectArray2Test {
       f.add(2);
       list[i] = 5;
     }
-    list.copyFrom(f, 0, 0, f.length);
+    list.setRange(0, f.length, f, 0);
     for (int i = 0; i < f.length; i++) {
       Expect.equals(2, list[i]);
     }
-    f.copyFrom(g, 10, 0, 2);
+    f.setRange(0, 2, g, 10);
     Expect.equals(20, f.length);
 
     bool exceptionCaught = false;

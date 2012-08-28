@@ -59,8 +59,8 @@ class ListTest {
     exception_caught = false;
     try {
       List a = new List(4);
-      a.copyFrom(a, null, 1, 1);
-    } catch (IllegalArgumentException e) {
+      a.setRange(1, 1, a, null);
+    } catch (Exception e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
@@ -68,7 +68,7 @@ class ListTest {
     exception_caught = false;
     try {
       List a = new List(4);
-      a.copyFrom(a, 10, 1, 1);
+      a.setRange(10, 1, a, 1);
     } catch (IndexOutOfRangeException e) {
       exception_caught = true;
     }
@@ -78,7 +78,7 @@ class ListTest {
     try {
       List a = new List(4);
       List b = new List(4);
-      b.copyFrom(a, 0, 0, 4);
+      b.setRange(0, 4, a, 0);
     } catch (var e) {
       exception_caught = true;
     }

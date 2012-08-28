@@ -7,7 +7,7 @@ class _Utils {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
     List result = new List(length);
-    result.copyFrom(list, 0, 0, length);
+    result.setRange(0, length, list);
     return result;
   }
 
