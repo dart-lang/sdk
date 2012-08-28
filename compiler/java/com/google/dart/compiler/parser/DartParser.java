@@ -722,7 +722,7 @@ public class DartParser extends CompletionHooksParserBase {
       beginMetadata();
       next();
       beginQualifiedIdentifier();
-      DartExpression name = parseQualified();
+      DartExpression name = parseQualified(true);
       if (optional(Token.PERIOD)) {
         name = new DartPropertyAccess(name, parseIdentifier());
       }
@@ -879,7 +879,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartParameterizedTypeNode defaultClass = null;
     if (isParsingInterface &&
         (optionalDeprecatedFactory() || optional(Token.DEFAULT))) {
-      DartExpression qualified = parseQualified();
+      DartExpression qualified = parseQualified(false);
       List<DartTypeParameter> defaultTypeParameters = parseTypeParametersOpt();
       defaultClass = doneWithoutConsuming(new DartParameterizedTypeNode(qualified,
                                                                         defaultTypeParameters));
@@ -1451,7 +1451,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartMethodDefinition parseFactory(Modifiers modifiers) {
     beginMethodName();
-    DartExpression name = parseQualified();
+    DartExpression name = parseQualified(true);
     if (optional(Token.PERIOD)) {
       name = doneWithoutConsuming(new DartPropertyAccess(name, parseIdentifier()));
     }
@@ -4772,7 +4772,7 @@ public class DartParser extends CompletionHooksParserBase {
         beginCatchClause();
         next();
         beginTypeAnnotation();
-        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified()));
+        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified(false)));
         DartParameter exception = null;
         DartParameter stackTrace = null;
         if (optional(Token.CATCH)) {
@@ -4906,7 +4906,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartTypeNode parseTypeAnnotation() {
     beginTypeAnnotation();
-    return done(new DartTypeNode(parseQualified(), parseTypeArgumentsOpt()));
+    return done(new DartTypeNode(parseQualified(false), parseTypeArgumentsOpt()));
   }
 
   /**
@@ -4951,9 +4951,15 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
-  private DartExpression parseQualified() {
+  private DartExpression parseQualified(boolean canBeFollowedByPeriod) {
     beginQualifiedIdentifier();
-    DartExpression qualified = parseIdentifier();
+    DartIdentifier identifier = parseIdentifier();
+    if (!prefixes.contains(identifier.getName())) {
+      if (canBeFollowedByPeriod && !(peek(0) == Token.PERIOD && peek(1) == Token.IDENTIFIER && peek(2) == Token.PERIOD)) {
+        return done(identifier);
+      }
+    }
+    DartExpression qualified = identifier;
     if (optional(Token.PERIOD)) {
       // The previous identifier was a prefix.
       qualified = new DartPropertyAccess(qualified, parseIdentifier());
@@ -4981,7 +4987,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeNode> typeArguments = new ArrayList<DartTypeNode>();
     beginTypeAnnotation(); // to allow roll-back in case we're not at a type
 
-    DartNode qualified = parseQualified();
+    DartNode qualified = parseQualified(false);
 
     if (optional(Token.LT)) {
       if (peek(0) != Token.IDENTIFIER) {
@@ -4989,7 +4995,7 @@ public class DartParser extends CompletionHooksParserBase {
         return null;
       }
       beginTypeArguments();
-      DartNode qualified2 = parseQualified();
+      DartNode qualified2 = parseQualified(false);
       DartTypeNode argument;
       switch (peek(0)) {
         case LT:
