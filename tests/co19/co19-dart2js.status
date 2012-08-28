@@ -537,14 +537,11 @@ Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/09_Try_A02_t02: Fail, OK # Expects to catch null if throwing null. We now throw NullPointerException which isn't caught.
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
-Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Expect/equals_A01_t03: Fail  # Issue co19 - 178
 LibTest/core/Expect/notEquals_A01_t03: Fail # Issue co19 - 178
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
-LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
@@ -555,6 +552,12 @@ Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
 Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
+Language/13_Types/4_Interface_Types_A11_t02: Fail # Is check with generics.
+Language/13_Types/4_Interface_Types_A10_t07: Fail # Is check with generics.
+Language/13_Types/4_Interface_Types_A05_t03: Fail # Is check with generics.
+Language/13_Types/4_Interface_Types_A08_t06: Fail # Is check with generics.
+Language/10_Expressions/07_Maps_A04_t01: Fail # Is check with generics.
+Language/10_Expressions/07_Maps_A07_t04: Fail # Is check with generics.
 
 #
 # The following tests may be broken, but require further review.

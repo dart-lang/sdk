@@ -1182,6 +1182,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
+
+    // If the class has type variables, create the runtime type
+    // information with the type parameters provided.
+    if (!classElement.typeVariables.isEmpty()) {
+      List<String> typeVariables = <String>[];
+      List<HInstruction> rtiInputs = <HInstruction>[];
+      classElement.typeVariables.forEach((TypeVariableType typeVariable) {
+        typeVariables.add("'$typeVariable': #");
+        rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
+      });
+      String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
+      HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
+                                           new LiteralDartString('Object'),
+                                           rtiInputs);
+      add(typeInfo);
+      Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
+      HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
+      add(typeInfoSetter);
+      add(new HInvokeStatic(
+          <HInstruction>[typeInfoSetter, newObject, typeInfo]));
+    }
+
     // Generate calls to the constructor bodies.
     for (int index = constructors.length - 1; index >= 0; index--) {
       FunctionElement constructor = constructors[index];
@@ -1228,6 +1250,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           localsHandler.directLocals[element], element);
       localsHandler.directLocals[element] = newParameter;
     });
+
+    // Add the type parameters of the class as parameters of this
+    // method.
+    if (functionElement.isFactoryConstructor()
+        || functionElement.isGenerativeConstructor()) {
+      ClassElement cls = functionElement.enclosingElement;
+      cls.typeVariables.forEach((TypeVariableType typeVariable) {
+        HParameterValue param = new HParameterValue(typeVariable.element);
+        add(param);
+        localsHandler.directLocals[typeVariable.element] = param;
+      });
+    }
   }
 
   HInstruction potentiallyCheckType(HInstruction original,
@@ -2428,6 +2462,37 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  HInstruction analyzeTypeArgument(Type argument, Node currentNode) {
+    if (argument.element.isTypeVariable()) {
+      if (work.element.isFactoryConstructor()
+          || work.element.isGenerativeConstructor()) {
+        // The type variable is stored in a parameter of the
+        // factory.
+        return localsHandler.readLocal(argument.element);
+      } else if (work.element.isInstanceMember()) {
+        // The type variable is stored in [this].
+        pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
+                          localsHandler.readThis());
+        HInstruction typeInfo = pop();
+        HInstruction foreign = new HForeign(
+            new LiteralDartString('#.$argument'),
+            new LiteralDartString('String'),
+            <HInstruction>[typeInfo]);
+        add(foreign);
+        return foreign;
+      } else {
+        // TODO(ngeoffray): Match the VM behavior and throw an
+        // exception at runtime.
+        compiler.cancel('Unimplemented unresolved type variable',
+                        node: currentNode);
+      }
+    } else {
+      // The type variable is a type (e.g. int).
+      return graph.addConstantString(
+          new LiteralDartString('$argument'), currentNode);
+    }
+  }
+
   visitNewSend(Send node) {
     computeType(element) {
       Element originalElement = elements[node];
@@ -2464,28 +2529,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.cancel('Unimplemented non-matching static call', node: node);
     }
 
+    TypeAnnotation annotation = getTypeAnnotationFromSend(node);
+    elements.getType(annotation).arguments.forEach((Type argument) {
+      inputs.add(analyzeTypeArgument(argument, node));
+    });
+
     HType elementType = computeType(element);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);
-
-    TypeAnnotation annotation = getTypeAnnotationFromSend(node);
-    Type type = elements.getType(annotation);
-    generateSetRuntimeTypeInformation(newInstance, type);
-  }
-
-  generateSetRuntimeTypeInformation(HInstruction instance, Type type) {
-    if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
-      String typeString = compiler.codegenWorld.rti.asJsString(type);
-      HInstruction typeInfo = new HForeign(new LiteralDartString(typeString),
-                                           new LiteralDartString('Object'),
-                                           <HInstruction>[]);
-      add(typeInfo);
-      Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
-      HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
-      add(typeInfoSetter);
-      var inputs = <HInstruction>[typeInfoSetter, instance, typeInfo];
-      add(new HInvokeStatic(inputs));
-    }
   }
 
   visitStaticSend(Send node) {

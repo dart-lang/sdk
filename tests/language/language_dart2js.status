@@ -194,7 +194,6 @@ list_literal1_negative_test: Fail # Negative language test.
 list_literal2_negative_test: Fail # Negative language test.
 map_literal1_negative_test: Fail # Negative language test.
 map_literal2_negative_test: Fail # Negative language test.
-new_expression_type_args_frog_test/02: Fail # Negative language test.
 non_const_super_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
 operator1_negative_test: Fail # Negative language test.

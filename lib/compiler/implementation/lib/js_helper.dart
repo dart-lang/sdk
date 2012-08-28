@@ -960,7 +960,12 @@ setRuntimeTypeInfo(target, typeInfo) {
 
 getRuntimeTypeInfo(target) {
   if (target === null) return null;
-  return JS('var', @'#.builtin$typeInfo', target);
+  var res = JS('var', @'#.builtin$typeInfo', target);
+  // If the object does not have runtime type information, return an
+  // empty literal, to avoid null checks.
+  // TODO(ngeoffray): Make the object a top-level field to avoid
+  // allocating a new object every single time.
+  return (res == null) ? JS('var', '{}') : res;
 }
 
 /**

@@ -89,8 +89,8 @@ list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail # Runtime only test, rewrite as multitest
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-new_expression_type_args_frog_test/01: Fail # language change 1031
-new_expression_type_args_frog_test/02: Fail # language change 1031
+new_expression_type_args_test/01: Fail # language change 1031
+new_expression_type_args_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656

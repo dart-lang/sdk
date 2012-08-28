@@ -2416,6 +2416,8 @@ class HIs extends HInstruction {
 
   HInstruction get typeInfoCall => inputs[1];
 
+  bool hasTypeInfo() => inputs.length == 2;
+
   HType get guaranteedType => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitIs(this);

@@ -31,29 +31,10 @@
 #source('value_set.dart');
 
 class RuntimeTypeInformation {
-  String asJsString(InterfaceType type) {
-    ClassElement element = type.element;
-    StringBuffer buffer = new StringBuffer();
-    Link<Type> arguments = type.arguments;
-    Link<Type> typeVariables = element.typeVariables;
-    while (!typeVariables.isEmpty()) {
-      TypeVariableType typeVariable = typeVariables.head;
-      // TODO(johnniwinther): Retrieve the type name properly and not through
-      // [toString]. Note: Two cases below [typeVariable] and [arguments.head].
-      buffer.add("${typeVariable}: '${arguments.head}'");
-      typeVariables = typeVariables.tail;
-      if (!typeVariables.isEmpty()) {
-        buffer.add(', ');
-      }
-    }
-    return "{$buffer}";
-  }
-
   bool hasTypeArguments(Type type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
-      return (!interfaceType.arguments.isEmpty() &&
-              interfaceType.arguments.tail.isEmpty());
+      return !interfaceType.arguments.isEmpty();
     }
     return false;
   }

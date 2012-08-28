@@ -48,6 +48,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         parameters.add(new js.Parameter(name));
       });
+      addTypeParameters(work.element, parameters, parameterNames);
       String parametersString = Strings.join(parameterNames.getValues(), ", ");
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
@@ -77,6 +78,25 @@ class SsaCodeGeneratorTask extends CompilerTask {
       return prettyPrint(fun, work.element);
     });
   }
+  
+  void addTypeParameters(Element element,
+                        List<js.Parameter> parameters,
+                        Map<Element, String> parameterNames) {
+    if (element.isFactoryConstructor() || element.isGenerativeConstructor()) {
+      ClassElement cls = element.enclosingElement;
+      cls.typeVariables.forEach((TypeVariableType typeVariable) {
+        String name = typeVariable.element.name.slowToString();
+        String prefix = '';
+        // Avoid collisions with real parameters of the method.
+        do {  
+          name = JsNames.getValid('$prefix$name');
+          prefix = '\$$prefix';
+        } while (parameterNames.containsValue(name));
+        parameterNames[typeVariable.element] = name;
+        parameters.add(new js.Parameter(name));
+      });
+    }
+  }
 
   CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
@@ -87,6 +107,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         parameters.add(new js.Parameter(name));
       });
+      addTypeParameters(work.element, parameters, parameterNames);
+
       SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
@@ -2259,13 +2281,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, element);
       attachLocationToLast(node);
     }
-    if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
+    if (node.hasTypeInfo()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
       Link<Type> arguments = interfaceType.arguments;
       js.Expression result = pop();
-      checkObject(node.typeInfoCall, '===');
-      result = new js.Binary('&&', result, pop());
       for (TypeVariableType typeVariable in cls.typeVariables) {
         use(node.typeInfoCall);
         // TODO(johnniwinther): Retrieve the type name properly and not through
