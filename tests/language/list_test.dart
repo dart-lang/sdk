@@ -48,41 +48,21 @@ class ListTest {
     a.forEach(f(element) { Expect.equals(null, element); });
     a[1] = 1;
     Expect.equals(1, a[1]);
-    bool exception_caught = false;
-    try {
-      var x = a[len];
-    } catch (IndexOutOfRangeException e) {
-      exception_caught = true;
-    }
-    Expect.equals(true, exception_caught);
+    Expect.throws(() => a[len], (e) => e is IndexOutOfRangeException);
 
-    exception_caught = false;
-    try {
+    Expect.throws(() {
       List a = new List(4);
       a.setRange(1, 1, a, null);
-    } catch (Exception e) {
-      exception_caught = true;
-    }
-    Expect.equals(true, exception_caught);
+    }, (e) => true);
 
-    exception_caught = false;
-    try {
+    Expect.throws(() {
       List a = new List(4);
       a.setRange(10, 1, a, 1);
-    } catch (IndexOutOfRangeException e) {
-      exception_caught = true;
-    }
-    Expect.equals(true, exception_caught);
+    }, (e) => e is IndexOutOfRangeException);
 
-    exception_caught = false;
-    try {
-      List a = new List(4);
-      List b = new List(4);
-      b.setRange(0, 4, a, 0);
-    } catch (var e) {
-      exception_caught = true;
-    }
-    Expect.equals(false, exception_caught);
+    a = new List(4);
+    List b = new List(4);
+    b.setRange(0, 4, a, 0);
 
     List<int> unsorted = [4, 3, 9, 12, -4, 9];
     int compare(a, b) {
@@ -111,42 +91,18 @@ class ListTest {
     TestIterator();
     int element = unsorted[2];
     Expect.equals(9, element);
-    bool exceptionCaught = false;
-    try {
-      element = unsorted[2.1];
-    } catch (IllegalArgumentException e) {
-      exceptionCaught = true;
-    } catch (TypeError e) {
-      // For type checked mode.
-      exceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
 
-    exceptionCaught = false;
-    try {
-      var a = new List(-1);
-    } catch (Exception e) {  // Must agree which exception to throw.
-      exceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
+    Expect.throws(() => unsorted[2.1],
+                  (e) => e is IllegalArgumentException || e is TypeError);
 
-    exceptionCaught = false;
-    try {
-      var a = new List(99999999999999999999999);  // Non-Smi.
-    } catch (Exception e) {  // Must agree which exception to throw.
-      exceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
+    Expect.throws(() => new List(-1), (e) => true);
+    Expect.throws(() => new List(99999999999999999999999), (e) => true);
 
-    exceptionCaught = false;
     List list = new List();
-    try {
-      list.removeLast();
-    } catch (IndexOutOfRangeException e) {
-      exceptionCaught = true;
-    }
+    // We cannot write just 'list.removeLast' due to issue 3769.
+    Expect.throws(() => list.removeLast(),
+                  (e) => e is IndexOutOfRangeException);
     Expect.equals(0, list.length);
-    Expect.equals(true, exceptionCaught);
   }
 }
 
