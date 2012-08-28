@@ -229,12 +229,20 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
                    new CheckSmiComp(index->CopyValue(), comp),
                    instr->env(),
                    BindInstr::kUnused);
+      // Insert array bounds check.
+      InsertBefore(instr,
+                   new CheckArrayBoundComp(array->CopyValue(),
+                                           index->CopyValue(),
+                                           class_id,
+                                           comp),
+                   instr->env(),
+                   BindInstr::kUnused);
       Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedComp(array, index, class_id, comp);
+        array_op = new LoadIndexedComp(array, index, class_id);
       } else {
         Value* value = comp->ArgumentAt(2)->value();
-        array_op = new StoreIndexedComp(array, index, value, class_id, comp);
+        array_op = new StoreIndexedComp(array, index, value, class_id);
       }
       array_op->set_ic_data(comp->ic_data());
       instr->set_computation(array_op);

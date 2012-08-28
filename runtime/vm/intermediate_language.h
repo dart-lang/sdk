@@ -108,7 +108,8 @@ class LocalVariable;
   M(CheckEitherNonSmi, CheckEitherNonSmiComp)                                  \
   M(UnboxedDoubleBinaryOp, UnboxedDoubleBinaryOpComp)                          \
   M(UnboxDouble, UnboxDoubleComp)                                              \
-  M(BoxDouble, BoxDoubleComp)
+  M(BoxDouble, BoxDoubleComp)                                                  \
+  M(CheckArrayBound, CheckArrayBoundComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -178,8 +179,11 @@ class Computation : public ZoneAllocated {
   virtual intptr_t Hashcode() const;
 
   // Compare attributes of an computation (except input operands and kind).
-  // TODO(fschneider): Make this abstract and implement for all computations.
-  virtual bool AttributesEqual(Computation* other) const { return true; }
+  // All computations that participate in CSE have to override this function.
+  virtual bool AttributesEqual(Computation* other) const {
+    UNREACHABLE();
+    return false;
+  }
 
   // Returns true if the instruction may have side effects.
   // TODO(fschneider): Make this abstract and implement for all computations
@@ -1143,10 +1147,8 @@ class LoadIndexedComp : public TemplateComputation<2> {
  public:
   LoadIndexedComp(Value* array,
                   Value* index,
-                  intptr_t receiver_type,
-                  InstanceCallComp* original)
-      : receiver_type_(receiver_type),
-        original_(original) {
+                  intptr_t receiver_type)
+      : receiver_type_(receiver_type) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -1160,14 +1162,11 @@ class LoadIndexedComp : public TemplateComputation<2> {
 
   intptr_t receiver_type() const { return receiver_type_; }
 
-  InstanceCallComp* original() const { return original_; }
-
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   intptr_t receiver_type_;
-  InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedComp);
 };
@@ -1178,10 +1177,8 @@ class StoreIndexedComp : public TemplateComputation<3> {
   StoreIndexedComp(Value* array,
                    Value* index,
                    Value* value,
-                   intptr_t receiver_type,
-                   InstanceCallComp* original)
-        : receiver_type_(receiver_type),
-          original_(original) {
+                   intptr_t receiver_type)
+        : receiver_type_(receiver_type) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -1196,16 +1193,13 @@ class StoreIndexedComp : public TemplateComputation<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  InstanceCallComp* original() const { return original_; }
-
   intptr_t receiver_type() const { return receiver_type_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   intptr_t receiver_type_;
-  InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
@@ -1723,6 +1717,8 @@ class CheckEitherNonSmiComp : public TemplateComputation<2> {
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
+  virtual bool AttributesEqual(Computation* other) const { return true; }
+
   virtual bool HasSideEffect() const { return false; }
 
   Value* left() const { return inputs_[0]; }
@@ -2112,6 +2108,44 @@ class CheckSmiComp : public TemplateComputation<1> {
   InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiComp);
+};
+
+
+class CheckArrayBoundComp : public TemplateComputation<2> {
+ public:
+  CheckArrayBoundComp(Value* array,
+                      Value* index,
+                      intptr_t array_type,
+                      InstanceCallComp* original)
+      : array_type_(array_type), original_(original) {
+    ASSERT(array != NULL);
+    ASSERT(index != NULL);
+    inputs_[0] = array;
+    inputs_[1] = index;
+  }
+
+  DECLARE_COMPUTATION(CheckArrayBound)
+
+  virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
+
+  virtual bool AttributesEqual(Computation* other) const;
+
+  virtual bool HasSideEffect() const { return false; }
+
+  Value* array() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+
+  intptr_t array_type() const { return array_type_; }
+
+  intptr_t deopt_id() const { return original_->deopt_id(); }
+  intptr_t try_index() const { return original_->try_index(); }
+
+ private:
+  intptr_t array_type_;
+  InstanceCallComp* original_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundComp);
 };
 
 

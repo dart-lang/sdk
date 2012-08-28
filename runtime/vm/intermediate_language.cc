@@ -73,6 +73,13 @@ bool CheckClassComp::AttributesEqual(Computation* other) const {
 }
 
 
+bool CheckArrayBoundComp::AttributesEqual(Computation* other) const {
+  CheckArrayBoundComp* other_check = other->AsCheckArrayBound();
+  if (other_check == NULL) return false;
+  return array_type() == other_check->array_type();
+}
+
+
 // Returns true if the value represents a constant.
 bool UseVal::BindsToConstant() const {
   BindInstr* bind = definition()->AsBind();
@@ -1092,6 +1099,11 @@ RawAbstractType* CheckClassComp::CompileType() const {
 
 
 RawAbstractType* CheckSmiComp::CompileType() const {
+  return AbstractType::null();
+}
+
+
+RawAbstractType* CheckArrayBoundComp::CompileType() const {
   return AbstractType::null();
 }
 

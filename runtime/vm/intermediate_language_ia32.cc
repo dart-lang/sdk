@@ -811,19 +811,9 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register index = locs()->in(1).reg();
   Register result = locs()->out().reg();
 
-  const DeoptReasonId deopt_reason =
-      (receiver_type() == kGrowableObjectArrayCid) ?
-      kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
-
-  Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                        original()->try_index(),
-                                        deopt_reason);
-
   switch (receiver_type()) {
     case kArrayCid:
     case kImmutableArrayCid:
-      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
-      __ j(ABOVE_EQUAL, deopt);
       // Note that index is Smi, i.e, times 2.
       ASSERT(kSmiTagShift == 1);
       __ movl(result, FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)));
@@ -831,10 +821,6 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     case kGrowableObjectArrayCid: {
       Register temp = locs()->temp(0).reg();
-
-      __ cmpl(index,
-              FieldAddress(receiver, GrowableObjectArray::length_offset()));
-      __ j(ABOVE_EQUAL, deopt);
       __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
       // Note that index is Smi, i.e, times 2.
       ASSERT(kSmiTagShift == 1);
@@ -862,7 +848,6 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   if (receiver_type() == kGrowableObjectArrayCid) {
     locs->set_temp(0, Location::RequiresRegister());
   }
-  locs->set_out(Location::NoLocation());
   return locs;
 }
 
@@ -872,15 +857,9 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register index = locs()->in(1).reg();
   Register value = locs()->in(2).reg();
 
-  Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                        original()->try_index(),
-                                        kDeoptStoreIndexed);
-
   switch (receiver_type()) {
     case kArrayCid:
     case kImmutableArrayCid:
-      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
-      __ j(ABOVE_EQUAL, deopt);
       // Note that index is Smi, i.e, times 2.
       ASSERT(kSmiTagShift == 1);
       if (this->value()->NeedsStoreBuffer()) {
@@ -896,9 +875,6 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     case kGrowableObjectArrayCid: {
       Register temp = locs()->temp(0).reg();
-      __ cmpl(index,
-              FieldAddress(receiver, GrowableObjectArray::length_offset()));
-      __ j(ABOVE_EQUAL, deopt);
       __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
       // Note that index is Smi, i.e, times 2.
       ASSERT(kSmiTagShift == 1);
@@ -2352,6 +2328,37 @@ void CheckSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         kDeoptCheckSmi);
   __ testl(value, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
+}
+
+
+LocationSummary* CheckArrayBoundComp::MakeLocationSummary() const {
+  return LocationSummary::Make(2,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
+}
+
+
+void CheckArrayBoundComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register receiver = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+
+  const DeoptReasonId deopt_reason =
+      (array_type() == kGrowableObjectArrayCid) ?
+      kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        try_index(),
+                                        deopt_reason);
+  switch (array_type()) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
+      break;
+    case kGrowableObjectArrayCid:
+      __ cmpl(index,
+              FieldAddress(receiver, GrowableObjectArray::length_offset()));
+      break;
+  }
+  __ j(ABOVE_EQUAL, deopt);
 }
 
 
