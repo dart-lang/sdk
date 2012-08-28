@@ -6,51 +6,42 @@
 // executable code to define the locations of libraries.
 
 #library('library_map');
+#import('../../../lib/_internal/libraries.dart', prefix: "libs");
+
 /**
- * Simple struct holding the path to a library and an optional path
+ * Simple structure providing the path to a library and an optional path
  * to a patch file for the library.
  */
 class LibraryInfo {
-  final String libraryPath;
-  final String patchPath;
+  final libs.LibraryInfo info;
+  const LibraryInfo(this.info);
 
-  /** If [:true:], the library is not part of the public API. */
-  final bool isInternal;
+  String get libraryPath() {
+    String libPath = info.dart2jsPath;
+    if (libPath === null) libPath = info.path;
+    return "lib/$libPath";
+  }
 
-  const LibraryInfo(this.libraryPath,
-                    [this.patchPath = null, this.isInternal = false]);
+  String get patchPath() {
+    if (info.dart2jsPatchPath === null) return null;
+    return "lib/${info.dart2jsPatchPath}";
+  }
+
+  bool get isInternal => info.category === "Internal";
 }
 
-/**
- * Specifies the location of Dart platform libraries.
- */
-const Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
-    = const <String, LibraryInfo> {
-  "core": const LibraryInfo(
-      "lib/compiler/implementation/lib/core.dart"),
-  "coreimpl": const LibraryInfo(
-      "lib/compiler/implementation/lib/coreimpl.dart",
-      "lib/compiler/implementation/lib/coreimpl_patch.dart"),
-  "_js_helper": const LibraryInfo(
-      "lib/compiler/implementation/lib/js_helper.dart", isInternal: true),
-  "_interceptors": const LibraryInfo(
-      "lib/compiler/implementation/lib/interceptors.dart", isInternal: true),
-  "crypto": const LibraryInfo(
-      "lib/crypto/crypto.dart"),
-  "dom_deprecated": const LibraryInfo(
-      "lib/dom/dart2js/dom_dart2js.dart", isInternal: true),
-  "html": const LibraryInfo(
-      "lib/html/dart2js/html_dart2js.dart"),
-  "io": const LibraryInfo(
-      "lib/compiler/implementation/lib/io.dart"),
-  "isolate": const LibraryInfo(
-      "lib/isolate/isolate.dart",
-      "lib/compiler/implementation/lib/isolate_patch.dart"),
-  "json": const LibraryInfo("lib/json/json.dart"),
-  "math": const LibraryInfo(
-      "lib/math/math.dart",
-      "lib/compiler/implementation/lib/math_patch.dart", isInternal: true),
-  "uri": const LibraryInfo("lib/uri/uri.dart"),
-  "utf": const LibraryInfo("lib/utf/utf.dart"),
-  "web": const LibraryInfo("lib/web/web.dart"),
-};
+class Dart2JSLibraryMap {
+  const Dart2JSLibraryMap();
+
+  LibraryInfo operator[](String dartName) {
+    libs.LibraryInfo info = libs.LIBRARIES[dartName];
+    if (info === null) return null;
+    if (!info.isDart2JsLibrary()) {
+      // Dart2js can't handle internal libraries for other backends.
+      return null;
+    }
+    return new LibraryInfo(info);
+  }
+}
+
+final Dart2JSLibraryMap DART2JS_LIBRARY_MAP = const Dart2JSLibraryMap();

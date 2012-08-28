@@ -21,7 +21,7 @@
 #import('../../pkg/dartdoc/mirrors/mirrors.dart');
 #import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
 #import('../../pkg/dartdoc/dartdoc.dart', prefix: 'doc');
-#import('../../lib/compiler/implementation/library_map.dart');
+#import('../../lib/_internal/libraries.dart');
 
 HtmlDiff _diff;
 
@@ -104,8 +104,10 @@ void main() {
   // URIs. Perhaps Path should have a toURI() method.
   // Add all of the core libraries.
   final apidocLibraries = <Path>[];
-  DART2JS_LIBRARY_MAP.forEach((String name, LibraryInfo info) {
-    if (!info.isInternal) {
+  LIBRARIES.forEach((String name, LibraryInfo info) {
+    if (info.isDart2JsLibrary() &&
+        info.category != "Internal" &&
+        info.documented) {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });
