@@ -134,8 +134,10 @@ bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (static_cast<uword>(descriptors.PC(i)) == pc() &&
-        descriptors.TryIndex(i) != -1) {
+    // TryIndex is invalid for PcDescriptors::kDeoptIndex.
+    if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&
+        (descriptors.DescriptorKind(i) != PcDescriptors::kDeoptIndex) &&
+        (descriptors.TryIndex(i) != -1)) {
       try_index = descriptors.TryIndex(i);
       break;
     }

@@ -142,7 +142,10 @@ class Computation : public ZoneAllocated {
   }
 
   // Unique id used for deoptimization.
-  intptr_t deopt_id() const { return deopt_id_; }
+  intptr_t deopt_id() const {
+    ASSERT(CanDeoptimize());
+    return deopt_id_;
+  }
 
   const ICData* ic_data() const { return ic_data_; }
   void set_ic_data(const ICData* value) { ic_data_ = value; }
@@ -563,7 +566,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -605,7 +608,7 @@ class AssertBooleanComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -728,7 +731,7 @@ class InstanceCallComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -929,7 +932,7 @@ class StaticCallComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1260,7 +1263,7 @@ class InstanceOfComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1332,7 +1335,7 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1523,7 +1526,7 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1665,7 +1668,7 @@ class CloneContextComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(CloneContext)
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -1991,7 +1994,7 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 
   DECLARE_COMPUTATION(CheckStackOverflow)
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:

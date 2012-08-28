@@ -188,6 +188,8 @@ class FlowGraphCompiler : public ValueObject {
                       intptr_t try_index_,
                       DeoptReasonId reason);
 
+  void AddDeoptIndexAtCall(intptr_t deopt_id, intptr_t token_pos);
+
   void AddSlowPathCode(SlowPathCode* slow_path);
 
   void FinalizeExceptionHandlers(const Code& code);

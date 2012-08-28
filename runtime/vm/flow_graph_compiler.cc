@@ -233,6 +233,22 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 }
 
 
+void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
+                                            intptr_t token_pos) {
+  // TODO(srdjan): Temporary use deopt stubs to maintain deopt-indexes.
+  // kDeoptAtCall will not emit code, but will only generate deoptimization
+  // information.
+  const intptr_t deopt_index = deopt_stubs_.length();
+  const intptr_t kNoTryIndex = -1;
+  AddDeoptStub(deopt_id, kNoTryIndex, kDeoptAtCall);
+  pc_descriptors_list()->AddDescriptor(PcDescriptors::kDeoptIndex,
+                                       assembler()->CodeSize(),
+                                       deopt_id,
+                                       token_pos,
+                                       deopt_index);
+}
+
+
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
   if (is_optimizing()) {
     BitmapBuilder* bitmap = locs->stack_bitmap();
