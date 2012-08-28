@@ -112,9 +112,9 @@ void main() {
 
   final includedLibraries = <String>[];
   var lister = new Directory.fromPath(
-      doc.scriptDir.append('../../pkg/')).list();
+      doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
-    var path = new Path(dirPath);
+    var path = new Path.fromNative(dirPath);
     var libname = path.filename;
     path = path.append('${libname}.dart');
     if (new File.fromPath(path).existsSync()) {
