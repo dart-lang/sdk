@@ -118,7 +118,7 @@ class PageSpaceController {
   // heap_growth_ratio % of memory got deallocated by the garbage collector.
   // In this case garbage collection will be performed next time. Otherwise
   // the heap will grow.
-  void EvaluateGarbageCollection(size_t in_use_before, size_t in_use_after,
+  void EvaluateGarbageCollection(intptr_t in_use_before, intptr_t in_use_after,
                                  int64_t start, int64_t end);
 
   void Enable() {
@@ -134,6 +134,10 @@ class PageSpaceController {
   // If the garbage collector was not able to free more than heap_growth_ratio_
   // memory, then the heap is grown. Otherwise garbage collection is performed.
   int heap_growth_ratio_;
+
+  // The desired percent of heap in-use after a garbage collection.
+  // Equivalent to \frac{100-heap_growth_ratio_}{100}.
+  double desired_utilization_;
 
   // Number of pages we grow.
   int heap_growth_rate_;
