@@ -784,7 +784,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
   if (class_name.Equals("TypeError")) {
     return true;
   }
-  if (class_name.Equals("AssertionError")) {
+  if (class_name.Equals("AssertionErrorImplementation")) {
     return true;
   }
   return false;

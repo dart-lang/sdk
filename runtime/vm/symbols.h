@@ -29,7 +29,7 @@ class ObjectPointerVisitor;
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
-  V(AssertionError, "AssertionError")                                          \
+  V(AssertionError, "AssertionErrorImplementation")                            \
   V(TypeError, "TypeError")                                                    \
   V(FallThroughError, "FallThroughError")                                      \
   V(StaticResolutionException, "StaticResolutionException")                    \

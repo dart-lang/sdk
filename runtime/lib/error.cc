@@ -26,7 +26,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 
   // Allocate a new instance of type AssertionError.
   const Instance& assertion_error = Instance::Handle(
-      Exceptions::NewInstance("AssertionError"));
+      Exceptions::NewInstance("AssertionErrorImplementation"));
 
   // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;

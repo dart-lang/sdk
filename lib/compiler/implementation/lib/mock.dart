@@ -6,7 +6,6 @@
 
 // TODO(ahe): Remove this file.
 
-class AssertionError {}
 class TypeError extends AssertionError {
   final String msg;
   const TypeError(String this.msg);
