@@ -1011,11 +1011,6 @@ class _DOMFileSystemSyncJs extends _DOMTypeJs implements DOMFileSystemSync nativ
   final _DirectoryEntrySyncJs root;
 }
 
-class _DOMFormDataJs extends _DOMTypeJs implements DOMFormData native "*DOMFormData" {
-
-  void append(String name, String value, String filename) native;
-}
-
 class _DOMImplementationJs extends _DOMTypeJs implements DOMImplementation native "*DOMImplementation" {
 
   _CSSStyleSheetJs createCSSStyleSheet(String title, String media) native;
@@ -2585,6 +2580,11 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
   void setElements(Object array, [int offset]) native 'set';
 
   _Float64ArrayJs subarray(int start, [int end]) native;
+}
+
+class _FormDataJs extends _DOMTypeJs implements FormData native "*FormData" {
+
+  void append(String name, String value, String filename) native;
 }
 
 class _GamepadJs extends _DOMTypeJs implements Gamepad native "*Gamepad" {
@@ -12112,6 +12112,14 @@ class _FileReaderSyncFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _FormDataFactoryProvider {
+  factory FormData([FormElement form]) native
+      '''return new FormData(form);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _HTMLAudioElementFactoryProvider {
   factory HTMLAudioElement([String src = null]) native
 '''
@@ -13616,19 +13624,6 @@ interface DOMFileSystemSync {
   final String name;
 
   final DirectoryEntrySync root;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface FormData {
-
-  void append(String name, String value, String filename);
-}
-
-interface DOMFormData extends FormData {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15247,6 +15242,18 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
   void setElements(Object array, [int offset]);
 
   Float64Array subarray(int start, [int end]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface FormData default _FormDataFactoryProvider {
+
+  FormData([FormElement form]);
+
+  void append(String name, String value, String filename);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -31,7 +31,6 @@ _webkit_renames = {
     'ApplicationCache': 'DOMApplicationCache',
     'BarProp': 'BarInfo',
     'DedicatedWorkerGlobalScope': 'DedicatedWorkerContext',
-    'FormData': 'DOMFormData',
     'Selection': 'DOMSelection',
     'SharedWorkerGlobalScope': 'SharedWorkerContext',
     'Window': 'DOMWindow',

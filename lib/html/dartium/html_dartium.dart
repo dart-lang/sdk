@@ -4605,17 +4605,6 @@ class _DOMFileSystemSyncImpl extends NativeFieldWrapperClass1 implements DOMFile
 
 // WARNING: Do not edit - generated code.
 
-class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements DOMFormData {
-
-  void append(String name, String value, String filename) native "DOMFormData_append_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class _DOMImplementationImpl extends NativeFieldWrapperClass1 implements DOMImplementation {
 
   CSSStyleSheet createCSSStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
@@ -8262,6 +8251,25 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
   Float64Array _subarray_1(start, end) native "Float64Array_subarray_1_Callback";
 
   Float64Array _subarray_2(start) native "Float64Array_subarray_2_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _FormDataFactoryProvider {
+  factory FormData([FormElement form]) => _createFormData(form);
+  static FormData _createFormData([FormElement form]) native "FormData_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _FormDataImpl extends NativeFieldWrapperClass1 implements FormData {
+
+  void append(String name, String value, String filename) native "FormData_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21138,6 +21146,11 @@ class _Elements {
     return _e;
   }
 
+  factory FormElement() {
+    _HTMLFormElementImpl _e = _document.$dom_createElement("form");
+    return _e;
+  }
+
   factory HRElement() {
     _HTMLHRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
@@ -25602,18 +25615,6 @@ interface DOMFileSystemSync {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMFormData
-interface DOMFormData {
-
-  /** @domName DOMFormData.append */
-  void append(String name, String value, String filename);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName DOMImplementation
 interface DOMImplementation {
 
@@ -27945,8 +27946,24 @@ interface FontElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FormData
+interface FormData default _FormDataFactoryProvider {
+
+  FormData([FormElement form]);
+
+  /** @domName FormData.append */
+  void append(String name, String value, String filename);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName HTMLFormElement
-interface FormElement extends Element {
+interface FormElement extends Element default _Elements {
+
+  FormElement();
 
   /** @domName HTMLFormElement.acceptCharset */
   String acceptCharset;
