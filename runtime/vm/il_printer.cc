@@ -131,7 +131,9 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 
 
 void Computation::PrintTo(BufferFormatter* f) const {
-  f->Print("%s:%d(", DebugName(), deopt_id());
+  // Do not access 'deopt_id()' as it asserts that the computation can
+  // deoptimize.
+  f->Print("%s:%d(", DebugName(), deopt_id_);
   PrintOperandsTo(f);
   f->Print(")");
   if (HasICData()) {
