@@ -626,12 +626,14 @@ class StandardTestSuite implements TestSuite {
         expectedOutput = txtPath;
         content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
       } else {
+        final htmlLocation = new Path(htmlPath);
         content = getHtmlContents(
           filename,
-          '$filePrefix${dartDir.append("pkg/unittest/test_controller.js")}',
-          '$filePrefix${dartDir.append("client/dart.js")}',
+          _relativize(htmlLocation, dartDir.append(
+              'pkg/unittest/test_controller.js')),
+          _relativize(htmlLocation, dartDir.append('client/dart.js')),
           scriptType,
-          '$filePrefix$scriptPath');
+          _relativize(htmlLocation, new Path(scriptPath)));
       }
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
@@ -1025,10 +1027,37 @@ class StandardTestSuite implements TestSuite {
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
     bool needsVmOptions =
-        Contains(configuration['compiler'], const ['none', 'dart2dart', 'dartc']) &&
-        Contains(configuration['runtime'], const ['none', 'vm', 'drt', 'dartium']);
+        Contains(configuration['compiler'],
+            const ['none', 'dart2dart', 'dartc']) &&
+        Contains(configuration['runtime'],
+            const ['none', 'vm', 'drt', 'dartium']);
     if (!needsVmOptions) return [[]];
     return optionsFromFile['vmOptions'];
+  }
+
+  String _relativize(Path base, Path path) {
+    base = base.canonicalize();
+    path = path.canonicalize();
+
+    if (!base.isAbsolute || !path.isAbsolute) {
+      throw "Only absolute paths are supported.";
+    }
+    List<String> pathSegments = path.segments();
+    List<String> baseSegments = base.segments();
+    int common = 0;
+    int length = Math.min(pathSegments.length, baseSegments.length);
+    while (common < length && pathSegments[common] == baseSegments[common]) {
+      common++;
+    }
+    final sb = new StringBuffer();
+    for (int i = common + 1; i < baseSegments.length; i++) {
+      sb.add('..${Platform.pathSeparator}');
+    }
+    for (int i = common; i < pathSegments.length - 1; i++) {
+      sb.add('${pathSegments[i]}${Platform.pathSeparator}');
+    }
+    sb.add('${pathSegments.last()}');
+    return sb.toString();
   }
 }
 
