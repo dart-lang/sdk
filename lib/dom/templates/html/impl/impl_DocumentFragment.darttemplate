@@ -205,6 +205,14 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
+  void addText(String text) {
+    this.insertAdjacentText('beforeend', text);
+  }
+
+  void addHTML(String text) {
+    this.insertAdjacentHTML('beforeend', text);
+  }
+
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(() => const EmptyElementRect(),
                                     new Completer<ElementRect>());

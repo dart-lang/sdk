@@ -12,6 +12,9 @@ from systemdart2js import *
 from systeminterface import *
 
 _js_custom_members = set([
+    'Element.insertAdjacentElement',
+    'Element.insertAdjacentHTML',
+    'Element.insertAdjacentText',
     'IDBDatabase.transaction',
     'IFrameElement.contentWindow',
     'MouseEvent.offsetX',

@@ -5781,10 +5781,6 @@ class FilteredElementList implements ElementList {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw const NotImplementedException();
-  }
-
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
@@ -5928,6 +5924,14 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 
   void insertAdjacentHTML(String where, String text) {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
+  }
+
+  void addText(String text) {
+    this.insertAdjacentText('beforeend', text);
+  }
+
+  void addHTML(String text) {
+    this.insertAdjacentHTML('beforeend', text);
   }
 
   Future<ElementRect> get rect() {
@@ -6598,10 +6602,6 @@ class _ChildrenElementList implements ElementList {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw 'Not impl yet. todo(jacobr)';
-  }
-
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
@@ -7226,6 +7226,14 @@ class _ElementImpl extends _NodeImpl implements Element {
         new Completer<CSSStyleDeclaration>());
   }
 
+  void addText(String text) {
+    this.insertAdjacentText('beforeend', text);
+  }
+
+  void addHTML(String text) {
+    this.insertAdjacentHTML('beforeend', text);
+  }
+
   // Hooks to support custom WebComponents.
   var xtag;
 
@@ -7236,6 +7244,7 @@ class _ElementImpl extends _NodeImpl implements Element {
       return dynamicUnknownElementDispatcher(this, name, args);
     }
   }
+
 
 
   _ElementEventsImpl get on() =>
@@ -26701,6 +26710,17 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   void set dataAttributes(Map<String, String> value);
 
   /**
+   * Adds the specified text as a text node after the last child of this.
+   */
+  void addText(String text);
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this.
+   */
+  void addHTML(String html);
+
+  /**
    * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
    * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
    * scrollHeight, scrollWidth, scrollTop, scrollLeft
@@ -41710,7 +41730,7 @@ class _Utils {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
     List result = new List(length);
-    result.copyFrom(list, 0, 0, length);
+    result.setRange(0, length, list);
     return result;
   }
 

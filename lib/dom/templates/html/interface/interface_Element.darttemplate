@@ -86,6 +86,17 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   void set dataAttributes(Map<String, String> value);
 
   /**
+   * Adds the specified text as a text node after the last child of this.
+   */
+  void addText(String text);
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this.
+   */
+  void addHTML(String html);
+
+  /**
    * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
    * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
    * scrollHeight, scrollWidth, scrollTop, scrollLeft

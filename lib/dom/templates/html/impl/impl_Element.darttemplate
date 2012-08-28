@@ -731,6 +731,14 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
         new Completer<CSSStyleDeclaration>());
   }
 
+  void addText(String text) {
+    this.insertAdjacentText('beforeend', text);
+  }
+
+  void addHTML(String text) {
+    this.insertAdjacentHTML('beforeend', text);
+  }
+
   // Hooks to support custom WebComponents.
   var xtag;
 
@@ -744,6 +752,65 @@ $if DARTIUM
   }
 $else
   // TODO(vsm): Implement noSuchMethod or similar for dart2js.
+$endif
+
+$if DART2JS
+  /** @domName Element.insertAdjacentText */
+  void insertAdjacentText(String where, String text) {
+    if (JS('bool', '!!this.insertAdjacentText')) {
+      _insertAdjacentText(where, text);
+    } else {
+      _insertAdjacentNode(where, new Text(text));
+    }
+  }
+
+  void _insertAdjacentText(String where, String text)
+      native 'insertAdjacentText';
+
+  /** @domName Element.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String text) {
+    if (JS('bool', '!!this.insertAdjacentHTML')) {
+      _insertAdjacentHTML(where, text);
+    } else {
+      _insertAdjacentNode(where, new DocumentFragment.html(text));
+    }
+  }
+
+  void _insertAdjacentHTML(String where, String text)
+      native 'insertAdjacentHTML';
+
+  /** @domName Element.insertAdjacentHTML */
+  Element insertAdjacentElement(String where, Element element) {
+    if (JS('bool', '!!this.insertAdjacentElement')) {
+      _insertAdjacentElement(where, element);
+    } else {
+      _insertAdjacentNode(where, element);
+    }
+    return element;
+  }
+
+  void _insertAdjacentElement(String where, Element element)
+      native 'insertAdjacentElement';
+
+  void _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case 'beforebegin':
+        this.parent.insertBefore(node, this);
+        break;
+      case 'afterbegin':
+        this.insertBefore(node, this.nodes.first);
+        break;
+      case 'beforeend':
+        this.nodes.add(node);
+        break;
+      case 'afterend':
+        this.parent.insertBefore(node, this.nextNode);
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid position ${where}");
+    }
+  }
+$else
 $endif
 
 $!MEMBERS
