@@ -5,7 +5,7 @@
 
 // VM implementation of DateImplementation.
 patch class DateImplementation {
-  /* patch */ DateImplementation(int year,
+  /* patch */ DateImplementation(int years,
                                  [int month = 1,
                                   int day = 1,
                                   int hour = 0,
@@ -15,7 +15,7 @@ patch class DateImplementation {
                                   bool isUtc = false])
       : this.isUtc = isUtc,
         this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
-            year, month, day, hour, minute, second, millisecond, isUtc) {
+            years, month, day, hour, minute, second, millisecond, isUtc) {
     if (millisecondsSinceEpoch === null) throw new IllegalArgumentException();
     if (isUtc === null) throw new IllegalArgumentException();
   }
@@ -177,20 +177,23 @@ patch class DateImplementation {
   }
 
   static _brokenDownDateToMillisecondsSinceEpoch(
-      int year, int month, int day,
+      int years, int month, int day,
       int hour, int minute, int second, int millisecond,
       bool isUtc) {
-    // Simplify calculations by working with zero-based month.
-    --month;
-    // Deal with under and overflow.
-    year += (month / 12).floor().toInt();
-    month = month % 12;
+    if ((month < 1) || (month > 12)) return null;
+    if ((day < 1) || (day > 31)) return null;
+    // Leap seconds can lead to hour == 24.
+    if ((hour < 0) || (hour > 24)) return null;
+    if ((hour == 24) && ((minute != 0) || (second != 0))) return null;
+    if ((minute < 0) || (minute > 59)) return null;
+    if ((second < 0) || (second > 59)) return null;
+    if ((millisecond < 0) || (millisecond > 999)) return null;
 
     // First compute the seconds in UTC, independent of the [isUtc] flag. If
     // necessary we will add the time-zone offset later on.
     int days = day - 1;
-    days += _DAYS_UNTIL_MONTH[_isLeapYear(year) ? 1 : 0][month];
-    days += _dayFromYear(year);
+    days += _DAYS_UNTIL_MONTH[_isLeapYear(years) ? 1 : 0][month - 1];
+    days += _dayFromYear(years);
     int millisecondsSinceEpoch = days * Duration.MILLISECONDS_PER_DAY +
         hour * Duration.MILLISECONDS_PER_HOUR +
         minute * Duration.MILLISECONDS_PER_MINUTE+

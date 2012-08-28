@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -265,8 +265,12 @@ class DateTest {
     Expect.throws(() => new Date(dt.year, dt.month, dt.day,
                                  dt.hour, dt.minute, 0, 1));
     dt = new Date.fromMillisecondsSinceEpoch(-8640000000000000);
+    // TODO(floitsch): Update comment after refactoring.
+    // This test currently fails because the arguments must not be negative.
+    // However we are going to allow negative (and overflowing) arguments and
+    // this line will then throw for the correct reason.
     Expect.throws(() => new Date(dt.year, dt.month, dt.day,
-                                 dt.hour, dt.minute, 0, -1, isUtc: true));
+                                 dt.hour, dt.minute, 0, -1));
   }
 
   static void testUTCGetters() {
@@ -421,185 +425,6 @@ class DateTest {
         3 * Duration.MILLISECONDS_PER_SECOND + 5));
     Expect.equals(true, dt1 == dt3);
     Expect.equals(false, dt1 == dt2);
-  }
-
-  static void testUnderflowAndOverflow() {
-    final dtBase = new Date(2012, 6, 20, 12, 30, 30, 500);
-
-    // Millisecond
-    print("  >>> Millisecond+");
-    var dt = new Date(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                      dtBase.minute, dtBase.second, 1000);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second + 1, dt.second);
-    Expect.equals(0, dt.millisecond);
-
-    print("  >>> Millisecond-");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                  dtBase.minute, dtBase.second, -1000);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second - 1, dt.second);
-    Expect.equals(0, dt.millisecond);
-
-    // Second
-    print("  >>> Second+");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                  dtBase.minute, 60, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute + 1, dt.minute);
-    Expect.equals(0, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    print("  >>> Second-");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                  dtBase.minute, -60, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute - 1, dt.minute);
-    Expect.equals(0, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    // Minute
-    print("  >>> Minute+");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, dtBase.hour, 60,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour + 1, dt.hour);
-    Expect.equals(0, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    print("  >>> Minute-");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, dtBase.hour, -60,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour - 1, dt.hour);
-    Expect.equals(0, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    // Hour
-    print("  >>> Hour+");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, 24, dtBase.minute,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day + 1, dt.day);
-    Expect.equals(0, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    print("  >>> Hour-");
-    dt = new Date(dtBase.year, dtBase.month, dtBase.day, -24, dtBase.minute,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month, dt.month);
-    Expect.equals(dtBase.day - 1, dt.day);
-    Expect.equals(0, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    // Day
-    print("  >>> Day+");
-    dt = new Date(dtBase.year, dtBase.month, 31, dtBase.hour, dtBase.minute,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month + 1, dt.month);
-    Expect.equals(1, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    print("  >>> Day-");
-    dt = new Date(dtBase.year, dtBase.month, -30, dtBase.hour, dtBase.minute,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year, dt.year);
-    Expect.equals(dtBase.month - 1, dt.month);
-    Expect.equals(1, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    // Month
-    print("  >>> Month+");
-    dt = new Date(dtBase.year, 13, dtBase.day, dtBase.hour, dtBase.minute,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year + 1, dt.year);
-    Expect.equals(1, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    print("  >>> Month-");
-    dt = new Date(dtBase.year, -11, dtBase.day, dtBase.hour, dtBase.minute,
-                  dtBase.second, dtBase.millisecond);
-    Expect.equals(dtBase.year - 1, dt.year);
-    Expect.equals(1, dt.month);
-    Expect.equals(dtBase.day, dt.day);
-    Expect.equals(dtBase.hour, dt.hour);
-    Expect.equals(dtBase.minute, dt.minute);
-    Expect.equals(dtBase.second, dt.second);
-    Expect.equals(dtBase.millisecond, dt.millisecond);
-
-    // Flowing all the way up the chain.
-    print("  >>> Flow+");
-    var dtBase1 = new Date(2012, 12, 31, 23, 59, 59, 999);
-    var dtTick = new Date(dtBase1.year, dtBase1.month, dtBase1.day,
-                          dtBase1.hour, dtBase1.minute, dtBase1.second,
-                          dtBase1.millisecond + 1);
-    Expect.equals(dtBase1.year + 1, dtTick.year);
-    Expect.equals(1, dtTick.month);
-    Expect.equals(1, dtTick.day);
-    Expect.equals(0, dtTick.hour);
-    Expect.equals(0, dtTick.minute);
-    Expect.equals(0, dtTick.second);
-    Expect.equals(0, dtTick.millisecond);
-
-    print("  >>> Flow-");
-    dtBase1 = new Date(2012, 1, 1, 0, 0, 0, 0);
-    dtTick = new Date(dtBase1.year, dtBase1.month, dtBase1.day, dtBase1.hour,
-                      dtBase1.minute, dtBase1.second, dtBase1.millisecond - 1);
-    Expect.equals(dtBase1.year - 1, dtTick.year);
-    Expect.equals(12, dtTick.month);
-    Expect.equals(31, dtTick.day);
-    Expect.equals(23, dtTick.hour);
-    Expect.equals(59, dtTick.minute);
-    Expect.equals(59, dtTick.second);
-    Expect.equals(999, dtTick.millisecond);
-
-    print("  >>> extra underflow");
-    dtTick = new Date(dtBase1.year, dtBase1.month, dtBase1.day, -17520,
-                      dtBase1.minute, dtBase1.second, dtBase1.millisecond);
-    Expect.equals(dtBase1.year - 2, dtTick.year);
-    Expect.equals(dtBase1.month, dtTick.month);
-    Expect.equals(dtBase1.day, dtTick.day);
-    Expect.equals(dtBase1.hour, dtTick.hour);
-    Expect.equals(dtBase1.minute, dtTick.minute);
-    Expect.equals(dtBase1.second, dtTick.second);
-    Expect.equals(dtBase1.millisecond, dtTick.millisecond);
   }
 
   static void testDateStrings() {
@@ -811,7 +636,6 @@ class DateTest {
     testLocalGetters();
     testChangeTimeZone();
     testSubAdd();
-    testUnderflowAndOverflow();
     testDateStrings();
     testEquivalentYears();
     testExtremes();
