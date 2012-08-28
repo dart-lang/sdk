@@ -4106,6 +4106,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER, 3, 3, 5));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3904
+   */
+  public void test_reifiedClasses() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "process(x) {}",
+        "main() {",
+        "  process(A);",
+        "}"));
+    assertErrors(libraryResult.getErrors());
+  }
 
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,

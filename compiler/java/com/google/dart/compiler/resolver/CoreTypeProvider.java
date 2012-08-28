@@ -45,4 +45,6 @@ public interface CoreTypeProvider {
   InterfaceType getNumType();
 
   InterfaceType getStringImplementationType();
+  
+  InterfaceType getTypeType();
 }

@@ -180,6 +180,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
+    private final InterfaceType typeType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
     private final boolean typeChecksForInferredTypes;
@@ -214,6 +215,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
+      this.typeType = typeProvider.getTypeType();
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
       this.typeChecksForInferredTypes = compilerOptions.typeChecksForInferredTypes();

@@ -1170,7 +1170,7 @@ public class Resolver {
           break;
         case CLASS:
           if (!isQualifier) {
-            onError(x, ResolverErrorCode.IS_A_CLASS, name);
+            return typeProvider.getTypeType().getElement();
           }
           break;
         case TYPE_VARIABLE:

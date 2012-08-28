@@ -180,6 +180,7 @@ abstract class ResolverTestCase extends TestCase {
     private final InterfaceType dynamicType;
     private final InterfaceType defaultMapLiteralType;
     private final InterfaceType defaultListType;
+    private final InterfaceType typeType;
     private final Type voidType;
     private final ClassElement objectElement;
 
@@ -219,6 +220,10 @@ abstract class ResolverTestCase extends TestCase {
 
       ClassElement listElement = Elements.classNamed("List");
       defaultListType = Types.interfaceType(listElement, Lists.<Type>newArrayList(dynamicType));
+      listElement.setType(defaultListType);
+      
+      ClassElement typeElement = Elements.classNamed("Type");
+      typeType = Types.interfaceType(typeElement, Collections.<Type>emptyList());
       listElement.setType(defaultListType);
 
       voidType = Types.newVoidType();
@@ -316,6 +321,11 @@ abstract class ResolverTestCase extends TestCase {
     @Override
     public InterfaceType getIteratorType(Type elementType) {
       throw new AssertionError();
+    }
+
+    @Override
+    public InterfaceType getTypeType() {
+      return typeType;
     }
   }
 

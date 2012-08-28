@@ -67,9 +67,29 @@ body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrit
 call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
 char_escape_test: Pass # Issue 1654
+class_literal_test/01 : Fail # language change 3368
 class_literal_test/04 : Fail # language change 1031
+class_literal_test/05 : Fail # language change 3368
+class_literal_test/06 : Fail # language change 3368
 class_literal_test/09 : Fail # language change 1031
+class_literal_test/10 : Fail # language change 3368
+class_literal_test/11 : Fail # language change 3368
+class_literal_test/12 : Fail # language change 3368
+class_literal_test/13 : Fail # language change 3368
 class_literal_test/16 : Fail # language change 1031
+class_literal_test/17 : Fail # language change 3368
+class_literal_test/18 : Fail # language change 3368
+class_literal_test/19 : Fail # language change 3368
+class_literal_test/20 : Fail # language change 3368
+class_literal_test/21 : Fail # language change 3368
+class_literal_test/22 : Fail # language change 3368
+class_literal_test/23 : Fail # language change 3368
+class_literal_test/24 : Fail # language change 3368
+class_literal_test/25 : Fail # language change 3368
+class_literal_test/26 : Fail # language change 3368
+class_literal_test/27 : Fail # language change 3368
+class_literal_test/28 : Fail # language change 3368
+class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest

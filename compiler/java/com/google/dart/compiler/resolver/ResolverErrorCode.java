@@ -133,7 +133,6 @@ public enum ResolverErrorCode implements ErrorCode {
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
-  IS_A_CLASS("%s is a class and cannot be used as an expression"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
   IS_AN_INSTANCE_FIELD("%s.%s is an instance field, not a static method"),

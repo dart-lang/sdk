@@ -1164,8 +1164,7 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "main() {",
         "    0.25 - Object;",
-        "}"),
-        ResolverErrorCode.IS_A_CLASS);
+        "}"));
   }
 
   public void test_typeVariableUsedAsExpression() {
@@ -1713,8 +1712,7 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "method () {",
         "  var a = Object;",
-        "}"),
-        errEx(ResolverErrorCode.IS_A_CLASS, 3, 11, 6));
+        "}"));
   }
 
   public void test_isAnInstanceMethod() {
