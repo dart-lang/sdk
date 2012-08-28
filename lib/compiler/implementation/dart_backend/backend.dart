@@ -5,11 +5,12 @@
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final bool minify;
+  final bool cutDeclarationTypes;
 
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
 
-  DartBackend(Compiler compiler, this.minify)
+  DartBackend(Compiler compiler, this.minify, this.cutDeclarationTypes)
       : tasks = <CompilerTask>[],
       super(compiler);
 
@@ -102,7 +103,8 @@ class DartBackend extends Backend {
     // Create renames.
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
-    renamePlaceholders(compiler, collector, renames, imports, minify);
+    renamePlaceholders(
+        compiler, collector, renames, imports, minify, cutDeclarationTypes);
 
     // Sort elements.
     final sortedTopLevels = sortElements(topLevelElements);

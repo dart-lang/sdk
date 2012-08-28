@@ -168,7 +168,8 @@ class Compiler implements DiagnosticListener {
             this.enableUserAssertions = false,
             bool emitJavascript = true,
             bool generateSourceMap = true,
-            bool minify = false])
+            bool minify = false,
+            bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         progress = new Stopwatch.start() {
@@ -185,7 +186,7 @@ class Compiler implements DiagnosticListener {
     typesTask = new ti.TypesTask(this);
     backend = emitJavascript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
-        new dart_backend.DartBackend(this, minify);
+        new dart_backend.DartBackend(this, minify, cutDeclarationTypes);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
              checker, typesTask, constantHandler, enqueuer];

@@ -30,7 +30,8 @@ class Compiler extends leg.Compiler {
           enableTypeAssertions: options.indexOf('--enable-checked-mode') != -1,
           enableUserAssertions: options.indexOf('--enable-checked-mode') != -1,
           emitJavascript: options.indexOf('--output-type=dart') == -1,
-          minify: options.indexOf('--minify') != -1);
+          minify: options.indexOf('--minify') != -1,
+          cutDeclarationTypes: options.indexOf('--cutDeclarationTypes') != -1);
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path].libraryPath);

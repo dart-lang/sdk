@@ -22,6 +22,12 @@ class FunctionScope {
   }
 }
 
+class DeclarationTypePlaceholder {
+  final TypeAnnotation typeNode;
+  final bool requiresVar;
+  DeclarationTypePlaceholder(this.typeNode, this.requiresVar);
+}
+
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
@@ -85,6 +91,7 @@ class PlaceholderCollector extends AbstractVisitor {
   final Map<Element, Set<Node>> elementNodes;
   final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
+  final List<DeclarationTypePlaceholder> declarationTypePlaceholders;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
   TreeElements treeElements;
@@ -97,7 +104,8 @@ class PlaceholderCollector extends AbstractVisitor {
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
       functionScopes = new Map<FunctionElement, FunctionScope>(),
-      privateNodes = new Map<LibraryElement, Set<Identifier>>();
+      privateNodes = new Map<LibraryElement, Set<Identifier>>(),
+      declarationTypePlaceholders = new List<DeclarationTypePlaceholder>();
 
   void tryMakeConstructorNamePlaceholder(
       FunctionExpression constructor, ClassElement element) {
@@ -164,6 +172,7 @@ class PlaceholderCollector extends AbstractVisitor {
         unreachable();
       }
     }
+    makeVarDeclarationTypePlaceholder(node);
   }
 
   void collect(Element element, TreeElements elements) {
@@ -215,6 +224,24 @@ class PlaceholderCollector extends AbstractVisitor {
 
   void makeTypePlaceholder(Node node, Type type) {
     makeElementPlaceholder(node, type.element);
+  }
+
+  void makeOmitDeclarationTypePlaceholder(TypeAnnotation type) {
+    if (type === null) return;
+    declarationTypePlaceholders.add(
+        new DeclarationTypePlaceholder(type, false));
+  }
+
+  void makeVarDeclarationTypePlaceholder(VariableDefinitions node) {
+    // TODO(smok): Maybe instead of calling this method and
+    // makeDeclaratioTypePlaceholder have type declaration placeholder
+    // collector logic in visitVariableDefinitions when resolver becomes better
+    // and/or catch syntax changes.
+    if (node.type === null) return;
+    Element definitionElement = treeElements[node.definitions.nodes.head];
+    bool requiresVar = !node.modifiers.isFinalOrConst();
+    declarationTypePlaceholders.add(
+        new DeclarationTypePlaceholder(node.type, requiresVar));
   }
 
   void makeNullPlaceholder(Node node) {
@@ -391,6 +418,22 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
     node.visitChildren(this);
+    makeOmitDeclarationTypePlaceholder(node.returnType);
+    collectFunctionParameters(node.parameters);
+  }
+
+  void collectFunctionParameters(NodeList parameters) {
+    if (parameters === null) return;
+    for (Node parameter in parameters.nodes) {
+      if (parameter is NodeList) {
+        // Optional parameter list.
+        collectFunctionParameters(parameter);
+      } else {
+        assert(parameter is VariableDefinitions);
+        makeOmitDeclarationTypePlaceholder(
+            parameter.asVariableDefinitions().type);
+      }
+    }
   }
 
   visitClassNode(ClassNode node) {
@@ -438,6 +481,17 @@ class PlaceholderCollector extends AbstractVisitor {
   visitTypedef(Typedef node) {
     assert(currentElement is TypedefElement);
     makeElementPlaceholder(node.name, currentElement);
+    node.visitChildren(this);
+    makeOmitDeclarationTypePlaceholder(node.returnType);
+    collectFunctionParameters(node.formals);
+  }
+
+  visitBlock(Block node) {
+    for (Node statement in node.statements.nodes) {
+      if (statement is VariableDefinitions) {
+        makeVarDeclarationTypePlaceholder(statement);
+      }
+    }
     node.visitChildren(this);
   }
 }

@@ -47,12 +47,13 @@ class Platform {
 }
 ''';
 
-testDart2Dart(String src, [void continuation(String s), bool minify = false]) {
+testDart2Dart(String src, [void continuation(String s), bool minify = false,
+    bool cutDeclarationTypes = false]) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
     continuation = (s) { Expect.equals(src, s); };
   }
-  testDart2DartWithLibrary(src, '', continuation, minify);
+  testDart2DartWithLibrary(src, '', continuation, minify, cutDeclarationTypes);
 }
 
 /**
@@ -60,7 +61,8 @@ testDart2Dart(String src, [void continuation(String s), bool minify = false]) {
  */
 testDart2DartWithLibrary(
     String srcMain, String srcLibrary,
-    [void continuation(String s), bool minify = false]) {
+    [void continuation(String s), bool minify = false,
+    bool cutDeclarationTypes = false]) {
   fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
@@ -84,6 +86,7 @@ testDart2DartWithLibrary(
 
   final options = <String>['--output-type=dart'];
   if (minify) options.add('--minify');
+  if (cutDeclarationTypes) options.add('--cutDeclarationTypes');
 
   compile(
       scriptUri,
@@ -781,6 +784,25 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testDeclarationTypePlaceholders() {
+  var src = '''
+String globalfield;
+const String globalconstfield;
+
+void foo(String arg) {}
+
+main() {
+  String localvar;
+  foo("5");
+}
+''';
+  var expectedResult =
+      ' foo( arg){}main(){var localvar; foo("5");}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); },
+      cutDeclarationTypes: true);
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -822,4 +844,5 @@ main() {
   testClosureLocalsMinified();
   testParametersMinified();
   testTypeVariablesInDifferentLibraries();
+  testDeclarationTypePlaceholders();
 }

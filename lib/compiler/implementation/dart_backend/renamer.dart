@@ -11,7 +11,8 @@ void renamePlaceholders(
     PlaceholderCollector placeholderCollector,
     Map<Node, String> renames,
     Map<LibraryElement, String> imports,
-    bool minify) {
+    bool minify,
+    bool cutDeclarationTypes) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
   final Set<String> usedTopLevelIdentifiers = new Set<String>();
@@ -100,6 +101,12 @@ void renamePlaceholders(
   sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
     renameNodes(nodes, (node) => rename(library, node.source.slowToString()));
   });
+  if (cutDeclarationTypes) {
+    for (DeclarationTypePlaceholder placeholder in
+         placeholderCollector.declarationTypePlaceholders) {
+      renames[placeholder.typeNode] = placeholder.requiresVar ? 'var' : '';
+    }
+  }
 }
 
 typedef String Generator(String originalName, bool isForbidden(String name));
