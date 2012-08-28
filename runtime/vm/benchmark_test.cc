@@ -40,6 +40,10 @@ BENCHMARK(CorelibCompileAll) {
   timer.Start();
   const Error& error = Error::Handle(benchmark->isolate(),
                                      Library::CompileAll());
+  if (!error.IsNull()) {
+    OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",
+                 error.ToErrorCString());
+  }
   EXPECT(error.IsNull());
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -184,113 +188,6 @@ BENCHMARK(UseDartApi) {
               args);
 
   Timer timer(true, "UseDartApi benchmark");
-  timer.Start();
-  Dart_Invoke(lib,
-              Dart_NewString("benchmark"),
-              1,
-              args);
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-}
-
-
-//
-// Measure time accessing internal and external strings.
-//
-static void DartStringAccess(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  int count = Dart_GetNativeArgumentCount(args);
-  EXPECT_EQ(2, count);
-
-  // Get interations parameter.
-  Dart_Handle param1 = Dart_GetNativeArgument(args, 1);
-  EXPECT_VALID(param1);
-  EXPECT(Dart_IsInteger(param1));
-  bool fits = false;
-  Dart_Handle result = Dart_IntegerFitsIntoInt64(param1, &fits);
-  EXPECT_VALID(result);
-  EXPECT(fits);
-  int64_t iterations;
-  result = Dart_IntegerToInt64(param1, &iterations);
-  EXPECT_VALID(result);
-  EXPECT_LE(0, iterations);
-  EXPECT_LE(iterations, 10000000);
-
-  // Create strings.
-  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
-  int external_peer_data = 123;
-  Dart_Handle external_string = Dart_NewExternalString8(data8,
-                                                        ARRAY_SIZE(data8),
-                                                        &external_peer_data,
-                                                        NULL);
-  Dart_Handle internal_string = Dart_NewString("two");
-
-  // Run benchmark.
-  for (int64_t i = 0; i < iterations; i++) {
-    EXPECT(Dart_IsString(internal_string));
-    EXPECT(Dart_IsString8(internal_string));
-    EXPECT(Dart_IsString16(internal_string));
-    EXPECT(!Dart_IsExternalString(internal_string));
-    EXPECT_VALID(external_string);
-    EXPECT(Dart_IsExternalString(external_string));
-    void* external_peer = NULL;
-    // 80% of benchmark is spent in the following call.
-    EXPECT_VALID(Dart_ExternalStringGetPeer(external_string, &external_peer));
-    EXPECT_EQ(&external_peer_data, external_peer);
-  }
-
-  Dart_ExitScope();
-}
-
-
-static Dart_NativeFunction bm_dsa_lookup(Dart_Handle name, int argument_count) {
-  const char* cstr = NULL;
-  Dart_Handle result = Dart_StringToCString(name, &cstr);
-  EXPECT_VALID(result);
-  if (strcmp(cstr, "init") == 0) {
-    return InitNativeFields;
-  } else {
-    return DartStringAccess;
-  }
-}
-
-
-BENCHMARK(DartStringAccess) {
-  const int kNumIterations = 10000000;
-  const char* kScriptChars =
-      "class Class extends NativeFieldsWrapper{\n"
-      "  int init() native 'init';\n"
-      "  int method(int param1) native 'method';\n"
-      "}\n"
-      "\n"
-      "void benchmark(int count) {\n"
-      "  Class c = new Class();\n"
-      "  c.method(count);\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(bm_dsa_lookup));
-
-  // Create a native wrapper class with native fields.
-  Dart_Handle result = Dart_CreateNativeWrapperClass(
-      lib,
-      Dart_NewString("NativeFieldsWrapper"),
-      1);
-  EXPECT_VALID(result);
-
-  Dart_Handle args[1];
-  args[0] = Dart_NewInteger(kNumIterations);
-
-  // Warmup first to avoid compilation jitters.
-  result = Dart_Invoke(lib,
-                       Dart_NewString("benchmark"),
-                       1,
-                       args);
-  EXPECT_VALID(result);
-
-  Timer timer(true, "DartStringAccess benchmark");
   timer.Start();
   Dart_Invoke(lib,
               Dart_NewString("benchmark"),

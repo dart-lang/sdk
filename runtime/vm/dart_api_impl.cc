@@ -1525,51 +1525,25 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
   return RawObject::IsExternalStringClassId(Api::ClassId(object));
 }
 
+
 DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str = Api::UnwrapStringHandle(isolate, object);
+  if (str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, object, String);
+  }
+  if (!str.IsExternal()) {
+    return
+        Api::NewError("%s expects argument 'object' to be an external String.",
+                      CURRENT_FUNC);
+  }
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
   }
-//  NoGCScope no_gc_scope;
-  if (Dart_IsExternalString(object)) {
-    Isolate* isolate = Isolate::Current();
-    intptr_t class_id = Api::ClassId(object);
-    void* raw_peer ;
-    switch (class_id) {
-      case kExternalOneByteStringCid: {
-        asm("");
-        RawExternalOneByteString* raw_string =
-            (*(reinterpret_cast<RawExternalOneByteString**>(object)))->ptr();
-        ExternalStringData<uint8_t>* data = raw_string->external_data_;
-        raw_peer = data != NULL ? data->peer() : NULL;
-        break;
-      }
-      case kExternalTwoByteStringCid: {
-        RawExternalTwoByteString* raw_string =
-            (*(reinterpret_cast<RawExternalTwoByteString**>(object)))->ptr();
-        ExternalStringData<uint16_t>* data = raw_string->external_data_;
-        raw_peer = data != NULL ? data->peer() : NULL;
-        break;
-      }
-      default: {
-        RawExternalFourByteString* raw_string =
-            (*(reinterpret_cast<RawExternalFourByteString**>(object)))->ptr();
-        ExternalStringData<uint32_t>* data = raw_string->external_data_;
-        raw_peer = data != NULL ? data->peer() : NULL;
-        break;
-      }
-    }
-    if (raw_peer != NULL) {
-      *peer = raw_peer;
-      return Api::Success(isolate);
-    } else {
-      RETURN_TYPE_ERROR(isolate, object, String);
-    }
-  }
-  const char* error_msg = Dart_IsString(object) ?
-      "%s expects argument 'object' to be an external String." :
-      "%s expects argument 'object' to be of type String.";
-  return Api::NewError(error_msg, CURRENT_FUNC);
+  *peer = str.GetPeer();
+  return Api::Success(isolate);
 }
 
 
