@@ -359,10 +359,14 @@ class PlaceholderCollector extends AbstractVisitor {
           final send = node.typeName.asSend();
           Identifier receiver = send.receiver;
           Identifier selector = send.selector;
-          final hasPrefix = element is TypedefElement ||
-              element.lookupConstructor(receiver.source, selector.source)
-                  === null;
-          if (!hasPrefix) target = send.receiver;
+          hasPrefix() {
+            if (element is TypedefElement) return true;
+            ClassElement classElement = element;
+            final constructor = classElement.lookupConstructor(
+                receiver.source, selector.source);
+            return constructor === null;
+          }
+          if (!hasPrefix()) target = send.receiver;
         }
       }
       // TODO(antonm): is there a better way to detect unresolved types?
