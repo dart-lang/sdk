@@ -273,7 +273,6 @@ div_by_zero_test: Fail
 double_to_string_as_fixed_test: Fail
 expect_test: Fail
 factory3_test: Fail
-list_test: Fail
 local_function_test: Fail
 naming_test: Fail
 stack_overflow_test: Fail
