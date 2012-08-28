@@ -438,24 +438,11 @@ class Primitives {
                                  milliseconds, isUtc) {
     checkInt(years);
     checkInt(month);
-    if (month < 1 || 12 < month) throw new IllegalArgumentException(month);
     checkInt(day);
-    if (day < 1 || 31 < day) throw new IllegalArgumentException(day);
     checkInt(hours);
-    if (hours < 0 || 24 < hours) throw new IllegalArgumentException(hours);
     checkInt(minutes);
-    if (minutes < 0 || 59 < minutes) {
-      throw new IllegalArgumentException(minutes);
-    }
     checkInt(seconds);
-    if (seconds < 0 || 59 < seconds) {
-      // TODO(ahe): Leap seconds?
-      throw new IllegalArgumentException(seconds);
-    }
     checkInt(milliseconds);
-    if (milliseconds < 0 || 999 < milliseconds) {
-      throw new IllegalArgumentException(milliseconds);
-    }
     checkBool(isUtc);
     var jsMonth = month - 1;
     var value;
