@@ -32,7 +32,7 @@ class Baz<E,F extends Foo> implements Bar<E> {
   Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
 
   bool operator==(Object other) => false;
-  int operator negate() => 0;
+  int operator-() => 0;
 }
 
 class Boz extends Foo {

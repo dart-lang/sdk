@@ -2192,15 +2192,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isNotEquals = false;
     if (node.isIndex && !node.arguments.tail.isEmpty()) {
       dartMethodName = Elements.constructOperatorName(
-          const SourceString('operator'),
-          const SourceString('[]='));
+          const SourceString('[]='), false);
     } else if (node.selector.asOperator() != null) {
       SourceString name = node.selector.asIdentifier().source;
       isNotEquals = name.stringValue === '!=';
       dartMethodName = Elements.constructOperatorName(
-          const SourceString('operator'),
-          name,
-          node.argumentsNode is Prefix);
+          name, node.argumentsNode is Prefix);
     } else {
       dartMethodName = node.selector.asIdentifier().source;
     }
