@@ -21,7 +21,6 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
-import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -2775,98 +2774,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertNotNull(expression);
       assertNotNull(expression.getElement());
     }
-  }
-
-  /**
-   * We can not guarantee type of non-const literal.
-   */
-  public void test_typesPropagation_arrayLiteral_notConst() throws Exception {
-    final AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var a = [1, 2, 3];",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-    assertNodeNotInferredTypeString("[1, 2, 3]", "List<Dynamic>");
-  }
-  
-  public void test_typesPropagation_arrayLiteralConst_singleType() throws Exception {
-    final AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var a = const [1, 2, 3];",
-        "  var v = a[0];",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v", "int");
-    assertNodeInferredTypeString("[1, 2, 3]", "List<int>");
-  }
-
-  public void test_typesPropagation_arrayLiteralConst_mixedTypes() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var a = const [1, 2, '3'];",
-        "  var v = a[0];",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v", "[Comparable, Hashable]");
-  }
-
-  /**
-   * We can not guarantee type of non-const literal.
-   */
-  public void test_typesPropagation_mapLiteral_notConst() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var m = {'1': 1, '2' : 2, '3' : 3};",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-    assertNodeNotInferredTypeString("{'1': 1, ", "Map<String, Dynamic>");
-  }
-  
-  public void test_typesPropagation_mapLiteralConst_singleType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var m = const {'1': 1, '2' : 2, '3' : 3};",
-        "  var v = m['1'];",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v", "int");
-    assertNodeInferredTypeString("{'1': 1, ", "Map<String, int>");
-  }
-
-  public void test_typesPropagation_mapLiteralConst_mixedTypes() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var m = const {'1': 1, '2' : 2, '3' : 3.0};",
-        "  var v = m['1'];",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v", "num");
-  }
-
-  private void assertNodeInferredTypeString(String pattern, String expectedType) {
-    DartNode node = findNode(DartNode.class, pattern);
-    Type actualType = node.getType();
-    assertEquals(expectedType, getTypeSource(actualType));
-    assertTrue(actualType.isInferred());
-  }
-  
-  private void assertNodeNotInferredTypeString(String pattern, String expectedType) {
-    DartNode node = findNode(DartNode.class, pattern);
-    Type actualType = node.getType();
-    assertEquals(expectedType, getTypeSource(actualType));
-    assertFalse(actualType.isInferred());
   }
 
   public void test_getType_binaryExpression() throws Exception {
