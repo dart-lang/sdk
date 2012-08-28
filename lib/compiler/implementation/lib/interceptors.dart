@@ -414,6 +414,12 @@ isInfinite(receiver) {
     || JS('bool', @'# == -Infinity', receiver);
 }
 
+negate(receiver) {
+  if (receiver is !num) return UNINTERCEPTED(receiver.negate());
+
+  return JS('num', @'-#', receiver);
+}
+
 round(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.round());
 

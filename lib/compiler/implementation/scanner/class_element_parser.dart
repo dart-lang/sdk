@@ -32,27 +32,22 @@ class PartialClassElement extends ClassElement {
     super.resolutionState = state;
   }
 
-  ClassNode parseNode(Compiler compiler) {
+  ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;
-    compiler.withCurrentElement(this, () {
-      compiler.parser.measure(() {
-        MemberListener listener = new MemberListener(compiler, this);
-        Parser parser = new ClassElementParser(listener);
-        Token token = parser.parseTopLevelDeclaration(beginToken);
-        assert(token === endToken.next);
-        cachedNode = listener.popNode();
-        assert(listener.nodes.isEmpty());
-      });
-      compiler.patchParser.measure(() {
-        if (isPatched) {
-          // TODO(lrn): Perhaps extract functionality so it doesn't
-          // need compiler.
-          ClassNode patchNode = compiler.patchParser.parsePatchClassNode(patch);
-          Link<Element> patches = patch.localMembers;
-          compiler.applyContainerPatch(this, patches);
-        }
-      });
-    });
+    // TODO(ahe): Measure these tasks.
+    MemberListener listener = new MemberListener(diagnosticListener, this);
+    Parser parser = new ClassElementParser(listener);
+    Token token = parser.parseTopLevelDeclaration(beginToken);
+    assert(token === endToken.next);
+    cachedNode = listener.popNode();
+    assert(listener.nodes.isEmpty());
+    if (isPatched) {
+      // TODO(lrn): Perhaps extract functionality so it doesn't need compiler.
+      Compiler compiler = diagnosticListener;
+      ClassNode patchNode = compiler.patchParser.parsePatchClassNode(patch);
+      Link<Element> patches = patch.localMembers;
+      compiler.applyContainerPatch(this, patches);
+    }
     return cachedNode;
   }
 
@@ -119,13 +114,8 @@ class MemberListener extends NodeListener {
     if (send === null) return methodName.asIdentifier().source;
     Identifier receiver = send.receiver.asIdentifier();
     Identifier selector = send.selector.asIdentifier();
-    Operator operator = selector.asOperator();
-    if (operator !== null) {
-      assert(receiver.source.stringValue === 'operator');
-      // TODO(ahe): It is a hack to compare to ')', but it beats
-      // parsing the node.
-      bool isUnary = operator.token.next.next.stringValue === ')';
-      return Elements.constructOperatorName(operator.source, isUnary);
+    if (selector.asOperator() !== null) {
+      return Elements.constructOperatorName(receiver.source, selector.source);
     } else {
       return Elements.constructConstructorName(receiver.source,
                                                selector.source);

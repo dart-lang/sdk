@@ -388,7 +388,6 @@ Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # Bad t
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # Bad test: assumes eager loading.
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # Bad test: assumes eager loading.
 
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t19: Fail, OK # Bad test: unary - operator now legal.
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333

@@ -256,6 +256,7 @@ bool isUserDefinableOperator(String value) {
   return
     (value === '==') ||
     (value === '~') ||
+    (value === 'negate') ||
     (value === '[]') ||
     (value === '[]=') ||
     (value === '*') ||

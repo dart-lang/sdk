@@ -117,24 +117,16 @@ class Selector implements Hashable {
       : this(SelectorKind.SETTER, name, library, 1);
 
   Selector.unaryOperator(SourceString name)
-      : this(SelectorKind.OPERATOR,
-             Elements.constructOperatorName(name, true),
-             null, 0);
+      : this(SelectorKind.OPERATOR, operatorName(name, true), null, 0);
 
   Selector.binaryOperator(SourceString name)
-      : this(SelectorKind.OPERATOR,
-             Elements.constructOperatorName(name, false),
-             null, 1);
+      : this(SelectorKind.OPERATOR, operatorName(name, false), null, 1);
 
   Selector.index()
-      : this(SelectorKind.INDEX,
-             Elements.constructOperatorName(const SourceString("[]"), false),
-             null, 1);
+      : this(SelectorKind.INDEX, indexName(), null, 1);
 
   Selector.indexSet()
-      : this(SelectorKind.INDEX,
-             Elements.constructOperatorName(const SourceString("[]="), false),
-             null, 2);
+      : this(SelectorKind.INDEX, indexSetName(), null, 2);
 
   Selector.call(SourceString name,
                 LibraryElement library,
@@ -164,6 +156,16 @@ class Selector implements Hashable {
   bool isOperator() => kind === SelectorKind.OPERATOR;
   bool isUnaryOperator() => isOperator() && argumentCount == 0;
   bool isBinaryOperator() => isOperator() && argumentCount == 1;
+
+  static SourceString operatorName(SourceString name, bool isUnary)
+      => Elements.constructOperatorName(
+             const SourceString('operator'), name, isUnary);
+
+  static SourceString indexName()
+      => operatorName(const SourceString('[]'), false);
+
+  static SourceString indexSetName()
+      => operatorName(const SourceString('[]='), false);
 
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;

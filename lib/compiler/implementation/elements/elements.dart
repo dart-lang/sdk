@@ -1463,57 +1463,35 @@ class Elements {
   static const SourceString OPERATOR_EQUALS =
       const SourceString(@'operator$eq');
 
-  static SourceString constructOperatorName(SourceString selector,
-                                            bool isUnary) {
+  static SourceString constructOperatorName(SourceString receiver,
+                                            SourceString selector,
+                                            [bool isUnary = false]) {
     String str = selector.stringValue;
     if (str === '==' || str === '!=') return OPERATOR_EQUALS;
 
-    if (str === '~') {
-      str = 'not';
-    } else if (str === '-' && isUnary) {
-      // TODO(ahe): Return something like 'unary -'.
-      return const SourceString('negate');
-    } else if (str === '[]') {
-      str = 'index';
-    } else if (str === '[]=') {
-      str = 'indexSet';
-    } else if (str === '*' || str === '*=') {
-      str = 'mul';
-    } else if (str === '/' || str === '/=') {
-      str = 'div';
-    } else if (str === '%' || str === '%=') {
-      str = 'mod';
-    } else if (str === '~/' || str === '~/=') {
-      str = 'tdiv';
-    } else if (str === '+' || str === '+=') {
-      str = 'add';
-    } else if (str === '-' || str === '-=') {
-      str = 'sub';
-    } else if (str === '<<' || str === '<<=') {
-      str = 'shl';
-    } else if (str === '>>' || str === '>>=') {
-      str = 'shr';
-    } else if (str === '>=') {
-      str = 'ge';
-    } else if (str === '>') {
-      str = 'gt';
-    } else if (str === '<=') {
-      str = 'le';
-    } else if (str === '<') {
-      str = 'lt';
-    } else if (str === '&' || str === '&=') {
-      str = 'and';
-    } else if (str === '^' || str === '^=') {
-      str = 'xor';
-    } else if (str === '|' || str === '|=') {
-      str = 'or';
-    } else if (selector == const SourceString('negate')) {
-      // TODO(ahe): Remove this case: Legacy support for pre-0.11 spec.
-      return selector;
-    } else {
+    if (str === '~') str = 'not';
+    else if (str === 'negate' || (str === '-' && isUnary)) str = 'negate';
+    else if (str === '[]') str = 'index';
+    else if (str === '[]=') str = 'indexSet';
+    else if (str === '*' || str === '*=') str = 'mul';
+    else if (str === '/' || str === '/=') str = 'div';
+    else if (str === '%' || str === '%=') str = 'mod';
+    else if (str === '~/' || str === '~/=') str = 'tdiv';
+    else if (str === '+' || str === '+=') str = 'add';
+    else if (str === '-' || str === '-=') str = 'sub';
+    else if (str === '<<' || str === '<<=') str = 'shl';
+    else if (str === '>>' || str === '>>=') str = 'shr';
+    else if (str === '>=') str = 'ge';
+    else if (str === '>') str = 'gt';
+    else if (str === '<=') str = 'le';
+    else if (str === '<') str = 'lt';
+    else if (str === '&' || str === '&=') str = 'and';
+    else if (str === '^' || str === '^=') str = 'xor';
+    else if (str === '|' || str === '|=') str = 'or';
+    else {
       throw new Exception('Unhandled selector: ${selector.slowToString()}');
     }
-    return new SourceString('operator\$$str');
+    return new SourceString('$receiver\$$str');
   }
 
   static bool isStringSupertype(Element element, Compiler compiler) {
