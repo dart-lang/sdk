@@ -42,8 +42,6 @@ unknownelement_test: Fail # Issue 4189
 history_test: Fail
 
 [ $runtime == ie ]
-form_data_test: Fail # TODO(efortuna): Investigate.
-form_element_test: Fail # TODO(efortuna): Investigate.
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip

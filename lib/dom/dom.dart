@@ -69,13 +69,6 @@ class _FileReaderSyncFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FormDataFactoryProvider {
-  factory FormData([FormElement form]) => _dummy();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _HTMLAudioElementFactoryProvider {
   factory HTMLAudioElement([String src]) => _dummy();
 }
@@ -1532,6 +1525,19 @@ interface DOMFileSystemSync {
   final String name;
 
   final DirectoryEntrySync root;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface FormData {
+
+  void append(String name, String value, String filename);
+}
+
+interface DOMFormData extends FormData {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3150,18 +3156,6 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
   void setElements(Object array, [int offset]);
 
   Float64Array subarray(int start, [int end]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface FormData default _FormDataFactoryProvider {
-
-  FormData([FormElement form]);
-
-  void append(String name, String value, String filename);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -7,7 +7,7 @@
 //   Do not make code changes here.
 
 /// @domName DOMFormData
-interface FormData {
+interface DOMFormData {
 
   /** @domName DOMFormData.append */
   void append(String name, String value, String filename);

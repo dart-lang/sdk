@@ -259,7 +259,7 @@ _html_element_constructors = {
   'DivElement': 'div',
   'EmbedElement': 'embed',
   'FieldSetElement': 'fieldset',
-  'FormElement': 'form',
+  'Form': 'form',
   'HRElement': 'hr',
   'HeadElement': 'head',
   'HeadingElement': [ElementConstructorInfo('h1'),

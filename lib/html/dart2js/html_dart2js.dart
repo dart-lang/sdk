@@ -4352,6 +4352,11 @@ class _DOMFileSystemSyncImpl implements DOMFileSystemSync native "*DOMFileSystem
   final _DirectoryEntrySyncImpl root;
 }
 
+class _DOMFormDataImpl implements DOMFormData native "*DOMFormData" {
+
+  void append(String name, String value, String filename) native;
+}
+
 class _DOMImplementationImpl implements DOMImplementation native "*DOMImplementation" {
 
   _CSSStyleSheetImpl createCSSStyleSheet(String title, String media) native;
@@ -7305,11 +7310,6 @@ class _FontElementImpl extends _ElementImpl implements FontElement native "*HTML
   String face;
 
   String size;
-}
-
-class _FormDataImpl implements FormData native "*FormData" {
-
-  void append(String name, String value, String filename) native;
 }
 
 class _FormElementImpl extends _ElementImpl implements FormElement native "*HTMLFormElement" {
@@ -18068,11 +18068,6 @@ class _Elements {
     return _e;
   }
 
-  factory FormElement() {
-    _FormElementImpl _e = _document.$dom_createElement("form");
-    return _e;
-  }
-
   factory HRElement() {
     _HRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
@@ -18310,16 +18305,6 @@ class _FileReaderFactoryProvider {
 class _FileReaderSyncFactoryProvider {
   factory FileReaderSync() native
       '''return new FileReaderSync();''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _FormDataFactoryProvider {
-  factory FormData([FormElement form = null]) native '''
-    if (form == null) return new FormData();
-    return new FormData(form);
-  ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22774,6 +22759,18 @@ interface DOMFileSystemSync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMFormData
+interface DOMFormData {
+
+  /** @domName DOMFormData.append */
+  void append(String name, String value, String filename);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMImplementation
 interface DOMImplementation {
 
@@ -25105,24 +25102,8 @@ interface FontElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName FormData
-interface FormData default _FormDataFactoryProvider {
-
-  FormData([FormElement form]);
-
-  /** @domName FormData.append */
-  void append(String name, String value, String filename);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLFormElement
-interface FormElement extends Element default _Elements {
-
-  FormElement();
+interface FormElement extends Element {
 
   /** @domName HTMLFormElement.acceptCharset */
   String acceptCharset;
