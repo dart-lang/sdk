@@ -1465,7 +1465,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ONLY_FACTORIES_CAN_REDIRECT);
       }
       modifiers = modifiers.makeRedirectedConstructor();
-      DartTypeNode redirectedTypeName = parseTypeAnnotation();
+      DartTypeNode redirectedTypeName = parseTypeAnnotationPossiblyFollowedByName();
       DartIdentifier redirectedConstructorName = null;
       if (optional(Token.PERIOD)) {
         redirectedConstructorName = parseIdentifier();
@@ -1649,7 +1649,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ONLY_FACTORIES_CAN_REDIRECT);
       }
       modifiers = modifiers.makeRedirectedConstructor();
-      redirectedTypeName = parseTypeAnnotation();
+      redirectedTypeName = parseTypeAnnotationPossiblyFollowedByName();
       if (optional(Token.PERIOD)) {
         redirectedConstructorName = parseIdentifier();
       }
@@ -4907,6 +4907,32 @@ public class DartParser extends CompletionHooksParserBase {
   private DartTypeNode parseTypeAnnotation() {
     beginTypeAnnotation();
     return done(new DartTypeNode(parseQualified(false), parseTypeArgumentsOpt()));
+  }
+
+  /**
+   * <pre>
+   * type
+   *     : qualified typeArguments? ('.' identifier)?
+   *     ;
+   * </pre>
+   */
+  private DartTypeNode parseTypeAnnotationPossiblyFollowedByName() {
+    beginTypeAnnotation();
+    boolean canBeFollowedByPeriod = true;
+    if (peek(Token.IDENTIFIER, Token.LT) || peek(Token.IDENTIFIER, Token.PERIOD, Token.IDENTIFIER, Token.LT)) {
+      canBeFollowedByPeriod = false;
+    }
+    return done(new DartTypeNode(parseQualified(canBeFollowedByPeriod), parseTypeArgumentsOpt()));
+  }
+
+  private boolean peek(Token... tokens) {
+    int index = 0;
+    for (Token token : tokens) {
+      if (peek(index++) != token) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

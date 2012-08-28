@@ -176,6 +176,26 @@ public class SyntaxTest extends AbstractParserTest {
     }
   }
 
+  public void test_constructor_named() {
+    DartUnit unit = parseUnit("test.dart", makeCode(
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B() = A.named;",
+        "}"));
+    assertNotNull(unit);
+    DartNode classB = unit.getTopLevelNodes().get(1);
+    assertTrue(classB instanceof DartClass);
+    DartNode member = ((DartClass) classB).getMembers().get(0);
+    assertTrue(member instanceof DartMethodDefinition);
+    DartTypeNode typeName = ((DartMethodDefinition) member).getRedirectedTypeName();
+    assertTrue(typeName.getIdentifier() instanceof DartIdentifier);
+    DartExpression constructorName = ((DartMethodDefinition) member).getRedirectedConstructorName();
+    assertTrue(constructorName instanceof DartIdentifier);
+  }
+
   /**
    * There was bug when "identA.identB" always considered as constructor declaration. But it can be
    * constructor only if "identA" is name of enclosing class.

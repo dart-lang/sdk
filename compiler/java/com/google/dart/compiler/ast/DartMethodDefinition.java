@@ -120,6 +120,7 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
                                          DartIdentifier redirectedConstructorName) {
       super(name, function, modifiers);
       this.redirectedTypeName = becomeParentOf(redirectedTypeName);
+      this.redirectedConstructorName = becomeParentOf(redirectedConstructorName);
     }
 
     @Override
