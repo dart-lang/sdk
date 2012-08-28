@@ -943,6 +943,20 @@ public class SyntaxTest extends AbstractParserTest {
     assertTrue(((DartVariableStatement) statement).getModifiers().isConstant());
   }
 
+  public void test_localVariable_final_prefixedType() {
+    DartUnit unit = parseUnit("finalVar.dart", makeCode(
+        "main() {",
+        "  final p.T v = 1;",
+        "}"));
+    assertNotNull(unit);
+    DartNode firstNode = unit.getTopLevelNodes().get(0);
+    assertTrue(firstNode instanceof DartMethodDefinition);
+    DartStatement statement = ((DartMethodDefinition) firstNode).getFunction().getBody().getStatements().get(0);
+    DartVariableStatement variableStatement = (DartVariableStatement) statement;
+    assertTrue(variableStatement.getModifiers().isFinal());
+    assertEquals("v", variableStatement.getVariables().get(0).getVariableName());
+  }
+
   public void test_metadata_identifier() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",

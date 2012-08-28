@@ -4014,7 +4014,7 @@ public class DartParser extends CompletionHooksParserBase {
         beginFinalDeclaration();
         consume(peek(0));
         DartTypeNode type = null;
-        if (peek(1) == Token.IDENTIFIER || peek(1) == Token.LT) {
+        if (peek(1) == Token.IDENTIFIER || peek(1) == Token.LT || peek(1) == Token.PERIOD) {
           // We know we have a type.
           type = parseTypeAnnotation();
         }
