@@ -180,7 +180,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
-    private final InterfaceType typeType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
     private final boolean typeChecksForInferredTypes;
@@ -215,7 +214,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
-      this.typeType = typeProvider.getTypeType();
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
       this.typeChecksForInferredTypes = compilerOptions.typeChecksForInferredTypes();
@@ -1853,8 +1851,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
 
-      // no type arguments, try to infer
-      if (node.getTypeArguments().isEmpty()) {
+      // infer type of constant literal
+      if (node.isConst() && node.getTypeArguments().isEmpty()) {
         List<Type> valueTypes = Lists.newArrayList();
         for (DartMapLiteralEntry literalEntry : node.getEntries()) {
           DartExpression value = literalEntry.getValue();
@@ -2707,8 +2705,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
       }
-      // no type arguments, try to infer
-      if (node.getTypeArguments().isEmpty()) {
+      // infer type of constant literal
+      if (node.isConst() && node.getTypeArguments().isEmpty()) {
         List<Type> elementTypes = Lists.newArrayList();
         for (DartExpression expression : node.getExpressions()) {
           Type elementType = expression.getType();
