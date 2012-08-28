@@ -2778,7 +2778,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   public void test_typesPropagation_arrayLiteral_singleType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    final AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  var a = [1, 2, 3];",
@@ -2787,6 +2787,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
     assertInferredElementTypeString(testUnit, "v", "int");
+    assertNodeInferredTypeString("[1, 2, 3]", "List<int>");
   }
 
   public void test_typesPropagation_arrayLiteral_mixedTypes() throws Exception {
@@ -2811,7 +2812,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
     assertInferredElementTypeString(testUnit, "v", "int");
-  }
+    assertNodeInferredTypeString("{'1': 1, ", "Map<String, int>");
+}
 
   public void test_typesPropagation_mapLiteral_mixedTypes() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
@@ -2823,6 +2825,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
     assertInferredElementTypeString(testUnit, "v", "num");
+  }
+
+  private void assertNodeInferredTypeString(final String prefix, final String expectedType) {
+    testUnit.accept(new ASTVisitor<Void>() {
+      public Void visitExpression(DartExpression node) {
+        int nodeOffset = node.getSourceInfo().getOffset();
+        if (testSource.substring(nodeOffset).startsWith(prefix)) {
+          Type actualType = node.getType();
+          assertEquals(expectedType, actualType.toString());
+          assertTrue(actualType.isInferred());
+        }
+        return super.visitNode(node);
+      }
+    });
   }
 
   public void test_getType_binaryExpression() throws Exception {

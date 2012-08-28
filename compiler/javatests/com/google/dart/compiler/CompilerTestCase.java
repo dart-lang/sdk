@@ -42,6 +42,7 @@ public abstract class CompilerTestCase extends TestCase {
 
   private static final String UTF8 = "UTF-8";
   protected CompilerConfiguration compilerConfiguration;
+  protected String testSource;
   protected DartUnit testUnit;
 
   /**
@@ -179,13 +180,15 @@ public abstract class CompilerTestCase extends TestCase {
   @Override
   protected void tearDown() throws Exception {
     compilerConfiguration = null;
+    testSource = null;
     testUnit = null;
     super.tearDown();
   }
 
   protected AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     String name = getName();
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(name, makeCode(lines));
+    testSource = makeCode(lines);
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(name, testSource);
     testUnit = libraryResult.getLibraryUnitResult().getUnit(name);
     return libraryResult;
   }

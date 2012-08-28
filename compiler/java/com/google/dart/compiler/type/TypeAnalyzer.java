@@ -1867,7 +1867,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         Type valueType = types.intersection(valueTypes);
         valueType = Types.makeInferred(valueType);
-        return typeProvider.getMapLiteralType(stringType, valueType);
+        InterfaceType mapLiteralType = typeProvider.getMapLiteralType(stringType, valueType);
+        return Types.makeInferred(mapLiteralType);
       }
 
       return type;
@@ -2717,7 +2718,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         Type elementType = types.intersection(elementTypes);
         elementType = Types.makeInferred(elementType);
-        return typeProvider.getArrayLiteralType(elementType);
+        InterfaceType arrayLiteralType = typeProvider.getArrayLiteralType(elementType);
+        return Types.makeInferred(arrayLiteralType);
       }
       // done
       return interfaceType;
