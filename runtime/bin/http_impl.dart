@@ -86,7 +86,7 @@ class _HttpHeaders implements HttpHeaders {
     if (values != null) {
       try {
         return _HttpUtils.parseDate(values[0]);
-      } catch (Exception e) {
+      } on Exception catch (e) {
         return null;
       }
     }
@@ -105,7 +105,7 @@ class _HttpHeaders implements HttpHeaders {
     if (values != null) {
       try {
         return _HttpUtils.parseDate(values[0]);
-      } catch (Exception e) {
+      } on Exception catch (e) {
         return null;
       }
     }
@@ -124,7 +124,7 @@ class _HttpHeaders implements HttpHeaders {
     if (values != null) {
       try {
         return _HttpUtils.parseDate(values[0]);
-      } catch (Exception e) {
+      } on Exception catch (e) {
         return null;
       }
     }
@@ -194,7 +194,7 @@ class _HttpHeaders implements HttpHeaders {
         } else {
           try {
             _port = parseInt(value.substring(pos + 1));
-          } catch (FormatException e) {
+          } on FormatException catch (e) {
             _port = null;
           }
         }
@@ -1286,7 +1286,7 @@ class _HttpConnectionBase implements Hashable {
       info.remotePort = _socket.remotePort;
       info.localPort = _socket.port;
       return info;
-    } catch (var e) { }
+    } catch (e) { }
     return null;
   }
 
@@ -1498,7 +1498,7 @@ class _HttpServer implements HttpServer {
         Function handler = _handlers[i]._handler;
         try {
           handler(request, response);
-        } catch (var e) {
+        } catch (e) {
           if (_onError != null) {
             _onError(e);
           } else {

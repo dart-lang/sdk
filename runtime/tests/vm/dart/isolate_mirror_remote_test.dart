@@ -26,7 +26,7 @@ void main() {
   try {
     mirrorSystemOf(sp).then(testMirrorSystem);
     Expect.fail('Should not reach here.  Remote isolates not implemented.');
-  } catch (var exception) {
+  } catch (exception) {
     Expect.isTrue(exception is NotImplementedException);
   }
 }

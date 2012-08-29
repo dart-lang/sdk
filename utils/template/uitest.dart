@@ -391,7 +391,7 @@ void runTemplate([bool debug = false, bool parseOnly = false]) {
       // Generate the Dart class(es) for all template(s).
       // Pass in filename of 'foo' for testing in UITest.
       code.add(Codegen.generate(templates, 'foo'));
-    } catch (final htmlException) {
+    } catch (htmlException) {
       // TODO(terry): TBD
       print("ERROR unhandled EXCEPTION");
     }
@@ -401,7 +401,7 @@ void runTemplate([bool debug = false, bool parseOnly = false]) {
   if (!debug) {
     try {
       cssParseAndValidate(cssExpr, cssWorld);
-    } catch (final cssException) {
+    } catch (cssException) {
       templateValid = false;
       dumpTree = cssException.toString();
     }
@@ -416,14 +416,14 @@ void runTemplate([bool debug = false, bool parseOnly = false]) {
       stylesheetTree.add("\n============>Tree Dump<============\n");
       stylesheetTree.add(stylesheet.toDebugString());
       dumpTree = stylesheetTree.toString();
-    } catch (final cssParseException) {
+    } catch (cssParseException) {
       templateValid = false;
       dumpTree = cssParseException.toString();
     }
   } else {
     try {
       dumpTree = cssParseAndValidateDebug(cssExpr, cssWorld);
-    } catch (final cssException) {
+    } catch (cssException) {
       templateValid = false;
       dumpTree = cssException.toString();
     }

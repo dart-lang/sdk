@@ -944,7 +944,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     try {
       result =
           _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
-    } catch (var e) {
+    } catch (e) {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.

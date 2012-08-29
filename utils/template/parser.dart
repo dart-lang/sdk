@@ -145,7 +145,7 @@ class Parser {
     var message;
     try {
       message = 'expected $expected, but found $tok';
-    } catch (final e) {
+    } catch (e) {
       message = 'parsing error expected $expected';
     }
     _error(message, tok.span);
@@ -412,7 +412,7 @@ class Parser {
       lastCSSIndexParsed = lastParsedChar;
 
       return stylesheet;
-    } catch (final cssParseException) {
+    } catch (cssParseException) {
       // TODO(terry): Need SourceSpan from CSS parser to pass onto _error.
       _error("Unexcepted CSS error: ${cssParseException.toString()}");
     }

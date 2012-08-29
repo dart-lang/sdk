@@ -31,7 +31,7 @@ ClientRect getClientRect(Node n) {
  * be removed when extracting blocks of documentation.  This is helpful when
  * running this script in a web browser as it is easy to visually see what
  * blocks of information were extracted when using CSS such as DEBUG_CSS
- * which highlights elements that should be removed. 
+ * which highlights elements that should be removed.
  */
 final DART_REMOVED = "dart-removed";
 
@@ -1194,7 +1194,7 @@ void run() {
           foundMatch = true;
           break;
         }
-      } catch(e) {}
+      } catch (e) {}
     }
     if (!foundMatch) {
       dbEntry['skipped'] = true;

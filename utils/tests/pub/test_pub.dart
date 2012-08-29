@@ -101,7 +101,7 @@ void serve([List<Descriptor> contents]) {
         var stream;
         try {
           stream = baseDir.load(path);
-        } catch (var e) {
+        } catch (e) {
           response.statusCode = 404;
           response.contentLength = 0;
           response.outputStream.close();

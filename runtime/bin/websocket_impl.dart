@@ -217,7 +217,7 @@ class _WebSocketProtocolProcessor {
         // Move to the next byte.
         index++;
       }
-    } catch (var e) {
+    } catch (e) {
       _reportError(e);
     }
   }

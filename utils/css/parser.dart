@@ -129,7 +129,7 @@ class Parser {
     var message;
     try {
       message = 'expected $expected, but found $tok';
-    } catch (final e) {
+    } catch (e) {
       message = 'parsing error expected $expected';
     }
     _error(message, tok.span);
@@ -757,7 +757,7 @@ class Parser {
       try {
         int hexValue = parseHex(hexText);
         return new HexColorTerm(hexValue, hexText, _makeSpan(start));
-      } catch (HexNumberException hne) {
+      } on HexNumberException catch (hne) {
         _error('Bad hex number', _makeSpan(start));
       }
       break;
@@ -783,7 +783,7 @@ class Parser {
         var term = processTerm();
         if (term != null && term is LiteralTerm) {
           group.add(term);
-        } 
+        }
       } while (!_maybeEat(TokenKind.RPAREN));
 
       return group;
@@ -820,11 +820,11 @@ class Parser {
           String rgbColor = TokenKind.decimalToHex(colorValue, 3);
           try {
             colorValue = parseHex(rgbColor);
-          } catch (HexNumberException hne) {
+          } on HexNumberException catch (hne) {
             _error('Bad hex number', _makeSpan(start));
           }
           return new HexColorTerm(colorValue, rgbColor, _makeSpan(start));
-        } catch (final error) {
+        } catch (error) {
           if (error is NoColorMatchException) {
             // TODO(terry): Other named things to match with validator?
 

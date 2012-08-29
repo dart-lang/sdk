@@ -547,7 +547,7 @@ class _HttpParser {
         // Move to the next byte.
         index++;
       }
-    } catch (var e) {
+    } catch (e) {
       // Report the error through the error callback if any. Otherwise
       // throw the error.
       if (error != null) {
