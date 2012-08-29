@@ -264,7 +264,7 @@ class DateTest {
     dt = new Date.fromMillisecondsSinceEpoch(8640000000000000);
     Expect.throws(() => new Date(dt.year, dt.month, dt.day,
                                  dt.hour, dt.minute, 0, 1));
-    dt = new Date.fromMillisecondsSinceEpoch(-8640000000000000);
+    dt = new Date.fromMillisecondsSinceEpoch(-8640000000000000, isUtc: true);
     Expect.throws(() => new Date(dt.year, dt.month, dt.day,
                                  dt.hour, dt.minute, 0, -1, isUtc: true));
   }
