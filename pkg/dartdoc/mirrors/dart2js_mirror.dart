@@ -15,7 +15,6 @@
 #import('../../../lib/compiler/implementation/util/util.dart');
 #import('../../../lib/compiler/implementation/util/uri_extras.dart');
 #import('../../../lib/compiler/implementation/dart2js.dart');
-#import('../../../lib/compiler/implementation/ssa/ssa.dart');
 #import('mirrors.dart');
 #import('util.dart');
 #import('dart:io');
@@ -1235,19 +1234,6 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
         _name = _name.substring(0, dollarPos);
         // canonical name is TypeName.constructorName
         _canonicalName = '$_name.$_constructorName';
-      } else if (_name == 'negate') {
-        _operatorName = _name;
-        _name = 'operator';
-        _kind = Dart2JsMethodKind.OPERATOR;
-        // canonical name is 'operator operatorName'
-        _canonicalName = 'operator $_operatorName';
-      } else if (_name.startsWith('operator\$')) {
-        String str = _name.substring(9);
-        _name = 'operator';
-        _kind = Dart2JsMethodKind.OPERATOR;
-        _operatorName = _getOperatorFromOperatorName(str);
-        // canonical name is 'operator operatorName'
-        _canonicalName = 'operator $_operatorName';
       } else {
         // canonical name is TypeName
         _canonicalName = _name;
@@ -1268,6 +1254,12 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
       }
       // canonical name is TypeName.constructorName
       _canonicalName = '$_name.$_constructorName';
+    } else if (_name == 'negate') {
+      _operatorName = _name;
+      _name = 'operator';
+      _kind = Dart2JsMethodKind.OPERATOR;
+      // canonical name is 'operator operatorName'
+      _canonicalName = 'operator $_operatorName';
     } else if (_name.startsWith('operator\$')) {
       String str = _name.substring(9);
       _name = 'operator';
