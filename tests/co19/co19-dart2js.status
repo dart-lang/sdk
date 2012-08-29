@@ -91,6 +91,10 @@ LibTest/core/Expect/approxEquals_A04_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t03: Fail, OK
 
+# The #resource tag has been removed.
+# http://code.google.com/p/co19/issues/detail?id=181
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail, OK
+
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
@@ -826,7 +830,6 @@ Language/11_Statements/10_Return_A04_t02: Fail # @compile-error
 Language/11_Statements/10_Return_A04_t03: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t17: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail # @compile-error
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # @compile-error
