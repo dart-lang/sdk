@@ -781,7 +781,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
   const String& class_name = String::Handle(exc_class.Name());
   // TODO(hausner): Note the poor man's type test. This code will go
   // away when we have a way to determine whether an exception is unhandled.
-  if (class_name.Equals("TypeError")) {
+  if (class_name.Equals("TypeErrorImplementation")) {
     return true;
   }
   if (class_name.Equals("AssertionErrorImplementation")) {

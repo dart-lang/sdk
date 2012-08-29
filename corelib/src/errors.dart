@@ -4,3 +4,13 @@
 
 class AssertionError {
 }
+
+class TypeError extends AssertionError {
+}
+
+class CastException extends TypeError {
+}
+
+class FallThroughError {
+  const FallThroughError();
+}

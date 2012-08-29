@@ -6,32 +6,6 @@
 
 // TODO(ahe): Remove this file.
 
-class TypeError extends AssertionError {
-  final String msg;
-  const TypeError(String this.msg);
-  String toString() => msg;
-}
-
-/** Thrown by the 'as' operator if the cast isn't valid. */
-class CastException implements TypeError {
-  // TODO(lrn): Change actualType and expectedType to "Type" when reified
-  // types are available.
-  final Object actualType;
-  final Object expectedType;
-
-  CastException(this.actualType, this.expectedType);
-
-  String toString() {
-    return "CastException: Casting value of type $actualType to"
-           " incompatible type $expectedType";
-  }
-}
-
-class FallThroughError {
-  const FallThroughError();
-  String toString() => "Switch case fall-through.";
-}
-
 // TODO(ahe): VM specfic exception?
 class InternalError {
   const InternalError(this._msg);

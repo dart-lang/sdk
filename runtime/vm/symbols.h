@@ -30,8 +30,8 @@ class ObjectPointerVisitor;
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "AssertionErrorImplementation")                            \
-  V(TypeError, "TypeError")                                                    \
-  V(FallThroughError, "FallThroughError")                                      \
+  V(TypeError, "TypeErrorImplementation")                                      \
+  V(FallThroughError, "FallThroughErrorImplementation")                        \
   V(StaticResolutionException, "StaticResolutionException")                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \

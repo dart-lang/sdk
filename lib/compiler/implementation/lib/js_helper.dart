@@ -943,7 +943,7 @@ jsPropertyAccess(var jsObject, String property) {
  * Called at the end of unaborted switch cases to get the singleton
  * FallThroughError exception that will be thrown.
  */
-getFallThroughError() => const FallThroughError();
+getFallThroughError() => const FallThroughErrorImplementation();
 
 /**
  * Represents the type Dynamic. The compiler treats this specially.
@@ -983,81 +983,87 @@ getRuntimeTypeInfo(target) {
 stringTypeCheck(value) {
   if (value === null) return value;
   if (value is String) return value;
-  throw new TypeError('$value does not implement String');
+  throw new TypeErrorImplementation('$value does not implement String');
 }
 
 stringTypeCast(value) {
   if (value is String || value === null) return value;
   // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastException(Primitives.objectTypeName(value), 'String');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'String');
 }
 
 doubleTypeCheck(value) {
   if (value === null) return value;
   if (value is double) return value;
-  throw new TypeError('$value does not implement double');
+  throw new TypeErrorImplementation('$value does not implement double');
 }
 
 doubleTypeCast(value) {
   if (value is double || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'double');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'double');
 }
 
 numTypeCheck(value) {
   if (value === null) return value;
   if (value is num) return value;
-  throw new TypeError('$value does not implement num');
+  throw new TypeErrorImplementation('$value does not implement num');
 }
 
 numTypeCast(value) {
   if (value is num || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'num');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'num');
 }
 
 boolTypeCheck(value) {
   if (value === null) return value;
   if (value is bool) return value;
-  throw new TypeError('$value does not implement bool');
+  throw new TypeErrorImplementation('$value does not implement bool');
 }
 
 boolTypeCast(value) {
   if (value is bool || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'bool');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'bool');
 }
 
 functionTypeCheck(value) {
   if (value === null) return value;
   if (value is Function) return value;
-  throw new TypeError('$value does not implement Function');
+  throw new TypeErrorImplementation('$value does not implement Function');
 }
 
 functionTypeCast(value) {
   if (value is Function || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'Function');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'Function');
 }
 
 intTypeCheck(value) {
   if (value === null) return value;
   if (value is int) return value;
-  throw new TypeError('$value does not implement int');
+  throw new TypeErrorImplementation('$value does not implement int');
 }
 
 intTypeCast(value) {
   if (value is int || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'int');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'int');
 }
 
 void propertyTypeError(value, property) {
   // Cuts the property name to the class name.
   String name = property.substring(3, property.length);
-  throw new TypeError('$value does not implement $name');
+  throw new TypeErrorImplementation('$value does not implement $name');
 }
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
   String actualType = Primitives.objectTypeName(value);
   String expectedType = property.substring(3, property.length);
-  throw new CastException(actualType, expectedType);
+  throw new CastExceptionImplementation(actualType, expectedType);
 }
 
 /**
@@ -1145,12 +1151,13 @@ stringSuperNativeTypeCast(value, property) {
 listTypeCheck(value) {
   if (value === null) return value;
   if (value is List) return value;
-  throw new TypeError('$value does not implement List');
+  throw new TypeErrorImplementation('$value does not implement List');
 }
 
 listTypeCast(value) {
   if (value is List || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'List');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'List');
 }
 
 listSuperTypeCheck(value, property) {

@@ -260,11 +260,11 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
   Instance& type_error = Instance::Handle();
   Class& cls = Class::Handle();
   if (dst_name.Equals(kCastExceptionDstName)) {
-    type_error = NewInstance("CastException");
+    type_error = NewInstance("CastExceptionImplementation");
     cls = type_error.clazz();
     cls = cls.SuperClass();
   } else {
-    type_error = NewInstance("TypeError");
+    type_error = NewInstance("TypeErrorImplementation");
     cls = type_error.clazz();
   }
 

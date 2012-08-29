@@ -39,6 +39,7 @@
 #source('../../../../corelib/src/string.dart');
 #source('../../../../corelib/src/string_buffer.dart');
 #source('../../../../corelib/src/strings.dart');
+#source('errors.dart');
 #source('mock.dart');
 
 void print(var obj) {
