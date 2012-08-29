@@ -404,6 +404,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
+LibTest/core/Date/Date_A01_t03: Fail, OK # co19 issue 180
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/List/sort_A01_t02: Fail, OK # (co19 issue #179)
 LibTest/core/List/sort_A01_t03: Fail, OK # (co19 issue #179)
