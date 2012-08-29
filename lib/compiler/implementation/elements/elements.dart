@@ -1625,8 +1625,6 @@ class MetadataAnnotation {
 
   MetadataAnnotation([this.resolutionState = STATE_NOT_STARTED]);
 
-  abstract Node parseNode(DiagnosticListener listener);
-
   MetadataAnnotation ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveMetadataAnnotation(this);

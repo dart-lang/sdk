@@ -248,7 +248,7 @@ class PrettyPrinter implements Visitor {
     openNode(node, "LiteralList", {
       "constKeyword" : tokenToStringOrNull(node.constKeyword)
     });
-    visitWithPrefix(node.type, "type:");
+    visitWithPrefix(node.typeArguments, "typeArguments:");
     visitWithPrefix(node.elements, "elements:");
     closeNode();
   }

@@ -53,7 +53,7 @@ class FunctionConstant extends Constant {
   }
 
   void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    compiler.internalError(
+    handler.compiler.internalError(
         "A constant function does not need specific JS code");
   }
 
@@ -873,7 +873,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     Element element = elements[send];
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.modifiers === null ||
-          // TODO(johnniwinther): This should eventually be [isConst].  
+          // TODO(johnniwinther): This should eventually be [isConst].
           !element.modifiers.isFinalOrConst()) {
         error(send);
       }

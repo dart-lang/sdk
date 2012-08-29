@@ -439,7 +439,7 @@ class ResolverTask extends CompilerTask {
                             element);
   }
 
-  void resolveMetadataAnnotation(MetadataAnnotation annotation) {
+  void resolveMetadataAnnotation(PartialMetadataAnnotation annotation) {
     compiler.withCurrentElement(annotation.annotatedElement, () => measure(() {
       assert(annotation.resolutionState == STATE_NOT_STARTED);
       annotation.resolutionState = STATE_STARTED;

@@ -1141,7 +1141,7 @@ class Modifiers extends Node {
   bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
 
   /**
-   * Use this to check if the declaration is either explicitly or implicitly 
+   * Use this to check if the declaration is either explicitly or implicitly
    * final.
    */
   bool isFinalOrConst() => isFinal() || isConst();
@@ -1570,7 +1570,6 @@ class ScriptTag extends Node {
   bool isImport() => tag.source == const SourceString("import");
   bool isSource() => tag.source == const SourceString("source");
   bool isLibrary() => tag.source == const SourceString("library");
-  bool isResource() => tag.source == const SourceString("resource");
 
   ScriptTag asScriptTag() => this;
 

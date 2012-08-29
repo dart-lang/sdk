@@ -297,32 +297,32 @@ class Message {
 
 class Diagnostic {
   final Message message;
-  Diagnostic(MessageKind kind, List<Type> arguments)
+  Diagnostic(MessageKind kind, List arguments)
     : message = new Message(kind, arguments);
   String toString() => message.toString();
 }
 
 class TypeWarning extends Diagnostic {
-  TypeWarning(MessageKind kind, List<Type> arguments)
+  TypeWarning(MessageKind kind, List arguments)
     : super(kind, arguments);
 }
 
 class ResolutionError extends Diagnostic {
-  ResolutionError(MessageKind kind, List<Type> arguments)
+  ResolutionError(MessageKind kind, List arguments)
     : super(kind, arguments);
 }
 
 class ResolutionWarning extends Diagnostic {
-  ResolutionWarning(MessageKind kind, List<Type> arguments)
+  ResolutionWarning(MessageKind kind, List arguments)
     : super(kind, arguments);
 }
 
 class CompileTimeConstantError extends Diagnostic {
-  CompileTimeConstantError(MessageKind kind, List<Type> arguments)
+  CompileTimeConstantError(MessageKind kind, List arguments)
     : super(kind, arguments);
 }
 
 class CompilationError extends Diagnostic {
-  CompilationError(MessageKind kind, List<Type> arguments)
+  CompilationError(MessageKind kind, List arguments)
     : super(kind, arguments);
 }

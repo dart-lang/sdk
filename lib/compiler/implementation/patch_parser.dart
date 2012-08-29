@@ -293,7 +293,7 @@ class PatchMemberListener extends MemberListener implements PatchListener {
 
 // TODO(ahe): Get rid of this class.
 class PatchMetadataAnnotation extends MetadataAnnotation {
-  final Constant value = null;
+  final leg.Constant value = null;
 
   PatchMetadataAnnotation() : super(STATE_DONE);
 }

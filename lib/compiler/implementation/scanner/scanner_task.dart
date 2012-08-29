@@ -59,9 +59,6 @@ class ScannerTask extends CompilerTask {
       } else if (tag.isSource()) {
         tagState = checkTag(TagState.SOURCE, tag);
         importSourceFromTag(tag, resolved, library);
-      } else if (tag.isResource()) {
-        tagState = checkTag(TagState.RESOURCE, tag);
-        compiler.reportWarning(tag, 'ignoring resource tag');
       } else {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
