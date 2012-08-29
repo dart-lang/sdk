@@ -360,7 +360,7 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
-void PageSpace::MarkSweep(bool invoke_api_callbacks) {
+void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   // MarkSweep is not reentrant. Make sure that is the case.
   ASSERT(!sweeping_);
   sweeping_ = true;
@@ -377,6 +377,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
+  if (FLAG_verbose_gc) {
+    OS::PrintErr("Start mark sweep for %s collection\n", gc_reason);
+  }
   Timer timer(true, "MarkSweep");
   timer.Start();
   int64_t start = OS::GetCurrentTimeMillis();

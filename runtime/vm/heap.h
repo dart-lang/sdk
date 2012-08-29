@@ -38,6 +38,16 @@ class Heap {
     kInvokeApiCallbacks
   };
 
+  enum GCReason {
+    kNewSpace,
+    kPromotionFailure,
+    kOldSpace,
+    kCodeSpace,
+    kFull,
+    kGCAtAlloc,
+    kGCTestCase,
+  };
+
   // Default allocation sizes in MB for the old gen and code heaps.
   static const intptr_t kHeapSizeInMB = 512;
   static const intptr_t kCodeHeapSizeInMB = 12;
@@ -143,6 +153,8 @@ class Heap {
 
   // Generates a profile of the current and VM isolate heaps.
   void Profile(Dart_HeapProfileWriteCallback callback, void* stream) const;
+
+  static const char* GCReasonToString(GCReason gc_reason);
 
  private:
   Heap();
