@@ -4049,9 +4049,11 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   if (import_vm.IsNull()) {
     RETURN_TYPE_ERROR(isolate, import, Library);
   }
-  const String& prefix_vm = Dart_IsNull(prefix)
+  const Object& prefix_object =
+      Object::Handle(isolate, Api::UnwrapHandle(prefix));
+  const String& prefix_vm = prefix_object.IsNull()
       ? String::Handle(isolate, Symbols::New(""))
-      : Api::UnwrapStringHandle(isolate, prefix);
+      : String::Cast(prefix_object);
   if (prefix_vm.IsNull()) {
     RETURN_TYPE_ERROR(isolate, prefix, String);
   }
