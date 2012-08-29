@@ -253,8 +253,7 @@ class PlaceholderCollector extends AbstractVisitor {
     assert(element !== null);
     if (element === entryFunction) return;
     if (element.getLibrary() === coreLibrary) return;
-    if (isDartCoreLib(compiler, element.getLibrary())
-        && !element.isTopLevel()) {
+    if (element.getLibrary().isPlatformLibrary && !element.isTopLevel()) {
       return;
     }
     if (element == compiler.types.dynamicType.element) {

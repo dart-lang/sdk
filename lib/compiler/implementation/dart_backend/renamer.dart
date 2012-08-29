@@ -42,7 +42,7 @@ void renamePlaceholders(
     // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
-    if (isDartCoreLib(compiler, library)) {
+    if (library.isPlatformLibrary) {
       assert(element.isTopLevel());
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
