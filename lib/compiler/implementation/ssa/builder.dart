@@ -957,6 +957,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                        Selector selector,
                        Link<Node> arguments) {
     if (element.kind != ElementKind.FUNCTION) return false;
+    // TODO(floitsch): find a cleaner way to know if the element is a function
+    // containing nodes.
+    // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
     if (element is !PartialFunctionElement) return false;
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
