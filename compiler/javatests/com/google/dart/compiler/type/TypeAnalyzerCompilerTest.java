@@ -4213,6 +4213,29 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST, 7, 29, 5));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4778
+   */
+  public void test_unqualifiedAccessToGenericTypeField() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Game {}",
+        "class GameRenderer<G extends Game> {",
+        "  G get game => null;",
+        "}",
+        "class SpaceShooterGame extends Game {",
+        "  int score;",
+        "}",
+        "class SpaceShooterRenderer extends GameRenderer<SpaceShooterGame> {",
+        "  someMethod() {",
+        "    var a = game.score;",
+        "  }",
+        "}",
+        ""));
+    assertErrors(libraryResult.getErrors());
+  }
+
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
     assertTrue(index != -1);

@@ -1709,7 +1709,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             MethodElement getter = fieldElement.getGetter();
             if (getter != null) {
               node.setElement(getter);
-              type = getter.getReturnType();
+              type = ((FunctionType) typeAsMemberOf(getter, currentClass)).getReturnType();
               node.setType(type);
             }
           } else if (Elements.inSetterContext(node)) {
