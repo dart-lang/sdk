@@ -90,25 +90,21 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
 // Remove environments from the instructions which can't deoptimize.
 // Replace dead phis uses with null values in environments.
 void FlowGraphAllocator::EliminateEnvironmentUses() {
-  ConstantVal* null_value = new ConstantVal(Object::ZoneHandle());
-
+  Definition* constant_null =
+      postorder_.Last()->AsGraphEntry()->constant_null();
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* block = block_order_[i];
-
     if (block->IsJoinEntry()) block->AsJoinEntry()->RemoveDeadPhis();
-
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
       if (current->CanDeoptimize()) {
         ASSERT(current->env() != NULL);
         GrowableArray<Value*>* values = current->env()->values_ptr();
-
         for (intptr_t i = 0; i < values->length(); i++) {
           UseVal* use = (*values)[i]->AsUse();
           if (use == NULL) continue;
 
           Definition* def = use->definition();
-
           PushArgumentInstr* push_argument = def->AsPushArgument();
           if ((push_argument != NULL) && push_argument->WasEliminated()) {
             (*values)[i] = push_argument->value()->CopyValue();
@@ -117,7 +113,7 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
 
           PhiInstr* phi = def->AsPhi();
           if ((phi != NULL) && !phi->is_alive()) {
-            (*values)[i] = null_value;
+            (*values)[i] = new UseVal(constant_null);
             continue;
           }
         }
@@ -198,15 +194,20 @@ void FlowGraphAllocator::ComputeInitialSets() {
   }
 
   // Process incoming parameters.
-  GraphEntryInstr* graph_entry = postorder_[block_count - 1]->AsGraphEntry();
+  GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
   for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
     Value* val = graph_entry->start_env()->values()[i];
     if (val->IsUse()) {
-      const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
+      intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
       kill_[graph_entry->postorder_number()]->Add(vreg);
       live_in_[graph_entry->postorder_number()]->Remove(vreg);
     }
   }
+
+  // Process global constants.
+  intptr_t vreg = graph_entry->constant_null()->ssa_temp_index();
+  kill_[graph_entry->postorder_number()]->Add(vreg);
+  live_in_[graph_entry->postorder_number()]->Remove(vreg);
 
   // Update initial live_in sets to match live_out sets. Has to be
   // done in a separate path because of backwards branches.
@@ -499,7 +500,7 @@ void FlowGraphAllocator::PrintLiveRanges() {
 
 void FlowGraphAllocator::BuildLiveRanges() {
   const intptr_t block_count = postorder_.length();
-  ASSERT(postorder_[block_count - 1]->IsGraphEntry());
+  ASSERT(postorder_.Last()->IsGraphEntry());
   for (intptr_t i = 0; i < (block_count - 1); i++) {
     BlockEntryInstr* block = postorder_[i];
 
@@ -529,52 +530,68 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
   // Process incoming parameters.  Do this after all other instructions so
   // that safepoints for all calls have already been found.
-  GraphEntryInstr* graph_entry = postorder_[block_count - 1]->AsGraphEntry();
+  GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
   for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
     Value* val = graph_entry->start_env()->values()[i];
-    if (val->IsUse()) {
-      ParameterInstr* param = val->AsUse()->definition()->AsParameter();
+    ASSERT(val->IsUse());
+    ParameterInstr* param = val->AsUse()->definition()->AsParameter();
+    if (param == NULL) continue;
 
-      LiveRange* range = GetLiveRange(param->ssa_temp_index());
-      range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
-      range->DefineAt(graph_entry->start_pos());
+    // Handle the parameters specially.  They are spilled on entry.
+    LiveRange* range = GetLiveRange(param->ssa_temp_index());
+    range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
+    range->DefineAt(graph_entry->start_pos());
 
-      // Assert that copied and non-copied parameters are mutually exclusive.
-      // This might change in the future and, if so, the index will be wrong.
-      ASSERT(flow_graph_.copied_parameter_count() == 0 ||
-             flow_graph_.non_copied_parameter_count() == 0);
-      // Slot index for the leftmost copied parameter is 0.
-      intptr_t slot_index = param->index();
-      // Slot index for the rightmost fixed parameter is -1.
-      slot_index -= flow_graph_.non_copied_parameter_count();
+    // Assert that copied and non-copied parameters are mutually exclusive.
+    // This might change in the future and, if so, the index will be wrong.
+    ASSERT(flow_graph_.copied_parameter_count() == 0 ||
+           flow_graph_.non_copied_parameter_count() == 0);
+    // Slot index for the leftmost copied parameter is 0.
+    intptr_t slot_index = param->index();
+    // Slot index for the rightmost fixed parameter is -1.
+    slot_index -= flow_graph_.non_copied_parameter_count();
 
-      range->set_assigned_location(Location::StackSlot(slot_index));
-      range->set_spill_slot(Location::StackSlot(slot_index));
-      if (flow_graph_.copied_parameter_count() > 0) {
-        ASSERT(spill_slots_.length() == slot_index);
-        spill_slots_.Add(range->End());
-      }
+    range->set_assigned_location(Location::StackSlot(slot_index));
+    range->set_spill_slot(Location::StackSlot(slot_index));
+    if (flow_graph_.copied_parameter_count() > 0) {
+      ASSERT(spill_slots_.length() == slot_index);
+      spill_slots_.Add(range->End());
+    }
 
-      AssignSafepoints(range);
+    AssignSafepoints(range);
 
-      range->finger()->Initialize(range);
-      UsePosition* use = range->finger()->FirstRegisterBeneficialUse(
-          graph_entry->start_pos());
-      if (use != NULL) {
-        LiveRange* tail = SplitBetween(range,
-                                       graph_entry->start_pos(),
-                                       use->pos());
-
-        // All incomming parameters are tagged.
-        CompleteRange(tail, Location::kRegister);
-      }
-      ConvertAllUses(range);
-      if (flow_graph_.copied_parameter_count() > 0) {
-        MarkAsObjectAtSafepoints(range);
-      }
+    range->finger()->Initialize(range);
+    UsePosition* use =
+        range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
+    if (use != NULL) {
+      LiveRange* tail =
+          SplitBetween(range, graph_entry->start_pos(), use->pos());
+      // All incoming parameters are tagged.
+      CompleteRange(tail, Location::kRegister);
+    }
+    ConvertAllUses(range);
+    if (flow_graph_.copied_parameter_count() > 0) {
+      MarkAsObjectAtSafepoints(range);
     }
   }
+
+  // Process global constants.
+  BindInstr* null_defn = graph_entry->constant_null()->AsBind();
+  LiveRange* range = GetLiveRange(null_defn->ssa_temp_index());
+  range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
+  range->DefineAt(graph_entry->start_pos());
+  range->set_assigned_location(
+      Location::Constant(null_defn->computation()->AsConstant()->value()));
+  range->finger()->Initialize(range);
+  UsePosition* use =
+      range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
+  if (use != NULL) {
+    LiveRange* tail = SplitBetween(range, graph_entry->start_pos(), use->pos());
+    CompleteRange(tail, Location::kRegister);
+  }
+  ConvertAllUses(range);
 }
+
 
 //
 // When describing shape of live ranges in comments below we are going to use
@@ -633,24 +650,20 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
     Value* val = phi->InputAt(pred_idx);
     MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
-    if (val->IsUse()) {
-      // Expected shape of live ranges:
-      //
-      //                 g  g'
-      //      value    --*
-      //
+    ASSERT(val->IsUse());
+    // Expected shape of live ranges:
+    //
+    //                 g  g'
+    //      value    --*
+    //
 
-      LiveRange* range = GetLiveRange(
-          val->AsUse()->definition()->ssa_temp_index());
+    LiveRange* range =
+        GetLiveRange(val->AsUse()->definition()->ssa_temp_index());
 
-      range->AddUseInterval(block->start_pos(), pos);
-      range->AddHintedUse(pos, move->src_slot(), move->dest_slot());
+    range->AddUseInterval(block->start_pos(), pos);
+    range->AddHintedUse(pos, move->src_slot(), move->dest_slot());
 
-      move->set_src(Location::PrefersRegister());
-    } else {
-      ASSERT(val->IsConstant());
-      move->set_src(Location::Constant(val->AsConstant()->value()));
-    }
+    move->set_src(Location::PrefersRegister());
     move_idx++;
   }
 
@@ -736,24 +749,20 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
 
   for (intptr_t i = 0; i < values.length(); ++i) {
     Value* value = values[i];
-    if (value->IsUse()) {
-      locations[i] = Location::Any();
-      Definition* def = value->AsUse()->definition();
+    ASSERT(value->IsUse());
+    locations[i] = Location::Any();
+    Definition* def = value->AsUse()->definition();
 
-      if (def->IsPushArgument()) {
-        // Frame size is unknown until after allocation.
-        locations[i] = Location::NoLocation();
-        continue;
-      }
-
-      const intptr_t vreg = def->ssa_temp_index();
-      LiveRange* range = GetLiveRange(vreg);
-      range->AddUseInterval(block_start_pos, use_pos);
-      range->AddUse(use_pos, &locations[i]);
-    } else {
-      ASSERT(value->IsConstant());
+    if (def->IsPushArgument()) {
+      // Frame size is unknown until after allocation.
       locations[i] = Location::NoLocation();
+      continue;
     }
+
+    const intptr_t vreg = def->ssa_temp_index();
+    LiveRange* range = GetLiveRange(vreg);
+    range->AddUseInterval(block_start_pos, use_pos);
+    range->AddUse(use_pos, &locations[i]);
   }
 
   env->set_locations(locations);

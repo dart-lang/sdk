@@ -159,13 +159,8 @@ void UseVal::PrintTo(BufferFormatter* f) const {
 }
 
 
-void ConstantVal::PrintTo(BufferFormatter* f) const {
+void ConstantComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("#%s", value().ToCString());
-}
-
-
-void MaterializeComp::PrintOperandsTo(BufferFormatter* f) const {
-  constant_val()->PrintTo(f);
 }
 
 
@@ -728,29 +723,11 @@ void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("v%d [", ssa_temp_index());
-  bool has_constant = false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(" ");
-    if (InputAt(i)->IsConstant()) {
-      f->Print("const");
-      has_constant = true;
-    } else {
-      InputAt(i)->PrintTo(f);
-    }
+    InputAt(i)->PrintTo(f);
   }
   f->Print("]");
-  // The vizualizer file format does not allow arbitrary strings inside the phi.
-  // Print constants as a line-end comment instead.
-  if (has_constant) {
-    f->Print("\"");
-    for (intptr_t i = 0; i < InputCount(); ++i) {
-      if (i > 0) f->Print(" ");
-      if (InputAt(i)->IsConstant()) {
-        InputAt(i)->PrintTo(f);
-      }
-    }
-    f->Print("\"");
-  }
 }
 
 

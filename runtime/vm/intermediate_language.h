@@ -53,7 +53,6 @@ class LocalVariable;
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
   M(Use, UseVal)                                                               \
-  M(Constant, ConstantVal)                                                     \
 
 
 // M is a two argument macro.  It is applied to each concrete instruction's
@@ -104,7 +103,7 @@ class LocalVariable;
   M(SmiToDouble, SmiToDoubleComp)                                              \
   M(CheckClass, CheckClassComp)                                                \
   M(CheckSmi, CheckSmiComp)                                                    \
-  M(Materialize, MaterializeComp)                                              \
+  M(Constant, ConstantComp)                                                    \
   M(CheckEitherNonSmi, CheckEitherNonSmiComp)                                  \
   M(UnboxedDoubleBinaryOp, UnboxedDoubleBinaryOpComp)                          \
   M(UnboxDouble, UnboxDoubleComp)                                              \
@@ -474,57 +473,29 @@ class UseVal : public Value {
 };
 
 
-class ConstantVal : public Value {
- public:
-  explicit ConstantVal(const Object& value)
-      : value_(value) {
-    ASSERT(value.IsZoneHandle());
-    ASSERT(value.IsSmi() || value.IsOld());
-  }
-
-  DECLARE_VALUE(Constant)
-
-  const Object& value() const { return value_; }
-
-  // Returns true if the value represents a constant.
-  virtual bool BindsToConstant() const { return true; }
-  virtual const Object& BoundConstant() const { return value(); }
-
-  // Returns true if the value represents constant null.
-  virtual bool BindsToConstantNull() const { return value().IsNull(); }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual intptr_t ResultCid() const;
-
-  virtual Value* CopyValue() { return this; }
-
- private:
-  const Object& value_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstantVal);
-};
-
 #undef DECLARE_VALUE
 
 
-class MaterializeComp : public TemplateComputation<0> {
+class ConstantComp : public TemplateComputation<0> {
  public:
-  explicit MaterializeComp(ConstantVal* constant_val)
-      : constant_val_(constant_val) { }
+  explicit ConstantComp(const Object& value) : value_(value) { }
 
-  DECLARE_COMPUTATION(Materialize)
+  DECLARE_COMPUTATION(Constant)
+
+  const Object& value() const { return value_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
-  ConstantVal* constant_val() const { return constant_val_; }
-
   virtual intptr_t ResultCid() const;
 
+  virtual bool AttributesEqual(Computation* other) const;
+
  private:
-  ConstantVal* constant_val_;
+  const Object& value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstantComp);
 };
 
 
@@ -2656,12 +2627,7 @@ class BackwardInstructionIterator : public ValueObject {
 
 class GraphEntryInstr : public BlockEntryInstr {
  public:
-  explicit GraphEntryInstr(TargetEntryInstr* normal_entry)
-      : BlockEntryInstr(),
-        normal_entry_(normal_entry),
-        catch_entries_(),
-        start_env_(NULL),
-        spill_slot_count_(0) { }
+  explicit GraphEntryInstr(TargetEntryInstr* normal_entry);
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -2691,6 +2657,8 @@ class GraphEntryInstr : public BlockEntryInstr {
   Environment* start_env() const { return start_env_; }
   void set_start_env(Environment* env) { start_env_ = env; }
 
+  Definition* constant_null() const { return constant_null_; }
+
   intptr_t spill_slot_count() const { return spill_slot_count_; }
   void set_spill_slot_count(intptr_t count) {
     ASSERT(count >= 0);
@@ -2701,6 +2669,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
   Environment* start_env_;
+  Definition* constant_null_;
   intptr_t spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
@@ -2857,7 +2826,6 @@ class Definition : public Instruction {
   // Precondition: use lists must be properly calculated.
   // Postcondition: use lists and use values are still valid.
   void ReplaceUsesWith(Definition* other);
-  void ReplaceUsesWith(Value* value);
 
  private:
   intptr_t temp_index_;

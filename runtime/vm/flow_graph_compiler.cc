@@ -49,8 +49,7 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   // Assign locations to values pushed above spill slots with PushArgument.
   intptr_t height = compiler->StackSize();
   for (intptr_t i = 0; i < values.length(); i++) {
-    if (deoptimization_env_->LocationAt(i).IsInvalid() &&
-        !values[i]->IsConstant()) {
+    if (deoptimization_env_->LocationAt(i).IsInvalid()) {
       ASSERT(values[i]->AsUse()->definition()->IsPushArgument());
       *deoptimization_env_->LocationSlotAt(i) = Location::StackSlot(height++);
     }

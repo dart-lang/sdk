@@ -27,11 +27,11 @@ TEST_CASE(OptimizationTests) {
   UseVal* use2 = new UseVal(def2);
   EXPECT(!use2->Equals(use1a));
 
-  ConstantVal* c1 = new ConstantVal(Bool::ZoneHandle(Bool::True()));
-  ConstantVal* c2 = new ConstantVal(Bool::ZoneHandle(Bool::True()));
+  ConstantComp* c1 = new ConstantComp(Bool::ZoneHandle(Bool::True()));
+  ConstantComp* c2 = new ConstantComp(Bool::ZoneHandle(Bool::True()));
   EXPECT(c1->Equals(c2));
-  ConstantVal* c3 = new ConstantVal(Object::ZoneHandle());
-  ConstantVal* c4 = new ConstantVal(Object::ZoneHandle());
+  ConstantComp* c3 = new ConstantComp(Object::ZoneHandle());
+  ConstantComp* c4 = new ConstantComp(Object::ZoneHandle());
   EXPECT(c3->Equals(c4));
   EXPECT(!c3->Equals(c1));
 }

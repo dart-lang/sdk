@@ -154,7 +154,7 @@ static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
   for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     PushArgumentInstr* push = comp->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value());
+    push->ReplaceUsesWith(push->value()->AsUse()->definition());
     push->RemoveFromGraph();
   }
 }

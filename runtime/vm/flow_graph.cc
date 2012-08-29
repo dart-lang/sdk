@@ -103,11 +103,15 @@ static void ResetUseListsInInstruction(Instruction* instr) {
 
 
 bool FlowGraph::ResetUseLists() {
+  // Reset global constants.
+  ResetUseListsInInstruction(graph_entry_->constant_null());
+
   // Reset definitions referenced from the start environment.
   for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
     UseVal* env_use = graph_entry_->start_env()->values()[i]->AsUse();
     if (env_use != NULL) ResetUseListsInInstruction(env_use->definition());
   }
+
   // Reset phis in join entries and the instructions in each block.
   for (intptr_t i = 0; i < preorder_.length(); ++i) {
     BlockEntryInstr* entry = preorder_[i];
@@ -163,11 +167,15 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
 
 
 bool FlowGraph::ValidateUseLists() {
+  // Validate global constants.
+  ValidateUseListsInInstruction(graph_entry_->constant_null());
+
   // Validate definitions referenced from the start environment.
   for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
     UseVal* env_use = graph_entry_->start_env()->values()[i]->AsUse();
     if (env_use != NULL) ValidateUseListsInInstruction(env_use->definition());
   }
+
   // Validate phis in join entries and the instructions in each block.
   for (intptr_t i = 0; i < preorder_.length(); ++i) {
     BlockEntryInstr* entry = preorder_[i];
@@ -482,6 +490,9 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     Bailout("Catch-entry support in SSA.");
   }
 
+  // Name global constants.
+  graph_entry_->constant_null()->set_ssa_temp_index(alloc_ssa_temp_index());
+
   // Initialize start environment.
   GrowableArray<Definition*> start_env(variable_count());
   for (intptr_t i = 0; i < parameter_count(); ++i) {
@@ -490,14 +501,10 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     start_env.Add(param);
   }
 
-  // All locals are initialized with #null.
-  Definition* null_defn =
-      new BindInstr(BindInstr::kUsed,
-                    new MaterializeComp(new ConstantVal(Object::ZoneHandle())));
-  // The null definition should not appear in input positions.
-  ASSERT(null_defn->ssa_temp_index() == -1);
+  // All locals are initialized with #null.  Use the global definition, uses
+  // will be created in the Environment constructor.
   while (start_env.length() < variable_count()) {
-    start_env.Add(null_defn);
+    start_env.Add(graph_entry_->constant_null());
   }
   graph_entry_->set_start_env(
       new Environment(start_env, non_copied_parameter_count_));
@@ -507,16 +514,6 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   GrowableArray<Definition*> env(variable_count());
   env.AddArray(start_env);
   RenameRecursive(normal_entry, &env, live_phis);
-}
-
-
-// Helper to either use the constant value of a definition or the definition.
-static Value* UseDefinition(Definition* defn) {
-  if (defn->IsBind() && defn->AsBind()->computation()->IsMaterialize()) {
-    return defn->AsBind()->computation()->AsMaterialize()->constant_val();
-  } else {
-    return new UseVal(defn);
-  }
 }
 
 
@@ -646,7 +643,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*successor->phis())[i];
         if (phi != NULL) {
           // Rename input operand.
-          phi->SetInputAt(pred_index, UseDefinition((*env)[i]));
+          phi->SetInputAt(pred_index, new UseVal((*env)[i]));
         }
       }
     }
