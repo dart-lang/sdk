@@ -1,5 +1,10 @@
+/**
+ * Creates database.html, examples.html, and obsolete.html.
+ */
+
 #library("prettyPrint");
 
+#import("dart:io");
 #import("dart:json");
 #import("util.dart");
 
@@ -46,8 +51,8 @@ int addMissing(StringBuffer sb, String type, Map members) {
 
 void main() {
   // Database of code documentation.
-  final Map<String, Map> database = JSON.parse(fs.readFileSync(
-	  'output/database.filtered.json', 'utf8'));
+  final Map<String, Map> database = JSON.parse(
+      new File('output/database.filtered.json').readAsTextSync());
 
   // Types we have documentation for.
   matchedTypes = new Set<String>();
@@ -332,9 +337,9 @@ $sbSkipped
 </html>
 """);
 
-  fs.writeFileSync("output/database.html", sb.toString());
+  writeFileSync("output/database.html", sb.toString());
 
-  fs.writeFileSync("output/examples.html", """
+  writeFileSync("output/examples.html", """
 <html>
   <head>
     <style type="text/css">
@@ -376,7 +381,7 @@ $sbAllExamples
  </html>
 """);
 
-  fs.writeFileSync("output/obsolete.html", """
+  writeFileSync("output/obsolete.html", """
 <html>
   <head>
     <style type="text/css">

@@ -114,9 +114,13 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
   fs.writeFileSync(absoluteDumpFileName + ".json", JSON.stringify(parseArgs),
       'utf8');
 
+  /*
   // TODO(jacobr): Make this run on platforms other than OS X.
   var cmd = '../../../client/tests/drt/DumpRenderTree.app/Contents/MacOS/' +
       'DumpRenderTree ' + absoluteDumpFileName;
+  */
+  // TODO(eub): Make this run on platforms other than Linux.
+  var cmd = '../../../client/tests/drt/DumpRenderTree ' + absoluteDumpFileName;
   console.log(cmd);
   exec(cmd,
     function (error, stdout, stderr) {

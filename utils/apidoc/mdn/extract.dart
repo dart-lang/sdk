@@ -1,10 +1,9 @@
 #import ("dart:html");
-#import ("dart:dom_deprecated", prefix:"dom");
 #import ("dart:json");
 
 // Workaround for HTML lib missing feature.
 Range newRange() {
-  return LevelDom.wrapRange(dom.document.createRange());
+  return document.createRange();
 }
 
 // Temporary range object to optimize performance computing client rects
@@ -13,8 +12,7 @@ Range _tempRange;
 // Hacks because ASYNC measurement is annoying when just writing a script.
 ClientRect getClientRect(Node n) {
   if (n is Element) {
-    dom.Element raw = unwrapDomObject(n.dynamic);
-    return LevelDom.wrapClientRect(raw.getBoundingClientRect());
+    return n.$dom_getBoundingClientRect();
   } else {
     // Crazy hacks that works for nodes.... create a range and measure it.
     if (_tempRange == null) {
@@ -383,7 +381,7 @@ String genCleanHtml(Element root) {
       returnValueHeader = e;
     }
   }
-  
+
   if (parametersHeader != null) {
     int numEmptyParameters = 0;
     final parameterDescriptions = root.queryAll("dd");
@@ -399,7 +397,7 @@ String genCleanHtml(Element root) {
       parametersHeader.remove();
       for (final e in root.queryAll("dl")) {
         e.remove();
-      }   
+      }
     } else if (parameterDescriptions.length == 0 &&
         parametersHeader.nextElementSibling != null &&
         parametersHeader.nextElementSibling.text.trim() == 'None.') {
@@ -1187,7 +1185,7 @@ void run() {
     // current class name.
     for (String tag in [title.split(" ")[0], title.split(".").last()]) {
       try {
-        dom.Element element = dom.document.createElement(tag);
+        Element element = new Element.tag(tag);
         // TODO(jacobr): this is a really ugly way of doing this that will
         // stop working at some point soon.
         if (element.typeName == currentType) {
@@ -1307,9 +1305,8 @@ void main() {
 }
 
 void documentLoaded(event) {
-  // Load the database of expected methods and properties with an
-  // XMLHttpRequest.
-  new XMLHttpRequest.get('${window.location}.json', (req) {
+  // Load the database of expected methods and properties with an HttpRequest.
+  new HttpRequest.get('${window.location}.json', (req) {
     data = JSON.parse(req.responseText);
     dbEntry = {'members': [], 'srcUrl': pageUrl};
     run();
