@@ -2486,7 +2486,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       PrefixElement prefix = e;
       e = prefix.lookupLocalMember(name.source);
       if (e === null) {
-        return failOrReturnErroneousElement(e, name,
+        return failOrReturnErroneousElement(resolver.enclosingElement, name,
                                             MessageKind.CANNOT_RESOLVE,
                                             [name]);
       } else if (e.kind !== ElementKind.CLASS) {
