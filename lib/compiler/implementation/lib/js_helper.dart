@@ -798,6 +798,8 @@ unwrapException(ex) {
       }
     }
 
+    var ieErrorCode = JS('int', '#.number & 0xffff', ex);
+    var ieFacilityNumber = JS('int', '#.number>>16 & 0x1FFF', ex);
     // If we cannot use [type] to determine what kind of exception
     // we're dealing with we fall back on looking at the exception
     // message if it is available and a string.
@@ -807,11 +809,12 @@ unwrapException(ex) {
           message.endsWith('is null or undefined')) {
         return new NullPointerException();
       } else if (message.contains(' is not a function') ||
-                 message.contains("doesn't support property or method")) {
+                 (ieErrorCode == 438 && ieFacilityNumber == 10)) {
         // Examples:
         //  x.foo is not a function
         //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
-        // Object doesn't support property or method 'foo'
+        // Object doesn't support property or method 'foo' which sets the error 
+        // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
       }
