@@ -114,7 +114,6 @@ LibTest/core/Math/asin_A01_t01: Fail, OK
 LibTest/core/Math/atan_A01_t01: Fail, OK
 
 [ $compiler == dart2js && $system == windows && $runtime == d8 ]
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Compile-time error: duplicate definition
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
