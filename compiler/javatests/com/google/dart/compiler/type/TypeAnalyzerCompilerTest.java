@@ -42,7 +42,6 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -2066,6 +2065,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "b1", "Object");
     assertInferredElementTypeString(testUnit, "c1", "Object");
     assertInferredElementTypeString(testUnit, "d1", "bool");
+  }
+
+  public void test_typesPropagation_multiAssign_IfThenElse_whenAsTypeCondition() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(var v) {",
+        "  if (v is String) {",
+        "    var v1 = v;",
+        "    v = null;",
+        "  } else {",
+        "    var v2 = v;",
+        "  }",
+        "  var v3 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v3", "Dynamic");
   }
 
   public void test_typesPropagation_multiAssign_While() throws Exception {

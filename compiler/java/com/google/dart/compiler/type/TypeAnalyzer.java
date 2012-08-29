@@ -188,7 +188,28 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * set new {@link Type} into {@link VariableElement}. On the exit from basic block we remove
      * first element and merge new types with old types.
      */
-    private final LinkedList<Map<VariableElement, Type>> blockOldTypes = Lists.newLinkedList();
+    private final LinkedList<BlockTypeContext> blockOldTypes = Lists.newLinkedList();
+    private static class BlockTypeContext {
+      final Map<VariableElement, Type> oldTypes = Maps.newHashMap();
+      final Map<VariableElement, Type> newTypes = Maps.newHashMap();
+      void rememberOldType(VariableElement element, Type oriType) {
+        if (!oldTypes.containsKey(element)) {
+          oldTypes.put(element, oriType);
+        }
+      }
+      void setType(VariableElement element, Type newType) {
+        rememberOldType(element, element.getType());
+        newTypes.put(element, newType);
+        Elements.setType(element, newType);
+      }
+      Map<VariableElement, Type> getNewTypesAndRestoreOld() {
+        for (Entry<VariableElement, Type> entry : oldTypes.entrySet()) {
+          VariableElement variable = entry.getKey();
+          Elements.setType(variable, entry.getValue());
+        }
+        return newTypes;
+      }
+    }
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -224,7 +245,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     
     @VisibleForTesting
     void pushBasicBlockContext() {
-      blockOldTypes.addFirst(Maps.<VariableElement, Type>newHashMap());
+      blockOldTypes.addFirst(new BlockTypeContext());
     }
 
     private InterfaceType getCurrentClass() {
@@ -587,16 +608,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * current "basic block" and set new type.
      */
     private void setVariableElementType(Element element, Type rhs) {
-      if (ElementKind.of(element) == ElementKind.VARIABLE) {
+      if (element instanceof VariableElement) {
         VariableElement variableElement = (VariableElement) element;
-        // remember type of this variable before "basic block"
-        Type typeBeforeBlock = blockOldTypes.getFirst().get(variableElement);
-        if (typeBeforeBlock == null) {
-          blockOldTypes.getFirst().put(variableElement, variableElement.getType());
-        }
-        // set new type
         Type newType = Types.makeInferred(rhs);
-        Elements.setType(variableElement, newType);
+        blockOldTypes.getFirst().setType(variableElement, newType);
       }
     }
 
@@ -697,6 +712,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           } else {
             Type unionType = getUnionType(currentType, inferredType);
             unionType = Types.makeInferred(unionType);
+            blockOldTypes.getFirst().rememberOldType(element, element.getType());
             Elements.setType(element, unionType);
           }
         }
@@ -870,24 +886,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
-    private static Map<VariableElement, Type> getNewTypesAndRestoreOld(Map<VariableElement, Type> oldTypes) {
-      Map<VariableElement, Type> result = Maps.newHashMap();
-      for (Entry<VariableElement, Type> entry : oldTypes.entrySet()) {
-        VariableElement variable = entry.getKey();
-        result.put(variable, variable.getType());
-        Elements.setType(variable, entry.getValue());
-      }
-      return result;
-    }
-
     /**
      * When we cannot prove that node was visited, then type is intersection of old/new types.
      */
-    private void setMergedVariableTypes(Map<VariableElement, Type> oldVariableTypes) {
-      for (Entry<VariableElement, Type> entry : oldVariableTypes.entrySet()) {
-        VariableElement variable = entry.getKey();
-        Type oldType = entry.getValue();
-        Type newType = variable.getType();
+    private void setMergedVariableTypes(BlockTypeContext blockTypeContext) {
+      for (VariableElement variable : blockTypeContext.newTypes.keySet()) {
+        Type newType = blockTypeContext.newTypes.get(variable);
+        Type oldType = blockTypeContext.oldTypes.get(variable);
         Type mergedType = types.intersection(newType, oldType);
         setVariableElementType(variable, mergedType);
       }
@@ -1604,13 +1609,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (elementType != null) {
           variableRestorer.setType(variableElement, elementType);
         }
-        Map<VariableElement, Type> oldVariableTypes = Maps.newHashMap();
-        blockOldTypes.addFirst(oldVariableTypes);
+        BlockTypeContext blockTypeContext = new BlockTypeContext();
+        blockOldTypes.addFirst(blockTypeContext);
         try {
           return typeAsVoid(node.getBody());
         } finally {
           blockOldTypes.removeFirst();
-          setMergedVariableTypes(oldVariableTypes);
+          setMergedVariableTypes(blockTypeContext);
         }
       } finally {
         variableRestorer.restore();
@@ -1623,14 +1628,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression condition = node.getCondition();
       checkCondition(condition);
       // visit body
-      Map<VariableElement, Type> oldVariableTypes = Maps.newHashMap();
-      blockOldTypes.addFirst(oldVariableTypes);
+      BlockTypeContext blockTypeContext = new BlockTypeContext();
+      blockOldTypes.addFirst(blockTypeContext);
       try {
         visitConditionalNode(condition, node.getBody());
         visitConditionalNode(condition, node.getIncrement());
       } finally {
         blockOldTypes.removeFirst();
-        setMergedVariableTypes(oldVariableTypes);
+        setMergedVariableTypes(blockTypeContext);
       }
       // done
       return voidType;
@@ -1638,7 +1643,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunction(DartFunction node) {
-      blockOldTypes.addFirst(Maps.<VariableElement, Type> newHashMap());
+      blockOldTypes.addFirst(new BlockTypeContext());
       try {
         Type previous = expected;
         visit(node.getParameters());
@@ -1745,20 +1750,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression condition = node.getCondition();
       checkCondition(condition);
       // visit "then"
-      Map<VariableElement, Type> thenOldVariableTypes = Maps.newHashMap();
-      blockOldTypes.addFirst(thenOldVariableTypes);
+      BlockTypeContext thenTypeContext = new BlockTypeContext();
+      blockOldTypes.addFirst(thenTypeContext);
       DartStatement thenStatement = node.getThenStatement();
       visitConditionalNode(condition, thenStatement);
       blockOldTypes.removeFirst();
-      Map<VariableElement, Type> thenVariableTypes = getNewTypesAndRestoreOld(thenOldVariableTypes);
+      Map<VariableElement, Type> thenVariableTypes = thenTypeContext.getNewTypesAndRestoreOld();
       // visit "else"
       DartStatement elseStatement = node.getElseStatement();
-      Map<VariableElement, Type> elseOldVariableTypes = Maps.newHashMap();
+      BlockTypeContext elseTypeContext = new BlockTypeContext();
       {
         VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
         // if has "else", then types inferred from "is! Type" applied only to "else"
         if (elseStatement != null) {
-          blockOldTypes.addFirst(elseOldVariableTypes);
+          blockOldTypes.addFirst(elseTypeContext);
           inferVariableTypesFromIsNotConditions(condition, variableRestorer);
           typeOf(elseStatement);
           variableRestorer.restore();
@@ -1769,7 +1774,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           inferVariableTypesFromIsNotConditions(condition, variableRestorer);
         }
       }
-      Map<VariableElement, Type> elseVariableTypes = getNewTypesAndRestoreOld(elseOldVariableTypes);
+      Map<VariableElement, Type> elseVariableTypes = elseTypeContext.getNewTypesAndRestoreOld();
       // merge variable types
       {
         Set<VariableElement> variables = Sets.newHashSet();
@@ -2620,13 +2625,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression condition = node.getCondition();
       checkCondition(condition);
       // visit body
-      Map<VariableElement, Type> oldVariableTypes = Maps.newHashMap();
-      blockOldTypes.addFirst(oldVariableTypes);
+      BlockTypeContext blockTypeContxt = new BlockTypeContext();
+      blockOldTypes.addFirst(blockTypeContxt);
       try {
         visitConditionalNode(condition, node.getBody());
       } finally {
         blockOldTypes.removeFirst();
-        setMergedVariableTypes(oldVariableTypes);
+        setMergedVariableTypes(blockTypeContxt);
       }
       // done
       return voidType;
