@@ -125,7 +125,6 @@ String _getOperatorFromOperatorName(String name) {
   Map<String, String> mapping = const {
     'eq': '==',
     'not': '~',
-    'negate': 'negate', // Will change.
     'index': '[]',
     'indexSet': '[]=',
     'mul': '*',
@@ -1244,6 +1243,12 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
         _kind = Dart2JsMethodKind.FACTORY;
         // canonical name is TypeName.constructorName
         _canonicalName = '$_name.$_constructorName';
+      } else if (_name == 'negate') {
+        _operatorName = _name;
+        _name = 'operator';
+        _kind = Dart2JsMethodKind.OPERATOR;
+        // canonical name is 'operator operatorName'
+        _canonicalName = 'operator $_operatorName';
       } else if (_name.startsWith('operator\$')) {
         String str = _name.substring(9);
         _name = 'operator';

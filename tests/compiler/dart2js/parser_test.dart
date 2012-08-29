@@ -260,7 +260,7 @@ void testOperatorParse() {
   Send name = function.name.asSend();
   Expect.isNotNull(name);
   Expect.stringEquals('operator', name.receiver.source.stringValue);
-  Expect.stringEquals('negate', name.selector.source.stringValue);
+  Expect.equals(buildSourceString('negate'), name.selector.source);
   Expect.isTrue(function.parameters.isEmpty());
   Expect.isNull(function.returnType);
   Expect.isNull(function.getOrSet);

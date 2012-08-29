@@ -414,6 +414,7 @@ isInfinite(receiver) {
     || JS('bool', @'# == -Infinity', receiver);
 }
 
+// TODO(ahe): Remove this method when we don't support operator negate.
 negate(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.negate());
 
