@@ -1526,43 +1526,50 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
 }
 
 
+bool ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
+  NoGCScope no_gc_scope;
+  RawObject* raw_obj = Api::UnwrapHandle(object);
+  switch (Api::ClassId(object)) {
+    case kExternalOneByteStringCid: {
+      RawExternalOneByteString* raw_string =
+          reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint8_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+    case kExternalTwoByteStringCid: {
+      RawExternalTwoByteString* raw_string =
+          reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint16_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+    case kExternalFourByteStringCid: {
+      RawExternalFourByteString* raw_string =
+          reinterpret_cast<RawExternalFourByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint32_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+  }
+  return false;
+}
+
+
 DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer) {
-  intptr_t class_id = Api::ClassId(object);
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
-  } else {
-    NoGCScope no_gc_scope;
-    RawObject* raw_obj = Api::UnwrapHandle(object);
-    switch (class_id) {
-      case kExternalOneByteStringCid: {
-        RawExternalOneByteString* raw_string =
-            reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();
-        ExternalStringData<uint8_t>* data = raw_string->external_data_;
-        *peer = data->peer();
-        return Api::Success(Isolate::Current());
-      }
-      case kExternalTwoByteStringCid: {
-        RawExternalTwoByteString* raw_string =
-            reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();
-        ExternalStringData<uint16_t>* data = raw_string->external_data_;
-        *peer = data->peer();
-        return Api::Success(Isolate::Current());
-      }
-      case kExternalFourByteStringCid: {
-        RawExternalFourByteString* raw_string =
-            reinterpret_cast<RawExternalFourByteString*>(raw_obj)->ptr();
-        ExternalStringData<uint32_t>* data = raw_string->external_data_;
-        *peer = data->peer();
-        return Api::Success(Isolate::Current());
-      }
-    }
+  }
+
+  if (ExternalStringGetPeerHelper(object, peer)) {
+    return Api::Success(Isolate::Current());
   }
 
   // It's not an external string, return appropriate error.
   // Note: this is invoked outside of the NoGCScope'd block above, since
   // error messages allocate new handles.
-  if (!RawObject::IsStringClassId(class_id)) {
+  if (!RawObject::IsStringClassId(Api::ClassId(object))) {
     RETURN_TYPE_ERROR(Isolate::Current(), object, String);
   } else {
     return
