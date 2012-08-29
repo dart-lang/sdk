@@ -100,6 +100,9 @@ enum SerializeState {
 };
 
 
+#define HEAP_SPACE(kind) (kind == Snapshot::kMessage) ? Heap::kNew : Heap::kOld
+
+
 // Structure capturing the raw snapshot.
 //
 // TODO(turnidge): Remove this class once the snapshot does not have a

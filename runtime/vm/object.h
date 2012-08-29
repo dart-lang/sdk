@@ -3540,7 +3540,8 @@ class String : public Instance {
   static void ReadFromImpl(SnapshotReader* reader,
                            HandleType* str_obj,
                            intptr_t len,
-                           intptr_t tags);
+                           intptr_t tags,
+                           Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 

@@ -201,7 +201,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 RawObject* SnapshotReader::ReadObjectImpl() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == 0) {
-    return Integer::New((value >> kSmiTagShift));
+    return Integer::New((value >> kSmiTagShift), HEAP_SPACE(kind_));
   }
   return ReadObjectImpl(value);
 }
@@ -224,7 +224,7 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value) {
 RawObject* SnapshotReader::ReadObjectRef() {
   int64_t header_value = Read<int64_t>();
   if ((header_value & kSmiTagMask) == 0) {
-    return Integer::New((header_value >> kSmiTagShift));
+    return Integer::New((header_value >> kSmiTagShift), HEAP_SPACE(kind_));
   }
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
   if (IsVMIsolateObject(header_value)) {
@@ -253,7 +253,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     if (kind_ == Snapshot::kFull) {
       result ^= AllocateUninitialized(cls_, instance_size);
     } else {
-      result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+      result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
     }
     return result.raw();
   }
@@ -269,7 +269,8 @@ RawObject* SnapshotReader::ReadObjectRef() {
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
         isolate(),
-        (kind_ == Snapshot::kFull) ? NewArray(len) : Array::New(len));
+        ((kind_ == Snapshot::kFull) ?
+         NewArray(len) : Array::New(len, HEAP_SPACE(kind_))));
     AddBackRef(object_id, &array, kIsNotDeserialized);
 
     return array.raw();
@@ -280,7 +281,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     ImmutableArray& array = ImmutableArray::ZoneHandle(
         isolate(),
         (kind_ == Snapshot::kFull) ?
-          NewImmutableArray(len) : ImmutableArray::New(len));
+        NewImmutableArray(len) : ImmutableArray::New(len, HEAP_SPACE(kind_)));
     AddBackRef(object_id, &array, kIsNotDeserialized);
 
     return array.raw();
@@ -664,7 +665,9 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       if (kind_ == Snapshot::kFull) {
         *result ^= AllocateUninitialized(cls_, instance_size);
       } else {
-        *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+        *result ^= Object::Allocate(cls_.id(),
+                                    instance_size,
+                                    HEAP_SPACE(kind_));
       }
     } else {
       cls_ ^= ReadObjectImpl();
