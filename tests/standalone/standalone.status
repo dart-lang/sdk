@@ -46,10 +46,6 @@ package/*: Skip # Do not run those in Dartium.
 [ $compiler == frog ]
 *: Skip
 
-[ $arch == x64 ]
-medium_integer_test: Fail # Issue 1146.
-
-
 [ $arch == arm ]
 *: Skip
 

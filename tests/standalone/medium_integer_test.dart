@@ -7,18 +7,21 @@
 #library("MediumIntegerTest.dart");
 #import("dart:coreimpl");
 
+
 class MediumIntegerTest {
 
   static void checkSmi(int a) {
-    Expect.equals(true, (a is Smi));
+    Expect.isTrue(a is Smi);
   }
 
   static void checkMint(int a) {
-    Expect.equals(true, (a is Mint));
+    if (runsOn32Bit) {
+      Expect.isTrue(a is Mint);
+    }
   }
 
   static void checkBigint(int a) {
-    Expect.equals(true, (a is Bigint));
+    Expect.isTrue(a is Bigint);
   }
 
   static int getMint() {
@@ -137,7 +140,11 @@ class MediumIntegerTest {
     Expect.equals(mint, res);
   }
 
-  // TODO(srdjan): Add more tests.
+  // Mint both in 32- and 64-bit architecture.
+  static void testAlwaysMint() {
+    var a = 4611686018427390000;
+    Expect.isTrue(a is Mint);
+  }
 
   static void testMain() {
     checkMint(getMint());
@@ -155,10 +162,14 @@ class MediumIntegerTest {
     checkMint(b);
     Expect.equals(false, a.hashCode() == b.hashCode());
     Expect.equals(true, a.hashCode() == (b - 1).hashCode());
+    testAlwaysMint();
   }
 }
 
+bool runsOn32Bit;
+
 main() {
+  runsOn32Bit = 4294967295 is Mint;
   for (int i = 0; i < 1000; i++) {
     MediumIntegerTest.testMain();
   }
