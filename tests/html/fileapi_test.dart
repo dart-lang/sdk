@@ -3,58 +3,77 @@
 #import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
+void fail(message) {
+  guardAsync(() {
+    Expect.fail(message);
+  });
+}
+
+DOMFileSystem fs;
+
 main() {
   useHtmlConfiguration();
-  window.webkitRequestFileSystem(Window.TEMPORARY, 100, (fs) {
-    // FIXME: add types to callback arguments after migration to wrapperless dart:html.
+  test('getFileSystem', () {
+    window.webkitRequestFileSystem(Window.TEMPORARY, 100, expectAsync1(
+      (DOMFileSystem fileSystem) {
+        fs = fileSystem;
+      }),
+      (e) {
+        fail('Got file error: ${e.code}');
+      });
+  });
+  group('getDirectory', () {
 
-    test('getDirectory', () {
-      expect(() => fs.root.getDirectory('directory1', {'x': true}, (e) {}),
-             throws);
-
+    test('directoryDoesntExist', () {
       fs.root.getDirectory(
           'directory2',
           options: {},
-          successCallback: expectAsync1((e) {
-            expect(false, 'Should not be reached');
-          }, count:0),
-          errorCallback: expectAsync1((e) {
+          successCallback: (e) {
+            fail('Should not be reached');
+          },
+          errorCallback: expectAsync1((FileError e) {
             expect(e.code, equals(FileError.NOT_FOUND_ERR));
           }));
+    });
 
+    test('directoryCreate', () {
       fs.root.getDirectory(
           'directory3',
           options: {'create': true},
-          successCallback: expectAsync1((e) {
+          successCallback: expectAsync1((DirectoryEntry e) {
             expect(e.name, equals('directory3'));
           }),
-          errorCallback: expectAsync1((e) {
-            expect(false, 'Got file error: ${e.code}');
-          }, count:0));
+          errorCallback: (e) {
+            fail('Got file error: ${e.code}');
+          });
     });
+  });
 
-    test('getFile', () {
-      expect(() => fs.root.getFile('file1', {'x': true}, (e) {}), throws);
+  group('getFile', () {
 
-      fs.root.getDirectory(
+    test('fileDoesntExist', () {
+      fs.root.getFile(
           'file2',
           options: {},
-          successCallback: expectAsync1((e) {
-            expect(false, 'Should not be reached');
-          }, count:0),
-          errorCallback: expectAsync1((e) {
+          successCallback: (e) {
+            fail('Should not be reached');
+          },
+          errorCallback: expectAsync1((FileError e) {
             expect(e.code, equals(FileError.NOT_FOUND_ERR));
           }));
-
-      fs.root.getDirectory(
-          'file3',
-          options: {'create': true},
-          successCallback: expectAsync1((e) {
-            expect(e.name, equals('file3'));
-          }),
-          errorCallback: expectAsync1((e) {
-            expect(false, 'Got file error: ${e.code}');
-          }, count:0));
     });
+
+    test('fileCreate', () {
+      fs.root.getFile(
+          'file4',
+          options: {'create': true},
+          successCallback: expectAsync1((FileEntry e) {
+            expect(e.name, equals('file4'));
+            expect(e.isFile, equals(true));
+          }),
+          errorCallback: (e) {
+            fail('Got file error: ${e.code}');
+          });
+      });
   });
 }

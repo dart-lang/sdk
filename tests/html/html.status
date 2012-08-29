@@ -70,6 +70,7 @@ css_test: Fail
 datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
 exceptions_test: Fail
+fileapi_test: Fail          # IE does not support filesystem APIs.
 history_test: Fail
 indexeddb_1_test: Fail
 indexeddb_2_test: Fail
@@ -94,7 +95,6 @@ svg_3_test: Fail
 websocket_test: Fail
 window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
-fileapi_test: Skip          # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
@@ -119,6 +119,7 @@ dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTE
 documentfragment_test: Fail
 element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
+fileapi_test: Fail         # FF does not support filesystem APIs.
 indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
@@ -173,7 +174,6 @@ xhr_test: Fail
 *: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
-fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
 measurement_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
@@ -197,9 +197,6 @@ indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Er
 localstorage_test: Fail
 mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-fileapi_test: Skip # Issue 3022
-
 [ $compiler == dart2js && $runtime == chrome ]
 cssstyledeclaration_test: Fail # Issue 4777
 
@@ -209,11 +206,9 @@ xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
 documentfragment_test: Skip # Timeout
-fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows]
 css_test: Pass, Fail # Issue #2823
-fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == ff && $system == windows]
 js_interop_2_test: Fail # Issue 4658.
