@@ -9,17 +9,15 @@
 import getopt
 import optparse
 import os
-from os.path import abspath, basename, dirname, join
-import string
-import subprocess
+from os.path import basename, join
 import sys
-import tempfile
 import utils
 
 
 HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
-
+DEBUG = False
+VERBOSE = False
 
 def BuildOptions():
   result = optparse.OptionParser()
@@ -41,7 +39,10 @@ def BuildOptions():
       default=False, action="store_true")
   result.add_option("--target_os",
       action="store", type="string",
-      help="Which os to run the executable on")
+      help="Which os to run the executable on. Current choice is android")
+  result.add_option("--abi",
+      action="store", type="string",
+      help="Desired ABI for android target OS. armeabi-v7a or x86")
   return result
 
 
@@ -52,25 +53,19 @@ def ProcessOptions(options):
   if not options.output_bin:
     sys.stderr.write('--output_bin not specified\n')
     return False
+  if options.abi and not options.target_os == 'android':
+    sys.stderr.write('--abi requires --target_os android\n')
+    return False
   return True
 
 
-def RunHost(command):
-    print "command %s" % command
-    pipe = subprocess.Popen(args=command,
-                            shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    out, error = pipe.communicate()
-    if (pipe.returncode != 0):
-      print out, error
-      print "command failed"
-      print "(Command was: '", ' '.join(command), "')"
-      raise Exception("Failed")
+def RunAdb(device, command):
+  """Run a raw adb command."""
+  return utils.RunCommand(["adb", "-s", device] + command)
 
 
-def RunTarget(command):
-  RunHost("adb shell %s" % command)
+def RunAdbShell(device, command):
+  RunAdb(device, ['shell'] + command)
 
 
 def RunOnAndroid(options):
@@ -102,20 +97,43 @@ def RunOnAndroid(options):
 
   filesToPush.append((executable, android_executable))
 
-  command = ' '.join(script_args)
+  abi = options.abi or 'x86'
+  # We know we're run in the runtime directory, and we know the relative path
+  # to the tools we want to execute:
+  command = ["tools/android_finder.py", "--bootstrap", "--abi", abi]
+  if VERBOSE:
+    command += ['--verbose']
+  device = utils.RunCommand(command, errStream=sys.stderr)
 
-  RunHost("adb shell mkdir %s" % android_workspace)
+  if device == None:
+    raise Exception("Could not find Android device for abi %s" % abi)
+
+  device = device.strip()
+
+  if VERBOSE:
+    sys.write.stderr('Using Android device %s for abi %s' % (device, abi))
+
+  RunAdbShell(device, ["mkdir", android_workspace])
+
   try:
+    if VERBOSE:
+      sys.write.stderr('pushing files to %s' % device)
     for src, dest in filesToPush:
-      RunHost("adb push '%s' '%s'" % (src, dest))
-    RunTarget(command)
+      RunAdb(device, ["push", src, dest])
+    if VERBOSE:
+      sys.write.stderr('running snapshot generator')
+    RunAdbShell(device, script_args)
+    if VERBOSE:
+      sys.write.stderr('retrieving snapshot')
     for src, dest in filesToPull:
-      RunHost("adb pull '%s' '%s'" % (src, dest))
+      RunAdb(device, ["pull", src, dest])
   finally:
+    if VERBOSE:
+      sys.write.stderr('cleaning intermediate files')
     for src, dest in filesToPush:
-      RunHost("adb shell rm '%s'" % dest)
+      RunAdbShell(device, ["rm", dest])
     for src, dest in filesToPull:
-      RunHost("adb shell rm '%s'" % src)
+      RunAdbShell(device, ["rm", src])
 
 
 def Main():
@@ -147,25 +165,14 @@ def Main():
     script_args.append(options.script)
 
   # Construct command line to execute the snapshot generator binary and invoke.
-  command = [ options.executable ] + script_args
-  if options.verbose:
-    print ' '.join(command)
-
   if options.target_os == 'android':
-    try:
-      RunOnAndroid(options)
-    except Exception as e:
-      print "Could not run on Android: %s" % e
-      return -1
+    RunOnAndroid(options)
   else:
-    pipe = subprocess.Popen(command,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    out, error = pipe.communicate()
-    if (pipe.returncode != 0):
-      print out, error
-      print "Snapshot generation failed"
-      print "(Command was: '", ' '.join(command), "')"
+    command = [ options.executable ] + script_args
+    try:
+      utils.RunCommand(command, outStream=sys.stderr, errStream=sys.stderr,
+                       verbose=options.verbose, printErrorInfo=True)
+    except Exception as e:
       return -1
 
   return 0

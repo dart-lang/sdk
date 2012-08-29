@@ -26,6 +26,7 @@
   ],
   },
   'conditions': [
+    [ 'OS=="android"', { 'includes': [ 'configurations_android.gypi', ], } ],
     [ 'OS=="linux"', { 'includes': [ 'configurations_make.gypi', ], } ],
     [ 'OS=="mac"', { 'includes': [ 'configurations_xcode.gypi', ], } ],
     [ 'OS=="win"', { 'includes': [ 'configurations_msvs.gypi', ], } ],

@@ -36,6 +36,14 @@
         '..',
       ],
       'conditions': [
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [
+              '-lc',
+              '-lpthread',
+            ],
+          },
+        }],
         ['OS=="linux"', {
           'link_settings': {
             'libraries': [
