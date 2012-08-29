@@ -95,6 +95,10 @@ method_override2_test/00: Fail # accepts illegal override
 method_override2_test/01: Fail # accepts illegal override
 method_override2_test/02: Fail # accepts illegal override
 method_override2_test/03: Fail # accepts illegal override
+implicit_this_test/02: Fail # instantiation of abstract class
+implicit_this_test/03: Fail # instantiation of abstract class
+abstract_getter_test/01: Fail # instantiation of abstract class
+interface_negative_test: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters2_test: Fail # Unimplemented non-matching static call
 named_parameters3_test: Fail # Unimplemented non-matching static call
@@ -173,7 +177,6 @@ duplicate_implements_test/01: Fail # Negative language test.
 duplicate_implements_test/02: Fail # Negative language test.
 duplicate_implements_test/03: Fail # Negative language test.
 duplicate_implements_test/04: Fail # Negative language test.
-empty_body_member_negative_test: Fail # Negative language test.
 factory2_negative_test: Fail # Negative language test.
 factory3_negative_test: Fail # Negative language test.
 factory_negative_test: Fail # Negative language test.

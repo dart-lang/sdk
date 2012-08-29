@@ -497,6 +497,7 @@ class ClassDesc : public ValueObject {
       : clazz_(cls),
         class_name_(cls_name),
         is_interface_(is_interface),
+        is_abstract_(false),
         token_pos_(token_pos),
         functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
@@ -572,6 +573,14 @@ class ClassDesc : public ValueObject {
     return is_interface_;
   }
 
+  void set_is_abstract() {
+    is_abstract_ = true;
+  }
+
+  bool is_abstract() const {
+    return is_abstract_;
+  }
+
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
@@ -622,6 +631,7 @@ class ClassDesc : public ValueObject {
   const Class& clazz_;
   const String& class_name_;
   const bool is_interface_;
+  bool is_abstract_;
   intptr_t token_pos_;   // Token index of "class" keyword.
   GrowableObjectArray& functions_;
   GrowableObjectArray& fields_;
@@ -2475,29 +2485,42 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                "Constructor with redirection may not have a function body");
     }
     ParseNativeDeclaration();
-  } else if (CurrentToken() == Token::kSEMICOLON) {
-    if (members->is_interface() ||
-        method->has_abstract ||
-        method->has_external ||
-        (method->redirect_name != NULL) ||
-        method->IsConstructor()) {
-      ConsumeToken();
-    } else {
+  } else {
+    // We haven't found a method body. Issue error if one is required.
+    const bool must_have_body =
+        !members->is_interface() &&
+        method->has_static && !method->has_external;
+    if (must_have_body) {
       ErrorMsg(method->name_pos,
                "function body expected for method '%s'",
                method->name->ToCString());
     }
-  } else {
-    if (members->is_interface() ||
-        method->has_abstract ||
-        method->has_external ||
-        (method->redirect_name != NULL) ||
-        (method->IsConstructor() && method->has_const)) {
-      ExpectSemicolon();
+
+    if (CurrentToken() == Token::kSEMICOLON) {
+      ConsumeToken();
+      if (!members->is_interface() &&
+          !method->has_static &&
+          !method->has_external &&
+          !method->IsConstructor()) {
+          // Methods, getters and setters without a body are
+          // implicitly abstract.
+        method->has_abstract = true;
+      }
     } else {
-      ErrorMsg(method->name_pos,
-               "function body expected for method '%s'",
-               method->name->ToCString());
+      // Signature is not followed by semicolon or body. Issue an
+      // appropriate error.
+      const bool must_have_semicolon =
+          members->is_interface() ||
+          (method->redirect_name != NULL) ||
+          (method->IsConstructor() && method->has_const) ||
+          method->has_external;
+      if (must_have_semicolon) {
+        ExpectSemicolon();
+      } else {
+        ErrorMsg(method->name_pos,
+                 "function body or semicolon expected for method '%s'",
+                 method->name->ToCString());
+      }
     }
   }
 
@@ -2527,6 +2550,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   ASSERT(is_top_level_);
   AddFormalParamsToFunction(&method->params, func);
   members->AddFunction(func);
+  if (method->has_abstract) {
+    members->set_is_abstract();
+  }
 }
 
 
@@ -2930,14 +2956,18 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 
 void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseClassDefinition");
-  const intptr_t class_pos = TokenPos();
   bool is_patch = false;
+  bool is_abstract = false;
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
     ConsumeToken();
     is_patch = true;
+  } else if (CurrentToken() == Token::kABSTRACT) {
+    is_abstract = true;
+    ConsumeToken();
   }
+  const intptr_t class_pos = TokenPos();
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectClassIdentifier("class name expected");
@@ -3024,6 +3054,10 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     ParseClassMemberDefinition(&members);
   }
   ExpectToken(Token::kRBRACE);
+
+  if (is_abstract || members.is_abstract()) {
+    cls.set_is_abstract();
+  }
 
   // Add an implicit constructor if no explicit constructor is present. No
   // implicit constructors are needed for patch classes.
@@ -4073,7 +4107,6 @@ void Parser::ParseTopLevel() {
       ParseInterfaceDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ConsumeToken();  // Consume and ignore 'abstract'.
       ParseClassDefinition(pending_classes);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
@@ -8456,8 +8489,8 @@ AstNode* Parser::ParseNewOperator() {
   if (type.IsDynamicType()) {
     ErrorMsg(type_pos, "Dynamic cannot be instantiated");
   }
-  Class& type_class = Class::Handle(type.type_class());
-  String& type_class_name = String::Handle(type_class.Name());
+  const Class& type_class = Class::Handle(type.type_class());
+  const String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
 
@@ -8562,6 +8595,14 @@ AstNode* Parser::ParseNewOperator() {
              String::Handle(constructor_class.Name()).ToCString(),
              external_constructor_name.ToCString());
   }
+
+  // It is ok to call a factory method of an abstract class, but it is
+  // an error to instantiate an abstract class.
+  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
+    ErrorMsg(type_pos, "Cannot instantiate abstract class %s",
+             constructor_class_name.ToCString());
+  }
+
   String& error_message = String::Handle();
   if (!constructor.AreValidArguments(arguments_length,
                                      arguments->names(),
