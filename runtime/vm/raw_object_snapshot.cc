@@ -385,7 +385,9 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
   intptr_t num_flds = (instantiated_type_arguments.raw()->to() -
                        instantiated_type_arguments.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(instantiated_type_arguments.raw()->from() + i) = reader->ReadObjectRef();
+    instantiated_type_arguments.StorePointer(
+        (instantiated_type_arguments.raw()->from() + i),
+        reader->ReadObjectRef());
   }
   return instantiated_type_arguments.raw();
 }
@@ -1078,7 +1080,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (scope.raw()->to(num_vars) - scope.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(scope.raw()->from() + i) = reader->ReadObjectRef();
+    scope.StorePointer((scope.raw()->from() + i), reader->ReadObjectRef());
   }
 
   return scope.raw();
@@ -2099,7 +2101,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   // Read and Set all the other fields.
   regex.raw_ptr()->num_bracket_expressions_ = reader->ReadAsSmi();
   *reader->StringHandle() ^= reader->ReadObjectImpl();
-  regex.raw_ptr()->pattern_ = (*reader->StringHandle()).raw();
+  regex.set_pattern(*reader->StringHandle());
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();
   regex.raw_ptr()->flags_ = reader->ReadIntptrValue();
 
