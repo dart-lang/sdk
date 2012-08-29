@@ -389,7 +389,7 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
   if (object_id == kDynamicType ||
       object_id == kDoubleInterface ||
       object_id == kIntInterface ||
-      object_id == kBoolInterface ||
+      object_id == kBoolType ||
       object_id == kStringInterface) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
@@ -478,8 +478,6 @@ void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t *data) {
   for (int i = 0; i < field_count; i++) {
     Write<RawObject*>(Integer::New(data[i]));
   }
-
-  FinalizeBuffer();
 }
 
 
@@ -622,7 +620,7 @@ void ApiMessageWriter::WriteCObject(Dart_CObject* object) {
     }
     return;
   }
-  return WriteCObjectInlined(object, type);
+  WriteCObjectInlined(object, type);
 }
 
 
@@ -645,7 +643,7 @@ void ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
     AddToForwardList(object);
     return;
   }
-  return WriteCObjectInlined(object, type);
+  WriteCObjectInlined(object, type);
 }
 
 
@@ -782,7 +780,6 @@ void ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
     WriteForwardedCObject(forward_list_[i]);
   }
   UnmarkAllCObjects(object);
-  FinalizeBuffer();
 }
 
 }  // namespace dart

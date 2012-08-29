@@ -320,11 +320,6 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
         from_loc.stack_index() + num_args_ -
             ParsedFunction::kFirstLocalSlotIndex + 1;
     deopt_instr = new DeoptStackSlotInstr(from_index);
-  } else if (from_loc.IsInvalid()) {
-    ASSERT(from_value.IsConstant());
-    const Object& obj = from_value.AsConstant()->value();
-    intptr_t object_table_index = FindOrAddObjectInTable(obj);
-    deopt_instr = new DeoptConstantInstr(object_table_index);
   } else {
     UNREACHABLE();
   }

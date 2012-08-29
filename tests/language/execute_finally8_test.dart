@@ -69,7 +69,7 @@ class Hello {
    Expect.equals(2, sum);
    try {
      foo();
-   } catch (var e) {
+   } catch (e) {
    }
    Expect.equals(2, sum);
  }

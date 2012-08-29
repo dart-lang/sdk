@@ -749,8 +749,9 @@ testToString() {
   checkMemberResolved(compiler, 'C', buildSourceString('toString'));
 }
 
-operatorName(op) => Elements.constructOperatorName(
-    const SourceString('operator'), new SourceString(op));
+operatorName(op, isUnary) {
+  return Elements.constructOperatorName(new SourceString(op), isUnary);
+}
 
 testIndexedOperator() {
   final script = @"""
@@ -761,8 +762,8 @@ testIndexedOperator() {
       main() { var c = new C(); c[0]++; }""";
   final compiler = compileScript(script);
 
-  checkMemberResolved(compiler, 'C', operatorName('[]'));
-  checkMemberResolved(compiler, 'C', operatorName('[]='));
+  checkMemberResolved(compiler, 'C', operatorName('[]', false));
+  checkMemberResolved(compiler, 'C', operatorName('[]=', false));
 }
 
 testIncrementsAndDecrements() {
@@ -783,8 +784,8 @@ testIncrementsAndDecrements() {
       }""";
   final compiler = compileScript(script);
 
-  checkMemberResolved(compiler, 'A', operatorName('+'));
-  checkMemberResolved(compiler, 'B', operatorName('+'));
-  checkMemberResolved(compiler, 'C', operatorName('-'));
-  checkMemberResolved(compiler, 'D', operatorName('-'));
+  checkMemberResolved(compiler, 'A', operatorName('+', false));
+  checkMemberResolved(compiler, 'B', operatorName('+', false));
+  checkMemberResolved(compiler, 'C', operatorName('-', false));
+  checkMemberResolved(compiler, 'D', operatorName('-', false));
 }

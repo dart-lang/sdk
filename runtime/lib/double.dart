@@ -8,7 +8,7 @@ class Double implements double {
   int hashCode() {
     try {
       return toInt();
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return 0;
     }
   }

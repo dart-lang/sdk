@@ -19,11 +19,11 @@ regExpGetNative(JSSyntaxRegExp regExp) {
   if (r === null) {
     r = JS('var', @'#._re = #', regExp, regExpMakeNative(regExp));
   }
-  return r; 
+  return r;
 }
 
 regExpAttachGlobalNative(JSSyntaxRegExp regExp) {
-  JS('var', @'#._re = #', regExp, regExpMakeNative(regExp, global: true)); 
+  JS('var', @'#._re = #', regExp, regExpMakeNative(regExp, global: true));
 }
 
 regExpMakeNative(JSSyntaxRegExp regExp, [bool global = false]) {
@@ -37,7 +37,7 @@ regExpMakeNative(JSSyntaxRegExp regExp, [bool global = false]) {
   if (global) sb.add('g');
   try {
     return JS('Object', @'new RegExp(#, #)', pattern, sb.toString());
-  } catch (var e) {
+  } catch (e) {
     throw new IllegalJSRegExpException(pattern,
                                        JS('String', @'String(#)', e));
   }

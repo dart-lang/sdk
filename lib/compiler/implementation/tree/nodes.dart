@@ -114,7 +114,7 @@ class Node implements Hashable {
     Unparser unparser = new Unparser();
     try {
       return unparser.unparse(this);
-    } catch (var e, var trace) {
+    } catch (e, trace) {
       print(trace);
       return '<<unparse error: ${getObjectDescription()}: ${unparser.sb}>>';
     }
@@ -665,7 +665,7 @@ class LiteralInt extends Literal<int> {
       Token valueToken = token;
       if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
       return parseInt(valueToken.value.slowToString());
-    } catch (FormatException ex) {
+    } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
   }
@@ -684,7 +684,7 @@ class LiteralDouble extends Literal<double> {
       Token valueToken = token;
       if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
       return parseDouble(valueToken.value.slowToString());
-    } catch (FormatException ex) {
+    } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
   }
@@ -708,41 +708,41 @@ class LiteralBool extends Literal<bool> {
 
 
 class StringQuoting {
-  static final StringQuoting SINGLELINE_DQ =
+  static const StringQuoting SINGLELINE_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 1);
-  static final StringQuoting RAW_SINGLELINE_DQ =
+  static const StringQuoting RAW_SINGLELINE_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 1);
-  static final StringQuoting MULTILINE_DQ =
+  static const StringQuoting MULTILINE_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 3);
-  static final StringQuoting RAW_MULTILINE_DQ =
+  static const StringQuoting RAW_MULTILINE_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 3);
-  static final StringQuoting MULTILINE_NL_DQ =
+  static const StringQuoting MULTILINE_NL_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 4);
-  static final StringQuoting RAW_MULTILINE_NL_DQ =
+  static const StringQuoting RAW_MULTILINE_NL_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 4);
-  static final StringQuoting MULTILINE_NL2_DQ =
+  static const StringQuoting MULTILINE_NL2_DQ =
       const StringQuoting($DQ, raw: false, leftQuoteLength: 5);
-  static final StringQuoting RAW_MULTILINE_NL2_DQ =
+  static const StringQuoting RAW_MULTILINE_NL2_DQ =
       const StringQuoting($DQ, raw: true, leftQuoteLength: 5);
-  static final StringQuoting SINGLELINE_SQ =
+  static const StringQuoting SINGLELINE_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 1);
-  static final StringQuoting RAW_SINGLELINE_SQ =
+  static const StringQuoting RAW_SINGLELINE_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 1);
-  static final StringQuoting MULTILINE_SQ =
+  static const StringQuoting MULTILINE_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 3);
-  static final StringQuoting RAW_MULTILINE_SQ =
+  static const StringQuoting RAW_MULTILINE_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 3);
-  static final StringQuoting MULTILINE_NL_SQ =
+  static const StringQuoting MULTILINE_NL_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 4);
-  static final StringQuoting RAW_MULTILINE_NL_SQ =
+  static const StringQuoting RAW_MULTILINE_NL_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 4);
-  static final StringQuoting MULTILINE_NL2_SQ =
+  static const StringQuoting MULTILINE_NL2_SQ =
       const StringQuoting($SQ, raw: false, leftQuoteLength: 5);
-  static final StringQuoting RAW_MULTILINE_NL2_SQ =
+  static const StringQuoting RAW_MULTILINE_NL2_SQ =
       const StringQuoting($SQ, raw: true, leftQuoteLength: 5);
 
 
-  static final List<StringQuoting> mapping = const <StringQuoting>[
+  static const List<StringQuoting> mapping = const <StringQuoting>[
     SINGLELINE_DQ,
     RAW_SINGLELINE_DQ,
     MULTILINE_DQ,
@@ -1096,13 +1096,13 @@ class Modifiers extends Node {
   /** Bit pattern to easy check what modifiers are present. */
   final int flags;
 
-  static final int FLAG_STATIC = 1;
-  static final int FLAG_ABSTRACT = FLAG_STATIC << 1;
-  static final int FLAG_FINAL = FLAG_ABSTRACT << 1;
-  static final int FLAG_VAR = FLAG_FINAL << 1;
-  static final int FLAG_CONST = FLAG_VAR << 1;
-  static final int FLAG_FACTORY = FLAG_CONST << 1;
-  static final int FLAG_EXTERNAL = FLAG_FACTORY << 1;
+  static const int FLAG_STATIC = 1;
+  static const int FLAG_ABSTRACT = FLAG_STATIC << 1;
+  static const int FLAG_FINAL = FLAG_ABSTRACT << 1;
+  static const int FLAG_VAR = FLAG_FINAL << 1;
+  static const int FLAG_CONST = FLAG_VAR << 1;
+  static const int FLAG_FACTORY = FLAG_CONST << 1;
+  static const int FLAG_EXTERNAL = FLAG_FACTORY << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
@@ -1141,7 +1141,7 @@ class Modifiers extends Node {
   bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
 
   /**
-   * Use this to check if the declaration is either explicitly or implicitly 
+   * Use this to check if the declaration is either explicitly or implicitly
    * final.
    */
   bool isFinalOrConst() => isFinal() || isConst();
@@ -1570,7 +1570,6 @@ class ScriptTag extends Node {
   bool isImport() => tag.source == const SourceString("import");
   bool isSource() => tag.source == const SourceString("source");
   bool isLibrary() => tag.source == const SourceString("library");
-  bool isResource() => tag.source == const SourceString("resource");
 
   ScriptTag asScriptTag() => this;
 

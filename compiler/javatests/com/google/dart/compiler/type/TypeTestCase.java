@@ -68,6 +68,7 @@ abstract class TypeTestCase extends TestCase {
                                                 null, null, itype(string), itype(intElement));
   final FunctionType stringAndIntToMap = ftype(function, stringIntMap,
                                                null, null, itype(string), itype(intElement));
+  final ClassElement type = element("Type", itype(object));
   private int expectedTypeErrors = 0;
   private int foundTypeErrors = 0;
 

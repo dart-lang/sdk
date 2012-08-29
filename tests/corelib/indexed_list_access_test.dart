@@ -32,9 +32,9 @@ checkList(var list) {
 checkCatch(var f, var list, var index) {
   try {
     f(list, index);
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
     return true;
-  } catch (TypeError t) {
+  } on TypeError catch (t) {
     return true;  // thrown in type checked mode.
   }
   return false;

@@ -103,6 +103,10 @@ class Source {
    * [path] is guaranteed not to exist, and its parent directory is guaranteed
    * to exist.
    *
+   * Note that [path] may be deleted. If re-installing a package that has
+   * already been installed would be costly or impossible,
+   * [installToSystemCache] should be implemented instead of [install].
+   *
    * This doesn't need to be implemented if [installToSystemCache] is
    * implemented.
    */

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Constants.
-final _MASK_8 = 0xff;
-final _MASK_32 = 0xffffffff;
-final _BITS_PER_BYTE = 8;
-final _BYTES_PER_WORD = 4;
+const _MASK_8 = 0xff;
+const _MASK_32 = 0xffffffff;
+const _BITS_PER_BYTE = 8;
+const _BYTES_PER_WORD = 4;
 
 // Helper functions used by more than one hasher.
 

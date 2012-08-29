@@ -1068,7 +1068,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 1;
+  static const int _BYTES_PER_ELEMENT = 1;
 
   static _Int8Array _new(int length) native "Int8Array_new";
 
@@ -1131,7 +1131,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 1;
+  static const int _BYTES_PER_ELEMENT = 1;
 
   static _Uint8Array _new(int length) native "Uint8Array_new";
 
@@ -1194,7 +1194,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 2;
+  static const int _BYTES_PER_ELEMENT = 2;
 
   static _Int16Array _new(int length) native "Int16Array_new";
 
@@ -1257,7 +1257,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 2;
+  static const int _BYTES_PER_ELEMENT = 2;
 
   static _Uint16Array _new(int length) native "Uint16Array_new";
 
@@ -1320,7 +1320,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
 
   static _Int32Array _new(int length) native "Int32Array_new";
 
@@ -1383,7 +1383,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
 
   static _Uint32Array _new(int length) native "Uint32Array_new";
 
@@ -1446,7 +1446,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
 
   static _Int64Array _new(int length) native "Int64Array_new";
 
@@ -1509,7 +1509,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
 
   static _Uint64Array _new(int length) native "Uint64Array_new";
 
@@ -1572,7 +1572,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
 
   static _Float32Array _new(int length) native "Float32Array_new";
 
@@ -1635,7 +1635,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
 
   static _Float64Array _new(int length) native "Float64Array_new";
 
@@ -1687,7 +1687,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 1;
+  static const int _BYTES_PER_ELEMENT = 1;
 
   int _getIndexed(int index) native "ExternalInt8Array_getIndexed";
   int _setIndexed(int index, int value) native "ExternalInt8Array_setIndexed";
@@ -1737,7 +1737,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 1;
+  static const int _BYTES_PER_ELEMENT = 1;
 
   int _getIndexed(int index) native "ExternalUint8Array_getIndexed";
   int _setIndexed(int index, int value) native "ExternalUint8Array_setIndexed";
@@ -1787,7 +1787,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 2;
+  static const int _BYTES_PER_ELEMENT = 2;
 
   int _getIndexed(int index) native "ExternalInt16Array_getIndexed";
   int _setIndexed(int index, int value) native "ExternalInt16Array_setIndexed";
@@ -1837,7 +1837,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 2;
+  static const int _BYTES_PER_ELEMENT = 2;
 
   int _getIndexed(int index)
       native "ExternalUint16Array_getIndexed";
@@ -1889,7 +1889,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
 
   int _getIndexed(int index)
       native "ExternalInt32Array_getIndexed";
@@ -1941,7 +1941,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
 
   int _getIndexed(int index)
       native "ExternalUint32Array_getIndexed";
@@ -1993,7 +1993,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
 
   int _getIndexed(int index)
       native "ExternalInt64Array_getIndexed";
@@ -2045,7 +2045,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
 
   int _getIndexed(int index)
       native "ExternalUint64Array_getIndexed";
@@ -2097,7 +2097,7 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
 
   double _getIndexed(int index)
       native "ExternalFloat32Array_getIndexed";
@@ -2149,7 +2149,7 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
     return _length() * _BYTES_PER_ELEMENT;
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
 
   double _getIndexed(int index)
       native "ExternalFloat64Array_getIndexed";
@@ -2440,7 +2440,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 1;
+  static const int _BYTES_PER_ELEMENT = 1;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2512,7 +2512,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 1;
+  static const int _BYTES_PER_ELEMENT = 1;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2584,7 +2584,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 2;
+  static const int _BYTES_PER_ELEMENT = 2;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2656,7 +2656,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 2;
+  static const int _BYTES_PER_ELEMENT = 2;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2728,7 +2728,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2800,7 +2800,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2872,7 +2872,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -2944,7 +2944,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -3016,7 +3016,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 4;
+  static const int _BYTES_PER_ELEMENT = 4;
   final ByteArray _array;
   final int _offset;
   final int _length;
@@ -3088,7 +3088,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
     return _array.subByteArray(_offset + start, length);
   }
 
-  static final int _BYTES_PER_ELEMENT = 8;
+  static const int _BYTES_PER_ELEMENT = 8;
   final ByteArray _array;
   final int _offset;
   final int _length;

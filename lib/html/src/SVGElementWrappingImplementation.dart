@@ -36,7 +36,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
         'top-level elements but 1 expected');
   }
 
-  Set<String> get classes() {
+  CSSClassSet get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _SVGClassSet(_ptr);
     }

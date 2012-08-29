@@ -60,10 +60,6 @@ class FilteredElementList implements ElementList {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw const NotImplementedException();
-  }
-
   void setRange(int start, int length, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
@@ -288,8 +284,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   Element get offsetParent() => null;
   Element get parent() => null;
   Map<String, String> get attributes() => const {};
-  // Issue 174: this should be a const set.
-  Set<String> get classes() => new Set<String>();
+  CSSClassSet get classes() => null;
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
   Future<CSSStyleDeclaration> get computedStyle() =>

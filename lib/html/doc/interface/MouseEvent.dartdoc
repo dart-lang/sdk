@@ -39,10 +39,20 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   /** @domName MouseEvent.metaKey */
   final bool metaKey;
 
-  /** @domName MouseEvent.offsetX */
+  /**
+   * The X coordinate of the mouse pointer in target node coordinates.
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   final int offsetX;
 
-  /** @domName MouseEvent.offsetY */
+  /**
+   * The Y coordinate of the mouse pointer in target node coordinates.
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   final int offsetY;
 
   /** @domName MouseEvent.relatedTarget */

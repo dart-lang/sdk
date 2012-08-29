@@ -63,7 +63,7 @@ expectNoSuchMethod(action, note) {
   bool caught = false;
   try {
     action();
-  } catch (var ex) {
+  } catch (ex) {
     caught = true;
     Expect.isTrue(ex is NoSuchMethodException, note);
   }

@@ -136,7 +136,7 @@ class StatementTest {
     bool hitCatch, hitFinally;
     try {
       throw "foo";
-    } catch (var e) {
+    } catch (e) {
       Expect.equals(true, e == "foo");
       hitCatch = true;
     } finally {

@@ -14,7 +14,7 @@ class DivByZeroTest {
     var val = null;
     try {
       val = a~/b;
-    } catch (var e) {
+    } catch (e) {
       return true;
     }
     print("Should not have gotten: $val");

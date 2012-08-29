@@ -14,7 +14,7 @@
 #import('filenames.dart');
 #import('util/uri_extras.dart');
 
-final String LIBRARY_ROOT = '../../../..';
+const String LIBRARY_ROOT = '../../../..';
 
 typedef void HandleOption(String option);
 
@@ -161,7 +161,7 @@ void compile(List<String> argv) {
     String source;
     try {
       source = readAll(uriPathToNative(uri.path));
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
     }
     dartBytesRead += source.length;
@@ -327,6 +327,9 @@ Supported options:
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
 
+  --minify
+    Generate minified output.
+
   --suppress-warnings
     Do not display any warnings.
 
@@ -368,10 +371,10 @@ void helpAndFail(String message) {
 void main() {
   try {
     compilerMain(new Options());
-  } catch (var exception, var trace) {
+  } catch (exception, trace) {
     try {
       print('Internal error: $exception');
-    } catch (var ignored) {
+    } catch (ignored) {
       print('Internal error: error while printing exception');
     }
     try {

@@ -32,7 +32,7 @@ main() {
 
   try {
     Foo<int> value2 = new Foo<int>.from();
-  } catch (TypeError e) {
+  } on TypeError catch (e) {
     gotError = true;
   }
   Expect.equals(true, gotError);

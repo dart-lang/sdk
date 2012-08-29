@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final int _UTF8_ONE_BYTE_MAX = 0x7f;
-final int _UTF8_TWO_BYTE_MAX = 0x7ff;
-final int _UTF8_THREE_BYTE_MAX = 0xffff;
+const int _UTF8_ONE_BYTE_MAX = 0x7f;
+const int _UTF8_TWO_BYTE_MAX = 0x7ff;
+const int _UTF8_THREE_BYTE_MAX = 0xffff;
 
-final int _UTF8_LO_SIX_BIT_MASK = 0x3f;
+const int _UTF8_LO_SIX_BIT_MASK = 0x3f;
 
-final int _UTF8_FIRST_BYTE_OF_TWO_BASE = 0xc0;
-final int _UTF8_FIRST_BYTE_OF_THREE_BASE = 0xe0;
-final int _UTF8_FIRST_BYTE_OF_FOUR_BASE = 0xf0;
-final int _UTF8_FIRST_BYTE_OF_FIVE_BASE = 0xf8;
-final int _UTF8_FIRST_BYTE_OF_SIX_BASE = 0xfc;
+const int _UTF8_FIRST_BYTE_OF_TWO_BASE = 0xc0;
+const int _UTF8_FIRST_BYTE_OF_THREE_BASE = 0xe0;
+const int _UTF8_FIRST_BYTE_OF_FOUR_BASE = 0xf0;
+const int _UTF8_FIRST_BYTE_OF_FIVE_BASE = 0xf8;
+const int _UTF8_FIRST_BYTE_OF_SIX_BASE = 0xfc;
 
-final int _UTF8_FIRST_BYTE_OF_TWO_MASK = 0x1f;
-final int _UTF8_FIRST_BYTE_OF_THREE_MASK = 0xf;
-final int _UTF8_FIRST_BYTE_OF_FOUR_MASK = 0x7;
+const int _UTF8_FIRST_BYTE_OF_TWO_MASK = 0x1f;
+const int _UTF8_FIRST_BYTE_OF_THREE_MASK = 0xf;
+const int _UTF8_FIRST_BYTE_OF_FOUR_MASK = 0x7;
 
-final int _UTF8_FIRST_BYTE_BOUND_EXCL = 0xfe;
-final int _UTF8_SUBSEQUENT_BYTE_BASE = 0x80;
+const int _UTF8_FIRST_BYTE_BOUND_EXCL = 0xfe;
+const int _UTF8_SUBSEQUENT_BYTE_BASE = 0x80;
 
 /**
  * Decodes the UTF-8 bytes as an iterable. Thus, the consumer can only convert

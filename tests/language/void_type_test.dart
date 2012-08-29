@@ -8,7 +8,7 @@ isCheckedMode() {
     var i = 1;
     String s = i;
     return false;
-  } catch(var e) {
+  } catch (e) {
     return true;
   }
 }
@@ -37,7 +37,7 @@ void test(int n, void func(), bool must_get_error) {
     bool got_type_error = false;
     try {
       var x = func();
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Never a type error in production mode.
@@ -60,7 +60,7 @@ void test(int n, void func(), bool must_get_error) {
         case 4: x = f_dyn_1(); break;
         case 5: x = f_f(); break;
       }
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Never a type error in production mode.

@@ -131,7 +131,9 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 
 
 void Computation::PrintTo(BufferFormatter* f) const {
-  f->Print("%s:%d(", DebugName(), deopt_id());
+  // Do not access 'deopt_id()' as it asserts that the computation can
+  // deoptimize.
+  f->Print("%s:%d(", DebugName(), deopt_id_);
   PrintOperandsTo(f);
   f->Print(")");
   if (HasICData()) {
@@ -157,13 +159,8 @@ void UseVal::PrintTo(BufferFormatter* f) const {
 }
 
 
-void ConstantVal::PrintTo(BufferFormatter* f) const {
+void ConstantComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("#%s", value().ToCString());
-}
-
-
-void MaterializeComp::PrintOperandsTo(BufferFormatter* f) const {
-  constant_val()->PrintTo(f);
 }
 
 
@@ -554,27 +551,10 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s ", DebugName());
   f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
+  computation()->PrintTo(f);
 
-  f->Print(" goto (%d, %d)",
-            true_successor()->block_id(),
-            false_successor()->block_id());
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
-}
-
-
-void StrictCompareAndBranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s", DebugName());
-  f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
             false_successor()->block_id());
@@ -743,29 +723,11 @@ void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("v%d [", ssa_temp_index());
-  bool has_constant = false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(" ");
-    if (InputAt(i)->IsConstant()) {
-      f->Print("const");
-      has_constant = true;
-    } else {
-      InputAt(i)->PrintTo(f);
-    }
+    InputAt(i)->PrintTo(f);
   }
   f->Print("]");
-  // The vizualizer file format does not allow arbitrary strings inside the phi.
-  // Print constants as a line-end comment instead.
-  if (has_constant) {
-    f->Print("\"");
-    for (intptr_t i = 0; i < InputCount(); ++i) {
-      if (i > 0) f->Print(" ");
-      if (InputAt(i)->IsConstant()) {
-        InputAt(i)->PrintTo(f);
-      }
-    }
-    f->Print("\"");
-  }
 }
 
 
@@ -828,21 +790,7 @@ void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
 void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
-  f->Print(" goto (B%d, B%d)",
-            true_successor()->block_id(),
-            false_successor()->block_id());
-}
-
-
-void StrictCompareAndBranchInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-  f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
+  computation()->PrintTo(f);
   f->Print(" goto (B%d, B%d)",
             true_successor()->block_id(),
             false_successor()->block_id());

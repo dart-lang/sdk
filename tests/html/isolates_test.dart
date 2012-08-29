@@ -11,7 +11,7 @@ void isolateEntry() {
   bool wasThrown = false;
   try {
     window.alert('Test');
-  } catch(final e) {
+  } catch (e) {
     wasThrown = true;
   }
   // If wasn't thrown, do not listen to messages to make test fail.

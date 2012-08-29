@@ -432,9 +432,9 @@ class HBasicBlock extends HInstructionList implements Hashable {
   // this [id]. The exception are back-edges.
   int id;
 
-  static final int STATUS_NEW = 0;
-  static final int STATUS_OPEN = 1;
-  static final int STATUS_CLOSED = 2;
+  static const int STATUS_NEW = 0;
+  static const int STATUS_OPEN = 1;
+  static const int STATUS_CLOSED = 2;
   int status = STATUS_NEW;
 
   HInstructionList phis;
@@ -750,48 +750,48 @@ class HInstruction implements Hashable {
   int flags = 0;
 
   // Changes flags.
-  static final int FLAG_CHANGES_SOMETHING    = 0;
-  static final int FLAG_CHANGES_COUNT        = FLAG_CHANGES_SOMETHING + 1;
+  static const int FLAG_CHANGES_SOMETHING    = 0;
+  static const int FLAG_CHANGES_COUNT        = FLAG_CHANGES_SOMETHING + 1;
 
   // Depends flags (one for each changes flag).
-  static final int FLAG_DEPENDS_ON_SOMETHING = FLAG_CHANGES_COUNT;
+  static const int FLAG_DEPENDS_ON_SOMETHING = FLAG_CHANGES_COUNT;
 
   // Other flags.
-  static final int FLAG_USE_GVN              = FLAG_DEPENDS_ON_SOMETHING + 1;
+  static const int FLAG_USE_GVN              = FLAG_DEPENDS_ON_SOMETHING + 1;
 
   // Type codes.
-  static final int UNDEFINED_TYPECODE = -1;
-  static final int BOOLIFY_TYPECODE = 0;
-  static final int TYPE_GUARD_TYPECODE = 1;
-  static final int BOUNDS_CHECK_TYPECODE = 2;
-  static final int INTEGER_CHECK_TYPECODE = 3;
-  static final int INVOKE_INTERCEPTOR_TYPECODE = 4;
-  static final int ADD_TYPECODE = 5;
-  static final int DIVIDE_TYPECODE = 6;
-  static final int MODULO_TYPECODE = 7;
-  static final int MULTIPLY_TYPECODE = 8;
-  static final int SUBTRACT_TYPECODE = 9;
-  static final int TRUNCATING_DIVIDE_TYPECODE = 10;
-  static final int SHIFT_LEFT_TYPECODE = 11;
-  static final int SHIFT_RIGHT_TYPECODE = 12;
-  static final int BIT_OR_TYPECODE = 13;
-  static final int BIT_AND_TYPECODE = 14;
-  static final int BIT_XOR_TYPECODE = 15;
-  static final int NEGATE_TYPECODE = 16;
-  static final int BIT_NOT_TYPECODE = 17;
-  static final int NOT_TYPECODE = 18;
-  static final int EQUALS_TYPECODE = 19;
-  static final int IDENTITY_TYPECODE = 20;
-  static final int GREATER_TYPECODE = 21;
-  static final int GREATER_EQUAL_TYPECODE = 22;
-  static final int LESS_TYPECODE = 23;
-  static final int LESS_EQUAL_TYPECODE = 24;
-  static final int STATIC_TYPECODE = 25;
-  static final int STATIC_STORE_TYPECODE = 26;
-  static final int FIELD_GET_TYPECODE = 27;
-  static final int TYPE_CONVERSION_TYPECODE = 28;
-  static final int BAILOUT_TARGET_TYPECODE = 29;
-  static final int INVOKE_STATIC_TYPECODE = 30;
+  static const int UNDEFINED_TYPECODE = -1;
+  static const int BOOLIFY_TYPECODE = 0;
+  static const int TYPE_GUARD_TYPECODE = 1;
+  static const int BOUNDS_CHECK_TYPECODE = 2;
+  static const int INTEGER_CHECK_TYPECODE = 3;
+  static const int INVOKE_INTERCEPTOR_TYPECODE = 4;
+  static const int ADD_TYPECODE = 5;
+  static const int DIVIDE_TYPECODE = 6;
+  static const int MODULO_TYPECODE = 7;
+  static const int MULTIPLY_TYPECODE = 8;
+  static const int SUBTRACT_TYPECODE = 9;
+  static const int TRUNCATING_DIVIDE_TYPECODE = 10;
+  static const int SHIFT_LEFT_TYPECODE = 11;
+  static const int SHIFT_RIGHT_TYPECODE = 12;
+  static const int BIT_OR_TYPECODE = 13;
+  static const int BIT_AND_TYPECODE = 14;
+  static const int BIT_XOR_TYPECODE = 15;
+  static const int NEGATE_TYPECODE = 16;
+  static const int BIT_NOT_TYPECODE = 17;
+  static const int NOT_TYPECODE = 18;
+  static const int EQUALS_TYPECODE = 19;
+  static const int IDENTITY_TYPECODE = 20;
+  static const int GREATER_TYPECODE = 21;
+  static const int GREATER_EQUAL_TYPECODE = 22;
+  static const int LESS_TYPECODE = 23;
+  static const int LESS_EQUAL_TYPECODE = 24;
+  static const int STATIC_TYPECODE = 25;
+  static const int STATIC_STORE_TYPECODE = 26;
+  static const int FIELD_GET_TYPECODE = 27;
+  static const int TYPE_CONVERSION_TYPECODE = 28;
+  static const int BAILOUT_TARGET_TYPECODE = 29;
+  static const int INVOKE_STATIC_TYPECODE = 30;
 
   HInstruction(this.inputs)
       : id = idCounter++,
@@ -1067,7 +1067,7 @@ class HInstruction implements Hashable {
    */
   bool isCodeMotionInvariant() => false;
 
-  bool isStatement(HTypeMap types) => false;
+  bool isJsStatement(HTypeMap types) => false;
 
   bool dominates(HInstruction other) {
     if (block != other.block) return block.dominates(other.block);
@@ -1106,7 +1106,7 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput => inputs[0];
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
   void prepareGvn(HTypeMap types) {
     assert(!hasSideEffects(types));
     setUseGvn();
@@ -1123,7 +1123,7 @@ class HBailoutTarget extends HInstruction {
   }
 
   bool isControlFlow() => true;
-  bool isStatement(HTypeMap types) => isEnabled;
+  bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
   int typeCode() => HInstruction.BAILOUT_TARGET_TYPECODE;
@@ -1151,7 +1151,7 @@ class HTypeGuard extends HCheck {
 
   bool isControlFlow() => true;
 
-  bool isStatement(HTypeMap types) => isEnabled;
+  bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
@@ -1160,10 +1160,10 @@ class HTypeGuard extends HCheck {
 }
 
 class HBoundsCheck extends HCheck {
-  static final int ALWAYS_FALSE = 0;
-  static final int FULL_CHECK = 1;
-  static final int ALWAYS_ABOVE_ZERO = 2;
-  static final int ALWAYS_TRUE = 3;
+  static const int ALWAYS_FALSE = 0;
+  static const int FULL_CHECK = 1;
+  static const int ALWAYS_ABOVE_ZERO = 2;
+  static const int ALWAYS_TRUE = 3;
   /**
    * Details which tests have been done statically during compilation.
    * Default is that all checks must be performed dynamically.
@@ -1223,7 +1223,7 @@ class HControlFlow extends HInstruction {
     // Control flow does not have side-effects.
   }
   bool isControlFlow() => true;
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
 }
 
 class HInvoke extends HInstruction {
@@ -1233,7 +1233,7 @@ class HInvoke extends HInstruction {
     * to the invocation.
     */
   HInvoke(List<HInstruction> inputs) : super(inputs);
-  static final int ARGUMENTS_OFFSET = 1;
+  static const int ARGUMENTS_OFFSET = 1;
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
@@ -1437,7 +1437,7 @@ class HFieldSet extends HFieldAccess {
     setAllSideEffects();
   }
 
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
   String toString() => "FieldSet $element";
 }
 
@@ -1497,7 +1497,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType => foreignType;
 
-  bool isStatement(HTypeMap types) => _isStatement;
+  bool isJsStatement(HTypeMap types) => _isStatement;
 }
 
 class HForeignNew extends HForeign {
@@ -1928,8 +1928,8 @@ class HIf extends HConditionalBranch {
 }
 
 class HLoopBranch extends HConditionalBranch {
-  static final int CONDITION_FIRST_LOOP = 0;
-  static final int DO_WHILE_LOOP = 1;
+  static const int CONDITION_FIRST_LOOP = 0;
+  static const int DO_WHILE_LOOP = 1;
 
   final int kind;
   HLoopBranch(HInstruction condition, [this.kind = CONDITION_FIRST_LOOP])
@@ -2026,9 +2026,9 @@ class HThis extends HParameterValue {
 }
 
 class HPhi extends HInstruction {
-  static final IS_NOT_LOGICAL_OPERATOR = 0;
-  static final IS_AND = 1;
-  static final IS_OR = 2;
+  static const IS_NOT_LOGICAL_OPERATOR = 0;
+  static const IS_AND = 1;
+  static const IS_OR = 2;
 
   int logicalOperatorType = IS_NOT_LOGICAL_OPERATOR;
 
@@ -2318,7 +2318,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
 }
 
 class HLiteralList extends HInstruction {
@@ -2398,7 +2398,7 @@ class HIndexAssign extends HInvokeStatic {
 
   bool isBuiltin(HTypeMap types)
       => receiver.isMutableArray(types) && index.isInteger(types);
-  bool isStatement(HTypeMap types) => !isBuiltin(types);
+  bool isJsStatement(HTypeMap types) => !isBuiltin(types);
 }
 
 class HIs extends HInstruction {
@@ -2416,6 +2416,8 @@ class HIs extends HInstruction {
 
   HInstruction get typeInfoCall => inputs[1];
 
+  bool hasTypeInfo() => inputs.length == 2;
+
   HType get guaranteedType => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
@@ -2427,10 +2429,10 @@ class HTypeConversion extends HCheck {
   HType type;
   final int kind;
 
-  static final int NO_CHECK = 0;
-  static final int CHECKED_MODE_CHECK = 1;
-  static final int ARGUMENT_TYPE_CHECK = 2;
-  static final int CAST_TYPE_CHECK = 3;
+  static const int NO_CHECK = 0;
+  static const int CHECKED_MODE_CHECK = 1;
+  static const int ARGUMENT_TYPE_CHECK = 2;
+  static const int CAST_TYPE_CHECK = 3;
 
   HTypeConversion(this.type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
@@ -2453,7 +2455,7 @@ class HTypeConversion extends HCheck {
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool isStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
+  bool isJsStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
@@ -2673,11 +2675,11 @@ class LoopTypeVisitor extends AbstractVisitor {
 }
 
 class HLoopBlockInformation implements HStatementInformation {
-  static final int WHILE_LOOP = 0;
-  static final int FOR_LOOP = 1;
-  static final int DO_WHILE_LOOP = 2;
-  static final int FOR_IN_LOOP = 3;
-  static final int NOT_A_LOOP = -1;
+  static const int WHILE_LOOP = 0;
+  static const int FOR_LOOP = 1;
+  static const int DO_WHILE_LOOP = 2;
+  static const int FOR_IN_LOOP = 3;
+  static const int NOT_A_LOOP = -1;
 
   final int kind;
   final HExpressionInformation initializer;

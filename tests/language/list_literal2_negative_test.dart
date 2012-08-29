@@ -9,7 +9,7 @@ class ListLiteral2NegativeTest<T> {
   test() {
     try {
       var m = const <T>[0, 1];  // Type parameter is not allowed with const.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
     }
   }
 }

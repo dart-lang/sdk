@@ -19,7 +19,7 @@ main() {
         // Test that native overload is chosen correctly. Native implementation
         // should throw 'SYNTAX_ERR' DOMException because the buffer is empty.
         AudioBuffer buffer = ctx.createBuffer(arrayBufferView.buffer, false);
-      } catch(var e) {
+      } catch (e) {
         expect(e.code, equals(DOMException.SYNTAX_ERR));
       }
   });

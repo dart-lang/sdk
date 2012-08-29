@@ -53,7 +53,7 @@ class Uri {
   }
 
   // NOTE: This code was ported from: closure-library/closure/goog/uri/utils.js
-  static final RegExp _splitRe = const RegExp(
+  static const RegExp _splitRe = const RegExp(
       '^'
       '(?:'
         '([^:/?#.]+)'                   // scheme - ignore special characters
@@ -73,13 +73,13 @@ class Uri {
       '(?:#(.*))?'                      // fragment
       '\$');
 
-  static final _COMPONENT_SCHEME = 1;
-  static final _COMPONENT_USER_INFO = 2;
-  static final _COMPONENT_DOMAIN = 3;
-  static final _COMPONENT_PORT = 4;
-  static final _COMPONENT_PATH = 5;
-  static final _COMPONENT_QUERY_DATA = 6;
-  static final _COMPONENT_FRAGMENT = 7;
+  static const _COMPONENT_SCHEME = 1;
+  static const _COMPONENT_USER_INFO = 2;
+  static const _COMPONENT_DOMAIN = 3;
+  static const _COMPONENT_PORT = 4;
+  static const _COMPONENT_PATH = 5;
+  static const _COMPONENT_QUERY_DATA = 6;
+  static const _COMPONENT_FRAGMENT = 7;
 
   /**
    * Returns `true` if the URI is absolute.

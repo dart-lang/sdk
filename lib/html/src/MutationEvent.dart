@@ -8,11 +8,11 @@ interface MutationEvent extends Event default MutationEventWrappingImplementatio
       String newValue, String attrName, int attrChange, [bool canBubble,
       bool cancelable]);
 
-  static final int ADDITION = 2;
+  static const int ADDITION = 2;
 
-  static final int MODIFICATION = 1;
+  static const int MODIFICATION = 1;
 
-  static final int REMOVAL = 3;
+  static const int REMOVAL = 3;
 
   int get attrChange();
 

@@ -59,9 +59,6 @@ class ScannerTask extends CompilerTask {
       } else if (tag.isSource()) {
         tagState = checkTag(TagState.SOURCE, tag);
         importSourceFromTag(tag, resolved, library);
-      } else if (tag.isResource()) {
-        tagState = checkTag(TagState.RESOURCE, tag);
-        compiler.reportWarning(tag, 'ignoring resource tag');
       } else {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
@@ -118,7 +115,7 @@ class ScannerTask extends CompilerTask {
     Token tokens;
     try {
       tokens = new StringScanner(script.text).tokenize();
-    } catch (MalformedInputException ex) {
+    } on MalformedInputException catch (ex) {
       Token token;
       var message;
       if (ex.position is num) {
@@ -222,14 +219,14 @@ class DietParserTask extends CompilerTask {
  * tags come in the correct order.
  */
 class TagState {
-  static final int NO_TAG_SEEN = 0;
-  static final int LIBRARY = 1;
-  static final int IMPORT = 2;
-  static final int SOURCE = 3;
-  static final int RESOURCE = 4;
+  static const int NO_TAG_SEEN = 0;
+  static const int LIBRARY = 1;
+  static const int IMPORT = 2;
+  static const int SOURCE = 3;
+  static const int RESOURCE = 4;
 
   /** Next state. */
-  static final List<int> NEXT =
+  static const List<int> NEXT =
       const <int>[NO_TAG_SEEN,
                   IMPORT, // Only one library tag is allowed.
                   IMPORT,

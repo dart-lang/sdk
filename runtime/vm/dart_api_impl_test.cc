@@ -1303,7 +1303,8 @@ class GCTestHelper : public AllStatic {
  public:
   static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
     bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
-    Isolate::Current()->heap()->new_space_->Scavenge(invoke_api_callbacks);
+    Isolate::Current()->heap()->new_space_->Scavenge(invoke_api_callbacks,
+                                                     "test case");
   }
 };
 
@@ -2544,8 +2545,8 @@ TEST_CASE(FieldAccess) {
       "  final _final_instance_fld;\n"
       "  static var static_fld;\n"
       "  static var _static_fld;\n"
-      "  static final final_static_fld = 'final static';\n"
-      "  static final _final_static_fld = 'hidden final static';\n"
+      "  static const const_static_fld = 'const static';\n"
+      "  static const _const_static_fld = 'hidden const static';\n"
       "\n"
       "  get instance_getset_fld() { return _gs_fld1; }\n"
       "  void set instance_getset_fld(var value) { _gs_fld1 = value; }\n"
@@ -2563,8 +2564,8 @@ TEST_CASE(FieldAccess) {
       "}\n"
       "var top_fld;\n"
       "var _top_fld;\n"
-      "final final_top_fld = 'final top';\n"
-      "final _final_top_fld = 'hidden final top';\n"
+      "const const_top_fld = 'const top';\n"
+      "const _const_top_fld = 'hidden const top';\n"
       "\n"
       "get top_getset_fld() { return _gs_fld5; }\n"
       "void set top_getset_fld(var value) { _gs_fld5 = value; }\n"
@@ -2608,8 +2609,9 @@ TEST_CASE(FieldAccess) {
   Dart_Handle url = Dart_NewString("library_url");
   Dart_Handle source = Dart_NewString(kImportedScriptChars);
   Dart_Handle imported_lib = Dart_LoadLibrary(url, source);
+  Dart_Handle prefix = Dart_NewString("");
   EXPECT_VALID(imported_lib);
-  Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib);
+  Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib, prefix);
   EXPECT_VALID(result);
   result = Dart_Invoke(imported_lib, Dart_NewString("test2"), 0, NULL);
   EXPECT_VALID(result);
@@ -2669,16 +2671,16 @@ TEST_CASE(FieldAccess) {
   TestFieldOk(cls, name, false, "hidden static");
 
   // Static final field.
-  name = Dart_NewString("final_static_fld");
+  name = Dart_NewString("const_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, true, "final static");
+  TestFieldOk(cls, name, true, "const static");
 
-  // Hidden static final field.
-  name = Dart_NewString("_final_static_fld");
+  // Hidden static const field.
+  name = Dart_NewString("_const_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, true, "hidden final static");
+  TestFieldOk(cls, name, true, "hidden const static");
 
   // Static non-inherited field.  Not found at any level.
   name = Dart_NewString("non_inherited_fld");
@@ -2711,16 +2713,16 @@ TEST_CASE(FieldAccess) {
   TestFieldOk(lib, name, false, "hidden top");
 
   // Top-Level final field.
-  name = Dart_NewString("final_top_fld");
+  name = Dart_NewString("const_top_fld");
   TestFieldNotFound(cls, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(lib, name, true, "final top");
+  TestFieldOk(lib, name, true, "const top");
 
   // Hidden top-level final field.
-  name = Dart_NewString("_final_top_fld");
+  name = Dart_NewString("_const_top_fld");
   TestFieldNotFound(cls, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(lib, name, true, "hidden final top");
+  TestFieldOk(lib, name, true, "hidden const top");
 
   // Top-Level get/set field.
   name = Dart_NewString("top_getset_fld");
@@ -2813,7 +2815,7 @@ TEST_CASE(InjectNativeFields1) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -2862,7 +2864,7 @@ TEST_CASE(InjectNativeFields2) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -2890,7 +2892,7 @@ TEST_CASE(InjectNativeFields3) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -2931,7 +2933,7 @@ TEST_CASE(InjectNativeFields4) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3043,7 +3045,7 @@ TEST_CASE(NativeFieldAccess) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3094,7 +3096,7 @@ TEST_CASE(ImplicitNativeFieldAccess) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3120,7 +3122,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "NativeFields testMain1() {\n"
       "  NativeFields obj = new NativeFields(10, 20);\n"
@@ -3187,7 +3189,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
 TEST_CASE(GetStaticField_RunsInitializer) {
   const char* kScriptChars =
       "class TestClass  {\n"
-      "  static final int fld1 = 7;\n"
+      "  static const int fld1 = 7;\n"
       "  static int fld2 = 11;\n"
       "  static void testMain() {\n"
       "  }\n"
@@ -3699,7 +3701,7 @@ TEST_CASE(Invoke_CrossLibrary) {
   EXPECT_VALID(lib2);
 
   // Import lib2 from lib1
-  Dart_Handle result = Dart_LibraryImportLibrary(lib1, lib2);
+  Dart_Handle result = Dart_LibraryImportLibrary(lib1, lib2, Dart_Null());
   EXPECT_VALID(result);
 
   // We can invoke both private and non-private local functions.
@@ -3904,7 +3906,7 @@ TEST_CASE(InvokeClosure) {
       "  }\n"
       "  int fld1;\n"
       "  final int fld2;\n"
-      "  static final int fld4 = 10;\n"
+      "  static const int fld4 = 10;\n"
       "}\n"
       "Function testMain1() {\n"
       "  InvokeClosure obj = new InvokeClosure(10, 20);\n"
@@ -4541,8 +4543,8 @@ TEST_CASE(VariableReflection) {
       "  final _d = '_d';\n"
       "  static var e = 'e';\n"
       "  static var _f = '_f';\n"
-      "  static final g = 'g';\n"
-      "  static final _h = '_h';\n"
+      "  static const g = 'g';\n"
+      "  static const _h = '_h';\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -4565,14 +4567,14 @@ TEST_CASE(VariableReflection) {
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("_b static", buffer.buf());
 
-  // Lookup a final top-level variable.
+  // Lookup a const top-level variable.
   var = Dart_LookupVariable(lib, Dart_NewString("c"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("c static final", buffer.buf());
 
-  // Lookup a private final top-level variable.
+  // Lookup a private const top-level variable.
   var = Dart_LookupVariable(lib, Dart_NewString("_d"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
@@ -4621,14 +4623,14 @@ TEST_CASE(VariableReflection) {
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("_f static", buffer.buf());
 
-  // Lookup a final static variable.
+  // Lookup a const static variable.
   var = Dart_LookupVariable(cls, Dart_NewString("g"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
   BuildVariableDescription(&buffer, var);
   EXPECT_STREQ("g static final", buffer.buf());
 
-  // Lookup a private final static variable.
+  // Lookup a private const static variable.
   var = Dart_LookupVariable(cls, Dart_NewString("_h"));
   EXPECT_VALID(var);
   EXPECT(Dart_IsVariable(var));
@@ -5245,40 +5247,80 @@ TEST_CASE(LibraryImportLibrary) {
   Dart_Handle lib2 = Dart_LoadLibrary(url, source);
   EXPECT_VALID(lib2);
 
-  result = Dart_LibraryImportLibrary(Dart_Null(), lib2);
+  result = Dart_LibraryImportLibrary(Dart_Null(), lib2, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LibraryImportLibrary expects argument 'library' to be non-null.",
       Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(Dart_True(), lib2);
+  result = Dart_LibraryImportLibrary(Dart_True(), lib2, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LibraryImportLibrary expects argument 'library' to be of "
                "type Library.",
                Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(error, lib2);
+  result = Dart_LibraryImportLibrary(error, lib2, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, Dart_Null());
+  result = Dart_LibraryImportLibrary(lib1, Dart_Null(), Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LibraryImportLibrary expects argument 'import' to be non-null.",
       Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, Dart_True());
+  result = Dart_LibraryImportLibrary(lib1, Dart_True(), Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LibraryImportLibrary expects argument 'import' to be of "
                "type Library.",
                Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, error);
+  result = Dart_LibraryImportLibrary(lib1, error, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, lib2);
+  result = Dart_LibraryImportLibrary(lib1, lib2, Dart_Null());
   EXPECT_VALID(result);
+}
+
+
+TEST_CASE(ImportLibraryWithPrefix) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');"
+      "int bar() => 42;";
+  Dart_Handle url1 = Dart_NewString("library1_url");
+  Dart_Handle source1 = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib1 = Dart_LoadLibrary(url1, source1);
+  EXPECT_VALID(lib1);
+  EXPECT(Dart_IsLibrary(lib1));
+
+  const char* kLibrary2Chars =
+      "#library('library2_name');"
+      "int foobar() => foo.bar();";
+  Dart_Handle url2 = Dart_NewString("library2_url");
+  Dart_Handle source2 = Dart_NewString(kLibrary2Chars);
+  Dart_Handle lib2 = Dart_LoadLibrary(url2, source2);
+  EXPECT_VALID(lib2);
+  EXPECT(Dart_IsLibrary(lib2));
+
+  Dart_Handle prefix = Dart_NewString("foo");
+  Dart_Handle result = Dart_LibraryImportLibrary(lib2, lib1, prefix);
+  EXPECT_VALID(result);
+
+  // Lib1 is imported under a library prefix and therefore 'foo' should
+  // not be found directly in lib2.
+  Dart_Handle method_name = Dart_NewString("foo");
+  result = Dart_Invoke(lib2, method_name, 0, NULL);
+  EXPECT_ERROR(result, "Dart_Invoke: did not find top-level function 'foo'");
+
+  // Check that lib1 is available under the prefix in lib2.
+  method_name = Dart_NewString("foobar");
+  result = Dart_Invoke(lib2, method_name, 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(42, value);
 }
 
 

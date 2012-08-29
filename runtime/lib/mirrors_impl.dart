@@ -112,7 +112,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     try {
       completer.complete(
           _invoke(this, memberName, positionalArguments));
-    } catch (var exception) {
+    } catch (exception) {
       completer.completeException(exception);
     }
     return completer.future;
@@ -123,7 +123,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_getField(this, fieldName));
-    } catch (var exception) {
+    } catch (exception) {
       completer.completeException(exception);
     }
     return completer.future;
@@ -136,7 +136,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_setField(this, fieldName, arg));
-    } catch (var exception) {
+    } catch (exception) {
       completer.completeException(exception);
     }
     return completer.future;
@@ -273,7 +273,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     try {
       completer.complete(
           _apply(this, positionalArguments));
-    } catch (var exception) {
+    } catch (exception) {
       completer.completeException(exception);
     }
     return completer.future;
@@ -463,7 +463,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     try {
       completer.complete(
           _invokeConstructor(this, constructorName, positionalArguments));
-    } catch (var exception) {
+    } catch (exception) {
       completer.completeException(exception);
     }
     return completer.future;
@@ -752,7 +752,7 @@ class _Mirrors {
       // Make a local mirror system.
       try {
         completer.complete(currentMirrorSystem());
-      } catch (var exception) {
+      } catch (exception) {
         completer.completeException(exception);
       }
     } else {

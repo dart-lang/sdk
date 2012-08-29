@@ -114,7 +114,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
   EXPECT_EQ(0, handler.notify_count());
 
   // Post a message.
-  Message* message = new Message(0, 0, NULL, Message::kNormalPriority);
+  Message* message = new Message(0, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message);
 
   // The notify callback is called.
@@ -126,7 +126,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
   delete message;
 
   // Post an oob message.
-  message = new Message(0, 0, NULL, Message::kOOBPriority);
+  message = new Message(0, 0, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(message);
 
   // The notify callback is called.
@@ -142,9 +142,9 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
 UNIT_TEST_CASE(MessageHandler_ClosePort) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = new Message(1, 0, NULL, Message::kNormalPriority);
+  Message* message1 = new Message(1, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* message2 = new Message(2, 0, NULL, Message::kNormalPriority);
+  Message* message2 = new Message(2, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
 
   handler_peer.ClosePort(1);
@@ -159,9 +159,9 @@ UNIT_TEST_CASE(MessageHandler_ClosePort) {
 UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = new Message(1, 0, NULL, Message::kNormalPriority);
+  Message* message1 = new Message(1, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* message2 = new Message(2, 0, NULL, Message::kNormalPriority);
+  Message* message2 = new Message(2, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
 
   handler_peer.CloseAllPorts();
@@ -174,13 +174,13 @@ UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
 UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = new Message(1, 0, NULL, Message::kNormalPriority);
+  Message* message1 = new Message(1, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* oob_message1 = new Message(3, 0, NULL, Message::kOOBPriority);
+  Message* oob_message1 = new Message(3, 0, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message1);
-  Message* message2 = new Message(2, 0, NULL, Message::kNormalPriority);
+  Message* message2 = new Message(2, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
-  Message* oob_message2 = new Message(4, 0, NULL, Message::kOOBPriority);
+  Message* oob_message2 = new Message(4, 0, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message2);
 
   // We handle both oob messages and a single normal message.
@@ -193,13 +193,13 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
 UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = new Message(1, 0, NULL, Message::kNormalPriority);
+  Message* message1 = new Message(1, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* message2 = new Message(2, 0, NULL, Message::kNormalPriority);
+  Message* message2 = new Message(2, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
-  Message* oob_message1 = new Message(3, 0, NULL, Message::kOOBPriority);
+  Message* oob_message1 = new Message(3, 0, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message1);
-  Message* oob_message2 = new Message(4, 0, NULL, Message::kOOBPriority);
+  Message* oob_message2 = new Message(4, 0, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message2);
 
   // We handle both oob messages but no normal messages.
@@ -220,7 +220,7 @@ static void SendMessages(uword param) {
   MessageHandler* handler = info->handler;
   MessageHandlerTestPeer handler_peer(handler);
   for (int i = 0; i < info->count; i++) {
-    Message* message = new Message(i + 1, 0, NULL, Message::kNormalPriority);
+    Message* message = new Message(i + 1, 0, NULL, 0, Message::kNormalPriority);
     handler_peer.PostMessage(message);
   }
 }
@@ -240,7 +240,7 @@ UNIT_TEST_CASE(MessageHandler_Run) {
               TestStartFunction,
               TestEndFunction,
               reinterpret_cast<uword>(&handler));
-  Message* message = new Message(100, 0, NULL, Message::kNormalPriority);
+  Message* message = new Message(100, 0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message);
 
   // Wait for the first message to be handled.

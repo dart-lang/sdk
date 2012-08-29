@@ -29,7 +29,7 @@ main() {
   bool caughtException = false;
   try {
     a.invoke();
-  } catch (Exception e) {
+  } on Exception catch (e) {
     caughtException = true;
   }
   Expect.isTrue(caughtException);

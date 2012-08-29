@@ -142,7 +142,11 @@ class Unparser implements Visitor {
         sb.add('.');
       } else {
         visit(send.receiver);
-        if (send.selector.asIdentifier().token.kind === KEYWORD_TOKEN) {
+        Identifier identifier = send.selector.asIdentifier();
+        if (identifier.token.kind === KEYWORD_TOKEN) {
+          sb.add(' ');
+        } else if (identifier.source == const SourceString('negate')) {
+          // TODO(ahe): Remove special case for negate.
           sb.add(' ');
         }
       }

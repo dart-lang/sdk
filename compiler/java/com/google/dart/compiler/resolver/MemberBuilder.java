@@ -8,6 +8,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
@@ -99,8 +101,9 @@ public class MemberBuilder {
     public Element visitClass(DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
       beginClassContext(node);
+      ClassElement classElement = node.getElement();
       EnclosingElement previousEnclosingElement = enclosingElement;
-      enclosingElement = node.getElement();
+      enclosingElement = classElement;
       // visit fields, to make their Elements ready for constructor parameters
       for (DartNode member : node.getMembers()) {
         if (member instanceof DartFieldDefinition) {
@@ -111,6 +114,15 @@ public class MemberBuilder {
       for (DartNode member : node.getMembers()) {
         if (!(member instanceof DartFieldDefinition)) {
           member.accept(this);
+        }
+      }
+      // check that constructor names don't conflict with member names
+      for (ConstructorElement constructor : classElement.getConstructors()) {
+        String name = constructor.getName();
+        Element member = classElement.lookupLocalElement(name);
+        if (member != null) {
+          resolutionError(constructor.getNameLocation(),
+              ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER);
         }
       }
       // done with this class
@@ -658,8 +670,8 @@ public class MemberBuilder {
       resolutionError(node.getSourceInfo(), errorCode, arguments);
     }
 
-    void resolutionError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
-      topLevelContext.onError(node, errorCode, arguments);
+    void resolutionError(SourceInfo sourceInfo, ErrorCode errorCode, Object... arguments) {
+      topLevelContext.onError(sourceInfo, errorCode, arguments);
     }
 
     /**

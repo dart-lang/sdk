@@ -307,7 +307,7 @@ patch class ExpandoImplementation<T> {
     return key;
   }
 
-  static final String _KEY_PROPERTY_NAME = 'expando\$key';
-  static final String _EXPANDO_PROPERTY_NAME = 'expando\$values';
+  static const String _KEY_PROPERTY_NAME = 'expando\$key';
+  static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
   static int _keyCount = 0;
 }

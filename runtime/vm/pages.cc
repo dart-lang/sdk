@@ -360,7 +360,7 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
-void PageSpace::MarkSweep(bool invoke_api_callbacks) {
+void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   // MarkSweep is not reentrant. Make sure that is the case.
   ASSERT(!sweeping_);
   sweeping_ = true;
@@ -377,6 +377,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
+  if (FLAG_verbose_gc) {
+    OS::PrintErr("Start mark sweep for %s collection\n", gc_reason);
+  }
   Timer timer(true, "MarkSweep");
   timer.Start();
   int64_t start = OS::GetCurrentTimeMillis();
@@ -466,6 +469,7 @@ PageSpaceController::PageSpaceController(int heap_growth_ratio,
     : is_enabled_(false),
       grow_heap_(heap_growth_rate),
       heap_growth_ratio_(heap_growth_ratio),
+      desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_rate_(heap_growth_rate),
       garbage_collection_time_ratio_(garbage_collection_time_ratio) {
 }
@@ -492,13 +496,14 @@ bool PageSpaceController::CanGrowPageSpace(intptr_t size_in_bytes) {
 
 
 void PageSpaceController::EvaluateGarbageCollection(
-    size_t in_use_before, size_t in_use_after, int64_t start, int64_t end) {
+    intptr_t in_use_before, intptr_t in_use_after, int64_t start, int64_t end) {
   ASSERT(in_use_before >= in_use_after);
   ASSERT(end >= start);
   history_.AddGarbageCollectionTime(start, end);
   int collected_garbage_ratio =
       static_cast<int>((static_cast<double>(in_use_before - in_use_after) /
-                        static_cast<double>(in_use_before)) * 100);
+                        static_cast<double>(in_use_before))
+                       * 100.0);
   bool enough_free_space =
       (collected_garbage_ratio >= heap_growth_ratio_);
   int garbage_collection_time_fraction =
@@ -525,7 +530,16 @@ void PageSpaceController::EvaluateGarbageCollection(
       }
       OS::PrintErr("\n");
     }
-    grow_heap_ = heap_growth_rate_;
+    if (!enough_free_space) {
+      intptr_t growth_target = static_cast<intptr_t>(in_use_after /
+                                                     desired_utilization_);
+      intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
+                                                PageSpace::kPageSize);
+      int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
+      grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
+    } else {
+      grow_heap_ = heap_growth_rate_;
+    }
   }
 }
 

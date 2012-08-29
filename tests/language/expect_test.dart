@@ -8,7 +8,7 @@ class ExpectTest {
   static testEquals(a) {
     try {
       Expect.equals("AB", a, "within testEquals");
-    } catch (Exception msg) {
+    } on Exception catch (msg) {
       print(msg);
       return;
     }
@@ -19,7 +19,7 @@ class ExpectTest {
   static testIsTrue(f) {
     try {
       Expect.isTrue(f);
-    } catch (Exception msg) {
+    } on Exception catch (msg) {
       print(msg);
       return;
     }
@@ -30,7 +30,7 @@ class ExpectTest {
   static testIsFalse(t) {
     try {
       Expect.isFalse(t);
-    } catch (Exception msg) {
+    } on Exception catch (msg) {
       print(msg);
       return;
     }
@@ -42,7 +42,7 @@ class ExpectTest {
     var ab = "${a}B";
     try {
       Expect.identical("AB", ab);
-    } catch (Exception msg) {
+    } on Exception catch (msg) {
       print(msg);
       return;
     }
@@ -53,7 +53,7 @@ class ExpectTest {
   static testFail() {
     try {
       Expect.fail("fail now");
-    } catch (Exception msg) {
+    } on Exception catch (msg) {
       print(msg);
       return;
     }

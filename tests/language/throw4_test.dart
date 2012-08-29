@@ -25,13 +25,13 @@ class Helper {
     int j = 0;
     try {
       j = func();
-    } catch (MyException3 exception) {
+    } on MyException3 catch (exception) {
       i = i + 300;
       print(exception.message_);
-    } catch (MyException2 exception) {
+    } on MyException2 catch (exception) {
       i = i + 200;
       print(exception.message_);
-    } catch (MyException1 exception) {
+    } on MyException1 catch (exception) {
       i = i + 100;
       print(exception.message_);
     } finally {
@@ -52,10 +52,10 @@ class Helper {
       if (i > 0) {
         throw new MyException1("Test for MyException1 being thrown");
       }
-    } catch (MyException3 exception) {
+    } on MyException3 catch (exception) {
       i = 300;
       print(exception.message_);
-    } catch (MyException2 exception) {
+    } on MyException2 catch (exception) {
       i = 200;
       print(exception.message_);
     } finally {

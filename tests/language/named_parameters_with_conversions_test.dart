@@ -64,7 +64,7 @@ class NamedParametersWithConversionsTest {
     bool threw = false;
     try {
       thunk();
-    } catch (var e) {
+    } catch (e) {
       threw = true;
     }
     Expect.isTrue(threw);

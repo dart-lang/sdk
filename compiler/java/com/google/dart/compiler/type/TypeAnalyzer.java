@@ -163,7 +163,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
   @VisibleForTesting
   static class Analyzer extends ASTVisitor<Type> {
-    private final CoreTypeProvider typeProvider;
     private final DynamicType dynamicType;
     private final Type stringType;
     private final InterfaceType defaultLiteralMapType;
@@ -200,7 +199,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     Analyzer(DartCompilerContext context, CoreTypeProvider typeProvider,
              Set<ClassElement> diagnosedAbstractClasses) {
       this.context = context;
-      this.typeProvider = typeProvider;
       this.developerModeChecks = context.getCompilerConfiguration().developerModeChecks();
       this.types = Types.getInstance(typeProvider);
       this.dynamicType = typeProvider.getDynamicType();
@@ -1851,23 +1849,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
 
-      // no type arguments, try to infer
-      if (node.getTypeArguments().isEmpty()) {
-        List<Type> valueTypes = Lists.newArrayList();
-        for (DartMapLiteralEntry literalEntry : node.getEntries()) {
-          DartExpression value = literalEntry.getValue();
-          if (value != null) {
-            Type valueType = typeOf(value);
-            if (valueType != null ) {
-              valueTypes.add(valueType);
-            }
-          }
-        }
-        Type valueType = types.intersection(valueTypes);
-        valueType = Types.makeInferred(valueType);
-        return typeProvider.getMapLiteralType(stringType, valueType);
-      }
-
       return type;
     }
 
@@ -2704,20 +2685,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
       }
-      // no type arguments, try to infer
-      if (node.getTypeArguments().isEmpty()) {
-        List<Type> elementTypes = Lists.newArrayList();
-        for (DartExpression expression : node.getExpressions()) {
-          Type elementType = expression.getType();
-          if (elementType != null ) {
-            elementTypes.add(elementType);
-          }
-        }
-        Type elementType = types.intersection(elementTypes);
-        elementType = Types.makeInferred(elementType);
-        return typeProvider.getArrayLiteralType(elementType);
-      }
-      // done
       return interfaceType;
     }
 

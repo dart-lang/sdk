@@ -10,35 +10,35 @@ class MapLiteral4Test<T> {
     int result = 0;
     try {
       var m = <String, String>{"a": 0};  // 0 is not a String.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 1;
     }
     try {
       var m = <String, int>{"a": 0};
       m[2] = 1;  // 2 is not a String.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 10;
     }
     try {
       var m = <String, T>{"a": "b"};  // "b" is not an int.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 100;
     }
     try {
       var m = <String, T>{"a": 0};  // OK.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 1000;
     }
     try {
       var m = <String, T>{"a": 0};
       m[2] = 1;  // 2 is not a String.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 10000;
     }
     try {
       var m = const <String, int>{"a": 0};
       m[2] = 1;  // 2 is not a String.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 100000;
     }
     return result;

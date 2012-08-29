@@ -640,8 +640,8 @@ class CommonBrowserTest(RuntimePerformanceTest):
               'perf-%s-%s-%s' % (self.test.cur_time, browser, version))
           self.AddSvnRevisionToTrace(self.test.trace_file, browser)
           file_path = os.path.join(
-              os.getcwd(), 'internal', 'browserBenchmarks',
-              'benchmark_page_%s.html' % version)
+              os.getcwd(), 'internal', 'browserBenchmarks', 'V8vDart',
+              'V8vDart_page_%s.html' % version)
           self.test.test_runner.RunCmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
               '--out', file_path, '--browser', browser,

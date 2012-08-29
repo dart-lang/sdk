@@ -24,7 +24,7 @@ main() {
   var exception;
   try {
     a.foo();
-  } catch (NoSuchMethodException e) {
+  } on NoSuchMethodException catch (e) {
     exception = e;
   }
   Expect.isNotNull(exception);

@@ -7,12 +7,12 @@
  * If true, print a warning for each method that was resolved, but not
  * compiled.
  */
-final bool REPORT_EXCESS_RESOLUTION = false;
+const bool REPORT_EXCESS_RESOLUTION = false;
 
 /**
  * If true, trace information on pass2 optimizations.
  */
-final bool REPORT_PASS2_OPTIMIZATIONS = false;
+const bool REPORT_PASS2_OPTIMIZATIONS = false;
 
 /**
  * Contains backend-specific data that is used throughout the compilation of
@@ -70,6 +70,8 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
+
+  final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
 
@@ -110,16 +112,16 @@ class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
-    } catch (CompilerCancelledException ex) {
+    } on CompilerCancelledException catch (ex) {
       throw;
-    } catch (StackOverflowException ex) {
+    } on StackOverflowException catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       throw;
-    } catch (var ex) {
+    } catch (ex) {
       try {
         unhandledExceptionOnElement(element);
-      } catch (var doubleFault) {
+      } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
       throw;
@@ -142,21 +144,21 @@ class Compiler implements DiagnosticListener {
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
 
-  static final SourceString MAIN = const SourceString('main');
-  static final SourceString CALL_OPERATOR_NAME = const SourceString('call');
-  static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
-  static final SourceString NO_SUCH_METHOD_EXCEPTION =
+  static const SourceString MAIN = const SourceString('main');
+  static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
+  static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static const SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
-  static final SourceString START_ROOT_ISOLATE =
+  static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
   Stopwatch progress;
 
-  static final int PHASE_SCANNING = 0;
-  static final int PHASE_RESOLVING = 1;
-  static final int PHASE_COMPILING = 2;
-  static final int PHASE_RECOMPILING = 3;
+  static const int PHASE_SCANNING = 0;
+  static const int PHASE_RESOLVING = 1;
+  static const int PHASE_COMPILING = 2;
+  static const int PHASE_RECOMPILING = 3;
   int phase;
 
   bool compilationFailed = false;
@@ -166,9 +168,10 @@ class Compiler implements DiagnosticListener {
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
+            this.enableMinification = false,
             bool emitJavascript = true,
             bool generateSourceMap = true,
-            bool minify = false])
+            bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         progress = new Stopwatch.start() {
@@ -185,7 +188,7 @@ class Compiler implements DiagnosticListener {
     typesTask = new ti.TypesTask(this);
     backend = emitJavascript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
-        new dart_backend.DartBackend(this, minify);
+        new dart_backend.DartBackend(this, cutDeclarationTypes);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
              checker, typesTask, constantHandler, enqueuer];
@@ -263,7 +266,7 @@ class Compiler implements DiagnosticListener {
   bool run(Uri uri) {
     try {
       runCompiler(uri);
-    } catch (CompilerCancelledException exception) {
+    } on CompilerCancelledException catch (exception) {
       log(exception.toString());
       log('compilation failed');
       return false;

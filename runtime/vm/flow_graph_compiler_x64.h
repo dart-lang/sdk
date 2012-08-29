@@ -153,7 +153,6 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t arg_count,
                        const Array& arg_names,
                        Label* deopt,
-                       Label* done,  // Can be NULL, which means fallthrough.
                        intptr_t deopt_id,
                        intptr_t token_index,
                        intptr_t try_index,
@@ -185,9 +184,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordSafepoint(LocationSummary* locs);
 
-  Label* AddDeoptStub(intptr_t deopt_id,
-                      intptr_t try_index_,
-                      DeoptReasonId reason);
+  Label* AddDeoptStub(intptr_t deopt_id, DeoptReasonId reason);
+
+  void AddDeoptIndexAtCall(intptr_t deopt_id, intptr_t token_pos);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 

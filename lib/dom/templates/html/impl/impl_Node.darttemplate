@@ -136,8 +136,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     try {
       final _NodeImpl parent = this.parent;
       parent.$dom_replaceChild(otherNode, this);
-    } catch(var e) {
-      
+    } catch (e) {
+
     };
     return this;
   }

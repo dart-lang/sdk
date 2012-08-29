@@ -79,13 +79,13 @@ class _AudioBufferJs extends _DOMTypeJs implements AudioBuffer native "*AudioBuf
 
 class _AudioBufferSourceNodeJs extends _AudioSourceNodeJs implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
 
-  static final int FINISHED_STATE = 3;
+  static const int FINISHED_STATE = 3;
 
-  static final int PLAYING_STATE = 2;
+  static const int PLAYING_STATE = 2;
 
-  static final int SCHEDULED_STATE = 1;
+  static const int SCHEDULED_STATE = 1;
 
-  static final int UNSCHEDULED_STATE = 0;
+  static const int UNSCHEDULED_STATE = 0;
 
   _AudioBufferJs buffer;
 
@@ -204,17 +204,17 @@ class _AudioNodeJs extends _DOMTypeJs implements AudioNode native "*AudioNode" {
 
 class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native "*AudioPannerNode" {
 
-  static final int EQUALPOWER = 0;
+  static const int EQUALPOWER = 0;
 
-  static final int EXPONENTIAL_DISTANCE = 2;
+  static const int EXPONENTIAL_DISTANCE = 2;
 
-  static final int HRTF = 1;
+  static const int HRTF = 1;
 
-  static final int INVERSE_DISTANCE = 1;
+  static const int INVERSE_DISTANCE = 1;
 
-  static final int LINEAR_DISTANCE = 0;
+  static const int LINEAR_DISTANCE = 0;
 
-  static final int SOUNDFIELD = 2;
+  static const int SOUNDFIELD = 2;
 
   final _AudioGainJs coneGain;
 
@@ -309,21 +309,21 @@ class _BeforeLoadEventJs extends _EventJs implements BeforeLoadEvent native "*Be
 
 class _BiquadFilterNodeJs extends _AudioNodeJs implements BiquadFilterNode native "*BiquadFilterNode" {
 
-  static final int ALLPASS = 7;
+  static const int ALLPASS = 7;
 
-  static final int BANDPASS = 2;
+  static const int BANDPASS = 2;
 
-  static final int HIGHPASS = 1;
+  static const int HIGHPASS = 1;
 
-  static final int HIGHSHELF = 4;
+  static const int HIGHSHELF = 4;
 
-  static final int LOWPASS = 0;
+  static const int LOWPASS = 0;
 
-  static final int LOWSHELF = 3;
+  static const int LOWSHELF = 3;
 
-  static final int NOTCH = 6;
+  static const int NOTCH = 6;
 
-  static final int PEAKING = 5;
+  static const int PEAKING = 5;
 
   final _AudioParamJs Q;
 
@@ -389,63 +389,63 @@ class _CSSPageRuleJs extends _CSSRuleJs implements CSSPageRule native "*CSSPageR
 
 class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue native "*CSSPrimitiveValue" {
 
-  static final int CSS_ATTR = 22;
+  static const int CSS_ATTR = 22;
 
-  static final int CSS_CM = 6;
+  static const int CSS_CM = 6;
 
-  static final int CSS_COUNTER = 23;
+  static const int CSS_COUNTER = 23;
 
-  static final int CSS_DEG = 11;
+  static const int CSS_DEG = 11;
 
-  static final int CSS_DIMENSION = 18;
+  static const int CSS_DIMENSION = 18;
 
-  static final int CSS_EMS = 3;
+  static const int CSS_EMS = 3;
 
-  static final int CSS_EXS = 4;
+  static const int CSS_EXS = 4;
 
-  static final int CSS_GRAD = 13;
+  static const int CSS_GRAD = 13;
 
-  static final int CSS_HZ = 16;
+  static const int CSS_HZ = 16;
 
-  static final int CSS_IDENT = 21;
+  static const int CSS_IDENT = 21;
 
-  static final int CSS_IN = 8;
+  static const int CSS_IN = 8;
 
-  static final int CSS_KHZ = 17;
+  static const int CSS_KHZ = 17;
 
-  static final int CSS_MM = 7;
+  static const int CSS_MM = 7;
 
-  static final int CSS_MS = 14;
+  static const int CSS_MS = 14;
 
-  static final int CSS_NUMBER = 1;
+  static const int CSS_NUMBER = 1;
 
-  static final int CSS_PC = 10;
+  static const int CSS_PC = 10;
 
-  static final int CSS_PERCENTAGE = 2;
+  static const int CSS_PERCENTAGE = 2;
 
-  static final int CSS_PT = 9;
+  static const int CSS_PT = 9;
 
-  static final int CSS_PX = 5;
+  static const int CSS_PX = 5;
 
-  static final int CSS_RAD = 12;
+  static const int CSS_RAD = 12;
 
-  static final int CSS_RECT = 24;
+  static const int CSS_RECT = 24;
 
-  static final int CSS_RGBCOLOR = 25;
+  static const int CSS_RGBCOLOR = 25;
 
-  static final int CSS_S = 15;
+  static const int CSS_S = 15;
 
-  static final int CSS_STRING = 19;
+  static const int CSS_STRING = 19;
 
-  static final int CSS_UNKNOWN = 0;
+  static const int CSS_UNKNOWN = 0;
 
-  static final int CSS_URI = 20;
+  static const int CSS_URI = 20;
 
-  static final int CSS_VH = 27;
+  static const int CSS_VH = 27;
 
-  static final int CSS_VMIN = 28;
+  static const int CSS_VMIN = 28;
 
-  static final int CSS_VW = 26;
+  static const int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -466,23 +466,23 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
 
 class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
-  static final int CHARSET_RULE = 2;
+  static const int CHARSET_RULE = 2;
 
-  static final int FONT_FACE_RULE = 5;
+  static const int FONT_FACE_RULE = 5;
 
-  static final int IMPORT_RULE = 3;
+  static const int IMPORT_RULE = 3;
 
-  static final int MEDIA_RULE = 4;
+  static const int MEDIA_RULE = 4;
 
-  static final int PAGE_RULE = 6;
+  static const int PAGE_RULE = 6;
 
-  static final int STYLE_RULE = 1;
+  static const int STYLE_RULE = 1;
 
-  static final int UNKNOWN_RULE = 0;
+  static const int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 7;
+  static const int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 8;
+  static const int WEBKIT_KEYFRAME_RULE = 8;
 
   String cssText;
 
@@ -554,13 +554,13 @@ class _CSSUnknownRuleJs extends _CSSRuleJs implements CSSUnknownRule native "*CS
 
 class _CSSValueJs extends _DOMTypeJs implements CSSValue native "*CSSValue" {
 
-  static final int CSS_CUSTOM = 3;
+  static const int CSS_CUSTOM = 3;
 
-  static final int CSS_INHERIT = 0;
+  static const int CSS_INHERIT = 0;
 
-  static final int CSS_PRIMITIVE_VALUE = 1;
+  static const int CSS_PRIMITIVE_VALUE = 1;
 
-  static final int CSS_VALUE_LIST = 2;
+  static const int CSS_VALUE_LIST = 2;
 
   String cssText;
 
@@ -904,17 +904,17 @@ class _CustomEventJs extends _EventJs implements CustomEvent native "*CustomEven
 
 class _DOMApplicationCacheJs extends _EventTargetJs implements DOMApplicationCache native "*DOMApplicationCache" {
 
-  static final int CHECKING = 2;
+  static const int CHECKING = 2;
 
-  static final int DOWNLOADING = 3;
+  static const int DOWNLOADING = 3;
 
-  static final int IDLE = 1;
+  static const int IDLE = 1;
 
-  static final int OBSOLETE = 5;
+  static const int OBSOLETE = 5;
 
-  static final int UNCACHED = 0;
+  static const int UNCACHED = 0;
 
-  static final int UPDATEREADY = 4;
+  static const int UPDATEREADY = 4;
 
   final int status;
 
@@ -938,55 +938,55 @@ class _DOMErrorJs extends _DOMTypeJs implements DOMError native "*DOMError" {
 
 class _DOMExceptionJs extends _DOMTypeJs implements DOMException native "*DOMException" {
 
-  static final int ABORT_ERR = 20;
+  static const int ABORT_ERR = 20;
 
-  static final int DATA_CLONE_ERR = 25;
+  static const int DATA_CLONE_ERR = 25;
 
-  static final int DOMSTRING_SIZE_ERR = 2;
+  static const int DOMSTRING_SIZE_ERR = 2;
 
-  static final int HIERARCHY_REQUEST_ERR = 3;
+  static const int HIERARCHY_REQUEST_ERR = 3;
 
-  static final int INDEX_SIZE_ERR = 1;
+  static const int INDEX_SIZE_ERR = 1;
 
-  static final int INUSE_ATTRIBUTE_ERR = 10;
+  static const int INUSE_ATTRIBUTE_ERR = 10;
 
-  static final int INVALID_ACCESS_ERR = 15;
+  static const int INVALID_ACCESS_ERR = 15;
 
-  static final int INVALID_CHARACTER_ERR = 5;
+  static const int INVALID_CHARACTER_ERR = 5;
 
-  static final int INVALID_MODIFICATION_ERR = 13;
+  static const int INVALID_MODIFICATION_ERR = 13;
 
-  static final int INVALID_NODE_TYPE_ERR = 24;
+  static const int INVALID_NODE_TYPE_ERR = 24;
 
-  static final int INVALID_STATE_ERR = 11;
+  static const int INVALID_STATE_ERR = 11;
 
-  static final int NAMESPACE_ERR = 14;
+  static const int NAMESPACE_ERR = 14;
 
-  static final int NETWORK_ERR = 19;
+  static const int NETWORK_ERR = 19;
 
-  static final int NOT_FOUND_ERR = 8;
+  static const int NOT_FOUND_ERR = 8;
 
-  static final int NOT_SUPPORTED_ERR = 9;
+  static const int NOT_SUPPORTED_ERR = 9;
 
-  static final int NO_DATA_ALLOWED_ERR = 6;
+  static const int NO_DATA_ALLOWED_ERR = 6;
 
-  static final int NO_MODIFICATION_ALLOWED_ERR = 7;
+  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
 
-  static final int QUOTA_EXCEEDED_ERR = 22;
+  static const int QUOTA_EXCEEDED_ERR = 22;
 
-  static final int SECURITY_ERR = 18;
+  static const int SECURITY_ERR = 18;
 
-  static final int SYNTAX_ERR = 12;
+  static const int SYNTAX_ERR = 12;
 
-  static final int TIMEOUT_ERR = 23;
+  static const int TIMEOUT_ERR = 23;
 
-  static final int TYPE_MISMATCH_ERR = 17;
+  static const int TYPE_MISMATCH_ERR = 17;
 
-  static final int URL_MISMATCH_ERR = 21;
+  static const int URL_MISMATCH_ERR = 21;
 
-  static final int VALIDATION_ERR = 16;
+  static const int VALIDATION_ERR = 16;
 
-  static final int WRONG_DOCUMENT_ERR = 4;
+  static const int WRONG_DOCUMENT_ERR = 4;
 
   final int code;
 
@@ -1279,9 +1279,9 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
   _requestAnimationFrame() native 'requestAnimationFrame';
 
 
-  static final int PERSISTENT = 1;
+  static const int PERSISTENT = 1;
 
-  static final int TEMPORARY = 0;
+  static const int TEMPORARY = 0;
 
   final _DOMApplicationCacheJs applicationCache;
 
@@ -1818,14 +1818,14 @@ class _DynamicsCompressorNodeJs extends _AudioNodeJs implements DynamicsCompress
 
 class _EXTTextureFilterAnisotropicJs extends _DOMTypeJs implements EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 
-  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
-  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 
 class _ElementJs extends _NodeJs implements Element native "*Element" {
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
+  static const int ALLOW_KEYBOARD_INPUT = 1;
 
   final int childElementCount;
 
@@ -2023,45 +2023,45 @@ class _ErrorEventJs extends _EventJs implements ErrorEvent native "*ErrorEvent" 
 
 class _EventJs extends _DOMTypeJs implements Event native "*Event" {
 
-  static final int AT_TARGET = 2;
+  static const int AT_TARGET = 2;
 
-  static final int BLUR = 8192;
+  static const int BLUR = 8192;
 
-  static final int BUBBLING_PHASE = 3;
+  static const int BUBBLING_PHASE = 3;
 
-  static final int CAPTURING_PHASE = 1;
+  static const int CAPTURING_PHASE = 1;
 
-  static final int CHANGE = 32768;
+  static const int CHANGE = 32768;
 
-  static final int CLICK = 64;
+  static const int CLICK = 64;
 
-  static final int DBLCLICK = 128;
+  static const int DBLCLICK = 128;
 
-  static final int DRAGDROP = 2048;
+  static const int DRAGDROP = 2048;
 
-  static final int FOCUS = 4096;
+  static const int FOCUS = 4096;
 
-  static final int KEYDOWN = 256;
+  static const int KEYDOWN = 256;
 
-  static final int KEYPRESS = 1024;
+  static const int KEYPRESS = 1024;
 
-  static final int KEYUP = 512;
+  static const int KEYUP = 512;
 
-  static final int MOUSEDOWN = 1;
+  static const int MOUSEDOWN = 1;
 
-  static final int MOUSEDRAG = 32;
+  static const int MOUSEDRAG = 32;
 
-  static final int MOUSEMOVE = 16;
+  static const int MOUSEMOVE = 16;
 
-  static final int MOUSEOUT = 8;
+  static const int MOUSEOUT = 8;
 
-  static final int MOUSEOVER = 4;
+  static const int MOUSEOVER = 4;
 
-  static final int MOUSEUP = 2;
+  static const int MOUSEUP = 2;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
-  static final int SELECT = 16384;
+  static const int SELECT = 16384;
 
   final bool bubbles;
 
@@ -2098,9 +2098,9 @@ class _EventJs extends _DOMTypeJs implements Event native "*Event" {
 
 class _EventExceptionJs extends _DOMTypeJs implements EventException native "*EventException" {
 
-  static final int DISPATCH_REQUEST_ERR = 1;
+  static const int DISPATCH_REQUEST_ERR = 1;
 
-  static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
+  static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   final int code;
 
@@ -2113,11 +2113,11 @@ class _EventExceptionJs extends _DOMTypeJs implements EventException native "*Ev
 
 class _EventSourceJs extends _EventTargetJs implements EventSource native "*EventSource" {
 
-  static final int CLOSED = 2;
+  static const int CLOSED = 2;
 
-  static final int CONNECTING = 0;
+  static const int CONNECTING = 0;
 
-  static final int OPEN = 1;
+  static const int OPEN = 1;
 
   final String URL;
 
@@ -2168,58 +2168,58 @@ class _FileEntrySyncJs extends _EntrySyncJs implements FileEntrySync native "*Fi
 
 class _FileErrorJs extends _DOMTypeJs implements FileError native "*FileError" {
 
-  static final int ABORT_ERR = 3;
+  static const int ABORT_ERR = 3;
 
-  static final int ENCODING_ERR = 5;
+  static const int ENCODING_ERR = 5;
 
-  static final int INVALID_MODIFICATION_ERR = 9;
+  static const int INVALID_MODIFICATION_ERR = 9;
 
-  static final int INVALID_STATE_ERR = 7;
+  static const int INVALID_STATE_ERR = 7;
 
-  static final int NOT_FOUND_ERR = 1;
+  static const int NOT_FOUND_ERR = 1;
 
-  static final int NOT_READABLE_ERR = 4;
+  static const int NOT_READABLE_ERR = 4;
 
-  static final int NO_MODIFICATION_ALLOWED_ERR = 6;
+  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
-  static final int PATH_EXISTS_ERR = 12;
+  static const int PATH_EXISTS_ERR = 12;
 
-  static final int QUOTA_EXCEEDED_ERR = 10;
+  static const int QUOTA_EXCEEDED_ERR = 10;
 
-  static final int SECURITY_ERR = 2;
+  static const int SECURITY_ERR = 2;
 
-  static final int SYNTAX_ERR = 8;
+  static const int SYNTAX_ERR = 8;
 
-  static final int TYPE_MISMATCH_ERR = 11;
+  static const int TYPE_MISMATCH_ERR = 11;
 
   final int code;
 }
 
 class _FileExceptionJs extends _DOMTypeJs implements FileException native "*FileException" {
 
-  static final int ABORT_ERR = 3;
+  static const int ABORT_ERR = 3;
 
-  static final int ENCODING_ERR = 5;
+  static const int ENCODING_ERR = 5;
 
-  static final int INVALID_MODIFICATION_ERR = 9;
+  static const int INVALID_MODIFICATION_ERR = 9;
 
-  static final int INVALID_STATE_ERR = 7;
+  static const int INVALID_STATE_ERR = 7;
 
-  static final int NOT_FOUND_ERR = 1;
+  static const int NOT_FOUND_ERR = 1;
 
-  static final int NOT_READABLE_ERR = 4;
+  static const int NOT_READABLE_ERR = 4;
 
-  static final int NO_MODIFICATION_ALLOWED_ERR = 6;
+  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
-  static final int PATH_EXISTS_ERR = 12;
+  static const int PATH_EXISTS_ERR = 12;
 
-  static final int QUOTA_EXCEEDED_ERR = 10;
+  static const int QUOTA_EXCEEDED_ERR = 10;
 
-  static final int SECURITY_ERR = 2;
+  static const int SECURITY_ERR = 2;
 
-  static final int SYNTAX_ERR = 8;
+  static const int SYNTAX_ERR = 8;
 
-  static final int TYPE_MISMATCH_ERR = 11;
+  static const int TYPE_MISMATCH_ERR = 11;
 
   final int code;
 
@@ -2321,11 +2321,11 @@ class _FileListJs extends _DOMTypeJs implements FileList native "*FileList" {
 
 class _FileReaderJs extends _EventTargetJs implements FileReader native "*FileReader" {
 
-  static final int DONE = 2;
+  static const int DONE = 2;
 
-  static final int EMPTY = 0;
+  static const int EMPTY = 0;
 
-  static final int LOADING = 1;
+  static const int LOADING = 1;
 
   final _FileErrorJs error;
 
@@ -2363,11 +2363,11 @@ class _FileReaderSyncJs extends _DOMTypeJs implements FileReaderSync native "*Fi
 
 class _FileWriterJs extends _EventTargetJs implements FileWriter native "*FileWriter" {
 
-  static final int DONE = 2;
+  static const int DONE = 2;
 
-  static final int INIT = 0;
+  static const int INIT = 0;
 
-  static final int WRITING = 1;
+  static const int WRITING = 1;
 
   final _FileErrorJs error;
 
@@ -2407,7 +2407,7 @@ class _FileWriterSyncJs extends _DOMTypeJs implements FileWriterSync native "*Fi
 
 class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<num> native "*Float32Array" {
 
-  static final int BYTES_PER_ELEMENT = 4;
+  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -2498,7 +2498,7 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
 class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<num> native "*Float64Array" {
 
-  static final int BYTES_PER_ELEMENT = 8;
+  static const int BYTES_PER_ELEMENT = 8;
 
   final int length;
 
@@ -3499,23 +3499,23 @@ class _HTMLMarqueeElementJs extends _HTMLElementJs implements HTMLMarqueeElement
 
 class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement native "*HTMLMediaElement" {
 
-  static final int HAVE_CURRENT_DATA = 2;
+  static const int HAVE_CURRENT_DATA = 2;
 
-  static final int HAVE_ENOUGH_DATA = 4;
+  static const int HAVE_ENOUGH_DATA = 4;
 
-  static final int HAVE_FUTURE_DATA = 3;
+  static const int HAVE_FUTURE_DATA = 3;
 
-  static final int HAVE_METADATA = 1;
+  static const int HAVE_METADATA = 1;
 
-  static final int HAVE_NOTHING = 0;
+  static const int HAVE_NOTHING = 0;
 
-  static final int NETWORK_EMPTY = 0;
+  static const int NETWORK_EMPTY = 0;
 
-  static final int NETWORK_IDLE = 1;
+  static const int NETWORK_IDLE = 1;
 
-  static final int NETWORK_LOADING = 2;
+  static const int NETWORK_LOADING = 2;
 
-  static final int NETWORK_NO_SOURCE = 3;
+  static const int NETWORK_NO_SOURCE = 3;
 
   bool autoplay;
 
@@ -4107,13 +4107,13 @@ class _HTMLTitleElementJs extends _HTMLElementJs implements HTMLTitleElement nat
 
 class _HTMLTrackElementJs extends _HTMLElementJs implements HTMLTrackElement native "*HTMLTrackElement" {
 
-  static final int ERROR = 3;
+  static const int ERROR = 3;
 
-  static final int LOADED = 2;
+  static const int LOADED = 2;
 
-  static final int LOADING = 1;
+  static const int LOADING = 1;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
   bool get defaultValue() native "return this.default;";
   void set defaultValue(bool value) native "this.default = value;";
@@ -4201,13 +4201,13 @@ class _IDBAnyJs extends _DOMTypeJs implements IDBAny native "*IDBAny" {
 
 class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
-  static final int NEXT = 0;
+  static const int NEXT = 0;
 
-  static final int NEXT_NO_DUPLICATE = 1;
+  static const int NEXT_NO_DUPLICATE = 1;
 
-  static final int PREV = 2;
+  static const int PREV = 2;
 
-  static final int PREV_NO_DUPLICATE = 3;
+  static const int PREV_NO_DUPLICATE = 3;
 
   final String direction;
 
@@ -4258,31 +4258,31 @@ class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBD
 
 class _IDBDatabaseExceptionJs extends _DOMTypeJs implements IDBDatabaseException native "*IDBDatabaseException" {
 
-  static final int ABORT_ERR = 20;
+  static const int ABORT_ERR = 20;
 
-  static final int CONSTRAINT_ERR = 4;
+  static const int CONSTRAINT_ERR = 4;
 
-  static final int DATA_ERR = 5;
+  static const int DATA_ERR = 5;
 
-  static final int NON_TRANSIENT_ERR = 2;
+  static const int NON_TRANSIENT_ERR = 2;
 
-  static final int NOT_ALLOWED_ERR = 6;
+  static const int NOT_ALLOWED_ERR = 6;
 
-  static final int NOT_FOUND_ERR = 8;
+  static const int NOT_FOUND_ERR = 8;
 
-  static final int NO_ERR = 0;
+  static const int NO_ERR = 0;
 
-  static final int QUOTA_ERR = 22;
+  static const int QUOTA_ERR = 22;
 
-  static final int READ_ONLY_ERR = 9;
+  static const int READ_ONLY_ERR = 9;
 
-  static final int TIMEOUT_ERR = 23;
+  static const int TIMEOUT_ERR = 23;
 
-  static final int TRANSACTION_INACTIVE_ERR = 7;
+  static const int TRANSACTION_INACTIVE_ERR = 7;
 
-  static final int UNKNOWN_ERR = 1;
+  static const int UNKNOWN_ERR = 1;
 
-  static final int VER_ERR = 12;
+  static const int VER_ERR = 12;
 
   final int code;
 
@@ -4410,11 +4410,11 @@ class _IDBRequestJs extends _EventTargetJs implements IDBRequest native "*IDBReq
 
 class _IDBTransactionJs extends _EventTargetJs implements IDBTransaction native "*IDBTransaction" {
 
-  static final int READ_ONLY = 0;
+  static const int READ_ONLY = 0;
 
-  static final int READ_WRITE = 1;
+  static const int READ_WRITE = 1;
 
-  static final int VERSION_CHANGE = 2;
+  static const int VERSION_CHANGE = 2;
 
   final _IDBDatabaseJs db;
 
@@ -4474,7 +4474,7 @@ class _ImageDataJs extends _DOMTypeJs implements ImageData native "*ImageData" {
 
 class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> native "*Int16Array" {
 
-  static final int BYTES_PER_ELEMENT = 2;
+  static const int BYTES_PER_ELEMENT = 2;
 
   final int length;
 
@@ -4565,7 +4565,7 @@ class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> 
 
 class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
 
-  static final int BYTES_PER_ELEMENT = 4;
+  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -4656,7 +4656,7 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
 class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> native "*Int8Array" {
 
-  static final int BYTES_PER_ELEMENT = 1;
+  static const int BYTES_PER_ELEMENT = 1;
 
   final int length;
 
@@ -4760,15 +4760,15 @@ class _JavaScriptAudioNodeJs extends _AudioNodeJs implements JavaScriptAudioNode
 
 class _JavaScriptCallFrameJs extends _DOMTypeJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
-  static final int CATCH_SCOPE = 4;
+  static const int CATCH_SCOPE = 4;
 
-  static final int CLOSURE_SCOPE = 3;
+  static const int CLOSURE_SCOPE = 3;
 
-  static final int GLOBAL_SCOPE = 0;
+  static const int GLOBAL_SCOPE = 0;
 
-  static final int LOCAL_SCOPE = 1;
+  static const int LOCAL_SCOPE = 1;
 
-  static final int WITH_SCOPE = 2;
+  static const int WITH_SCOPE = 2;
 
   final _JavaScriptCallFrameJs caller;
 
@@ -4896,32 +4896,32 @@ class _MediaElementAudioSourceNodeJs extends _AudioSourceNodeJs implements Media
 
 class _MediaErrorJs extends _DOMTypeJs implements MediaError native "*MediaError" {
 
-  static final int MEDIA_ERR_ABORTED = 1;
+  static const int MEDIA_ERR_ABORTED = 1;
 
-  static final int MEDIA_ERR_DECODE = 3;
+  static const int MEDIA_ERR_DECODE = 3;
 
-  static final int MEDIA_ERR_ENCRYPTED = 5;
+  static const int MEDIA_ERR_ENCRYPTED = 5;
 
-  static final int MEDIA_ERR_NETWORK = 2;
+  static const int MEDIA_ERR_NETWORK = 2;
 
-  static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
+  static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   final int code;
 }
 
 class _MediaKeyErrorJs extends _DOMTypeJs implements MediaKeyError native "*MediaKeyError" {
 
-  static final int MEDIA_KEYERR_CLIENT = 2;
+  static const int MEDIA_KEYERR_CLIENT = 2;
 
-  static final int MEDIA_KEYERR_DOMAIN = 6;
+  static const int MEDIA_KEYERR_DOMAIN = 6;
 
-  static final int MEDIA_KEYERR_HARDWARECHANGE = 5;
+  static const int MEDIA_KEYERR_HARDWARECHANGE = 5;
 
-  static final int MEDIA_KEYERR_OUTPUT = 4;
+  static const int MEDIA_KEYERR_OUTPUT = 4;
 
-  static final int MEDIA_KEYERR_SERVICE = 3;
+  static const int MEDIA_KEYERR_SERVICE = 3;
 
-  static final int MEDIA_KEYERR_UNKNOWN = 1;
+  static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   final int code;
 }
@@ -5072,9 +5072,9 @@ class _MediaSourceJs extends _EventTargetJs implements MediaSource native "*Medi
 
 class _MediaStreamJs extends _EventTargetJs implements MediaStream native "*MediaStream" {
 
-  static final int ENDED = 2;
+  static const int ENDED = 2;
 
-  static final int LIVE = 1;
+  static const int LIVE = 1;
 
   final _MediaStreamTrackListJs audioTracks;
 
@@ -5110,11 +5110,11 @@ class _MediaStreamListJs extends _DOMTypeJs implements MediaStreamList native "*
 
 class _MediaStreamTrackJs extends _EventTargetJs implements MediaStreamTrack native "*MediaStreamTrack" {
 
-  static final int ENDED = 2;
+  static const int ENDED = 2;
 
-  static final int LIVE = 0;
+  static const int LIVE = 0;
 
-  static final int MUTED = 1;
+  static const int MUTED = 1;
 
   bool enabled;
 
@@ -5255,11 +5255,11 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
 class _MutationEventJs extends _EventJs implements MutationEvent native "*MutationEvent" {
 
-  static final int ADDITION = 2;
+  static const int ADDITION = 2;
 
-  static final int MODIFICATION = 1;
+  static const int MODIFICATION = 1;
 
-  static final int REMOVAL = 3;
+  static const int REMOVAL = 3;
 
   final int attrChange;
 
@@ -5450,48 +5450,48 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
 class _NavigatorUserMediaErrorJs extends _DOMTypeJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
-  static final int PERMISSION_DENIED = 1;
+  static const int PERMISSION_DENIED = 1;
 
   final int code;
 }
 
 class _NodeJs extends _EventTargetJs implements Node native "*Node" {
 
-  static final int ATTRIBUTE_NODE = 2;
+  static const int ATTRIBUTE_NODE = 2;
 
-  static final int CDATA_SECTION_NODE = 4;
+  static const int CDATA_SECTION_NODE = 4;
 
-  static final int COMMENT_NODE = 8;
+  static const int COMMENT_NODE = 8;
 
-  static final int DOCUMENT_FRAGMENT_NODE = 11;
+  static const int DOCUMENT_FRAGMENT_NODE = 11;
 
-  static final int DOCUMENT_NODE = 9;
+  static const int DOCUMENT_NODE = 9;
 
-  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 
-  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
+  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
 
-  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
+  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
 
-  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
+  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
 
-  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
+  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
-  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
+  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
 
-  static final int DOCUMENT_TYPE_NODE = 10;
+  static const int DOCUMENT_TYPE_NODE = 10;
 
-  static final int ELEMENT_NODE = 1;
+  static const int ELEMENT_NODE = 1;
 
-  static final int ENTITY_NODE = 6;
+  static const int ENTITY_NODE = 6;
 
-  static final int ENTITY_REFERENCE_NODE = 5;
+  static const int ENTITY_REFERENCE_NODE = 5;
 
-  static final int NOTATION_NODE = 12;
+  static const int NOTATION_NODE = 12;
 
-  static final int PROCESSING_INSTRUCTION_NODE = 7;
+  static const int PROCESSING_INSTRUCTION_NODE = 7;
 
-  static final int TEXT_NODE = 3;
+  static const int TEXT_NODE = 3;
 
   final _NamedNodeMapJs attributes;
 
@@ -5568,37 +5568,37 @@ class _NodeJs extends _EventTargetJs implements Node native "*Node" {
 
 class _NodeFilterJs extends _DOMTypeJs implements NodeFilter native "*NodeFilter" {
 
-  static final int FILTER_ACCEPT = 1;
+  static const int FILTER_ACCEPT = 1;
 
-  static final int FILTER_REJECT = 2;
+  static const int FILTER_REJECT = 2;
 
-  static final int FILTER_SKIP = 3;
+  static const int FILTER_SKIP = 3;
 
-  static final int SHOW_ALL = 0xFFFFFFFF;
+  static const int SHOW_ALL = 0xFFFFFFFF;
 
-  static final int SHOW_ATTRIBUTE = 0x00000002;
+  static const int SHOW_ATTRIBUTE = 0x00000002;
 
-  static final int SHOW_CDATA_SECTION = 0x00000008;
+  static const int SHOW_CDATA_SECTION = 0x00000008;
 
-  static final int SHOW_COMMENT = 0x00000080;
+  static const int SHOW_COMMENT = 0x00000080;
 
-  static final int SHOW_DOCUMENT = 0x00000100;
+  static const int SHOW_DOCUMENT = 0x00000100;
 
-  static final int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
+  static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
 
-  static final int SHOW_DOCUMENT_TYPE = 0x00000200;
+  static const int SHOW_DOCUMENT_TYPE = 0x00000200;
 
-  static final int SHOW_ELEMENT = 0x00000001;
+  static const int SHOW_ELEMENT = 0x00000001;
 
-  static final int SHOW_ENTITY = 0x00000020;
+  static const int SHOW_ENTITY = 0x00000020;
 
-  static final int SHOW_ENTITY_REFERENCE = 0x00000010;
+  static const int SHOW_ENTITY_REFERENCE = 0x00000010;
 
-  static final int SHOW_NOTATION = 0x00000800;
+  static const int SHOW_NOTATION = 0x00000800;
 
-  static final int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
+  static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
-  static final int SHOW_TEXT = 0x00000004;
+  static const int SHOW_TEXT = 0x00000004;
 
   int acceptNode(_NodeJs n) native;
 }
@@ -5756,7 +5756,7 @@ class _NotificationCenterJs extends _DOMTypeJs implements NotificationCenter nat
 
 class _OESStandardDerivativesJs extends _DOMTypeJs implements OESStandardDerivatives native "*OESStandardDerivatives" {
 
-  static final int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
+  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
 
 class _OESTextureFloatJs extends _DOMTypeJs implements OESTextureFloat native "*OESTextureFloat" {
@@ -5764,7 +5764,7 @@ class _OESTextureFloatJs extends _DOMTypeJs implements OESTextureFloat native "*
 
 class _OESVertexArrayObjectJs extends _DOMTypeJs implements OESVertexArrayObject native "*OESVertexArrayObject" {
 
-  static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
+  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   void bindVertexArrayOES(_WebGLVertexArrayObjectOESJs arrayObject) native;
 
@@ -5782,23 +5782,23 @@ class _OfflineAudioCompletionEventJs extends _EventJs implements OfflineAudioCom
 
 class _OscillatorJs extends _AudioSourceNodeJs implements Oscillator native "*Oscillator" {
 
-  static final int CUSTOM = 4;
+  static const int CUSTOM = 4;
 
-  static final int FINISHED_STATE = 3;
+  static const int FINISHED_STATE = 3;
 
-  static final int PLAYING_STATE = 2;
+  static const int PLAYING_STATE = 2;
 
-  static final int SAWTOOTH = 2;
+  static const int SAWTOOTH = 2;
 
-  static final int SCHEDULED_STATE = 1;
+  static const int SCHEDULED_STATE = 1;
 
-  static final int SINE = 0;
+  static const int SINE = 0;
 
-  static final int SQUARE = 1;
+  static const int SQUARE = 1;
 
-  static final int TRIANGLE = 3;
+  static const int TRIANGLE = 3;
 
-  static final int UNSCHEDULED_STATE = 0;
+  static const int UNSCHEDULED_STATE = 0;
 
   final _AudioParamJs detune;
 
@@ -5817,11 +5817,11 @@ class _OscillatorJs extends _AudioSourceNodeJs implements Oscillator native "*Os
 
 class _OverflowEventJs extends _EventJs implements OverflowEvent native "*OverflowEvent" {
 
-  static final int BOTH = 2;
+  static const int BOTH = 2;
 
-  static final int HORIZONTAL = 0;
+  static const int HORIZONTAL = 0;
 
-  static final int VERTICAL = 1;
+  static const int VERTICAL = 1;
 
   final bool horizontalOverflow;
 
@@ -5844,33 +5844,33 @@ class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent nat
 
 class _PeerConnection00Js extends _EventTargetJs implements PeerConnection00 native "*PeerConnection00" {
 
-  static final int ACTIVE = 2;
+  static const int ACTIVE = 2;
 
-  static final int CLOSED = 3;
+  static const int CLOSED = 3;
 
-  static final int ICE_CHECKING = 0x300;
+  static const int ICE_CHECKING = 0x300;
 
-  static final int ICE_CLOSED = 0x700;
+  static const int ICE_CLOSED = 0x700;
 
-  static final int ICE_COMPLETED = 0x500;
+  static const int ICE_COMPLETED = 0x500;
 
-  static final int ICE_CONNECTED = 0x400;
+  static const int ICE_CONNECTED = 0x400;
 
-  static final int ICE_FAILED = 0x600;
+  static const int ICE_FAILED = 0x600;
 
-  static final int ICE_GATHERING = 0x100;
+  static const int ICE_GATHERING = 0x100;
 
-  static final int ICE_WAITING = 0x200;
+  static const int ICE_WAITING = 0x200;
 
-  static final int NEW = 0;
+  static const int NEW = 0;
 
-  static final int OPENING = 1;
+  static const int OPENING = 1;
 
-  static final int SDP_ANSWER = 0x300;
+  static const int SDP_ANSWER = 0x300;
 
-  static final int SDP_OFFER = 0x100;
+  static const int SDP_OFFER = 0x100;
 
-  static final int SDP_PRANSWER = 0x200;
+  static const int SDP_PRANSWER = 0x200;
 
   final int iceState;
 
@@ -5922,13 +5922,13 @@ class _PerformanceJs extends _EventTargetJs implements Performance native "*Perf
 
 class _PerformanceNavigationJs extends _DOMTypeJs implements PerformanceNavigation native "*PerformanceNavigation" {
 
-  static final int TYPE_BACK_FORWARD = 2;
+  static const int TYPE_BACK_FORWARD = 2;
 
-  static final int TYPE_NAVIGATE = 0;
+  static const int TYPE_NAVIGATE = 0;
 
-  static final int TYPE_RELOAD = 1;
+  static const int TYPE_RELOAD = 1;
 
-  static final int TYPE_RESERVED = 255;
+  static const int TYPE_RESERVED = 255;
 
   final int redirectCount;
 
@@ -5987,11 +5987,11 @@ class _PopStateEventJs extends _EventJs implements PopStateEvent native "*PopSta
 
 class _PositionErrorJs extends _DOMTypeJs implements PositionError native "*PositionError" {
 
-  static final int PERMISSION_DENIED = 1;
+  static const int PERMISSION_DENIED = 1;
 
-  static final int POSITION_UNAVAILABLE = 2;
+  static const int POSITION_UNAVAILABLE = 2;
 
-  static final int TIMEOUT = 3;
+  static const int TIMEOUT = 3;
 
   final int code;
 
@@ -6041,21 +6041,21 @@ class _RadioNodeListJs extends _NodeListJs implements RadioNodeList native "*Rad
 
 class _RangeJs extends _DOMTypeJs implements Range native "*Range" {
 
-  static final int END_TO_END = 2;
+  static const int END_TO_END = 2;
 
-  static final int END_TO_START = 3;
+  static const int END_TO_START = 3;
 
-  static final int NODE_AFTER = 1;
+  static const int NODE_AFTER = 1;
 
-  static final int NODE_BEFORE = 0;
+  static const int NODE_BEFORE = 0;
 
-  static final int NODE_BEFORE_AND_AFTER = 2;
+  static const int NODE_BEFORE_AND_AFTER = 2;
 
-  static final int NODE_INSIDE = 3;
+  static const int NODE_INSIDE = 3;
 
-  static final int START_TO_END = 1;
+  static const int START_TO_END = 1;
 
-  static final int START_TO_START = 0;
+  static const int START_TO_START = 0;
 
   final bool collapsed;
 
@@ -6122,9 +6122,9 @@ class _RangeJs extends _DOMTypeJs implements Range native "*Range" {
 
 class _RangeExceptionJs extends _DOMTypeJs implements RangeException native "*RangeException" {
 
-  static final int BAD_BOUNDARYPOINTS_ERR = 1;
+  static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
-  static final int INVALID_NODE_TYPE_ERR = 2;
+  static const int INVALID_NODE_TYPE_ERR = 2;
 
   final int code;
 
@@ -6167,21 +6167,21 @@ class _RectJs extends _DOMTypeJs implements Rect native "*Rect" {
 
 class _SQLErrorJs extends _DOMTypeJs implements SQLError native "*SQLError" {
 
-  static final int CONSTRAINT_ERR = 6;
+  static const int CONSTRAINT_ERR = 6;
 
-  static final int DATABASE_ERR = 1;
+  static const int DATABASE_ERR = 1;
 
-  static final int QUOTA_ERR = 4;
+  static const int QUOTA_ERR = 4;
 
-  static final int SYNTAX_ERR = 5;
+  static const int SYNTAX_ERR = 5;
 
-  static final int TIMEOUT_ERR = 7;
+  static const int TIMEOUT_ERR = 7;
 
-  static final int TOO_LARGE_ERR = 3;
+  static const int TOO_LARGE_ERR = 3;
 
-  static final int UNKNOWN_ERR = 0;
+  static const int UNKNOWN_ERR = 0;
 
-  static final int VERSION_ERR = 2;
+  static const int VERSION_ERR = 2;
 
   final int code;
 
@@ -6190,21 +6190,21 @@ class _SQLErrorJs extends _DOMTypeJs implements SQLError native "*SQLError" {
 
 class _SQLExceptionJs extends _DOMTypeJs implements SQLException native "*SQLException" {
 
-  static final int CONSTRAINT_ERR = 6;
+  static const int CONSTRAINT_ERR = 6;
 
-  static final int DATABASE_ERR = 1;
+  static const int DATABASE_ERR = 1;
 
-  static final int QUOTA_ERR = 4;
+  static const int QUOTA_ERR = 4;
 
-  static final int SYNTAX_ERR = 5;
+  static const int SYNTAX_ERR = 5;
 
-  static final int TIMEOUT_ERR = 7;
+  static const int TIMEOUT_ERR = 7;
 
-  static final int TOO_LARGE_ERR = 3;
+  static const int TOO_LARGE_ERR = 3;
 
-  static final int UNKNOWN_ERR = 0;
+  static const int UNKNOWN_ERR = 0;
 
-  static final int VERSION_ERR = 2;
+  static const int VERSION_ERR = 2;
 
   final int code;
 
@@ -6313,15 +6313,15 @@ class _SVGAltGlyphItemElementJs extends _SVGElementJs implements SVGAltGlyphItem
 
 class _SVGAngleJs extends _DOMTypeJs implements SVGAngle native "*SVGAngle" {
 
-  static final int SVG_ANGLETYPE_DEG = 2;
+  static const int SVG_ANGLETYPE_DEG = 2;
 
-  static final int SVG_ANGLETYPE_GRAD = 4;
+  static const int SVG_ANGLETYPE_GRAD = 4;
 
-  static final int SVG_ANGLETYPE_RAD = 3;
+  static const int SVG_ANGLETYPE_RAD = 3;
 
-  static final int SVG_ANGLETYPE_UNKNOWN = 0;
+  static const int SVG_ANGLETYPE_UNKNOWN = 0;
 
-  static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
+  static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   final int unitType;
 
@@ -6579,13 +6579,13 @@ class _SVGClipPathElementJs extends _SVGElementJs implements SVGClipPathElement 
 
 class _SVGColorJs extends _CSSValueJs implements SVGColor native "*SVGColor" {
 
-  static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
+  static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
-  static final int SVG_COLORTYPE_RGBCOLOR = 1;
+  static const int SVG_COLORTYPE_RGBCOLOR = 1;
 
-  static final int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
+  static const int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
 
-  static final int SVG_COLORTYPE_UNKNOWN = 0;
+  static const int SVG_COLORTYPE_UNKNOWN = 0;
 
   final int colorType;
 
@@ -6600,17 +6600,17 @@ class _SVGColorJs extends _CSSValueJs implements SVGColor native "*SVGColor" {
 
 class _SVGComponentTransferFunctionElementJs extends _SVGElementJs implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   final _SVGAnimatedNumberJs amplitude;
 
@@ -6827,11 +6827,11 @@ class _SVGEllipseElementJs extends _SVGElementJs implements SVGEllipseElement na
 
 class _SVGExceptionJs extends _DOMTypeJs implements SVGException native "*SVGException" {
 
-  static final int SVG_INVALID_VALUE_ERR = 1;
+  static const int SVG_INVALID_VALUE_ERR = 1;
 
-  static final int SVG_MATRIX_NOT_INVERTABLE = 2;
+  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
 
-  static final int SVG_WRONG_TYPE_ERR = 0;
+  static const int SVG_WRONG_TYPE_ERR = 0;
 
   final int code;
 
@@ -6844,17 +6844,17 @@ class _SVGExceptionJs extends _DOMTypeJs implements SVGException native "*SVGExc
 
 class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement native "*SVGFEBlendElement" {
 
-  static final int SVG_FEBLEND_MODE_DARKEN = 4;
+  static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
-  static final int SVG_FEBLEND_MODE_LIGHTEN = 5;
+  static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
 
-  static final int SVG_FEBLEND_MODE_MULTIPLY = 2;
+  static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
 
-  static final int SVG_FEBLEND_MODE_NORMAL = 1;
+  static const int SVG_FEBLEND_MODE_NORMAL = 1;
 
-  static final int SVG_FEBLEND_MODE_SCREEN = 3;
+  static const int SVG_FEBLEND_MODE_SCREEN = 3;
 
-  static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
+  static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   final _SVGAnimatedStringJs in1;
 
@@ -6887,15 +6887,15 @@ class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement na
 
 class _SVGFEColorMatrixElementJs extends _SVGElementJs implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
 
-  static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
+  static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
-  static final int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
+  static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
 
-  static final int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
+  static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
 
-  static final int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
+  static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
 
-  static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
+  static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   final _SVGAnimatedStringJs in1;
 
@@ -6955,19 +6955,19 @@ class _SVGFEComponentTransferElementJs extends _SVGElementJs implements SVGFECom
 
 class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeElement native "*SVGFECompositeElement" {
 
-  static final int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
+  static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
+  static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_IN = 2;
+  static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
+  static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
+  static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
+  static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
+  static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   final _SVGAnimatedStringJs in1;
 
@@ -7008,13 +7008,13 @@ class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeEl
 
 class _SVGFEConvolveMatrixElementJs extends _SVGElementJs implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
 
-  static final int SVG_EDGEMODE_DUPLICATE = 1;
+  static const int SVG_EDGEMODE_DUPLICATE = 1;
 
-  static final int SVG_EDGEMODE_NONE = 3;
+  static const int SVG_EDGEMODE_NONE = 3;
 
-  static final int SVG_EDGEMODE_UNKNOWN = 0;
+  static const int SVG_EDGEMODE_UNKNOWN = 0;
 
-  static final int SVG_EDGEMODE_WRAP = 2;
+  static const int SVG_EDGEMODE_WRAP = 2;
 
   final _SVGAnimatedNumberJs bias;
 
@@ -7100,15 +7100,15 @@ class _SVGFEDiffuseLightingElementJs extends _SVGElementJs implements SVGFEDiffu
 
 class _SVGFEDisplacementMapElementJs extends _SVGElementJs implements SVGFEDisplacementMapElement native "*SVGFEDisplacementMapElement" {
 
-  static final int SVG_CHANNEL_A = 4;
+  static const int SVG_CHANNEL_A = 4;
 
-  static final int SVG_CHANNEL_B = 3;
+  static const int SVG_CHANNEL_B = 3;
 
-  static final int SVG_CHANNEL_G = 2;
+  static const int SVG_CHANNEL_G = 2;
 
-  static final int SVG_CHANNEL_R = 1;
+  static const int SVG_CHANNEL_R = 1;
 
-  static final int SVG_CHANNEL_UNKNOWN = 0;
+  static const int SVG_CHANNEL_UNKNOWN = 0;
 
   final _SVGAnimatedStringJs in1;
 
@@ -7330,11 +7330,11 @@ class _SVGFEMergeNodeElementJs extends _SVGElementJs implements SVGFEMergeNodeEl
 
 class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphologyElement native "*SVGFEMorphologyElement" {
 
-  static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
+  static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
-  static final int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
+  static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
 
-  static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
+  static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   final _SVGAnimatedStringJs in1;
 
@@ -7490,17 +7490,17 @@ class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement nati
 
 class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
 
-  static final int SVG_STITCHTYPE_NOSTITCH = 2;
+  static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
-  static final int SVG_STITCHTYPE_STITCH = 1;
+  static const int SVG_STITCHTYPE_STITCH = 1;
 
-  static final int SVG_STITCHTYPE_UNKNOWN = 0;
+  static const int SVG_STITCHTYPE_UNKNOWN = 0;
 
-  static final int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
+  static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
 
-  static final int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
+  static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
 
-  static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
+  static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   final _SVGAnimatedNumberJs baseFrequencyX;
 
@@ -7744,13 +7744,13 @@ class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement 
 
 class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement native "*SVGGradientElement" {
 
-  static final int SVG_SPREADMETHOD_PAD = 1;
+  static const int SVG_SPREADMETHOD_PAD = 1;
 
-  static final int SVG_SPREADMETHOD_REFLECT = 2;
+  static const int SVG_SPREADMETHOD_REFLECT = 2;
 
-  static final int SVG_SPREADMETHOD_REPEAT = 3;
+  static const int SVG_SPREADMETHOD_REPEAT = 3;
 
-  static final int SVG_SPREADMETHOD_UNKNOWN = 0;
+  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   final _SVGAnimatedTransformListJs gradientTransform;
 
@@ -7847,27 +7847,27 @@ class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native
 
 class _SVGLengthJs extends _DOMTypeJs implements SVGLength native "*SVGLength" {
 
-  static final int SVG_LENGTHTYPE_CM = 6;
+  static const int SVG_LENGTHTYPE_CM = 6;
 
-  static final int SVG_LENGTHTYPE_EMS = 3;
+  static const int SVG_LENGTHTYPE_EMS = 3;
 
-  static final int SVG_LENGTHTYPE_EXS = 4;
+  static const int SVG_LENGTHTYPE_EXS = 4;
 
-  static final int SVG_LENGTHTYPE_IN = 8;
+  static const int SVG_LENGTHTYPE_IN = 8;
 
-  static final int SVG_LENGTHTYPE_MM = 7;
+  static const int SVG_LENGTHTYPE_MM = 7;
 
-  static final int SVG_LENGTHTYPE_NUMBER = 1;
+  static const int SVG_LENGTHTYPE_NUMBER = 1;
 
-  static final int SVG_LENGTHTYPE_PC = 10;
+  static const int SVG_LENGTHTYPE_PC = 10;
 
-  static final int SVG_LENGTHTYPE_PERCENTAGE = 2;
+  static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
 
-  static final int SVG_LENGTHTYPE_PT = 9;
+  static const int SVG_LENGTHTYPE_PT = 9;
 
-  static final int SVG_LENGTHTYPE_PX = 5;
+  static const int SVG_LENGTHTYPE_PX = 5;
 
-  static final int SVG_LENGTHTYPE_UNKNOWN = 0;
+  static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   final int unitType;
 
@@ -7984,17 +7984,17 @@ class _SVGMPathElementJs extends _SVGElementJs implements SVGMPathElement native
 
 class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement native "*SVGMarkerElement" {
 
-  static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
+  static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
-  static final int SVG_MARKERUNITS_UNKNOWN = 0;
+  static const int SVG_MARKERUNITS_UNKNOWN = 0;
 
-  static final int SVG_MARKERUNITS_USERSPACEONUSE = 1;
+  static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
 
-  static final int SVG_MARKER_ORIENT_ANGLE = 2;
+  static const int SVG_MARKER_ORIENT_ANGLE = 2;
 
-  static final int SVG_MARKER_ORIENT_AUTO = 1;
+  static const int SVG_MARKER_ORIENT_AUTO = 1;
 
-  static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
+  static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   final _SVGAnimatedLengthJs markerHeight;
 
@@ -8155,25 +8155,25 @@ class _SVGNumberListJs extends _DOMTypeJs implements SVGNumberList native "*SVGN
 
 class _SVGPaintJs extends _SVGColorJs implements SVGPaint native "*SVGPaint" {
 
-  static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
+  static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 
-  static final int SVG_PAINTTYPE_NONE = 101;
+  static const int SVG_PAINTTYPE_NONE = 101;
 
-  static final int SVG_PAINTTYPE_RGBCOLOR = 1;
+  static const int SVG_PAINTTYPE_RGBCOLOR = 1;
 
-  static final int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
+  static const int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
 
-  static final int SVG_PAINTTYPE_UNKNOWN = 0;
+  static const int SVG_PAINTTYPE_UNKNOWN = 0;
 
-  static final int SVG_PAINTTYPE_URI = 107;
+  static const int SVG_PAINTTYPE_URI = 107;
 
-  static final int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
+  static const int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
 
-  static final int SVG_PAINTTYPE_URI_NONE = 103;
+  static const int SVG_PAINTTYPE_URI_NONE = 103;
 
-  static final int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
+  static const int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
 
-  static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
+  static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
   final int paintType;
 
@@ -8291,45 +8291,45 @@ class _SVGPathElementJs extends _SVGElementJs implements SVGPathElement native "
 
 class _SVGPathSegJs extends _DOMTypeJs implements SVGPathSeg native "*SVGPathSeg" {
 
-  static final int PATHSEG_ARC_ABS = 10;
+  static const int PATHSEG_ARC_ABS = 10;
 
-  static final int PATHSEG_ARC_REL = 11;
+  static const int PATHSEG_ARC_REL = 11;
 
-  static final int PATHSEG_CLOSEPATH = 1;
+  static const int PATHSEG_CLOSEPATH = 1;
 
-  static final int PATHSEG_CURVETO_CUBIC_ABS = 6;
+  static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
 
-  static final int PATHSEG_CURVETO_CUBIC_REL = 7;
+  static const int PATHSEG_CURVETO_CUBIC_REL = 7;
 
-  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
+  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
 
-  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
+  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
+  static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_REL = 9;
+  static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
+  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
+  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
 
-  static final int PATHSEG_LINETO_ABS = 4;
+  static const int PATHSEG_LINETO_ABS = 4;
 
-  static final int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
+  static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
 
-  static final int PATHSEG_LINETO_HORIZONTAL_REL = 13;
+  static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
 
-  static final int PATHSEG_LINETO_REL = 5;
+  static const int PATHSEG_LINETO_REL = 5;
 
-  static final int PATHSEG_LINETO_VERTICAL_ABS = 14;
+  static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
 
-  static final int PATHSEG_LINETO_VERTICAL_REL = 15;
+  static const int PATHSEG_LINETO_VERTICAL_REL = 15;
 
-  static final int PATHSEG_MOVETO_ABS = 2;
+  static const int PATHSEG_MOVETO_ABS = 2;
 
-  static final int PATHSEG_MOVETO_REL = 3;
+  static const int PATHSEG_MOVETO_REL = 3;
 
-  static final int PATHSEG_UNKNOWN = 0;
+  static const int PATHSEG_UNKNOWN = 0;
 
   final int pathSegType;
 
@@ -8725,33 +8725,33 @@ class _SVGPolylineElementJs extends _SVGElementJs implements SVGPolylineElement 
 
 class _SVGPreserveAspectRatioJs extends _DOMTypeJs implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
-  static final int SVG_MEETORSLICE_MEET = 1;
+  static const int SVG_MEETORSLICE_MEET = 1;
 
-  static final int SVG_MEETORSLICE_SLICE = 2;
+  static const int SVG_MEETORSLICE_SLICE = 2;
 
-  static final int SVG_MEETORSLICE_UNKNOWN = 0;
+  static const int SVG_MEETORSLICE_UNKNOWN = 0;
 
-  static final int SVG_PRESERVEASPECTRATIO_NONE = 1;
+  static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
 
-  static final int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
+  static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
+  static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
+  static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
+  static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
+  static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
+  static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
+  static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
+  static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
+  static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
+  static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
   int align;
 
@@ -8847,17 +8847,17 @@ class _SVGRectElementJs extends _SVGElementJs implements SVGRectElement native "
 
 class _SVGRenderingIntentJs extends _DOMTypeJs implements SVGRenderingIntent native "*SVGRenderingIntent" {
 
-  static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
+  static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
-  static final int RENDERING_INTENT_AUTO = 1;
+  static const int RENDERING_INTENT_AUTO = 1;
 
-  static final int RENDERING_INTENT_PERCEPTUAL = 2;
+  static const int RENDERING_INTENT_PERCEPTUAL = 2;
 
-  static final int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
+  static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
 
-  static final int RENDERING_INTENT_SATURATION = 4;
+  static const int RENDERING_INTENT_SATURATION = 4;
 
-  static final int RENDERING_INTENT_UNKNOWN = 0;
+  static const int RENDERING_INTENT_UNKNOWN = 0;
 }
 
 class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*SVGSVGElement" {
@@ -9152,11 +9152,11 @@ class _SVGTSpanElementJs extends _SVGTextPositioningElementJs implements SVGTSpa
 
 class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentElement native "*SVGTextContentElement" {
 
-  static final int LENGTHADJUST_SPACING = 1;
+  static const int LENGTHADJUST_SPACING = 1;
 
-  static final int LENGTHADJUST_SPACINGANDGLYPHS = 2;
+  static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
 
-  static final int LENGTHADJUST_UNKNOWN = 0;
+  static const int LENGTHADJUST_UNKNOWN = 0;
 
   final _SVGAnimatedEnumerationJs lengthAdjust;
 
@@ -9234,17 +9234,17 @@ class _SVGTextElementJs extends _SVGTextPositioningElementJs implements SVGTextE
 
 class _SVGTextPathElementJs extends _SVGTextContentElementJs implements SVGTextPathElement native "*SVGTextPathElement" {
 
-  static final int TEXTPATH_METHODTYPE_ALIGN = 1;
+  static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
-  static final int TEXTPATH_METHODTYPE_STRETCH = 2;
+  static const int TEXTPATH_METHODTYPE_STRETCH = 2;
 
-  static final int TEXTPATH_METHODTYPE_UNKNOWN = 0;
+  static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
 
-  static final int TEXTPATH_SPACINGTYPE_AUTO = 1;
+  static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
 
-  static final int TEXTPATH_SPACINGTYPE_EXACT = 2;
+  static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
 
-  static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
+  static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   final _SVGAnimatedEnumerationJs method;
 
@@ -9291,19 +9291,19 @@ class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native
 
 class _SVGTransformJs extends _DOMTypeJs implements SVGTransform native "*SVGTransform" {
 
-  static final int SVG_TRANSFORM_MATRIX = 1;
+  static const int SVG_TRANSFORM_MATRIX = 1;
 
-  static final int SVG_TRANSFORM_ROTATE = 4;
+  static const int SVG_TRANSFORM_ROTATE = 4;
 
-  static final int SVG_TRANSFORM_SCALE = 3;
+  static const int SVG_TRANSFORM_SCALE = 3;
 
-  static final int SVG_TRANSFORM_SKEWX = 5;
+  static const int SVG_TRANSFORM_SKEWX = 5;
 
-  static final int SVG_TRANSFORM_SKEWY = 6;
+  static const int SVG_TRANSFORM_SKEWY = 6;
 
-  static final int SVG_TRANSFORM_TRANSLATE = 2;
+  static const int SVG_TRANSFORM_TRANSLATE = 2;
 
-  static final int SVG_TRANSFORM_UNKNOWN = 0;
+  static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   final num angle;
 
@@ -9349,11 +9349,11 @@ class _SVGTransformListJs extends _DOMTypeJs implements SVGTransformList native 
 
 class _SVGUnitTypesJs extends _DOMTypeJs implements SVGUnitTypes native "*SVGUnitTypes" {
 
-  static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
+  static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
-  static final int SVG_UNIT_TYPE_UNKNOWN = 0;
+  static const int SVG_UNIT_TYPE_UNKNOWN = 0;
 
-  static final int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
+  static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
 
 class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*SVGUseElement" {
@@ -9659,23 +9659,23 @@ class _SpeechRecognitionAlternativeJs extends _DOMTypeJs implements SpeechRecogn
 
 class _SpeechRecognitionErrorJs extends _EventJs implements SpeechRecognitionError native "*SpeechRecognitionError" {
 
-  static final int ABORTED = 2;
+  static const int ABORTED = 2;
 
-  static final int AUDIO_CAPTURE = 3;
+  static const int AUDIO_CAPTURE = 3;
 
-  static final int BAD_GRAMMAR = 7;
+  static const int BAD_GRAMMAR = 7;
 
-  static final int LANGUAGE_NOT_SUPPORTED = 8;
+  static const int LANGUAGE_NOT_SUPPORTED = 8;
 
-  static final int NETWORK = 4;
+  static const int NETWORK = 4;
 
-  static final int NOT_ALLOWED = 5;
+  static const int NOT_ALLOWED = 5;
 
-  static final int NO_SPEECH = 1;
+  static const int NO_SPEECH = 1;
 
-  static final int OTHER = 0;
+  static const int OTHER = 0;
 
-  static final int SERVICE_NOT_ALLOWED = 6;
+  static const int SERVICE_NOT_ALLOWED = 6;
 
   final int code;
 
@@ -9767,9 +9767,9 @@ class _StorageEventJs extends _EventJs implements StorageEvent native "*StorageE
 
 class _StorageInfoJs extends _DOMTypeJs implements StorageInfo native "*StorageInfo" {
 
-  static final int PERSISTENT = 1;
+  static const int PERSISTENT = 1;
 
-  static final int TEMPORARY = 0;
+  static const int TEMPORARY = 0;
 
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
@@ -9912,11 +9912,11 @@ class _TextMetricsJs extends _DOMTypeJs implements TextMetrics native "*TextMetr
 
 class _TextTrackJs extends _EventTargetJs implements TextTrack native "*TextTrack" {
 
-  static final int DISABLED = 0;
+  static const int DISABLED = 0;
 
-  static final int HIDDEN = 1;
+  static const int HIDDEN = 1;
 
-  static final int SHOWING = 2;
+  static const int SHOWING = 2;
 
   final _TextTrackCueListJs activeCues;
 
@@ -10199,7 +10199,7 @@ class _UIEventJs extends _EventJs implements UIEvent native "*UIEvent" {
 
 class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
 
-  static final int BYTES_PER_ELEMENT = 2;
+  static const int BYTES_PER_ELEMENT = 2;
 
   final int length;
 
@@ -10290,7 +10290,7 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
 class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
 
-  static final int BYTES_PER_ELEMENT = 4;
+  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -10381,7 +10381,7 @@ class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int
 
 class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> native "*Uint8Array" {
 
-  static final int BYTES_PER_ELEMENT = 1;
+  static const int BYTES_PER_ELEMENT = 1;
 
   final int length;
 
@@ -10523,13 +10523,13 @@ class _WebGLBufferJs extends _DOMTypeJs implements WebGLBuffer native "*WebGLBuf
 
 class _WebGLCompressedTextureS3TCJs extends _DOMTypeJs implements WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
-  static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
+  static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
-  static final int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
+  static const int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
 
-  static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
+  static const int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
-  static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
+  static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
 
 class _WebGLContextAttributesJs extends _DOMTypeJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
@@ -10554,9 +10554,9 @@ class _WebGLContextEventJs extends _EventJs implements WebGLContextEvent native 
 
 class _WebGLDebugRendererInfoJs extends _DOMTypeJs implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
-  static final int UNMASKED_RENDERER_WEBGL = 0x9246;
+  static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
-  static final int UNMASKED_VENDOR_WEBGL = 0x9245;
+  static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
 
 class _WebGLDebugShadersJs extends _DOMTypeJs implements WebGLDebugShaders native "*WebGLDebugShaders" {
@@ -10566,7 +10566,7 @@ class _WebGLDebugShadersJs extends _DOMTypeJs implements WebGLDebugShaders nativ
 
 class _WebGLDepthTextureJs extends _DOMTypeJs implements WebGLDepthTexture native "*WebGLDepthTexture" {
 
-  static final int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
+  static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 
 class _WebGLFramebufferJs extends _DOMTypeJs implements WebGLFramebuffer native "*WebGLFramebuffer" {
@@ -10587,595 +10587,595 @@ class _WebGLRenderbufferJs extends _DOMTypeJs implements WebGLRenderbuffer nativ
 
 class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebGLRenderingContext native "*WebGLRenderingContext" {
 
-  static final int ACTIVE_ATTRIBUTES = 0x8B89;
+  static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
-  static final int ACTIVE_TEXTURE = 0x84E0;
+  static const int ACTIVE_TEXTURE = 0x84E0;
 
-  static final int ACTIVE_UNIFORMS = 0x8B86;
+  static const int ACTIVE_UNIFORMS = 0x8B86;
 
-  static final int ALIASED_LINE_WIDTH_RANGE = 0x846E;
+  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
 
-  static final int ALIASED_POINT_SIZE_RANGE = 0x846D;
+  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
 
-  static final int ALPHA = 0x1906;
+  static const int ALPHA = 0x1906;
 
-  static final int ALPHA_BITS = 0x0D55;
+  static const int ALPHA_BITS = 0x0D55;
 
-  static final int ALWAYS = 0x0207;
+  static const int ALWAYS = 0x0207;
 
-  static final int ARRAY_BUFFER = 0x8892;
+  static const int ARRAY_BUFFER = 0x8892;
 
-  static final int ARRAY_BUFFER_BINDING = 0x8894;
+  static const int ARRAY_BUFFER_BINDING = 0x8894;
 
-  static final int ATTACHED_SHADERS = 0x8B85;
+  static const int ATTACHED_SHADERS = 0x8B85;
 
-  static final int BACK = 0x0405;
+  static const int BACK = 0x0405;
 
-  static final int BLEND = 0x0BE2;
+  static const int BLEND = 0x0BE2;
 
-  static final int BLEND_COLOR = 0x8005;
+  static const int BLEND_COLOR = 0x8005;
 
-  static final int BLEND_DST_ALPHA = 0x80CA;
+  static const int BLEND_DST_ALPHA = 0x80CA;
 
-  static final int BLEND_DST_RGB = 0x80C8;
+  static const int BLEND_DST_RGB = 0x80C8;
 
-  static final int BLEND_EQUATION = 0x8009;
+  static const int BLEND_EQUATION = 0x8009;
 
-  static final int BLEND_EQUATION_ALPHA = 0x883D;
+  static const int BLEND_EQUATION_ALPHA = 0x883D;
 
-  static final int BLEND_EQUATION_RGB = 0x8009;
+  static const int BLEND_EQUATION_RGB = 0x8009;
 
-  static final int BLEND_SRC_ALPHA = 0x80CB;
+  static const int BLEND_SRC_ALPHA = 0x80CB;
 
-  static final int BLEND_SRC_RGB = 0x80C9;
+  static const int BLEND_SRC_RGB = 0x80C9;
 
-  static final int BLUE_BITS = 0x0D54;
+  static const int BLUE_BITS = 0x0D54;
 
-  static final int BOOL = 0x8B56;
+  static const int BOOL = 0x8B56;
 
-  static final int BOOL_VEC2 = 0x8B57;
+  static const int BOOL_VEC2 = 0x8B57;
 
-  static final int BOOL_VEC3 = 0x8B58;
+  static const int BOOL_VEC3 = 0x8B58;
 
-  static final int BOOL_VEC4 = 0x8B59;
+  static const int BOOL_VEC4 = 0x8B59;
 
-  static final int BROWSER_DEFAULT_WEBGL = 0x9244;
+  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
 
-  static final int BUFFER_SIZE = 0x8764;
+  static const int BUFFER_SIZE = 0x8764;
 
-  static final int BUFFER_USAGE = 0x8765;
+  static const int BUFFER_USAGE = 0x8765;
 
-  static final int BYTE = 0x1400;
+  static const int BYTE = 0x1400;
 
-  static final int CCW = 0x0901;
+  static const int CCW = 0x0901;
 
-  static final int CLAMP_TO_EDGE = 0x812F;
+  static const int CLAMP_TO_EDGE = 0x812F;
 
-  static final int COLOR_ATTACHMENT0 = 0x8CE0;
+  static const int COLOR_ATTACHMENT0 = 0x8CE0;
 
-  static final int COLOR_BUFFER_BIT = 0x00004000;
+  static const int COLOR_BUFFER_BIT = 0x00004000;
 
-  static final int COLOR_CLEAR_VALUE = 0x0C22;
+  static const int COLOR_CLEAR_VALUE = 0x0C22;
 
-  static final int COLOR_WRITEMASK = 0x0C23;
+  static const int COLOR_WRITEMASK = 0x0C23;
 
-  static final int COMPILE_STATUS = 0x8B81;
+  static const int COMPILE_STATUS = 0x8B81;
 
-  static final int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
+  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
 
-  static final int CONSTANT_ALPHA = 0x8003;
+  static const int CONSTANT_ALPHA = 0x8003;
 
-  static final int CONSTANT_COLOR = 0x8001;
+  static const int CONSTANT_COLOR = 0x8001;
 
-  static final int CONTEXT_LOST_WEBGL = 0x9242;
+  static const int CONTEXT_LOST_WEBGL = 0x9242;
 
-  static final int CULL_FACE = 0x0B44;
+  static const int CULL_FACE = 0x0B44;
 
-  static final int CULL_FACE_MODE = 0x0B45;
+  static const int CULL_FACE_MODE = 0x0B45;
 
-  static final int CURRENT_PROGRAM = 0x8B8D;
+  static const int CURRENT_PROGRAM = 0x8B8D;
 
-  static final int CURRENT_VERTEX_ATTRIB = 0x8626;
+  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
 
-  static final int CW = 0x0900;
+  static const int CW = 0x0900;
 
-  static final int DECR = 0x1E03;
+  static const int DECR = 0x1E03;
 
-  static final int DECR_WRAP = 0x8508;
+  static const int DECR_WRAP = 0x8508;
 
-  static final int DELETE_STATUS = 0x8B80;
+  static const int DELETE_STATUS = 0x8B80;
 
-  static final int DEPTH_ATTACHMENT = 0x8D00;
+  static const int DEPTH_ATTACHMENT = 0x8D00;
 
-  static final int DEPTH_BITS = 0x0D56;
+  static const int DEPTH_BITS = 0x0D56;
 
-  static final int DEPTH_BUFFER_BIT = 0x00000100;
+  static const int DEPTH_BUFFER_BIT = 0x00000100;
 
-  static final int DEPTH_CLEAR_VALUE = 0x0B73;
+  static const int DEPTH_CLEAR_VALUE = 0x0B73;
 
-  static final int DEPTH_COMPONENT = 0x1902;
+  static const int DEPTH_COMPONENT = 0x1902;
 
-  static final int DEPTH_COMPONENT16 = 0x81A5;
+  static const int DEPTH_COMPONENT16 = 0x81A5;
 
-  static final int DEPTH_FUNC = 0x0B74;
+  static const int DEPTH_FUNC = 0x0B74;
 
-  static final int DEPTH_RANGE = 0x0B70;
+  static const int DEPTH_RANGE = 0x0B70;
 
-  static final int DEPTH_STENCIL = 0x84F9;
+  static const int DEPTH_STENCIL = 0x84F9;
 
-  static final int DEPTH_STENCIL_ATTACHMENT = 0x821A;
+  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
 
-  static final int DEPTH_TEST = 0x0B71;
+  static const int DEPTH_TEST = 0x0B71;
 
-  static final int DEPTH_WRITEMASK = 0x0B72;
+  static const int DEPTH_WRITEMASK = 0x0B72;
 
-  static final int DITHER = 0x0BD0;
+  static const int DITHER = 0x0BD0;
 
-  static final int DONT_CARE = 0x1100;
+  static const int DONT_CARE = 0x1100;
 
-  static final int DST_ALPHA = 0x0304;
+  static const int DST_ALPHA = 0x0304;
 
-  static final int DST_COLOR = 0x0306;
+  static const int DST_COLOR = 0x0306;
 
-  static final int DYNAMIC_DRAW = 0x88E8;
+  static const int DYNAMIC_DRAW = 0x88E8;
 
-  static final int ELEMENT_ARRAY_BUFFER = 0x8893;
+  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
 
-  static final int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
 
-  static final int EQUAL = 0x0202;
+  static const int EQUAL = 0x0202;
 
-  static final int FASTEST = 0x1101;
+  static const int FASTEST = 0x1101;
 
-  static final int FLOAT = 0x1406;
+  static const int FLOAT = 0x1406;
 
-  static final int FLOAT_MAT2 = 0x8B5A;
+  static const int FLOAT_MAT2 = 0x8B5A;
 
-  static final int FLOAT_MAT3 = 0x8B5B;
+  static const int FLOAT_MAT3 = 0x8B5B;
 
-  static final int FLOAT_MAT4 = 0x8B5C;
+  static const int FLOAT_MAT4 = 0x8B5C;
 
-  static final int FLOAT_VEC2 = 0x8B50;
+  static const int FLOAT_VEC2 = 0x8B50;
 
-  static final int FLOAT_VEC3 = 0x8B51;
+  static const int FLOAT_VEC3 = 0x8B51;
 
-  static final int FLOAT_VEC4 = 0x8B52;
+  static const int FLOAT_VEC4 = 0x8B52;
 
-  static final int FRAGMENT_SHADER = 0x8B30;
+  static const int FRAGMENT_SHADER = 0x8B30;
 
-  static final int FRAMEBUFFER = 0x8D40;
+  static const int FRAMEBUFFER = 0x8D40;
 
-  static final int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
 
-  static final int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
 
-  static final int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
 
-  static final int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
 
-  static final int FRAMEBUFFER_BINDING = 0x8CA6;
+  static const int FRAMEBUFFER_BINDING = 0x8CA6;
 
-  static final int FRAMEBUFFER_COMPLETE = 0x8CD5;
+  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
 
-  static final int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
 
-  static final int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
+  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
 
-  static final int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
 
-  static final int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
 
-  static final int FRONT = 0x0404;
+  static const int FRONT = 0x0404;
 
-  static final int FRONT_AND_BACK = 0x0408;
+  static const int FRONT_AND_BACK = 0x0408;
 
-  static final int FRONT_FACE = 0x0B46;
+  static const int FRONT_FACE = 0x0B46;
 
-  static final int FUNC_ADD = 0x8006;
+  static const int FUNC_ADD = 0x8006;
 
-  static final int FUNC_REVERSE_SUBTRACT = 0x800B;
+  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
 
-  static final int FUNC_SUBTRACT = 0x800A;
+  static const int FUNC_SUBTRACT = 0x800A;
 
-  static final int GENERATE_MIPMAP_HINT = 0x8192;
+  static const int GENERATE_MIPMAP_HINT = 0x8192;
 
-  static final int GEQUAL = 0x0206;
+  static const int GEQUAL = 0x0206;
 
-  static final int GREATER = 0x0204;
+  static const int GREATER = 0x0204;
 
-  static final int GREEN_BITS = 0x0D53;
+  static const int GREEN_BITS = 0x0D53;
 
-  static final int HIGH_FLOAT = 0x8DF2;
+  static const int HIGH_FLOAT = 0x8DF2;
 
-  static final int HIGH_INT = 0x8DF5;
+  static const int HIGH_INT = 0x8DF5;
 
-  static final int INCR = 0x1E02;
+  static const int INCR = 0x1E02;
 
-  static final int INCR_WRAP = 0x8507;
+  static const int INCR_WRAP = 0x8507;
 
-  static final int INT = 0x1404;
+  static const int INT = 0x1404;
 
-  static final int INT_VEC2 = 0x8B53;
+  static const int INT_VEC2 = 0x8B53;
 
-  static final int INT_VEC3 = 0x8B54;
+  static const int INT_VEC3 = 0x8B54;
 
-  static final int INT_VEC4 = 0x8B55;
+  static const int INT_VEC4 = 0x8B55;
 
-  static final int INVALID_ENUM = 0x0500;
+  static const int INVALID_ENUM = 0x0500;
 
-  static final int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
+  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
 
-  static final int INVALID_OPERATION = 0x0502;
+  static const int INVALID_OPERATION = 0x0502;
 
-  static final int INVALID_VALUE = 0x0501;
+  static const int INVALID_VALUE = 0x0501;
 
-  static final int INVERT = 0x150A;
+  static const int INVERT = 0x150A;
 
-  static final int KEEP = 0x1E00;
+  static const int KEEP = 0x1E00;
 
-  static final int LEQUAL = 0x0203;
+  static const int LEQUAL = 0x0203;
 
-  static final int LESS = 0x0201;
+  static const int LESS = 0x0201;
 
-  static final int LINEAR = 0x2601;
+  static const int LINEAR = 0x2601;
 
-  static final int LINEAR_MIPMAP_LINEAR = 0x2703;
+  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
 
-  static final int LINEAR_MIPMAP_NEAREST = 0x2701;
+  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
 
-  static final int LINES = 0x0001;
+  static const int LINES = 0x0001;
 
-  static final int LINE_LOOP = 0x0002;
+  static const int LINE_LOOP = 0x0002;
 
-  static final int LINE_STRIP = 0x0003;
+  static const int LINE_STRIP = 0x0003;
 
-  static final int LINE_WIDTH = 0x0B21;
+  static const int LINE_WIDTH = 0x0B21;
 
-  static final int LINK_STATUS = 0x8B82;
+  static const int LINK_STATUS = 0x8B82;
 
-  static final int LOW_FLOAT = 0x8DF0;
+  static const int LOW_FLOAT = 0x8DF0;
 
-  static final int LOW_INT = 0x8DF3;
+  static const int LOW_INT = 0x8DF3;
 
-  static final int LUMINANCE = 0x1909;
+  static const int LUMINANCE = 0x1909;
 
-  static final int LUMINANCE_ALPHA = 0x190A;
+  static const int LUMINANCE_ALPHA = 0x190A;
 
-  static final int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
 
-  static final int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
 
-  static final int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
 
-  static final int MAX_RENDERBUFFER_SIZE = 0x84E8;
+  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
 
-  static final int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
 
-  static final int MAX_TEXTURE_SIZE = 0x0D33;
+  static const int MAX_TEXTURE_SIZE = 0x0D33;
 
-  static final int MAX_VARYING_VECTORS = 0x8DFC;
+  static const int MAX_VARYING_VECTORS = 0x8DFC;
 
-  static final int MAX_VERTEX_ATTRIBS = 0x8869;
+  static const int MAX_VERTEX_ATTRIBS = 0x8869;
 
-  static final int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
 
-  static final int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
 
-  static final int MAX_VIEWPORT_DIMS = 0x0D3A;
+  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
 
-  static final int MEDIUM_FLOAT = 0x8DF1;
+  static const int MEDIUM_FLOAT = 0x8DF1;
 
-  static final int MEDIUM_INT = 0x8DF4;
+  static const int MEDIUM_INT = 0x8DF4;
 
-  static final int MIRRORED_REPEAT = 0x8370;
+  static const int MIRRORED_REPEAT = 0x8370;
 
-  static final int NEAREST = 0x2600;
+  static const int NEAREST = 0x2600;
 
-  static final int NEAREST_MIPMAP_LINEAR = 0x2702;
+  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
 
-  static final int NEAREST_MIPMAP_NEAREST = 0x2700;
+  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
 
-  static final int NEVER = 0x0200;
+  static const int NEVER = 0x0200;
 
-  static final int NICEST = 0x1102;
+  static const int NICEST = 0x1102;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
-  static final int NOTEQUAL = 0x0205;
+  static const int NOTEQUAL = 0x0205;
 
-  static final int NO_ERROR = 0;
+  static const int NO_ERROR = 0;
 
-  static final int ONE = 1;
+  static const int ONE = 1;
 
-  static final int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
 
-  static final int ONE_MINUS_CONSTANT_COLOR = 0x8002;
+  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
 
-  static final int ONE_MINUS_DST_ALPHA = 0x0305;
+  static const int ONE_MINUS_DST_ALPHA = 0x0305;
 
-  static final int ONE_MINUS_DST_COLOR = 0x0307;
+  static const int ONE_MINUS_DST_COLOR = 0x0307;
 
-  static final int ONE_MINUS_SRC_ALPHA = 0x0303;
+  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
 
-  static final int ONE_MINUS_SRC_COLOR = 0x0301;
+  static const int ONE_MINUS_SRC_COLOR = 0x0301;
 
-  static final int OUT_OF_MEMORY = 0x0505;
+  static const int OUT_OF_MEMORY = 0x0505;
 
-  static final int PACK_ALIGNMENT = 0x0D05;
+  static const int PACK_ALIGNMENT = 0x0D05;
 
-  static final int POINTS = 0x0000;
+  static const int POINTS = 0x0000;
 
-  static final int POLYGON_OFFSET_FACTOR = 0x8038;
+  static const int POLYGON_OFFSET_FACTOR = 0x8038;
 
-  static final int POLYGON_OFFSET_FILL = 0x8037;
+  static const int POLYGON_OFFSET_FILL = 0x8037;
 
-  static final int POLYGON_OFFSET_UNITS = 0x2A00;
+  static const int POLYGON_OFFSET_UNITS = 0x2A00;
 
-  static final int RED_BITS = 0x0D52;
+  static const int RED_BITS = 0x0D52;
 
-  static final int RENDERBUFFER = 0x8D41;
+  static const int RENDERBUFFER = 0x8D41;
 
-  static final int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
+  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
 
-  static final int RENDERBUFFER_BINDING = 0x8CA7;
+  static const int RENDERBUFFER_BINDING = 0x8CA7;
 
-  static final int RENDERBUFFER_BLUE_SIZE = 0x8D52;
+  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
 
-  static final int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
+  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
 
-  static final int RENDERBUFFER_GREEN_SIZE = 0x8D51;
+  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
 
-  static final int RENDERBUFFER_HEIGHT = 0x8D43;
+  static const int RENDERBUFFER_HEIGHT = 0x8D43;
 
-  static final int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
+  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
 
-  static final int RENDERBUFFER_RED_SIZE = 0x8D50;
+  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
 
-  static final int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
+  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
 
-  static final int RENDERBUFFER_WIDTH = 0x8D42;
+  static const int RENDERBUFFER_WIDTH = 0x8D42;
 
-  static final int RENDERER = 0x1F01;
+  static const int RENDERER = 0x1F01;
 
-  static final int REPEAT = 0x2901;
+  static const int REPEAT = 0x2901;
 
-  static final int REPLACE = 0x1E01;
+  static const int REPLACE = 0x1E01;
 
-  static final int RGB = 0x1907;
+  static const int RGB = 0x1907;
 
-  static final int RGB565 = 0x8D62;
+  static const int RGB565 = 0x8D62;
 
-  static final int RGB5_A1 = 0x8057;
+  static const int RGB5_A1 = 0x8057;
 
-  static final int RGBA = 0x1908;
+  static const int RGBA = 0x1908;
 
-  static final int RGBA4 = 0x8056;
+  static const int RGBA4 = 0x8056;
 
-  static final int SAMPLER_2D = 0x8B5E;
+  static const int SAMPLER_2D = 0x8B5E;
 
-  static final int SAMPLER_CUBE = 0x8B60;
+  static const int SAMPLER_CUBE = 0x8B60;
 
-  static final int SAMPLES = 0x80A9;
+  static const int SAMPLES = 0x80A9;
 
-  static final int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
 
-  static final int SAMPLE_BUFFERS = 0x80A8;
+  static const int SAMPLE_BUFFERS = 0x80A8;
 
-  static final int SAMPLE_COVERAGE = 0x80A0;
+  static const int SAMPLE_COVERAGE = 0x80A0;
 
-  static final int SAMPLE_COVERAGE_INVERT = 0x80AB;
+  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
 
-  static final int SAMPLE_COVERAGE_VALUE = 0x80AA;
+  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
 
-  static final int SCISSOR_BOX = 0x0C10;
+  static const int SCISSOR_BOX = 0x0C10;
 
-  static final int SCISSOR_TEST = 0x0C11;
+  static const int SCISSOR_TEST = 0x0C11;
 
-  static final int SHADER_TYPE = 0x8B4F;
+  static const int SHADER_TYPE = 0x8B4F;
 
-  static final int SHADING_LANGUAGE_VERSION = 0x8B8C;
+  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
 
-  static final int SHORT = 0x1402;
+  static const int SHORT = 0x1402;
 
-  static final int SRC_ALPHA = 0x0302;
+  static const int SRC_ALPHA = 0x0302;
 
-  static final int SRC_ALPHA_SATURATE = 0x0308;
+  static const int SRC_ALPHA_SATURATE = 0x0308;
 
-  static final int SRC_COLOR = 0x0300;
+  static const int SRC_COLOR = 0x0300;
 
-  static final int STATIC_DRAW = 0x88E4;
+  static const int STATIC_DRAW = 0x88E4;
 
-  static final int STENCIL_ATTACHMENT = 0x8D20;
+  static const int STENCIL_ATTACHMENT = 0x8D20;
 
-  static final int STENCIL_BACK_FAIL = 0x8801;
+  static const int STENCIL_BACK_FAIL = 0x8801;
 
-  static final int STENCIL_BACK_FUNC = 0x8800;
+  static const int STENCIL_BACK_FUNC = 0x8800;
 
-  static final int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
+  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
 
-  static final int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
+  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
 
-  static final int STENCIL_BACK_REF = 0x8CA3;
+  static const int STENCIL_BACK_REF = 0x8CA3;
 
-  static final int STENCIL_BACK_VALUE_MASK = 0x8CA4;
+  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
 
-  static final int STENCIL_BACK_WRITEMASK = 0x8CA5;
+  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
 
-  static final int STENCIL_BITS = 0x0D57;
+  static const int STENCIL_BITS = 0x0D57;
 
-  static final int STENCIL_BUFFER_BIT = 0x00000400;
+  static const int STENCIL_BUFFER_BIT = 0x00000400;
 
-  static final int STENCIL_CLEAR_VALUE = 0x0B91;
+  static const int STENCIL_CLEAR_VALUE = 0x0B91;
 
-  static final int STENCIL_FAIL = 0x0B94;
+  static const int STENCIL_FAIL = 0x0B94;
 
-  static final int STENCIL_FUNC = 0x0B92;
+  static const int STENCIL_FUNC = 0x0B92;
 
-  static final int STENCIL_INDEX = 0x1901;
+  static const int STENCIL_INDEX = 0x1901;
 
-  static final int STENCIL_INDEX8 = 0x8D48;
+  static const int STENCIL_INDEX8 = 0x8D48;
 
-  static final int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
+  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
 
-  static final int STENCIL_PASS_DEPTH_PASS = 0x0B96;
+  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
 
-  static final int STENCIL_REF = 0x0B97;
+  static const int STENCIL_REF = 0x0B97;
 
-  static final int STENCIL_TEST = 0x0B90;
+  static const int STENCIL_TEST = 0x0B90;
 
-  static final int STENCIL_VALUE_MASK = 0x0B93;
+  static const int STENCIL_VALUE_MASK = 0x0B93;
 
-  static final int STENCIL_WRITEMASK = 0x0B98;
+  static const int STENCIL_WRITEMASK = 0x0B98;
 
-  static final int STREAM_DRAW = 0x88E0;
+  static const int STREAM_DRAW = 0x88E0;
 
-  static final int SUBPIXEL_BITS = 0x0D50;
+  static const int SUBPIXEL_BITS = 0x0D50;
 
-  static final int TEXTURE = 0x1702;
+  static const int TEXTURE = 0x1702;
 
-  static final int TEXTURE0 = 0x84C0;
+  static const int TEXTURE0 = 0x84C0;
 
-  static final int TEXTURE1 = 0x84C1;
+  static const int TEXTURE1 = 0x84C1;
 
-  static final int TEXTURE10 = 0x84CA;
+  static const int TEXTURE10 = 0x84CA;
 
-  static final int TEXTURE11 = 0x84CB;
+  static const int TEXTURE11 = 0x84CB;
 
-  static final int TEXTURE12 = 0x84CC;
+  static const int TEXTURE12 = 0x84CC;
 
-  static final int TEXTURE13 = 0x84CD;
+  static const int TEXTURE13 = 0x84CD;
 
-  static final int TEXTURE14 = 0x84CE;
+  static const int TEXTURE14 = 0x84CE;
 
-  static final int TEXTURE15 = 0x84CF;
+  static const int TEXTURE15 = 0x84CF;
 
-  static final int TEXTURE16 = 0x84D0;
+  static const int TEXTURE16 = 0x84D0;
 
-  static final int TEXTURE17 = 0x84D1;
+  static const int TEXTURE17 = 0x84D1;
 
-  static final int TEXTURE18 = 0x84D2;
+  static const int TEXTURE18 = 0x84D2;
 
-  static final int TEXTURE19 = 0x84D3;
+  static const int TEXTURE19 = 0x84D3;
 
-  static final int TEXTURE2 = 0x84C2;
+  static const int TEXTURE2 = 0x84C2;
 
-  static final int TEXTURE20 = 0x84D4;
+  static const int TEXTURE20 = 0x84D4;
 
-  static final int TEXTURE21 = 0x84D5;
+  static const int TEXTURE21 = 0x84D5;
 
-  static final int TEXTURE22 = 0x84D6;
+  static const int TEXTURE22 = 0x84D6;
 
-  static final int TEXTURE23 = 0x84D7;
+  static const int TEXTURE23 = 0x84D7;
 
-  static final int TEXTURE24 = 0x84D8;
+  static const int TEXTURE24 = 0x84D8;
 
-  static final int TEXTURE25 = 0x84D9;
+  static const int TEXTURE25 = 0x84D9;
 
-  static final int TEXTURE26 = 0x84DA;
+  static const int TEXTURE26 = 0x84DA;
 
-  static final int TEXTURE27 = 0x84DB;
+  static const int TEXTURE27 = 0x84DB;
 
-  static final int TEXTURE28 = 0x84DC;
+  static const int TEXTURE28 = 0x84DC;
 
-  static final int TEXTURE29 = 0x84DD;
+  static const int TEXTURE29 = 0x84DD;
 
-  static final int TEXTURE3 = 0x84C3;
+  static const int TEXTURE3 = 0x84C3;
 
-  static final int TEXTURE30 = 0x84DE;
+  static const int TEXTURE30 = 0x84DE;
 
-  static final int TEXTURE31 = 0x84DF;
+  static const int TEXTURE31 = 0x84DF;
 
-  static final int TEXTURE4 = 0x84C4;
+  static const int TEXTURE4 = 0x84C4;
 
-  static final int TEXTURE5 = 0x84C5;
+  static const int TEXTURE5 = 0x84C5;
 
-  static final int TEXTURE6 = 0x84C6;
+  static const int TEXTURE6 = 0x84C6;
 
-  static final int TEXTURE7 = 0x84C7;
+  static const int TEXTURE7 = 0x84C7;
 
-  static final int TEXTURE8 = 0x84C8;
+  static const int TEXTURE8 = 0x84C8;
 
-  static final int TEXTURE9 = 0x84C9;
+  static const int TEXTURE9 = 0x84C9;
 
-  static final int TEXTURE_2D = 0x0DE1;
+  static const int TEXTURE_2D = 0x0DE1;
 
-  static final int TEXTURE_BINDING_2D = 0x8069;
+  static const int TEXTURE_BINDING_2D = 0x8069;
 
-  static final int TEXTURE_BINDING_CUBE_MAP = 0x8514;
+  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
 
-  static final int TEXTURE_CUBE_MAP = 0x8513;
+  static const int TEXTURE_CUBE_MAP = 0x8513;
 
-  static final int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
 
-  static final int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
 
-  static final int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
 
-  static final int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
 
-  static final int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
 
-  static final int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
 
-  static final int TEXTURE_MAG_FILTER = 0x2800;
+  static const int TEXTURE_MAG_FILTER = 0x2800;
 
-  static final int TEXTURE_MIN_FILTER = 0x2801;
+  static const int TEXTURE_MIN_FILTER = 0x2801;
 
-  static final int TEXTURE_WRAP_S = 0x2802;
+  static const int TEXTURE_WRAP_S = 0x2802;
 
-  static final int TEXTURE_WRAP_T = 0x2803;
+  static const int TEXTURE_WRAP_T = 0x2803;
 
-  static final int TRIANGLES = 0x0004;
+  static const int TRIANGLES = 0x0004;
 
-  static final int TRIANGLE_FAN = 0x0006;
+  static const int TRIANGLE_FAN = 0x0006;
 
-  static final int TRIANGLE_STRIP = 0x0005;
+  static const int TRIANGLE_STRIP = 0x0005;
 
-  static final int UNPACK_ALIGNMENT = 0x0CF5;
+  static const int UNPACK_ALIGNMENT = 0x0CF5;
 
-  static final int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
+  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
 
-  static final int UNPACK_FLIP_Y_WEBGL = 0x9240;
+  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
 
-  static final int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
+  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
 
-  static final int UNSIGNED_BYTE = 0x1401;
+  static const int UNSIGNED_BYTE = 0x1401;
 
-  static final int UNSIGNED_INT = 0x1405;
+  static const int UNSIGNED_INT = 0x1405;
 
-  static final int UNSIGNED_SHORT = 0x1403;
+  static const int UNSIGNED_SHORT = 0x1403;
 
-  static final int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
 
-  static final int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
 
-  static final int UNSIGNED_SHORT_5_6_5 = 0x8363;
+  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
 
-  static final int VALIDATE_STATUS = 0x8B83;
+  static const int VALIDATE_STATUS = 0x8B83;
 
-  static final int VENDOR = 0x1F00;
+  static const int VENDOR = 0x1F00;
 
-  static final int VERSION = 0x1F02;
+  static const int VERSION = 0x1F02;
 
-  static final int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
 
-  static final int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
 
-  static final int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
 
-  static final int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
 
-  static final int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
 
-  static final int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
 
-  static final int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
 
-  static final int VERTEX_SHADER = 0x8B31;
+  static const int VERTEX_SHADER = 0x8B31;
 
-  static final int VIEWPORT = 0x0BA2;
+  static const int VIEWPORT = 0x0BA2;
 
-  static final int ZERO = 0;
+  static const int ZERO = 0;
 
   final int drawingBufferHeight;
 
@@ -11479,17 +11479,17 @@ class _WebGLVertexArrayObjectOESJs extends _DOMTypeJs implements WebGLVertexArra
 
 class _WebKitAnimationJs extends _DOMTypeJs implements WebKitAnimation native "*WebKitAnimation" {
 
-  static final int DIRECTION_ALTERNATE = 1;
+  static const int DIRECTION_ALTERNATE = 1;
 
-  static final int DIRECTION_NORMAL = 0;
+  static const int DIRECTION_NORMAL = 0;
 
-  static final int FILL_BACKWARDS = 1;
+  static const int FILL_BACKWARDS = 1;
 
-  static final int FILL_BOTH = 3;
+  static const int FILL_BOTH = 3;
 
-  static final int FILL_FORWARDS = 2;
+  static const int FILL_FORWARDS = 2;
 
-  static final int FILL_NONE = 0;
+  static const int FILL_NONE = 0;
 
   final num delay;
 
@@ -11530,29 +11530,29 @@ class _WebKitAnimationListJs extends _DOMTypeJs implements WebKitAnimationList n
 
 class _WebKitCSSFilterValueJs extends _CSSValueListJs implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
 
-  static final int CSS_FILTER_BLUR = 10;
+  static const int CSS_FILTER_BLUR = 10;
 
-  static final int CSS_FILTER_BRIGHTNESS = 8;
+  static const int CSS_FILTER_BRIGHTNESS = 8;
 
-  static final int CSS_FILTER_CONTRAST = 9;
+  static const int CSS_FILTER_CONTRAST = 9;
 
-  static final int CSS_FILTER_CUSTOM = 12;
+  static const int CSS_FILTER_CUSTOM = 12;
 
-  static final int CSS_FILTER_DROP_SHADOW = 11;
+  static const int CSS_FILTER_DROP_SHADOW = 11;
 
-  static final int CSS_FILTER_GRAYSCALE = 2;
+  static const int CSS_FILTER_GRAYSCALE = 2;
 
-  static final int CSS_FILTER_HUE_ROTATE = 5;
+  static const int CSS_FILTER_HUE_ROTATE = 5;
 
-  static final int CSS_FILTER_INVERT = 6;
+  static const int CSS_FILTER_INVERT = 6;
 
-  static final int CSS_FILTER_OPACITY = 7;
+  static const int CSS_FILTER_OPACITY = 7;
 
-  static final int CSS_FILTER_REFERENCE = 1;
+  static const int CSS_FILTER_REFERENCE = 1;
 
-  static final int CSS_FILTER_SATURATE = 4;
+  static const int CSS_FILTER_SATURATE = 4;
 
-  static final int CSS_FILTER_SEPIA = 3;
+  static const int CSS_FILTER_SEPIA = 3;
 
   final int operationType;
 }
@@ -11646,47 +11646,47 @@ class _WebKitCSSMatrixJs extends _DOMTypeJs implements WebKitCSSMatrix native "*
 
 class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTransformValue native "*WebKitCSSTransformValue" {
 
-  static final int CSS_MATRIX = 11;
+  static const int CSS_MATRIX = 11;
 
-  static final int CSS_MATRIX3D = 21;
+  static const int CSS_MATRIX3D = 21;
 
-  static final int CSS_PERSPECTIVE = 20;
+  static const int CSS_PERSPECTIVE = 20;
 
-  static final int CSS_ROTATE = 4;
+  static const int CSS_ROTATE = 4;
 
-  static final int CSS_ROTATE3D = 17;
+  static const int CSS_ROTATE3D = 17;
 
-  static final int CSS_ROTATEX = 14;
+  static const int CSS_ROTATEX = 14;
 
-  static final int CSS_ROTATEY = 15;
+  static const int CSS_ROTATEY = 15;
 
-  static final int CSS_ROTATEZ = 16;
+  static const int CSS_ROTATEZ = 16;
 
-  static final int CSS_SCALE = 5;
+  static const int CSS_SCALE = 5;
 
-  static final int CSS_SCALE3D = 19;
+  static const int CSS_SCALE3D = 19;
 
-  static final int CSS_SCALEX = 6;
+  static const int CSS_SCALEX = 6;
 
-  static final int CSS_SCALEY = 7;
+  static const int CSS_SCALEY = 7;
 
-  static final int CSS_SCALEZ = 18;
+  static const int CSS_SCALEZ = 18;
 
-  static final int CSS_SKEW = 8;
+  static const int CSS_SKEW = 8;
 
-  static final int CSS_SKEWX = 9;
+  static const int CSS_SKEWX = 9;
 
-  static final int CSS_SKEWY = 10;
+  static const int CSS_SKEWY = 10;
 
-  static final int CSS_TRANSLATE = 1;
+  static const int CSS_TRANSLATE = 1;
 
-  static final int CSS_TRANSLATE3D = 13;
+  static const int CSS_TRANSLATE3D = 13;
 
-  static final int CSS_TRANSLATEX = 2;
+  static const int CSS_TRANSLATEX = 2;
 
-  static final int CSS_TRANSLATEY = 3;
+  static const int CSS_TRANSLATEY = 3;
 
-  static final int CSS_TRANSLATEZ = 12;
+  static const int CSS_TRANSLATEZ = 12;
 
   final int operationType;
 }
@@ -11728,13 +11728,13 @@ class _WebKitTransitionEventJs extends _EventJs implements WebKitTransitionEvent
 
 class _WebSocketJs extends _EventTargetJs implements WebSocket native "*WebSocket" {
 
-  static final int CLOSED = 3;
+  static const int CLOSED = 3;
 
-  static final int CLOSING = 2;
+  static const int CLOSING = 2;
 
-  static final int CONNECTING = 0;
+  static const int CONNECTING = 0;
 
-  static final int OPEN = 1;
+  static const int OPEN = 1;
 
   final String URL;
 
@@ -11785,9 +11785,9 @@ class _WorkerJs extends _AbstractWorkerJs implements Worker native "*Worker" {
 
 class _WorkerContextJs extends _EventTargetJs implements WorkerContext native "*WorkerContext" {
 
-  static final int PERSISTENT = 1;
+  static const int PERSISTENT = 1;
 
-  static final int TEMPORARY = 0;
+  static const int TEMPORARY = 0;
 
   final _WorkerLocationJs location;
 
@@ -11866,15 +11866,15 @@ class _WorkerNavigatorJs extends _DOMTypeJs implements WorkerNavigator native "*
 
 class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native "*XMLHttpRequest" {
 
-  static final int DONE = 4;
+  static const int DONE = 4;
 
-  static final int HEADERS_RECEIVED = 2;
+  static const int HEADERS_RECEIVED = 2;
 
-  static final int LOADING = 3;
+  static const int LOADING = 3;
 
-  static final int OPENED = 1;
+  static const int OPENED = 1;
 
-  static final int UNSENT = 0;
+  static const int UNSENT = 0;
 
   final int readyState;
 
@@ -11917,9 +11917,9 @@ class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native 
 
 class _XMLHttpRequestExceptionJs extends _DOMTypeJs implements XMLHttpRequestException native "*XMLHttpRequestException" {
 
-  static final int ABORT_ERR = 102;
+  static const int ABORT_ERR = 102;
 
-  static final int NETWORK_ERR = 101;
+  static const int NETWORK_ERR = 101;
 
   final int code;
 
@@ -11962,9 +11962,9 @@ class _XPathEvaluatorJs extends _DOMTypeJs implements XPathEvaluator native "*XP
 
 class _XPathExceptionJs extends _DOMTypeJs implements XPathException native "*XPathException" {
 
-  static final int INVALID_EXPRESSION_ERR = 51;
+  static const int INVALID_EXPRESSION_ERR = 51;
 
-  static final int TYPE_ERR = 52;
+  static const int TYPE_ERR = 52;
 
   final int code;
 
@@ -11987,25 +11987,25 @@ class _XPathNSResolverJs extends _DOMTypeJs implements XPathNSResolver native "*
 
 class _XPathResultJs extends _DOMTypeJs implements XPathResult native "*XPathResult" {
 
-  static final int ANY_TYPE = 0;
+  static const int ANY_TYPE = 0;
 
-  static final int ANY_UNORDERED_NODE_TYPE = 8;
+  static const int ANY_UNORDERED_NODE_TYPE = 8;
 
-  static final int BOOLEAN_TYPE = 3;
+  static const int BOOLEAN_TYPE = 3;
 
-  static final int FIRST_ORDERED_NODE_TYPE = 9;
+  static const int FIRST_ORDERED_NODE_TYPE = 9;
 
-  static final int NUMBER_TYPE = 1;
+  static const int NUMBER_TYPE = 1;
 
-  static final int ORDERED_NODE_ITERATOR_TYPE = 5;
+  static const int ORDERED_NODE_ITERATOR_TYPE = 5;
 
-  static final int ORDERED_NODE_SNAPSHOT_TYPE = 7;
+  static const int ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
-  static final int STRING_TYPE = 2;
+  static const int STRING_TYPE = 2;
 
-  static final int UNORDERED_NODE_ITERATOR_TYPE = 4;
+  static const int UNORDERED_NODE_ITERATOR_TYPE = 4;
 
-  static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
+  static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   final bool booleanValue;
 
@@ -12419,13 +12419,13 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 interface AudioBufferSourceNode extends AudioSourceNode {
 
-  static final int FINISHED_STATE = 3;
+  static const int FINISHED_STATE = 3;
 
-  static final int PLAYING_STATE = 2;
+  static const int PLAYING_STATE = 2;
 
-  static final int SCHEDULED_STATE = 1;
+  static const int SCHEDULED_STATE = 1;
 
-  static final int UNSCHEDULED_STATE = 0;
+  static const int UNSCHEDULED_STATE = 0;
 
   AudioBuffer buffer;
 
@@ -12591,17 +12591,17 @@ interface AudioNode {
 
 interface AudioPannerNode extends AudioNode {
 
-  static final int EQUALPOWER = 0;
+  static const int EQUALPOWER = 0;
 
-  static final int EXPONENTIAL_DISTANCE = 2;
+  static const int EXPONENTIAL_DISTANCE = 2;
 
-  static final int HRTF = 1;
+  static const int HRTF = 1;
 
-  static final int INVERSE_DISTANCE = 1;
+  static const int INVERSE_DISTANCE = 1;
 
-  static final int LINEAR_DISTANCE = 0;
+  static const int LINEAR_DISTANCE = 0;
 
-  static final int SOUNDFIELD = 2;
+  static const int SOUNDFIELD = 2;
 
   final AudioGain coneGain;
 
@@ -12734,21 +12734,21 @@ interface BeforeLoadEvent extends Event {
 
 interface BiquadFilterNode extends AudioNode {
 
-  static final int ALLPASS = 7;
+  static const int ALLPASS = 7;
 
-  static final int BANDPASS = 2;
+  static const int BANDPASS = 2;
 
-  static final int HIGHPASS = 1;
+  static const int HIGHPASS = 1;
 
-  static final int HIGHSHELF = 4;
+  static const int HIGHSHELF = 4;
 
-  static final int LOWPASS = 0;
+  static const int LOWPASS = 0;
 
-  static final int LOWSHELF = 3;
+  static const int LOWSHELF = 3;
 
-  static final int NOTCH = 6;
+  static const int NOTCH = 6;
 
-  static final int PEAKING = 5;
+  static const int PEAKING = 5;
 
   final AudioParam Q;
 
@@ -12856,63 +12856,63 @@ interface CSSPageRule extends CSSRule {
 
 interface CSSPrimitiveValue extends CSSValue {
 
-  static final int CSS_ATTR = 22;
+  static const int CSS_ATTR = 22;
 
-  static final int CSS_CM = 6;
+  static const int CSS_CM = 6;
 
-  static final int CSS_COUNTER = 23;
+  static const int CSS_COUNTER = 23;
 
-  static final int CSS_DEG = 11;
+  static const int CSS_DEG = 11;
 
-  static final int CSS_DIMENSION = 18;
+  static const int CSS_DIMENSION = 18;
 
-  static final int CSS_EMS = 3;
+  static const int CSS_EMS = 3;
 
-  static final int CSS_EXS = 4;
+  static const int CSS_EXS = 4;
 
-  static final int CSS_GRAD = 13;
+  static const int CSS_GRAD = 13;
 
-  static final int CSS_HZ = 16;
+  static const int CSS_HZ = 16;
 
-  static final int CSS_IDENT = 21;
+  static const int CSS_IDENT = 21;
 
-  static final int CSS_IN = 8;
+  static const int CSS_IN = 8;
 
-  static final int CSS_KHZ = 17;
+  static const int CSS_KHZ = 17;
 
-  static final int CSS_MM = 7;
+  static const int CSS_MM = 7;
 
-  static final int CSS_MS = 14;
+  static const int CSS_MS = 14;
 
-  static final int CSS_NUMBER = 1;
+  static const int CSS_NUMBER = 1;
 
-  static final int CSS_PC = 10;
+  static const int CSS_PC = 10;
 
-  static final int CSS_PERCENTAGE = 2;
+  static const int CSS_PERCENTAGE = 2;
 
-  static final int CSS_PT = 9;
+  static const int CSS_PT = 9;
 
-  static final int CSS_PX = 5;
+  static const int CSS_PX = 5;
 
-  static final int CSS_RAD = 12;
+  static const int CSS_RAD = 12;
 
-  static final int CSS_RECT = 24;
+  static const int CSS_RECT = 24;
 
-  static final int CSS_RGBCOLOR = 25;
+  static const int CSS_RGBCOLOR = 25;
 
-  static final int CSS_S = 15;
+  static const int CSS_S = 15;
 
-  static final int CSS_STRING = 19;
+  static const int CSS_STRING = 19;
 
-  static final int CSS_UNKNOWN = 0;
+  static const int CSS_UNKNOWN = 0;
 
-  static final int CSS_URI = 20;
+  static const int CSS_URI = 20;
 
-  static final int CSS_VH = 27;
+  static const int CSS_VH = 27;
 
-  static final int CSS_VMIN = 28;
+  static const int CSS_VMIN = 28;
 
-  static final int CSS_VW = 26;
+  static const int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -12938,23 +12938,23 @@ interface CSSPrimitiveValue extends CSSValue {
 
 interface CSSRule {
 
-  static final int CHARSET_RULE = 2;
+  static const int CHARSET_RULE = 2;
 
-  static final int FONT_FACE_RULE = 5;
+  static const int FONT_FACE_RULE = 5;
 
-  static final int IMPORT_RULE = 3;
+  static const int IMPORT_RULE = 3;
 
-  static final int MEDIA_RULE = 4;
+  static const int MEDIA_RULE = 4;
 
-  static final int PAGE_RULE = 6;
+  static const int PAGE_RULE = 6;
 
-  static final int STYLE_RULE = 1;
+  static const int STYLE_RULE = 1;
 
-  static final int UNKNOWN_RULE = 0;
+  static const int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 7;
+  static const int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 8;
+  static const int WEBKIT_KEYFRAME_RULE = 8;
 
   String cssText;
 
@@ -13056,13 +13056,13 @@ interface CSSUnknownRule extends CSSRule {
 
 interface CSSValue {
 
-  static final int CSS_CUSTOM = 3;
+  static const int CSS_CUSTOM = 3;
 
-  static final int CSS_INHERIT = 0;
+  static const int CSS_INHERIT = 0;
 
-  static final int CSS_PRIMITIVE_VALUE = 1;
+  static const int CSS_PRIMITIVE_VALUE = 1;
 
-  static final int CSS_VALUE_LIST = 2;
+  static const int CSS_VALUE_LIST = 2;
 
   String cssText;
 
@@ -13505,17 +13505,17 @@ interface ApplicationCache extends EventTarget {
 
 interface DOMApplicationCache extends ApplicationCache {
 
-  static final int CHECKING = 2;
+  static const int CHECKING = 2;
 
-  static final int DOWNLOADING = 3;
+  static const int DOWNLOADING = 3;
 
-  static final int IDLE = 1;
+  static const int IDLE = 1;
 
-  static final int OBSOLETE = 5;
+  static const int OBSOLETE = 5;
 
-  static final int UNCACHED = 0;
+  static const int UNCACHED = 0;
 
-  static final int UPDATEREADY = 4;
+  static const int UPDATEREADY = 4;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13535,55 +13535,55 @@ interface DOMError {
 
 interface DOMException {
 
-  static final int ABORT_ERR = 20;
+  static const int ABORT_ERR = 20;
 
-  static final int DATA_CLONE_ERR = 25;
+  static const int DATA_CLONE_ERR = 25;
 
-  static final int DOMSTRING_SIZE_ERR = 2;
+  static const int DOMSTRING_SIZE_ERR = 2;
 
-  static final int HIERARCHY_REQUEST_ERR = 3;
+  static const int HIERARCHY_REQUEST_ERR = 3;
 
-  static final int INDEX_SIZE_ERR = 1;
+  static const int INDEX_SIZE_ERR = 1;
 
-  static final int INUSE_ATTRIBUTE_ERR = 10;
+  static const int INUSE_ATTRIBUTE_ERR = 10;
 
-  static final int INVALID_ACCESS_ERR = 15;
+  static const int INVALID_ACCESS_ERR = 15;
 
-  static final int INVALID_CHARACTER_ERR = 5;
+  static const int INVALID_CHARACTER_ERR = 5;
 
-  static final int INVALID_MODIFICATION_ERR = 13;
+  static const int INVALID_MODIFICATION_ERR = 13;
 
-  static final int INVALID_NODE_TYPE_ERR = 24;
+  static const int INVALID_NODE_TYPE_ERR = 24;
 
-  static final int INVALID_STATE_ERR = 11;
+  static const int INVALID_STATE_ERR = 11;
 
-  static final int NAMESPACE_ERR = 14;
+  static const int NAMESPACE_ERR = 14;
 
-  static final int NETWORK_ERR = 19;
+  static const int NETWORK_ERR = 19;
 
-  static final int NOT_FOUND_ERR = 8;
+  static const int NOT_FOUND_ERR = 8;
 
-  static final int NOT_SUPPORTED_ERR = 9;
+  static const int NOT_SUPPORTED_ERR = 9;
 
-  static final int NO_DATA_ALLOWED_ERR = 6;
+  static const int NO_DATA_ALLOWED_ERR = 6;
 
-  static final int NO_MODIFICATION_ALLOWED_ERR = 7;
+  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
 
-  static final int QUOTA_EXCEEDED_ERR = 22;
+  static const int QUOTA_EXCEEDED_ERR = 22;
 
-  static final int SECURITY_ERR = 18;
+  static const int SECURITY_ERR = 18;
 
-  static final int SYNTAX_ERR = 12;
+  static const int SYNTAX_ERR = 12;
 
-  static final int TIMEOUT_ERR = 23;
+  static const int TIMEOUT_ERR = 23;
 
-  static final int TYPE_MISMATCH_ERR = 17;
+  static const int TYPE_MISMATCH_ERR = 17;
 
-  static final int URL_MISMATCH_ERR = 21;
+  static const int URL_MISMATCH_ERR = 21;
 
-  static final int VALIDATION_ERR = 16;
+  static const int VALIDATION_ERR = 16;
 
-  static final int WRONG_DOCUMENT_ERR = 4;
+  static const int WRONG_DOCUMENT_ERR = 4;
 
   final int code;
 
@@ -14052,9 +14052,9 @@ interface Window extends EventTarget {
 
 interface DOMWindow extends Window {
 
-  static final int PERSISTENT = 1;
+  static const int PERSISTENT = 1;
 
-  static final int TEMPORARY = 0;
+  static const int TEMPORARY = 0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14508,9 +14508,9 @@ interface DynamicsCompressorNode extends AudioNode {
 
 interface EXTTextureFilterAnisotropic {
 
-  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
-  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14520,7 +14520,7 @@ interface EXTTextureFilterAnisotropic {
 
 interface Element extends Node, ElementTraversal {
 
-  static final int ALLOW_KEYBOARD_INPUT = 1;
+  static const int ALLOW_KEYBOARD_INPUT = 1;
 
   final int childElementCount;
 
@@ -14813,45 +14813,45 @@ interface ErrorEvent extends Event {
 
 interface Event {
 
-  static final int AT_TARGET = 2;
+  static const int AT_TARGET = 2;
 
-  static final int BLUR = 8192;
+  static const int BLUR = 8192;
 
-  static final int BUBBLING_PHASE = 3;
+  static const int BUBBLING_PHASE = 3;
 
-  static final int CAPTURING_PHASE = 1;
+  static const int CAPTURING_PHASE = 1;
 
-  static final int CHANGE = 32768;
+  static const int CHANGE = 32768;
 
-  static final int CLICK = 64;
+  static const int CLICK = 64;
 
-  static final int DBLCLICK = 128;
+  static const int DBLCLICK = 128;
 
-  static final int DRAGDROP = 2048;
+  static const int DRAGDROP = 2048;
 
-  static final int FOCUS = 4096;
+  static const int FOCUS = 4096;
 
-  static final int KEYDOWN = 256;
+  static const int KEYDOWN = 256;
 
-  static final int KEYPRESS = 1024;
+  static const int KEYPRESS = 1024;
 
-  static final int KEYUP = 512;
+  static const int KEYUP = 512;
 
-  static final int MOUSEDOWN = 1;
+  static const int MOUSEDOWN = 1;
 
-  static final int MOUSEDRAG = 32;
+  static const int MOUSEDRAG = 32;
 
-  static final int MOUSEMOVE = 16;
+  static const int MOUSEMOVE = 16;
 
-  static final int MOUSEOUT = 8;
+  static const int MOUSEOUT = 8;
 
-  static final int MOUSEOVER = 4;
+  static const int MOUSEOVER = 4;
 
-  static final int MOUSEUP = 2;
+  static const int MOUSEUP = 2;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
-  static final int SELECT = 16384;
+  static const int SELECT = 16384;
 
   final bool bubbles;
 
@@ -14893,9 +14893,9 @@ interface Event {
 
 interface EventException {
 
-  static final int DISPATCH_REQUEST_ERR = 1;
+  static const int DISPATCH_REQUEST_ERR = 1;
 
-  static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
+  static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   final int code;
 
@@ -14915,11 +14915,11 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   EventSource(String scriptUrl);
 
-  static final int CLOSED = 2;
+  static const int CLOSED = 2;
 
-  static final int CONNECTING = 0;
+  static const int CONNECTING = 0;
 
-  static final int OPEN = 1;
+  static const int OPEN = 1;
 
   final String URL;
 
@@ -15002,29 +15002,29 @@ interface FileEntrySync extends EntrySync {
 
 interface FileError {
 
-  static final int ABORT_ERR = 3;
+  static const int ABORT_ERR = 3;
 
-  static final int ENCODING_ERR = 5;
+  static const int ENCODING_ERR = 5;
 
-  static final int INVALID_MODIFICATION_ERR = 9;
+  static const int INVALID_MODIFICATION_ERR = 9;
 
-  static final int INVALID_STATE_ERR = 7;
+  static const int INVALID_STATE_ERR = 7;
 
-  static final int NOT_FOUND_ERR = 1;
+  static const int NOT_FOUND_ERR = 1;
 
-  static final int NOT_READABLE_ERR = 4;
+  static const int NOT_READABLE_ERR = 4;
 
-  static final int NO_MODIFICATION_ALLOWED_ERR = 6;
+  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
-  static final int PATH_EXISTS_ERR = 12;
+  static const int PATH_EXISTS_ERR = 12;
 
-  static final int QUOTA_EXCEEDED_ERR = 10;
+  static const int QUOTA_EXCEEDED_ERR = 10;
 
-  static final int SECURITY_ERR = 2;
+  static const int SECURITY_ERR = 2;
 
-  static final int SYNTAX_ERR = 8;
+  static const int SYNTAX_ERR = 8;
 
-  static final int TYPE_MISMATCH_ERR = 11;
+  static const int TYPE_MISMATCH_ERR = 11;
 
   final int code;
 }
@@ -15036,29 +15036,29 @@ interface FileError {
 
 interface FileException {
 
-  static final int ABORT_ERR = 3;
+  static const int ABORT_ERR = 3;
 
-  static final int ENCODING_ERR = 5;
+  static const int ENCODING_ERR = 5;
 
-  static final int INVALID_MODIFICATION_ERR = 9;
+  static const int INVALID_MODIFICATION_ERR = 9;
 
-  static final int INVALID_STATE_ERR = 7;
+  static const int INVALID_STATE_ERR = 7;
 
-  static final int NOT_FOUND_ERR = 1;
+  static const int NOT_FOUND_ERR = 1;
 
-  static final int NOT_READABLE_ERR = 4;
+  static const int NOT_READABLE_ERR = 4;
 
-  static final int NO_MODIFICATION_ALLOWED_ERR = 6;
+  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
-  static final int PATH_EXISTS_ERR = 12;
+  static const int PATH_EXISTS_ERR = 12;
 
-  static final int QUOTA_EXCEEDED_ERR = 10;
+  static const int QUOTA_EXCEEDED_ERR = 10;
 
-  static final int SECURITY_ERR = 2;
+  static const int SECURITY_ERR = 2;
 
-  static final int SYNTAX_ERR = 8;
+  static const int SYNTAX_ERR = 8;
 
-  static final int TYPE_MISMATCH_ERR = 11;
+  static const int TYPE_MISMATCH_ERR = 11;
 
   final int code;
 
@@ -15090,11 +15090,11 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
 
   FileReader();
 
-  static final int DONE = 2;
+  static const int DONE = 2;
 
-  static final int EMPTY = 0;
+  static const int EMPTY = 0;
 
-  static final int LOADING = 1;
+  static const int LOADING = 1;
 
   final FileError error;
 
@@ -15151,11 +15151,11 @@ typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 
 interface FileWriter extends EventTarget {
 
-  static final int DONE = 2;
+  static const int DONE = 2;
 
-  static final int INIT = 0;
+  static const int INIT = 0;
 
-  static final int WRITING = 1;
+  static const int WRITING = 1;
 
   final FileError error;
 
@@ -15218,7 +15218,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 4;
+  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -15240,7 +15240,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 8;
+  static const int BYTES_PER_ELEMENT = 8;
 
   final int length;
 
@@ -16298,23 +16298,23 @@ interface HTMLMarqueeElement extends HTMLElement {
 
 interface HTMLMediaElement extends HTMLElement {
 
-  static final int HAVE_CURRENT_DATA = 2;
+  static const int HAVE_CURRENT_DATA = 2;
 
-  static final int HAVE_ENOUGH_DATA = 4;
+  static const int HAVE_ENOUGH_DATA = 4;
 
-  static final int HAVE_FUTURE_DATA = 3;
+  static const int HAVE_FUTURE_DATA = 3;
 
-  static final int HAVE_METADATA = 1;
+  static const int HAVE_METADATA = 1;
 
-  static final int HAVE_NOTHING = 0;
+  static const int HAVE_NOTHING = 0;
 
-  static final int NETWORK_EMPTY = 0;
+  static const int NETWORK_EMPTY = 0;
 
-  static final int NETWORK_IDLE = 1;
+  static const int NETWORK_IDLE = 1;
 
-  static final int NETWORK_LOADING = 2;
+  static const int NETWORK_LOADING = 2;
 
-  static final int NETWORK_NO_SOURCE = 3;
+  static const int NETWORK_NO_SOURCE = 3;
 
   bool autoplay;
 
@@ -17056,13 +17056,13 @@ interface HTMLTitleElement extends HTMLElement {
 
 interface HTMLTrackElement extends HTMLElement {
 
-  static final int ERROR = 3;
+  static const int ERROR = 3;
 
-  static final int LOADED = 2;
+  static const int LOADED = 2;
 
-  static final int LOADING = 1;
+  static const int LOADING = 1;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
   bool defaultValue;
 
@@ -17184,13 +17184,13 @@ interface IDBAny {
 
 interface IDBCursor {
 
-  static final int NEXT = 0;
+  static const int NEXT = 0;
 
-  static final int NEXT_NO_DUPLICATE = 1;
+  static const int NEXT_NO_DUPLICATE = 1;
 
-  static final int PREV = 2;
+  static const int PREV = 2;
 
-  static final int PREV_NO_DUPLICATE = 3;
+  static const int PREV_NO_DUPLICATE = 3;
 
   final String direction;
 
@@ -17256,31 +17256,31 @@ interface IDBDatabase extends EventTarget {
 
 interface IDBDatabaseException {
 
-  static final int ABORT_ERR = 20;
+  static const int ABORT_ERR = 20;
 
-  static final int CONSTRAINT_ERR = 4;
+  static const int CONSTRAINT_ERR = 4;
 
-  static final int DATA_ERR = 5;
+  static const int DATA_ERR = 5;
 
-  static final int NON_TRANSIENT_ERR = 2;
+  static const int NON_TRANSIENT_ERR = 2;
 
-  static final int NOT_ALLOWED_ERR = 6;
+  static const int NOT_ALLOWED_ERR = 6;
 
-  static final int NOT_FOUND_ERR = 8;
+  static const int NOT_FOUND_ERR = 8;
 
-  static final int NO_ERR = 0;
+  static const int NO_ERR = 0;
 
-  static final int QUOTA_ERR = 22;
+  static const int QUOTA_ERR = 22;
 
-  static final int READ_ONLY_ERR = 9;
+  static const int READ_ONLY_ERR = 9;
 
-  static final int TIMEOUT_ERR = 23;
+  static const int TIMEOUT_ERR = 23;
 
-  static final int TRANSACTION_INACTIVE_ERR = 7;
+  static const int TRANSACTION_INACTIVE_ERR = 7;
 
-  static final int UNKNOWN_ERR = 1;
+  static const int UNKNOWN_ERR = 1;
 
-  static final int VER_ERR = 12;
+  static const int VER_ERR = 12;
 
   final int code;
 
@@ -17450,11 +17450,11 @@ interface IDBRequest extends EventTarget {
 
 interface IDBTransaction extends EventTarget {
 
-  static final int READ_ONLY = 0;
+  static const int READ_ONLY = 0;
 
-  static final int READ_WRITE = 1;
+  static const int READ_WRITE = 1;
 
-  static final int VERSION_CHANGE = 2;
+  static const int VERSION_CHANGE = 2;
 
   final IDBDatabase db;
 
@@ -17551,7 +17551,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 2;
+  static const int BYTES_PER_ELEMENT = 2;
 
   final int length;
 
@@ -17573,7 +17573,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 4;
+  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -17595,7 +17595,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 1;
+  static const int BYTES_PER_ELEMENT = 1;
 
   final int length;
 
@@ -17621,15 +17621,15 @@ interface JavaScriptAudioNode extends AudioNode, EventTarget {
 
 interface JavaScriptCallFrame {
 
-  static final int CATCH_SCOPE = 4;
+  static const int CATCH_SCOPE = 4;
 
-  static final int CLOSURE_SCOPE = 3;
+  static const int CLOSURE_SCOPE = 3;
 
-  static final int GLOBAL_SCOPE = 0;
+  static const int GLOBAL_SCOPE = 0;
 
-  static final int LOCAL_SCOPE = 1;
+  static const int LOCAL_SCOPE = 1;
 
-  static final int WITH_SCOPE = 2;
+  static const int WITH_SCOPE = 2;
 
   final JavaScriptCallFrame caller;
 
@@ -17781,15 +17781,15 @@ interface MediaElementAudioSourceNode extends AudioSourceNode {
 
 interface MediaError {
 
-  static final int MEDIA_ERR_ABORTED = 1;
+  static const int MEDIA_ERR_ABORTED = 1;
 
-  static final int MEDIA_ERR_DECODE = 3;
+  static const int MEDIA_ERR_DECODE = 3;
 
-  static final int MEDIA_ERR_ENCRYPTED = 5;
+  static const int MEDIA_ERR_ENCRYPTED = 5;
 
-  static final int MEDIA_ERR_NETWORK = 2;
+  static const int MEDIA_ERR_NETWORK = 2;
 
-  static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
+  static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   final int code;
 }
@@ -17801,17 +17801,17 @@ interface MediaError {
 
 interface MediaKeyError {
 
-  static final int MEDIA_KEYERR_CLIENT = 2;
+  static const int MEDIA_KEYERR_CLIENT = 2;
 
-  static final int MEDIA_KEYERR_DOMAIN = 6;
+  static const int MEDIA_KEYERR_DOMAIN = 6;
 
-  static final int MEDIA_KEYERR_HARDWARECHANGE = 5;
+  static const int MEDIA_KEYERR_HARDWARECHANGE = 5;
 
-  static final int MEDIA_KEYERR_OUTPUT = 4;
+  static const int MEDIA_KEYERR_OUTPUT = 4;
 
-  static final int MEDIA_KEYERR_SERVICE = 3;
+  static const int MEDIA_KEYERR_SERVICE = 3;
 
-  static final int MEDIA_KEYERR_UNKNOWN = 1;
+  static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   final int code;
 }
@@ -17919,9 +17919,9 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
 
-  static final int ENDED = 2;
+  static const int ENDED = 2;
 
-  static final int LIVE = 1;
+  static const int LIVE = 1;
 
   final MediaStreamTrackList audioTracks;
 
@@ -17977,11 +17977,11 @@ interface MediaStreamList {
 
 interface MediaStreamTrack extends EventTarget {
 
-  static final int ENDED = 2;
+  static const int ENDED = 2;
 
-  static final int LIVE = 0;
+  static const int LIVE = 0;
 
-  static final int MUTED = 1;
+  static const int MUTED = 1;
 
   bool enabled;
 
@@ -18183,11 +18183,11 @@ typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver o
 
 interface MutationEvent extends Event {
 
-  static final int ADDITION = 2;
+  static const int ADDITION = 2;
 
-  static final int MODIFICATION = 1;
+  static const int MODIFICATION = 1;
 
-  static final int REMOVAL = 3;
+  static const int REMOVAL = 3;
 
   final int attrChange;
 
@@ -18323,7 +18323,7 @@ interface Navigator {
 
 interface NavigatorUserMediaError {
 
-  static final int PERMISSION_DENIED = 1;
+  static const int PERMISSION_DENIED = 1;
 
   final int code;
 }
@@ -18349,41 +18349,41 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 
 interface Node extends EventTarget {
 
-  static final int ATTRIBUTE_NODE = 2;
+  static const int ATTRIBUTE_NODE = 2;
 
-  static final int CDATA_SECTION_NODE = 4;
+  static const int CDATA_SECTION_NODE = 4;
 
-  static final int COMMENT_NODE = 8;
+  static const int COMMENT_NODE = 8;
 
-  static final int DOCUMENT_FRAGMENT_NODE = 11;
+  static const int DOCUMENT_FRAGMENT_NODE = 11;
 
-  static final int DOCUMENT_NODE = 9;
+  static const int DOCUMENT_NODE = 9;
 
-  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 
-  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
+  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
 
-  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
+  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
 
-  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
+  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
 
-  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
+  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
-  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
+  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
 
-  static final int DOCUMENT_TYPE_NODE = 10;
+  static const int DOCUMENT_TYPE_NODE = 10;
 
-  static final int ELEMENT_NODE = 1;
+  static const int ELEMENT_NODE = 1;
 
-  static final int ENTITY_NODE = 6;
+  static const int ENTITY_NODE = 6;
 
-  static final int ENTITY_REFERENCE_NODE = 5;
+  static const int ENTITY_REFERENCE_NODE = 5;
 
-  static final int NOTATION_NODE = 12;
+  static const int NOTATION_NODE = 12;
 
-  static final int PROCESSING_INSTRUCTION_NODE = 7;
+  static const int PROCESSING_INSTRUCTION_NODE = 7;
 
-  static final int TEXT_NODE = 3;
+  static const int TEXT_NODE = 3;
 
   final NamedNodeMap attributes;
 
@@ -18465,37 +18465,37 @@ interface Node extends EventTarget {
 
 interface NodeFilter {
 
-  static final int FILTER_ACCEPT = 1;
+  static const int FILTER_ACCEPT = 1;
 
-  static final int FILTER_REJECT = 2;
+  static const int FILTER_REJECT = 2;
 
-  static final int FILTER_SKIP = 3;
+  static const int FILTER_SKIP = 3;
 
-  static final int SHOW_ALL = 0xFFFFFFFF;
+  static const int SHOW_ALL = 0xFFFFFFFF;
 
-  static final int SHOW_ATTRIBUTE = 0x00000002;
+  static const int SHOW_ATTRIBUTE = 0x00000002;
 
-  static final int SHOW_CDATA_SECTION = 0x00000008;
+  static const int SHOW_CDATA_SECTION = 0x00000008;
 
-  static final int SHOW_COMMENT = 0x00000080;
+  static const int SHOW_COMMENT = 0x00000080;
 
-  static final int SHOW_DOCUMENT = 0x00000100;
+  static const int SHOW_DOCUMENT = 0x00000100;
 
-  static final int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
+  static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
 
-  static final int SHOW_DOCUMENT_TYPE = 0x00000200;
+  static const int SHOW_DOCUMENT_TYPE = 0x00000200;
 
-  static final int SHOW_ELEMENT = 0x00000001;
+  static const int SHOW_ELEMENT = 0x00000001;
 
-  static final int SHOW_ENTITY = 0x00000020;
+  static const int SHOW_ENTITY = 0x00000020;
 
-  static final int SHOW_ENTITY_REFERENCE = 0x00000010;
+  static const int SHOW_ENTITY_REFERENCE = 0x00000010;
 
-  static final int SHOW_NOTATION = 0x00000800;
+  static const int SHOW_NOTATION = 0x00000800;
 
-  static final int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
+  static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
-  static final int SHOW_TEXT = 0x00000004;
+  static const int SHOW_TEXT = 0x00000004;
 
   int acceptNode(Node n);
 }
@@ -18610,7 +18610,7 @@ typedef bool NotificationPermissionCallback(String permission);
 
 interface OESStandardDerivatives {
 
-  static final int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
+  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18628,7 +18628,7 @@ interface OESTextureFloat {
 
 interface OESVertexArrayObject {
 
-  static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
+  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject);
 
@@ -18656,23 +18656,23 @@ interface OfflineAudioCompletionEvent extends Event {
 
 interface Oscillator extends AudioSourceNode {
 
-  static final int CUSTOM = 4;
+  static const int CUSTOM = 4;
 
-  static final int FINISHED_STATE = 3;
+  static const int FINISHED_STATE = 3;
 
-  static final int PLAYING_STATE = 2;
+  static const int PLAYING_STATE = 2;
 
-  static final int SAWTOOTH = 2;
+  static const int SAWTOOTH = 2;
 
-  static final int SCHEDULED_STATE = 1;
+  static const int SCHEDULED_STATE = 1;
 
-  static final int SINE = 0;
+  static const int SINE = 0;
 
-  static final int SQUARE = 1;
+  static const int SQUARE = 1;
 
-  static final int TRIANGLE = 3;
+  static const int TRIANGLE = 3;
 
-  static final int UNSCHEDULED_STATE = 0;
+  static const int UNSCHEDULED_STATE = 0;
 
   final AudioParam detune;
 
@@ -18696,11 +18696,11 @@ interface Oscillator extends AudioSourceNode {
 
 interface OverflowEvent extends Event {
 
-  static final int BOTH = 2;
+  static const int BOTH = 2;
 
-  static final int HORIZONTAL = 0;
+  static const int HORIZONTAL = 0;
 
-  static final int VERTICAL = 1;
+  static const int VERTICAL = 1;
 
   final bool horizontalOverflow;
 
@@ -18740,33 +18740,33 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
   PeerConnection00(String serverConfiguration, IceCallback iceCallback);
 
-  static final int ACTIVE = 2;
+  static const int ACTIVE = 2;
 
-  static final int CLOSED = 3;
+  static const int CLOSED = 3;
 
-  static final int ICE_CHECKING = 0x300;
+  static const int ICE_CHECKING = 0x300;
 
-  static final int ICE_CLOSED = 0x700;
+  static const int ICE_CLOSED = 0x700;
 
-  static final int ICE_COMPLETED = 0x500;
+  static const int ICE_COMPLETED = 0x500;
 
-  static final int ICE_CONNECTED = 0x400;
+  static const int ICE_CONNECTED = 0x400;
 
-  static final int ICE_FAILED = 0x600;
+  static const int ICE_FAILED = 0x600;
 
-  static final int ICE_GATHERING = 0x100;
+  static const int ICE_GATHERING = 0x100;
 
-  static final int ICE_WAITING = 0x200;
+  static const int ICE_WAITING = 0x200;
 
-  static final int NEW = 0;
+  static const int NEW = 0;
 
-  static final int OPENING = 1;
+  static const int OPENING = 1;
 
-  static final int SDP_ANSWER = 0x300;
+  static const int SDP_ANSWER = 0x300;
 
-  static final int SDP_OFFER = 0x100;
+  static const int SDP_OFFER = 0x100;
 
-  static final int SDP_PRANSWER = 0x200;
+  static const int SDP_PRANSWER = 0x200;
 
   final int iceState;
 
@@ -18828,13 +18828,13 @@ interface Performance extends EventTarget {
 
 interface PerformanceNavigation {
 
-  static final int TYPE_BACK_FORWARD = 2;
+  static const int TYPE_BACK_FORWARD = 2;
 
-  static final int TYPE_NAVIGATE = 0;
+  static const int TYPE_NAVIGATE = 0;
 
-  static final int TYPE_RELOAD = 1;
+  static const int TYPE_RELOAD = 1;
 
-  static final int TYPE_RESERVED = 255;
+  static const int TYPE_RESERVED = 255;
 
   final int redirectCount;
 
@@ -18915,11 +18915,11 @@ typedef bool PositionCallback(Geoposition position);
 
 interface PositionError {
 
-  static final int PERMISSION_DENIED = 1;
+  static const int PERMISSION_DENIED = 1;
 
-  static final int POSITION_UNAVAILABLE = 2;
+  static const int POSITION_UNAVAILABLE = 2;
 
-  static final int TIMEOUT = 3;
+  static const int TIMEOUT = 3;
 
   final int code;
 
@@ -19008,21 +19008,21 @@ interface RadioNodeList extends NodeList {
 
 interface Range {
 
-  static final int END_TO_END = 2;
+  static const int END_TO_END = 2;
 
-  static final int END_TO_START = 3;
+  static const int END_TO_START = 3;
 
-  static final int NODE_AFTER = 1;
+  static const int NODE_AFTER = 1;
 
-  static final int NODE_BEFORE = 0;
+  static const int NODE_BEFORE = 0;
 
-  static final int NODE_BEFORE_AND_AFTER = 2;
+  static const int NODE_BEFORE_AND_AFTER = 2;
 
-  static final int NODE_INSIDE = 3;
+  static const int NODE_INSIDE = 3;
 
-  static final int START_TO_END = 1;
+  static const int START_TO_END = 1;
 
-  static final int START_TO_START = 0;
+  static const int START_TO_START = 0;
 
   final bool collapsed;
 
@@ -19094,9 +19094,9 @@ interface Range {
 
 interface RangeException {
 
-  static final int BAD_BOUNDARYPOINTS_ERR = 1;
+  static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
-  static final int INVALID_NODE_TYPE_ERR = 2;
+  static const int INVALID_NODE_TYPE_ERR = 2;
 
   final int code;
 
@@ -19161,21 +19161,21 @@ typedef bool RequestAnimationFrameCallback(int time);
 
 interface SQLError {
 
-  static final int CONSTRAINT_ERR = 6;
+  static const int CONSTRAINT_ERR = 6;
 
-  static final int DATABASE_ERR = 1;
+  static const int DATABASE_ERR = 1;
 
-  static final int QUOTA_ERR = 4;
+  static const int QUOTA_ERR = 4;
 
-  static final int SYNTAX_ERR = 5;
+  static const int SYNTAX_ERR = 5;
 
-  static final int TIMEOUT_ERR = 7;
+  static const int TIMEOUT_ERR = 7;
 
-  static final int TOO_LARGE_ERR = 3;
+  static const int TOO_LARGE_ERR = 3;
 
-  static final int UNKNOWN_ERR = 0;
+  static const int UNKNOWN_ERR = 0;
 
-  static final int VERSION_ERR = 2;
+  static const int VERSION_ERR = 2;
 
   final int code;
 
@@ -19189,21 +19189,21 @@ interface SQLError {
 
 interface SQLException {
 
-  static final int CONSTRAINT_ERR = 6;
+  static const int CONSTRAINT_ERR = 6;
 
-  static final int DATABASE_ERR = 1;
+  static const int DATABASE_ERR = 1;
 
-  static final int QUOTA_ERR = 4;
+  static const int QUOTA_ERR = 4;
 
-  static final int SYNTAX_ERR = 5;
+  static const int SYNTAX_ERR = 5;
 
-  static final int TIMEOUT_ERR = 7;
+  static const int TIMEOUT_ERR = 7;
 
-  static final int TOO_LARGE_ERR = 3;
+  static const int TOO_LARGE_ERR = 3;
 
-  static final int UNKNOWN_ERR = 0;
+  static const int UNKNOWN_ERR = 0;
 
-  static final int VERSION_ERR = 2;
+  static const int VERSION_ERR = 2;
 
   final int code;
 
@@ -19336,15 +19336,15 @@ interface SVGAltGlyphItemElement extends SVGElement {
 
 interface SVGAngle {
 
-  static final int SVG_ANGLETYPE_DEG = 2;
+  static const int SVG_ANGLETYPE_DEG = 2;
 
-  static final int SVG_ANGLETYPE_GRAD = 4;
+  static const int SVG_ANGLETYPE_GRAD = 4;
 
-  static final int SVG_ANGLETYPE_RAD = 3;
+  static const int SVG_ANGLETYPE_RAD = 3;
 
-  static final int SVG_ANGLETYPE_UNKNOWN = 0;
+  static const int SVG_ANGLETYPE_UNKNOWN = 0;
 
-  static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
+  static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   final int unitType;
 
@@ -19582,13 +19582,13 @@ interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExte
 
 interface SVGColor extends CSSValue {
 
-  static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
+  static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
-  static final int SVG_COLORTYPE_RGBCOLOR = 1;
+  static const int SVG_COLORTYPE_RGBCOLOR = 1;
 
-  static final int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
+  static const int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
 
-  static final int SVG_COLORTYPE_UNKNOWN = 0;
+  static const int SVG_COLORTYPE_UNKNOWN = 0;
 
   final int colorType;
 
@@ -19608,17 +19608,17 @@ interface SVGColor extends CSSValue {
 
 interface SVGComponentTransferFunctionElement extends SVGElement {
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
 
-  static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   final SVGAnimatedNumber amplitude;
 
@@ -19750,11 +19750,11 @@ interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExter
 
 interface SVGException {
 
-  static final int SVG_INVALID_VALUE_ERR = 1;
+  static const int SVG_INVALID_VALUE_ERR = 1;
 
-  static final int SVG_MATRIX_NOT_INVERTABLE = 2;
+  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
 
-  static final int SVG_WRONG_TYPE_ERR = 0;
+  static const int SVG_WRONG_TYPE_ERR = 0;
 
   final int code;
 
@@ -19782,17 +19782,17 @@ interface SVGExternalResourcesRequired {
 
 interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_FEBLEND_MODE_DARKEN = 4;
+  static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
-  static final int SVG_FEBLEND_MODE_LIGHTEN = 5;
+  static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
 
-  static final int SVG_FEBLEND_MODE_MULTIPLY = 2;
+  static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
 
-  static final int SVG_FEBLEND_MODE_NORMAL = 1;
+  static const int SVG_FEBLEND_MODE_NORMAL = 1;
 
-  static final int SVG_FEBLEND_MODE_SCREEN = 3;
+  static const int SVG_FEBLEND_MODE_SCREEN = 3;
 
-  static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
+  static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   final SVGAnimatedString in1;
 
@@ -19808,15 +19808,15 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
 interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
+  static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
-  static final int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
+  static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
 
-  static final int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
+  static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
 
-  static final int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
+  static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
 
-  static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
+  static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   final SVGAnimatedString in1;
 
@@ -19842,19 +19842,19 @@ interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveSt
 
 interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
+  static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
+  static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_IN = 2;
+  static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
+  static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
+  static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
+  static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
 
-  static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
+  static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   final SVGAnimatedString in1;
 
@@ -19878,13 +19878,13 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
 
 interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_EDGEMODE_DUPLICATE = 1;
+  static const int SVG_EDGEMODE_DUPLICATE = 1;
 
-  static final int SVG_EDGEMODE_NONE = 3;
+  static const int SVG_EDGEMODE_NONE = 3;
 
-  static final int SVG_EDGEMODE_UNKNOWN = 0;
+  static const int SVG_EDGEMODE_UNKNOWN = 0;
 
-  static final int SVG_EDGEMODE_WRAP = 2;
+  static const int SVG_EDGEMODE_WRAP = 2;
 
   final SVGAnimatedNumber bias;
 
@@ -19936,15 +19936,15 @@ interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStan
 
 interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_CHANNEL_A = 4;
+  static const int SVG_CHANNEL_A = 4;
 
-  static final int SVG_CHANNEL_B = 3;
+  static const int SVG_CHANNEL_B = 3;
 
-  static final int SVG_CHANNEL_G = 2;
+  static const int SVG_CHANNEL_G = 2;
 
-  static final int SVG_CHANNEL_R = 1;
+  static const int SVG_CHANNEL_R = 1;
 
-  static final int SVG_CHANNEL_UNKNOWN = 0;
+  static const int SVG_CHANNEL_UNKNOWN = 0;
 
   final SVGAnimatedString in1;
 
@@ -20080,11 +20080,11 @@ interface SVGFEMergeNodeElement extends SVGElement {
 
 interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
+  static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
-  static final int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
+  static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
 
-  static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
+  static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   final SVGAnimatedString in1;
 
@@ -20182,17 +20182,17 @@ interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttribu
 
 interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  static final int SVG_STITCHTYPE_NOSTITCH = 2;
+  static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
-  static final int SVG_STITCHTYPE_STITCH = 1;
+  static const int SVG_STITCHTYPE_STITCH = 1;
 
-  static final int SVG_STITCHTYPE_UNKNOWN = 0;
+  static const int SVG_STITCHTYPE_UNKNOWN = 0;
 
-  static final int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
+  static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
 
-  static final int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
+  static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
 
-  static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
+  static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   final SVGAnimatedNumber baseFrequencyX;
 
@@ -20370,13 +20370,13 @@ interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
 
 interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired, SVGStylable {
 
-  static final int SVG_SPREADMETHOD_PAD = 1;
+  static const int SVG_SPREADMETHOD_PAD = 1;
 
-  static final int SVG_SPREADMETHOD_REFLECT = 2;
+  static const int SVG_SPREADMETHOD_REFLECT = 2;
 
-  static final int SVG_SPREADMETHOD_REPEAT = 3;
+  static const int SVG_SPREADMETHOD_REPEAT = 3;
 
-  static final int SVG_SPREADMETHOD_UNKNOWN = 0;
+  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   final SVGAnimatedTransformList gradientTransform;
 
@@ -20430,27 +20430,27 @@ interface SVGLangSpace {
 
 interface SVGLength {
 
-  static final int SVG_LENGTHTYPE_CM = 6;
+  static const int SVG_LENGTHTYPE_CM = 6;
 
-  static final int SVG_LENGTHTYPE_EMS = 3;
+  static const int SVG_LENGTHTYPE_EMS = 3;
 
-  static final int SVG_LENGTHTYPE_EXS = 4;
+  static const int SVG_LENGTHTYPE_EXS = 4;
 
-  static final int SVG_LENGTHTYPE_IN = 8;
+  static const int SVG_LENGTHTYPE_IN = 8;
 
-  static final int SVG_LENGTHTYPE_MM = 7;
+  static const int SVG_LENGTHTYPE_MM = 7;
 
-  static final int SVG_LENGTHTYPE_NUMBER = 1;
+  static const int SVG_LENGTHTYPE_NUMBER = 1;
 
-  static final int SVG_LENGTHTYPE_PC = 10;
+  static const int SVG_LENGTHTYPE_PC = 10;
 
-  static final int SVG_LENGTHTYPE_PERCENTAGE = 2;
+  static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
 
-  static final int SVG_LENGTHTYPE_PT = 9;
+  static const int SVG_LENGTHTYPE_PT = 9;
 
-  static final int SVG_LENGTHTYPE_PX = 5;
+  static const int SVG_LENGTHTYPE_PX = 5;
 
-  static final int SVG_LENGTHTYPE_UNKNOWN = 0;
+  static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   final int unitType;
 
@@ -20556,17 +20556,17 @@ interface SVGMPathElement extends SVGElement, SVGURIReference, SVGExternalResour
 
 interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
-  static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
+  static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
-  static final int SVG_MARKERUNITS_UNKNOWN = 0;
+  static const int SVG_MARKERUNITS_UNKNOWN = 0;
 
-  static final int SVG_MARKERUNITS_USERSPACEONUSE = 1;
+  static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
 
-  static final int SVG_MARKER_ORIENT_ANGLE = 2;
+  static const int SVG_MARKER_ORIENT_ANGLE = 2;
 
-  static final int SVG_MARKER_ORIENT_AUTO = 1;
+  static const int SVG_MARKER_ORIENT_AUTO = 1;
 
-  static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
+  static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   final SVGAnimatedLength markerHeight;
 
@@ -20706,25 +20706,25 @@ interface SVGNumberList {
 
 interface SVGPaint extends SVGColor {
 
-  static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
+  static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 
-  static final int SVG_PAINTTYPE_NONE = 101;
+  static const int SVG_PAINTTYPE_NONE = 101;
 
-  static final int SVG_PAINTTYPE_RGBCOLOR = 1;
+  static const int SVG_PAINTTYPE_RGBCOLOR = 1;
 
-  static final int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
+  static const int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
 
-  static final int SVG_PAINTTYPE_UNKNOWN = 0;
+  static const int SVG_PAINTTYPE_UNKNOWN = 0;
 
-  static final int SVG_PAINTTYPE_URI = 107;
+  static const int SVG_PAINTTYPE_URI = 107;
 
-  static final int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
+  static const int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
 
-  static final int SVG_PAINTTYPE_URI_NONE = 103;
+  static const int SVG_PAINTTYPE_URI_NONE = 103;
 
-  static final int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
+  static const int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
 
-  static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
+  static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
   final int paintType;
 
@@ -20804,45 +20804,45 @@ interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 interface SVGPathSeg {
 
-  static final int PATHSEG_ARC_ABS = 10;
+  static const int PATHSEG_ARC_ABS = 10;
 
-  static final int PATHSEG_ARC_REL = 11;
+  static const int PATHSEG_ARC_REL = 11;
 
-  static final int PATHSEG_CLOSEPATH = 1;
+  static const int PATHSEG_CLOSEPATH = 1;
 
-  static final int PATHSEG_CURVETO_CUBIC_ABS = 6;
+  static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
 
-  static final int PATHSEG_CURVETO_CUBIC_REL = 7;
+  static const int PATHSEG_CURVETO_CUBIC_REL = 7;
 
-  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
+  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
 
-  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
+  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
+  static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_REL = 9;
+  static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
+  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
 
-  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
+  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
 
-  static final int PATHSEG_LINETO_ABS = 4;
+  static const int PATHSEG_LINETO_ABS = 4;
 
-  static final int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
+  static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
 
-  static final int PATHSEG_LINETO_HORIZONTAL_REL = 13;
+  static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
 
-  static final int PATHSEG_LINETO_REL = 5;
+  static const int PATHSEG_LINETO_REL = 5;
 
-  static final int PATHSEG_LINETO_VERTICAL_ABS = 14;
+  static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
 
-  static final int PATHSEG_LINETO_VERTICAL_REL = 15;
+  static const int PATHSEG_LINETO_VERTICAL_REL = 15;
 
-  static final int PATHSEG_MOVETO_ABS = 2;
+  static const int PATHSEG_MOVETO_ABS = 2;
 
-  static final int PATHSEG_MOVETO_REL = 3;
+  static const int PATHSEG_MOVETO_REL = 3;
 
-  static final int PATHSEG_UNKNOWN = 0;
+  static const int PATHSEG_UNKNOWN = 0;
 
   final int pathSegType;
 
@@ -21232,33 +21232,33 @@ interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExte
 
 interface SVGPreserveAspectRatio {
 
-  static final int SVG_MEETORSLICE_MEET = 1;
+  static const int SVG_MEETORSLICE_MEET = 1;
 
-  static final int SVG_MEETORSLICE_SLICE = 2;
+  static const int SVG_MEETORSLICE_SLICE = 2;
 
-  static final int SVG_MEETORSLICE_UNKNOWN = 0;
+  static const int SVG_MEETORSLICE_UNKNOWN = 0;
 
-  static final int SVG_PRESERVEASPECTRATIO_NONE = 1;
+  static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
 
-  static final int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
+  static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
+  static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
+  static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
+  static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
+  static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
+  static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
+  static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
+  static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
+  static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
 
-  static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
+  static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
   int align;
 
@@ -21326,17 +21326,17 @@ interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 interface SVGRenderingIntent {
 
-  static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
+  static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
-  static final int RENDERING_INTENT_AUTO = 1;
+  static const int RENDERING_INTENT_AUTO = 1;
 
-  static final int RENDERING_INTENT_PERCEPTUAL = 2;
+  static const int RENDERING_INTENT_PERCEPTUAL = 2;
 
-  static final int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
+  static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
 
-  static final int RENDERING_INTENT_SATURATION = 4;
+  static const int RENDERING_INTENT_SATURATION = 4;
 
-  static final int RENDERING_INTENT_UNKNOWN = 0;
+  static const int RENDERING_INTENT_UNKNOWN = 0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21560,11 +21560,11 @@ interface SVGTests {
 
 interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
-  static final int LENGTHADJUST_SPACING = 1;
+  static const int LENGTHADJUST_SPACING = 1;
 
-  static final int LENGTHADJUST_SPACINGANDGLYPHS = 2;
+  static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
 
-  static final int LENGTHADJUST_UNKNOWN = 0;
+  static const int LENGTHADJUST_UNKNOWN = 0;
 
   final SVGAnimatedEnumeration lengthAdjust;
 
@@ -21604,17 +21604,17 @@ interface SVGTextElement extends SVGTextPositioningElement, SVGTransformable {
 
 interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
-  static final int TEXTPATH_METHODTYPE_ALIGN = 1;
+  static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
-  static final int TEXTPATH_METHODTYPE_STRETCH = 2;
+  static const int TEXTPATH_METHODTYPE_STRETCH = 2;
 
-  static final int TEXTPATH_METHODTYPE_UNKNOWN = 0;
+  static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
 
-  static final int TEXTPATH_SPACINGTYPE_AUTO = 1;
+  static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
 
-  static final int TEXTPATH_SPACINGTYPE_EXACT = 2;
+  static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
 
-  static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
+  static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   final SVGAnimatedEnumeration method;
 
@@ -21656,19 +21656,19 @@ interface SVGTitleElement extends SVGElement, SVGLangSpace, SVGStylable {
 
 interface SVGTransform {
 
-  static final int SVG_TRANSFORM_MATRIX = 1;
+  static const int SVG_TRANSFORM_MATRIX = 1;
 
-  static final int SVG_TRANSFORM_ROTATE = 4;
+  static const int SVG_TRANSFORM_ROTATE = 4;
 
-  static final int SVG_TRANSFORM_SCALE = 3;
+  static const int SVG_TRANSFORM_SCALE = 3;
 
-  static final int SVG_TRANSFORM_SKEWX = 5;
+  static const int SVG_TRANSFORM_SKEWX = 5;
 
-  static final int SVG_TRANSFORM_SKEWY = 6;
+  static const int SVG_TRANSFORM_SKEWY = 6;
 
-  static final int SVG_TRANSFORM_TRANSLATE = 2;
+  static const int SVG_TRANSFORM_TRANSLATE = 2;
 
-  static final int SVG_TRANSFORM_UNKNOWN = 0;
+  static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   final num angle;
 
@@ -21744,11 +21744,11 @@ interface SVGURIReference {
 
 interface SVGUnitTypes {
 
-  static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
+  static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
-  static final int SVG_UNIT_TYPE_UNKNOWN = 0;
+  static const int SVG_UNIT_TYPE_UNKNOWN = 0;
 
-  static final int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
+  static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21822,11 +21822,11 @@ interface SVGViewSpec {
 
 interface SVGZoomAndPan {
 
-  static final int SVG_ZOOMANDPAN_DISABLE = 1;
+  static const int SVG_ZOOMANDPAN_DISABLE = 1;
 
-  static final int SVG_ZOOMANDPAN_MAGNIFY = 2;
+  static const int SVG_ZOOMANDPAN_MAGNIFY = 2;
 
-  static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
+  static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
   int zoomAndPan;
 }
@@ -22129,23 +22129,23 @@ interface SpeechRecognitionAlternative {
 
 interface SpeechRecognitionError extends Event {
 
-  static final int ABORTED = 2;
+  static const int ABORTED = 2;
 
-  static final int AUDIO_CAPTURE = 3;
+  static const int AUDIO_CAPTURE = 3;
 
-  static final int BAD_GRAMMAR = 7;
+  static const int BAD_GRAMMAR = 7;
 
-  static final int LANGUAGE_NOT_SUPPORTED = 8;
+  static const int LANGUAGE_NOT_SUPPORTED = 8;
 
-  static final int NETWORK = 4;
+  static const int NETWORK = 4;
 
-  static final int NOT_ALLOWED = 5;
+  static const int NOT_ALLOWED = 5;
 
-  static final int NO_SPEECH = 1;
+  static const int NO_SPEECH = 1;
 
-  static final int OTHER = 0;
+  static const int OTHER = 0;
 
-  static final int SERVICE_NOT_ALLOWED = 6;
+  static const int SERVICE_NOT_ALLOWED = 6;
 
   final int code;
 
@@ -22241,9 +22241,9 @@ interface StorageEvent extends Event {
 
 interface StorageInfo {
 
-  static final int PERSISTENT = 1;
+  static const int PERSISTENT = 1;
 
-  static final int TEMPORARY = 0;
+  static const int TEMPORARY = 0;
 
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
 
@@ -22367,11 +22367,11 @@ interface TextMetrics {
 
 interface TextTrack extends EventTarget {
 
-  static final int DISABLED = 0;
+  static const int DISABLED = 0;
 
-  static final int HIDDEN = 1;
+  static const int HIDDEN = 1;
 
-  static final int SHOWING = 2;
+  static const int SHOWING = 2;
 
   final TextTrackCueList activeCues;
 
@@ -22642,7 +22642,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 2;
+  static const int BYTES_PER_ELEMENT = 2;
 
   final int length;
 
@@ -22664,7 +22664,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 4;
+  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -22686,7 +22686,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
-  static final int BYTES_PER_ELEMENT = 1;
+  static const int BYTES_PER_ELEMENT = 1;
 
   final int length;
 
@@ -22795,13 +22795,13 @@ interface WebGLBuffer {
 
 interface WebGLCompressedTextureS3TC {
 
-  static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
+  static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
-  static final int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
+  static const int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
 
-  static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
+  static const int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
-  static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
+  static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22841,9 +22841,9 @@ interface WebGLContextEvent extends Event {
 
 interface WebGLDebugRendererInfo {
 
-  static final int UNMASKED_RENDERER_WEBGL = 0x9246;
+  static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
-  static final int UNMASKED_VENDOR_WEBGL = 0x9245;
+  static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22863,7 +22863,7 @@ interface WebGLDebugShaders {
 
 interface WebGLDepthTexture {
 
-  static final int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
+  static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22909,595 +22909,595 @@ interface WebGLRenderbuffer {
 
 interface WebGLRenderingContext extends CanvasRenderingContext {
 
-  static final int ACTIVE_ATTRIBUTES = 0x8B89;
+  static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
-  static final int ACTIVE_TEXTURE = 0x84E0;
+  static const int ACTIVE_TEXTURE = 0x84E0;
 
-  static final int ACTIVE_UNIFORMS = 0x8B86;
+  static const int ACTIVE_UNIFORMS = 0x8B86;
 
-  static final int ALIASED_LINE_WIDTH_RANGE = 0x846E;
+  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
 
-  static final int ALIASED_POINT_SIZE_RANGE = 0x846D;
+  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
 
-  static final int ALPHA = 0x1906;
+  static const int ALPHA = 0x1906;
 
-  static final int ALPHA_BITS = 0x0D55;
+  static const int ALPHA_BITS = 0x0D55;
 
-  static final int ALWAYS = 0x0207;
+  static const int ALWAYS = 0x0207;
 
-  static final int ARRAY_BUFFER = 0x8892;
+  static const int ARRAY_BUFFER = 0x8892;
 
-  static final int ARRAY_BUFFER_BINDING = 0x8894;
+  static const int ARRAY_BUFFER_BINDING = 0x8894;
 
-  static final int ATTACHED_SHADERS = 0x8B85;
+  static const int ATTACHED_SHADERS = 0x8B85;
 
-  static final int BACK = 0x0405;
+  static const int BACK = 0x0405;
 
-  static final int BLEND = 0x0BE2;
+  static const int BLEND = 0x0BE2;
 
-  static final int BLEND_COLOR = 0x8005;
+  static const int BLEND_COLOR = 0x8005;
 
-  static final int BLEND_DST_ALPHA = 0x80CA;
+  static const int BLEND_DST_ALPHA = 0x80CA;
 
-  static final int BLEND_DST_RGB = 0x80C8;
+  static const int BLEND_DST_RGB = 0x80C8;
 
-  static final int BLEND_EQUATION = 0x8009;
+  static const int BLEND_EQUATION = 0x8009;
 
-  static final int BLEND_EQUATION_ALPHA = 0x883D;
+  static const int BLEND_EQUATION_ALPHA = 0x883D;
 
-  static final int BLEND_EQUATION_RGB = 0x8009;
+  static const int BLEND_EQUATION_RGB = 0x8009;
 
-  static final int BLEND_SRC_ALPHA = 0x80CB;
+  static const int BLEND_SRC_ALPHA = 0x80CB;
 
-  static final int BLEND_SRC_RGB = 0x80C9;
+  static const int BLEND_SRC_RGB = 0x80C9;
 
-  static final int BLUE_BITS = 0x0D54;
+  static const int BLUE_BITS = 0x0D54;
 
-  static final int BOOL = 0x8B56;
+  static const int BOOL = 0x8B56;
 
-  static final int BOOL_VEC2 = 0x8B57;
+  static const int BOOL_VEC2 = 0x8B57;
 
-  static final int BOOL_VEC3 = 0x8B58;
+  static const int BOOL_VEC3 = 0x8B58;
 
-  static final int BOOL_VEC4 = 0x8B59;
+  static const int BOOL_VEC4 = 0x8B59;
 
-  static final int BROWSER_DEFAULT_WEBGL = 0x9244;
+  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
 
-  static final int BUFFER_SIZE = 0x8764;
+  static const int BUFFER_SIZE = 0x8764;
 
-  static final int BUFFER_USAGE = 0x8765;
+  static const int BUFFER_USAGE = 0x8765;
 
-  static final int BYTE = 0x1400;
+  static const int BYTE = 0x1400;
 
-  static final int CCW = 0x0901;
+  static const int CCW = 0x0901;
 
-  static final int CLAMP_TO_EDGE = 0x812F;
+  static const int CLAMP_TO_EDGE = 0x812F;
 
-  static final int COLOR_ATTACHMENT0 = 0x8CE0;
+  static const int COLOR_ATTACHMENT0 = 0x8CE0;
 
-  static final int COLOR_BUFFER_BIT = 0x00004000;
+  static const int COLOR_BUFFER_BIT = 0x00004000;
 
-  static final int COLOR_CLEAR_VALUE = 0x0C22;
+  static const int COLOR_CLEAR_VALUE = 0x0C22;
 
-  static final int COLOR_WRITEMASK = 0x0C23;
+  static const int COLOR_WRITEMASK = 0x0C23;
 
-  static final int COMPILE_STATUS = 0x8B81;
+  static const int COMPILE_STATUS = 0x8B81;
 
-  static final int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
+  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
 
-  static final int CONSTANT_ALPHA = 0x8003;
+  static const int CONSTANT_ALPHA = 0x8003;
 
-  static final int CONSTANT_COLOR = 0x8001;
+  static const int CONSTANT_COLOR = 0x8001;
 
-  static final int CONTEXT_LOST_WEBGL = 0x9242;
+  static const int CONTEXT_LOST_WEBGL = 0x9242;
 
-  static final int CULL_FACE = 0x0B44;
+  static const int CULL_FACE = 0x0B44;
 
-  static final int CULL_FACE_MODE = 0x0B45;
+  static const int CULL_FACE_MODE = 0x0B45;
 
-  static final int CURRENT_PROGRAM = 0x8B8D;
+  static const int CURRENT_PROGRAM = 0x8B8D;
 
-  static final int CURRENT_VERTEX_ATTRIB = 0x8626;
+  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
 
-  static final int CW = 0x0900;
+  static const int CW = 0x0900;
 
-  static final int DECR = 0x1E03;
+  static const int DECR = 0x1E03;
 
-  static final int DECR_WRAP = 0x8508;
+  static const int DECR_WRAP = 0x8508;
 
-  static final int DELETE_STATUS = 0x8B80;
+  static const int DELETE_STATUS = 0x8B80;
 
-  static final int DEPTH_ATTACHMENT = 0x8D00;
+  static const int DEPTH_ATTACHMENT = 0x8D00;
 
-  static final int DEPTH_BITS = 0x0D56;
+  static const int DEPTH_BITS = 0x0D56;
 
-  static final int DEPTH_BUFFER_BIT = 0x00000100;
+  static const int DEPTH_BUFFER_BIT = 0x00000100;
 
-  static final int DEPTH_CLEAR_VALUE = 0x0B73;
+  static const int DEPTH_CLEAR_VALUE = 0x0B73;
 
-  static final int DEPTH_COMPONENT = 0x1902;
+  static const int DEPTH_COMPONENT = 0x1902;
 
-  static final int DEPTH_COMPONENT16 = 0x81A5;
+  static const int DEPTH_COMPONENT16 = 0x81A5;
 
-  static final int DEPTH_FUNC = 0x0B74;
+  static const int DEPTH_FUNC = 0x0B74;
 
-  static final int DEPTH_RANGE = 0x0B70;
+  static const int DEPTH_RANGE = 0x0B70;
 
-  static final int DEPTH_STENCIL = 0x84F9;
+  static const int DEPTH_STENCIL = 0x84F9;
 
-  static final int DEPTH_STENCIL_ATTACHMENT = 0x821A;
+  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
 
-  static final int DEPTH_TEST = 0x0B71;
+  static const int DEPTH_TEST = 0x0B71;
 
-  static final int DEPTH_WRITEMASK = 0x0B72;
+  static const int DEPTH_WRITEMASK = 0x0B72;
 
-  static final int DITHER = 0x0BD0;
+  static const int DITHER = 0x0BD0;
 
-  static final int DONT_CARE = 0x1100;
+  static const int DONT_CARE = 0x1100;
 
-  static final int DST_ALPHA = 0x0304;
+  static const int DST_ALPHA = 0x0304;
 
-  static final int DST_COLOR = 0x0306;
+  static const int DST_COLOR = 0x0306;
 
-  static final int DYNAMIC_DRAW = 0x88E8;
+  static const int DYNAMIC_DRAW = 0x88E8;
 
-  static final int ELEMENT_ARRAY_BUFFER = 0x8893;
+  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
 
-  static final int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
 
-  static final int EQUAL = 0x0202;
+  static const int EQUAL = 0x0202;
 
-  static final int FASTEST = 0x1101;
+  static const int FASTEST = 0x1101;
 
-  static final int FLOAT = 0x1406;
+  static const int FLOAT = 0x1406;
 
-  static final int FLOAT_MAT2 = 0x8B5A;
+  static const int FLOAT_MAT2 = 0x8B5A;
 
-  static final int FLOAT_MAT3 = 0x8B5B;
+  static const int FLOAT_MAT3 = 0x8B5B;
 
-  static final int FLOAT_MAT4 = 0x8B5C;
+  static const int FLOAT_MAT4 = 0x8B5C;
 
-  static final int FLOAT_VEC2 = 0x8B50;
+  static const int FLOAT_VEC2 = 0x8B50;
 
-  static final int FLOAT_VEC3 = 0x8B51;
+  static const int FLOAT_VEC3 = 0x8B51;
 
-  static final int FLOAT_VEC4 = 0x8B52;
+  static const int FLOAT_VEC4 = 0x8B52;
 
-  static final int FRAGMENT_SHADER = 0x8B30;
+  static const int FRAGMENT_SHADER = 0x8B30;
 
-  static final int FRAMEBUFFER = 0x8D40;
+  static const int FRAMEBUFFER = 0x8D40;
 
-  static final int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
 
-  static final int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
 
-  static final int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
 
-  static final int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
 
-  static final int FRAMEBUFFER_BINDING = 0x8CA6;
+  static const int FRAMEBUFFER_BINDING = 0x8CA6;
 
-  static final int FRAMEBUFFER_COMPLETE = 0x8CD5;
+  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
 
-  static final int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
 
-  static final int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
+  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
 
-  static final int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
 
-  static final int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
 
-  static final int FRONT = 0x0404;
+  static const int FRONT = 0x0404;
 
-  static final int FRONT_AND_BACK = 0x0408;
+  static const int FRONT_AND_BACK = 0x0408;
 
-  static final int FRONT_FACE = 0x0B46;
+  static const int FRONT_FACE = 0x0B46;
 
-  static final int FUNC_ADD = 0x8006;
+  static const int FUNC_ADD = 0x8006;
 
-  static final int FUNC_REVERSE_SUBTRACT = 0x800B;
+  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
 
-  static final int FUNC_SUBTRACT = 0x800A;
+  static const int FUNC_SUBTRACT = 0x800A;
 
-  static final int GENERATE_MIPMAP_HINT = 0x8192;
+  static const int GENERATE_MIPMAP_HINT = 0x8192;
 
-  static final int GEQUAL = 0x0206;
+  static const int GEQUAL = 0x0206;
 
-  static final int GREATER = 0x0204;
+  static const int GREATER = 0x0204;
 
-  static final int GREEN_BITS = 0x0D53;
+  static const int GREEN_BITS = 0x0D53;
 
-  static final int HIGH_FLOAT = 0x8DF2;
+  static const int HIGH_FLOAT = 0x8DF2;
 
-  static final int HIGH_INT = 0x8DF5;
+  static const int HIGH_INT = 0x8DF5;
 
-  static final int INCR = 0x1E02;
+  static const int INCR = 0x1E02;
 
-  static final int INCR_WRAP = 0x8507;
+  static const int INCR_WRAP = 0x8507;
 
-  static final int INT = 0x1404;
+  static const int INT = 0x1404;
 
-  static final int INT_VEC2 = 0x8B53;
+  static const int INT_VEC2 = 0x8B53;
 
-  static final int INT_VEC3 = 0x8B54;
+  static const int INT_VEC3 = 0x8B54;
 
-  static final int INT_VEC4 = 0x8B55;
+  static const int INT_VEC4 = 0x8B55;
 
-  static final int INVALID_ENUM = 0x0500;
+  static const int INVALID_ENUM = 0x0500;
 
-  static final int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
+  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
 
-  static final int INVALID_OPERATION = 0x0502;
+  static const int INVALID_OPERATION = 0x0502;
 
-  static final int INVALID_VALUE = 0x0501;
+  static const int INVALID_VALUE = 0x0501;
 
-  static final int INVERT = 0x150A;
+  static const int INVERT = 0x150A;
 
-  static final int KEEP = 0x1E00;
+  static const int KEEP = 0x1E00;
 
-  static final int LEQUAL = 0x0203;
+  static const int LEQUAL = 0x0203;
 
-  static final int LESS = 0x0201;
+  static const int LESS = 0x0201;
 
-  static final int LINEAR = 0x2601;
+  static const int LINEAR = 0x2601;
 
-  static final int LINEAR_MIPMAP_LINEAR = 0x2703;
+  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
 
-  static final int LINEAR_MIPMAP_NEAREST = 0x2701;
+  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
 
-  static final int LINES = 0x0001;
+  static const int LINES = 0x0001;
 
-  static final int LINE_LOOP = 0x0002;
+  static const int LINE_LOOP = 0x0002;
 
-  static final int LINE_STRIP = 0x0003;
+  static const int LINE_STRIP = 0x0003;
 
-  static final int LINE_WIDTH = 0x0B21;
+  static const int LINE_WIDTH = 0x0B21;
 
-  static final int LINK_STATUS = 0x8B82;
+  static const int LINK_STATUS = 0x8B82;
 
-  static final int LOW_FLOAT = 0x8DF0;
+  static const int LOW_FLOAT = 0x8DF0;
 
-  static final int LOW_INT = 0x8DF3;
+  static const int LOW_INT = 0x8DF3;
 
-  static final int LUMINANCE = 0x1909;
+  static const int LUMINANCE = 0x1909;
 
-  static final int LUMINANCE_ALPHA = 0x190A;
+  static const int LUMINANCE_ALPHA = 0x190A;
 
-  static final int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
 
-  static final int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
 
-  static final int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
 
-  static final int MAX_RENDERBUFFER_SIZE = 0x84E8;
+  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
 
-  static final int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
 
-  static final int MAX_TEXTURE_SIZE = 0x0D33;
+  static const int MAX_TEXTURE_SIZE = 0x0D33;
 
-  static final int MAX_VARYING_VECTORS = 0x8DFC;
+  static const int MAX_VARYING_VECTORS = 0x8DFC;
 
-  static final int MAX_VERTEX_ATTRIBS = 0x8869;
+  static const int MAX_VERTEX_ATTRIBS = 0x8869;
 
-  static final int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
 
-  static final int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
 
-  static final int MAX_VIEWPORT_DIMS = 0x0D3A;
+  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
 
-  static final int MEDIUM_FLOAT = 0x8DF1;
+  static const int MEDIUM_FLOAT = 0x8DF1;
 
-  static final int MEDIUM_INT = 0x8DF4;
+  static const int MEDIUM_INT = 0x8DF4;
 
-  static final int MIRRORED_REPEAT = 0x8370;
+  static const int MIRRORED_REPEAT = 0x8370;
 
-  static final int NEAREST = 0x2600;
+  static const int NEAREST = 0x2600;
 
-  static final int NEAREST_MIPMAP_LINEAR = 0x2702;
+  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
 
-  static final int NEAREST_MIPMAP_NEAREST = 0x2700;
+  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
 
-  static final int NEVER = 0x0200;
+  static const int NEVER = 0x0200;
 
-  static final int NICEST = 0x1102;
+  static const int NICEST = 0x1102;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
-  static final int NOTEQUAL = 0x0205;
+  static const int NOTEQUAL = 0x0205;
 
-  static final int NO_ERROR = 0;
+  static const int NO_ERROR = 0;
 
-  static final int ONE = 1;
+  static const int ONE = 1;
 
-  static final int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
 
-  static final int ONE_MINUS_CONSTANT_COLOR = 0x8002;
+  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
 
-  static final int ONE_MINUS_DST_ALPHA = 0x0305;
+  static const int ONE_MINUS_DST_ALPHA = 0x0305;
 
-  static final int ONE_MINUS_DST_COLOR = 0x0307;
+  static const int ONE_MINUS_DST_COLOR = 0x0307;
 
-  static final int ONE_MINUS_SRC_ALPHA = 0x0303;
+  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
 
-  static final int ONE_MINUS_SRC_COLOR = 0x0301;
+  static const int ONE_MINUS_SRC_COLOR = 0x0301;
 
-  static final int OUT_OF_MEMORY = 0x0505;
+  static const int OUT_OF_MEMORY = 0x0505;
 
-  static final int PACK_ALIGNMENT = 0x0D05;
+  static const int PACK_ALIGNMENT = 0x0D05;
 
-  static final int POINTS = 0x0000;
+  static const int POINTS = 0x0000;
 
-  static final int POLYGON_OFFSET_FACTOR = 0x8038;
+  static const int POLYGON_OFFSET_FACTOR = 0x8038;
 
-  static final int POLYGON_OFFSET_FILL = 0x8037;
+  static const int POLYGON_OFFSET_FILL = 0x8037;
 
-  static final int POLYGON_OFFSET_UNITS = 0x2A00;
+  static const int POLYGON_OFFSET_UNITS = 0x2A00;
 
-  static final int RED_BITS = 0x0D52;
+  static const int RED_BITS = 0x0D52;
 
-  static final int RENDERBUFFER = 0x8D41;
+  static const int RENDERBUFFER = 0x8D41;
 
-  static final int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
+  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
 
-  static final int RENDERBUFFER_BINDING = 0x8CA7;
+  static const int RENDERBUFFER_BINDING = 0x8CA7;
 
-  static final int RENDERBUFFER_BLUE_SIZE = 0x8D52;
+  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
 
-  static final int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
+  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
 
-  static final int RENDERBUFFER_GREEN_SIZE = 0x8D51;
+  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
 
-  static final int RENDERBUFFER_HEIGHT = 0x8D43;
+  static const int RENDERBUFFER_HEIGHT = 0x8D43;
 
-  static final int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
+  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
 
-  static final int RENDERBUFFER_RED_SIZE = 0x8D50;
+  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
 
-  static final int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
+  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
 
-  static final int RENDERBUFFER_WIDTH = 0x8D42;
+  static const int RENDERBUFFER_WIDTH = 0x8D42;
 
-  static final int RENDERER = 0x1F01;
+  static const int RENDERER = 0x1F01;
 
-  static final int REPEAT = 0x2901;
+  static const int REPEAT = 0x2901;
 
-  static final int REPLACE = 0x1E01;
+  static const int REPLACE = 0x1E01;
 
-  static final int RGB = 0x1907;
+  static const int RGB = 0x1907;
 
-  static final int RGB565 = 0x8D62;
+  static const int RGB565 = 0x8D62;
 
-  static final int RGB5_A1 = 0x8057;
+  static const int RGB5_A1 = 0x8057;
 
-  static final int RGBA = 0x1908;
+  static const int RGBA = 0x1908;
 
-  static final int RGBA4 = 0x8056;
+  static const int RGBA4 = 0x8056;
 
-  static final int SAMPLER_2D = 0x8B5E;
+  static const int SAMPLER_2D = 0x8B5E;
 
-  static final int SAMPLER_CUBE = 0x8B60;
+  static const int SAMPLER_CUBE = 0x8B60;
 
-  static final int SAMPLES = 0x80A9;
+  static const int SAMPLES = 0x80A9;
 
-  static final int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
 
-  static final int SAMPLE_BUFFERS = 0x80A8;
+  static const int SAMPLE_BUFFERS = 0x80A8;
 
-  static final int SAMPLE_COVERAGE = 0x80A0;
+  static const int SAMPLE_COVERAGE = 0x80A0;
 
-  static final int SAMPLE_COVERAGE_INVERT = 0x80AB;
+  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
 
-  static final int SAMPLE_COVERAGE_VALUE = 0x80AA;
+  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
 
-  static final int SCISSOR_BOX = 0x0C10;
+  static const int SCISSOR_BOX = 0x0C10;
 
-  static final int SCISSOR_TEST = 0x0C11;
+  static const int SCISSOR_TEST = 0x0C11;
 
-  static final int SHADER_TYPE = 0x8B4F;
+  static const int SHADER_TYPE = 0x8B4F;
 
-  static final int SHADING_LANGUAGE_VERSION = 0x8B8C;
+  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
 
-  static final int SHORT = 0x1402;
+  static const int SHORT = 0x1402;
 
-  static final int SRC_ALPHA = 0x0302;
+  static const int SRC_ALPHA = 0x0302;
 
-  static final int SRC_ALPHA_SATURATE = 0x0308;
+  static const int SRC_ALPHA_SATURATE = 0x0308;
 
-  static final int SRC_COLOR = 0x0300;
+  static const int SRC_COLOR = 0x0300;
 
-  static final int STATIC_DRAW = 0x88E4;
+  static const int STATIC_DRAW = 0x88E4;
 
-  static final int STENCIL_ATTACHMENT = 0x8D20;
+  static const int STENCIL_ATTACHMENT = 0x8D20;
 
-  static final int STENCIL_BACK_FAIL = 0x8801;
+  static const int STENCIL_BACK_FAIL = 0x8801;
 
-  static final int STENCIL_BACK_FUNC = 0x8800;
+  static const int STENCIL_BACK_FUNC = 0x8800;
 
-  static final int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
+  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
 
-  static final int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
+  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
 
-  static final int STENCIL_BACK_REF = 0x8CA3;
+  static const int STENCIL_BACK_REF = 0x8CA3;
 
-  static final int STENCIL_BACK_VALUE_MASK = 0x8CA4;
+  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
 
-  static final int STENCIL_BACK_WRITEMASK = 0x8CA5;
+  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
 
-  static final int STENCIL_BITS = 0x0D57;
+  static const int STENCIL_BITS = 0x0D57;
 
-  static final int STENCIL_BUFFER_BIT = 0x00000400;
+  static const int STENCIL_BUFFER_BIT = 0x00000400;
 
-  static final int STENCIL_CLEAR_VALUE = 0x0B91;
+  static const int STENCIL_CLEAR_VALUE = 0x0B91;
 
-  static final int STENCIL_FAIL = 0x0B94;
+  static const int STENCIL_FAIL = 0x0B94;
 
-  static final int STENCIL_FUNC = 0x0B92;
+  static const int STENCIL_FUNC = 0x0B92;
 
-  static final int STENCIL_INDEX = 0x1901;
+  static const int STENCIL_INDEX = 0x1901;
 
-  static final int STENCIL_INDEX8 = 0x8D48;
+  static const int STENCIL_INDEX8 = 0x8D48;
 
-  static final int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
+  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
 
-  static final int STENCIL_PASS_DEPTH_PASS = 0x0B96;
+  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
 
-  static final int STENCIL_REF = 0x0B97;
+  static const int STENCIL_REF = 0x0B97;
 
-  static final int STENCIL_TEST = 0x0B90;
+  static const int STENCIL_TEST = 0x0B90;
 
-  static final int STENCIL_VALUE_MASK = 0x0B93;
+  static const int STENCIL_VALUE_MASK = 0x0B93;
 
-  static final int STENCIL_WRITEMASK = 0x0B98;
+  static const int STENCIL_WRITEMASK = 0x0B98;
 
-  static final int STREAM_DRAW = 0x88E0;
+  static const int STREAM_DRAW = 0x88E0;
 
-  static final int SUBPIXEL_BITS = 0x0D50;
+  static const int SUBPIXEL_BITS = 0x0D50;
 
-  static final int TEXTURE = 0x1702;
+  static const int TEXTURE = 0x1702;
 
-  static final int TEXTURE0 = 0x84C0;
+  static const int TEXTURE0 = 0x84C0;
 
-  static final int TEXTURE1 = 0x84C1;
+  static const int TEXTURE1 = 0x84C1;
 
-  static final int TEXTURE10 = 0x84CA;
+  static const int TEXTURE10 = 0x84CA;
 
-  static final int TEXTURE11 = 0x84CB;
+  static const int TEXTURE11 = 0x84CB;
 
-  static final int TEXTURE12 = 0x84CC;
+  static const int TEXTURE12 = 0x84CC;
 
-  static final int TEXTURE13 = 0x84CD;
+  static const int TEXTURE13 = 0x84CD;
 
-  static final int TEXTURE14 = 0x84CE;
+  static const int TEXTURE14 = 0x84CE;
 
-  static final int TEXTURE15 = 0x84CF;
+  static const int TEXTURE15 = 0x84CF;
 
-  static final int TEXTURE16 = 0x84D0;
+  static const int TEXTURE16 = 0x84D0;
 
-  static final int TEXTURE17 = 0x84D1;
+  static const int TEXTURE17 = 0x84D1;
 
-  static final int TEXTURE18 = 0x84D2;
+  static const int TEXTURE18 = 0x84D2;
 
-  static final int TEXTURE19 = 0x84D3;
+  static const int TEXTURE19 = 0x84D3;
 
-  static final int TEXTURE2 = 0x84C2;
+  static const int TEXTURE2 = 0x84C2;
 
-  static final int TEXTURE20 = 0x84D4;
+  static const int TEXTURE20 = 0x84D4;
 
-  static final int TEXTURE21 = 0x84D5;
+  static const int TEXTURE21 = 0x84D5;
 
-  static final int TEXTURE22 = 0x84D6;
+  static const int TEXTURE22 = 0x84D6;
 
-  static final int TEXTURE23 = 0x84D7;
+  static const int TEXTURE23 = 0x84D7;
 
-  static final int TEXTURE24 = 0x84D8;
+  static const int TEXTURE24 = 0x84D8;
 
-  static final int TEXTURE25 = 0x84D9;
+  static const int TEXTURE25 = 0x84D9;
 
-  static final int TEXTURE26 = 0x84DA;
+  static const int TEXTURE26 = 0x84DA;
 
-  static final int TEXTURE27 = 0x84DB;
+  static const int TEXTURE27 = 0x84DB;
 
-  static final int TEXTURE28 = 0x84DC;
+  static const int TEXTURE28 = 0x84DC;
 
-  static final int TEXTURE29 = 0x84DD;
+  static const int TEXTURE29 = 0x84DD;
 
-  static final int TEXTURE3 = 0x84C3;
+  static const int TEXTURE3 = 0x84C3;
 
-  static final int TEXTURE30 = 0x84DE;
+  static const int TEXTURE30 = 0x84DE;
 
-  static final int TEXTURE31 = 0x84DF;
+  static const int TEXTURE31 = 0x84DF;
 
-  static final int TEXTURE4 = 0x84C4;
+  static const int TEXTURE4 = 0x84C4;
 
-  static final int TEXTURE5 = 0x84C5;
+  static const int TEXTURE5 = 0x84C5;
 
-  static final int TEXTURE6 = 0x84C6;
+  static const int TEXTURE6 = 0x84C6;
 
-  static final int TEXTURE7 = 0x84C7;
+  static const int TEXTURE7 = 0x84C7;
 
-  static final int TEXTURE8 = 0x84C8;
+  static const int TEXTURE8 = 0x84C8;
 
-  static final int TEXTURE9 = 0x84C9;
+  static const int TEXTURE9 = 0x84C9;
 
-  static final int TEXTURE_2D = 0x0DE1;
+  static const int TEXTURE_2D = 0x0DE1;
 
-  static final int TEXTURE_BINDING_2D = 0x8069;
+  static const int TEXTURE_BINDING_2D = 0x8069;
 
-  static final int TEXTURE_BINDING_CUBE_MAP = 0x8514;
+  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
 
-  static final int TEXTURE_CUBE_MAP = 0x8513;
+  static const int TEXTURE_CUBE_MAP = 0x8513;
 
-  static final int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
 
-  static final int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
 
-  static final int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
 
-  static final int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
 
-  static final int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
 
-  static final int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
 
-  static final int TEXTURE_MAG_FILTER = 0x2800;
+  static const int TEXTURE_MAG_FILTER = 0x2800;
 
-  static final int TEXTURE_MIN_FILTER = 0x2801;
+  static const int TEXTURE_MIN_FILTER = 0x2801;
 
-  static final int TEXTURE_WRAP_S = 0x2802;
+  static const int TEXTURE_WRAP_S = 0x2802;
 
-  static final int TEXTURE_WRAP_T = 0x2803;
+  static const int TEXTURE_WRAP_T = 0x2803;
 
-  static final int TRIANGLES = 0x0004;
+  static const int TRIANGLES = 0x0004;
 
-  static final int TRIANGLE_FAN = 0x0006;
+  static const int TRIANGLE_FAN = 0x0006;
 
-  static final int TRIANGLE_STRIP = 0x0005;
+  static const int TRIANGLE_STRIP = 0x0005;
 
-  static final int UNPACK_ALIGNMENT = 0x0CF5;
+  static const int UNPACK_ALIGNMENT = 0x0CF5;
 
-  static final int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
+  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
 
-  static final int UNPACK_FLIP_Y_WEBGL = 0x9240;
+  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
 
-  static final int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
+  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
 
-  static final int UNSIGNED_BYTE = 0x1401;
+  static const int UNSIGNED_BYTE = 0x1401;
 
-  static final int UNSIGNED_INT = 0x1405;
+  static const int UNSIGNED_INT = 0x1405;
 
-  static final int UNSIGNED_SHORT = 0x1403;
+  static const int UNSIGNED_SHORT = 0x1403;
 
-  static final int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
 
-  static final int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
 
-  static final int UNSIGNED_SHORT_5_6_5 = 0x8363;
+  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
 
-  static final int VALIDATE_STATUS = 0x8B83;
+  static const int VALIDATE_STATUS = 0x8B83;
 
-  static final int VENDOR = 0x1F00;
+  static const int VENDOR = 0x1F00;
 
-  static final int VERSION = 0x1F02;
+  static const int VERSION = 0x1F02;
 
-  static final int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
 
-  static final int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
 
-  static final int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
 
-  static final int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
 
-  static final int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
 
-  static final int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
 
-  static final int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
 
-  static final int VERTEX_SHADER = 0x8B31;
+  static const int VERTEX_SHADER = 0x8B31;
 
-  static final int VIEWPORT = 0x0BA2;
+  static const int VIEWPORT = 0x0BA2;
 
-  static final int ZERO = 0;
+  static const int ZERO = 0;
 
   final int drawingBufferHeight;
 
@@ -23831,17 +23831,17 @@ interface WebGLVertexArrayObjectOES {
 
 interface WebKitAnimation {
 
-  static final int DIRECTION_ALTERNATE = 1;
+  static const int DIRECTION_ALTERNATE = 1;
 
-  static final int DIRECTION_NORMAL = 0;
+  static const int DIRECTION_NORMAL = 0;
 
-  static final int FILL_BACKWARDS = 1;
+  static const int FILL_BACKWARDS = 1;
 
-  static final int FILL_BOTH = 3;
+  static const int FILL_BOTH = 3;
 
-  static final int FILL_FORWARDS = 2;
+  static const int FILL_FORWARDS = 2;
 
-  static final int FILL_NONE = 0;
+  static const int FILL_NONE = 0;
 
   final num delay;
 
@@ -23897,29 +23897,29 @@ interface WebKitAnimationList {
 
 interface WebKitCSSFilterValue extends CSSValueList {
 
-  static final int CSS_FILTER_BLUR = 10;
+  static const int CSS_FILTER_BLUR = 10;
 
-  static final int CSS_FILTER_BRIGHTNESS = 8;
+  static const int CSS_FILTER_BRIGHTNESS = 8;
 
-  static final int CSS_FILTER_CONTRAST = 9;
+  static const int CSS_FILTER_CONTRAST = 9;
 
-  static final int CSS_FILTER_CUSTOM = 12;
+  static const int CSS_FILTER_CUSTOM = 12;
 
-  static final int CSS_FILTER_DROP_SHADOW = 11;
+  static const int CSS_FILTER_DROP_SHADOW = 11;
 
-  static final int CSS_FILTER_GRAYSCALE = 2;
+  static const int CSS_FILTER_GRAYSCALE = 2;
 
-  static final int CSS_FILTER_HUE_ROTATE = 5;
+  static const int CSS_FILTER_HUE_ROTATE = 5;
 
-  static final int CSS_FILTER_INVERT = 6;
+  static const int CSS_FILTER_INVERT = 6;
 
-  static final int CSS_FILTER_OPACITY = 7;
+  static const int CSS_FILTER_OPACITY = 7;
 
-  static final int CSS_FILTER_REFERENCE = 1;
+  static const int CSS_FILTER_REFERENCE = 1;
 
-  static final int CSS_FILTER_SATURATE = 4;
+  static const int CSS_FILTER_SATURATE = 4;
 
-  static final int CSS_FILTER_SEPIA = 3;
+  static const int CSS_FILTER_SEPIA = 3;
 
   final int operationType;
 }
@@ -24035,47 +24035,47 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
 interface WebKitCSSTransformValue extends CSSValueList {
 
-  static final int CSS_MATRIX = 11;
+  static const int CSS_MATRIX = 11;
 
-  static final int CSS_MATRIX3D = 21;
+  static const int CSS_MATRIX3D = 21;
 
-  static final int CSS_PERSPECTIVE = 20;
+  static const int CSS_PERSPECTIVE = 20;
 
-  static final int CSS_ROTATE = 4;
+  static const int CSS_ROTATE = 4;
 
-  static final int CSS_ROTATE3D = 17;
+  static const int CSS_ROTATE3D = 17;
 
-  static final int CSS_ROTATEX = 14;
+  static const int CSS_ROTATEX = 14;
 
-  static final int CSS_ROTATEY = 15;
+  static const int CSS_ROTATEY = 15;
 
-  static final int CSS_ROTATEZ = 16;
+  static const int CSS_ROTATEZ = 16;
 
-  static final int CSS_SCALE = 5;
+  static const int CSS_SCALE = 5;
 
-  static final int CSS_SCALE3D = 19;
+  static const int CSS_SCALE3D = 19;
 
-  static final int CSS_SCALEX = 6;
+  static const int CSS_SCALEX = 6;
 
-  static final int CSS_SCALEY = 7;
+  static const int CSS_SCALEY = 7;
 
-  static final int CSS_SCALEZ = 18;
+  static const int CSS_SCALEZ = 18;
 
-  static final int CSS_SKEW = 8;
+  static const int CSS_SKEW = 8;
 
-  static final int CSS_SKEWX = 9;
+  static const int CSS_SKEWX = 9;
 
-  static final int CSS_SKEWY = 10;
+  static const int CSS_SKEWY = 10;
 
-  static final int CSS_TRANSLATE = 1;
+  static const int CSS_TRANSLATE = 1;
 
-  static final int CSS_TRANSLATE3D = 13;
+  static const int CSS_TRANSLATE3D = 13;
 
-  static final int CSS_TRANSLATEX = 2;
+  static const int CSS_TRANSLATEX = 2;
 
-  static final int CSS_TRANSLATEY = 3;
+  static const int CSS_TRANSLATEY = 3;
 
-  static final int CSS_TRANSLATEZ = 12;
+  static const int CSS_TRANSLATEZ = 12;
 
   final int operationType;
 }
@@ -24141,13 +24141,13 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   WebSocket(String url);
 
-  static final int CLOSED = 3;
+  static const int CLOSED = 3;
 
-  static final int CLOSING = 2;
+  static const int CLOSING = 2;
 
-  static final int CONNECTING = 0;
+  static const int CONNECTING = 0;
 
-  static final int OPEN = 1;
+  static const int OPEN = 1;
 
   final String URL;
 
@@ -24258,9 +24258,9 @@ interface WorkerGlobalScope extends EventTarget {
 
 interface WorkerContext extends WorkerGlobalScope {
 
-  static final int PERSISTENT = 1;
+  static const int PERSISTENT = 1;
 
-  static final int TEMPORARY = 0;
+  static const int TEMPORARY = 0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24316,15 +24316,15 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   XMLHttpRequest();
 
-  static final int DONE = 4;
+  static const int DONE = 4;
 
-  static final int HEADERS_RECEIVED = 2;
+  static const int HEADERS_RECEIVED = 2;
 
-  static final int LOADING = 3;
+  static const int LOADING = 3;
 
-  static final int OPENED = 1;
+  static const int OPENED = 1;
 
-  static final int UNSENT = 0;
+  static const int UNSENT = 0;
 
   final int readyState;
 
@@ -24372,9 +24372,9 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
 interface XMLHttpRequestException {
 
-  static final int ABORT_ERR = 102;
+  static const int ABORT_ERR = 102;
 
-  static final int NETWORK_ERR = 101;
+  static const int NETWORK_ERR = 101;
 
   final int code;
 
@@ -24446,9 +24446,9 @@ interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
 
 interface XPathException {
 
-  static final int INVALID_EXPRESSION_ERR = 51;
+  static const int INVALID_EXPRESSION_ERR = 51;
 
-  static final int TYPE_ERR = 52;
+  static const int TYPE_ERR = 52;
 
   final int code;
 
@@ -24486,25 +24486,25 @@ interface XPathNSResolver {
 
 interface XPathResult {
 
-  static final int ANY_TYPE = 0;
+  static const int ANY_TYPE = 0;
 
-  static final int ANY_UNORDERED_NODE_TYPE = 8;
+  static const int ANY_UNORDERED_NODE_TYPE = 8;
 
-  static final int BOOLEAN_TYPE = 3;
+  static const int BOOLEAN_TYPE = 3;
 
-  static final int FIRST_ORDERED_NODE_TYPE = 9;
+  static const int FIRST_ORDERED_NODE_TYPE = 9;
 
-  static final int NUMBER_TYPE = 1;
+  static const int NUMBER_TYPE = 1;
 
-  static final int ORDERED_NODE_ITERATOR_TYPE = 5;
+  static const int ORDERED_NODE_ITERATOR_TYPE = 5;
 
-  static final int ORDERED_NODE_SNAPSHOT_TYPE = 7;
+  static const int ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
-  static final int STRING_TYPE = 2;
+  static const int STRING_TYPE = 2;
 
-  static final int UNORDERED_NODE_ITERATOR_TYPE = 4;
+  static const int UNORDERED_NODE_ITERATOR_TYPE = 4;
 
-  static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
+  static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   final bool booleanValue;
 
@@ -24570,35 +24570,35 @@ interface KeyLocation {
    * of the key, and did not originate from the numeric keypad (or did not
    * originate with a virtual key corresponding to the numeric keypad).
    */
-  static final int STANDARD = 0;
+  static const int STANDARD = 0;
 
   /**
    * The event key is in the left key location.
    */
-  static final int LEFT = 1;
+  static const int LEFT = 1;
 
   /**
    * The event key is in the right key location.
    */
-  static final int RIGHT = 2;
+  static const int RIGHT = 2;
 
   /**
    * The event key originated on the numeric keypad or with a virtual key
    * corresponding to the numeric keypad.
    */
-  static final int NUMPAD = 3;
+  static const int NUMPAD = 3;
 
   /**
    * The event key originated on a mobile device, either on a physical
    * keypad or a virtual keyboard.
    */
-  static final int MOBILE = 4;
+  static const int MOBILE = 4;
 
   /**
    * The event key originated on a game controller or a joystick on a mobile
    * device.
    */
-  static final int JOYSTICK = 5;
+  static const int JOYSTICK = 5;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24612,486 +24612,486 @@ interface KeyLocation {
 interface KeyName {
 
   /** The Accept (Commit, OK) key */
-  static final String ACCEPT = "Accept";
+  static const String ACCEPT = "Accept";
 
   /** The Add key */
-  static final String ADD = "Add";
+  static const String ADD = "Add";
 
   /** The Again key */
-  static final String AGAIN = "Again";
+  static const String AGAIN = "Again";
 
   /** The All Candidates key */
-  static final String ALL_CANDIDATES = "AllCandidates";
+  static const String ALL_CANDIDATES = "AllCandidates";
 
   /** The Alphanumeric key */
-  static final String ALPHANUMERIC = "Alphanumeric";
+  static const String ALPHANUMERIC = "Alphanumeric";
 
   /** The Alt (Menu) key */
-  static final String ALT = "Alt";
+  static const String ALT = "Alt";
 
   /** The Alt-Graph key */
-  static final String ALT_GRAPH = "AltGraph";
+  static const String ALT_GRAPH = "AltGraph";
 
   /** The Application key */
-  static final String APPS = "Apps";
+  static const String APPS = "Apps";
 
   /** The ATTN key */
-  static final String ATTN = "Attn";
+  static const String ATTN = "Attn";
 
   /** The Browser Back key */
-  static final String BROWSER_BACK = "BrowserBack";
+  static const String BROWSER_BACK = "BrowserBack";
 
   /** The Browser Favorites key */
-  static final String BROWSER_FAVORTIES = "BrowserFavorites";
+  static const String BROWSER_FAVORTIES = "BrowserFavorites";
 
   /** The Browser Forward key */
-  static final String BROWSER_FORWARD = "BrowserForward";
+  static const String BROWSER_FORWARD = "BrowserForward";
 
   /** The Browser Home key */
-  static final String BROWSER_NAME = "BrowserHome";
+  static const String BROWSER_NAME = "BrowserHome";
 
   /** The Browser Refresh key */
-  static final String BROWSER_REFRESH = "BrowserRefresh";
+  static const String BROWSER_REFRESH = "BrowserRefresh";
 
   /** The Browser Search key */
-  static final String BROWSER_SEARCH = "BrowserSearch";
+  static const String BROWSER_SEARCH = "BrowserSearch";
 
   /** The Browser Stop key */
-  static final String BROWSER_STOP = "BrowserStop";
+  static const String BROWSER_STOP = "BrowserStop";
 
   /** The Camera key */
-  static final String CAMERA = "Camera";
+  static const String CAMERA = "Camera";
 
   /** The Caps Lock (Capital) key */
-  static final String CAPS_LOCK = "CapsLock";
+  static const String CAPS_LOCK = "CapsLock";
 
   /** The Clear key */
-  static final String CLEAR = "Clear";
+  static const String CLEAR = "Clear";
 
   /** The Code Input key */
-  static final String CODE_INPUT = "CodeInput";
+  static const String CODE_INPUT = "CodeInput";
 
   /** The Compose key */
-  static final String COMPOSE = "Compose";
+  static const String COMPOSE = "Compose";
 
   /** The Control (Ctrl) key */
-  static final String CONTROL = "Control";
+  static const String CONTROL = "Control";
 
   /** The Crsel key */
-  static final String CRSEL = "Crsel";
+  static const String CRSEL = "Crsel";
 
   /** The Convert key */
-  static final String CONVERT = "Convert";
+  static const String CONVERT = "Convert";
 
   /** The Copy key */
-  static final String COPY = "Copy";
+  static const String COPY = "Copy";
 
   /** The Cut key */
-  static final String CUT = "Cut";
+  static const String CUT = "Cut";
 
   /** The Decimal key */
-  static final String DECIMAL = "Decimal";
+  static const String DECIMAL = "Decimal";
 
   /** The Divide key */
-  static final String DIVIDE = "Divide";
+  static const String DIVIDE = "Divide";
 
   /** The Down Arrow key */
-  static final String DOWN = "Down";
+  static const String DOWN = "Down";
 
   /** The diagonal Down-Left Arrow key */
-  static final String DOWN_LEFT = "DownLeft";
+  static const String DOWN_LEFT = "DownLeft";
 
   /** The diagonal Down-Right Arrow key */
-  static final String DOWN_RIGHT = "DownRight";
+  static const String DOWN_RIGHT = "DownRight";
 
   /** The Eject key */
-  static final String EJECT = "Eject";
+  static const String EJECT = "Eject";
 
   /** The End key */
-  static final String END = "End";
+  static const String END = "End";
 
   /**
    * The Enter key. Note: This key value must also be used for the Return
    *  (Macintosh numpad) key
    */
-  static final String ENTER = "Enter";
+  static const String ENTER = "Enter";
 
   /** The Erase EOF key */
-  static final String ERASE_EOF= "EraseEof";
+  static const String ERASE_EOF= "EraseEof";
 
   /** The Execute key */
-  static final String EXECUTE = "Execute";
+  static const String EXECUTE = "Execute";
 
   /** The Exsel key */
-  static final String EXSEL = "Exsel";
+  static const String EXSEL = "Exsel";
 
   /** The Function switch key */
-  static final String FN = "Fn";
+  static const String FN = "Fn";
 
   /** The F1 key */
-  static final String F1 = "F1";
+  static const String F1 = "F1";
 
   /** The F2 key */
-  static final String F2 = "F2";
+  static const String F2 = "F2";
 
   /** The F3 key */
-  static final String F3 = "F3";
+  static const String F3 = "F3";
 
   /** The F4 key */
-  static final String F4 = "F4";
+  static const String F4 = "F4";
 
   /** The F5 key */
-  static final String F5 = "F5";
+  static const String F5 = "F5";
 
   /** The F6 key */
-  static final String F6 = "F6";
+  static const String F6 = "F6";
 
   /** The F7 key */
-  static final String F7 = "F7";
+  static const String F7 = "F7";
 
   /** The F8 key */
-  static final String F8 = "F8";
+  static const String F8 = "F8";
 
   /** The F9 key */
-  static final String F9 = "F9";
+  static const String F9 = "F9";
 
   /** The F10 key */
-  static final String F10 = "F10";
+  static const String F10 = "F10";
 
   /** The F11 key */
-  static final String F11 = "F11";
+  static const String F11 = "F11";
 
   /** The F12 key */
-  static final String F12 = "F12";
+  static const String F12 = "F12";
 
   /** The F13 key */
-  static final String F13 = "F13";
+  static const String F13 = "F13";
 
   /** The F14 key */
-  static final String F14 = "F14";
+  static const String F14 = "F14";
 
   /** The F15 key */
-  static final String F15 = "F15";
+  static const String F15 = "F15";
 
   /** The F16 key */
-  static final String F16 = "F16";
+  static const String F16 = "F16";
 
   /** The F17 key */
-  static final String F17 = "F17";
+  static const String F17 = "F17";
 
   /** The F18 key */
-  static final String F18 = "F18";
+  static const String F18 = "F18";
 
   /** The F19 key */
-  static final String F19 = "F19";
+  static const String F19 = "F19";
 
   /** The F20 key */
-  static final String F20 = "F20";
+  static const String F20 = "F20";
 
   /** The F21 key */
-  static final String F21 = "F21";
+  static const String F21 = "F21";
 
   /** The F22 key */
-  static final String F22 = "F22";
+  static const String F22 = "F22";
 
   /** The F23 key */
-  static final String F23 = "F23";
+  static const String F23 = "F23";
 
   /** The F24 key */
-  static final String F24 = "F24";
+  static const String F24 = "F24";
 
   /** The Final Mode (Final) key used on some asian keyboards */
-  static final String FINAL_MODE = "FinalMode";
+  static const String FINAL_MODE = "FinalMode";
 
   /** The Find key */
-  static final String FIND = "Find";
+  static const String FIND = "Find";
 
   /** The Full-Width Characters key */
-  static final String FULL_WIDTH = "FullWidth";
+  static const String FULL_WIDTH = "FullWidth";
 
   /** The Half-Width Characters key */
-  static final String HALF_WIDTH = "HalfWidth";
+  static const String HALF_WIDTH = "HalfWidth";
 
   /** The Hangul (Korean characters) Mode key */
-  static final String HANGUL_MODE = "HangulMode";
+  static const String HANGUL_MODE = "HangulMode";
 
   /** The Hanja (Korean characters) Mode key */
-  static final String HANJA_MODE = "HanjaMode";
+  static const String HANJA_MODE = "HanjaMode";
 
   /** The Help key */
-  static final String HELP = "Help";
+  static const String HELP = "Help";
 
   /** The Hiragana (Japanese Kana characters) key */
-  static final String HIRAGANA = "Hiragana";
+  static const String HIRAGANA = "Hiragana";
 
   /** The Home key */
-  static final String HOME = "Home";
+  static const String HOME = "Home";
 
   /** The Insert (Ins) key */
-  static final String INSERT = "Insert";
+  static const String INSERT = "Insert";
 
   /** The Japanese-Hiragana key */
-  static final String JAPANESE_HIRAGANA = "JapaneseHiragana";
+  static const String JAPANESE_HIRAGANA = "JapaneseHiragana";
 
   /** The Japanese-Katakana key */
-  static final String JAPANESE_KATAKANA = "JapaneseKatakana";
+  static const String JAPANESE_KATAKANA = "JapaneseKatakana";
 
   /** The Japanese-Romaji key */
-  static final String JAPANESE_ROMAJI = "JapaneseRomaji";
+  static const String JAPANESE_ROMAJI = "JapaneseRomaji";
 
   /** The Junja Mode key */
-  static final String JUNJA_MODE = "JunjaMode";
+  static const String JUNJA_MODE = "JunjaMode";
 
   /** The Kana Mode (Kana Lock) key */
-  static final String KANA_MODE = "KanaMode";
+  static const String KANA_MODE = "KanaMode";
 
   /**
    * The Kanji (Japanese name for ideographic characters of Chinese origin)
    * Mode key
    */
-  static final String KANJI_MODE = "KanjiMode";
+  static const String KANJI_MODE = "KanjiMode";
 
   /** The Katakana (Japanese Kana characters) key */
-  static final String KATAKANA = "Katakana";
+  static const String KATAKANA = "Katakana";
 
   /** The Start Application One key */
-  static final String LAUNCH_APPLICATION_1 = "LaunchApplication1";
+  static const String LAUNCH_APPLICATION_1 = "LaunchApplication1";
 
   /** The Start Application Two key */
-  static final String LAUNCH_APPLICATION_2 = "LaunchApplication2";
+  static const String LAUNCH_APPLICATION_2 = "LaunchApplication2";
 
   /** The Start Mail key */
-  static final String LAUNCH_MAIL = "LaunchMail";
+  static const String LAUNCH_MAIL = "LaunchMail";
 
   /** The Left Arrow key */
-  static final String LEFT = "Left";
+  static const String LEFT = "Left";
 
   /** The Menu key */
-  static final String MENU = "Menu";
+  static const String MENU = "Menu";
 
   /**
    * The Meta key. Note: This key value shall be also used for the Apple
    * Command key
    */
-  static final String META = "Meta";
+  static const String META = "Meta";
 
   /** The Media Next Track key */
-  static final String MEDIA_NEXT_TRACK = "MediaNextTrack";
+  static const String MEDIA_NEXT_TRACK = "MediaNextTrack";
 
   /** The Media Play Pause key */
-  static final String MEDIA_PAUSE_PLAY = "MediaPlayPause";
+  static const String MEDIA_PAUSE_PLAY = "MediaPlayPause";
 
   /** The Media Previous Track key */
-  static final String MEDIA_PREVIOUS_TRACK = "MediaPreviousTrack";
+  static const String MEDIA_PREVIOUS_TRACK = "MediaPreviousTrack";
 
   /** The Media Stop key */
-  static final String MEDIA_STOP = "MediaStop";
+  static const String MEDIA_STOP = "MediaStop";
 
   /** The Mode Change key */
-  static final String MODE_CHANGE = "ModeChange";
+  static const String MODE_CHANGE = "ModeChange";
 
   /** The Next Candidate function key */
-  static final String NEXT_CANDIDATE = "NextCandidate";
+  static const String NEXT_CANDIDATE = "NextCandidate";
 
   /** The Nonconvert (Don't Convert) key */
-  static final String NON_CONVERT = "Nonconvert";
+  static const String NON_CONVERT = "Nonconvert";
 
   /** The Number Lock key */
-  static final String NUM_LOCK = "NumLock";
+  static const String NUM_LOCK = "NumLock";
 
   /** The Page Down (Next) key */
-  static final String PAGE_DOWN = "PageDown";
+  static const String PAGE_DOWN = "PageDown";
 
   /** The Page Up key */
-  static final String PAGE_UP = "PageUp";
+  static const String PAGE_UP = "PageUp";
 
   /** The Paste key */
-  static final String PASTE = "Paste";
+  static const String PASTE = "Paste";
 
   /** The Pause key */
-  static final String PAUSE = "Pause";
+  static const String PAUSE = "Pause";
 
   /** The Play key */
-  static final String PLAY = "Play";
+  static const String PLAY = "Play";
 
   /**
    * The Power key. Note: Some devices may not expose this key to the
    * operating environment
    */
-  static final String POWER = "Power";
+  static const String POWER = "Power";
 
   /** The Previous Candidate function key */
-  static final String PREVIOUS_CANDIDATE = "PreviousCandidate";
+  static const String PREVIOUS_CANDIDATE = "PreviousCandidate";
 
   /** The Print Screen (PrintScrn, SnapShot) key */
-  static final String PRINT_SCREEN = "PrintScreen";
+  static const String PRINT_SCREEN = "PrintScreen";
 
   /** The Process key */
-  static final String PROCESS = "Process";
+  static const String PROCESS = "Process";
 
   /** The Props key */
-  static final String PROPS = "Props";
+  static const String PROPS = "Props";
 
   /** The Right Arrow key */
-  static final String RIGHT = "Right";
+  static const String RIGHT = "Right";
 
   /** The Roman Characters function key */
-  static final String ROMAN_CHARACTERS = "RomanCharacters";
+  static const String ROMAN_CHARACTERS = "RomanCharacters";
 
   /** The Scroll Lock key */
-  static final String SCROLL = "Scroll";
+  static const String SCROLL = "Scroll";
 
   /** The Select key */
-  static final String SELECT = "Select";
+  static const String SELECT = "Select";
 
   /** The Select Media key */
-  static final String SELECT_MEDIA = "SelectMedia";
+  static const String SELECT_MEDIA = "SelectMedia";
 
   /** The Separator key */
-  static final String SEPARATOR = "Separator";
+  static const String SEPARATOR = "Separator";
 
   /** The Shift key */
-  static final String SHIFT = "Shift";
+  static const String SHIFT = "Shift";
 
   /** The Soft1 key */
-  static final String SOFT_1 = "Soft1";
+  static const String SOFT_1 = "Soft1";
 
   /** The Soft2 key */
-  static final String SOFT_2 = "Soft2";
+  static const String SOFT_2 = "Soft2";
 
   /** The Soft3 key */
-  static final String SOFT_3 = "Soft3";
+  static const String SOFT_3 = "Soft3";
 
   /** The Soft4 key */
-  static final String SOFT_4 = "Soft4";
+  static const String SOFT_4 = "Soft4";
 
   /** The Stop key */
-  static final String STOP = "Stop";
+  static const String STOP = "Stop";
 
   /** The Subtract key */
-  static final String SUBTRACT = "Subtract";
+  static const String SUBTRACT = "Subtract";
 
   /** The Symbol Lock key */
-  static final String SYMBOL_LOCK = "SymbolLock";
+  static const String SYMBOL_LOCK = "SymbolLock";
 
   /** The Up Arrow key */
-  static final String UP = "Up";
+  static const String UP = "Up";
 
   /** The diagonal Up-Left Arrow key */
-  static final String UP_LEFT = "UpLeft";
+  static const String UP_LEFT = "UpLeft";
 
   /** The diagonal Up-Right Arrow key */
-  static final String UP_RIGHT = "UpRight";
+  static const String UP_RIGHT = "UpRight";
 
   /** The Undo key */
-  static final String UNDO = "Undo";
+  static const String UNDO = "Undo";
 
   /** The Volume Down key */
-  static final String VOLUME_DOWN = "VolumeDown";
+  static const String VOLUME_DOWN = "VolumeDown";
 
   /** The Volume Mute key */
-  static final String VOLUMN_MUTE = "VolumeMute";
+  static const String VOLUMN_MUTE = "VolumeMute";
 
   /** The Volume Up key */
-  static final String VOLUMN_UP = "VolumeUp";
+  static const String VOLUMN_UP = "VolumeUp";
 
   /** The Windows Logo key */
-  static final String WIN = "Win";
+  static const String WIN = "Win";
 
   /** The Zoom key */
-  static final String ZOOM = "Zoom";
+  static const String ZOOM = "Zoom";
 
   /**
    * The Backspace (Back) key. Note: This key value shall be also used for the
    * key labeled 'delete' MacOS keyboards when not modified by the 'Fn' key
    */
-  static final String BACKSPACE = "Backspace";
+  static const String BACKSPACE = "Backspace";
 
   /** The Horizontal Tabulation (Tab) key */
-  static final String TAB = "Tab";
+  static const String TAB = "Tab";
 
   /** The Cancel key */
-  static final String CANCEL = "Cancel";
+  static const String CANCEL = "Cancel";
 
   /** The Escape (Esc) key */
-  static final String ESC = "Esc";
+  static const String ESC = "Esc";
 
   /** The Space (Spacebar) key:   */
-  static final String SPACEBAR = "Spacebar";
+  static const String SPACEBAR = "Spacebar";
 
   /**
    * The Delete (Del) Key. Note: This key value shall be also used for the key
    * labeled 'delete' MacOS keyboards when modified by the 'Fn' key
    */
-  static final String DEL = "Del";
+  static const String DEL = "Del";
 
   /** The Combining Grave Accent (Greek Varia, Dead Grave) key */
-  static final String DEAD_GRAVE = "DeadGrave";
+  static const String DEAD_GRAVE = "DeadGrave";
 
   /**
    * The Combining Acute Accent (Stress Mark, Greek Oxia, Tonos, Dead Eacute)
    * key
    */
-  static final String DEAD_EACUTE = "DeadEacute";
+  static const String DEAD_EACUTE = "DeadEacute";
 
   /** The Combining Circumflex Accent (Hat, Dead Circumflex) key */
-  static final String DEAD_CIRCUMFLEX = "DeadCircumflex";
+  static const String DEAD_CIRCUMFLEX = "DeadCircumflex";
 
   /** The Combining Tilde (Dead Tilde) key */
-  static final String DEAD_TILDE = "DeadTilde";
+  static const String DEAD_TILDE = "DeadTilde";
 
   /** The Combining Macron (Long, Dead Macron) key */
-  static final String DEAD_MACRON = "DeadMacron";
+  static const String DEAD_MACRON = "DeadMacron";
 
   /** The Combining Breve (Short, Dead Breve) key */
-  static final String DEAD_BREVE = "DeadBreve";
+  static const String DEAD_BREVE = "DeadBreve";
 
   /** The Combining Dot Above (Derivative, Dead Above Dot) key */
-  static final String DEAD_ABOVE_DOT = "DeadAboveDot";
+  static const String DEAD_ABOVE_DOT = "DeadAboveDot";
 
   /**
    * The Combining Diaeresis (Double Dot Abode, Umlaut, Greek Dialytika,
    * Double Derivative, Dead Diaeresis) key
    */
-  static final String DEAD_UMLAUT = "DeadUmlaut";
+  static const String DEAD_UMLAUT = "DeadUmlaut";
 
   /** The Combining Ring Above (Dead Above Ring) key */
-  static final String DEAD_ABOVE_RING = "DeadAboveRing";
+  static const String DEAD_ABOVE_RING = "DeadAboveRing";
 
   /** The Combining Double Acute Accent (Dead Doubleacute) key */
-  static final String DEAD_DOUBLEACUTE = "DeadDoubleacute";
+  static const String DEAD_DOUBLEACUTE = "DeadDoubleacute";
 
   /** The Combining Caron (Hacek, V Above, Dead Caron) key */
-  static final String DEAD_CARON = "DeadCaron";
+  static const String DEAD_CARON = "DeadCaron";
 
   /** The Combining Cedilla (Dead Cedilla) key */
-  static final String DEAD_CEDILLA = "DeadCedilla";
+  static const String DEAD_CEDILLA = "DeadCedilla";
 
   /** The Combining Ogonek (Nasal Hook, Dead Ogonek) key */
-  static final String DEAD_OGONEK = "DeadOgonek";
+  static const String DEAD_OGONEK = "DeadOgonek";
 
   /**
    * The Combining Greek Ypogegrammeni (Greek Non-Spacing Iota Below, Iota
    * Subscript, Dead Iota) key
    */
-  static final String DEAD_IOTA = "DeadIota";
+  static const String DEAD_IOTA = "DeadIota";
 
   /**
    * The Combining Katakana-Hiragana Voiced Sound Mark (Dead Voiced Sound) key
    */
-  static final String DEAD_VOICED_SOUND = "DeadVoicedSound";
+  static const String DEAD_VOICED_SOUND = "DeadVoicedSound";
 
   /**
    * The Combining Katakana-Hiragana Semi-Voiced Sound Mark (Dead Semivoiced
    * Sound) key
    */
-  static final String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
+  static const String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
 
   /**
    * Key value used when an implementation is unable to identify another key
    * value, due to either hardware, platform, or software constraints
    */
-  static final String UNIDENTIFIED = "Unidentified";
+  static const String UNIDENTIFIED = "Unidentified";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25104,18 +25104,18 @@ interface ReadyState {
   /**
    * Indicates the document is still loading and parsing.
    */
-  static final String LOADING = "loading";
+  static const String LOADING = "loading";
 
   /**
    * Indicates the document is finished parsing but is still loading
    * subresources.
    */
-  static final String INTERACTIVE = "interactive";
+  static const String INTERACTIVE = "interactive";
 
   /**
    * Indicates the document and all subresources have been loaded.
    */
-  static final String COMPLETE = "complete";
+  static const String COMPLETE = "complete";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

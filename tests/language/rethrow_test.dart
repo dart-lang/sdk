@@ -25,15 +25,15 @@ class RethrowTest {
         try {
           throwException();
           Expect.fail("Should have thrown an exception");
-        } catch (var e) {
+        } catch (e) {
           Expect.equals(true, e === currentException);
           throw;
           Expect.fail("Should have thrown an exception");
         }
-      } catch (OtherException e) {
+      } on OtherException catch (e) {
         Expect.fail("Should not have caught OtherException");
       }
-    } catch (var e) {
+    } catch (e) {
       Expect.equals(true, e === currentException);
     }
   }
@@ -43,12 +43,12 @@ class RethrowTest {
       try {
         throwException();
         Expect.fail("Should have thrown an exception");
-      } catch (var e) {
+      } catch (e) {
         Expect.equals(true, e === currentException);
         throw;
         Expect.fail("Should have thrown an exception");
       }
-    } catch (var e) {
+    } catch (e) {
       Expect.equals(true, e === currentException);
     }
   }

@@ -7,7 +7,7 @@ main() {
   String str = "";
   try {
     RegExp ex = new RegExp(str);
-  } catch (Exception e) {
+  } on Exception catch (e) {
     if (!(e is NullPointerException)) {
       Expect.fail("Expected: NullPointerException got: ${e}");
     }

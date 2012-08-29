@@ -17,7 +17,7 @@ main() {
       div.id = "illegalFrameElement";
       parentDocument.body.nodes.add(div);
       Expect.fail('Should not reach here.');
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       // Expected.
     }
 
@@ -29,7 +29,7 @@ main() {
       div.id = "illegalTop";
       parentDocument.body.nodes.add(div);
       Expect.fail('Should not reach here.');
-    } catch (var e) {
+    } catch (e) {
       // Expected.
       // TODO(vsm): Enforce this is a NoSuchMethodException.
     }

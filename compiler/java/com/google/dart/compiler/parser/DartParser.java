@@ -13,8 +13,9 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -51,7 +52,6 @@ import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
-import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
@@ -722,7 +722,7 @@ public class DartParser extends CompletionHooksParserBase {
       beginMetadata();
       next();
       beginQualifiedIdentifier();
-      DartExpression name = parseQualified();
+      DartExpression name = parseQualified(true);
       if (optional(Token.PERIOD)) {
         name = new DartPropertyAccess(name, parseIdentifier());
       }
@@ -879,7 +879,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartParameterizedTypeNode defaultClass = null;
     if (isParsingInterface &&
         (optionalDeprecatedFactory() || optional(Token.DEFAULT))) {
-      DartExpression qualified = parseQualified();
+      DartExpression qualified = parseQualified(false);
       List<DartTypeParameter> defaultTypeParameters = parseTypeParametersOpt();
       defaultClass = doneWithoutConsuming(new DartParameterizedTypeNode(qualified,
                                                                         defaultTypeParameters));
@@ -1168,7 +1168,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
       } else {
         if (isParsingInterface
-            && (peek(0) != Token.FINAL)) {
+            && peek(0) != Token.FINAL && peek(0) != Token.CONST) {
           reportError(position(), ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE);
         }
         modifiers = modifiers.makeStatic();
@@ -1451,12 +1451,31 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartMethodDefinition parseFactory(Modifiers modifiers) {
     beginMethodName();
-    DartExpression name = parseQualified();
+    DartExpression name = parseQualified(true);
     if (optional(Token.PERIOD)) {
       name = doneWithoutConsuming(new DartPropertyAccess(name, parseIdentifier()));
     }
     done(name);
     List<DartParameter> formals = parseFormalParameterList();
+
+    // Parse redirecting factory
+    if (match(Token.ASSIGN)) {
+      next();
+      if (!modifiers.isFactory()) {
+        reportError(position(), ParserErrorCode.ONLY_FACTORIES_CAN_REDIRECT);
+      }
+      modifiers = modifiers.makeRedirectedConstructor();
+      DartTypeNode redirectedTypeName = parseTypeAnnotationPossiblyFollowedByName();
+      DartIdentifier redirectedConstructorName = null;
+      if (optional(Token.PERIOD)) {
+        redirectedConstructorName = parseIdentifier();
+      }
+      expect(Token.SEMICOLON);
+      DartFunction function = doneWithoutConsuming(new DartFunction(formals, null, null));
+      return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
+                                         redirectedConstructorName);
+    }
+
     DartFunction function;
     if (peekPseudoKeyword(0, NATIVE_KEYWORD)) {
       modifiers = modifiers.makeNative();
@@ -1619,6 +1638,25 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
       }
+    }
+
+    // Parse redirecting factory
+    DartTypeNode redirectedTypeName = null;
+    DartIdentifier redirectedConstructorName = null;
+    if (match(Token.ASSIGN)) {
+      next();
+      if (!modifiers.isFactory()) {
+        reportError(position(), ParserErrorCode.ONLY_FACTORIES_CAN_REDIRECT);
+      }
+      modifiers = modifiers.makeRedirectedConstructor();
+      redirectedTypeName = parseTypeAnnotationPossiblyFollowedByName();
+      if (optional(Token.PERIOD)) {
+        redirectedConstructorName = parseIdentifier();
+      }
+      expect(Token.SEMICOLON);
+      DartFunction function = doneWithoutConsuming(new DartFunction(parameters, null, returnType));
+      return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
+                                         redirectedConstructorName);
     }
 
     // Parse initializer expressions for constructors.
@@ -3976,7 +4014,7 @@ public class DartParser extends CompletionHooksParserBase {
         beginFinalDeclaration();
         consume(peek(0));
         DartTypeNode type = null;
-        if (peek(1) == Token.IDENTIFIER || peek(1) == Token.LT) {
+        if (peek(1) == Token.IDENTIFIER || peek(1) == Token.LT || peek(1) == Token.PERIOD) {
           // We know we have a type.
           type = parseTypeAnnotation();
         }
@@ -4734,7 +4772,7 @@ public class DartParser extends CompletionHooksParserBase {
         beginCatchClause();
         next();
         beginTypeAnnotation();
-        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified()));
+        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified(false)));
         DartParameter exception = null;
         DartParameter stackTrace = null;
         if (optional(Token.CATCH)) {
@@ -4868,7 +4906,33 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartTypeNode parseTypeAnnotation() {
     beginTypeAnnotation();
-    return done(new DartTypeNode(parseQualified(), parseTypeArgumentsOpt()));
+    return done(new DartTypeNode(parseQualified(false), parseTypeArgumentsOpt()));
+  }
+
+  /**
+   * <pre>
+   * type
+   *     : qualified typeArguments? ('.' identifier)?
+   *     ;
+   * </pre>
+   */
+  private DartTypeNode parseTypeAnnotationPossiblyFollowedByName() {
+    beginTypeAnnotation();
+    boolean canBeFollowedByPeriod = true;
+    if (peek(Token.IDENTIFIER, Token.LT) || peek(Token.IDENTIFIER, Token.PERIOD, Token.IDENTIFIER, Token.LT)) {
+      canBeFollowedByPeriod = false;
+    }
+    return done(new DartTypeNode(parseQualified(canBeFollowedByPeriod), parseTypeArgumentsOpt()));
+  }
+
+  private boolean peek(Token... tokens) {
+    int index = 0;
+    for (Token token : tokens) {
+      if (peek(index++) != token) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -4913,9 +4977,15 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
-  private DartExpression parseQualified() {
+  private DartExpression parseQualified(boolean canBeFollowedByPeriod) {
     beginQualifiedIdentifier();
-    DartExpression qualified = parseIdentifier();
+    DartIdentifier identifier = parseIdentifier();
+    if (!prefixes.contains(identifier.getName())) {
+      if (canBeFollowedByPeriod && !(peek(0) == Token.PERIOD && peek(1) == Token.IDENTIFIER && peek(2) == Token.PERIOD)) {
+        return done(identifier);
+      }
+    }
+    DartExpression qualified = identifier;
     if (optional(Token.PERIOD)) {
       // The previous identifier was a prefix.
       qualified = new DartPropertyAccess(qualified, parseIdentifier());
@@ -4943,7 +5013,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeNode> typeArguments = new ArrayList<DartTypeNode>();
     beginTypeAnnotation(); // to allow roll-back in case we're not at a type
 
-    DartNode qualified = parseQualified();
+    DartNode qualified = parseQualified(false);
 
     if (optional(Token.LT)) {
       if (peek(0) != Token.IDENTIFIER) {
@@ -4951,7 +5021,7 @@ public class DartParser extends CompletionHooksParserBase {
         return null;
       }
       beginTypeArguments();
-      DartNode qualified2 = parseQualified();
+      DartNode qualified2 = parseQualified(false);
       DartTypeNode argument;
       switch (peek(0)) {
         case LT:

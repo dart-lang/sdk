@@ -7,12 +7,12 @@
 /**
  * A bit flag used by [LibraryInfo] indicating that a library is used by dart2js
  */
-final int DART2JS_PLATFORM = 1;
+const int DART2JS_PLATFORM = 1;
 
 /**
  * A bit flag used by [LibraryInfo] indicating that a library is used by the VM
  */
-final int VM_PLATFORM = 2;
+const int VM_PLATFORM = 2;
 
 /**
  * Mapping of "dart:" library name (e.g. "core") to information about that library.
@@ -20,19 +20,13 @@ final int VM_PLATFORM = 2;
  * and extract the necessary information without executing it
  * while other tools can access via execution.
  */
-final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
+const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
-  // Used by VM applications
   "builtin": const LibraryInfo(
       "builtin/builtin_runtime.dart",
       category: "Server",
+      documented: false,
       platforms: VM_PLATFORM),
-
-  // Is moving to pkg directory
-  "compiler": const LibraryInfo(
-      "compiler/compiler.dart",
-      category: "Tools",
-      platforms: 0),
 
   "core": const LibraryInfo(
       "core/core_runtime.dart",
@@ -42,12 +36,12 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       "coreimpl/coreimpl_runtime.dart",
       implementation: true,
       dart2jsPath: "compiler/implementation/lib/coreimpl.dart",
-      dart2jsPatchPath: "compiler/implementation/lib/coreimpl.dartp"),
+      dart2jsPatchPath: "compiler/implementation/lib/coreimpl_patch.dart"),
 
   "crypto": const LibraryInfo(
       "crypto/crypto.dart"),
 
-  // dom/dom_frog.dart is a placeholder for dartium dom
+  // dom/dom_frog.dart is a placeholder for dartium DOM.
   "dom_deprecated": const LibraryInfo(
       "dom/dom_dart2js.dart",
       implementation: true,
@@ -65,19 +59,21 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       dart2jsPath: "compiler/implementation/lib/io.dart"),
 
   "isolate": const LibraryInfo(
-      "isolate/isolate.dart"),
+      "isolate/isolate.dart",
+      dart2jsPatchPath: "compiler/implementation/lib/isolate_patch.dart"),
 
   "json": const LibraryInfo(
       "json/json.dart"),
 
   "math": const LibraryInfo(
       "math/math.dart",
-      dart2jsPatchPath: "compiler/implementation/lib/math.dartp"),
+      dart2jsPatchPath: "compiler/implementation/lib/math_patch.dart"),
 
   "mirrors": const LibraryInfo(
-      "mirrors/mirrors.dart"),
+      "mirrors/mirrors.dart",
+      documented: false,
+      platforms: VM_PLATFORM),
 
-  // Used by Dartium applications
   "nativewrappers": const LibraryInfo(
       "html/nativewrappers.dart",
       category: "Client",
@@ -94,14 +90,12 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "web": const LibraryInfo(
       "web/web.dart"),
 
-  // Used by dart2js
   "_js_helper": const LibraryInfo(
       "compiler/implementation/lib/js_helper.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
-  // Used by dart2js
   "_interceptors": const LibraryInfo(
       "compiler/implementation/lib/interceptors.dart",
       category: "Internal",
@@ -140,13 +134,13 @@ class LibraryInfo {
   final String dart2jsPatchPath;
 
   /**
-   * True if this library is documented and should be shown to the user
+   * True if this library is documented and should be shown to the user.
    */
   final bool documented;
 
   /**
-   * Bit flags indicating which platforms consume this library
-   * See [DART2JS_LIBRARY] and [VM_LIBRARY]
+   * Bit flags indicating which platforms consume this library.
+   * See [DART2JS_LIBRARY] and [VM_LIBRARY].
    */
   final int platforms;
 
@@ -154,8 +148,8 @@ class LibraryInfo {
    * True if the library contains implementation details for another library.
    * The implication is that these libraries are less commonly used
    * and that tools like Dart Editor should not show these libraries
-   * in a list of all libraries unless the user specifically asks the tool to do so.
-   * (e.g. "coreimpl" contains implementation for the "core" library).
+   * in a list of all libraries unless the user specifically asks the tool to
+   * do so. (E.g. "coreimpl" contains implementation for the "core" library).
    */
   final bool implementation;
 
@@ -167,9 +161,6 @@ class LibraryInfo {
            this.documented = true,
            this.platforms = DART2JS_PLATFORM | VM_PLATFORM]);
 
-  bool isDart2JsLibrary() => (platforms & DART2JS_PLATFORM) != 0;
-  bool isVmLibrary() => (platforms & VM_PLATFORM) != 0;
-
-  String getDart2JsPath() => dart2jsPath != null ? "lib/$dart2jsPath" : "lib/$path";
-  String getDart2jsPatchPath() => dart2jsPatchPath != null ? "lib/$dart2jsPatchPath" : null;
+  bool get isDart2jsLibrary => (platforms & DART2JS_PLATFORM) != 0;
+  bool get isVmLibrary => (platforms & VM_PLATFORM) != 0;
 }

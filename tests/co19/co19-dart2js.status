@@ -91,6 +91,10 @@ LibTest/core/Expect/approxEquals_A04_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t03: Fail, OK
 
+# The #resource tag has been removed.
+# http://code.google.com/p/co19/issues/detail?id=181
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail, OK
+
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
@@ -114,7 +118,6 @@ LibTest/core/Math/asin_A01_t01: Fail, OK
 LibTest/core/Math/atan_A01_t01: Fail, OK
 
 [ $compiler == dart2js && $system == windows && $runtime == d8 ]
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Compile-time error: duplicate definition
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
@@ -321,14 +324,18 @@ Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 171
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/03_Overview/2_Privacy_A01_t02: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/07_Classes/2_Getters_A01_t03: Fail, OK # co19 issue 170.
 Language/07_Classes/3_Setters_A01_t03: Fail, OK # Bad test: assumes eager loading.
+Language/07_Classes/5_Constructors_A01_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/07_Classes/5_Constructors_A02_t03: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/07_Classes/07_Classes_A02_t32: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t08: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/06_Lists_A08_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail, OK # Unresolvable constructors are not a compile-time error after 0.11.
@@ -388,6 +395,7 @@ Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # Bad t
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # Bad test: assumes eager loading.
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # Bad test: assumes eager loading.
 
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t19: Fail, OK # Bad test: unary - operator now legal.
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -396,9 +404,10 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
+LibTest/core/Date/Date_A01_t03: Fail, OK # co19 issue 180
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
-LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
-LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
+LibTest/core/List/sort_A01_t02: Fail, OK # (co19 issue #179)
+LibTest/core/List/sort_A01_t03: Fail, OK # (co19 issue #179)
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Match/str_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Math/exp_A01_t01: Fail, Pass, OK # TODO(floitsch): Review.
@@ -537,14 +546,11 @@ Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/09_Try_A02_t02: Fail, OK # Expects to catch null if throwing null. We now throw NullPointerException which isn't caught.
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
-Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Expect/equals_A01_t03: Fail  # Issue co19 - 178
 LibTest/core/Expect/notEquals_A01_t03: Fail # Issue co19 - 178
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
-LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
@@ -555,6 +561,12 @@ Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
 Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
+Language/13_Types/4_Interface_Types_A11_t02: Fail # Is check with generics.
+Language/13_Types/4_Interface_Types_A10_t07: Fail # Is check with generics.
+Language/13_Types/4_Interface_Types_A05_t03: Fail # Is check with generics.
+Language/13_Types/4_Interface_Types_A08_t06: Fail # Is check with generics.
+Language/10_Expressions/07_Maps_A04_t01: Fail # Is check with generics.
+Language/10_Expressions/07_Maps_A07_t04: Fail # Is check with generics.
 
 #
 # The following tests may be broken, but require further review.
@@ -824,7 +836,6 @@ Language/11_Statements/10_Return_A04_t02: Fail # @compile-error
 Language/11_Statements/10_Return_A04_t03: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t17: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail # @compile-error
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # @compile-error

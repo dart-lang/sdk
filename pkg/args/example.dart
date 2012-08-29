@@ -28,7 +28,7 @@ main() {
           ' VM).\n(only valid with the following runtimes: vm, drt)',
         'dart2js': 'Compile dart code to JavaScript by running dart2js.\n'
           '(only valid with the following runtimes: d8, drt, chrome\n'
-          'safari, ie, firefox, opera, none (compile only))'
+          'safari, ie, firefox, opera, none (compile only))',
         'dartc': 'Perform static analysis on Dart code by running dartc.\n'
           '(only valid with the following runtimes: none)',
       });

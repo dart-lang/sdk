@@ -29,9 +29,9 @@ class ObjectPointerVisitor;
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
-  V(AssertionError, "AssertionError")                                          \
-  V(TypeError, "TypeError")                                                    \
-  V(FallThroughError, "FallThroughError")                                      \
+  V(AssertionError, "AssertionErrorImplementation")                            \
+  V(TypeError, "TypeErrorImplementation")                                      \
+  V(FallThroughError, "FallThroughErrorImplementation")                        \
   V(StaticResolutionException, "StaticResolutionException")                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
@@ -91,7 +91,7 @@ class ObjectPointerVisitor;
   V(Mint, "Mint")                                                              \
   V(Bigint, "Bigint")                                                          \
   V(Double, "Double")                                                          \
-  V(Bool, "Bool")                                                              \
+  V(Bool, "bool")                                                              \
   V(ObjectArray, "ObjectArray")                                                \
   V(GrowableObjectArray, "GrowableObjectArray")                                \
   V(ImmutableArray, "ImmutableArray")                                          \

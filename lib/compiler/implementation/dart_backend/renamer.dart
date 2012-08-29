@@ -11,23 +11,24 @@ void renamePlaceholders(
     PlaceholderCollector placeholderCollector,
     Map<Node, String> renames,
     Map<LibraryElement, String> imports,
-    bool minify) {
+    Set<String> fixedMemberNames,
+    bool cutDeclarationTypes) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
-  final Set<String> usedTopLevelIdentifiers = new Set<String>();
+  Generator topLevelGenerator = compiler.enableMinification
+      ? new MinifyingGenerator('ABCDEFGHIJKLMNOPQRSTUVWXYZ').generate
+      : conservativeGenerator;
+  makeGenerator(usedIdentifierSet) => (name) {
+    String newName = topLevelGenerator(name, usedIdentifierSet.contains);
+    usedIdentifierSet.add(newName);
+    return newName;
+  };
+
+  final usedTopLevelIdentifiers = new Set<String>();
   // TODO(antonm): we should also populate this set with top-level
   // names from core library.
   usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
-
-  Generator topLevelGenerator =
-      minify ? new MinifyingGenerator('ABCDEFGHIJKLMNOPQRSTUVWXYZ').generate
-          : conservativeGenerator;
-  String generateUniqueName(name) {
-    String newName = topLevelGenerator(
-        name, usedTopLevelIdentifiers.contains);
-    usedTopLevelIdentifiers.add(newName);
-    return newName;
-  }
+  final generateUniqueName = makeGenerator(usedTopLevelIdentifiers);
 
   rename(library, originalName) =>
       renamed.putIfAbsent(library, () => <String>{})
@@ -41,7 +42,7 @@ void renamePlaceholders(
     // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
-    if (isDartCoreLib(compiler, library)) {
+    if (library.isPlatformLibrary) {
       assert(element.isTopLevel());
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
@@ -74,9 +75,9 @@ void renamePlaceholders(
   sortedForEach(placeholderCollector.functionScopes,
       (functionElement, functionScope) {
     Set<LocalPlaceholder> placeholders = functionScope.localPlaceholders;
-    Generator localGenerator =
-        minify ? new MinifyingGenerator('abcdefghijklmnopqrstuvwxyz').generate
-            : conservativeGenerator;
+    Generator localGenerator = compiler.enableMinification
+        ? new MinifyingGenerator('abcdefghijklmnopqrstuvwxyz').generate
+        : conservativeGenerator;
     Set<String> memberIdentifiers = new Set<String>();
     if (functionElement.getEnclosingClass() !== null) {
       functionElement.getEnclosingClass().forEachMember(
@@ -99,6 +100,22 @@ void renamePlaceholders(
   });
   sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
     renameNodes(nodes, (node) => rename(library, node.source.slowToString()));
+  });
+  if (cutDeclarationTypes) {
+    for (DeclarationTypePlaceholder placeholder in
+         placeholderCollector.declarationTypePlaceholders) {
+      renames[placeholder.typeNode] = placeholder.requiresVar ? 'var' : '';
+    }
+  }
+
+  final usedMemberIdentifiers = new Set<String>.from(fixedMemberNames);
+  // Do not rename members to top-levels, that allows to avoid renaming
+  // members to constructors.
+  usedMemberIdentifiers.addAll(usedTopLevelIdentifiers);
+  final generateMemberIdentifier = makeGenerator(usedMemberIdentifiers);
+  placeholderCollector.memberPlaceholders.forEach((identifier, nodes) {
+    final newIdentifier = generateMemberIdentifier(identifier);
+    renameNodes(nodes, (_) => newIdentifier);
   });
 }
 

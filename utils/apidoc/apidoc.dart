@@ -21,7 +21,7 @@
 #import('../../pkg/dartdoc/mirrors/mirrors.dart');
 #import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
 #import('../../pkg/dartdoc/dartdoc.dart', prefix: 'doc');
-#import('../../lib/compiler/implementation/library_map.dart');
+#import('../../lib/_internal/libraries.dart');
 
 HtmlDiff _diff;
 
@@ -62,16 +62,6 @@ void main() {
 
   doc.cleanOutputDirectory(outputDir);
 
-  // Compile the client-side code to JS.
-  // TODO(bob): Right path.
-
-  final clientScript = (mode == doc.MODE_STATIC) ?
-      'static' : 'live-nav';
-  final Future compiled = doc.compileScript(
-      doc.scriptDir.append('../../pkg/dartdoc/client-$clientScript.dart'),
-      outputDir.append('client-$clientScript.js'));
-
-  // TODO(rnystrom): Use platform-specific path separator.
   // The basic dartdoc-provided static content.
   final Future copiedStatic = doc.copyDirectory(
       doc.scriptDir.append('../../pkg/dartdoc/static'),
@@ -104,17 +94,17 @@ void main() {
   // URIs. Perhaps Path should have a toURI() method.
   // Add all of the core libraries.
   final apidocLibraries = <Path>[];
-  DART2JS_LIBRARY_MAP.forEach((String name, LibraryInfo info) {
-    if (!info.isInternal) {
+  LIBRARIES.forEach((String name, LibraryInfo info) {
+    if (info.documented) {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });
 
   final includedLibraries = <String>[];
   var lister = new Directory.fromPath(
-      doc.scriptDir.append('../../pkg/')).list();
+      doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
-    var path = new Path(dirPath);
+    var path = new Path.fromNative(dirPath);
     var libname = path.filename;
     path = path.append('${libname}.dart');
     if (new File.fromPath(path).existsSync()) {
@@ -127,12 +117,22 @@ void main() {
   lister.onDone = (success) {
     print('Generating docs...');
     final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
+    apidoc.dartdocPath = doc.scriptDir.append('../../pkg/dartdoc/');
     // Select the libraries to include in the produced documentation:
     apidoc.includeApi = true;
     apidoc.includedLibraries = includedLibraries;
 
-    Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+    Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
       apidoc.documentLibraries(apidocLibraries, doc.libPath);
+
+      final clientScript = (mode == doc.MODE_STATIC) ? 'static' : 'live-nav';
+      final Future compiled = doc.compileScript(
+          apidoc.dartdocPath.append('client-$clientScript.dart'),
+          outputDir.append('client-$clientScript.js'));
+
+      Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+        apidoc.cleanup();
+      });
     });
   };
 }
@@ -339,11 +339,11 @@ class Apidoc extends doc.Dartdoc {
     super.docIndexLibrary(library);
   }
 
-  void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
+  void docLibraryNavigationJson(LibraryMirror library, List libraryList) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
     if (library.simpleName == 'dart:nativewrappers') return;
-    super.docLibraryNavigationJson(library, libraryMap);
+    super.docLibraryNavigationJson(library, libraryList);
   }
 
   void docLibrary(LibraryMirror library) {

@@ -18,7 +18,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   Set<HInstruction> generateAtUseSite;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
-    assert(!instruction.isStatement(types));
+    assert(!instruction.isJsStatement(types));
     generateAtUseSite.add(instruction);
   }
 
@@ -91,9 +91,11 @@ class SsaInstructionMerger extends HBaseVisitor {
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isChecked) {
       markAsGenerateAtUseSite(instruction);
-    } else if (instruction.isCheckedModeCheck) {
-      // Checked mode checks compile to code that only use their input
-      // once, so we can safely visit them and try to merge the input.
+    } else if (!instruction.isArgumentTypeCheck) {
+      assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
+      // Checked mode checks and cast checks compile to code that
+      // only use their input once, so we can safely visit them
+      // and try to merge the input.
       visitInstruction(instruction);
     }
   }
@@ -152,7 +154,7 @@ class SsaInstructionMerger extends HBaseVisitor {
         markAsGenerateAtUseSite(instruction);
         continue;
       }
-      if (instruction.isStatement(types)) {
+      if (instruction.isJsStatement(types)) {
         expectedInputs.clear();
       }
       // See if the current instruction is the next non-trivial
@@ -186,7 +188,7 @@ class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> controlFlowOperators;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
-    assert(!instruction.isStatement(types));
+    assert(!instruction.isJsStatement(types));
     generateAtUseSite.add(instruction);
   }
 
@@ -282,7 +284,8 @@ class SsaConditionMerger extends HGraphVisitor {
     HPhi phi = end.phis.first;
     HInstruction thenInput = phi.inputs[0];
     HInstruction elseInput = phi.inputs[1];
-    if (thenInput.isStatement(types) || elseInput.isStatement(types)) return;
+    if (thenInput.isJsStatement(types) ||
+        elseInput.isJsStatement(types)) return;
 
     if (hasAnyStatement(elseBlock, elseInput)) return;
     assert(elseBlock.successors.length == 1);

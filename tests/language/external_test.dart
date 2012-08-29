@@ -32,7 +32,7 @@ main() {
   var foo = new Foo();                                /// 10: continued
   try {                                               /// 10: continued
     foo.f05();                                        /// 10: continued
-  } catch (String exc) {                              /// 10: continued
+  } on String catch (exc) {                           /// 10: continued
     if (exc == "External implementation missing.") {  /// 10: continued
       throw exc;                                      /// 10: continued
     }                                                 /// 10: continued
@@ -40,7 +40,7 @@ main() {
 
   try {                                               /// 13: continued
     Foo.f13();                                        /// 13: continued
-  } catch (String exc) {                              /// 13: continued
+  } on String catch (exc) {                           /// 13: continued
     if (exc == "External implementation missing.") {  /// 13: continued
       throw exc;                                      /// 13: continued
     }                                                 /// 13: continued
@@ -49,7 +49,7 @@ main() {
   // Try calling an unpatched external constructor.
   try {                                               /// 20: continued
     var foo = new Foo.n09();                          /// 20: continued
-  } catch (String exc) {                              /// 20: continued
+  } on String catch (exc) {                           /// 20: continued
     if (exc == "External implementation missing.") {  /// 20: continued
       throw exc;                                      /// 20: continued
     }                                                 /// 20: continued

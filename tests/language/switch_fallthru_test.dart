@@ -25,7 +25,7 @@ class SwitchFallthruTest {
     bool fallthroughCaught = false;
     try {
       test(1);
-    } catch (FallThroughError e) {
+    } on FallThroughError catch (e) {
       fallthroughCaught = true;
     }
     Expect.equals(true, fallthroughCaught);

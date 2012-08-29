@@ -7,10 +7,19 @@
 
 #import('dart:html');
 #import('../../lib/compiler/implementation/source_file.dart');
+#import('dart:json');
 #import('classify.dart');
 
+#source('dropdown.dart');
+#source('search.dart');
+#source('nav.dart');
 #source('client-shared.dart');
+#source('tmp/nav.dart');
 
 main() {
+  setupLocation();
+
   enableCodeBlocks();
+
+  setupSearch(json);
 }

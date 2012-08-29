@@ -346,7 +346,7 @@ Note: currently only implemented for dart2js.''',
       } else if (spec.type == 'int') {
         try {
           configuration[spec.name] = parseInt(value);
-        } catch (var e) {
+        } catch (e) {
           print('Integer value expected for int option $name');
           exit(1);
         }

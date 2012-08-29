@@ -20,7 +20,7 @@ class MethodInvocationTest {
     bool exceptionCaught = false;
     try {
       a.foo();
-    } catch (NullPointerException e) {
+    } on NullPointerException catch (e) {
       exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

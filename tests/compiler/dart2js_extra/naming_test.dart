@@ -213,10 +213,10 @@ class NamingTest {
     var caught = false;
     try {
       throw new MyException();
-    } catch (var exc) {
+    } catch (exc) {
       try {
         throw new MyException();
-      } catch (var exc2) {
+      } catch (exc2) {
         exc = 9;
       }
       Expect.equals(9, exc);
@@ -396,7 +396,7 @@ class NamingTest {
     var wasCaught = false;
     try {
       throw new with(0, 0);
-    } catch(with e) {
+    } on with catch (e) {
       wasCaught = true;
       Expect.equals(5, e.x);
     }

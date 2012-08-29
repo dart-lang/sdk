@@ -108,7 +108,7 @@ TEST_CASE(ParseClassDefinition) {
       "  final f2;            \n"
       "  final int f3, f4;    \n"
       "  static String s1, s2;   \n"
-      "  static final int s3 = 8675309;    \n"
+      "  static const int s3 = 8675309;    \n"
       "  static bar(i, [var d = 5]) { return 77; } \n"
       "  static foo() native \"native_function_name\";        \n"
       "}  \n";

@@ -759,9 +759,9 @@ class FileTest {
     openedFile.closeSync();
     try {
       openedFile.readByteSync();
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -769,9 +769,9 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.writeByteSync(1);
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -779,9 +779,9 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.writeStringSync("Test");
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -790,9 +790,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(100);
       openedFile.readListSync(buffer, 0, 10);
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -801,9 +801,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(100);
       openedFile.writeListSync(buffer, 0, 10);
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -811,9 +811,9 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.positionSync();
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -821,9 +821,9 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.lengthSync();
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -831,9 +831,9 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.flushSync();
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -872,9 +872,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, 12);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -883,9 +883,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 6, 6);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -894,9 +894,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, -1, 1);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -905,9 +905,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, -1);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -916,9 +916,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 0, 12);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -927,9 +927,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 6, 6);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -938,9 +938,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, -1, 1);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -949,9 +949,9 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 0, -1);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -972,7 +972,7 @@ class FileTest {
     try {
       f.openSync();
       Expect.fail("Expected exception opening directory as file");
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is FileIOException);
     }
   }

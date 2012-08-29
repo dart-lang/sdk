@@ -9,16 +9,16 @@ interface ReadyState {
   /**
    * Indicates the document is still loading and parsing.
    */
-  static final String LOADING = "loading";
+  static const String LOADING = "loading";
 
   /**
    * Indicates the document is finished parsing but is still loading
    * subresources.
    */
-  static final String INTERACTIVE = "interactive";
+  static const String INTERACTIVE = "interactive";
 
   /**
    * Indicates the document and all subresources have been loaded.
    */
-  static final String COMPLETE = "complete";
+  static const String COMPLETE = "complete";
 }

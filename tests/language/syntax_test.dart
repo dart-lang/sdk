@@ -233,7 +233,7 @@ main() {
 
     new Bad();
 
-  } catch (var ex) {
+  } catch (ex) {
     // Swallowing exceptions. Any error should be a compile-time error
     // which kills the current isolate.
   }

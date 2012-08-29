@@ -4,10 +4,10 @@
 
 class _Timer implements Timer {
   // Set jitter to wake up timer events that would happen in _TIMER_JITTER ms.
-  static final int _TIMER_JITTER = 0;
+  static const int _TIMER_JITTER = 0;
 
   // Disables the timer.
-  static final int _NO_TIMER = -1;
+  static const int _NO_TIMER = -1;
 
   static Timer _createTimer(void callback(Timer timer),
                            int milliSeconds,

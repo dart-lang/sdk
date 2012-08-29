@@ -17,6 +17,10 @@ namespace dart {
 #define NEW_OBJECT_WITH_LEN(type, len)                                         \
   ((kind == Snapshot::kFull) ? reader->New##type(len) : type::New(len))
 
+#define NEW_OBJECT_WITH_LEN_SPACE(type, len, kind)                             \
+  ((kind == Snapshot::kFull) ?                                                 \
+  reader->New##type(len) : type::New(len, HEAP_SPACE(kind)))
+
 
 static uword BigintAllocator(intptr_t size) {
   Zone* zone = Isolate::Current()->current_zone();
@@ -317,7 +321,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   intptr_t len = reader->ReadSmiValue();
 
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
-      reader->isolate(), NEW_OBJECT_WITH_LEN(TypeArguments, len));
+      reader->isolate(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
   reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
   // Now set all the object fields.
@@ -385,7 +389,9 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
   intptr_t num_flds = (instantiated_type_arguments.raw()->to() -
                        instantiated_type_arguments.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(instantiated_type_arguments.raw()->from() + i) = reader->ReadObjectRef();
+    instantiated_type_arguments.StorePointer(
+        (instantiated_type_arguments.raw()->from() + i),
+        reader->ReadObjectRef());
   }
   return instantiated_type_arguments.raw();
 }
@@ -1012,7 +1018,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kFull) {
     context = reader->NewContext(num_vars);
   } else {
-    context = Context::New(num_vars);
+    context = Context::New(num_vars, HEAP_SPACE(kind));
   }
   reader->AddBackRef(object_id, &context, kIsDeserialized);
 
@@ -1078,7 +1084,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (scope.raw()->to(num_vars) - scope.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(scope.raw()->from() + i) = reader->ReadObjectRef();
+    scope.StorePointer((scope.raw()->from() + i), reader->ReadObjectRef());
   }
 
   return scope.raw();
@@ -1309,7 +1315,7 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
     if (RawObject::IsCanonical(tags)) {
       mint = Mint::NewCanonical(value);
     } else {
-      mint = Mint::New(value, Heap::kNew);
+      mint = Mint::New(value, HEAP_SPACE(kind));
     }
   }
   reader->AddBackRef(object_id, &mint, kIsDeserialized);
@@ -1353,8 +1359,8 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // Create a Bigint object from HexCString.
   Bigint& obj = Bigint::ZoneHandle(
       reader->isolate(),
-      (kind == Snapshot::kFull) ? reader->NewBigint(str) :
-                                  BigintOperations::FromHexCString(str));
+      ((kind == Snapshot::kFull) ? reader->NewBigint(str) :
+       BigintOperations::FromHexCString(str, HEAP_SPACE(kind))));
 
   // If it is a canonical constant make it one.
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
@@ -1427,7 +1433,7 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
     if (RawObject::IsCanonical(tags)) {
       dbl = Double::NewCanonical(value);
     } else {
-      dbl = Double::New(value, Heap::kNew);
+      dbl = Double::New(value, HEAP_SPACE(kind));
     }
   }
   reader->AddBackRef(object_id, &dbl, kIsDeserialized);
@@ -1476,7 +1482,8 @@ template<typename HandleType, typename CharacterType>
 void String::ReadFromImpl(SnapshotReader* reader,
                           HandleType* str_obj,
                           intptr_t len,
-                          intptr_t tags) {
+                          intptr_t tags,
+                          Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   if (RawObject::IsCanonical(tags)) {
     // Set up canonical string object.
@@ -1489,7 +1496,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     *str_obj ^= Symbols::New(ptr, len);
   } else {
     // Set up the string object.
-    *str_obj = HandleType::New(len, Heap::kNew);
+    *str_obj = HandleType::New(len, HEAP_SPACE(kind));
     str_obj->set_tags(tags);
     str_obj->SetHash(0);  // Will get computed when needed.
     for (intptr_t i = 0; i < len; i++) {
@@ -1522,7 +1529,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
     }
     ASSERT((hash == 0) || (String::Hash(str_obj, 0, str_obj.Length()) == hash));
   } else {
-    ReadFromImpl<OneByteString, uint8_t>(reader, &str_obj, len, tags);
+    ReadFromImpl<OneByteString, uint8_t>(reader, &str_obj, len, tags, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return str_obj.raw();
@@ -1553,7 +1560,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
     }
     ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
   } else {
-    ReadFromImpl<TwoByteString, uint16_t>(reader, &str_obj, len, tags);
+    ReadFromImpl<TwoByteString, uint16_t>(reader, &str_obj, len, tags, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return str_obj.raw();
@@ -1584,7 +1591,7 @@ RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
     }
     ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
   } else {
-    ReadFromImpl<FourByteString, uint32_t>(reader, &str_obj, len, tags);
+    ReadFromImpl<FourByteString, uint32_t>(reader, &str_obj, len, tags, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return str_obj.raw();
@@ -1774,7 +1781,7 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
       reader->GetBackRef(object_id));
   if (array == NULL) {
     array = &(Array::ZoneHandle(reader->isolate(),
-                                NEW_OBJECT_WITH_LEN(Array, len)));
+                                NEW_OBJECT_WITH_LEN_SPACE(Array, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
   reader->ArrayReadFrom(*array, len, tags);
@@ -1794,7 +1801,8 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
       reader->GetBackRef(object_id));
   if (array == NULL) {
     array = &(ImmutableArray::ZoneHandle(
-        reader->isolate(), NEW_OBJECT_WITH_LEN(ImmutableArray, len)));
+        reader->isolate(),
+        NEW_OBJECT_WITH_LEN_SPACE(ImmutableArray, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
   reader->ArrayReadFrom(*array, len, tags);
@@ -1838,7 +1846,7 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kFull) {
     array = reader->NewGrowableObjectArray();
   } else {
-    array = GrowableObjectArray::New(0);
+    array = GrowableObjectArray::New(0, HEAP_SPACE(kind));
   }
   reader->AddBackRef(object_id, &array, kIsDeserialized);
   intptr_t length = reader->ReadSmiValue();
@@ -1890,9 +1898,8 @@ RawT* ByteArray::ReadFromImpl(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   intptr_t len = reader->ReadSmiValue();
-  Heap::Space space = (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew;
-  HandleT& result =
-      HandleT::ZoneHandle(reader->isolate(), HandleT::New(len, space));
+  HandleT& result = HandleT::ZoneHandle(
+      reader->isolate(), HandleT::New(len, HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   // Set the object tags.
@@ -1950,7 +1957,7 @@ RawExternal##name##Array* External##name##Array::ReadFrom(                     \
   const Class& cls = Class::Handle(                                            \
       reader->isolate()->object_store()->external_##lname##_array_class());    \
   return NewExternalImpl<External##name##Array, RawExternal##name##Array>(     \
-      cls, data, length, peer, callback, Heap::kNew);                          \
+      cls, data, length, peer, callback, HEAP_SPACE(kind));                    \
 }                                                                              \
 
 
@@ -2089,8 +2096,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
-      reader->isolate(),
-      JSRegExp::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
+      reader->isolate(), JSRegExp::New(len, HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Set the object tags.
@@ -2099,7 +2105,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   // Read and Set all the other fields.
   regex.raw_ptr()->num_bracket_expressions_ = reader->ReadAsSmi();
   *reader->StringHandle() ^= reader->ReadObjectImpl();
-  regex.raw_ptr()->pattern_ = (*reader->StringHandle()).raw();
+  regex.set_pattern(*reader->StringHandle());
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();
   regex.raw_ptr()->flags_ = reader->ReadIntptrValue();
 
@@ -2143,8 +2149,7 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
 
   // Allocate the weak property object.
   WeakProperty& weak_property = WeakProperty::ZoneHandle(
-      reader->isolate(),
-      WeakProperty::New((kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
+      reader->isolate(), WeakProperty::New(HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &weak_property, kIsDeserialized);
 
   // Set the object tags.

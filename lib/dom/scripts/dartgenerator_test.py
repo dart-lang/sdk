@@ -200,7 +200,7 @@ FILE CONTENT:
 
     # Verify primitive conversions are working:
     self._AssertOutputContains('Shape',
-                               'static final int CONSTANT = 1')
+                               'static const int CONSTANT = 1')
     self._AssertOutputContains('Shape',
                                'final String strAttr;')
 

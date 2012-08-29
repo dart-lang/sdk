@@ -154,7 +154,7 @@ static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
   for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     PushArgumentInstr* push = comp->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value());
+    push->ReplaceUsesWith(push->value()->AsUse()->definition());
     push->RemoveFromGraph();
   }
 }
@@ -229,12 +229,20 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
                    new CheckSmiComp(index->CopyValue(), comp),
                    instr->env(),
                    BindInstr::kUnused);
+      // Insert array bounds check.
+      InsertBefore(instr,
+                   new CheckArrayBoundComp(array->CopyValue(),
+                                           index->CopyValue(),
+                                           class_id,
+                                           comp),
+                   instr->env(),
+                   BindInstr::kUnused);
       Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedComp(array, index, class_id, comp);
+        array_op = new LoadIndexedComp(array, index, class_id);
       } else {
         Value* value = comp->ArgumentAt(2)->value();
-        array_op = new StoreIndexedComp(array, index, value, class_id, comp);
+        array_op = new StoreIndexedComp(array, index, value, class_id);
       }
       array_op->set_ic_data(comp->ic_data());
       instr->set_computation(array_op);
@@ -614,11 +622,8 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
       // TODO(srdjan): Add check class comp for mixed smi/non-smi.
       if (HasOneTarget(unary_checks) &&
           (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
-        Value* value = comp->ArgumentAt(0)->value()->CopyValue();
         // Type propagation has not run yet, we cannot eliminate the check.
-        CheckClassComp* check = new CheckClassComp(value, comp);
-        check->set_ic_data(&unary_checks);
-        InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
+        AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
         // Call can still deoptimize, do not detach environment from instr.
         call_with_checks = false;
       } else {
@@ -747,6 +752,11 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 }
 
 
+void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
+  instr->computation()->Accept(this, NULL);
+}
+
+
 void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
                                                     BindInstr* instr) {
   if (FLAG_eliminate_type_checks &&
@@ -794,7 +804,7 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
       comp->value()->BindsToConstant() &&
       !comp->value()->BindsToConstantNull() &&
       comp->value()->CompileTypeIsMoreSpecificThan(
-          Type::Handle(Type::BoolInterface()))) {
+          Type::Handle(Type::BoolType()))) {
     // TODO(regis): Remove is_eliminated_ field and support.
     comp->eliminate();
 
@@ -817,7 +827,7 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        comp->token_pos(),
                                        comp->value(),
-                                       Type::Handle(Type::BoolInterface()),
+                                       Type::Handle(Type::BoolType()),
                                        name,
                                        comp->is_eliminated());
     }

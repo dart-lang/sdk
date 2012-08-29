@@ -115,11 +115,6 @@ void EffectGraphVisitor::Goto(JoinEntryInstr* join) {
 }
 
 
-MaterializeComp* EffectGraphVisitor::Constant(const Object& value) {
-  return new MaterializeComp(new ConstantVal(value));
-}
-
-
 // Appends a graph fragment to a block entry instruction.  Returns the entry
 // instruction if the fragment was empty or else the exit of the fragment if
 // it was non-empty (so NULL if the fragment is closed).
@@ -275,9 +270,10 @@ void TestGraphVisitor::ReturnValue(Value* value) {
                                        value));
   }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  Value* constant_true = Bind(Constant(bool_true));
-  StrictCompareAndBranchInstr* branch =
-      new StrictCompareAndBranchInstr(value, constant_true, Token::kEQ_STRICT);
+  Value* constant_true = Bind(new ConstantComp(bool_true));
+  StrictCompareComp* comp =
+      new StrictCompareComp(Token::kEQ_STRICT, value, constant_true);
+  BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
@@ -289,22 +285,18 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonComp* comp) {
   ASSERT(!FLAG_enable_type_checks);
   ControlInstruction* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
-    branch = new StrictCompareAndBranchInstr(comp->left(),
-                                             comp->right(),
-                                             comp->kind());
+    branch = new BranchInstr(new StrictCompareComp(comp->kind(),
+                                                   comp->left(),
+                                                   comp->right()));
   } else if (Token::IsEqualityOperator(comp->kind()) &&
              (comp->left()->BindsToConstantNull() ||
               comp->right()->BindsToConstantNull())) {
-    branch = new StrictCompareAndBranchInstr(
+    branch = new BranchInstr(new StrictCompareComp(
+        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
         comp->left(),
-        comp->right(),
-        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT);
+        comp->right()));
   } else {
-    branch = new BranchInstr(condition_token_pos(),
-                             owner()->try_index(),
-                             comp->left(),
-                             comp->right(),
-                             comp->kind());
+    branch = new BranchInstr(comp);
   }
   AddInstruction(branch);
   CloseFragment();
@@ -316,11 +308,11 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonComp* comp) {
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateComp* comp) {
   ASSERT(!FLAG_enable_type_checks);
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  Value* constant_true = Bind(Constant(bool_true));
-  StrictCompareAndBranchInstr* branch =
-      new StrictCompareAndBranchInstr(comp->value(),
-                                      constant_true,
-                                      Token::kNE_STRICT);
+  Value* constant_true = Bind(new ConstantComp(bool_true));
+  BranchInstr* branch = new BranchInstr(
+      new StrictCompareComp(Token::kNE_STRICT,
+                            comp->value(),
+                            constant_true));
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
@@ -410,7 +402,7 @@ void EffectGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 
 
 void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
-  ReturnComputation(Constant(node->literal()));
+  ReturnComputation(new ConstantComp(node->literal()));
 }
 
 
@@ -562,7 +554,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                                owner()->try_index(),
                                                right_value));
     }
-    Value* constant_true = for_right.Bind(Constant(bool_true));
+    Value* constant_true = for_right.Bind(new ConstantComp(bool_true));
     Value* compare =
         for_right.Bind(new StrictCompareComp(Token::kEQ_STRICT,
                                              right_value,
@@ -573,7 +565,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index());
-      Value* constant_false = for_false.Bind(Constant(bool_false));
+      Value* constant_false = for_false.Bind(new ConstantComp(bool_false));
       for_false.Do(BuildStoreLocal(
           *owner()->parsed_function().expression_temp_var(),
           constant_false));
@@ -581,7 +573,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner(), temp_index());
-      Value* constant_true = for_true.Bind(Constant(bool_true));
+      Value* constant_true = for_true.Bind(new ConstantComp(bool_true));
       for_true.Do(BuildStoreLocal(
           *owner()->parsed_function().expression_temp_var(),
           constant_true));
@@ -626,7 +618,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
 
 
 Value* EffectGraphVisitor::BuildNullValue() {
-  return Bind(Constant(Object::ZoneHandle()));
+  return Bind(new ConstantComp(Object::ZoneHandle()));
 }
 
 
@@ -707,7 +699,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     EffectGraphVisitor for_left_value(owner(), temp_index());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ReturnComputation(Constant(negate_result ? bool_false : bool_true));
+    ReturnComputation(new ConstantComp(negate_result ? bool_false : bool_true));
     return;
   }
 
@@ -717,18 +709,18 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       type.IsInstantiated()) {
     const Instance& literal_value = node->left()->AsLiteralNode()->literal();
     const Class& cls = Class::Handle(literal_value.clazz());
-    MaterializeComp* result = NULL;
+    ConstantComp* result = NULL;
     if (cls.IsNullClass()) {
       // A null object is only an instance of Object and Dynamic, which has
       // already been checked above (if the type is instantiated). So we can
       // return false here if the instance is null (and if the type is
       // instantiated).
-      result = Constant(negate_result ? bool_true : bool_false);
+      result = new ConstantComp(negate_result ? bool_true : bool_false);
     } else {
       if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
-        result = Constant(negate_result ? bool_false : bool_true);
+        result = new ConstantComp(negate_result ? bool_false : bool_true);
       } else {
-        result = Constant(negate_result ? bool_true : bool_false);
+        result = new ConstantComp(negate_result ? bool_true : bool_false);
       }
     }
     ReturnComputation(result);
@@ -1515,7 +1507,7 @@ void EffectGraphVisitor::BuildConstructorCall(
     ConstructorCallNode* node,
     PushArgumentInstr* push_alloc_value) {
   Value* ctor_arg = Bind(
-      Constant(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll))));
+      new ConstantComp(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll))));
   PushArgumentInstr* push_ctor_arg = PushArgument(ctor_arg);
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
@@ -1603,7 +1595,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     ASSERT(!type.IsMalformed());
     type_arguments = type.arguments();
     type_arguments = type_arguments.Canonicalize();
-    return Bind(Constant(type_arguments));
+    return Bind(new ConstantComp(type_arguments));
   }
   Function& outer_function =
       Function::Handle(owner()->parsed_function().function().raw());
@@ -1641,7 +1633,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
     intptr_t token_pos,
     const AbstractTypeArguments& type_arguments) {
   if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
-    return Bind(Constant(type_arguments));
+    return Bind(new ConstantComp(type_arguments));
   }
   // The type arguments are uninstantiated.
   Value* instantiator_value =
@@ -1662,7 +1654,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    Value* type_arguments_val = Bind(Constant(node->type_arguments()));
+    Value* type_arguments_val = Bind(new ConstantComp(node->type_arguments()));
     if (call_arguments != NULL) {
       ASSERT(type_arguments == NULL);
       call_arguments->Add(PushArgument(type_arguments_val));
@@ -1672,8 +1664,8 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     }
 
     // No instantiator required.
-    Value* instantiator_val = Bind(
-        Constant(Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
+    Value* instantiator_val = Bind(new ConstantComp(
+        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
     if (call_arguments != NULL) {
       ASSERT(instantiator == NULL);
       call_arguments->Add(PushArgument(instantiator_val));
@@ -2173,7 +2165,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       Value* current_context = Bind(new CurrentContextComp());
       Do(BuildStoreLocal(*owner()->parsed_function().saved_context_var(),
                          current_context));
-      Value* null_context = Bind(Constant(Object::ZoneHandle()));
+      Value* null_context = Bind(new ConstantComp(Object::ZoneHandle()));
       Do(new StoreContextComp(null_context));
     }
 
@@ -2207,7 +2199,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
           // the function.
-          Value* null_constant = Bind(Constant(Object::ZoneHandle()));
+          Value* null_constant =
+              Bind(new ConstantComp(Object::ZoneHandle()));
           Do(BuildStoreLocal(*temp_local, null_constant));
         }
       }
@@ -2376,7 +2369,7 @@ void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
 // so that the fragment is not closed in the middle of an expression.
 void ValueGraphVisitor::VisitThrowNode(ThrowNode* node) {
   BuildThrowNode(node);
-  ReturnComputation(Constant(Instance::ZoneHandle()));
+  ReturnComputation(new ConstantComp(Instance::ZoneHandle()));
 }
 
 

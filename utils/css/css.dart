@@ -62,7 +62,7 @@ String cssParseAndValidateDebug(String cssExpression, CssWorld cssworld) {
       Validate.template(tree.selectors, cssworld);
       output = prettyTree;
     }
-  } catch (var e) {
+  } catch (e) {
     String error = e.toString();
     output = "$error\n$prettyTree";
     throw e;

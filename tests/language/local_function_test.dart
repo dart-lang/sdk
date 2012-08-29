@@ -142,21 +142,21 @@ class LocalFunctionTest {
     bool exception_caught = false;
     try {
       f(1, 2);
-    } catch (ClosureArgumentMismatchException e) {
+    } on ClosureArgumentMismatchException catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       f();
-    } catch (ClosureArgumentMismatchException e) {
+    } on ClosureArgumentMismatchException catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       f.xyz(0);
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
@@ -166,7 +166,7 @@ class LocalFunctionTest {
     exception_caught = false;
     try {
       f(1);
-    } catch (ObjectNotClosureException e) {
+    } on ObjectNotClosureException catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

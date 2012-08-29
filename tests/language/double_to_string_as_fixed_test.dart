@@ -89,7 +89,7 @@ class ToStringAsFixedTest {
       bool thrown = false;
       try {
         0.0.toStringAsFixed(-1);
-      } catch (final e) {
+      } catch (e) {
         thrown = true;
       }
       Expect.equals(true, thrown);
@@ -98,7 +98,7 @@ class ToStringAsFixedTest {
       bool thrown = false;
       try {
         0.0.toStringAsFixed(22);
-      } catch (final e) {
+      } catch (e) {
         thrown = true;
       }
       Expect.equals(true, thrown);

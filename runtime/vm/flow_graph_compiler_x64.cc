@@ -26,6 +26,8 @@ DECLARE_FLAG(bool, trace_functions);
 
 void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
                                       intptr_t stub_ix) {
+  // Calls do not need stubs, they share a deoptimization trampoline.
+  if (reason_ == kDeoptAtCall) return;
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -235,7 +237,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Bool interface can be implemented only by core class Bool.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
-  if (type.IsBoolInterface()) {
+  if (type.IsBoolType()) {
     __ cmpl(kClassIdReg, Immediate(kBoolCid));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
@@ -1062,6 +1064,9 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
   AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos,
                        try_index);
   RecordSafepoint(locs);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id, token_pos);
+  }
   __ Drop(argument_count);
 }
 

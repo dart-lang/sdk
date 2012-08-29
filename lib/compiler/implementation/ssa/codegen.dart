@@ -48,6 +48,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         parameters.add(new js.Parameter(name));
       });
+      addTypeParameters(work.element, parameters, parameterNames);
       String parametersString = Strings.join(parameterNames.getValues(), ", ");
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
@@ -78,6 +79,25 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
+  void addTypeParameters(Element element,
+                        List<js.Parameter> parameters,
+                        Map<Element, String> parameterNames) {
+    if (element.isFactoryConstructor() || element.isGenerativeConstructor()) {
+      ClassElement cls = element.enclosingElement;
+      cls.typeVariables.forEach((TypeVariableType typeVariable) {
+        String name = typeVariable.element.name.slowToString();
+        String prefix = '';
+        // Avoid collisions with real parameters of the method.
+        do {
+          name = JsNames.getValid('$prefix$name');
+          prefix = '\$$prefix';
+        } while (parameterNames.containsValue(name));
+        parameterNames[typeVariable.element] = name;
+        parameters.add(new js.Parameter(name));
+      });
+    }
+  }
+
   CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
@@ -87,6 +107,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         parameters.add(new js.Parameter(name));
       });
+      addTypeParameters(work.element, parameters, parameterNames);
+
       SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
@@ -131,9 +153,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    *   variable = expression
    * which are also valid as parts of a "var" declaration.
    */
-  static final int TYPE_STATEMENT = 0;
-  static final int TYPE_EXPRESSION = 1;
-  static final int TYPE_DECLARATION = 2;
+  static const int TYPE_STATEMENT = 0;
+  static const int TYPE_EXPRESSION = 1;
+  static const int TYPE_DECLARATION = 2;
 
   /**
    * Whether we are currently generating expressions instead of statements.
@@ -1626,7 +1648,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    if (node.isStatement(types)) {
+    if (node.isJsStatement(types)) {
       if (!inputs.isEmpty()) {
         compiler.internalError("foreign statement with inputs: $code",
                                instruction: node);
@@ -2259,13 +2281,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, element);
       attachLocationToLast(node);
     }
-    if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
+    if (node.hasTypeInfo()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
       Link<Type> arguments = interfaceType.arguments;
       js.Expression result = pop();
-      checkObject(node.typeInfoCall, '===');
-      result = new js.Binary('&&', result, pop());
       for (TypeVariableType typeVariable in cls.typeVariables) {
         use(node.typeInfoCall);
         // TODO(johnniwinther): Retrieve the type name properly and not through

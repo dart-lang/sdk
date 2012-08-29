@@ -29,12 +29,12 @@ class YTD_Sales {
 void debug() {
   try {
     throw "DEBUG";
-  } catch (var e) {
+  } catch (e) {
     print("DEBUGBREAK");
-  }  
+  }
 }
 
-void main() { 
+void main() {
   List<Division> divisions = [];
   List<Product> products;
   List<YTD_Sales> sales;

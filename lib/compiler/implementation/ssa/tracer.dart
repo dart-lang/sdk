@@ -9,8 +9,8 @@
 #import('../js_backend/js_backend.dart');
 #import('../leg.dart');
 
-final bool GENERATE_SSA_TRACE = false;
-final String SSA_TRACE_FILTER = null;
+const bool GENERATE_SSA_TRACE = false;
+const String SSA_TRACE_FILTER = null;
 
 class HTracer extends HGraphVisitor implements Tracer {
   JavaScriptItemCompilationContext context;

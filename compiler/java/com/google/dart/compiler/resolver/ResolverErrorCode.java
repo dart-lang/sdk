@@ -133,7 +133,6 @@ public enum ResolverErrorCode implements ErrorCode {
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
-  IS_A_CLASS("%s is a class and cannot be used as an expression"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
   IS_AN_INSTANCE_FIELD("%s.%s is an instance field, not a static method"),
@@ -147,6 +146,9 @@ public enum ResolverErrorCode implements ErrorCode {
   MAP_LITERAL_ELEMENT_TYPE(
       "Map literal element type must match declaration '%s' when type checks are on."),
   MEMBER_WITH_NAME_OF_CLASS("Class member should not have the same name as the enclosing class"),
+  CONSTRUCTOR_WITH_NAME_OF_MEMBER(
+      ErrorSeverity.WARNING,
+      "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),

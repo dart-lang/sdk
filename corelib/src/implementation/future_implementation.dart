@@ -109,7 +109,7 @@ class FutureImpl<T> implements Future<T> {
     if (_isComplete) {
       try {
         complete(this);
-      } catch (final e) {}
+      } catch (e) {}
     } else {
       _completionListeners.add(complete);
     }
@@ -143,7 +143,7 @@ class FutureImpl<T> implements Future<T> {
       for (Function listener in _completionListeners) {
         try {
           listener(this);
-        } catch (final e) {}
+        } catch (e) {}
       }
     }
   }
@@ -179,7 +179,7 @@ class FutureImpl<T> implements Future<T> {
       var transformed = null;
       try {
         transformed = transformation(v);
-      } catch (final ex, final stackTrace) {
+      } catch (ex, stackTrace) {
         completer.completeException(ex, stackTrace);
         return;
       }
@@ -198,7 +198,7 @@ class FutureImpl<T> implements Future<T> {
       var future = null;
       try {
         future = transformation(v);
-      } catch (final ex, final stackTrace) {
+      } catch (ex, stackTrace) {
         completer.completeException(ex, stackTrace);
         return;
       }

@@ -16,7 +16,7 @@ class Helper {
       if (j > 0) {
         throw new MyException("Test for exception being thrown");
       }
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       i = 100;
       print(exception.message_);
     } finally {

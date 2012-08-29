@@ -179,7 +179,7 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
     # Since we are currently generating native classes without interfaces,
     # generate the constants as part of the class.  This will need to go away
     # if we revert back to generating interfaces.
-    self._members_emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
+    self._members_emitter.Emit('\n  static const $TYPE $NAME = $VALUE;\n',
                                NAME=constant.id,
                                TYPE=self._DartType(constant.type.id),
                                VALUE=constant.value)

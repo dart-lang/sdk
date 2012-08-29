@@ -103,10 +103,10 @@ class TestClass {
         test();
         tearDown();
         return new PassedTest(description);
-      } catch (ExpectException x) {
+      } on ExpectException catch (x) {
         tearDown();
         return new FailedTest(description, x);
-      } catch (var x, var stacktrace) {
+      } catch (x, stacktrace) {
         tearDown();
         return new TestError(description, x, stacktrace);
       }

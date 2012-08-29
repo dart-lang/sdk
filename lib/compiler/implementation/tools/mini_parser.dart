@@ -99,15 +99,15 @@ void parseFile(String filename, MyOptions options) {
   try {
     Token token = scan(file);
     if (!options.scanOnly) parser.parseUnit(token);
-  } catch (ParserError ex) {
+  } on ParserError catch (ex) {
     if (options.throwOnError) {
       throw;
     } else {
       print(ex);
     }
-  } catch (MalformedInputException ex) {
+  } on MalformedInputException catch (ex) {
     // Already diagnosed.
-  } catch (var ex) {
+  } catch (ex) {
     print('Error in file: $filename');
     throw;
   }
@@ -126,7 +126,7 @@ Token scan(MySourceFile source) {
   Scanner scanner = new ByteArrayScanner(source.rawText);
   try {
     return scanner.tokenize();
-  } catch (MalformedInputException ex) {
+  } on MalformedInputException catch (ex) {
     if (ex.position is Token) {
       print(formatError(ex.message, ex.position, ex.position, source));
     } else {
@@ -144,7 +144,7 @@ void parseFilesFrom(InputStream input, MyOptions options, Function whenDone) {
     stopwatch.start();
     try {
       parseFile(line, options);
-    } catch (var ex, var trace) {
+    } catch (ex, trace) {
       filesWithCrashes.add(line);
       print(ex);
       print(trace);
@@ -180,7 +180,7 @@ List<int> read(String filename) {
   } finally {
     try {
       file.closeSync();
-    } catch (var ex) {
+    } catch (ex) {
       if (!threw) throw;
     }
   }

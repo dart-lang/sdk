@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class JsNames {
-  static final javaScriptKeywords = const <String>[
+  static const javaScriptKeywords = const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -18,7 +18,7 @@ class JsNames {
     "long", "short", "volatile"
   ];
 
-  static final reservedGlobalSymbols = const <String>[
+  static const reservedGlobalSymbols = const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -150,7 +150,7 @@ class JsNames {
     "call"
   ];
 
-  static final reservedPropertySymbols =
+  static const reservedPropertySymbols =
       const <String>["__PROTO__", "prototype", "constructor"];
 
   static Set<String> _reserved;

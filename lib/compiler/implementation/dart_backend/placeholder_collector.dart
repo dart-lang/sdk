@@ -22,15 +22,30 @@ class FunctionScope {
   }
 }
 
+class DeclarationTypePlaceholder {
+  final TypeAnnotation typeNode;
+  final bool requiresVar;
+  DeclarationTypePlaceholder(this.typeNode, this.requiresVar);
+}
+
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
   SendVisitor(this.collector, TreeElements elements) : super(elements);
 
-  visitDynamicSend(Send node) {}
-  visitSuperSend(Send node) {}
   visitOperatorSend(Send node) {}
   visitForeignSend(Send node) {}
+
+  visitSuperSend(Send node) {
+    collector.tryMakeMemberPlaceholder(node.selector);
+  }
+
+  visitDynamicSend(Send node) {
+    final element = elements[node];
+    if (element === null || !element.isErroneous()) {
+      collector.tryMakeMemberPlaceholder(node.selector);
+    }
+  }
 
   visitClosureSend(Send node) {
     final element = elements[node];
@@ -42,27 +57,64 @@ class SendVisitor extends ResolvedVisitor {
   visitGetterSend(Send node) {
     final element = elements[node];
     // element === null means dynamic property access.
-    if (element === null) return;
-    if (element.isPrefix()) {
+    if (element === null) {
+      collector.tryMakeMemberPlaceholder(node.selector);
+    } else if (element.isPrefix()) {
       // Node is prefix part in case of source 'lib.somesetter = 5;'
       collector.makeNullPlaceholder(node);
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Unqualified or prefixed top level or static.
       collector.makeElementPlaceholder(node.selector, element);
     } else if (!element.isTopLevel()) {
-      // May get FunctionExpression here in selector
-      // in case of A(int this.f());
-      if (node.selector is Identifier) {
-        collector.tryMakeLocalPlaceholder(element, node.selector);
+      if (element.isInstanceMember()) {
+        collector.tryMakeMemberPlaceholder(node.selector);
       } else {
-        assert(node.selector is FunctionExpression);
+        // May get FunctionExpression here in selector
+        // in case of A(int this.f());
+        if (node.selector is Identifier) {
+          collector.tryMakeLocalPlaceholder(element, node.selector);
+        } else {
+          assert(node.selector is FunctionExpression);
+        }
       }
     }
   }
 
   visitStaticSend(Send node) {
     final element = elements[node];
-    if (element.isConstructor() || element.isFactoryConstructor()) return;
+    if (element.isConstructor() || element.isFactoryConstructor()) {
+      // Rename named constructor in redirection position:
+      // class C { C.named(); C.redirecting() : this.named(); }
+      if (node.receiver is Identifier
+          && node.receiver.asIdentifier().isThis()) {
+        assert(node.selector is Identifier);
+        collector.tryMakeMemberPlaceholder(node.selector);
+      }
+      // Field names can be exposed as names of optional arguments, e.g.
+      // class C {
+      //   final field;
+      //   C([this.field]);
+      // }
+      // Do not forget to rename them as well.
+      FunctionElement functionElement = element;
+      Link<Element> optionalParameters =
+          functionElement.functionSignature.optionalParameters;
+      for (final argument in node.argumentsNode) {
+        NamedArgument named = argument.asNamedArgument();
+        if (named === null) continue;
+        Identifier name = named.name;
+        String nameAsString = name.source.slowToString();
+        for (final parameter in optionalParameters) {
+          if (parameter.kind === ElementKind.FIELD_PARAMETER) {
+            if (parameter.name.slowToString() == nameAsString) {
+              collector.tryMakeMemberPlaceholder(name);
+              break;
+            }
+          }
+        }
+      }
+      return;
+    }
     collector.makeElementPlaceholder(node.selector, element);
     // Another ugly case: <lib prefix>.<top level> is represented as
     // receiver: lib prefix, selector: top level.
@@ -80,11 +132,14 @@ class SendVisitor extends ResolvedVisitor {
 
 class PlaceholderCollector extends AbstractVisitor {
   final Compiler compiler;
+  final Set<String> fixedMemberNames; // member names which cannot be renamed.
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
   final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
+  final List<DeclarationTypePlaceholder> declarationTypePlaceholders;
+  final Map<String, Set<Identifier>> memberPlaceholders;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
   TreeElements treeElements;
@@ -92,12 +147,14 @@ class PlaceholderCollector extends AbstractVisitor {
   LibraryElement get coreLibrary => compiler.coreLibrary;
   FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
 
-  PlaceholderCollector(this.compiler) :
+  PlaceholderCollector(this.compiler, this.fixedMemberNames) :
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
       functionScopes = new Map<FunctionElement, FunctionScope>(),
-      privateNodes = new Map<LibraryElement, Set<Identifier>>();
+      privateNodes = new Map<LibraryElement, Set<Identifier>>(),
+      declarationTypePlaceholders = new List<DeclarationTypePlaceholder>(),
+      memberPlaceholders = new Map<String, Set<Identifier>>();
 
   void tryMakeConstructorNamePlaceholder(
       FunctionExpression constructor, ClassElement element) {
@@ -149,21 +206,26 @@ class PlaceholderCollector extends AbstractVisitor {
       // just to escape conflicts and that should be enough as we shouldn't
       // be able to resolve private identifiers for other libraries.
       makeElementPlaceholder(node.name, element);
+    } else if (element.isMember()) {
+      if (node.name is Identifier) {
+        tryMakeMemberPlaceholder(node.name);
+      } else {
+        assert(node.name.asSend().isOperator);
+      }
     }
   }
 
   void collectFieldDeclarationPlaceholders(
       Element element, VariableDefinitions node) {
+    Node fieldNode = element.parseNode(compiler);
+    Identifier name =
+        fieldNode is Identifier ? fieldNode : fieldNode.asSend().selector;
     if (Elements.isStaticOrTopLevel(element)) {
-      Node fieldNode = element.parseNode(compiler);
-      if (fieldNode is Identifier) {
-        makeElementPlaceholder(fieldNode, element);
-      } else if (fieldNode is SendSet) {
-        makeElementPlaceholder(fieldNode.selector, element);
-      } else {
-        unreachable();
-      }
+      makeElementPlaceholder(name, element);
+    } else if (Elements.isInstanceField(element)) {
+      tryMakeMemberPlaceholder(name);
     }
+    makeVarDeclarationTypePlaceholder(node);
   }
 
   void collect(Element element, TreeElements elements) {
@@ -213,8 +275,36 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
+  void tryMakeMemberPlaceholder(Identifier node) {
+    assert(node !== null);
+    if (node.source.isPrivate()) return;
+    if (node is Operator) return;
+    final identifier = node.source.slowToString();
+    if (fixedMemberNames.contains(identifier)) return;
+    memberPlaceholders.putIfAbsent(
+        identifier, () => new Set<Identifier>()).add(node);
+  }
+
   void makeTypePlaceholder(Node node, Type type) {
     makeElementPlaceholder(node, type.element);
+  }
+
+  void makeOmitDeclarationTypePlaceholder(TypeAnnotation type) {
+    if (type === null) return;
+    declarationTypePlaceholders.add(
+        new DeclarationTypePlaceholder(type, false));
+  }
+
+  void makeVarDeclarationTypePlaceholder(VariableDefinitions node) {
+    // TODO(smok): Maybe instead of calling this method and
+    // makeDeclaratioTypePlaceholder have type declaration placeholder
+    // collector logic in visitVariableDefinitions when resolver becomes better
+    // and/or catch syntax changes.
+    if (node.type === null) return;
+    Element definitionElement = treeElements[node.definitions.nodes.head];
+    bool requiresVar = !node.modifiers.isFinalOrConst();
+    declarationTypePlaceholders.add(
+        new DeclarationTypePlaceholder(node.type, requiresVar));
   }
 
   void makeNullPlaceholder(Node node) {
@@ -226,8 +316,7 @@ class PlaceholderCollector extends AbstractVisitor {
     assert(element !== null);
     if (element === entryFunction) return;
     if (element.getLibrary() === coreLibrary) return;
-    if (isDartCoreLib(compiler, element.getLibrary())
-        && !element.isTopLevel()) {
+    if (element.getLibrary().isPlatformLibrary && !element.isTopLevel()) {
       return;
     }
     if (element == compiler.types.dynamicType.element) {
@@ -286,7 +375,15 @@ class PlaceholderCollector extends AbstractVisitor {
         makeElementPlaceholder(send.selector, element);
       } else {
         assert(send.selector is Identifier);
-        tryMakeLocalPlaceholder(element, send.selector);
+        if (Elements.isInstanceField(element)) {
+          tryMakeMemberPlaceholder(send.selector);
+        } else {
+          tryMakeLocalPlaceholder(element, send.selector);
+        }
+      }
+    } else {
+      if (send.receiver !== null) {
+        tryMakeMemberPlaceholder(send.selector);
       }
     }
     send.visitChildren(this);
@@ -332,10 +429,14 @@ class PlaceholderCollector extends AbstractVisitor {
           final send = node.typeName.asSend();
           Identifier receiver = send.receiver;
           Identifier selector = send.selector;
-          final hasPrefix = element is TypedefElement ||
-              element.lookupConstructor(receiver.source, selector.source)
-                  === null;
-          if (!hasPrefix) target = send.receiver;
+          hasPrefix() {
+            if (element is TypedefElement) return true;
+            ClassElement classElement = element;
+            final constructor = classElement.lookupConstructor(
+                receiver.source, selector.source);
+            return constructor === null;
+          }
+          if (!hasPrefix()) target = send.receiver;
         }
       }
       // TODO(antonm): is there a better way to detect unresolved types?
@@ -362,9 +463,17 @@ class PlaceholderCollector extends AbstractVisitor {
           // May get FunctionExpression here in definition.selector
           // in case of A(int this.f());
           if (definition.selector is Identifier) {
-            tryMakeLocalPlaceholder(definitionElement, definition.selector);
+            if (definitionElement.kind === ElementKind.FIELD_PARAMETER) {
+              tryMakeMemberPlaceholder(definition.selector);
+            } else {
+              tryMakeLocalPlaceholder(definitionElement, definition.selector);
+            }
           } else {
             assert(definition.selector is FunctionExpression);
+            if (definitionElement.kind === ElementKind.FIELD_PARAMETER) {
+              tryMakeMemberPlaceholder(
+                  definition.selector.asFunctionExpression().name);
+            }
           }
         } else if (definition is Identifier) {
           tryMakeLocalPlaceholder(definitionElement, definition);
@@ -391,6 +500,22 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
     node.visitChildren(this);
+    makeOmitDeclarationTypePlaceholder(node.returnType);
+    collectFunctionParameters(node.parameters);
+  }
+
+  void collectFunctionParameters(NodeList parameters) {
+    if (parameters === null) return;
+    for (Node parameter in parameters.nodes) {
+      if (parameter is NodeList) {
+        // Optional parameter list.
+        collectFunctionParameters(parameter);
+      } else {
+        assert(parameter is VariableDefinitions);
+        makeOmitDeclarationTypePlaceholder(
+            parameter.asVariableDefinitions().type);
+      }
+    }
   }
 
   visitClassNode(ClassNode node) {
@@ -438,6 +563,17 @@ class PlaceholderCollector extends AbstractVisitor {
   visitTypedef(Typedef node) {
     assert(currentElement is TypedefElement);
     makeElementPlaceholder(node.name, currentElement);
+    node.visitChildren(this);
+    makeOmitDeclarationTypePlaceholder(node.returnType);
+    collectFunctionParameters(node.formals);
+  }
+
+  visitBlock(Block node) {
+    for (Node statement in node.statements.nodes) {
+      if (statement is VariableDefinitions) {
+        makeVarDeclarationTypePlaceholder(statement);
+      }
+    }
     node.visitChildren(this);
   }
 }

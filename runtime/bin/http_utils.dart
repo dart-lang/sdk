@@ -212,7 +212,7 @@ class _HttpUtils {
       try {
         int value = parseInt(tmp);
         return value;
-      } catch (FormatException e) {
+      } on FormatException catch (e) {
         throw new HttpException("Invalid HTTP date $date");
       }
     }

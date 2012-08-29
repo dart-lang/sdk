@@ -9,7 +9,6 @@
     'array.cc',
     'array.dart',
     'array_patch.dart',
-    'bool.dart',
     'date.cc',
     'date_patch.dart',
     'double.cc',

@@ -21,9 +21,9 @@ class SocketExceptionTest {
     server.close();
     try {
       server.close();
-    } catch (SocketIOException ex) {
+    } on SocketIOException catch(ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(false, exceptionCaught);
@@ -45,9 +45,9 @@ class SocketExceptionTest {
       client.close();
       try {
         client.close();
-      } catch (SocketIOException ex) {
+      } on SocketIOException catch(ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(false, exceptionCaught);
@@ -55,9 +55,9 @@ class SocketExceptionTest {
       exceptionCaught = false;
       try {
         client.available();
-      } catch (SocketIOException ex) {
+      } on SocketIOException catch(ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -66,9 +66,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.readList(buffer, 0 , 10);
-      } catch (SocketIOException ex) {
+      } on SocketIOException catch(ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -77,9 +77,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.writeList(buffer, 0, 10);
-      } catch (SocketIOException ex) {
+      } on SocketIOException catch(ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -88,9 +88,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(42);
         input.readInto(buffer, 0, 12);
-      } catch (SocketIOException ex) {
+      } on SocketIOException catch(ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -99,9 +99,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(42);
         output.writeFrom(buffer, 0, 12);
-      } catch (SocketIOException ex) {
+      } on SocketIOException catch(ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -124,9 +124,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.readList(buffer, -1, 1);
-      } catch (IndexOutOfRangeException ex) {
+      } on IndexOutOfRangeException catch (ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -136,9 +136,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.readList(buffer, 0, -1);
-      } catch (IndexOutOfRangeException ex) {
+      } on IndexOutOfRangeException catch (ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -148,9 +148,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.writeList(buffer, -1, 1);
-      } catch (IndexOutOfRangeException ex) {
+      } on IndexOutOfRangeException catch (ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);
@@ -160,9 +160,9 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.writeList(buffer, 0, -1);
-      } catch (IndexOutOfRangeException ex) {
+      } on IndexOutOfRangeException catch (ex) {
         exceptionCaught = true;
-      } catch (Exception ex) {
+      } on Exception catch (ex) {
         wrongExceptionCaught = true;
       }
       Expect.equals(true, exceptionCaught);

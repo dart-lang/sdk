@@ -14,7 +14,7 @@ class ListIteratorsTest {
     bool exceptionCaught = false;
     try {
      var eleme = it.next();
-    } catch (NoMoreElementsException e) {
+    } on NoMoreElementsException catch (e) {
      exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

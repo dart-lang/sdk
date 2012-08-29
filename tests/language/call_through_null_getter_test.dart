@@ -70,7 +70,7 @@ class CallThroughNullGetterTest {
     try {
       fn();
       Expect.equals(true, false);  // Shouldn't reach this.
-    } catch (var e) {
+    } catch (e) {
       caught = true;
       result = e;
     }

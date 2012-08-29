@@ -4,5 +4,9 @@
 
 // Dart core library.
 
-interface bool {
+class bool {
+  factory bool._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "class bool cannot be instantiated");
+  }
 }

@@ -69,7 +69,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
       String build = match[8];
 
       return new Version(major, minor, patch, preRelease, build);
-    } catch (FormatException ex) {
+    } on FormatException catch (ex) {
       throw new FormatException('Could not parse "$text".');
     }
   }
@@ -183,7 +183,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
     return text.split('.').map((part) {
       try {
         return parseInt(part);
-      } catch (FormatException ex) {
+      } on FormatException catch (ex) {
         // Not a number.
         return part;
       }

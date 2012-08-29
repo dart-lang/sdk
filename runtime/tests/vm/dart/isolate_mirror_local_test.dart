@@ -368,7 +368,7 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   bool saw_exception = false;
   try {
     mirror.reflectee;
-  } catch (MirrorException me) {
+  } on MirrorException catch (me) {
     saw_exception = true;
   }
   Expect.isFalse(saw_exception);

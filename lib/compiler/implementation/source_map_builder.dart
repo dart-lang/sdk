@@ -9,11 +9,11 @@
 #import('source_file.dart');
 
 class SourceMapBuilder {
-  static final int VLQ_BASE_SHIFT = 5;
-  static final int VLQ_BASE_MASK = (1 << 5) - 1;
-  static final int VLQ_CONTINUATION_BIT = 1 << 5;
-  static final int VLQ_CONTINUATION_MASK = 1 << 5;
-  static final String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
+  static const int VLQ_BASE_SHIFT = 5;
+  static const int VLQ_BASE_MASK = (1 << 5) - 1;
+  static const int VLQ_CONTINUATION_BIT = 1 << 5;
+  static const int VLQ_CONTINUATION_MASK = 1 << 5;
+  static const String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
                                       'opqrstuvwxyz0123456789+/';
 
   List<_Entry> entries;

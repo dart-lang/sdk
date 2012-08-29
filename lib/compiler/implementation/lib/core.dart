@@ -17,6 +17,7 @@
 #source('../../../../corelib/src/double.dart');
 #source('../../../../corelib/src/duration.dart');
 #source('../../../../corelib/src/exceptions.dart');
+#source('../../../../corelib/src/errors.dart');
 #source('../../../../corelib/src/expando.dart');
 #source('../../../../corelib/src/expect.dart');
 #source('../../../../corelib/src/function.dart');
@@ -38,6 +39,7 @@
 #source('../../../../corelib/src/string.dart');
 #source('../../../../corelib/src/string_buffer.dart');
 #source('../../../../corelib/src/strings.dart');
+#source('errors.dart');
 #source('mock.dart');
 
 void print(var obj) {

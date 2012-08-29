@@ -56,7 +56,7 @@ class SavannahTest  {
     try {
       savannah[zebra1] = zebra1.name;
       savannah[zebra2] = zebra2.name;
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       print("Caught: $e");
       caught = true;
     }
@@ -70,7 +70,7 @@ class SavannahTest  {
     try {
       print("zebra1: ${savannah[zebra1]}");
       print("zebra2: ${savannah[zebra2]}");
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       print("Caught: $e");
       caught = true;
     }

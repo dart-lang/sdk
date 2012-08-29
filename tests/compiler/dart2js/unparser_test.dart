@@ -31,6 +31,7 @@ interface double extends num {}
 interface String {}
 interface Function {}
 interface List {}
+interface Map {}
 interface Closure {}
 interface Dynamic {}
 interface Null {}
@@ -47,12 +48,13 @@ class Platform {
 }
 ''';
 
-testDart2Dart(String src, [void continuation(String s), bool minify = false]) {
+testDart2Dart(String src, [void continuation(String s), bool minify = false,
+    bool cutDeclarationTypes = false]) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
     continuation = (s) { Expect.equals(src, s); };
   }
-  testDart2DartWithLibrary(src, '', continuation, minify);
+  testDart2DartWithLibrary(src, '', continuation, minify, cutDeclarationTypes);
 }
 
 /**
@@ -60,7 +62,8 @@ testDart2Dart(String src, [void continuation(String s), bool minify = false]) {
  */
 testDart2DartWithLibrary(
     String srcMain, String srcLibrary,
-    [void continuation(String s), bool minify = false]) {
+    [void continuation(String s), bool minify = false,
+    bool cutDeclarationTypes = false]) {
   fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
@@ -84,6 +87,7 @@ testDart2DartWithLibrary(
 
   final options = <String>['--output-type=dart'];
   if (minify) options.add('--minify');
+  if (cutDeclarationTypes) options.add('--cutDeclarationTypes');
 
   compile(
       scriptUri,
@@ -473,7 +477,8 @@ main() {
   compiler.parseScript(src);
   FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
   compiler.processQueue(compiler.enqueuer.resolution, mainElement);
-  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  PlaceholderCollector collector =
+      new PlaceholderCollector(compiler, new Set<String>());
   collector.collect(mainElement,
       compiler.enqueuer.resolution.resolvedElements[mainElement]);
   FunctionExpression mainNode = mainElement.parseNode(compiler);
@@ -501,7 +506,8 @@ main() {
   compiler.parseScript(src);
   ClassElement interfaceElement = compiler.mainApp.find(buildSourceString('I'));
   interfaceElement.ensureResolved(compiler);
-  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  PlaceholderCollector collector =
+      new PlaceholderCollector(compiler, new Set<String>());
   collector.collect(interfaceElement,
       compiler.enqueuer.resolution.resolvedElements[interfaceElement]);
   ClassNode interfaceNode = interfaceElement.parseNode(compiler);
@@ -741,9 +747,9 @@ main() {
 }
 ''';
   var expectedResult =
-      'class A{var a;static B(b){b=5;}}'
+      'class A{var D;static B(b){b=5;}}'
       'C(a,[optionalarg=7]){a=6;}'
-      'main(){new A().a; A.B(8); C(8);}';
+      'main(){new A().D; A.B(8); C(8);}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
@@ -779,6 +785,25 @@ main() {
     'main(){new Link<int>();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
+}
+
+testDeclarationTypePlaceholders() {
+  var src = '''
+String globalfield;
+const String globalconstfield;
+
+void foo(String arg) {}
+
+main() {
+  String localvar;
+  foo("5");
+}
+''';
+  var expectedResult =
+      ' foo( arg){}main(){var localvar; foo("5");}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); },
+      cutDeclarationTypes: true);
 }
 
 main() {
@@ -822,4 +847,5 @@ main() {
   testClosureLocalsMinified();
   testParametersMinified();
   testTypeVariablesInDifferentLibraries();
+  testDeclarationTypePlaceholders();
 }

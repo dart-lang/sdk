@@ -28,7 +28,7 @@ class StringTest {
     bool exception_caught = false;
     try {
       var c = a[20];  // Throw exception.
-    } catch (IndexOutOfRangeException e) {
+    } on IndexOutOfRangeException catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
@@ -40,9 +40,9 @@ class StringTest {
     try {
       var c = a[2.2];  // Throw exception.
       Expect.equals(true, false);
-    } catch (IllegalArgumentException e) {
+    } on IllegalArgumentException catch (e) {
       exception_caught = true;
-    } catch (TypeError e) {  // Thrown in checked mode only.
+    } on TypeError catch (e) {  // Thrown in checked mode only.
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

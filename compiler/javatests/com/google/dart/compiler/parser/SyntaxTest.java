@@ -7,6 +7,7 @@ package com.google.dart.compiler.parser;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
@@ -19,7 +20,6 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
-import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -59,6 +59,20 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("test.dart", Joiner.on('\n').join(
         "main() {",
         "  try { {'1' : 1, '2' : 2}['1']++; } catch(var e) {}",
+        "}"));
+  }
+
+  public void test_redirectingFactoryConstructor_const() {
+    parseUnit("redirecting.dart", Joiner.on("\n").join(
+        "class B {",
+        "  const factory B.n(int x) = A.m;",
+        "}"));
+  }
+
+  public void test_redirectingFactoryConstructor_nonConst() {
+    parseUnit("redirecting.dart", Joiner.on("\n").join(
+        "class B {",
+        "  factory B.n(int x) = A.m;",
         "}"));
   }
 
@@ -160,6 +174,26 @@ public class SyntaxTest extends AbstractParserTest {
         assertEquals(true, field.getModifiers().isFinal());
       }
     }
+  }
+
+  public void test_constructor_named() {
+    DartUnit unit = parseUnit("test.dart", makeCode(
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B() = A.named;",
+        "}"));
+    assertNotNull(unit);
+    DartNode classB = unit.getTopLevelNodes().get(1);
+    assertTrue(classB instanceof DartClass);
+    DartNode member = ((DartClass) classB).getMembers().get(0);
+    assertTrue(member instanceof DartMethodDefinition);
+    DartTypeNode typeName = ((DartMethodDefinition) member).getRedirectedTypeName();
+    assertTrue(typeName.getIdentifier() instanceof DartIdentifier);
+    DartExpression constructorName = ((DartMethodDefinition) member).getRedirectedConstructorName();
+    assertTrue(constructorName instanceof DartIdentifier);
   }
 
   /**
@@ -927,6 +961,20 @@ public class SyntaxTest extends AbstractParserTest {
     assertTrue(firstNode instanceof DartMethodDefinition);
     DartStatement statement = ((DartMethodDefinition) firstNode).getFunction().getBody().getStatements().get(0);
     assertTrue(((DartVariableStatement) statement).getModifiers().isConstant());
+  }
+
+  public void test_localVariable_final_prefixedType() {
+    DartUnit unit = parseUnit("finalVar.dart", makeCode(
+        "main() {",
+        "  final p.T v = 1;",
+        "}"));
+    assertNotNull(unit);
+    DartNode firstNode = unit.getTopLevelNodes().get(0);
+    assertTrue(firstNode instanceof DartMethodDefinition);
+    DartStatement statement = ((DartMethodDefinition) firstNode).getFunction().getBody().getStatements().get(0);
+    DartVariableStatement variableStatement = (DartVariableStatement) statement;
+    assertTrue(variableStatement.getModifiers().isFinal());
+    assertEquals("v", variableStatement.getVariables().get(0).getVariableName());
   }
 
   public void test_metadata_identifier() {

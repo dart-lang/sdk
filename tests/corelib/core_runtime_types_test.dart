@@ -47,7 +47,7 @@ class CoreRuntimeTypesTest {
   static assertTypeError(void f()) {
     try {
       f();
-    } catch (var exception) {
+    } catch (exception) {
       Expect.equals(true, (exception is TypeError) ||
                           (exception is NoSuchMethodException) ||
                           (exception is NullPointerException) ||
@@ -150,11 +150,11 @@ class CoreRuntimeTypesTest {
     try {
       y.toRadixString(0);
       Expect.fail("Illegal radix 0 accepted.");
-    } catch (var e) { }
+    } catch (e) { }
     try {
       y.toRadixString(-1);
       Expect.fail("Illegal radix -1 accepted.");
-    } catch (var e) { }
+    } catch (e) { }
   }
 
   static testStringOperators() {

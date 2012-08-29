@@ -24,7 +24,7 @@ class SetIteratorTest {
     var exception = null;
     try {
       it.next();
-    } catch (NoMoreElementsException e) {
+    } on NoMoreElementsException catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

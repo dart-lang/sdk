@@ -49,8 +49,7 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   // Assign locations to values pushed above spill slots with PushArgument.
   intptr_t height = compiler->StackSize();
   for (intptr_t i = 0; i < values.length(); i++) {
-    if (deoptimization_env_->LocationAt(i).IsInvalid() &&
-        !values[i]->IsConstant()) {
+    if (deoptimization_env_->LocationAt(i).IsInvalid()) {
       ASSERT(values[i]->AsUse()->definition()->IsPushArgument());
       *deoptimization_env_->LocationSlotAt(i) = Location::StackSlot(height++);
     }
@@ -233,6 +232,21 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 }
 
 
+void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
+                                            intptr_t token_pos) {
+  // TODO(srdjan): Temporary use deopt stubs to maintain deopt-indexes.
+  // kDeoptAtCall will not emit code, but will only generate deoptimization
+  // information.
+  const intptr_t deopt_index = deopt_stubs_.length();
+  AddDeoptStub(deopt_id, kDeoptAtCall);
+  pc_descriptors_list()->AddDescriptor(PcDescriptors::kDeoptIndex,
+                                       assembler()->CodeSize(),
+                                       deopt_id,
+                                       token_pos,
+                                       deopt_index);
+}
+
+
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
   if (is_optimizing()) {
     BitmapBuilder* bitmap = locs->stack_bitmap();
@@ -244,10 +258,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
 
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       intptr_t try_index,
                                        DeoptReasonId reason) {
-  DeoptimizationStub* stub =
-      new DeoptimizationStub(deopt_id, try_index, reason);
+  DeoptimizationStub* stub = new DeoptimizationStub(deopt_id, reason);
   ASSERT(is_optimizing_);
   ASSERT(pending_deoptimization_env_ != NULL);
   stub->set_deoptimization_env(pending_deoptimization_env_);
@@ -461,7 +473,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t arg_count,
                                         const Array& arg_names,
                                         Label* deopt,
-                                        Label* done,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         intptr_t try_index,
@@ -491,9 +502,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     assembler()->Bind(&next_test);
   }
   assembler()->Bind(&match_found);
-  if (done != NULL) {
-    assembler()->jmp(done);
-  }
 }
 
 

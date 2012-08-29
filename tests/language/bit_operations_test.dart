@@ -58,7 +58,7 @@ class BitOperationsTest {
       TestCornerCasesLeftShifts();
     }
   }
-  
+
   static void TestCornerCasesLeftShifts() {
     var v32 = 0xFF000000;
     var v64 = 0xFF00000000000000;
@@ -69,26 +69,26 @@ class BitOperationsTest {
     Expect.equals(0x1, v64 >> 0x3F);
     Expect.equals(0x0, v64 >> 0x40);
   }
-  
+
   static void TestNegativeCountShifts() {
     bool throwOnLeft(a, b) {
       try {
         var x = a << b;
         return false;
-      } catch(var e) {
+      } catch (e) {
         return true;
       }
     }
-    
+
     bool throwOnRight(a, b) {
       try {
         var x = a >> b;
         return false;
-      } catch(var e) {
+      } catch (e) {
         return true;
       }
     }
-  
+
     Expect.isTrue(throwOnLeft(12, -3));
     Expect.isTrue(throwOnRight(12, -3));
     for (int i = 0; i < 4000; i++) {

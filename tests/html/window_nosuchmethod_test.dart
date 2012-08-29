@@ -26,9 +26,9 @@ main() {
       try {
         String x = win.foo(message);
         Expect.fail('Should not reach here: $x');
-      } catch (NoSuchMethodException e) {
+      } on NoSuchMethodException catch (e) {
         // Expected exception.
-      } catch (Exception e) {
+      } on Exception catch (e) {
         Expect.fail('Wrong exception: $e');
       }
     });
@@ -45,10 +45,10 @@ main() {
       try {
         String x = dom.window.foo(message);
         Expect.fail('Should not reach here: $x');
-      } catch (NoSuchMethodException e) {
+      } on NoSuchMethodException catch (e) {
         // Expected exception.
-      } catch (Exception e) {
+      } on Exception catch (e) {
         Expect.fail('Wrong exception: $e');
       }
-    }); 
+    });
 }

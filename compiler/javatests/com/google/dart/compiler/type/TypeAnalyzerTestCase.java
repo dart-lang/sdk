@@ -147,6 +147,11 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     public Type getVoidType() {
       return voidType;
     }
+    
+    @Override
+    public InterfaceType getTypeType() {
+      return type.getType();
+    }
   }
   private class MockScope extends Scope {
     private MockScope() {

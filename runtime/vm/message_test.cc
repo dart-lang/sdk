@@ -40,14 +40,19 @@ TEST_CASE(MessageQueue_BasicOperations) {
 
   Dart_Port port = 1;
 
+  const char* str1 = "msg1";
+  const char* str2 = "msg2";
+
   // Add two messages.
   Message* msg1 =
-      new Message(port, 0, AllocMsg("msg1"), Message::kNormalPriority);
+      new Message(port, 0, AllocMsg(str1), strlen(str1) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg1);
   EXPECT(queue_peer.HasMessage());
 
   Message* msg2 =
-      new Message(port, 0, AllocMsg("msg2"), Message::kNormalPriority);
+      new Message(port, 0, AllocMsg(str2), strlen(str2) + 1,
+                  Message::kNormalPriority);
 
   queue.Enqueue(msg2);
   EXPECT(queue_peer.HasMessage());
@@ -55,12 +60,12 @@ TEST_CASE(MessageQueue_BasicOperations) {
   // Remove two messages.
   Message* msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ("msg1", reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->data()));
   EXPECT(queue_peer.HasMessage());
 
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ("msg2", reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));
   EXPECT(!queue_peer.HasMessage());
 
   delete msg1;
@@ -74,12 +79,17 @@ TEST_CASE(MessageQueue_FlushAll) {
   Dart_Port port1 = 1;
   Dart_Port port2 = 2;
 
+  const char* str1 = "msg1";
+  const char* str2 = "msg2";
+
   // Add two messages.
   Message* msg1 =
-      new Message(port1, 0, AllocMsg("msg1"), Message::kNormalPriority);
+      new Message(port1, 0, AllocMsg(str1), strlen(str1) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg1);
   Message* msg2 =
-      new Message(port2, 0, AllocMsg("msg2"), Message::kNormalPriority);
+      new Message(port2, 0, AllocMsg(str2), strlen(str2) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg2);
 
   EXPECT(queue_peer.HasMessage());
@@ -96,12 +106,17 @@ TEST_CASE(MessageQueue_Flush) {
   Dart_Port port1 = 1;
   Dart_Port port2 = 2;
 
+  const char* str1 = "msg1";
+  const char* str2 = "msg2";
+
   // Add two messages on different ports.
   Message* msg1 =
-      new Message(port1, 0, AllocMsg("msg1"), Message::kNormalPriority);
+      new Message(port1, 0, AllocMsg(str1), strlen(str1) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg1);
   Message* msg2 =
-      new Message(port2, 0, AllocMsg("msg2"), Message::kNormalPriority);
+      new Message(port2, 0, AllocMsg(str2), strlen(str2) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg2);
   EXPECT(queue_peer.HasMessage());
 
@@ -111,7 +126,7 @@ TEST_CASE(MessageQueue_Flush) {
   EXPECT(queue_peer.HasMessage());
   Message* msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ("msg2", reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));
 
   EXPECT(!queue_peer.HasMessage());
 
@@ -125,11 +140,16 @@ TEST_CASE(MessageQueue_Flush_MultipleMessages) {
   MessageQueueTestPeer queue_peer(&queue);
   Dart_Port port1 = 1;
 
+  const char* str1 = "msg1";
+  const char* str2 = "msg2";
+
   Message* msg1 =
-      new Message(port1, 0, AllocMsg("msg1"), Message::kNormalPriority);
+      new Message(port1, 0, AllocMsg(str1), strlen(str1) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg1);
   Message* msg2 =
-      new Message(port1, 0, AllocMsg("msg2"), Message::kNormalPriority);
+      new Message(port1, 0, AllocMsg(str2), strlen(str2) + 1,
+                  Message::kNormalPriority);
   queue.Enqueue(msg2);
   EXPECT(queue_peer.HasMessage());
 

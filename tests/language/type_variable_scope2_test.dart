@@ -9,7 +9,7 @@ isCheckedMode() {
     var i = 1;
     String s = i;
     return false;
-  } catch(var e) {
+  } catch (e) {
     return true;
   }
 }
@@ -25,7 +25,7 @@ main() {
   bool got_type_error = false;
   try {
     Expect.isTrue(Foo.m() is Foo);
-  } catch (TypeError error) {
+  } on TypeError catch (error) {
     got_type_error = true;
   }
   // Type error in checked mode only.

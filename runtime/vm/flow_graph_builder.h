@@ -117,8 +117,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Append a Goto (unconditional control flow) instruction and close
   // the graph fragment.  Assumes this graph fragment is open.
   void Goto(JoinEntryInstr* join);
-  // Build a computation for a constant value.
-  MaterializeComp* Constant(const Object& value);
 
   // Append a 'diamond' branch and join to this graph, depending on which
   // parts are reachable.  Assumes this graph is open.

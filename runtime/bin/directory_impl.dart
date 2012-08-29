@@ -4,16 +4,16 @@
 
 
 class _Directory implements Directory {
-  static final CREATE_REQUEST = 0;
-  static final DELETE_REQUEST = 1;
-  static final EXISTS_REQUEST = 2;
-  static final CREATE_TEMP_REQUEST = 3;
-  static final LIST_REQUEST = 4;
-  static final RENAME_REQUEST = 5;
+  static const CREATE_REQUEST = 0;
+  static const DELETE_REQUEST = 1;
+  static const EXISTS_REQUEST = 2;
+  static const CREATE_TEMP_REQUEST = 3;
+  static const LIST_REQUEST = 4;
+  static const RENAME_REQUEST = 5;
 
-  static final SUCCESS_RESPONSE = 0;
-  static final ILLEGAL_ARGUMENT_RESPONSE = 1;
-  static final OSERROR_RESPONSE = 2;
+  static const SUCCESS_RESPONSE = 0;
+  static const ILLEGAL_ARGUMENT_RESPONSE = 1;
+  static const OSERROR_RESPONSE = 2;
 
   _Directory(String this._path);
   _Directory.fromPath(Path path) : this(path.toNativePath());

@@ -379,7 +379,7 @@ class Primitives {
   }
 
   /** [: @"$".charCodeAt(0) :] */
-  static final int DOLLAR_CHAR_VALUE = 36;
+  static const int DOLLAR_CHAR_VALUE = 36;
 
   static String objectTypeName(Object object) {
     String name = constructorNameFallback(object);
@@ -438,24 +438,11 @@ class Primitives {
                                  milliseconds, isUtc) {
     checkInt(years);
     checkInt(month);
-    if (month < 1 || 12 < month) throw new IllegalArgumentException(month);
     checkInt(day);
-    if (day < 1 || 31 < day) throw new IllegalArgumentException(day);
     checkInt(hours);
-    if (hours < 0 || 24 < hours) throw new IllegalArgumentException(hours);
     checkInt(minutes);
-    if (minutes < 0 || 59 < minutes) {
-      throw new IllegalArgumentException(minutes);
-    }
     checkInt(seconds);
-    if (seconds < 0 || 59 < seconds) {
-      // TODO(ahe): Leap seconds?
-      throw new IllegalArgumentException(seconds);
-    }
     checkInt(milliseconds);
-    if (milliseconds < 0 || 999 < milliseconds) {
-      throw new IllegalArgumentException(milliseconds);
-    }
     checkBool(isUtc);
     var jsMonth = month - 1;
     var value;
@@ -755,6 +742,10 @@ makeLiteralListConst(list) {
   return list;
 }
 
+throwRuntimeError(message) {
+  throw new RuntimeError(message);
+}
+
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
@@ -798,6 +789,8 @@ unwrapException(ex) {
       }
     }
 
+    var ieErrorCode = JS('int', '#.number & 0xffff', ex);
+    var ieFacilityNumber = JS('int', '#.number>>16 & 0x1FFF', ex);
     // If we cannot use [type] to determine what kind of exception
     // we're dealing with we fall back on looking at the exception
     // message if it is available and a string.
@@ -807,11 +800,12 @@ unwrapException(ex) {
           message.endsWith('is null or undefined')) {
         return new NullPointerException();
       } else if (message.contains(' is not a function') ||
-                 message.contains("doesn't support property or method")) {
+                 (ieErrorCode == 438 && ieFacilityNumber == 10)) {
         // Examples:
         //  x.foo is not a function
         //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
-        // Object doesn't support property or method 'foo'
+        // Object doesn't support property or method 'foo' which sets the error 
+        // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
       }
@@ -936,7 +930,7 @@ jsPropertyAccess(var jsObject, String property) {
  * Called at the end of unaborted switch cases to get the singleton
  * FallThroughError exception that will be thrown.
  */
-getFallThroughError() => const FallThroughError();
+getFallThroughError() => const FallThroughErrorImplementation();
 
 /**
  * Represents the type Dynamic. The compiler treats this specially.
@@ -960,7 +954,12 @@ setRuntimeTypeInfo(target, typeInfo) {
 
 getRuntimeTypeInfo(target) {
   if (target === null) return null;
-  return JS('var', @'#.builtin$typeInfo', target);
+  var res = JS('var', @'#.builtin$typeInfo', target);
+  // If the object does not have runtime type information, return an
+  // empty literal, to avoid null checks.
+  // TODO(ngeoffray): Make the object a top-level field to avoid
+  // allocating a new object every single time.
+  return (res == null) ? JS('var', '{}') : res;
 }
 
 /**
@@ -971,81 +970,87 @@ getRuntimeTypeInfo(target) {
 stringTypeCheck(value) {
   if (value === null) return value;
   if (value is String) return value;
-  throw new TypeError('$value does not implement String');
+  throw new TypeErrorImplementation('$value does not implement String');
 }
 
 stringTypeCast(value) {
   if (value is String || value === null) return value;
   // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastException(Primitives.objectTypeName(value), 'String');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'String');
 }
 
 doubleTypeCheck(value) {
   if (value === null) return value;
   if (value is double) return value;
-  throw new TypeError('$value does not implement double');
+  throw new TypeErrorImplementation('$value does not implement double');
 }
 
 doubleTypeCast(value) {
   if (value is double || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'double');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'double');
 }
 
 numTypeCheck(value) {
   if (value === null) return value;
   if (value is num) return value;
-  throw new TypeError('$value does not implement num');
+  throw new TypeErrorImplementation('$value does not implement num');
 }
 
 numTypeCast(value) {
   if (value is num || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'num');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'num');
 }
 
 boolTypeCheck(value) {
   if (value === null) return value;
   if (value is bool) return value;
-  throw new TypeError('$value does not implement bool');
+  throw new TypeErrorImplementation('$value does not implement bool');
 }
 
 boolTypeCast(value) {
   if (value is bool || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'bool');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'bool');
 }
 
 functionTypeCheck(value) {
   if (value === null) return value;
   if (value is Function) return value;
-  throw new TypeError('$value does not implement Function');
+  throw new TypeErrorImplementation('$value does not implement Function');
 }
 
 functionTypeCast(value) {
   if (value is Function || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'Function');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'Function');
 }
 
 intTypeCheck(value) {
   if (value === null) return value;
   if (value is int) return value;
-  throw new TypeError('$value does not implement int');
+  throw new TypeErrorImplementation('$value does not implement int');
 }
 
 intTypeCast(value) {
   if (value is int || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'int');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'int');
 }
 
 void propertyTypeError(value, property) {
   // Cuts the property name to the class name.
   String name = property.substring(3, property.length);
-  throw new TypeError('$value does not implement $name');
+  throw new TypeErrorImplementation('$value does not implement $name');
 }
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
   String actualType = Primitives.objectTypeName(value);
   String expectedType = property.substring(3, property.length);
-  throw new CastException(actualType, expectedType);
+  throw new CastExceptionImplementation(actualType, expectedType);
 }
 
 /**
@@ -1133,12 +1138,13 @@ stringSuperNativeTypeCast(value, property) {
 listTypeCheck(value) {
   if (value === null) return value;
   if (value is List) return value;
-  throw new TypeError('$value does not implement List');
+  throw new TypeErrorImplementation('$value does not implement List');
 }
 
 listTypeCast(value) {
   if (value is List || value === null) return value;
-  throw new CastException(Primitives.objectTypeName(value), 'List');
+  throw new CastExceptionImplementation(
+      Primitives.objectTypeName(value), 'List');
 }
 
 listSuperTypeCheck(value, property) {

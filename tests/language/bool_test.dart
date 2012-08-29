@@ -116,14 +116,14 @@ class BoolTest {
     testOr(a, b, onTypeError) {
       try {
         return a || b;
-      } catch (TypeError t) {
+      } on TypeError catch (t) {
         return onTypeError;
       }
     }
     testAnd(a, b, onTypeError) {
       try {
         return a && b;
-      } catch (TypeError t) {
+      } on TypeError catch (t) {
         return onTypeError;
       }
     }

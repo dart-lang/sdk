@@ -10,7 +10,7 @@ class TypeTest {
     int result = 0;
     try {
       int i = "hello";  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
@@ -38,7 +38,7 @@ class TypeTest {
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
       Expect.equals(1, a[0]);
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 100;
     }
     return result;
@@ -51,7 +51,7 @@ class TypeTest {
     }
     try {
       int i = f("hello");  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
@@ -75,7 +75,7 @@ class TypeTest {
     }
     try {
       int i = f("hello");  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
@@ -97,7 +97,7 @@ class TypeTest {
     int result = 0;
     try {
       field = "hello";  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
@@ -121,7 +121,7 @@ class TypeTest {
     anyFunction = f;  // No error.
     try {
       int i = f;  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("() => Dynamic", error.srcType);
@@ -152,7 +152,7 @@ class TypeTest {
     acceptObjFunObj(objFunObj);
     try {
       acceptObjFunObj(voidFunObj);  // Throws a TypeError.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("(Object) => Object", error.dstType);
       Expect.equals("(Object) => void", error.srcType);
@@ -186,7 +186,7 @@ class TypeTest {
     acceptFunNum(funInt);  // No error.
     try {
       acceptFunNum(funString);  // Throws an error.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("(num) => void", error.dstType);
       Expect.equals("(String) => void", error.srcType);
@@ -207,7 +207,7 @@ class TypeTest {
     int result = 0;
     try {
       bool i = !"hello";  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -223,7 +223,7 @@ class TypeTest {
     }
     try {
       while ("hello") {};  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -239,7 +239,7 @@ class TypeTest {
     }
     try {
       do {} while ("hello");  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -255,7 +255,7 @@ class TypeTest {
     }
     try {
       for (;"hello";) {};  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -271,7 +271,7 @@ class TypeTest {
     }
     try {
       int i = "hello" ? 1 : 0;  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -287,7 +287,7 @@ class TypeTest {
     }
     try {
       if ("hello") {};  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -303,7 +303,7 @@ class TypeTest {
     }
     try {
       if ("hello" || false) {};  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -319,7 +319,7 @@ class TypeTest {
     }
     try {
       if (false || "hello") {};  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
@@ -335,7 +335,7 @@ class TypeTest {
     }
     try {
       if (null) {};  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("Null", error.srcType);
@@ -357,7 +357,7 @@ class TypeTest {
     int result = 0;
     try {
       var x = new C();
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result++;
       Expect.equals("C", error.dstType);
       Expect.equals("int", error.srcType);
@@ -390,7 +390,7 @@ class TypeTest {
       List<Object> ao = a;
       try {
         List<int> ai = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<int>", error.dstType);
         Expect.equals("List<Object>", error.srcType);
@@ -406,7 +406,7 @@ class TypeTest {
       }
       try {
         List<num> an = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<num>", error.dstType);
         Expect.equals("List<Object>", error.srcType);
@@ -422,7 +422,7 @@ class TypeTest {
       }
       try {
         List<String> as = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<String>", error.dstType);
         Expect.equals("List<Object>", error.srcType);
@@ -445,7 +445,7 @@ class TypeTest {
       List<num> an = a;
       try {
         List<String> as = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<String>", error.dstType);
         Expect.equals("List<int>", error.srcType);
@@ -466,7 +466,7 @@ class TypeTest {
       List<Object> ao = a;
       try {
         List<int> ai = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<int>", error.dstType);
         Expect.equals("List<num>", error.srcType);
@@ -483,7 +483,7 @@ class TypeTest {
       List<num> an = a;
       try {
         List<String> as = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<String>", error.dstType);
         Expect.equals("List<num>", error.srcType);
@@ -504,7 +504,7 @@ class TypeTest {
       List<Object> ao = a;
       try {
         List<int> ai = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<int>", error.dstType);
         Expect.equals("List<String>", error.srcType);
@@ -520,7 +520,7 @@ class TypeTest {
       }
       try {
         List<num> an = a;
-      } catch (TypeError error) {
+      } on TypeError catch (error) {
         result++;
         Expect.equals("List<num>", error.dstType);
         Expect.equals("List<String>", error.srcType);

@@ -194,7 +194,6 @@ list_literal1_negative_test: Fail # Negative language test.
 list_literal2_negative_test: Fail # Negative language test.
 map_literal1_negative_test: Fail # Negative language test.
 map_literal2_negative_test: Fail # Negative language test.
-new_expression_type_args_frog_test/02: Fail # Negative language test.
 non_const_super_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
 operator1_negative_test: Fail # Negative language test.
@@ -250,7 +249,6 @@ optimization_test: Pass
 
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
 reg_exp3_test: Fail, OK # Expects exception from const constructor.
-list_test: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
 
 
 [ $compiler == dart2js && $mode == release ]
@@ -275,7 +273,6 @@ div_by_zero_test: Fail
 double_to_string_as_fixed_test: Fail
 expect_test: Fail
 factory3_test: Fail
-list_test: Fail
 local_function_test: Fail
 naming_test: Fail
 stack_overflow_test: Fail

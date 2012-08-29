@@ -177,18 +177,23 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
-    case kNew:
-      new_space_->Scavenge(invoke_api_callbacks);
+    case kNew: {
+      new_space_->Scavenge(invoke_api_callbacks,
+                           GCReasonToString(kNewSpace));
       if (new_space_->HadPromotionFailure()) {
-        old_space_->MarkSweep(true);
+        old_space_->MarkSweep(true,
+                              GCReasonToString(kPromotionFailure));
       }
       break;
+    }
     case kOld:
-      old_space_->MarkSweep(invoke_api_callbacks);
+      old_space_->MarkSweep(invoke_api_callbacks,
+                            GCReasonToString(kOldSpace));
       break;
     case kCode:
       UNIMPLEMENTED();
-      code_space_->MarkSweep(invoke_api_callbacks);
+      code_space_->MarkSweep(invoke_api_callbacks,
+                             GCReasonToString(kCodeSpace));
       break;
     default:
       UNREACHABLE();
@@ -211,10 +216,11 @@ void Heap::CollectGarbage(Space space) {
 
 
 void Heap::CollectAllGarbage() {
-  new_space_->Scavenge(kInvokeApiCallbacks);
-  old_space_->MarkSweep(kInvokeApiCallbacks);
+  const char* gc_reason = GCReasonToString(kFull);
+  new_space_->Scavenge(kInvokeApiCallbacks, gc_reason);
+  old_space_->MarkSweep(kInvokeApiCallbacks, gc_reason);
   // TODO(iposva): Merge old and code space.
-  // code_space_->MarkSweep(kInvokeApiCallbacks);
+  // code_space_->MarkSweep(kInvokeApiCallbacks, gc_reason);
   if (FLAG_verbose_gc) {
     PrintSizes();
   }
@@ -330,6 +336,29 @@ void Heap::Profile(Dart_HeapProfileWriteCallback callback, void* stream) const {
   HeapProfilerObjectVisitor object_visitor(isolate, &profiler);
   isolate->heap()->IterateObjects(&object_visitor);
   vm_isolate->heap()->IterateObjects(&object_visitor);
+}
+
+
+const char* Heap::GCReasonToString(GCReason gc_reason) {
+  switch (gc_reason) {
+    case kNewSpace:
+      return "new space";
+    case kPromotionFailure:
+      return "promotion failure";
+    case kOldSpace:
+      return "old space";
+    case kCodeSpace:
+      return "code space";
+    case kFull:
+      return "full";
+    case kGCAtAlloc:
+      return "debugging";
+    case kGCTestCase:
+      return "test case";
+    default:
+      UNREACHABLE();
+      return "";
+  }
 }
 
 

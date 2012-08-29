@@ -16,13 +16,13 @@ testMissingCatch() {
 }
 
 testMissingTry() {
-  catch (Exception e) { }                   /// 02: compile-time error
-  catch (Exception e, StackTrace trace) { } /// 03: compile-time error
-  finally { }                               /// 04: compile-time error
+  on Exception catch (e) { }                   /// 02: compile-time error
+  on Exception catch (e, trace) { }            /// 03: compile-time error
+  finally { }                                  /// 04: compile-time error
 }
 
 testDuplicateCatchVariable() {
-  try { } catch (Exception e, StackTrace e) { } /// 05: compile-time error
+  try { } on Exception catch (e, e) { } /// 05: compile-time error
 }
 
 testIllegalFinally() {
@@ -30,11 +30,11 @@ testIllegalFinally() {
 }
 
 testIllegalCatch() {
-  try { } catch () { }           /// 07: compile-time error
-  try { } catch (MammaMia e) { } /// 09: compile-time error
+  try { } catch () { }              /// 07: compile-time error
+  try { } on MammaMia catch (e) { } /// 09: compile-time error
 }
 
 testIllegalRethrow() {
-  try { throw; } catch (var e) { }             /// 10: compile-time error
-  try { } catch (var e) { } finally { throw; } /// 11: compile-time error
+  try { throw; } catch (e) { }             /// 10: compile-time error
+  try { } catch (e) { } finally { throw; } /// 11: compile-time error
 }

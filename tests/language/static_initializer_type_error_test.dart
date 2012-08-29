@@ -10,7 +10,7 @@ bool readXThrows() {
   try {
     var y = x;
     return false;
-  } catch (var e) {
+  } catch (e) {
     x = 5;  // Make sure we do not throw exception a second time.
     return true;
   }

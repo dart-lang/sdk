@@ -41,7 +41,7 @@ void testSimpleClassSelectorSuccesses() {
 
     // Valid selectors for private element IDs (leading underscore).
     cssParseAndValidate('@{._privateClass}', cssWorld);
-  } catch (final e) {
+  } catch (e) {
     // CSS Expressions failed
     Expect.fail(e.toString());
   }
@@ -58,7 +58,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Unknown selector name .-foobar",
         e.toString());
   }
@@ -68,7 +68,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Unknown selector name .foobar1",
         e.toString());
   }
@@ -78,7 +78,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Unknown selector name .xyzzy1",
         e.toString());
   }
@@ -88,7 +88,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("${ERROR}1:11: fatal: parsing error expected }\n" +
         "${css}\n          ^^", e.toString());
   }
@@ -98,7 +98,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Use of Id selector must be " +
         "singleton starting at #id2", e.toString());
   }
@@ -108,7 +108,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("@{#id-number-3 .foobar} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     // CSS Expressions failed
     Expect.equals("CssSelectorException: Can not mix Id selector with "+
         "class selector(s). Id selector must be singleton too many " +
@@ -120,7 +120,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     // CSS Expressions failed
     Expect.equals("CssSelectorException: Use of Id selector must be " +
         "singleton starting at #id-number-3", e.toString());
@@ -131,37 +131,37 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Invalid template selector foo|div",
         e.toString());
   }
 
-  // class and element id not allowed together. 
+  // class and element id not allowed together.
   css = '@{.foobar foo|div}';
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("$css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Invalid template selector foo|div",
         e.toString());
   }
 
-  // Element id and namespace not allowed together. 
+  // Element id and namespace not allowed together.
   css = '@{#id1 foo|div}';
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Invalid template selector foo|div",
         e.toString());
   }
 
-  // namespace and element id not allowed together. 
+  // namespace and element id not allowed together.
   css = '@{foo|div #id1}';
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Invalid template selector foo|div",
         e.toString());
   }
@@ -171,7 +171,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Invalid template selector foo|div",
         e.toString());
   }
@@ -181,7 +181,7 @@ void testSimpleClassSelectorFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Selectors can not have " +
         "combinators (>, +, or ~) before >.xyzzy", e.toString());
   }
@@ -198,7 +198,7 @@ void testPrivateNameFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Use of Id selector must be " +
         "singleton starting at #id2", e.toString());
   }
@@ -208,7 +208,7 @@ void testPrivateNameFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Unknown selector name .foobar2",
         e.toString());
   }
@@ -218,7 +218,7 @@ void testPrivateNameFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Use of Id selector must be " +
         "singleton starting at #id2", e.toString());
   }
@@ -228,7 +228,7 @@ void testPrivateNameFailures() {
   try {
     cssParseAndValidate('${css}', cssWorld);
     Expect.fail("${css} should not succeed.");
-  } catch (final e) {
+  } catch (e) {
     Expect.equals("CssSelectorException: Use of Id selector must be " +
         "singleton starting at #_privateId2", e.toString());
   }

@@ -35,7 +35,7 @@ checkNoSuchMethod(action()) {
   var ex = null;
   try {
     action();
-  } catch (var e) {
+  } catch (e) {
     ex = e;
   }
   if (ex === null)

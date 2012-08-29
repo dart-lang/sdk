@@ -15,7 +15,7 @@ main() {
   a = null;
   try {
     s = "Hello Mr. ${a.name}";
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
     return;
   }
   Expect.fail("NullPointerException not thrown");

@@ -8,7 +8,7 @@ isCheckedMode() {
     var i = 1;
     String s = i;
     return false;
-  } catch(var e) {
+  } catch (e) {
     return true;
   }
 }
@@ -27,7 +27,7 @@ main() {
     // However, run time type of returned function is not a subtype of FListInt.
     // Run time type check should not be eliminated.
     FListInt fli = f();
-  } catch (TypeError error) {
+  } on TypeError catch (error) {
     got_type_error = true;
   }
   // Type error expected in checked mode only.

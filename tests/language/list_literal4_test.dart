@@ -10,41 +10,41 @@ class ListLiteral4Test<T> {
     int result = 0;
     try {
       var m = <String>[0, 1];  // 0 is not a String.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 1;
     }
     try {
       var m = <int>[0, 1];
       m["0"] = 1;  // "0" is not an int.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 10;
     }
     try {
       var m = <T>["a", "b"];  // "b" is not an int.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 100;
     }
     try {
       var m = <T>[0, 1];  // OK.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 1000;
     }
     try {
       var m = <T>[0, 1];
       m["0"] = 1;  // "0" is not an int.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 10000;
     }
     try {
       var m = const <int>[0, 1];
       m["0"] = 1;  // "0" is not an int.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 100000;
     }
     try {
       var m = <T>[0, 1];  // OK. Tested above.
       List<String> ls = m;  // m is a List<int>, not a List<String>.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result += 1000000;
     }
 

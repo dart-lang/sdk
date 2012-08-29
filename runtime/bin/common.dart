@@ -7,7 +7,7 @@
   * operating system.
   */
 class OSError {
-  static final int noErrorCode = -1;
+  static const int noErrorCode = -1;
 
   const OSError([String this.message = "", int this.errorCode = noErrorCode]);
 

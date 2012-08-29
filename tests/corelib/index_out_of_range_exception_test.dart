@@ -52,7 +52,7 @@ class IndexOutOfRangeExceptionTest {
     var exception = null;
     try {
       var e = list[index];
-    } catch (IndexOutOfRangeException e) {
+    } on IndexOutOfRangeException catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -62,7 +62,7 @@ class IndexOutOfRangeExceptionTest {
     var exception = null;
     try {
       list[index] = null;
-    } catch (IndexOutOfRangeException e) {
+    } on IndexOutOfRangeException catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

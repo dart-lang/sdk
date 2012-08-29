@@ -80,26 +80,27 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 }
 
 
-static RawInstance* DeserializeMessage(void* data) {
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
-  ASSERT(snapshot->IsMessageSnapshot());
-
-  // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
-  Instance& instance = Instance::Handle();
-  instance ^= reader.ReadObject();
-  return instance.raw();
-}
-
-
 bool IsolateMessageHandler::HandleMessage(Message* message) {
   StartIsolateScope start_scope(isolate_);
   Zone zone(isolate_);
   HandleScope handle_scope(isolate_);
 
-  const Instance& msg =
-      Instance::Handle(DeserializeMessage(message->data()));
+  // Parse the message.
+  SnapshotReader reader(message->data(), message->len(),
+                        Snapshot::kMessage, Isolate::Current());
+  const Object& msg_obj = Object::Handle(reader.ReadObject());
+  if (!msg_obj.IsNull() && !msg_obj.IsInstance()) {
+    // TODO(turnidge): We need to decide what an isolate does with
+    // malformed messages.  If they (eventually) come from a remote
+    // machine, then it might make sense to drop the message entirely.
+    // In the case that the message originated locally, which is
+    // always true for now, then this should never occur.
+    UNREACHABLE();
+  }
+
+  Instance& msg = Instance::Handle();
+  msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
+
   if (message->IsOOB()) {
     // For now the only OOB messages are Mirrors messages.
     HandleMirrorsMessage(isolate_, message->reply_port(), msg);

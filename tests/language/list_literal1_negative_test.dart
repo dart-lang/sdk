@@ -8,7 +8,7 @@
 main() {
   try {
     var m = const <String>[0, 1];  // 0 is not a String.
-  } catch (TypeError error) {
+  } on TypeError catch (error) {
     // not a catchable error
   }
 }

@@ -12,7 +12,7 @@ class Hello {
    try {
      sum += 1;
      return 'hi';
-   } catch (var e) {
+   } catch (e) {
      sum += 1;
      throw 'ball';
      sum += 1;
@@ -30,7 +30,7 @@ class Hello {
      try {
        sum += 1;
        return 'hi';
-     } catch (var ex) {
+     } catch (ex) {
        sum += 1;
      } finally {
        try {
@@ -39,7 +39,7 @@ class Hello {
            break L;
            sum += 1;
          }
-       } catch (var ex) {
+       } catch (ex) {
          sum += 1;
        } finally {
          sum += 1;
@@ -53,7 +53,8 @@ class Hello {
    Expect.equals(3, sum);
    try {
      foo();
-   } catch (var e) {
+   } catch (e) {
+     // Ignore.
    }
    Expect.equals(2, sum);
  }

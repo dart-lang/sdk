@@ -26,7 +26,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 
   // Allocate a new instance of type AssertionError.
   const Instance& assertion_error = Instance::Handle(
-      Exceptions::NewInstance("AssertionError"));
+      Exceptions::NewInstance("AssertionErrorImplementation"));
 
   // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;
@@ -79,8 +79,8 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   intptr_t fallthrough_pos = smi_pos.Value();
 
   // Allocate a new instance of type FallThroughError.
-  const Instance& fallthrough_error =
-      Instance::Handle(Exceptions::NewInstance("FallThroughError"));
+  const Instance& fallthrough_error = Instance::Handle(Exceptions::NewInstance(
+      "FallThroughErrorImplementation"));
   ASSERT(!fallthrough_error.IsNull());
 
   // Initialize 'url' and 'line' fields.

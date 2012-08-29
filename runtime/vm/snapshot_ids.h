@@ -32,7 +32,7 @@ enum {
   kDoubleType,
   kDoubleInterface,
   kIntInterface,
-  kBoolInterface,
+  kBoolType,
   kStringInterface,
   kListInterface,
   kByteArrayInterface,

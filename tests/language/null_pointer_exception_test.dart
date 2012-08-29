@@ -10,9 +10,9 @@ class NullPointerExceptionTest {
     bool wrongExceptionCaught = false;
     try {
       variable++;
-    } catch (NullPointerException ex) {
+    } on NullPointerException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
@@ -29,9 +29,9 @@ class NullPointerExceptionTest {
     bool wrongExceptionCaught = false;
     try {
       variable = helperFunction(variable);
-    } catch (NullPointerException ex) {
+    } on NullPointerException catch (ex) {
       exceptionCaught = true;
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

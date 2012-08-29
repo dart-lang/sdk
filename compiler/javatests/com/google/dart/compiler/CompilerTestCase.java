@@ -24,6 +24,7 @@ import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import junit.framework.TestCase;
 
@@ -42,6 +43,7 @@ public abstract class CompilerTestCase extends TestCase {
 
   private static final String UTF8 = "UTF-8";
   protected CompilerConfiguration compilerConfiguration;
+  protected String testSource;
   protected DartUnit testUnit;
 
   /**
@@ -179,13 +181,15 @@ public abstract class CompilerTestCase extends TestCase {
   @Override
   protected void tearDown() throws Exception {
     compilerConfiguration = null;
+    testSource = null;
     testUnit = null;
     super.tearDown();
   }
 
   protected AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     String name = getName();
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(name, makeCode(lines));
+    testSource = makeCode(lines);
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(name, testSource);
     testUnit = libraryResult.getLibraryUnitResult().getUnit(name);
     return libraryResult;
   }
@@ -430,11 +434,20 @@ public abstract class CompilerTestCase extends TestCase {
     assertNotNull(element);
     // check type
     Type actualType = element.getType();
-    assertEquals(element.getName(), expectedType, actualType.toString());
+    assertEquals(element.getName(), expectedType, getTypeSource(actualType));
     // should be inferred
     if (TypeKind.of(actualType) != TypeKind.DYNAMIC) {
       assertTrue("Should be marked as inferred", actualType.isInferred());
     }
+  }
+
+  /**
+   * @return the source-like {@link String} for the given {@link Type}.
+   */
+  protected static String getTypeSource(Type actualType) {
+    String source = actualType.toString();
+    source = StringUtils.replace(source, "<dynamic>", "Dynamic");
+    return source;
   }
 
   /**

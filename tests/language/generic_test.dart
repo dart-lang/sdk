@@ -54,7 +54,7 @@ class GenericTest {
     Expect.equals(true, c.b_.isT(const AX()));
     try {
       E e = new E();  // Throws a type error, if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {

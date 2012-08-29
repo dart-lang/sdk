@@ -13,7 +13,7 @@ class AnimationEventWrappingImplementation extends EventWrappingImplementation i
     try {
       dom.document.createEvent("WebKitAnimationEvent");
       _name = "WebKitAnimationEvent";
-    } catch (var e) {
+    } catch (e) {
       _name = "AnimationEvent";
     }
     return _name;

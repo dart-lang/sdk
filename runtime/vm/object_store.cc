@@ -30,7 +30,7 @@ ObjectStore::ObjectStore()
     external_one_byte_string_class_(Class::null()),
     external_two_byte_string_class_(Class::null()),
     external_four_byte_string_class_(Class::null()),
-    bool_interface_(Type::null()),
+    bool_type_(Type::null()),
     bool_class_(Class::null()),
     list_interface_(Type::null()),
     array_class_(Class::null()),

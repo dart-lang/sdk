@@ -171,8 +171,8 @@ class _EventHandler {
   }
 }
 
-final InputStream stdin = null;
+const InputStream stdin = null;
 
-final OutputStream stdout = null;
+const OutputStream stdout = null;
 
-final OutputStream stderr = null;
+const OutputStream stderr = null;

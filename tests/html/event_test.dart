@@ -119,6 +119,8 @@ main() {
     Expect.equals(3, ev.screenY);
     Expect.equals(4, ev.clientX);
     Expect.equals(5, ev.clientY);
+    Expect.equals(4, ev.offsetX);  // Same as clientX.
+    Expect.equals(5, ev.offsetY);  // Same as clientY.
     Expect.equals(6, ev.button);
     Expect.isTrue(ev.ctrlKey);
     Expect.isTrue(ev.altKey);

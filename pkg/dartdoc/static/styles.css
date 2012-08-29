@@ -99,6 +99,8 @@ hr + h2 {
 
   background-image: url('content-bg.png');
   background-repeat: repeat-y;
+
+  position: relative;
 }
 
 .header {
@@ -128,7 +130,66 @@ hr + h2 {
 .header #search-box {
   display: inline;
   float: right;
-  margin-right: 22px;
+  margin-right: 11px;
+}
+
+.search-input, .drop-down {
+  font: 400 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  width: 300px;
+}
+
+.drop-down {
+  visibility: hidden;
+  z-index: 1000;
+  position: absolute;
+  right: 10px;
+  top: 36px;
+  border: 1px #CCC solid;
+  background-color: white;
+  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.drop-down-table {
+  width: 100%;
+}
+
+.drop-down-link-tr {
+  padding: 4px 0px;
+  cursor: pointer;
+}
+.drop-down-link-td {
+  border-bottom: 1px solid #EEE;
+}
+
+.drop-down-link-tr:hover {
+  background: #EEE;
+  color: #333;
+}
+
+.drop-down-link-select {
+  background: #15C;
+  color: white;
+}
+
+.drop-down-link-select:hover {
+  background: #2AF;
+  color: white;
+}
+
+.drop-down-link-kind, .drop-down-link-library {
+  font: 400 10px/10px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+}
+
+.drop-down-link-library {
+  text-align: right;
+}
+
+.drop-down-link-highlight {
+  font-weight:bold;
 }
 
 .nav {

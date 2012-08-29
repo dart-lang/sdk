@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // IDL grammar variants.
-final int WEBIDL_SYNTAX = 0;
-final int WEBKIT_SYNTAX = 1;
-final int FREMONTCUT_SYNTAX = 2;
+const int WEBIDL_SYNTAX = 0;
+const int WEBKIT_SYNTAX = 1;
+const int FREMONTCUT_SYNTAX = 2;
 
 /**
  * IDLFile is the top-level node in each IDL file. It may contain modules or

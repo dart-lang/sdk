@@ -48,14 +48,14 @@ class StringBaseTest {
     Expect.equals(s, s3);
     try {
       String s4 = new String.fromCharCodes([0.0]);
-    } catch (IllegalArgumentException ex) {
+    } on IllegalArgumentException catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       String s4 = new String.fromCharCodes([-1]);
-    } catch (IllegalArgumentException ex) {
+    } on IllegalArgumentException catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
@@ -68,14 +68,14 @@ class StringBaseTest {
     bool exception_caught = false;
     try {
       s.substring(5, 12);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       s.substring(5, 4);
-    } catch (IndexOutOfRangeException ex) {
+    } on IndexOutOfRangeException catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

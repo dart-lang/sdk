@@ -13,7 +13,7 @@ class NamedParameters4NegativeTest {
   static testMain() {
     try {
       F31(10, b:25, b:35);  // Duplicate named argument.
-    } catch (var e) {
+    } catch (e) {
       // This is a negative test that should not compile.
       // If it runs due to a bug, catch and ignore exceptions.
     }

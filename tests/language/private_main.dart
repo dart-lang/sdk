@@ -15,7 +15,7 @@ class PrivateMain {
     var value = 0;
     try {
       value = _myPrecious;
-    } catch (var e) {
+    } catch (e) {
       value = -1;
     }
     Expect.equals("A Ring", value);
@@ -26,7 +26,7 @@ class PrivateMain {
     var the_other = new PrivateOther();
     try {
       value = the_other._myPrecious;
-    } catch (var e, var trace) {
+    } catch (e, trace) {
       print(e);
       print(trace);
       Expect.equals(true, e is NoSuchMethodException);
@@ -40,7 +40,7 @@ class PrivateMain {
     var the_other = new PrivateLib();
     try {
       value = the_other._myPrecious;
-    } catch (var e, var trace) {
+    } catch (e, trace) {
       print(e);
       print(trace);
       Expect.equals(true, e is NoSuchMethodException);

@@ -13,25 +13,25 @@ class _SocketBase {
   // eventhandler. COMMAND flags are never received from the
   // eventhandler. Additional flags are used to communicate other
   // information.
-  static final int _IN_EVENT = 0;
-  static final int _OUT_EVENT = 1;
-  static final int _ERROR_EVENT = 2;
-  static final int _CLOSE_EVENT = 3;
+  static const int _IN_EVENT = 0;
+  static const int _OUT_EVENT = 1;
+  static const int _ERROR_EVENT = 2;
+  static const int _CLOSE_EVENT = 3;
 
-  static final int _CLOSE_COMMAND = 8;
-  static final int _SHUTDOWN_READ_COMMAND = 9;
-  static final int _SHUTDOWN_WRITE_COMMAND = 10;
+  static const int _CLOSE_COMMAND = 8;
+  static const int _SHUTDOWN_READ_COMMAND = 9;
+  static const int _SHUTDOWN_WRITE_COMMAND = 10;
 
   // Flag send to the eventhandler providing additional information on
   // the type of the file descriptor.
-  static final int _LISTENING_SOCKET = 16;
-  static final int _PIPE = 17;
+  static const int _LISTENING_SOCKET = 16;
+  static const int _PIPE = 17;
 
-  static final int _FIRST_EVENT = _IN_EVENT;
-  static final int _LAST_EVENT = _CLOSE_EVENT;
+  static const int _FIRST_EVENT = _IN_EVENT;
+  static const int _LAST_EVENT = _CLOSE_EVENT;
 
-  static final int _FIRST_COMMAND = _CLOSE_COMMAND;
-  static final int _LAST_COMMAND = _SHUTDOWN_WRITE_COMMAND;
+  static const int _FIRST_COMMAND = _CLOSE_COMMAND;
+  static const int _LAST_COMMAND = _SHUTDOWN_WRITE_COMMAND;
 
   _SocketBase () {
     _handlerMap = new List(_LAST_EVENT + 1);
@@ -313,7 +313,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
 
 
 class _Socket extends _SocketBase implements Socket {
-  static final HOST_NAME_LOOKUP = 0;
+  static const HOST_NAME_LOOKUP = 0;
 
   // Constructs a new socket. During the construction an asynchronous
   // host name lookup is initiated. The returned socket is not yet

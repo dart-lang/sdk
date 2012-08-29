@@ -29,7 +29,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
         'XML had ${parentTag.nodes.length} top-level nodes but 1 expected');
   }
 
-  Set<String> get classes() {
+  CSSClassSet get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _XMLClassSet(_ptr);
     }
@@ -157,7 +157,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
   int get tabIndex() {
     try {
       return Math.parseInt(_attr('tabIndex'));
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return 0;
     }
   }

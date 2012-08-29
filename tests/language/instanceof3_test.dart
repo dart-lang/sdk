@@ -11,7 +11,7 @@ isCheckedMode() {
     var i = 1;
     String s = i;
     return false;
-  } catch(var e) {
+  } catch (e) {
     return true;
   }
 }
@@ -22,7 +22,7 @@ testAll() {
     var x = null;
     try {
       Expect.isFalse(x is UndeclaredType);  // x is null.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in production mode and in checked mode.
@@ -33,7 +33,7 @@ testAll() {
     var x = 1;
     try {
       Expect.isFalse(x is UndeclaredType);  // x is not null.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in production mode and in checked mode.
@@ -44,7 +44,7 @@ testAll() {
     var x = null;
     try {
       Expect.isFalse(x is List<UndeclaredType>);  // x is null.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.
@@ -55,7 +55,7 @@ testAll() {
     var x = 1;
     try {
       Expect.isFalse(x is List<UndeclaredType>);  // x is not a List.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.
@@ -66,7 +66,7 @@ testAll() {
     var x = new List();
     try {
       Expect.isTrue(x is List<UndeclaredType>);  // x is a List<Dynamic>.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.
@@ -77,7 +77,7 @@ testAll() {
     var x = new List<int>();
     try {
       Expect.isTrue(x is List<UndeclaredType>);  // x is a List<int>.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.

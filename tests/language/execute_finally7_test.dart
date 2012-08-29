@@ -33,7 +33,7 @@ class Helper {
       for(int i = 0; i < 10; i++) {
         a[i]();
       }
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       k += 100;
       print(exception.message_);
       b();

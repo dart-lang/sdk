@@ -34,9 +34,9 @@ main() {
     var style = createTestStyle();
     expect(style.cssText,
       equals("color: blue; width: 2px !important; "
-             "-webkit-transform: rotate(90deg); "));
+             "-webkit-transform: rotate(90deg);"));
     style.cssText = "color: red";
-    expect(style.cssText, equals("color: red; "));
+    expect(style.cssText, equals("color: red;"));
   });
 
   test('length is wrapped', () {
@@ -60,7 +60,7 @@ main() {
     var style = createTestStyle();
     style.removeProperty("width");
     expect(style.cssText,
-      equals("color: blue; -webkit-transform: rotate(90deg); "));
+      equals("color: blue; -webkit-transform: rotate(90deg);"));
   });
 
   test('CSS property getters and setters', () {
@@ -73,6 +73,6 @@ main() {
     style.transform = "translate(10px, 20px)";
     expect(style.cssText,
       equals("color: red; width: 2px !important;"
-             " -webkit-transform: translate(10px, 20px); "));
+             " -webkit-transform: translate(10px, 20px);"));
   });
 }

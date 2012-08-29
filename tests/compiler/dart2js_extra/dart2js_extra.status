@@ -6,18 +6,16 @@
 class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
+regress/4740_test: Fail
 
-[ $mode == debug ]
+[ $compiler == dart2js && $checked ]
+parameter_bailout_test: Fail, OK
+variable_type_test/03: Fail, OK
+variable_type_test/01: Fail, OK
+
+[ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip
-
-[ $compiler == dart2js && $runtime == none ]
-*: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dartc || $runtime == vm ]
-
-[ $runtime == opera ]
-*: Skip
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == safari) ]
 naming_test: Fail # BUG(3305)
@@ -25,7 +23,8 @@ naming_test: Fail # BUG(3305)
 [ $compiler == dart2js && $runtime == ie ]
 class_test: Fail
 
-[ $checked ]
-parameter_bailout_test: Fail, OK
-variable_type_test/03: Fail, OK
-variable_type_test/01: Fail, OK
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $runtime == opera ]
+*: Skip

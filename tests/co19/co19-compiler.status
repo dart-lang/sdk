@@ -55,6 +55,8 @@ Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/10_Expressions/02_Null_A03_t01: Fail # language change 1031
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # language change 3368
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 149
 Language/10_Expressions/10_Instance_Creation_A02_t01: Fail # language change 1031
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # language change 1031
@@ -93,17 +95,63 @@ Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t04: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Issue 3525
 Language/10_Expressions/16_Assignment_A08_t04: Fail # Issue 3524
+Language/10_Expressions/17_Conditional_A01_t10: Fail # language change 3368
+Language/10_Expressions/17_Conditional_A01_t11: Fail # language change 3368
+Language/10_Expressions/17_Conditional_A01_t12: Fail # language change 3368
+Language/10_Expressions/17_Conditional_A01_t13: Fail # language change 3368
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t10: Fail # language change 3368
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t11: Fail # language change 3368
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t12: Fail # language change 3368
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail # language change 3368
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # Issue 1489
+Language/10_Expressions/19_Bitwise_Expressions_A01_t12: Fail # language change 3368
+Language/10_Expressions/19_Bitwise_Expressions_A01_t13: Fail # language change 3368
+Language/10_Expressions/19_Bitwise_Expressions_A01_t14: Fail # language change 3368
+Language/10_Expressions/19_Bitwise_Expressions_A01_t15: Fail # language change 3368
 Language/10_Expressions/20_Equality_A01_t01: Fail # Issue 1489
+Language/10_Expressions/20_Equality_A01_t19: Fail # language change 3368
+Language/10_Expressions/20_Equality_A01_t20: Fail # language change 3368
+Language/10_Expressions/20_Equality_A01_t21: Fail # language change 3368
+Language/10_Expressions/20_Equality_A01_t22: Fail # language change 3368
 Language/10_Expressions/20_Equality_A02_t02: Fail # co19 issue 136
 Language/10_Expressions/20_Equality_A02_t03: Fail # co19 issue 136
 Language/10_Expressions/20_Equality_A03_t01: Fail # co19 issue 136
 Language/10_Expressions/20_Equality_A03_t02: Fail # co19 issue 136
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # Issue 1489
+Language/10_Expressions/21_Relational_Expressions_A01_t18: Fail # language change 3368
+Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail # language change 3368
+Language/10_Expressions/21_Relational_Expressions_A01_t20: Fail # language change 3368
+Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail # language change 3368
 Language/10_Expressions/22_Shift_A01_t01: Fail # Issue 1489
+Language/10_Expressions/22_Shift_A01_t09: Fail # language change 3368
+Language/10_Expressions/22_Shift_A01_t10: Fail # language change 3368
+Language/10_Expressions/22_Shift_A01_t11: Fail # language change 3368
+Language/10_Expressions/22_Shift_A01_t12: Fail # language change 3368
+Language/10_Expressions/23_Additive_Expressions_A01_t07: Fail # language change 3368
+Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail # language change 3368
+Language/10_Expressions/23_Additive_Expressions_A01_t09: Fail # language change 3368
+Language/10_Expressions/23_Additive_Expressions_A01_t10: Fail # language change 3368
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t10: Fail # language change 3368
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail # language change 3368
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t12: Fail # language change 3368
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t03: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t11: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t12: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t14: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t15: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t16: Fail # language change 3368
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # Issue 1489,2439
+Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail # language change 3368
+Language/10_Expressions/26_Postfix_Expressions_A01_t04: Fail # language change 3368
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # Issue 1489
+Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail # language change 3368
+Language/10_Expressions/27_Assignable_Expressions_A01_t07: Fail # language change 3368
+Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail # language change 3368
+Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail # language change 3368
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
@@ -112,6 +160,7 @@ Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
+Language/10_Expressions/29_Type_Test_A01_t02: Fail # language change 3368
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A01_t01: Fail # co19 issue 160
 Language/11_Statements/08_Switch_A06_t02: Fail # out of date - case can use any constant expression

@@ -72,7 +72,7 @@ main() {
   bool threw = false;
   try {
     var x = a.op(51);
-  } catch (var e) {
+  } catch (e) {
     threw = true;
     Expect.equals(100, e.code);
     Expect.isTrue(e is E);
@@ -90,7 +90,7 @@ main() {
   threw = false;
   try {
     var x = aa.op(51);
-  } catch (E e) {
+  } on E catch (e) {
     threw = true;
     Expect.equals(100, e.code);
     Expect.isTrue(e is E);

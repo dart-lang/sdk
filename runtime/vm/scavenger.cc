@@ -530,14 +530,14 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void Scavenger::Scavenge() {
+void Scavenger::Scavenge(const char* gc_reason) {
   // TODO(cshapiro): Add a decision procedure for determining when the
   // the API callbacks should be invoked.
-  Scavenge(false);
+  Scavenge(false, gc_reason);
 }
 
 
-void Scavenger::Scavenge(bool invoke_api_callbacks) {
+void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
@@ -552,7 +552,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   }
 
   if (FLAG_verbose_gc) {
-    OS::PrintErr("Start scavenge\n");
+    OS::PrintErr("Start scavenge for %s collection\n", gc_reason);
   }
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();

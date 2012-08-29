@@ -18,6 +18,7 @@ public class CompilerTests extends TestSetup {
     TestSuite suite = new TestSuite("DartC compiler test suite.");
     suite.addTestSuite(PackageLibraryManagerTest.class);
     suite.addTestSuite(PrettyErrorFormatterTest.class);
+    suite.addTestSuite(SystemLibrariesReaderTest.class);
     return suite;
   }
 }

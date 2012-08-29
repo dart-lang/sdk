@@ -2578,9 +2578,20 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source);
 
-
+/**
+ * Imports a library into another library, optionally with a prefix.
+ * If no prefix is required, an empty string or Dart_Null() can be
+ * supplied.
+ *
+ * \param library The library into which to import another library.
+ * \param import The library to import.
+ * \param prefix The prefix under which to import.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
-                                                  Dart_Handle import);
+                                                  Dart_Handle import,
+                                                  Dart_Handle prefix);
 
 /**
  * Loads a source string into a library.

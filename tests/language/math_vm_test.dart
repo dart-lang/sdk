@@ -18,7 +18,7 @@ class MathTest {
     try {
       parseInt(x);  // Expects string.
       return true;
-    } catch (var e) {
+    } catch (e) {
       return false;
     }
   }
@@ -27,7 +27,7 @@ class MathTest {
     try {
       sqrt(x);  // Expects number.
       return true;
-    } catch (var e) {
+    } catch (e) {
       return false;
     }
   }

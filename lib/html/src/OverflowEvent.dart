@@ -6,11 +6,11 @@ interface OverflowEvent extends Event default OverflowEventWrappingImplementatio
 
   OverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
 
-  static final int BOTH = 2;
+  static const int BOTH = 2;
 
-  static final int HORIZONTAL = 0;
+  static const int HORIZONTAL = 0;
 
-  static final int VERTICAL = 1;
+  static const int VERTICAL = 1;
 
   bool get horizontalOverflow();
 

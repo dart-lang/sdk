@@ -43,7 +43,7 @@ class Scavenger {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
 #if defined(DEBUG)
     if (FLAG_gc_at_alloc && !scavenging_) {
-      Scavenge();
+      Scavenge("debugging");
     }
 #endif
     uword result = top_;
@@ -60,8 +60,8 @@ class Scavenger {
   }
 
   // Collect the garbage in this scavenger.
-  void Scavenge();
-  void Scavenge(bool invoke_api_callbacks);
+  void Scavenge(const char* gc_reason);
+  void Scavenge(bool invoke_api_callbacks, const char* gc_reason);
 
   // Accessors to generate code for inlined allocation.
   uword* TopAddress() { return &top_; }

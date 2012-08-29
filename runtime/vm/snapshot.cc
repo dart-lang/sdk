@@ -66,7 +66,7 @@ static RawType* GetType(ObjectStore* object_store, int index) {
     case kDoubleType: return object_store->double_type();
     case kDoubleInterface: return object_store->double_interface();
     case kIntInterface: return object_store->int_interface();
-    case kBoolInterface: return object_store->bool_interface();
+    case kBoolType: return object_store->bool_type();
     case kStringInterface: return object_store->string_interface();
     case kListInterface: return object_store->list_interface();
     case kByteArrayInterface: return object_store->byte_array_interface();
@@ -101,8 +101,8 @@ static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
     return kDoubleInterface;
   } else if (raw_type == object_store->int_interface()) {
     return kIntInterface;
-  } else if (raw_type == object_store->bool_interface()) {
-    return kBoolInterface;
+  } else if (raw_type == object_store->bool_type()) {
+    return kBoolType;
   } else if (raw_type == object_store->string_interface()) {
     return kStringInterface;
   } else if (raw_type == object_store->list_interface()) {
@@ -145,9 +145,12 @@ intptr_t BaseReader::ReadSmiValue() {
 }
 
 
-SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
-    : BaseReader(snapshot->content(), snapshot->length()),
-      kind_(snapshot->kind()),
+SnapshotReader::SnapshotReader(const uint8_t* buffer,
+                               intptr_t size,
+                               Snapshot::Kind kind,
+                               Isolate* isolate)
+    : BaseReader(buffer, size),
+      kind_(kind),
       isolate_(isolate),
       cls_(Class::Handle()),
       obj_(Object::Handle()),
@@ -156,7 +159,7 @@ SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
       type_(AbstractType::Handle()),
       type_arguments_(AbstractTypeArguments::Handle()),
       tokens_(Array::Handle()),
-      backward_references_((snapshot->kind() == Snapshot::kFull) ?
+      backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {
 }
@@ -198,7 +201,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 RawObject* SnapshotReader::ReadObjectImpl() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == 0) {
-    return Integer::New((value >> kSmiTagShift));
+    return Integer::New((value >> kSmiTagShift), HEAP_SPACE(kind_));
   }
   return ReadObjectImpl(value);
 }
@@ -221,7 +224,7 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value) {
 RawObject* SnapshotReader::ReadObjectRef() {
   int64_t header_value = Read<int64_t>();
   if ((header_value & kSmiTagMask) == 0) {
-    return Integer::New((header_value >> kSmiTagShift));
+    return Integer::New((header_value >> kSmiTagShift), HEAP_SPACE(kind_));
   }
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
   if (IsVMIsolateObject(header_value)) {
@@ -250,7 +253,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     if (kind_ == Snapshot::kFull) {
       result ^= AllocateUninitialized(cls_, instance_size);
     } else {
-      result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+      result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
     }
     return result.raw();
   }
@@ -266,7 +269,8 @@ RawObject* SnapshotReader::ReadObjectRef() {
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
         isolate(),
-        (kind_ == Snapshot::kFull) ? NewArray(len) : Array::New(len));
+        ((kind_ == Snapshot::kFull) ?
+         NewArray(len) : Array::New(len, HEAP_SPACE(kind_))));
     AddBackRef(object_id, &array, kIsNotDeserialized);
 
     return array.raw();
@@ -277,7 +281,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     ImmutableArray& array = ImmutableArray::ZoneHandle(
         isolate(),
         (kind_ == Snapshot::kFull) ?
-          NewImmutableArray(len) : ImmutableArray::New(len));
+        NewImmutableArray(len) : ImmutableArray::New(len, HEAP_SPACE(kind_)));
     AddBackRef(object_id, &array, kIsNotDeserialized);
 
     return array.raw();
@@ -661,7 +665,9 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       if (kind_ == Snapshot::kFull) {
         *result ^= AllocateUninitialized(cls_, instance_size);
       } else {
-        *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+        *result ^= Object::Allocate(cls_.id(),
+                                    instance_size,
+                                    HEAP_SPACE(kind_));
       }
     } else {
       cls_ ^= ReadObjectImpl();
@@ -857,12 +863,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 }
 
 
-void SnapshotWriter::WriteFullSnapshot() {
-  ASSERT(kind_ == Snapshot::kFull);
+void FullSnapshotWriter::WriteFullSnapshot() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
+
+  // Reserve space in the output buffer for a snapshot header.
+  ReserveHeader();
 
   // Write out all the objects in the object store of the isolate which
   // is the root set for all dart allocated objects at this point.
@@ -872,8 +880,8 @@ void SnapshotWriter::WriteFullSnapshot() {
   // Write out all forwarded objects.
   WriteForwardedObjects();
 
-  // Finalize the snapshot buffer.
-  FinalizeBuffer();
+  FillHeader(kind());
+  UnmarkAll();
 }
 
 
@@ -1128,10 +1136,10 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
 
   // Write out the library object.
+  ReserveHeader();
   WriteObject(lib.raw());
-
-  // Finalize the snapshot buffer.
-  FinalizeBuffer();
+  FillHeader(kind());
+  UnmarkAll();
 }
 
 
@@ -1145,5 +1153,13 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
     }
   }
 }
+
+
+void MessageWriter::WriteMessage(const Object& obj) {
+  ASSERT(kind() == Snapshot::kMessage);
+  WriteObject(obj.raw());
+  UnmarkAll();
+}
+
 
 }  // namespace dart

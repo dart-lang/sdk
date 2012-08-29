@@ -854,6 +854,13 @@ public class DartCompiler {
           srcCode += "\nvoid assert(x) {}";
         }
 
+        // inject "Type" type from 1.0 M1 specification
+        // remove once it will be added into SDK
+        // http://code.google.com/p/dart/issues/detail?id=3368
+        if (dartSrc.getUri().toString().equals("dart://core/runtime/object.dart")) {
+          srcCode += "\nclass Type {}";
+        }
+
         DartParser parser = new DartParser(dartSrc, srcCode, diet, libraryPrefixes, context,
             context.getCompilerMetrics());
         DartUnit unit = parser.parseUnit();
