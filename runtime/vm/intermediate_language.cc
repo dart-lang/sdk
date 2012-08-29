@@ -830,9 +830,6 @@ RawAbstractType* EqualityCompareComp::CompileType() const {
       (receiver_class_id() == kNumberCid)) {
     return Type::BoolType();
   }
-  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
-    return Type::BoolType();
-  }
   return Type::DynamicType();
 }
 
@@ -842,9 +839,6 @@ intptr_t EqualityCompareComp::ResultCid() const {
       (receiver_class_id() == kDoubleCid) ||
       (receiver_class_id() == kNumberCid)) {
     // Known/library equalities that are guaranteed to return Boolean.
-    return kBoolCid;
-  }
-  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
     return kBoolCid;
   }
   return kDynamicCid;
