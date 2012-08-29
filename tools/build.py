@@ -193,6 +193,8 @@ def GClientRunHooks():
 
 
 def RunhooksIfNeeded(host_os, mode, arch, target_os):
+  if host_os != 'linux':
+    return
   build_root = utils.GetBuildRoot(host_os)
   build_cookie_path = os.path.join(build_root, 'lastHooksTargetOS.txt')
 
