@@ -811,11 +811,12 @@ public class Resolver {
     @Override
     public Element visitLabel(DartLabel x) {
       DartNode parent = x.getParent();
-      if (!(parent instanceof DartSwitchMember)) {
+      if (!(parent instanceof DartSwitchMember && ((DartSwitchMember) parent).getLabels().contains(
+          x))) {
         LabelElement labelElement;
         DartStatement childStatement = x.getStatement();
         while (childStatement instanceof DartLabel) {
-          childStatement = ((DartLabel)childStatement).getStatement();
+          childStatement = ((DartLabel) childStatement).getStatement();
         }
         if (childStatement instanceof DartSwitchStatement) {
           labelElement = Elements.switchLabelElement(x, x.getName(), innermostFunction);

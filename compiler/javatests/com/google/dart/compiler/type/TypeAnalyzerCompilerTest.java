@@ -82,6 +82,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4785
+   */
+  public void test_labelForBlockInSWitchCase() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  switch (0) {",
+        "    case 0: qwerty: {",
+        "      break qwerty;",
+        "    }",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
    * We should support resolving to the method "call".
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=1355
