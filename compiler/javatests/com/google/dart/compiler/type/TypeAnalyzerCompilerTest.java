@@ -1786,7 +1786,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertTrue(message.contains("'bool'"));
     }
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4394
@@ -2147,6 +2147,52 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v2", "bool");
     assertInferredElementTypeString(testUnit, "v3", "int");
     assertInferredElementTypeString(testUnit, "v4", "Object");
+  }
+
+  /**
+   * We should understand type with type arguments and choose the most generic version.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4792
+   */
+  public void test_typesPropagation_multiAssign_withGenerics_type_type() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var a = new List<String>();",
+        "  var b = <Object>[];",
+        "  if (true) {",
+        "    a = <Object>[];",
+        "    b = new List<String>();",
+        "  }",
+        "  var a1 = a;",
+        "  var b1 = b;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "a1", "List<Object>");
+    assertInferredElementTypeString(testUnit, "b1", "List<Object>");
+  }
+  
+  /**
+   * Prefer specific type, not Dynamic type argument.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4792
+   */
+  public void test_typesPropagation_multiAssign_withGenerics_type_dynamic() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var a = new List<String>();",
+        "  var b = [];",
+        "  if (true) {",
+        "    a = [];",
+        "    b = new List<String>();",
+        "  }",
+        "  var a1 = a;",
+        "  var b1 = b;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "a1", "List<String>");
+    assertInferredElementTypeString(testUnit, "b1", "List<String>");
   }
 
   /**

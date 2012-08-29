@@ -5,9 +5,12 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
@@ -70,21 +73,51 @@ public class Types {
   public Type intersection(List<Type> types) {
     // prepare all super types
     List<List<InterfaceType>> superTypesLists = Lists.newArrayList();
-    List<Set<InterfaceType>> superTypesSets = Lists.newArrayList();
+    List<Map<InterfaceType, InterfaceType>> superTypesMaps = Lists.newArrayList();
     for (Type type : types) {
       List<InterfaceType> superTypes = getSuperTypes(type);
       superTypesLists.add(superTypes);
-      superTypesSets.add(Sets.newHashSet(superTypes));
+      Map<InterfaceType, InterfaceType> superTypesMap = Maps.newHashMap();
+      for (InterfaceType superType : superTypes) {
+        superTypesMap.put(superType.asRawType(), superType);
+      }
+      superTypesMaps.add(superTypesMap);
     }
     // find intersection of super types
     LinkedList<InterfaceType> interTypes = Lists.newLinkedList();
     if (superTypesLists.size() > 0) {
       for (InterfaceType superType : superTypesLists.get(0)) {
         boolean inAll = true;
-        for (Set<InterfaceType> superTypesSet : superTypesSets) {
-          if (!superTypesSet.contains(superType)) {
+        for (Map<InterfaceType, InterfaceType> otherTypesMap : superTypesMaps) {
+          InterfaceType superTypeRaw = superType.asRawType();
+          InterfaceType otherType = otherTypesMap.get(superTypeRaw);
+          // no such raw type, exclude from intersection
+          if (otherType == null) {
             inAll = false;
             break;
+          }
+          // if not raw, choose type arguments
+          if (!superType.getArguments().isEmpty()) {
+            InterfaceType t0 = superType;
+            InterfaceType t1 = otherType;
+            // if two-way sub-type, then has Dynamic(s), choose with least number
+            if (isSubtype(t0, t1) && isSubtype(t1, t0)) {
+              int dynamics0 = getDynamicArgumentsCount(t0);
+              int dynamics1 = getDynamicArgumentsCount(t1);
+              if (dynamics0 < dynamics1) {
+                superType = t0;
+              } else {
+                superType = t1;
+              }
+              continue;
+            }
+            // use super-type of t0 and t1
+            if (isSubtype(t0, t1)) {
+              superType = t1;
+            }
+            if (isSubtype(t1, t0)) {
+              superType = t0;
+            }
           }
         }
         if (inAll && !interTypes.contains(superType)) {
@@ -115,6 +148,17 @@ public class Types {
     }
     // create union
     return new InterfaceTypeUnion(interTypes);
+  }
+
+  /**
+   * @return the number of <code>Dynamic</code> type arguments in given {@link InterfaceType}.
+   */
+  private static int getDynamicArgumentsCount(InterfaceType t) {
+    return Iterables.size(Iterables.filter(t.getArguments(), new Predicate<Type>() {
+      public boolean apply(Type arg) {
+        return TypeKind.of(arg) == TypeKind.DYNAMIC;
+      }
+    }));
   }
 
   /**
