@@ -535,6 +535,10 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                               const AbstractType& type,
                                               FinalizationKind finalization) {
   if (type.IsFinalized()) {
+    // Ensure type is canonical if canonicalization is requested.
+    if (finalization >= kCanonicalize) {
+      return type.Canonicalize();
+    }
     return type.raw();
   }
   ASSERT(type.IsResolved());
