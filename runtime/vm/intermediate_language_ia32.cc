@@ -86,7 +86,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ pushl(temp);
     compiler->GenerateCallRuntime(Isolate::kNoDeoptId,
                                   0,
-                                  CatchClauseNode::kInvalidTryIndex,
                                   kTraceFunctionExitRuntimeEntry,
                                   locs());
     __ popl(temp);  // Remove argument.
@@ -116,8 +115,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ nop(1);
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
                                  deopt_id(),
-                                 token_pos(),
-                                 CatchClauseNode::kInvalidTryIndex);
+                                 token_pos());
 }
 
 
@@ -213,7 +211,6 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ pushl(obj);  // Push the source object.
     compiler->GenerateCallRuntime(deopt_id(),
                                   token_pos(),
-                                  try_index(),
                                   kConditionTypeErrorRuntimeEntry,
                                   locs());
     // We should never return here.
@@ -278,13 +275,11 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
 static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
-                                       intptr_t try_index,
                                        Token::Kind kind,
                                        LocationSummary* locs) {
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  deopt_id,
-                                 token_pos,
-                                 try_index);
+                                 token_pos);
   const String& operator_name = String::ZoneHandle(Symbols::New("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
@@ -322,7 +317,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ pushl(right);
   compiler->GenerateInstanceCall(deopt_id,
                                  token_pos,
-                                 try_index,
                                  operator_name,
                                  kNumberOfArguments,
                                  kNoArgumentNames,
@@ -348,8 +342,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           BranchInstr* branch,
                                           Token::Kind kind,
                                           intptr_t deopt_id,
-                                          intptr_t token_pos,
-                                          intptr_t try_index) {
+                                          intptr_t token_pos) {
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   ASSERT(ic_data.NumberOfChecks() > 0);
@@ -402,7 +395,6 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       const Array& kNoArgumentNames = Array::Handle();
       compiler->GenerateStaticCall(deopt_id,
                                    token_pos,
-                                   try_index,
                                    target,
                                    kNumberOfArguments,
                                    kNoArgumentNames,
@@ -494,8 +486,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
                                        BranchInstr* branch,
                                        const ICData& ic_data,
                                        intptr_t deopt_id,
-                                       intptr_t token_pos,
-                                       intptr_t try_index) {
+                                       intptr_t token_pos) {
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Register left = locs->in(0).reg();
@@ -527,7 +518,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ pushl(left);
   __ pushl(right);
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
-                                deopt_id, token_pos, try_index);
+                                deopt_id, token_pos);
   __ Bind(&done);
 }
 
@@ -632,19 +623,14 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
-                               deopt_id(), token_pos(), try_index());
+                               deopt_id(), token_pos());
     return;
   }
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   __ pushl(left);
   __ pushl(right);
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             try_index(),
-                             kind(),
-                             locs());
+  EmitEqualityAsInstanceCall(compiler, deopt_id(), token_pos(), kind(), locs());
   ASSERT(locs()->out().reg() == EAX);
 }
 
@@ -671,7 +657,7 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
-                               deopt_id(), token_pos(), try_index());
+                               deopt_id(), token_pos());
     return;
   }
   Register left = locs()->in(0).reg();
@@ -681,7 +667,6 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
-                             try_index(),
                              Token::kEQ,  // kNE reverse occurs at branch.
                              locs());
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
@@ -749,7 +734,6 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                               deopt,  // Deoptimize target.
                               deopt_id(),
                               token_pos(),
-                              try_index(),
                               locs());
     return;
   }
@@ -757,13 +741,11 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       String::ZoneHandle(Symbols::New(Token::Str(kind())));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  deopt_id(),
-                                 token_pos(),
-                                 try_index());
+                                 token_pos());
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 2;  // Type-feedback.
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
-                                 try_index(),
                                  function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
@@ -823,7 +805,6 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movl(EDX, Immediate(arg_count));
   compiler->GenerateCall(token_pos(),
-                         try_index(),
                          &StubCode::CallNativeCFunctionLabel(),
                          PcDescriptors::kOther,
                          locs());
@@ -1040,7 +1021,6 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->GenerateInstanceOf(deopt_id(),
                                token_pos(),
-                               try_index(),
                                type(),
                                negate_result(),
                                locs());
@@ -1064,7 +1044,6 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == ECX);
   __ movl(EDX,  Immediate(Smi::RawValue(ArgumentCount())));
   compiler->GenerateCall(token_pos(),
-                         try_index(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
@@ -1106,7 +1085,6 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
   __ pushl(instantiator_type_arguments);
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
-                                try_index(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
                                 locs());
   // Pop instantiator type arguments, type arguments, and class.
@@ -1193,7 +1171,6 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
   __ pushl(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
-                                try_index(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
                                 locs());
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
@@ -1349,7 +1326,6 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label("alloc_context",
                             StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
-                         try_index(),
                          &label,
                          PcDescriptors::kOther,
                          locs());
@@ -1375,7 +1351,6 @@ void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(context_value);
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
-                                try_index(),
                                 kCloneContextRuntimeEntry,
                                 locs());
   __ popl(result);  // Remove argument.
@@ -1431,7 +1406,6 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(computation_->locs());
     compiler->GenerateCallRuntime(computation_->deopt_id(),
                                   computation_->token_pos(),
-                                  computation_->try_index(),
                                   kStackOverflowRuntimeEntry,
                                   computation_->locs());
     compiler->RestoreLiveRegisters(computation_->locs());
@@ -1620,7 +1594,6 @@ void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
         compiler->GenerateStaticCall(
             instance_call()->deopt_id(),
             instance_call()->token_pos(),
-            instance_call()->try_index(),
             target,
             kArgumentCount,
             Array::Handle(),  // No argument names.
@@ -1727,7 +1700,6 @@ void BinaryMintOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->GenerateStaticCall(
           instance_call()->deopt_id(),
           instance_call()->token_pos(),
-          instance_call()->try_index(),
           target,
           instance_call()->ArgumentCount(),
           instance_call()->argument_names(),
@@ -1749,7 +1721,6 @@ void BinaryMintOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->GenerateStaticCall(
           instance_call()->deopt_id(),
           instance_call()->token_pos(),
-          instance_call()->try_index(),
           target,
           instance_call()->ArgumentCount(),
           instance_call()->argument_names(),
@@ -1777,7 +1748,6 @@ void BinaryDoubleOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(instance_call()->token_pos(),
-                         instance_call()->try_index(),
                          &label,
                          PcDescriptors::kOther,
                          locs());
@@ -1870,7 +1840,6 @@ class BoxDoubleSlowPath : public SlowPathCode {
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(computation_->instance_call()->token_pos(),
-                           computation_->instance_call()->try_index(),
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -2035,7 +2004,6 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
     __ pushl(value);
     compiler->GenerateCall(instance_call()->token_pos(),
-                           instance_call()->try_index(),
                            &label,
                            PcDescriptors::kOther,
                            locs());
@@ -2098,7 +2066,6 @@ void SmiToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // TODO(vegorov): allocate box in the driver loop to avoid spilling.
   compiler->GenerateCall(instance_call()->token_pos(),
-                         instance_call()->try_index(),
                          &label,
                          PcDescriptors::kOther,
                          locs());
@@ -2134,7 +2101,6 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(0));
     compiler->GenerateStaticCall(instance_call()->deopt_id(),
                                  instance_call()->token_pos(),
-                                 instance_call()->try_index(),
                                  target,
                                  instance_call()->ArgumentCount(),
                                  instance_call()->argument_names(),
@@ -2160,7 +2126,6 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                             deopt,
                             instance_call()->deopt_id(),
                             instance_call()->token_pos(),
-                            instance_call()->try_index(),
                             locs());
 }
 

@@ -110,7 +110,7 @@ bool ConstantComp::AttributesEqual(Computation* other) const {
 
 
 GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
-    : BlockEntryInstr(),
+    : BlockEntryInstr(CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
       start_env_(NULL),
@@ -1160,8 +1160,8 @@ void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetBlockLabel(this));
-  if (HasTryIndex()) {
-    compiler->AddExceptionHandler(try_index(),
+  if (IsCatchEntry()) {
+    compiler->AddExceptionHandler(catch_try_index(),
                                   compiler->assembler()->CodeSize());
   }
   if (HasParallelMove()) {
@@ -1179,7 +1179,6 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
-                                try_index(),
                                 kThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -1194,7 +1193,6 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
-                                try_index(),
                                 kReThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -1331,7 +1329,6 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp_reg, arguments_descriptor);
 
   compiler->GenerateCall(token_pos(),
-                         try_index(),
                          &StubCode::CallClosureFunctionLabel(),
                          PcDescriptors::kOther,
                          locs());
@@ -1347,11 +1344,9 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  deopt_id(),
-                                 token_pos(),
-                                 try_index());
+                                 token_pos());
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
-                                 try_index(),
                                  function_name(),
                                  ArgumentCount(),
                                  argument_names(),
@@ -1373,7 +1368,6 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
-                               try_index(),
                                function(),
                                ArgumentCount(),
                                argument_names(),
@@ -1386,7 +1380,6 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(deopt_id(),
                                        token_pos(),
-                                       try_index(),
                                        dst_type(),
                                        dst_name(),
                                        locs());
@@ -1466,7 +1459,6 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
-                         try_index(),
                          &label,
                          PcDescriptors::kOther,
                          locs());
@@ -1484,7 +1476,8 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(closure_function));
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_pos(), try_index(), &label,
+  compiler->GenerateCall(token_pos(),
+                         &label,
                          PcDescriptors::kOther,
                          locs());
   __ Drop(2);  // Discard type arguments and receiver.

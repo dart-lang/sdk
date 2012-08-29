@@ -8,7 +8,8 @@
 namespace dart {
 
 TEST_CASE(InstructionTests) {
-  TargetEntryInstr* target_instr = new TargetEntryInstr();
+  TargetEntryInstr* target_instr =
+      new TargetEntryInstr(CatchClauseNode::kInvalidTryIndex);
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsBind());
   BindInstr* bind_instr =

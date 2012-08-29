@@ -159,6 +159,7 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
   }
+  set_current_block(NULL);
 }
 
 
@@ -222,13 +223,12 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             intptr_t token_pos,
-                                             intptr_t try_index) {
+                                             intptr_t token_pos) {
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        deopt_id,
                                        token_pos,
-                                       try_index);
+                                       CurrentTryIndex());
 }
 
 
@@ -369,7 +369,6 @@ bool FlowGraphCompiler::TryIntrinsify() {
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
-    intptr_t try_index,
     const String& function_name,
     intptr_t argument_count,
     const Array& argument_names,
@@ -397,13 +396,12 @@ void FlowGraphCompiler::GenerateInstanceCall(
   ExternalLabel target_label("InlineCache", label_address);
 
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
-                   deopt_id, token_pos, try_index, locs);
+                   deopt_id, token_pos, locs);
 }
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t token_pos,
-                                           intptr_t try_index,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
@@ -411,7 +409,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   EmitStaticCall(function, arguments_descriptor, argument_count,
-                 deopt_id, token_pos, try_index, locs);
+                 deopt_id, token_pos, locs);
 }
 
 
@@ -475,7 +473,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* deopt,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
-                                        intptr_t try_index,
                                         LocationSummary* locs) {
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
@@ -491,7 +488,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     GenerateStaticCall(deopt_id,
                        token_index,
-                       try_index,
                        target,
                        arg_count,
                        arg_names,

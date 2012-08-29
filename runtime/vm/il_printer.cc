@@ -493,8 +493,8 @@ void ParameterInstr::PrintTo(BufferFormatter* f) const {
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [target", block_id());
-  if (HasTryIndex()) {
-    f->Print(" catch %d]", try_index());
+  if (IsCatchEntry()) {
+    f->Print(" catch %d]", catch_try_index());
   } else {
     f->Print("]");
   }
@@ -740,8 +740,8 @@ void ParameterInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ [target");
-  if (HasTryIndex()) {
-    f->Print(" catch %d]", try_index());
+  if (IsCatchEntry()) {
+    f->Print(" catch %d]", catch_try_index());
   } else {
     f->Print("]");
   }
