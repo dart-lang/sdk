@@ -1067,7 +1067,7 @@ class HInstruction implements Hashable {
    */
   bool isCodeMotionInvariant() => false;
 
-  bool isStatement(HTypeMap types) => false;
+  bool isJsStatement(HTypeMap types) => false;
 
   bool dominates(HInstruction other) {
     if (block != other.block) return block.dominates(other.block);
@@ -1106,7 +1106,7 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput => inputs[0];
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
   void prepareGvn(HTypeMap types) {
     assert(!hasSideEffects(types));
     setUseGvn();
@@ -1123,7 +1123,7 @@ class HBailoutTarget extends HInstruction {
   }
 
   bool isControlFlow() => true;
-  bool isStatement(HTypeMap types) => isEnabled;
+  bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
   int typeCode() => HInstruction.BAILOUT_TARGET_TYPECODE;
@@ -1151,7 +1151,7 @@ class HTypeGuard extends HCheck {
 
   bool isControlFlow() => true;
 
-  bool isStatement(HTypeMap types) => isEnabled;
+  bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
@@ -1223,7 +1223,7 @@ class HControlFlow extends HInstruction {
     // Control flow does not have side-effects.
   }
   bool isControlFlow() => true;
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
 }
 
 class HInvoke extends HInstruction {
@@ -1437,7 +1437,7 @@ class HFieldSet extends HFieldAccess {
     setAllSideEffects();
   }
 
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
   String toString() => "FieldSet $element";
 }
 
@@ -1497,7 +1497,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType => foreignType;
 
-  bool isStatement(HTypeMap types) => _isStatement;
+  bool isJsStatement(HTypeMap types) => _isStatement;
 }
 
 class HForeignNew extends HForeign {
@@ -2318,7 +2318,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isStatement(HTypeMap types) => true;
+  bool isJsStatement(HTypeMap types) => true;
 }
 
 class HLiteralList extends HInstruction {
@@ -2398,7 +2398,7 @@ class HIndexAssign extends HInvokeStatic {
 
   bool isBuiltin(HTypeMap types)
       => receiver.isMutableArray(types) && index.isInteger(types);
-  bool isStatement(HTypeMap types) => !isBuiltin(types);
+  bool isJsStatement(HTypeMap types) => !isBuiltin(types);
 }
 
 class HIs extends HInstruction {
@@ -2455,7 +2455,7 @@ class HTypeConversion extends HCheck {
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool isStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
+  bool isJsStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
