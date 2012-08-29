@@ -10,6 +10,15 @@ class _AudioContextFactoryProvider {
 ''';
 }
 
+class _FormDataFactoryProvider {
+
+  factory FormData([HTMLFormElement form = null]) native '''
+    if (form == null) return new FormData();
+    return new FormData(form);
+  ''';
+
+}
+
 class _WebKitPointFactoryProvider {
 
   factory WebKitPoint(num x, num y) native '''return new WebKitPoint(x, y);''';
