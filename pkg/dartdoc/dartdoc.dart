@@ -27,7 +27,7 @@
 #import('markdown.dart', prefix: 'md');
 #import('../../lib/compiler/implementation/scanner/scannerlib.dart',
         prefix: 'dart2js');
-#import('../../lib/compiler/implementation/library_map.dart');
+#import('../../lib/_internal/libraries.dart');
 
 #source('comment_map.dart');
 #source('nav.dart');
@@ -395,7 +395,6 @@ class Dartdoc {
   Dartdoc()
       : _comments = new CommentMap(),
         dartdocPath = scriptDir {
-
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
     md.InlineParser.syntaxes.insertRange(0, 1,
@@ -426,9 +425,9 @@ class Dartdoc {
     }
     if (libraryName.startsWith('dart:')) {
       String suffix = libraryName.substring('dart:'.length);
-      LibraryInfo info = DART2JS_LIBRARY_MAP[suffix];
+      LibraryInfo info = LIBRARIES[suffix];
       if (info != null) {
-        return !info.isInternal && includeApi;
+        return info.documented && includeApi;
       }
     }
     return includeByDefault;
@@ -443,9 +442,9 @@ class Dartdoc {
       String libraryName = library.simpleName;
       if (libraryName.startsWith('dart:')) {
         String suffix = libraryName.substring('dart:'.length);
-        LibraryInfo info = DART2JS_LIBRARY_MAP[suffix];
+        LibraryInfo info = LIBRARIES[suffix];
         if (info != null) {
-          return !info.isInternal;
+          return info.documented;
         }
       }
     }
@@ -454,15 +453,15 @@ class Dartdoc {
 
   String get footerContent(){
     var footerItems = [];
-    if(!omitGenerationTime) {
+    if (!omitGenerationTime) {
       footerItems.add("This page was generated at ${new Date.now()}");
     }
-    if(footerText != null) {
+    if (footerText != null) {
       footerItems.add(footerText);
     }
     var content = '';
     for (int i = 0; i < footerItems.length; i++) {
-      if(i > 0){
+      if (i > 0) {
         content = content.concat('\n');
       }
       content = content.concat('<div>${footerItems[i]}</div>');

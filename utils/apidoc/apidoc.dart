@@ -95,9 +95,7 @@ void main() {
   // Add all of the core libraries.
   final apidocLibraries = <Path>[];
   LIBRARIES.forEach((String name, LibraryInfo info) {
-    if (info.isDart2JsLibrary() &&
-        info.category != "Internal" &&
-        info.documented) {
+    if (info.documented) {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });

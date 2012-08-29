@@ -11,7 +11,7 @@
 #import('tree/tree.dart', prefix: 'tree');
 #import('elements/elements.dart', prefix: 'elements');
 #import('ssa/tracer.dart', prefix: 'ssa');
-#import('library_map.dart');
+#import('../../../lib/_internal/libraries.dart');
 #import('source_file.dart');
 
 class Compiler extends leg.Compiler {
@@ -24,17 +24,40 @@ class Compiler extends leg.Compiler {
 
   Compiler(this.provider, this.handler, this.libraryRoot, this.packageRoot,
            List<String> options)
-    : this.options = options,
-      super(
-          tracer: new ssa.HTracer(),
-          enableTypeAssertions: options.indexOf('--enable-checked-mode') != -1,
-          enableUserAssertions: options.indexOf('--enable-checked-mode') != -1,
-          enableMinification: options.indexOf('--minify') != -1,
-          emitJavascript: options.indexOf('--output-type=dart') == -1,
-          cutDeclarationTypes: options.indexOf('--cutDeclarationTypes') != -1);
+      : this.options = options,
+        super(
+            tracer: new ssa.HTracer(),
+            enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
+            enableUserAssertions: hasOption(options, '--enable-checked-mode'),
+            enableMinification: hasOption(options, '--minify'),
+            emitJavascript: !hasOption(options, '--output-type=dart'),
+            cutDeclarationTypes: hasOption(options, '--cutDeclarationTypes'));
+
+  static bool hasOption(List<String> options, String option) {
+    return options.indexOf(option) >= 0;
+  }
+
+  String lookupLibraryPath(String dartLibraryName) {
+    LibraryInfo info = LIBRARIES[dartLibraryName];
+    if (info === null) return null;
+    if (!info.isDart2jsLibrary) return null;
+    String path = info.dart2jsPath;
+    if (path === null) {
+      path = info.path;
+    }
+    return "lib/$path";
+  }
+  String lookupPatchPath(String dartLibraryName) {
+    LibraryInfo info = LIBRARIES[dartLibraryName];
+    if (info === null) return null;
+    if (!info.isDart2jsLibrary) return null;
+    String path = info.dart2jsPatchPath;
+    if (path === null) return null;
+    return "lib/$path";
+  }
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
-    Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path].libraryPath);
+    Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
     Uri canonicalUri;
     if (path.startsWith("_")) {
       canonicalUri = uri;
@@ -78,13 +101,14 @@ class Compiler extends leg.Compiler {
   }
 
   Uri translateDartUri(Uri uri, tree.Node node) {
-    String path = DART2JS_LIBRARY_MAP[uri.path].libraryPath;
-    if (path === null || uri.path.startsWith('_')) {
+    String path = lookupLibraryPath(uri.path);
+    if (path === null || LIBRARIES[uri.path].category == "Internal") {
       reportError(node, 'library not found ${uri}');
       return null;
     }
-    if (uri.path == 'dom_deprecated'
-        || uri.path == 'html' || uri.path == 'io') {
+    if (uri.path == 'dom_deprecated' ||
+        uri.path == 'html' ||
+        uri.path == 'io') {
       // TODO(ahe): Get rid of mockableLibraryUsed when test.dart
       // supports this use case better.
       mockableLibraryUsed = true;
@@ -93,7 +117,7 @@ class Compiler extends leg.Compiler {
   }
 
   Uri resolvePatchUri(String dartLibraryPath) {
-    String patchPath = DART2JS_LIBRARY_MAP[dartLibraryPath].patchPath;
+    String patchPath = lookupPatchPath(dartLibraryPath);
     if (patchPath === null) return null;
     return libraryRoot.resolve(patchPath);
   }

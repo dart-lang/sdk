@@ -25,13 +25,8 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "builtin": const LibraryInfo(
       "builtin/builtin_runtime.dart",
       category: "Server",
+      documented: false,
       platforms: VM_PLATFORM),
-
-  // Is moving to pkg directory
-  "compiler": const LibraryInfo(
-      "compiler/compiler.dart",
-      category: "Tools",
-      platforms: 0),
 
   "core": const LibraryInfo(
       "core/core_runtime.dart",
@@ -75,7 +70,9 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       dart2jsPatchPath: "compiler/implementation/lib/math_patch.dart"),
 
   "mirrors": const LibraryInfo(
-      "mirrors/mirrors.dart"),
+      "mirrors/mirrors.dart",
+      documented: false,
+      platforms: VM_PLATFORM),
 
   "nativewrappers": const LibraryInfo(
       "html/nativewrappers.dart",
@@ -164,12 +161,6 @@ class LibraryInfo {
            this.documented = true,
            this.platforms = DART2JS_PLATFORM | VM_PLATFORM]);
 
-  bool isDart2JsLibrary() => (platforms & DART2JS_PLATFORM) != 0;
-  bool isVmLibrary() => (platforms & VM_PLATFORM) != 0;
-
-  String getDart2JsPath() =>
-      dart2jsPath != null ? "lib/$dart2jsPath" : "lib/$path";
-
-  String getDart2jsPatchPath() =>
-      dart2jsPatchPath != null ? "lib/$dart2jsPatchPath" : null;
+  bool get isDart2jsLibrary => (platforms & DART2JS_PLATFORM) != 0;
+  bool get isVmLibrary => (platforms & VM_PLATFORM) != 0;
 }
