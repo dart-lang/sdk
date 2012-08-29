@@ -179,7 +179,6 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
-interface_negative_test: Fail
 call_constructor_on_unresolvable_class_test/01: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/02: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/03: Fail # generates 'new Unresolved()' which fails on the VM
@@ -221,6 +220,7 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
+empty_body_member_negative_test: Fail
 field2_negative_test: Fail
 field4_negative_test: Fail
 field5_negative_test: Fail

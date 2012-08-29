@@ -112,41 +112,6 @@ Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in c
 Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 171
 
-# co19 issue 183 - must not instantiate an abstract class
-# Some of these tests are expected to fail for another reason. These are marked as Skip.
-Language/10_Expressions/10_Instance_Creation/2_Const_A11_t04: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/2_Const_A11_t03: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/2_Const_A11_t02: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/2_Const_A11_t01: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/1_New_A16_t02: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/1_New_A16_t01: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/1_New_A15_t02: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/1_New_A15_t01: Fail # co19 issue 183
-Language/03_Overview/2_Privacy_A01_t07: Fail # co19 issue 183
-Language/03_Overview/2_Privacy_A01_t08: Fail # co19 issue 183
-Language/07_Classes/07_Classes_A02_t29: Skip # co19 issue 183
-Language/07_Classes/07_Classes_A02_t31: Skip # co19 issue 183
-Language/07_Classes/07_Classes_A07_t10: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t02: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t02: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail # co19 issue 183
-Language/07_Classes/2_Getters_A01_t01: Fail # co19 issue 183
-Language/07_Classes/3_Setters_A01_t01: Fail # co19 issue 183
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # co19 issue 183
-
-
 # co19 175 - related to issue 4522, all need fixing, some passes because of temporary warning.
 Language/10_Expressions/07_Maps_A03_t01: Pass, Fail # co19 175
 Language/10_Expressions/07_Maps_A04_t01: Pass, Fail # co19 175
@@ -391,11 +356,14 @@ LibTest/core/Date/Date.withTimeZone_A01_t02: Pass,Fail
 
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
-
-# VM issues wrong error, static setter f is not inherited by class B
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Fail
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Fail
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Fail
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t02: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t03: Fail
-
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail  # co19 issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail
 Language/07_Classes/3_Setters_A01_t02: Fail
