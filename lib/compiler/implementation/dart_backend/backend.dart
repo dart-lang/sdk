@@ -14,12 +14,53 @@ class DartBackend extends Backend {
       : tasks = <CompilerTask>[],
       super(compiler);
 
-  void enqueueHelpers(Enqueuer world) { }
+  void enqueueHelpers(Enqueuer world) {
+    // Right now resolver doesn't always resolve interfaces needed
+    // for literals, so force them. TODO(antonm): fix in the resolver.
+    final LITERAL_TYPE_NAMES = const [
+      'Map', 'List', 'num', 'int', 'double', 'bool'
+    ];
+    final coreLibrary = compiler.coreLibrary;
+    for (final name in LITERAL_TYPE_NAMES) {
+      ClassElement classElement = coreLibrary.findLocal(new SourceString(name));
+      classElement.ensureResolved(compiler);
+    }
+  }
   void codegen(WorkItem work) { }
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) { }
 
   void assembleProgram() {
+    // Conservatively traverse all platform libraries and collect member names.
+    // TODO(antonm): ideally we should only collect names of used members,
+    // however as of today there are problems with names of some core library
+    // interfaces, most probably for interfaces of literals.
+    final fixedMemberNames = new Set<String>();
+    for (final library in compiler.libraries.getValues()) {
+      if (!library.isPlatformLibrary) continue;
+      for (final element in library.localMembers) {
+        if (element is ClassElement) {
+          ClassElement classElement = element;
+          for (final member in classElement.localMembers) {
+            final name = member.name.slowToString();
+            // Skip operator names.
+            if (name.startsWith(@'operator$')) continue;
+            // Fetch name of named constructors and factories if any,
+            // otherwise store regular name.
+            // TODO(antonm): better way to analyze the name.
+            fixedMemberNames.add(name.split(@'$').last());
+          }
+        } else {
+          fixedMemberNames.add(element.name.slowToString());
+        }
+      }
+    }
+    // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
+    // runtime/lib/error.dart. Overall, all DartVM specific libs should be
+    // accounted for.
+    fixedMemberNames.add('srcType');
+    fixedMemberNames.add('dstType');
+
     /**
      * Tells whether we should output given element. Corelib classes like
      * Object should not be in the resulting code.
@@ -89,7 +130,8 @@ class DartBackend extends Backend {
     });
 
     // Create all necessary placeholders.
-    PlaceholderCollector collector = new PlaceholderCollector(compiler);
+    PlaceholderCollector collector =
+        new PlaceholderCollector(compiler, fixedMemberNames);
     makePlaceholders(element) {
       TreeElements treeElements = resolvedElements[element];
       if (treeElements === null) treeElements = emptyTreeElements;
@@ -104,7 +146,8 @@ class DartBackend extends Backend {
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
     renamePlaceholders(
-        compiler, collector, renames, imports, minify, cutDeclarationTypes);
+        compiler, collector, renames, imports,
+        fixedMemberNames, minify, cutDeclarationTypes);
 
     // Sort elements.
     final sortedTopLevels = sortElements(topLevelElements);

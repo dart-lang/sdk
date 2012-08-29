@@ -281,3 +281,8 @@ super_first_constructor_test: Fail
 disable_privacy_test: Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
+# Minified mode failures.
+# TODO(antonm): proper support in test framework.
+overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
+many_overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
+no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").

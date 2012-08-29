@@ -11,24 +11,25 @@ void renamePlaceholders(
     PlaceholderCollector placeholderCollector,
     Map<Node, String> renames,
     Map<LibraryElement, String> imports,
+    Set<String> fixedMemberNames,
     bool minify,
     bool cutDeclarationTypes) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
-  final Set<String> usedTopLevelIdentifiers = new Set<String>();
-  // TODO(antonm): we should also populate this set with top-level
-  // names from core library.
-  usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
-
   Generator topLevelGenerator =
       minify ? new MinifyingGenerator('ABCDEFGHIJKLMNOPQRSTUVWXYZ').generate
           : conservativeGenerator;
-  String generateUniqueName(name) {
-    String newName = topLevelGenerator(
-        name, usedTopLevelIdentifiers.contains);
-    usedTopLevelIdentifiers.add(newName);
+  makeGenerator(usedIdentifierSet) => (name) {
+    String newName = topLevelGenerator(name, usedIdentifierSet.contains);
+    usedIdentifierSet.add(newName);
     return newName;
-  }
+  };
+
+  final usedTopLevelIdentifiers = new Set<String>();
+  // TODO(antonm): we should also populate this set with top-level
+  // names from core library.
+  usedTopLevelIdentifiers.add('main'); // Never rename anything to 'main'.
+  final generateUniqueName = makeGenerator(usedTopLevelIdentifiers);
 
   rename(library, originalName) =>
       renamed.putIfAbsent(library, () => <String>{})
@@ -107,6 +108,16 @@ void renamePlaceholders(
       renames[placeholder.typeNode] = placeholder.requiresVar ? 'var' : '';
     }
   }
+
+  final usedMemberIdentifiers = new Set<String>.from(fixedMemberNames);
+  // Do not rename members to top-levels, that allows to avoid renaming
+  // members to constructors.
+  usedMemberIdentifiers.addAll(usedTopLevelIdentifiers);
+  final generateMemberIdentifier = makeGenerator(usedMemberIdentifiers);
+  placeholderCollector.memberPlaceholders.forEach((identifier, nodes) {
+    final newIdentifier = generateMemberIdentifier(identifier);
+    renameNodes(nodes, (_) => newIdentifier);
+  });
 }
 
 typedef String Generator(String originalName, bool isForbidden(String name));

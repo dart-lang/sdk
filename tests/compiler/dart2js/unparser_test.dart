@@ -31,6 +31,7 @@ interface double extends num {}
 interface String {}
 interface Function {}
 interface List {}
+interface Map {}
 interface Closure {}
 interface Dynamic {}
 interface Null {}
@@ -476,7 +477,8 @@ main() {
   compiler.parseScript(src);
   FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
   compiler.processQueue(compiler.enqueuer.resolution, mainElement);
-  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  PlaceholderCollector collector =
+      new PlaceholderCollector(compiler, new Set<String>());
   collector.collect(mainElement,
       compiler.enqueuer.resolution.resolvedElements[mainElement]);
   FunctionExpression mainNode = mainElement.parseNode(compiler);
@@ -504,7 +506,8 @@ main() {
   compiler.parseScript(src);
   ClassElement interfaceElement = compiler.mainApp.find(buildSourceString('I'));
   interfaceElement.ensureResolved(compiler);
-  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  PlaceholderCollector collector =
+      new PlaceholderCollector(compiler, new Set<String>());
   collector.collect(interfaceElement,
       compiler.enqueuer.resolution.resolvedElements[interfaceElement]);
   ClassNode interfaceNode = interfaceElement.parseNode(compiler);
@@ -744,9 +747,9 @@ main() {
 }
 ''';
   var expectedResult =
-      'class A{var a;static B(b){b=5;}}'
+      'class A{var D;static B(b){b=5;}}'
       'C(a,[optionalarg=7]){a=6;}'
-      'main(){new A().a; A.B(8); C(8);}';
+      'main(){new A().D; A.B(8); C(8);}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
