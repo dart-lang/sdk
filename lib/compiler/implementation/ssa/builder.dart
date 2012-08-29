@@ -182,23 +182,13 @@ class SsaBuilderTask extends CompilerTask {
           backend.optimisticParameterTypesWithRecompilationOnTypeChange(
               element);
       if (parameterTypes != null) {
-        // TODO(kasperl): Allow this also for static elements.
-        if (element.isMember()) {
-          backend.optimizedFunctions.add(element);
-          backend.optimizedTypes[element] = parameterTypes;
-        }
         FunctionSignature signature = element.computeSignature(compiler);
         int i = 0;
         signature.forEachParameter((Element param) {
           builder.parameters[param].guaranteedType = parameterTypes[i++];
         });
-      } else {
-        // TODO(kasperl): Allow this also for static elements.
-        if (element.isMember()) {
-          backend.optimizedFunctions.remove(element);
-          backend.optimizedTypes.remove(element);
-        }
       }
+      backend.registerParameterTypesOptimization(element, parameterTypes);
 
       if (compiler.tracer.enabled) {
         String name;

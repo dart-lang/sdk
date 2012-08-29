@@ -4,97 +4,6 @@
 
 typedef void Recompile(Element element);
 
-// Gather the type information provided. If the types contains no
-// useful information there is no need to actually store them.
-List<HType> computeProvidedTypes(HInvoke node, HTypeMap types) {
-  bool allUnknown = true;
-  for (int i = 1; i < node.inputs.length; i++) {
-    if (types[node.inputs[i]] != HType.UNKNOWN) {
-      allUnknown = false;
-      break;
-    }
-  }
-  if (allUnknown) return null;
-
-  List<HType> result = new List<HType>(node.inputs.length - 1);
-  for (int i = 0; i < result.length; i++) {
-    result[i] = types[node.inputs[i + 1]];
-  }
-  return result;
-}
-
-// TODO(kasperl): Refactor this method once we've gotten rid of
-// InvocationInfo.
-void updateTypes(List<HType> old, HInvoke node, HTypeMap types,
-                 callback(bool typesChanged, bool allUnknown)) {
-  // Update the type information with the provided types.
-  if (old === null) {
-    callback(false, true);
-    return;
-  }
-
-  bool typesChanged = false;
-  bool allUnknown = true;
-  if (old.length != node.inputs.length - 1) {
-    // If the signatures don't match, remove all optimizations on
-    // that selector.
-    typesChanged = true;
-    allUnknown = true;
-  } else {
-    for (int i = 0; i < old.length; i++) {
-      HType newType = old[i].union(types[node.inputs[i + 1]]);
-      if (newType != old[i]) {
-        typesChanged = true;
-        old[i] = newType;
-      }
-      if (old[i] != HType.UNKNOWN) allUnknown = false;
-    }
-  }
-  callback(typesChanged, allUnknown);
-}
-
-class InvocationInfo {
-  int parameterCount = -1;
-  List<HType> providedTypes;
-  List<Element> compiledFunctions;
-
-  InvocationInfo(HInvoke node, HTypeMap types)
-      : compiledFunctions = new List<Element>() {
-    assert(node != null);
-    providedTypes = computeProvidedTypes(node, types);
-    if (providedTypes !== null) {
-      parameterCount = providedTypes.length;
-    }
-  }
-
-  InvocationInfo.unknownTypes();
-
-  void update(HInvoke node, HTypeMap types, Recompile recompile) {
-    // If we don't know anything useful about the types adding more
-    // information will not help.
-    updateTypes(providedTypes, node, types,
-        (bool typesChanged, bool allUnknown) {
-      // If the provided types change we need to recompile all functions which
-      // have been compiled under the now invalidated assumptions.
-      if (typesChanged && compiledFunctions.length != 0) {
-        if (recompile != null) {
-          compiledFunctions.forEach(recompile);
-        }
-        compiledFunctions.clear();
-      }
-      // If all information is lost no need to keep it around.
-      if (allUnknown) clearTypeInformation();
-    });
-  }
-
-  addCompiledFunction(FunctionElement function) =>
-      compiledFunctions.add(function);
-
-  void clearTypeInformation() { providedTypes = null; }
-  bool get hasTypeInformation => providedTypes != null;
-
-}
-
 class ReturnInfo {
   HType returnType;
   List<Element> compiledFunctions;
@@ -126,6 +35,222 @@ class ReturnInfo {
       compiledFunctions.add(function);
 }
 
+class ArgumentTypesRegistry {
+  final JavaScriptBackend backend;
+  final Map<Element, List<HType>> staticTypeMap;
+  final Set<Element> optimizedStaticFunctions;
+  final SelectorMap<List<HType>> selectorTypeMap;
+  final FunctionSet optimizedFunctions;
+  final Map<Element, List<HType>> optimizedTypes;
+
+  ArgumentTypesRegistry(JavaScriptBackend backend)
+      : staticTypeMap = new Map<Element, List<HType>>(),
+        optimizedStaticFunctions = new Set<Element>(),
+        selectorTypeMap = new SelectorMap<List<HType>>(backend.compiler),
+        optimizedFunctions = new FunctionSet(backend.compiler),
+        optimizedTypes = new Map<Element, List<HType>>(),
+        this.backend = backend;
+
+  Compiler get compiler => backend.compiler;
+
+  // Gather the type information provided. If the types contains no
+  // useful information there is no need to actually store them.
+  List<HType> computeProvidedTypes(HInvoke node, HTypeMap types) {
+    bool allUnknown = true;
+    for (int i = 1; i < node.inputs.length; i++) {
+      if (types[node.inputs[i]] != HType.UNKNOWN) {
+        allUnknown = false;
+        break;
+      }
+    }
+    if (allUnknown) return null;
+
+    List<HType> result = new List<HType>(node.inputs.length - 1);
+    for (int i = 0; i < result.length; i++) {
+      result[i] = types[node.inputs[i + 1]];
+    }
+    return result;
+  }
+
+  // TODO(sgjesse): Refactor this method.
+  void updateTypes(List<HType> old, HInvoke node, HTypeMap types,
+                    callback(bool typesChanged, bool allUnknown)) {
+    // Update the type information with the provided types.
+    if (old === null) {
+      callback(false, true);
+      return;
+    }
+
+    bool typesChanged = false;
+    bool allUnknown = true;
+    if (old.length != node.inputs.length - 1) {
+      // If the signatures don't match, remove all optimizations on
+      // that selector.
+      typesChanged = true;
+      allUnknown = true;
+    } else {
+      for (int i = 0; i < old.length; i++) {
+        HType newType = old[i].union(types[node.inputs[i + 1]]);
+        if (newType != old[i]) {
+          typesChanged = true;
+          old[i] = newType;
+        }
+        if (old[i] != HType.UNKNOWN) allUnknown = false;
+      }
+    }
+    callback(typesChanged, allUnknown);
+  }
+
+  void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
+    Element element = node.element;
+    if (!staticTypeMap.containsKey(element)) {
+      staticTypeMap[element] = computeProvidedTypes(node, types);
+    } else {
+      List<HType> oldTypes = staticTypeMap[element];
+      if (oldTypes == null) return;
+      updateTypes(oldTypes, node, types, (bool typesChanged, bool allUnknown) {
+        if (!typesChanged) return;
+        if (allUnknown) staticTypeMap[element] = null;
+        if (optimizedStaticFunctions.contains(element)) {
+          backend.scheduleForRecompilation(element);
+          optimizedStaticFunctions.remove(element);
+        }
+      });
+    }
+  }
+
+  void registerNonCallStaticUse(HStatic node) {
+    // When a static is used for anything else than a call target we cannot
+    // infer anything about its parameter types.
+    Element element = node.element;
+    if (optimizedStaticFunctions.contains(element)) {
+      backend.scheduleForRecompilation(element);
+      optimizedStaticFunctions.remove(element);
+    }
+    staticTypeMap[element] = null;
+  }
+
+  void registerDynamicInvocation(HInvokeDynamicMethod node,
+                                 Selector selector,
+                                 HTypeMap types) {
+    // If there are any getters for this method we cannot know anything about
+    // the types of the provided parameters. Use resolverWorld for now as that
+    // information does not change during compilation.
+    // TODO(sgjesse): These checks should use the codegenWorld and keep track
+    // of changes to this information.
+    Element element = node.element;
+    Universe resolverWorld = compiler.resolverWorld;
+    if (element != null &&
+        (resolverWorld.hasFieldGetter(element, compiler) ||
+            resolverWorld.hasInvokedGetter(element, compiler))) {
+      return;
+    }
+
+    // TODO(kasperl): For now, we're only dealing with non-named arguments.
+    // We should generalize this.
+    List<HType> providedTypes = selector.namedArguments.isEmpty()
+        ? computeProvidedTypes(node, types)
+        : null;
+    if (!selectorTypeMap.containsKey(selector)) {
+      selectorTypeMap[selector] = providedTypes;
+    } else {
+      List<HType> oldTypes = selectorTypeMap[selector];
+      updateTypes(oldTypes, node, types, (bool typesChanged, bool allUnknown) {
+        if (!typesChanged) return;
+        if (allUnknown) selectorTypeMap[selector] = null;
+      });
+    }
+
+    // If we're not compiling, we don't have to do anything.
+    if (compiler.phase != Compiler.PHASE_COMPILING) return;
+
+    // Run through all optimized functions and figure out if they need
+    // to be recompiled because of this new invocation.
+    optimizedFunctions.filterBySelector(selector).forEach((Element element) {
+      // TODO(kasperl): Maybe check if the element is already marked for
+      // recompilation? Could be pretty cheap compared to computing
+      // union types.
+      List<HType> newTypes = parameterTypes(element);
+      bool recompile = false;
+      if (newTypes === null) {
+        recompile = true;
+      } else {
+        List<HType> oldTypes = optimizedTypes[element];
+        if (newTypes.length != oldTypes.length) {
+          // TODO(kasperl): This can be improved. If the newTypes aren't in
+          // conflict we can avoid the recompilation.
+          recompile = true;
+        } else for (int i = 0; i < oldTypes.length; i++) {
+          if (newTypes[i] != oldTypes[i]) {
+            recompile = true;
+            break;
+          }
+        }
+      }
+      if (recompile) backend.scheduleForRecompilation(element);
+    });
+  }
+
+  List<HType> parameterTypes(element) {
+    // Handle static functions separately.
+    if (Elements.isStaticOrTopLevelFunction(element)) {
+      if (staticTypeMap.containsKey(element)) {
+        List<HType> types = staticTypeMap[element];
+        if (types != null) {
+          if (!optimizedStaticFunctions.contains(element)) {
+            optimizedStaticFunctions.add(element);
+          }
+        }
+        return types;
+      } else {
+        return null;
+      }
+    }
+
+    // TODO(kasperl): What kind of non-members do we get here?
+    if (!element.isMember()) return null;
+
+    FunctionSignature signature = element.computeSignature(compiler);
+    List<HType> found = null;
+    selectorTypeMap.visitMatching(element,
+        (Selector selector, List<HType> types) {
+      if (selector.argumentCount != signature.parameterCount ||
+          types === null) {
+        found = null;
+        return false;
+      } else if (found === null) {
+        found = types;
+        return true;
+      } else {
+        found = null;
+        return false;
+      }
+    });
+    return found;
+  }
+
+  void registerOptimization(Element element, List<HType> parameterTypes) {
+    if (Elements.isStaticOrTopLevelFunction(element)) {
+      if (parameterTypes != null) {
+        optimizedStaticFunctions.add(element);
+      } else {
+        optimizedStaticFunctions.remove(element);
+      }
+    }
+
+    // TODO(kasperl): What kind of non-members do we get here?
+    if (!element.isMember()) return;
+
+    if (parameterTypes != null) {
+      optimizedFunctions.add(element);
+      optimizedTypes[element] = parameterTypes;
+    } else {
+      optimizedFunctions.remove(element);
+      optimizedTypes.remove(element);
+    }
+  }
+}
+
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final HTypeMap types;
 
@@ -141,14 +266,10 @@ class JavaScriptBackend extends Backend {
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, HType>> fieldSettersType;
 
-  final Map<Element, InvocationInfo> staticInvocationInfo;
-  final Map<SourceString, Map<Selector, InvocationInfo>> invocationInfo;
   final Map<Element, ReturnInfo> returnInfo;
 
   final List<Element> invalidateAfterCodegen;
-  final SelectorMap<List<HType>> selectorTypeMap;
-  final FunctionSet optimizedFunctions;
-  final Map<Element, List<HType>> optimizedTypes;
+  ArgumentTypesRegistry argumentTypes;
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -159,17 +280,13 @@ class JavaScriptBackend extends Backend {
         fieldInitializers = new Map<Element, Map<Element, HType>>(),
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
-        invocationInfo = new Map<SourceString, Map<Selector, InvocationInfo>>(),
-        staticInvocationInfo = new Map<Element, InvocationInfo>(),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
-        selectorTypeMap = new SelectorMap<List<HType>>(compiler),
-        optimizedFunctions = new FunctionSet(compiler),
-        optimizedTypes = new Map<Element, List<HType>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
+    argumentTypes = new ArgumentTypesRegistry(this);
   }
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
@@ -313,7 +430,7 @@ class JavaScriptBackend extends Backend {
     return fields[field];
   }
 
-  void recompile(Element element) {
+  void scheduleForRecompilation(Element element) {
     if (compiler.phase == Compiler.PHASE_COMPILING) {
       invalidateAfterCodegen.add(element);
     }
@@ -326,63 +443,7 @@ class JavaScriptBackend extends Backend {
   void registerDynamicInvocation(HInvokeDynamicMethod node,
                                  Selector selector,
                                  HTypeMap types) {
-    // If there are any getters for this method we cannot know anything about
-    // the types of the provided parameters. Use resolverWorld for now as that
-    // information does not change during compilation.
-    // TODO(sgjesse): These checks should use the codegenWorld and keep track
-    // of changes to this information.
-    Element element = node.element;
-    Universe resolverWorld = compiler.resolverWorld;
-    if (element != null &&
-        (resolverWorld.hasFieldGetter(element, compiler) ||
-         resolverWorld.hasInvokedGetter(element, compiler))) {
-      return;
-    }
-
-    // TODO(kasperl): For now, we're only dealing with non-named arguments.
-    // We should generalize this.
-    List<HType> providedTypes = selector.namedArguments.isEmpty()
-        ? computeProvidedTypes(node, types)
-        : null;
-    if (!selectorTypeMap.containsKey(selector)) {
-      selectorTypeMap[selector] = providedTypes;
-    } else {
-      List<HType> oldTypes = selectorTypeMap[selector];
-      updateTypes(oldTypes, node, types, (bool typesChanged, bool allUnknown) {
-        if (!typesChanged) return;
-        if (allUnknown) selectorTypeMap[selector] = null;
-      });
-    }
-
-    // If we're not compiling, we don't have to do anything.
-    if (compiler.phase != Compiler.PHASE_COMPILING) return;
-
-    // Run through all optimized functions and figure out if they need
-    // to be recompiled because of this new invocation.
-    optimizedFunctions.filterBySelector(selector).forEach((Element element) {
-      // TODO(kasperl): Maybe check if the element is already marked for
-      // recompilation? Could be pretty cheap compared to computing
-      // union types.
-      List<HType> newTypes =
-          optimisticParameterTypesWithRecompilationOnTypeChange(element);
-      bool recompile = false;
-      if (newTypes === null) {
-        recompile = true;
-      } else {
-        List<HType> oldTypes = optimizedTypes[element];
-        if (newTypes.length != oldTypes.length) {
-          // TODO(kasperl): This can be improved. If the newTypes aren't in
-          // conflict we can avoid the recompilation.
-          recompile = true;
-        } else for (int i = 0; i < oldTypes.length; i++) {
-          if (newTypes[i] != oldTypes[i]) {
-            recompile = true;
-            break;
-          }
-        }
-      }
-      if (recompile) invalidateAfterCodegen.add(element);
-    });
+    argumentTypes.registerDynamicInvocation(node, selector, types);
   }
 
   /**
@@ -390,33 +451,15 @@ class JavaScriptBackend extends Backend {
    *  named selector.
    */
   void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
-    InvocationInfo info = staticInvocationInfo[node.element];
-    if (info != null) {
-      info.update(node, types, recompile);
-    } else {
-      staticInvocationInfo[node.element] = new InvocationInfo(node, types);
-    }
+    argumentTypes.registerStaticInvocation(node, types);
   }
 
   /**
-   *  Register that a static is used for something else than a call target.
+   *  Register that a static is used for something else than a direct call
+   *  target.
    */
   void registerNonCallStaticUse(HStatic node) {
-    // When a static is used for anything else than a call target we cannot
-    // infer anything about its parameter types.
-    InvocationInfo info = staticInvocationInfo[node.element];
-    if (info == null) {
-      staticInvocationInfo[node.element] = new InvocationInfo.unknownTypes();
-    } else {
-      info.clearTypeInformation();
-      if (info.compiledFunctions != null &&
-          info.compiledFunctions.length != 0) {
-        if (compiler.phase == Compiler.PHASE_COMPILING) {
-          info.compiledFunctions.forEach(invalidateAfterCodegen.add);
-          info.compiledFunctions.clear();
-        }
-      }
-    }
+    argumentTypes.registerNonCallStaticUse(node);
   }
 
   /**
@@ -429,47 +472,18 @@ class JavaScriptBackend extends Backend {
    */
   List<HType> optimisticParameterTypesWithRecompilationOnTypeChange(
       FunctionElement element) {
-
-    // TODO(kasperl): Fold this into the visitMatching code somehow.
-    if (Elements.isStaticOrTopLevelFunction(element)) {
-      InvocationInfo found = staticInvocationInfo[element];
-      if (found != null && found.hasTypeInformation) {
-        FunctionSignature signature = element.computeSignature(compiler);
-        if (signature.parameterCount == found.parameterCount) {
-          found.addCompiledFunction(element);
-          return found.providedTypes;
-        }
-      }
-      return null;
-    }
-
-    // TODO(kasperl): What kind of non-members do we get here?
-    if (!element.isMember()) return null;
-
-    // TODO(kasperl): Clean this up.
-    FunctionSignature signature = element.computeSignature(compiler);
-    List<HType> found = null;
-    selectorTypeMap.visitMatching(element,
-        (Selector selector, List<HType> types) {
-      if (selector.argumentCount != signature.parameterCount ||
-          types === null) {
-        found = null;
-        return false;
-      } else if (found === null) {
-        found = types;
-        return true;
-      } else {
-        found = null;
-        return false;
-      }
-    });
-    return found;
+    return argumentTypes.parameterTypes(element);
   }
+
+  registerParameterTypesOptimization(element, parameterTypes) {
+    argumentTypes.registerOptimization(element, parameterTypes);
+  }
+
 
   void registerReturnType(FunctionElement element, HType returnType) {
     ReturnInfo info = returnInfo[element];
     if (info != null) {
-      info.update(returnType, recompile);
+      info.update(returnType, scheduleForRecompilation);
     } else {
       returnInfo[element] = new ReturnInfo(returnType);
     }
