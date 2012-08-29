@@ -69,7 +69,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     // stub on Object.prototype and throws an exception.
     try {
       return thing is Location;
-    } catch (var e) {
+    } catch (e) {
       return false;
     }
   }

@@ -161,7 +161,7 @@ void compile(List<String> argv) {
     String source;
     try {
       source = readAll(uriPathToNative(uri.path));
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
     }
     dartBytesRead += source.length;
@@ -368,10 +368,10 @@ void helpAndFail(String message) {
 void main() {
   try {
     compilerMain(new Options());
-  } catch (var exception, var trace) {
+  } catch (exception, trace) {
     try {
       print('Internal error: $exception');
-    } catch (var ignored) {
+    } catch (ignored) {
       print('Internal error: error while printing exception');
     }
     try {

@@ -68,7 +68,7 @@ show(grammar, rule, input) {
   var ast;
   try {
     ast = grammar.parse(rule, input);
-  } catch (var exception) {
+  } catch (exception) {
     if (exception is ParseError)
       ast = exception;
     else
@@ -85,7 +85,7 @@ void check(grammar, rule, input, expected) {
   var ast;
   try {
     ast = grammar.parse(rule, input);
-  } catch (var exception) {
+  } catch (exception) {
     ast = exception;
   }
 

@@ -10223,8 +10223,8 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
     try {
       final _NodeImpl parent = this.parent;
       parent.$dom_replaceChild(otherNode, this);
-    } catch(var e) {
-      
+    } catch (e) {
+
     };
     return this;
   }
@@ -17366,7 +17366,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     // stub on Object.prototype and throws an exception.
     try {
       return thing is Location;
-    } catch (var e) {
+    } catch (e) {
       return false;
     }
   }
@@ -38307,7 +38307,7 @@ void _completeMeasurementFutures() {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
-      } catch(var e) {
+      } catch (e) {
         request.value = e;
         request.exception = true;
       }

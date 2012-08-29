@@ -14,7 +14,7 @@ class TypeCheckerTask extends CompilerTask {
           new TypeCheckerVisitor(compiler, elements, compiler.types);
       try {
         tree.accept(visitor);
-      } catch (CancelTypeCheckException e) {
+      } on CancelTypeCheckException catch (e) {
         if (LOG_FAILURES) {
           // Do not warn about unimplemented features; log message instead.
           compiler.log("'${e.node}': ${e.reason}");

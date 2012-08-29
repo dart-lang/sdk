@@ -342,7 +342,7 @@ class _EventLoop {
     } else {
       try {
         _runHelper();
-      } catch(var e, var trace) {
+      } catch (e, trace) {
         _globalState.mainManager.postMessage(_serializeMessage(
             {'command': 'error', 'msg': '$e\n$trace' }));
       }
@@ -473,7 +473,7 @@ class _IsolateNatives {
     } else {
       try {
         _consoleLog(msg);
-      } catch(var e, var trace) {
+      } catch (e, trace) {
         throw new Exception(trace);
       }
     }

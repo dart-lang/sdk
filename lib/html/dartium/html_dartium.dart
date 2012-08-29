@@ -13398,8 +13398,8 @@ class _NodeImpl extends _EventTargetImpl implements Node {
     try {
       final _NodeImpl parent = this.parent;
       parent.$dom_replaceChild(otherNode, this);
-    } catch(var e) {
-      
+    } catch (e) {
+
     };
     return this;
   }
@@ -41332,7 +41332,7 @@ void _completeMeasurementFutures() {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
-      } catch(var e) {
+      } catch (e) {
         request.value = e;
         request.exception = true;
       }

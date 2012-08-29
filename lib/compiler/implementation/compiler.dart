@@ -110,16 +110,16 @@ class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
-    } catch (CompilerCancelledException ex) {
+    } on CompilerCancelledException catch (ex) {
       throw;
-    } catch (StackOverflowException ex) {
+    } on StackOverflowException catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       throw;
-    } catch (var ex) {
+    } catch (ex) {
       try {
         unhandledExceptionOnElement(element);
-      } catch (var doubleFault) {
+      } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
       throw;
@@ -264,7 +264,7 @@ class Compiler implements DiagnosticListener {
   bool run(Uri uri) {
     try {
       runCompiler(uri);
-    } catch (CompilerCancelledException exception) {
+    } on CompilerCancelledException catch (exception) {
       log(exception.toString());
       log('compilation failed');
       return false;

@@ -124,7 +124,7 @@ class _JsonParser {
       p._parseObject();
       assert(p.position <= p.length);
       return p.position;
-    } catch (var e) {
+    } catch (e) {
       return 0;
     }
   }
@@ -292,7 +292,7 @@ class _JsonParser {
             final codeString = json.substring(position + 1, position + 5);
             try {
               c = parseInt('0x${codeString}');
-            } catch (var e) {
+            } catch (e) {
               _error('Invalid unicode esacape sequence');
             }
             position += 4;

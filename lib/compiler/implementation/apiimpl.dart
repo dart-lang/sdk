@@ -58,7 +58,7 @@ class Compiler extends leg.Compiler {
       // TODO(ahe): We expect the future to be complete and call value
       // directly. In effect, we don't support truly asynchronous API.
       text = provider(translated).value;
-    } catch (var exception) {
+    } catch (exception) {
       if (node !== null) {
         cancel("$exception", node: node);
       } else {

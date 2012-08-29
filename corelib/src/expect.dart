@@ -265,7 +265,7 @@ class Expect {
                       String reason = null]) {
     try {
       f();
-    } catch (var e) {
+    } catch (e) {
       if (check !== null) {
         Expect.isTrue(check(e));
       }

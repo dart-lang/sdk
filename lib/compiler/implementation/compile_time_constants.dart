@@ -612,7 +612,7 @@ class ConstantHandler extends CompilerTask {
         TryCompileTimeConstantEvaluator evaluator =
             new TryCompileTimeConstantEvaluator(definitions, compiler);
         return evaluator.evaluate(node);
-      } catch (CompileTimeConstantError exn) {
+      } on CompileTimeConstantError catch (exn) {
         return null;
       }
     });

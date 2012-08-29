@@ -115,7 +115,7 @@ class ScannerTask extends CompilerTask {
     Token tokens;
     try {
       tokens = new StringScanner(script.text).tokenize();
-    } catch (MalformedInputException ex) {
+    } on MalformedInputException catch (ex) {
       Token token;
       var message;
       if (ex.position is num) {

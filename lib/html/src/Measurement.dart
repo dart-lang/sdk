@@ -90,7 +90,7 @@ void _completeMeasurementFutures() {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
-      } catch(var e) {
+      } catch (e) {
         request.value = e;
         request.exception = true;
       }
