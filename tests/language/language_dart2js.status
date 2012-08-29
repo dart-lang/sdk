@@ -12,6 +12,11 @@ assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
+call_constructor_on_unresolvable_class_test/none: Fail
+call_constructor_on_unresolvable_class_test/01: Fail
+call_constructor_on_unresolvable_class_test/02: Fail
+call_constructor_on_unresolvable_class_test/03: Fail
+call_constructor_on_unresolvable_class_test/07: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
