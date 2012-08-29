@@ -4,14 +4,14 @@
 // VMOptions=--enable_type_checks
 // An interface with a constructor declared must have a default clause
 
-interface IA { 
+interface IA {
   IA(); // Compile time error here
-} 
+}
 
 main() {
   try {
     IA value = new IA();
-  } catch(Exception e) {
+  } on Exception catch (e) {
     print ("Got exception" + e);
     // compile-time error should not be catchable
   }

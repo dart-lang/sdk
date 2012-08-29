@@ -85,7 +85,7 @@ expectNoSuchMethod(action, note) {
   bool caught = false;
   try {
     action();
-  } catch (NoSuchMethodException ex) {
+  } on NoSuchMethodException catch (ex) {
     caught = true;
     Expect.isTrue(ex is NoSuchMethodException, note);
   }

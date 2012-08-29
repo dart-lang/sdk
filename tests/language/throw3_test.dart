@@ -15,7 +15,7 @@ class Helper {
       i = 100;
       i = func();
       i = 200;
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       i = 50;
       print(exception.message_);
     } finally {
@@ -33,7 +33,7 @@ class Helper {
       if (i > 0) {
         throw new MyException("Test for exception being thrown");
       }
-    } catch (MyException ex) {
+    } on MyException catch (ex) {
       print(ex.message_);
       throw;  // Rethrow the exception.
     }

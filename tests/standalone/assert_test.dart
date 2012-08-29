@@ -10,7 +10,7 @@ class AssertTest {
     int i = 0;
     try {
       assert(false);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
       Expect.equals("false", error.failedAssertion);
       int pos = error.url.lastIndexOf("/", error.url.length);
@@ -28,7 +28,7 @@ class AssertTest {
     int i = 0;
     try {
       assert(() => false);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
       Expect.equals("() => false", error.failedAssertion);
       int pos = error.url.lastIndexOf("/", error.url.length);

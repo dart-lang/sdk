@@ -205,19 +205,19 @@ class NamingTest {
     // Exceptions use a hardcoded "e" as exception name. If the namer works
     // correctly then it will be renamed in case of clashes.
     var e = 3;
-    var caught = false;
+    var caught = 0;
     try {
       throw new MyException();
-    } catch (var exc) {
+    } catch (exc) {
       try {
         throw new MyException();
-      } catch (var exc2) {
-        exc = 9;
+      } catch (exc2) {
+        caught++;
       }
-      Expect.equals(9, exc);
-      caught = true;
+      Expect.equals(1, caught);
+      caught++;
     }
-    Expect.equals(true, caught);
+    Expect.equals(2, caught);
     Expect.equals(3, e);
   }
 
@@ -391,7 +391,7 @@ class NamingTest {
     var wasCaught = false;
     try {
       throw new with(0, 0);
-    } catch(with e) {
+    } on with catch (e) {
       wasCaught = true;
       Expect.equals(5, e.x);
     }

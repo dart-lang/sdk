@@ -13,7 +13,7 @@ class Helper {
     try {
       i = func();
       i = 10;
-    } catch (MyException exception, var stacktrace) {
+    } on MyException catch (exception, stacktrace) {
       i = 50;
       print(exception.message_);
       Expect.equals((stacktrace != null), true);
@@ -23,7 +23,7 @@ class Helper {
       int j;
       i = func1();
       i = 200;
-    } catch (MyException exception, var stacktrace) {
+    } on MyException catch (exception, stacktrace) {
       i = 50;
       print(exception.message_);
       Expect.equals((stacktrace != null), true);
@@ -33,7 +33,7 @@ class Helper {
       int j;
       i = func2();
       i = 200;
-    } catch (MyException exception, var stacktrace) {
+    } on MyException catch (exception, stacktrace) {
       i = 50;
       print(exception.message_);
       Expect.equals((stacktrace != null), true);
@@ -58,7 +58,7 @@ class Helper {
   static int func1() {
     try {
       func();
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       throw new MyException("Exception Test for stack trace being printed");;
     }
     return 10;
@@ -67,7 +67,7 @@ class Helper {
   static int func2() {
     try {
       func();
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       throw;
     }
     return 10;

@@ -10,7 +10,9 @@ main() {
   for (int i = 0; i < 4000; i++) {
     try {
       a.foo(i);
-    } catch (var e) {}
+    } catch (e) {
+      // Ignore.
+    }
   }
 }
 

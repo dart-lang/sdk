@@ -21,7 +21,7 @@ void main() {
   try {
     input.readInto(a, 0, 1);
     Expect.fail("no exception thrown");
-  } catch (var e) {
+  } catch (e) {
     Expect.isTrue(e is UnsupportedOperationException);
   }
   Expect.equals(0, a[0]);

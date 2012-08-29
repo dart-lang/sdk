@@ -12,7 +12,7 @@ main() {
   bool foundError = false;
   try {
     test(10, x:99);  // 1 positional arg, as expected. Param x does not exist.
-  } catch (Exception e) {
+  } on Exception catch (e) {
     foundError = true;
   }
   Expect.equals(true, foundError);

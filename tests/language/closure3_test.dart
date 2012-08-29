@@ -13,7 +13,7 @@ main() {
   try {
     test(null, 2);
     Expect.fail('Expected NullPointerException');
-  } catch (NullPointerException ex) {
+  } on NullPointerException catch (ex) {
     return;
   }
   Expect.fail('Expected NullPointerException');

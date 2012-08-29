@@ -10,7 +10,7 @@ class AssertionTest {
     int i = 0;
     try {
       assert(true);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
     }
     return i;
@@ -20,7 +20,7 @@ class AssertionTest {
     int i = 0;
     try {
       assert(false);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
     }
     return i;
@@ -35,17 +35,17 @@ class AssertionTest {
     int i = 0;
     try {
       assert(x);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
     }
-    return i;    
+    return i;
   }
 
   static testClosure() {
     int i = 0;
     try {
       assert(() => false);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
     }
     return i;
@@ -56,7 +56,7 @@ class AssertionTest {
     try {
       var x = () => false;
       assert(x);
-    } catch (AssertionError error) {
+    } on AssertionError catch (error) {
       i = 1;
     }
     return i;

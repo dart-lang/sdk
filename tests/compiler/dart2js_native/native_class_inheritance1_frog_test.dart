@@ -83,7 +83,7 @@ main() {
   bool caught = false;
   try {
     a1.foo(20);
-  } catch (var ex) {
+  } catch (ex) {
     caught = true;
     Expect.isTrue(ex is NoSuchMethodException);
   }
@@ -93,7 +93,7 @@ main() {
   try {
     var x = 123;
     x.foo(20);
-  } catch (var ex) {
+  } catch (ex) {
     caught = true;
     Expect.isTrue(ex is NoSuchMethodException);
   }

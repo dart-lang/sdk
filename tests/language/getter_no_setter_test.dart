@@ -11,7 +11,7 @@ class Example {
       bool flag_exception = false;
       try {
         nextVar = 1;  // Equivalent to this.nextVar = 1.
-      } catch (var excpt) {
+      } catch (excpt) {
         flag_exception = true;
       }
       Expect.isTrue(flag_exception);
@@ -20,7 +20,7 @@ class Example {
       bool flag_exception = false;
       try {
         this.nextVar = 1;  /// 00: static type warning
-      } catch (var excpt) {
+      } catch (excpt) {
         flag_exception = true;
       }
       Expect.isTrue(flag_exception);   /// 00: continued

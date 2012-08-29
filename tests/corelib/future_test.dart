@@ -309,7 +309,7 @@ testCallStackThrowsIfNotComplete() {
   var exception;
   try {
     new Completer().future.stackTrace;
-  } catch (var ex) {
+  } catch (ex) {
     exception = ex;
   }
 

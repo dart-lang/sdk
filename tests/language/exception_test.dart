@@ -6,14 +6,14 @@ class ExceptionTest {
     int i = 0;
     try {
       throw "Hello";
-    } catch (String s) {
+    } on String catch (s) {
       print(s);
       i += 10;
     }
 
     try {
       throw "bye";
-    } catch (String s) {
+    } on String catch (s) {
       print(s);
       i += 10;
     }
@@ -23,11 +23,11 @@ class ExceptionTest {
     try {
       // This throws NullPointerException.
       throw null;
-    } catch (String s) {
+    } on String catch (s) {
       correctCatch = false;
-    } catch (NullPointerException e) {
+    } on NullPointerException catch (e) {
       correctCatch = true;
-    } catch (var x) {
+    } catch (x) {
       correctCatch = false;
     }
     Expect.isTrue(correctCatch);

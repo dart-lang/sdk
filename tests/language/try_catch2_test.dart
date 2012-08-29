@@ -27,13 +27,13 @@ class Helper {
       try {
         j = f2() + f3() + j;
         i = i + 1;
-      } catch (TestException e, StackTrace trace) {
+      } on TestException catch (e, trace) {
         j = 50;
       }
       j = f3() + j;
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       i = 100;
-    } catch (TestException e, StackTrace trace) {
+    } on TestException catch (e, trace) {
       i = 200;
     }
     return i;

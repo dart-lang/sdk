@@ -73,7 +73,7 @@ class QueueTest {
     var exception = null;
     try {
       queue.removeFirst();
-    } catch (EmptyQueueException e) {
+    } on EmptyQueueException catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -82,7 +82,7 @@ class QueueTest {
     exception = null;
     try {
       queue.removeLast();
-    } catch (EmptyQueueException e) {
+    } on EmptyQueueException catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

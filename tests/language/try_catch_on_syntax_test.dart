@@ -13,7 +13,7 @@ class TryCatchTest {
     var foo = 0;
     try {
       throw new MyException1();
-    } 
+    }
     on MyException3 catch (e) { } /// 01: compile-time error
     on on MyException2 catch (e) { } /// 02: compile-time error
     catch MyException2 catch (e) { } /// 03: compile-time error

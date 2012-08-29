@@ -7,7 +7,7 @@ testTryCatch(x) {
   try {
     throw x;
     Expect.fail("Exception '$x' should've been thrown");
-  } catch (Object obj) {
+  } on Object catch (obj) {
     Expect.equals(obj, x);
   }
 }

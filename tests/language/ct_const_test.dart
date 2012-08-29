@@ -90,7 +90,7 @@ class CTConstTest {
     bool caughtException = false;
     try {
       c11dItaly["green"] = 0;
-    } catch (IllegalAccessException e) {
+    } on IllegalAccessException catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);
@@ -99,7 +99,7 @@ class CTConstTest {
     caughtException = false;
     try {
       c11dItaly.clear();
-    } catch (IllegalAccessException e) {
+    } on IllegalAccessException catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);
@@ -108,7 +108,7 @@ class CTConstTest {
     caughtException = false;
     try {
       c11dItaly.remove("orange");
-    } catch (IllegalAccessException e) {
+    } on IllegalAccessException catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);

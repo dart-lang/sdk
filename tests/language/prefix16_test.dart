@@ -18,7 +18,7 @@ isCheckedMode() {
     var i = 1;
     String s = i;
     return false;
-  } catch(var e) {
+  } catch (e) {
     return true;
   }
 }
@@ -28,7 +28,7 @@ main() {
     bool got_type_error = false;
     try {
       myFunc i = 0;
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.
@@ -39,7 +39,7 @@ main() {
     try {
       // In production mode, malformed myFunc is mapped to (Dynamic) => Dynamic.
       Expect.isTrue(((int x) => x) is myFunc);
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.

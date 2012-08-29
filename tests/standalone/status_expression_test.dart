@@ -61,7 +61,7 @@ class StatusExpressionTest {
     Tokenizer tokenizer = new Tokenizer(input);
     try {
       tokenizer.tokenize();
-    } catch (Exception e) {
+    } on Exception catch (e) {
       thrown = e;
     }
     Expect.equals("Syntax error in '$input'", thrown.toString());
@@ -74,7 +74,7 @@ class StatusExpressionTest {
     Tokenizer tokenizer = new Tokenizer(input);
     try {
       tokenizer.tokenize();
-    } catch (Exception e) {
+    } on Exception catch (e) {
       thrown = e;
     }
     Expect.equals("Syntax error in '$input'", thrown.toString());

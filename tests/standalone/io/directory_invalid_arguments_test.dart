@@ -23,19 +23,19 @@ class DirectoryInvalidArgumentsTest {
     try {
       d.existsSync();
       Expect.fail("No exception thrown");
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
     try {
       d.deleteSync();
       Expect.fail("No exception thrown");
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
     try {
       d.createSync();
       Expect.fail("No exception thrown");
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
     testFailingList(d, false);

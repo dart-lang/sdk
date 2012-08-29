@@ -30,7 +30,7 @@ class Test {
         try {
           // Nuke object store if it already exists.
           db.deleteObjectStore(STORE_NAME);
-        } catch (IDBDatabaseException e) { }
+        } on IDBDatabaseException catch(e) { }
         db.createObjectStore(STORE_NAME);
 
         var transaction = e.target.result;

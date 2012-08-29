@@ -10,7 +10,7 @@ class MapLiteral2NegativeTest<T> {
     try {
       var m = const <String, T>{"a": 0};  // Type parameter is not allowed with
                                           // const.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
     }
   }
 }

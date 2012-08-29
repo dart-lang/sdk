@@ -8,7 +8,7 @@ main() {
   var a = bar();
   try {
     a = bar();
-  } catch (var e) {
+  } catch (e) {
   }
   Expect.equals(42, a);
 
@@ -16,7 +16,7 @@ main() {
     var a = foo();
     try {
       a = foo();
-    } catch (var e) {
+    } catch (e) {
     }
     Expect.equals(54, a);
   }

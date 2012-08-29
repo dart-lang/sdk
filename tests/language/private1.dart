@@ -13,7 +13,7 @@ void expectCatch(f) {
   bool threw = false;
   try {
     f();
-  } catch (var e) {
+  } catch (e) {
     threw = true;
   }
   Expect.equals(true, threw);

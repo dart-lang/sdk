@@ -129,7 +129,7 @@ class TestServer {
           _requestReceivedHandler(req, rsp);
         };
         replyTo.send(new TestServerStatus.started(_server.port), null);
-      } catch (var e) {
+      } catch (e) {
         replyTo.send(new TestServerStatus.error(), null);
       }
     } else if (message.isStop) {

@@ -24,7 +24,7 @@ class C {
     bool hasThrown = false;
     try {
       contents = libCup.getContents(); /// static type warning
-    } catch (TypeError e) {
+    } on TypeError catch (e) {
       hasThrown = true;
     }
   }

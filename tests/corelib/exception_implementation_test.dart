@@ -10,7 +10,7 @@ main() {
   try {
     throw new Exception(msg);
     Expect.fail("Unreachable");
-  } catch (Exception e) {
+  } on Exception catch (e) {
     Expect.isTrue(e is Exception);
     Expect.isTrue(e is ExceptionImplementation);
     Expect.equals("Exception: $msg", e.toString());

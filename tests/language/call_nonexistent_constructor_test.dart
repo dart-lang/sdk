@@ -19,13 +19,13 @@ main() {
   new A.foo(42);
   try {
     new A.bar(foo());
-  } catch (String e) {
+  } on String catch (e) {
     i = 1;
   }
   Expect.equals(1, i);
   try {
     new A();
-  } catch (NoSuchMethodException e) {
+  } on NoSuchMethodException catch (e) {
     i = 2;
   }
   Expect.equals(2, i);

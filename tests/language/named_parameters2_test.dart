@@ -13,7 +13,7 @@ main() {
   try {
     // Parameter b passed twice, as positional and named.
     test(10, 25, b: 26);  /// static type warning
-  } catch (Exception e) {
+  } on Exception catch (e) {
     foundError = true;
   }
   Expect.equals(true, foundError);

@@ -158,7 +158,7 @@ class MathLibraryTest {
     try {
       math.parseInt(str);
       return false;
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return true;
     }
   }

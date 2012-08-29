@@ -55,7 +55,7 @@ main() {
     var o = new Test1();
     o.a(o.b());
     Expect.equals(2, counter);
-  } catch (var exc, var stack) {
+  } catch (exc, stack) {
     failures.add(exc);
     failures.add(stack);
   }
@@ -64,7 +64,7 @@ main() {
     counter = 0;
     Test2.a(Test2.b());
     Expect.equals(2, counter);
-  } catch (var exc, var stack) {
+  } catch (exc, stack) {
     failures.add(exc);
     failures.add(stack);
   }
@@ -73,7 +73,7 @@ main() {
     counter = 0;
     a(b());
     Expect.equals(2, counter);
-  } catch (var exc, var stack) {
+  } catch (exc, stack) {
     failures.add(exc);
     failures.add(stack);
   }

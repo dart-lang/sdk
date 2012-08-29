@@ -30,18 +30,18 @@ class Helper {
     try {
       int j;
       j = func();
-    } catch (MyException3 exception) {
+    } on MyException3 catch (exception) {
       i = 100;
       print(exception.getMessage());
-    } catch (MyException2 exception) {
+    } on MyException2 catch (exception) {
       try {
         i = func2();
         i = 200;
-      } catch (TestException exception) {
+      } on TestException catch (exception) {
         i = 50;
       }
       print(exception.getMessage());
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       i = func2();
       print(exception.getMessage());
     } finally {

@@ -16,7 +16,7 @@ isCheckedMode() {
     var i = 1;
     String s = i;
     return false;
-  } catch(var e) {
+  } catch (e) {
     return true;
   }
 }
@@ -33,7 +33,7 @@ void test(int func(int value), int value) {
     // Therefore, eliminating the run-time type check would be wrong.
     int x = func(value);
     Expect.equals(value, x * x);
-  } catch (TypeError error) {
+  } on TypeError catch (error) {
     got_type_error = true;
   }
   // Type error expected in checked mode only.

@@ -14,7 +14,7 @@ class A {
 equals(a) {
   try {
     Expect.equals(1, a == a);
-  } catch(TypeError e) {
+  } on TypeError catch (e) {
     // In checked mode the test doesn't do anything.
   }
 }
@@ -22,25 +22,25 @@ equals(a) {
 less(a) {
   try {
     Expect.equals(null, a < a);
-  } catch(TypeError e) {}
+  } on TypeError catch (e) {}
 }
 
 lessEqual(a) {
   try {
     Expect.equals(499, a <= a);
-  } catch(TypeError e) {}
+  } on TypeError catch (e) {}
 }
 
 greater(a) {
   try {
     Expect.equals("foo", a > a);
-  } catch(TypeError e) {}
+  } on TypeError catch (e) {}
 }
 
 greaterEqual(a) {
   try {
     Expect.equals(42, a >= a);
-  } catch(TypeError e) {}
+  } on TypeError catch (e) {}
 }
 
 main() {

@@ -11,7 +11,7 @@ class A {
 check(exception) {
   try {
     throw exception;
-  } catch (var e) {
+  } catch (e) {
     Expect.equals(exception, e);
   }
 }

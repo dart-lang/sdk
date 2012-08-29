@@ -37,7 +37,7 @@ expectThrows(action()) {
   bool threw = false;
   try {
     action();
-  } catch (var e) {
+  } catch (e) {
     threw = true;
   }
   Expect.isTrue(threw);
@@ -126,7 +126,9 @@ bool isCheckedMode() {
   try {
     String s = a;
     return false;
-  } catch (var e) { }
+  } catch (e) {
+    // Ignore.
+  }
   return true;
 }
 

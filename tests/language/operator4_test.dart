@@ -15,7 +15,7 @@ foo(a) {
     } else {
       return 499;
     }
-  } catch(TypeError e) {
+  } on TypeError catch (e) {
     return 499;
   }
 }

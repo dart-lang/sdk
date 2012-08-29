@@ -13,7 +13,7 @@ class TypeTest {
     int result = 0;
     try {
       var i = "hello" as int;  // Throws a CastException
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.isTrue(error is CastException);
       Expect.equals("int", error.dstType);
@@ -42,7 +42,7 @@ class TypeTest {
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
       Expect.equals(1, a[0]);
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 100;
     }
     return result;
@@ -55,7 +55,7 @@ class TypeTest {
     }
     try {
       int i = f("hello" as int);  // Throws a CastException
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.isTrue(error is CastException);
       Expect.equals("int", error.dstType);
@@ -80,7 +80,7 @@ class TypeTest {
     }
     try {
       int i = f("hello");
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.isTrue(error is CastException);
       Expect.equals("int", error.dstType);
@@ -104,7 +104,7 @@ class TypeTest {
     Expect.equals(5, (field as String).length);
     try {
       field as int;  // Throws a CastException
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
@@ -129,7 +129,7 @@ class TypeTest {
     anyFunction = null as Function;  // No error.
     try {
       var i = f as int;  // Throws a TypeError if type checks are enabled.
-    } catch (TypeError error) {
+    } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("() => Dynamic", error.srcType);

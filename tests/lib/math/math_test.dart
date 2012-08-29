@@ -155,7 +155,7 @@ class MathTest {
     try {
       parseInt(str);
       return false;
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return true;
     }
   }

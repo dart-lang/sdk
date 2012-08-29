@@ -7,7 +7,7 @@ void main() {
   var exception_thrown = false;
   try {
     List<int> buf = new List<int>(number_of_ints);
-  } catch (OutOfMemoryException exc) {
+  } on OutOfMemoryException catch (exc) {
     exception_thrown = true;
   }
   Expect.isTrue(exception_thrown);

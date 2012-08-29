@@ -7,7 +7,7 @@ main() {
   try {
     RegExp ex = const RegExp(null);
     Expect.fail("Expected: NullPointerException got: no exception");
-  } catch (Exception ex) {
+  } on Exception catch (ex) {
     if (!(ex is NullPointerException)) {
       Expect.fail("Expected: NullPointerException got: ${ex}");
     }
@@ -15,7 +15,7 @@ main() {
   try {
     const RegExp(@"^\w+$").hasMatch(null);
     Expect.fail("Expected: NullPointerException got: no exception");
-  } catch (Exception ex) {
+  } on Exception catch (ex) {
     if (!(ex is NullPointerException)) {
       Expect.fail("Expected: NullPointerException got: ${ex}");
     }
@@ -23,7 +23,7 @@ main() {
   try {
     const RegExp(@"^\w+$").firstMatch(null);
     Expect.fail("Expected: NullPointerException got: no exception");
-  } catch (Exception ex) {
+  } on Exception catch (ex) {
     if (!(ex is NullPointerException)) {
       Expect.fail("Expected: NullPointerException got: ${ex}");
     }
@@ -31,7 +31,7 @@ main() {
   try {
     const RegExp(@"^\w+$").allMatches(null);
     Expect.fail("Expected: NullPointerException got: no exception");
-  } catch (Exception ex) {
+  } on Exception catch (ex) {
     if (!(ex is NullPointerException)) {
       Expect.fail("Expected: NullPointerException got: ${ex}");
     }
@@ -39,7 +39,7 @@ main() {
   try {
     const RegExp(@"^\w+$").stringMatch(null);
     Expect.fail("Expected: NullPointerException got: no exception");
-  } catch (Exception ex) {
+  } on Exception catch (ex) {
     if (!(ex is NullPointerException)) {
       Expect.fail("Expected: NullPointerException got: ${ex}");
     }

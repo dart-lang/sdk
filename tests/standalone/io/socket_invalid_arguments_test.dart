@@ -25,7 +25,7 @@ testReadList(buffer, offset, length) {
   var server = new ServerSocket("127.0.0.1", 0, 5);
   var s = new Socket("127.0.0.1", server.port);
   s.onConnect = () {
-    try { s.readList(buffer, offset, length); } catch (var e) {}
+    try { s.readList(buffer, offset, length); } catch (e) {}
     s.close();
   };
   s.onError = (e) => null;
@@ -35,7 +35,7 @@ testWriteList(buffer, offset, length) {
   var server = new ServerSocket("127.0.0.1", 0, 5);
   var s = new Socket("127.0.0.1", server.port);
   s.onConnect = () {
-    try { s.writeList(buffer, offset, length); } catch (var e) {}
+    try { s.writeList(buffer, offset, length); } catch (e) {}
     s.close();
   };
   s.onError = (e) => null;
@@ -47,7 +47,7 @@ testServerSocketCreation(address, port, backlog) {
     server = new ServerSocket(address, port, backlog);
     server.onError = (e) => null;
     server.onConnection = (c) => Expect.fail("Shouldn't get connection");
-  } catch (var e) {
+  } catch (e) {
     // ignore
   }
 }

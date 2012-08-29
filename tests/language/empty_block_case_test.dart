@@ -13,7 +13,7 @@ class EmptyBlockCaseTest {
         case 1: {}
         case 2: Expect.equals(true, false);
       }
-    } catch (FallThroughError e) {
+    } on FallThroughError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

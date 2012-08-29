@@ -15,13 +15,13 @@ class Helper {
     int j = 0;
     try {
       j = i;
-    } catch (var exception) {
+    } catch (exception) {
       i = i + 100;
       print(exception.message_);
     }
     // Since there is a generic 'catch all' statement preceding this
     // we expect to get a dead code error/warning over here.
-    catch (MyException1 exception) {
+    on MyException1 catch (exception) {
       i = i + 100;
       print(exception.message_);
     }

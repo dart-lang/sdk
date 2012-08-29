@@ -39,7 +39,7 @@ class GrowableObjectArray2Test {
     bool exceptionCaught = false;
     try {
       var elem = g[g.length];
-    } catch (IndexOutOfRangeException e) {
+    } on IndexOutOfRangeException catch (e) {
       exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

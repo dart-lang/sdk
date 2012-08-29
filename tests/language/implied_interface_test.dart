@@ -34,13 +34,13 @@ main() {
   try {
     c1.foo;
     Expect.fail('expected a NoSuchMethodException');
-  } catch (NoSuchMethodException ex) {
+  } on NoSuchMethodException catch (ex) {
     // Expected error.
   }
   try {
     c2.foo;
     Expect.fail('expected a NoSuchMethodException');
-  } catch (NoSuchMethodException ex) {
+  } on NoSuchMethodException catch (ex) {
     // Expected error.
   }
   Expect.equals(true, c1 is BaseClass);

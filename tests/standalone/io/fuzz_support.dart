@@ -40,7 +40,7 @@ typePermutations(int argCount) {
 
 // Perform sync operation and ignore all exceptions.
 doItSync(Function f) {
-  try { f(); } catch (var e) {}
+  try { f(); } catch (e) {}
 }
 
 // Perform async operation and transform the future for the operation

@@ -10,7 +10,7 @@ class FileTest {
     try {
       file.openSync();
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
@@ -29,7 +29,7 @@ class FileTest {
     try {
       file.existsSync();
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
@@ -48,7 +48,7 @@ class FileTest {
     try {
       file.createSync();
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
 
@@ -66,7 +66,7 @@ class FileTest {
     try {
       file.readListSync(buffer, offset, length);
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is FileIOException);
       Expect.isTrue(e.toString().contains('Invalid arguments'));
     }
@@ -93,7 +93,7 @@ class FileTest {
     try {
       file.writeByteSync(value);
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is FileIOException);
       Expect.isTrue(e.toString().contains('Invalid argument'));
     }
@@ -116,7 +116,7 @@ class FileTest {
     try {
       file.writeListSync(buffer, offset, bytes);
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is FileIOException);
       Expect.isTrue(e.toString().contains('Invalid arguments'));
     }
@@ -140,7 +140,7 @@ class FileTest {
     try {
       file.writeString(string);
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is FileIOException);
       Expect.isTrue(e.toString().contains('writeString failed'));
     }
@@ -166,7 +166,7 @@ class FileTest {
     try {
       file.fullPathSync();
       Expect.fail('exception expected');
-    } catch (var e) {
+    } catch (e) {
       Expect.isTrue(e is IllegalArgumentException);
     }
 

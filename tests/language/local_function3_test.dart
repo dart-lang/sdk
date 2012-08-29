@@ -10,7 +10,7 @@ class LocalFunction3Test {
     bool exception_caught = false;
     try {
       f.xyz(0);
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
@@ -18,7 +18,7 @@ class LocalFunction3Test {
     String f_string;
     try {
       f_string = f.toString();
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       exception_caught = true;
     }
     Expect.equals(false, exception_caught);

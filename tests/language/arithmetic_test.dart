@@ -12,7 +12,7 @@ class ArithmeticTest {
     try {
       parseInt(s);
       return false;
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return true;
     }
   }
@@ -21,7 +21,7 @@ class ArithmeticTest {
     try {
       parseDouble(s);
       return false;
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return true;
     }
   }
@@ -32,7 +32,7 @@ class ArithmeticTest {
     try {
       var a = d.toInt();
       return false;
-    } catch (FormatException e) {
+    } on FormatException catch (e) {
       return true;
     }
   }

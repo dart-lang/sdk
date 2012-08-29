@@ -33,16 +33,16 @@ class Helper {
       if (j > 0) {
         throw new MyException2("Test for exception being thrown");
       }
-    } catch (MyException3 exception) {
+    } on MyException3 catch (exception) {
       i = 100;
       print(exception.getMessage());
-    } catch (TestException exception) {
+    } on TestException catch (exception) {
       i = 50;
       print(exception.getMessage());
-    } catch (MyException2 exception) {
+    } on MyException2 catch (exception) {
       i = 150;
       print(exception.getMessage());
-    } catch (MyException exception) {
+    } on MyException catch (exception) {
       i = 200;
       print(exception.getMessage());
     } finally {

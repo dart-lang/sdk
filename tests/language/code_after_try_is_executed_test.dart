@@ -9,7 +9,7 @@ main() {
   var exception;
   try {
     throw 'foo';
-  } catch (String ex) {
+  } on String catch (ex) {
     exception = ex;
   }
   Expect.isTrue(exception is String);

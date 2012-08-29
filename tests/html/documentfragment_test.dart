@@ -27,7 +27,7 @@ main() {
   assertConstError(void fn()) {
     try {
       fn();
-    } catch (var e) {
+    } catch (e) {
       if (e is IllegalAccessException || e is UnsupportedOperationException) {
         return;
       }
