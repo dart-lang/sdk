@@ -550,9 +550,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
   const bool left_is_smi = (branch == NULL) ?
-      false : (branch->left()->ResultCid() == kSmiCid);
+      false : (branch->computation()->left()->ResultCid() == kSmiCid);
   const bool right_is_smi = (branch == NULL) ?
-      false : (branch->right()->ResultCid() == kSmiCid);
+      false : (branch->computation()->right()->ResultCid() == kSmiCid);
+  // TODO(fschneider): Move smi smi checks outside this instruction.
   if (!left_is_smi || !right_is_smi) {
     Register temp = locs.temp(0).reg();
     Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptSmiCompareSmi);
@@ -620,6 +621,7 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((kind() == Token::kEQ) || (kind() == Token::kNE));
   BranchInstr* kNoBranch = NULL;
   if (receiver_class_id() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
@@ -641,19 +643,60 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
                                deopt_id(), token_pos(), try_index());
-  } else {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    __ pushq(left);
-    __ pushq(right);
-    EmitEqualityAsInstanceCall(compiler,
-                               deopt_id(),
-                               token_pos(),
-                               try_index(),
-                               kind(),
-                               locs());
-    ASSERT(locs()->out().reg() == RAX);
+    return;
   }
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ pushq(left);
+  __ pushq(right);
+  EmitEqualityAsInstanceCall(compiler,
+                             deopt_id(),
+                             token_pos(),
+                             try_index(),
+                             kind(),
+                             locs());
+  ASSERT(locs()->out().reg() == RAX);
+}
+
+
+void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
+                                         BranchInstr* branch) {
+  ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
+  if (receiver_class_id() == kSmiCid) {
+    // Deoptimizes if both arguments not Smi.
+    EmitSmiComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    return;
+  }
+  if (receiver_class_id() == kDoubleCid) {
+    // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    return;
+  }
+  const bool is_checked_strict_equal =
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if (is_checked_strict_equal) {
+    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
+                           deopt_id());
+    return;
+  }
+  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+    EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
+                               deopt_id(), token_pos(), try_index());
+    return;
+  }
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ pushq(left);
+  __ pushq(right);
+  EmitEqualityAsInstanceCall(compiler,
+                             deopt_id(),
+                             token_pos(),
+                             try_index(),
+                             Token::kEQ,  // kNE reverse occurs at branch.
+                             locs());
+  Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
+  __ CompareObject(RAX, compiler->bool_true());
+  branch->EmitBranchOnCondition(compiler, branch_condition);
 }
 
 
@@ -719,7 +762,6 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                               token_pos(),
                               try_index(),
                               locs());
-    ASSERT(locs()->out().reg() == RAX);
     return;
   }
   const String& function_name =
@@ -738,7 +780,22 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  Array::ZoneHandle(),  // No optional arguments.
                                  kNumArgsChecked,
                                  locs());
-  ASSERT(locs()->out().reg() == RAX);
+}
+
+
+void RelationalOpComp::EmitBranchCode(FlowGraphCompiler* compiler,
+                                      BranchInstr* branch) {
+  if (operands_class_id() == kSmiCid) {
+    EmitSmiComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    return;
+  }
+  if (operands_class_id() == kDoubleCid) {
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    return;
+  }
+  EmitNativeCode(compiler);
+  __ CompareObject(RAX, compiler->bool_true());
+  branch->EmitBranchOnCondition(compiler, EQUAL);
 }
 
 
@@ -2116,138 +2173,8 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-// TODO(srdjan): Move to shared.
-static bool ICDataWithBothClassIds(const ICData& ic_data, intptr_t class_id) {
-  if (ic_data.num_args_tested() != 2) return false;
-  if (ic_data.NumberOfChecks() != 1) return false;
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
-  return (class_ids[0] == class_id) && (class_ids[1] == class_id);
-}
-
-
-static bool IsCheckedStrictEquals(const ICData& ic_data, Token::Kind kind) {
-  if ((kind == Token::kEQ) || (kind == Token::kNE)) {
-    return ic_data.AllTargetsHaveSameOwner(kInstanceCid);
-  }
-  return false;
-}
-
-
-LocationSummary* BranchInstr::MakeLocationSummary() const {
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    if (ICDataWithBothClassIds(*ic_data(), kSmiCid) ||
-        ICDataWithBothClassIds(*ic_data(), kDoubleCid) ||
-        IsCheckedStrictEquals(*ic_data(), kind())) {
-      const intptr_t kNumInputs = 2;
-      const intptr_t kNumTemps = 1;
-      LocationSummary* summary =
-          new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::RequiresRegister());
-      summary->set_in(1, Location::RequiresRegister());
-      summary->set_temp(0, Location::RequiresRegister());
-      return summary;
-    }
-    if ((kind() == Token::kEQ) || (kind() == Token::kNE)) {
-      const intptr_t kNumInputs = 2;
-      const intptr_t kNumTemps = 1;
-      LocationSummary* locs =
-          new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-      locs->set_in(0, Location::RegisterLocation(RAX));
-      locs->set_in(1, Location::RegisterLocation(RCX));
-      locs->set_temp(0, Location::RegisterLocation(RDX));
-      return locs;
-    }
-    // Otherwise polymorphic dispatch.
-  }
-  // Call.
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_in(1, Location::RegisterLocation(RCX));
-  return locs;
-}
-
-
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Relational or equality.
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    if (ICDataWithBothClassIds(*ic_data(), kSmiCid)) {
-      EmitSmiComparisonOp(compiler, *locs(), kind(), this, deopt_id());
-      return;
-    }
-    if (ICDataWithBothClassIds(*ic_data(), kDoubleCid)) {
-      EmitDoubleComparisonOp(compiler, *locs(), kind(), this, deopt_id());
-      return;
-    }
-    if (IsCheckedStrictEquals(*ic_data(), kind())) {
-      EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), this,
-                             deopt_id());
-      return;
-    }
-    // TODO(srdjan): Add Smi/Double, Double/Smi comparisons.
-    if ((kind() == Token::kEQ) || (kind() == Token::kNE)) {
-      EmitGenericEqualityCompare(compiler, locs(), kind(), this, *ic_data(),
-                                 deopt_id(), token_pos(), try_index());
-      return;
-    }
-    // Otherwise polymorphic dispatch?
-  }
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ pushq(left);
-  __ pushq(right);
-  if ((kind() == Token::kNE) || (kind() == Token::kEQ)) {
-    EmitEqualityAsInstanceCall(compiler,
-                               deopt_id(),
-                               token_pos(),
-                               try_index(),
-                               Token::kEQ,  // kNE reverse occurs at branch.
-                               locs());
-  } else {
-    const String& function_name =
-        String::ZoneHandle(Symbols::New(Token::Str(kind())));
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id(),
-                                   token_pos(),
-                                   try_index());
-    const intptr_t kNumArguments = 2;
-    const intptr_t kNumArgsChecked = 2;  // Type-feedback.
-    compiler->GenerateInstanceCall(deopt_id(),
-                                   token_pos(),
-                                   try_index(),
-                                   function_name,
-                                   kNumArguments,
-                                   Array::ZoneHandle(),  // No optional args.
-                                   kNumArgsChecked,
-                                   locs());
-  }
-  Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
-  __ CompareObject(RAX, compiler->bool_true());
-  EmitBranchOnCondition(compiler, branch_condition);
-}
-
-
-LocationSummary* StrictCompareAndBranchInstr::MakeLocationSummary() const {
-  const int kNumInputs = 2;
-  const int kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  return locs;
-}
-
-
-void StrictCompareAndBranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ cmpq(left, right);
-  Condition cond = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  EmitBranchOnCondition(compiler, cond);
+  computation()->EmitBranchCode(compiler, this);
 }
 
 

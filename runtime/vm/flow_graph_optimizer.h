@@ -30,6 +30,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitEqualityCompare(EqualityCompareComp* comp,
                                     BindInstr* instr);
   virtual void VisitBind(BindInstr* instr);
+  virtual void VisitBranch(BranchInstr* instr);
 
  private:
   bool TryReplaceWithArrayOp(BindInstr* instr,

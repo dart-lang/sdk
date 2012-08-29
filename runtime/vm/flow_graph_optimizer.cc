@@ -752,6 +752,11 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 }
 
 
+void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
+  instr->computation()->Accept(this, NULL);
+}
+
+
 void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
                                                     BindInstr* instr) {
   if (FLAG_eliminate_type_checks &&

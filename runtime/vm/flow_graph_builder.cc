@@ -276,8 +276,9 @@ void TestGraphVisitor::ReturnValue(Value* value) {
   }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Value* constant_true = Bind(Constant(bool_true));
-  StrictCompareAndBranchInstr* branch =
-      new StrictCompareAndBranchInstr(value, constant_true, Token::kEQ_STRICT);
+  StrictCompareComp* comp =
+      new StrictCompareComp(Token::kEQ_STRICT, value, constant_true);
+  BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
@@ -289,22 +290,18 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonComp* comp) {
   ASSERT(!FLAG_enable_type_checks);
   ControlInstruction* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
-    branch = new StrictCompareAndBranchInstr(comp->left(),
-                                             comp->right(),
-                                             comp->kind());
+    branch = new BranchInstr(new StrictCompareComp(comp->kind(),
+                                                   comp->left(),
+                                                   comp->right()));
   } else if (Token::IsEqualityOperator(comp->kind()) &&
              (comp->left()->BindsToConstantNull() ||
               comp->right()->BindsToConstantNull())) {
-    branch = new StrictCompareAndBranchInstr(
+    branch = new BranchInstr(new StrictCompareComp(
+        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
         comp->left(),
-        comp->right(),
-        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT);
+        comp->right()));
   } else {
-    branch = new BranchInstr(condition_token_pos(),
-                             owner()->try_index(),
-                             comp->left(),
-                             comp->right(),
-                             comp->kind());
+    branch = new BranchInstr(comp);
   }
   AddInstruction(branch);
   CloseFragment();
@@ -317,10 +314,10 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateComp* comp) {
   ASSERT(!FLAG_enable_type_checks);
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Value* constant_true = Bind(Constant(bool_true));
-  StrictCompareAndBranchInstr* branch =
-      new StrictCompareAndBranchInstr(comp->value(),
-                                      constant_true,
-                                      Token::kNE_STRICT);
+  BranchInstr* branch = new BranchInstr(
+      new StrictCompareComp(Token::kNE_STRICT,
+                            comp->value(),
+                            constant_true));
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();

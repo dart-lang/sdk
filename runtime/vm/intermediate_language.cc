@@ -1339,6 +1339,17 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void StrictCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
+  __ CompareRegisters(left, right);
+  branch->EmitBranchOnCondition(compiler, true_condition);
+}
+
+
 void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The arguments to the stub include the closure.  The arguments
   // descriptor describes the closure's arguments (and so does not include

@@ -556,27 +556,10 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s ", DebugName());
   f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
+  computation()->PrintTo(f);
 
-  f->Print(" goto (%d, %d)",
-            true_successor()->block_id(),
-            false_successor()->block_id());
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
-}
-
-
-void StrictCompareAndBranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s", DebugName());
-  f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
             false_successor()->block_id());
@@ -830,21 +813,7 @@ void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
 void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
-  f->Print(" goto (B%d, B%d)",
-            true_successor()->block_id(),
-            false_successor()->block_id());
-}
-
-
-void StrictCompareAndBranchInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-  f->Print("if ");
-  left()->PrintTo(f);
-  f-> Print(" %s ", Token::Str(kind()));
-  right()->PrintTo(f);
+  computation()->PrintTo(f);
   f->Print(" goto (B%d, B%d)",
             true_successor()->block_id(),
             false_successor()->block_id());

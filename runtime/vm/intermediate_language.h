@@ -229,6 +229,11 @@ class Computation : public ZoneAllocated {
   // TODO(fschneider): Make EmitNativeCode and locs const.
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch) {
+    UNREACHABLE();
+  }
+
   static LocationSummary* MakeCallSummary();
 
   // Declare an enum value used to define kind-test predicates.
@@ -255,6 +260,8 @@ FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 #undef DECLARE_PREDICATE
 
  private:
+  friend class BranchInstr;
+
   intptr_t deopt_id_;
   const ICData* ic_data_;
   LocationSummary* locs_;
@@ -814,6 +821,9 @@ class StrictCompareComp : public ComparisonComp {
 
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
@@ -846,6 +856,9 @@ class EqualityCompareComp : public ComparisonComp {
 
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const;
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
 
  private:
   const intptr_t token_pos_;
@@ -887,6 +900,9 @@ class RelationalOpComp : public ComparisonComp {
 
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const;
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
 
  private:
   const intptr_t token_pos_;
@@ -2205,7 +2221,6 @@ FOR_EACH_VALUE(DEFINE_VALUE_PREDICATE)
   M(ReThrow)                                                                   \
   M(Goto)                                                                      \
   M(Branch)                                                                    \
-  M(StrictCompareAndBranch)
 
 
 // Forward declarations for Instruction classes.
@@ -3215,126 +3230,46 @@ class ControlInstruction : public Instruction {
 };
 
 
-template<intptr_t N>
-class TemplateControlInstruction: public ControlInstruction {
+class BranchInstr : public ControlInstruction {
  public:
-  TemplateControlInstruction<N>() : locs_(NULL) { }
-
-  virtual intptr_t InputCount() const { return N; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
-    inputs_[i] = value;
-  }
-
-  virtual LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
-  virtual LocationSummary* MakeLocationSummary() const = 0;
-
- protected:
-  EmbeddedArray<Value*, N> inputs_;
-
- private:
-  LocationSummary* locs_;
-};
-
-
-class BranchInstr : public TemplateControlInstruction<2> {
- public:
-  BranchInstr(intptr_t token_pos,
-              intptr_t try_index,
-              Value* left,
-              Value* right,
-              Token::Kind kind)
-      : deopt_id_(Isolate::kNoDeoptId),
-        ic_data_(NULL),
-        token_pos_(token_pos),
-        try_index_(try_index),
-        kind_(kind) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
-    ASSERT(!Token::IsStrictEqualityOperator(kind));
-    ASSERT(Token::IsEqualityOperator(kind) ||
-           Token::IsRelationalOperator(kind) ||
-           Token::IsTypeTestOperator(kind));
-    Isolate* isolate = Isolate::Current();
-    deopt_id_ = isolate->GetNextDeoptId();
-    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
-  }
+  explicit BranchInstr(ComparisonComp* computation)
+      : computation_(computation), locs_(NULL) { }
 
   DECLARE_INSTRUCTION(Branch)
 
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
+  virtual intptr_t ArgumentCount() const {
+    return computation()->ArgumentCount();
+  }
+  intptr_t InputCount() const { return computation()->InputCount(); }
 
-  virtual intptr_t ArgumentCount() const { return 0; }
+  Value* InputAt(intptr_t i) const { return computation()->InputAt(i); }
 
-  Token::Kind kind() const { return kind_; }
-
-  intptr_t deopt_id() const { return deopt_id_; }
-
-  const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
+  void SetInputAt(intptr_t i, Value* value) {
+    computation()->SetInputAt(i, value);
   }
 
-  intptr_t token_pos() const { return token_pos_;}
-  intptr_t try_index() const { return try_index_; }
+  virtual bool CanDeoptimize() const { return computation()->CanDeoptimize(); }
 
-  virtual LocationSummary* MakeLocationSummary() const;
+  ComparisonComp* computation() const { return computation_; }
+  void set_computation(ComparisonComp* value) { computation_ = value; }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual LocationSummary* locs() {
+    if (computation_->locs_ == NULL) {
+      LocationSummary* summary = computation_->MakeLocationSummary();
+      // Branches don't produce a result.
+      summary->set_out(Location::NoLocation());
+      computation_->locs_ = summary;
+    }
+    return computation_->locs_;
+  }
 
  private:
-  intptr_t deopt_id_;
-  const ICData* ic_data_;
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
-  const Token::Kind kind_;
+  ComparisonComp* computation_;
+  LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
-};
-
-
-class StrictCompareAndBranchInstr : public TemplateControlInstruction<2> {
- public:
-  StrictCompareAndBranchInstr(Value* left, Value* right, Token::Kind kind)
-        : kind_(kind) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
-    ASSERT(Token::IsStrictEqualityOperator(kind));
-  }
-
-  DECLARE_INSTRUCTION(StrictCompareAndBranch)
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  Token::Kind kind() const { return kind_; }
-
-  virtual LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const Token::Kind kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(StrictCompareAndBranchInstr);
 };
 
 

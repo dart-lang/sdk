@@ -373,7 +373,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_out(Location loc) {
-    ASSERT(!always_calls() || loc.IsRegister());
+    ASSERT(!always_calls() || (loc.IsRegister() || loc.IsInvalid()));
     output_location_ = loc;
   }
 
