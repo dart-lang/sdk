@@ -2634,7 +2634,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
       func = lib.LookupFunctionAllowPrivate(tmp_name);
     }
 
-    // Case 3.  Lookup the funciton with the getter prefix prepended.
+    // Case 3.  Lookup the function with the getter prefix prepended.
     if (func.IsNull()) {
       tmp_name = Field::GetterName(func_name);
       func = lib.LookupFunctionAllowPrivate(tmp_name);
@@ -4037,7 +4037,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
 
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
-                                                  Dart_Handle import) {
+                                                  Dart_Handle import,
+                                                  Dart_Handle prefix) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Library& library_vm = Api::UnwrapLibraryHandle(isolate, library);
@@ -4048,7 +4049,26 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   if (import_vm.IsNull()) {
     RETURN_TYPE_ERROR(isolate, import, Library);
   }
-  library_vm.AddImport(import_vm);
+  const String& prefix_vm = Dart_IsNull(prefix)
+      ? String::Handle(isolate, Symbols::New(""))
+      : Api::UnwrapStringHandle(isolate, prefix);
+  if (prefix_vm.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, prefix, String);
+  }
+  const String& prefix_symbol =
+      String::Handle(isolate, Symbols::New(prefix_vm));
+  if (prefix_vm.Length() == 0) {
+    library_vm.AddImport(import_vm);
+  } else {
+    LibraryPrefix& library_prefix = LibraryPrefix::Handle();
+    library_prefix = library_vm.LookupLocalLibraryPrefix(prefix_symbol);
+    if (!library_prefix.IsNull()) {
+      library_prefix.AddLibrary(import_vm);
+    } else {
+      library_prefix = LibraryPrefix::New(prefix_symbol, import_vm);
+      library_vm.AddObject(library_prefix, prefix_symbol);
+    }
+  }
   return Api::Success(isolate);
 }
 

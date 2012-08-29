@@ -27,7 +27,7 @@ static void ImportBuiltinLibIntoLib(
   Dart_Handle url = Dart_NewString(liburl);
   Dart_Handle lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(lib);
-  DART_CHECK_VALID(Dart_LibraryImportLibrary(lib, builtin_lib));
+  DART_CHECK_VALID(Dart_LibraryImportLibrary(lib, builtin_lib, Dart_Null()));
 }
 
 
@@ -76,5 +76,7 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
 void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
   Dart_Handle imported_library = LoadLibrary(id);
   // Import the library into current library.
-  DART_CHECK_VALID(Dart_LibraryImportLibrary(library, imported_library));
+  DART_CHECK_VALID(Dart_LibraryImportLibrary(library,
+                                             imported_library,
+                                             Dart_Null()));
 }

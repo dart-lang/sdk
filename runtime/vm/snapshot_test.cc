@@ -969,7 +969,9 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
 
-    EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(), import_lib));
+    EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
+                                           import_lib,
+                                           Dart_Null()));
 
     // Get list of library URLs loaded and save the count.
     Dart_Handle libs = Dart_GetLibraryURLs();

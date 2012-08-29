@@ -2609,8 +2609,9 @@ TEST_CASE(FieldAccess) {
   Dart_Handle url = Dart_NewString("library_url");
   Dart_Handle source = Dart_NewString(kImportedScriptChars);
   Dart_Handle imported_lib = Dart_LoadLibrary(url, source);
+  Dart_Handle prefix = Dart_NewString("");
   EXPECT_VALID(imported_lib);
-  Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib);
+  Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib, prefix);
   EXPECT_VALID(result);
   result = Dart_Invoke(imported_lib, Dart_NewString("test2"), 0, NULL);
   EXPECT_VALID(result);
@@ -3700,7 +3701,7 @@ TEST_CASE(Invoke_CrossLibrary) {
   EXPECT_VALID(lib2);
 
   // Import lib2 from lib1
-  Dart_Handle result = Dart_LibraryImportLibrary(lib1, lib2);
+  Dart_Handle result = Dart_LibraryImportLibrary(lib1, lib2, Dart_Null());
   EXPECT_VALID(result);
 
   // We can invoke both private and non-private local functions.
@@ -5246,40 +5247,80 @@ TEST_CASE(LibraryImportLibrary) {
   Dart_Handle lib2 = Dart_LoadLibrary(url, source);
   EXPECT_VALID(lib2);
 
-  result = Dart_LibraryImportLibrary(Dart_Null(), lib2);
+  result = Dart_LibraryImportLibrary(Dart_Null(), lib2, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LibraryImportLibrary expects argument 'library' to be non-null.",
       Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(Dart_True(), lib2);
+  result = Dart_LibraryImportLibrary(Dart_True(), lib2, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LibraryImportLibrary expects argument 'library' to be of "
                "type Library.",
                Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(error, lib2);
+  result = Dart_LibraryImportLibrary(error, lib2, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, Dart_Null());
+  result = Dart_LibraryImportLibrary(lib1, Dart_Null(), Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LibraryImportLibrary expects argument 'import' to be non-null.",
       Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, Dart_True());
+  result = Dart_LibraryImportLibrary(lib1, Dart_True(), Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LibraryImportLibrary expects argument 'import' to be of "
                "type Library.",
                Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, error);
+  result = Dart_LibraryImportLibrary(lib1, error, Dart_Null());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LibraryImportLibrary(lib1, lib2);
+  result = Dart_LibraryImportLibrary(lib1, lib2, Dart_Null());
   EXPECT_VALID(result);
+}
+
+
+TEST_CASE(ImportLibraryWithPrefix) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');"
+      "int bar() => 42;";
+  Dart_Handle url1 = Dart_NewString("library1_url");
+  Dart_Handle source1 = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib1 = Dart_LoadLibrary(url1, source1);
+  EXPECT_VALID(lib1);
+  EXPECT(Dart_IsLibrary(lib1));
+
+  const char* kLibrary2Chars =
+      "#library('library2_name');"
+      "int foobar() => foo.bar();";
+  Dart_Handle url2 = Dart_NewString("library2_url");
+  Dart_Handle source2 = Dart_NewString(kLibrary2Chars);
+  Dart_Handle lib2 = Dart_LoadLibrary(url2, source2);
+  EXPECT_VALID(lib2);
+  EXPECT(Dart_IsLibrary(lib2));
+
+  Dart_Handle prefix = Dart_NewString("foo");
+  Dart_Handle result = Dart_LibraryImportLibrary(lib2, lib1, prefix);
+  EXPECT_VALID(result);
+
+  // Lib1 is imported under a library prefix and therefore 'foo' should
+  // not be found directly in lib2.
+  Dart_Handle method_name = Dart_NewString("foo");
+  result = Dart_Invoke(lib2, method_name, 0, NULL);
+  EXPECT_ERROR(result, "Dart_Invoke: did not find top-level function 'foo'");
+
+  // Check that lib1 is available under the prefix in lib2.
+  method_name = Dart_NewString("foobar");
+  result = Dart_Invoke(lib2, method_name, 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(42, value);
 }
 
 
