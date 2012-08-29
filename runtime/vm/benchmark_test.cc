@@ -200,6 +200,44 @@ BENCHMARK(UseDartApi) {
 
 
 //
+// Measure time accessing internal and external strings.
+//
+BENCHMARK(DartStringAccess) {
+  const int kNumIterations = 10000000;
+  Timer timer(true, "DartStringAccess benchmark");
+  timer.Start();
+  Dart_EnterScope();
+
+  // Create strings.
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
+  int external_peer_data = 123;
+  Dart_Handle external_string = Dart_NewExternalString8(data8,
+                                                        ARRAY_SIZE(data8),
+                                                        &external_peer_data,
+                                                        NULL);
+  Dart_Handle internal_string = Dart_NewString("two");
+
+  // Run benchmark.
+  for (int64_t i = 0; i < kNumIterations; i++) {
+    EXPECT(Dart_IsString(internal_string));
+    EXPECT(Dart_IsString8(internal_string));
+    EXPECT(Dart_IsString16(internal_string));
+    EXPECT(!Dart_IsExternalString(internal_string));
+    EXPECT_VALID(external_string);
+    EXPECT(Dart_IsExternalString(external_string));
+    void* external_peer = NULL;
+    EXPECT_VALID(Dart_ExternalStringGetPeer(external_string, &external_peer));
+    EXPECT_EQ(&external_peer_data, external_peer);
+  }
+
+  Dart_ExitScope();
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
+
+//
 // Measure compile of all dart2js(compiler) functions.
 //
 static char* ComputeDart2JSPath(const char* arg) {
