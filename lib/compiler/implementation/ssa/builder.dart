@@ -101,6 +101,10 @@ class Interceptors {
     return compiler.findHelper(const SourceString('unwrapException'));
   }
 
+  Element getThrowRuntimeError() {
+    return compiler.findHelper(const SourceString('throwRuntimeError'));
+  }
+
   Element getClosureConverter() {
     return compiler.findHelper(const SourceString('convertDartClosureToJS'));
   }
@@ -2507,19 +2511,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
+    Element constructor = elements[node];
     Selector selector = elements.getSelector(node);
-    Element element = elements[node];
-    if (compiler.enqueuer.resolution.getCachedElements(element) === null) {
-      compiler.internalError("Unresolved element: $element", node: node);
+    if (compiler.enqueuer.resolution.getCachedElements(constructor) === null) {
+      compiler.internalError("Unresolved element: $constructor", node: node);
     }
-    FunctionElement functionElement = element;
-    element = functionElement.defaultImplementation;
-    HInstruction target = new HStatic(element);
+    FunctionElement functionElement = constructor;
+    constructor = functionElement.defaultImplementation;
+    HInstruction target = new HStatic(constructor);
     add(target);
     var inputs = <HInstruction>[];
     inputs.add(target);
     bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                  element, inputs);
+                                                  constructor, inputs);
     if (!succeeded) {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
@@ -2531,7 +2535,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(analyzeTypeArgument(argument, node));
     });
 
-    HType elementType = computeType(element);
+    HType elementType = computeType(constructor);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);
   }
@@ -2601,9 +2605,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void generateRuntimeError(Node node, String message) {
+    DartString messageObject = new DartString.literal(message);
+    HInstruction errorMessage = graph.addConstantString(messageObject, node);
+    Element helper = interceptors.getThrowRuntimeError();
+    pushInvokeHelper1(helper, errorMessage);
+  }
+
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
-    if (Element.isInvalid(element)) {
+    if (element != null && element.isErroneous()) {
       ErroneousElement error = element;
       Message message = error.errorMessage;
       if (message.kind === MessageKind.CANNOT_FIND_CONSTRUCTOR) {
@@ -2623,9 +2634,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         HInstruction arguments = new HLiteralList(inputs);
         add(arguments);
         pushInvokeHelper3(helper, receiver, name, arguments);
+      } else if (message.kind === MessageKind.CANNOT_RESOLVE) {
+        generateRuntimeError(node.send, message.message);
       } else {
-        compiler.cancel('Unimplemented unresolved constructor call',
-                        node: node);
+        compiler.internalError('unexpected unresolved constructor call',
+                               node: node);
       }
     } else if (node.isConst()) {
       // TODO(karlklose): add type representation

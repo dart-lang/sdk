@@ -194,3 +194,12 @@ class IntegerDivisionByZeroException implements Exception {
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";
 }
+
+/**
+ * Exception thrown when a runtime error occurs.
+ */
+class RuntimeError implements Exception {
+  final message;
+  RuntimeError(this.message);
+  String toString() => "RuntimeError: $message";
+}

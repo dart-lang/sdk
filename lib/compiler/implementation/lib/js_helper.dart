@@ -755,6 +755,10 @@ makeLiteralListConst(list) {
   return list;
 }
 
+throwRuntimeError(message) {
+  throw new RuntimeError(message);
+}
+
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been

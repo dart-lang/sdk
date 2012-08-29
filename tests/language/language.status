@@ -16,6 +16,10 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
+call_constructor_on_unresolvable_class_test/01: Fail # Issue 3801
+call_constructor_on_unresolvable_class_test/02: Fail # Issue 3801
+call_constructor_on_unresolvable_class_test/03: Fail # Issue 3801
+call_constructor_on_unresolvable_class_test/07: Fail # Issue 3801
 call_nonexistent_constructor_test: Fail # Issue 3801
 gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
@@ -175,6 +179,10 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+call_constructor_on_unresolvable_class_test/01: Fail # generates 'new Unresolved()' which fails on the VM
+call_constructor_on_unresolvable_class_test/02: Fail # generates 'new Unresolved()' which fails on the VM
+call_constructor_on_unresolvable_class_test/03: Fail # generates 'new Unresolved()' which fails on the VM
+call_constructor_on_unresolvable_class_test/07: Fail # generates 'new Unresolved()' which fails on the VM
 call_nonexistent_constructor_test: Fail # Issue 1031
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
