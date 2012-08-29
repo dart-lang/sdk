@@ -15,6 +15,7 @@
 #import('../../../lib/compiler/implementation/util/util.dart');
 #import('../../../lib/compiler/implementation/util/uri_extras.dart');
 #import('../../../lib/compiler/implementation/dart2js.dart');
+#import('../../../lib/compiler/implementation/ssa/ssa.dart');
 #import('mirrors.dart');
 #import('util.dart');
 #import('dart:io');
@@ -81,12 +82,10 @@ Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
   } else if (element is AbstractFieldElement) {
     var members = <Dart2JsMemberMirror>[];
     if (element.getter !== null) {
-      members.add(new Dart2JsMethodMirror(library, element.getter,
-                                          Dart2JsMethodKind.GETTER));
+      members.add(new Dart2JsMethodMirror(library, element.getter));
     }
     if (element.setter !== null) {
-      members.add(new Dart2JsMethodMirror(library, element.setter,
-                                          Dart2JsMethodKind.SETTER));
+      members.add(new Dart2JsMethodMirror(library, element.setter));
     }
     return members;
   }
@@ -163,6 +162,16 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
 
   void log(message) {
     print(message);
+  }
+
+  void internalError(String message,
+                     [Node node, Token token, HInstruction instruction,
+                      Element element]) {
+    cancel('Internal error: $message', node, token, instruction, element);
+  }
+
+  void internalErrorOnElement(Element element, String message) {
+    internalError(message, element: element);
   }
 }
 
@@ -1208,39 +1217,22 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
   String _canonicalName;
 
   Dart2JsMethodMirror(Dart2JsObjectMirror objectMirror,
-                      FunctionElement function,
-                      [Dart2JsMethodKind kind = null])
+                      FunctionElement function)
       : this._objectMirror = objectMirror,
-        this._kind = kind,
         super(objectMirror.system, function) {
     _name = _element.name.slowToString();
-    if (kind == null) {
-      if (_function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-        _constructorName = '';
-        int dollarPos = _name.indexOf('\$');
-        if (dollarPos != -1) {
-          _constructorName = _name.substring(dollarPos+1);
-          _name = _name.substring(0, dollarPos);
-          // canonical name is TypeName.constructorName
-          _canonicalName = '$_name.$_constructorName';
-        } else {
-          // canonical name is TypeName
-          _canonicalName = _name;
-        }
-        if (_function.modifiers !== null && _function.modifiers.isConst()) {
-          _kind = Dart2JsMethodKind.CONST;
-        } else {
-          _kind = Dart2JsMethodKind.CONSTRUCTOR;
-        }
-      } else if (_function.modifiers !== null
-                 && _function.modifiers.isFactory()) {
-        _constructorName = '';
-        int dollarPos = _name.indexOf('\$');
-        if (dollarPos != -1) {
-          _constructorName = _name.substring(dollarPos+1);
-          _name = _name.substring(0, dollarPos);
-        }
-        _kind = Dart2JsMethodKind.FACTORY;
+    if (_function.kind == ElementKind.GETTER) {
+      _kind = Dart2JsMethodKind.GETTER;
+      _canonicalName = _name;
+    } else if (_function.kind == ElementKind.SETTER) {
+      _kind = Dart2JsMethodKind.SETTER;
+      _canonicalName = '$_name=';
+    } else if (_function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      _constructorName = '';
+      int dollarPos = _name.indexOf('\$');
+      if (dollarPos != -1) {
+        _constructorName = _name.substring(dollarPos + 1);
+        _name = _name.substring(0, dollarPos);
         // canonical name is TypeName.constructorName
         _canonicalName = '$_name.$_constructorName';
       } else if (_name == 'negate') {
@@ -1257,15 +1249,35 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
         // canonical name is 'operator operatorName'
         _canonicalName = 'operator $_operatorName';
       } else {
-        _kind = Dart2JsMethodKind.NORMAL;
+        // canonical name is TypeName
         _canonicalName = _name;
       }
-    } else if (kind == Dart2JsMethodKind.GETTER) {
-      _canonicalName = _name;
-    } else if (kind == Dart2JsMethodKind.SETTER) {
-      _canonicalName = '$_name=';
+      if (_function.modifiers !== null && _function.modifiers.isConst()) {
+        _kind = Dart2JsMethodKind.CONST;
+      } else {
+        _kind = Dart2JsMethodKind.CONSTRUCTOR;
+      }
+    } else if (_function.modifiers !== null &&
+               _function.modifiers.isFactory()) {
+      _kind = Dart2JsMethodKind.FACTORY;
+      _constructorName = '';
+      int dollarPos = _name.indexOf('\$');
+      if (dollarPos != -1) {
+        _constructorName = _name.substring(dollarPos+1);
+        _name = _name.substring(0, dollarPos);
+      }
+      // canonical name is TypeName.constructorName
+      _canonicalName = '$_name.$_constructorName';
+    } else if (_name.startsWith('operator\$')) {
+      String str = _name.substring(9);
+      _name = 'operator';
+      _kind = Dart2JsMethodKind.OPERATOR;
+      _operatorName = _getOperatorFromOperatorName(str);
+      // canonical name is 'operator operatorName'
+      _canonicalName = 'operator $_operatorName';
     } else {
-      assert(false);
+      _kind = Dart2JsMethodKind.NORMAL;
+      _canonicalName = _name;
     }
   }
 

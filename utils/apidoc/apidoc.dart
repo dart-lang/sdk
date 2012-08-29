@@ -62,16 +62,6 @@ void main() {
 
   doc.cleanOutputDirectory(outputDir);
 
-  // Compile the client-side code to JS.
-  // TODO(bob): Right path.
-
-  final clientScript = (mode == doc.MODE_STATIC) ?
-      'static' : 'live-nav';
-  final Future compiled = doc.compileScript(
-      doc.scriptDir.append('../../pkg/dartdoc/client-$clientScript.dart'),
-      outputDir.append('client-$clientScript.js'));
-
-  // TODO(rnystrom): Use platform-specific path separator.
   // The basic dartdoc-provided static content.
   final Future copiedStatic = doc.copyDirectory(
       doc.scriptDir.append('../../pkg/dartdoc/static'),
@@ -129,12 +119,22 @@ void main() {
   lister.onDone = (success) {
     print('Generating docs...');
     final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
+    apidoc.dartdocPath = doc.scriptDir.append('../../pkg/dartdoc/');
     // Select the libraries to include in the produced documentation:
     apidoc.includeApi = true;
     apidoc.includedLibraries = includedLibraries;
 
-    Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+    Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
       apidoc.documentLibraries(apidocLibraries, doc.libPath);
+
+      final clientScript = (mode == doc.MODE_STATIC) ? 'static' : 'live-nav';
+      final Future compiled = doc.compileScript(
+          apidoc.dartdocPath.append('client-$clientScript.dart'),
+          outputDir.append('client-$clientScript.js'));
+
+      Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+        apidoc.cleanup();
+      });
     });
   };
 }
@@ -341,11 +341,11 @@ class Apidoc extends doc.Dartdoc {
     super.docIndexLibrary(library);
   }
 
-  void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
+  void docLibraryNavigationJson(LibraryMirror library, List libraryList) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
     if (library.simpleName == 'dart:nativewrappers') return;
-    super.docLibraryNavigationJson(library, libraryMap);
+    super.docLibraryNavigationJson(library, libraryList);
   }
 
   void docLibrary(LibraryMirror library) {

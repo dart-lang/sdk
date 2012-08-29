@@ -30,6 +30,7 @@
 #import('../../lib/compiler/implementation/library_map.dart');
 
 #source('comment_map.dart');
+#source('nav.dart');
 #source('utils.dart');
 
 // TODO(johnniwinther): Note that [IN_SDK] gets initialized to true when this
@@ -160,6 +161,7 @@ void main() {
                                      dartdoc.outputDir);
 
   Futures.wait([compiled, filesCopied]).then((_) {
+    dartdoc.cleanup();
     print('Documented ${dartdoc._totalLibraries} libraries, '
           '${dartdoc._totalTypes} types, and '
           '${dartdoc._totalMembers} members.');
@@ -314,6 +316,9 @@ class Dartdoc {
    */
   bool generateAppCache = false;
 
+  /** Path to the dartdoc directory. */
+  Path dartdocPath;
+
   /** Path to generate HTML files into. */
   Path outputDir = const Path('docs');
 
@@ -388,7 +393,9 @@ class Dartdoc {
   int _totalMembers = 0;
 
   Dartdoc()
-    : _comments = new CommentMap() {
+      : _comments = new CommentMap(),
+        dartdocPath = scriptDir {
+
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
     md.InlineParser.syntaxes.insertRange(0, 1,
@@ -484,7 +491,11 @@ class Dartdoc {
     });
 
     // Generate the docs.
-    if (mode == MODE_LIVE_NAV) docNavigationJson();
+    if (mode == MODE_LIVE_NAV) {
+      docNavigationJson();
+    } else {
+      docNavigationDart();
+    }
 
     docIndex();
     for (final library in _sortedLibraries) {
@@ -590,12 +601,24 @@ class Dartdoc {
           <input type="hidden" name="ie" value="UTF-8">
           <input type="hidden" name="hl" value="en">
           <input type="search" name="q" id="q" autocomplete="off"
-              placeholder="Search">
+              class="search-input" placeholder="Search API">
         </form>
+        ''');
+    } else {
+      writeln(
+        '''
+        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
         ''');
     }
 
-    writeln('</div>');
+    writeln(
+      '''
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      ''');
 
     docNavigation();
     writeln('<div class="content">');
@@ -662,29 +685,129 @@ class Dartdoc {
    */
   void docNavigationJson() {
     startFile('nav.json');
-
-    final libraryMap = {};
-
-    for (final library in _sortedLibraries) {
-      docLibraryNavigationJson(library, libraryMap);
-    }
-
-    writeln(JSON.stringify(libraryMap));
+    writeln(JSON.stringify(createNavigationInfo()));
     endFile();
   }
 
-  void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
-    final types = [];
+  void docNavigationDart() {
+    final dir = new Directory.fromPath(tmpPath);
+    if (!dir.existsSync()) {
+      // TODO(3914): Hack to avoid 'file already exists' exception
+      // thrown due to invalid result from dir.existsSync() (probably due to
+      // race conditions).
+      try {
+        dir.createSync();
+      } catch (DirectoryIOException e) {
+        // Ignore.
+      }
+    }
+    String jsonString = JSON.stringify(createNavigationInfo());
+    String dartString = jsonString.replaceAll(@"$", @"\$");
+    final filePath = tmpPath.append('nav.dart');
+    writeString(new File.fromPath(filePath),
+        'get json() => $dartString;');
+  }
 
+  Path get tmpPath() => dartdocPath.append('tmp');
+
+  void cleanup() {
+    final dir = new Directory.fromPath(tmpPath);
+    if (dir.existsSync()) {
+      dir.deleteRecursivelySync();
+    }
+  }
+
+  List createNavigationInfo() {
+    final libraryList = [];
+    for (final library in _sortedLibraries) {
+      docLibraryNavigationJson(library, libraryList);
+    }
+    return libraryList;
+  }
+
+  void docLibraryNavigationJson(LibraryMirror library, List libraryList) {
+    var libraryInfo = {};
+    libraryInfo[NAME] = library.simpleName;
+    final List members = docMembersJson(library.declaredMembers);
+    if (!members.isEmpty()) {
+      libraryInfo[MEMBERS] = members;
+    }
+
+    final types = [];
     for (InterfaceMirror type in orderByName(library.types.getValues())) {
       if (type.isPrivate) continue;
 
-      final kind = type.isClass ? 'class' : 'interface';
-      final url = typeUrl(type);
-      types.add({ 'name': typeName(type), 'kind': kind, 'url': url });
+      var typeInfo = {};
+      typeInfo[NAME] = type.simpleName;
+      if (type.isClass) {
+        typeInfo[KIND] = CLASS;
+      } else if (type.isInterface) {
+        typeInfo[KIND] = INTERFACE;
+      } else {
+        assert(type.isTypedef);
+        typeInfo[KIND] = TYPEDEF;
+      }
+      final List typeMembers = docMembersJson(type.declaredMembers);
+      if (!typeMembers.isEmpty()) {
+        typeInfo[MEMBERS] = typeMembers;
+      }
+
+      if (!type.declaration.typeVariables.isEmpty()) {
+        final typeVariables = [];
+        for (final typeVariable in type.declaration.typeVariables) {
+          typeVariables.add(typeVariable.simpleName);
+        }
+        typeInfo[ARGS] = Strings.join(typeVariables, ', ');
+      }
+      types.add(typeInfo);
+    }
+    if (!types.isEmpty()) {
+      libraryInfo[TYPES] = types;
     }
 
-    libraryMap[library.simpleName] = types;
+    libraryList.add(libraryInfo);
+  }
+
+  List docMembersJson(Map<Object,MemberMirror> memberMap) {
+    final members = [];
+    for (MemberMirror member in orderByName(memberMap.getValues())) {
+      if (member.isPrivate) continue;
+
+      var memberInfo = {};
+      if (member.isField) {
+        memberInfo[NAME] = member.simpleName;
+        memberInfo[KIND] = FIELD;
+      } else {
+        MethodMirror method = member;
+        if (method.isConstructor) {
+          if (method.constructorName != '') {
+            memberInfo[NAME] = '${method.simpleName}.${method.constructorName}';
+            memberInfo[KIND] = CONSTRUCTOR;
+          } else {
+            memberInfo[NAME] = member.simpleName;
+            memberInfo[KIND] = CONSTRUCTOR;
+          }
+        } else if (method.isOperator) {
+          memberInfo[NAME] = '${method.simpleName} ${method.operatorName}';
+          memberInfo[KIND] = METHOD;
+        } else if (method.isSetter) {
+          memberInfo[NAME] = member.simpleName;
+          memberInfo[KIND] = SETTER;
+        } else if (method.isGetter) {
+          memberInfo[NAME] = member.simpleName;
+          memberInfo[KIND] = GETTER;
+        } else {
+          memberInfo[NAME] = member.simpleName;
+          memberInfo[KIND] = METHOD;
+        }
+      }
+      var anchor = memberAnchor(member);
+      if (anchor != memberInfo[NAME]) {
+        memberInfo[LINK_NAME] = anchor;
+      }
+      members.add(memberInfo);
+    }
+    return members;
   }
 
   void docNavigation() {
@@ -1293,19 +1416,28 @@ class Dartdoc {
   /** Gets the URL for the documentation for [member]. */
   String memberUrl(MemberMirror member) {
     String url = typeUrl(member.surroundingDeclaration);
-    if (!member.isConstructor) {
-      return '$url#${member.simpleName}';
-    }
-    assert (member is MethodMirror);
-    if (member.constructorName == '') {
-      return '$url#new:${member.simpleName}';
-    }
-    return '$url#new:${member.simpleName}.${member.constructorName}';
+    return '$url#${memberAnchor(member)}';
   }
 
   /** Gets the anchor id for the document for [member]. */
   String memberAnchor(MemberMirror member) {
-    return '${member.simpleName}';
+    if (member.isField) {
+      return member.simpleName;
+    }
+    MethodMirror method = member;
+    if (method.isConstructor) {
+      if (method.constructorName == '') {
+        return method.simpleName;
+      } else {
+        return '${method.simpleName}.${method.constructorName}';
+      }
+    } else if (method.isOperator) {
+      return '${method.simpleName} ${method.operatorName}';
+    } else if (method.isSetter) {
+      return '${method.simpleName}=';
+    } else {
+      return method.simpleName;
+    }
   }
 
   /**
@@ -1412,7 +1544,7 @@ class Dartdoc {
     if (type is TypeVariableMirror) {
       return type.simpleName;
     }
-    assert (type is InterfaceMirror);
+    assert(type is InterfaceMirror);
 
     // See if it's a generic type.
     if (type.isDeclaration) {

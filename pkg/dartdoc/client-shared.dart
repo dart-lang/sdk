@@ -4,6 +4,21 @@
 
 // Code shared between the different client-side libraries.
 
+// The names of the library and type that this page documents.
+String currentLibrary = null;
+String currentType = null;
+
+// What we need to prefix relative URLs with to get them to work.
+String prefix = '';
+
+void setupLocation() {
+  // Figure out where we are.
+  final body = document.query('body');
+  currentLibrary = body.dataAttributes['library'];
+  currentType = body.dataAttributes['type'];
+  prefix = (currentType != null) ? '../' : '';
+}
+
 /**
  * Finds all code blocks and makes them toggleable. Syntax highlights each
  * code block the first time it's shown.
@@ -30,6 +45,30 @@ enableCodeBlocks() {
         pre.classes.add('expanded');
       }
     });
-
   }
 }
+
+
+/** Turns [name] into something that's safe to use as a file name. */
+String sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');
+
+String getTypeName(Map typeInfo) =>
+    typeInfo.containsKey('args')
+        ? '${typeInfo[NAME]}&lt;${typeInfo[NAME]}&gt;'
+        : typeInfo[NAME];
+
+String getLibraryUrl(String libraryName) =>
+    '$prefix${sanitize(libraryName)}.html';
+
+String getTypeUrl(String libraryName, Map typeInfo) =>
+    '$prefix${sanitize(libraryName)}/${sanitize(typeInfo[NAME])}.html';
+
+String getLibraryMemberUrl(String libraryName, Map memberInfo) =>
+    '$prefix${sanitize(libraryName)}.html#${getMemberAnchor(memberInfo)}';
+
+String getTypeMemberUrl(String libraryName, String typeName, Map memberInfo) =>
+    '$prefix${sanitize(libraryName)}/${sanitize(typeName)}.html#'
+    '${getMemberAnchor(memberInfo)}';
+
+String getMemberAnchor(Map memberInfo) => memberInfo.containsKey(LINK_NAME)
+    ? memberInfo[LINK_NAME] : memberInfo[NAME];
