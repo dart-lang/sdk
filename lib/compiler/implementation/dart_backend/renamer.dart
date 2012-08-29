@@ -12,13 +12,12 @@ void renamePlaceholders(
     Map<Node, String> renames,
     Map<LibraryElement, String> imports,
     Set<String> fixedMemberNames,
-    bool minify,
     bool cutDeclarationTypes) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
-  Generator topLevelGenerator =
-      minify ? new MinifyingGenerator('ABCDEFGHIJKLMNOPQRSTUVWXYZ').generate
-          : conservativeGenerator;
+  Generator topLevelGenerator = compiler.enableMinification
+      ? new MinifyingGenerator('ABCDEFGHIJKLMNOPQRSTUVWXYZ').generate
+      : conservativeGenerator;
   makeGenerator(usedIdentifierSet) => (name) {
     String newName = topLevelGenerator(name, usedIdentifierSet.contains);
     usedIdentifierSet.add(newName);
@@ -76,9 +75,9 @@ void renamePlaceholders(
   sortedForEach(placeholderCollector.functionScopes,
       (functionElement, functionScope) {
     Set<LocalPlaceholder> placeholders = functionScope.localPlaceholders;
-    Generator localGenerator =
-        minify ? new MinifyingGenerator('abcdefghijklmnopqrstuvwxyz').generate
-            : conservativeGenerator;
+    Generator localGenerator = compiler.enableMinification
+        ? new MinifyingGenerator('abcdefghijklmnopqrstuvwxyz').generate
+        : conservativeGenerator;
     Set<String> memberIdentifiers = new Set<String>();
     if (functionElement.getEnclosingClass() !== null) {
       functionElement.getEnclosingClass().forEachMember(

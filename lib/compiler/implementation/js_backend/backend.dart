@@ -262,6 +262,7 @@ class JavaScriptBackend extends Backend {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
+
   final Map<Element, Map<Element, HType>> fieldInitializers;
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, HType>> fieldSettersType;

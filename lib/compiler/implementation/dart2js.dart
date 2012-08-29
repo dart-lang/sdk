@@ -327,6 +327,9 @@ Supported options:
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
 
+  --minify
+    Generate minified output.
+
   --suppress-warnings
     Do not display any warnings.
 

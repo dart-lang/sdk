@@ -78,7 +78,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       return prettyPrint(fun, work.element);
     });
   }
-  
+
   void addTypeParameters(Element element,
                         List<js.Parameter> parameters,
                         Map<Element, String> parameterNames) {
@@ -88,7 +88,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         String name = typeVariable.element.name.slowToString();
         String prefix = '';
         // Avoid collisions with real parameters of the method.
-        do {  
+        do {
           name = JsNames.getValid('$prefix$name');
           prefix = '\$$prefix';
         } while (parameterNames.containsValue(name));

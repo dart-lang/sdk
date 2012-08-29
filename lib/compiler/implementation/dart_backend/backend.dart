@@ -4,15 +4,14 @@
 
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
-  final bool minify;
   final bool cutDeclarationTypes;
 
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
 
-  DartBackend(Compiler compiler, this.minify, this.cutDeclarationTypes)
+  DartBackend(Compiler compiler, this.cutDeclarationTypes)
       : tasks = <CompilerTask>[],
-      super(compiler);
+        super(compiler);
 
   void enqueueHelpers(Enqueuer world) {
     // Right now resolver doesn't always resolve interfaces needed
@@ -147,7 +146,7 @@ class DartBackend extends Backend {
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
     renamePlaceholders(
         compiler, collector, renames, imports,
-        fixedMemberNames, minify, cutDeclarationTypes);
+        fixedMemberNames, cutDeclarationTypes);
 
     // Sort elements.
     final sortedTopLevels = sortElements(topLevelElements);

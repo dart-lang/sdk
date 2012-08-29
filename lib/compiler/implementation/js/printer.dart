@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Printer implements NodeVisitor {
-  final bool shouldCompressOutput = false;
+  final bool shouldCompressOutput;
   leg.Compiler compiler;
   var positionElement;
   leg.CodeBuffer outBuffer;
@@ -13,7 +13,8 @@ class Printer implements NodeVisitor {
   final DanglingElseVisitor danglingElseVisitor;
 
   Printer(leg.Compiler compiler, this.positionElement)
-      : this.compiler = compiler,
+      : shouldCompressOutput = compiler.enableMinification,
+        this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler);
 
