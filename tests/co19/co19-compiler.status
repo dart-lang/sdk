@@ -190,8 +190,6 @@ LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # co19 issue 139
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 139
 
-LibTest/core/Date/Date_A01_t03: Fail, OK # co19 issue 180
-
 # The following tests use the deprecated Date interface.
 LibTest/core/Date/Date_A02_t01: Fail, Pass
 LibTest/core/Date/Date.now_A02_t01: Fail, Pass
