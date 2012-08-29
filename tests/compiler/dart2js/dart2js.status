@@ -5,6 +5,7 @@
 constant_folding_string_test: Fail
 redundant_phi_eliminator_test: Fail # Fails because of hack to allow aborting loops.
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
+tree_shaking_test: Fail # Issue 4811
 
 [ $runtime == d8 || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).

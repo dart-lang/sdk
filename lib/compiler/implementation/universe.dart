@@ -375,8 +375,7 @@ class TypedSelector extends Selector {
     }
 
     ClassElement self = receiverType.element;
-    // TODO(ngeoffray): tree-shake on interfaces.
-    if (self.isInterface() || other.isSubclassOf(self)) {
+    if (other.implementsInterface(self) || other.isSubclassOf(self)) {
       return appliesUntyped(element, compiler);
     }
 
