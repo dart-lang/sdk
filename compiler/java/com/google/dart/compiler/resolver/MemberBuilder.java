@@ -8,8 +8,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.PackageLibraryManager;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
@@ -584,9 +582,10 @@ public class MemberBuilder {
 
       if (modifiers.isFactory()) {
         if (modifiers.isConstant()) {
-          // Allow const factory ... native ... ; type of constructors, used in core libraries
+          // Allow const factory ... native ... ; type of constructors, used in core libraries.
+          // Allow const factory redirecting.
           DartBlock dartBlock = method.getFunction().getBody();
-          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) {
+          if (!(dartBlock instanceof DartNativeBlock || method.getRedirectedTypeName() != null)) {
             resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
           }
         }

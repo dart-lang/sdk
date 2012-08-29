@@ -36,11 +36,13 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -4057,7 +4059,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER, 3, 3, 5));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3904
@@ -4071,6 +4073,63 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  process(A);",
         "}"));
     assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * TODO(scheglov)
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3968
+   */
+  public void test_redirectingFactoryConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B.foo() = A;",
+        "  factory B.bar() = A.named;",
+        "}",
+        ""));
+    assertErrors(libraryResult.getErrors());
+    // prepare "class A"
+    ClassElement elementA = findNode(DartClass.class, "class A").getElement();
+    Type typeA = elementA.getType();
+    // = A;
+    {
+      DartTypeNode typeNode = findNode(DartTypeNode.class, "A;");
+      Type type = typeNode.getType();
+      assertSame(typeA, type);
+    }
+    // = A.named;
+    {
+      DartTypeNode typeNode = findNode(DartTypeNode.class, "A.named;");
+      Type type = typeNode.getType();
+      assertSame(typeA, type);
+      // .named
+      DartIdentifier nameNode = findNode(DartIdentifier.class, "named;");
+      NodeElement nameElement = nameNode.getElement();
+      assertNotNull(nameElement);
+      assertSame(elementA.lookupConstructor("named"), nameElement);
+    }
+  }
+  
+  public void test_redirectingFactoryConstructor_notConst_fromConst() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "",
+        "class B {",
+        "  const factory B.bar() = A.named;",
+        "}",
+        ""));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST, 7, 29, 5));
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {

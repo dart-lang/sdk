@@ -176,6 +176,8 @@ public enum ResolverErrorCode implements ErrorCode {
       "Parameter initializers cannot be used with redirected constructors"),
   // TODO(zundel): error message needs JUnit test
   PARAMETER_NOT_MATCH_FIELD("Could not match parameter initializer '%s' with any field"),
+  REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST(
+      "Target of constant redirecting factory constructor also should be constant"),
   RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),

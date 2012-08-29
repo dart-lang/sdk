@@ -296,6 +296,15 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
     // body
     if (x.getFunction().getBody() != null) {
       accept(x.getFunction().getBody());
+    } else if (x.getRedirectedTypeName() != null) {
+      p(" = ");
+      accept(x.getRedirectedTypeName());
+      if (x.getRedirectedConstructorName() != null) {
+        p(".");
+        accept(x.getRedirectedConstructorName());
+      }
+      p(";");
+      nl();
     } else {
       p(";");
       nl();

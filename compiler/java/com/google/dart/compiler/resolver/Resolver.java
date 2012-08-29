@@ -654,6 +654,7 @@ public class Resolver {
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
           && !member.getModifiers().isExternal()
+          && node.getRedirectedTypeName() == null
           && !isInterface) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
@@ -662,6 +663,33 @@ public class Resolver {
       if (Elements.isNonFactoryConstructor(member)
           && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
+      }
+
+      // resolve redirecting factory constructor
+      {
+        DartTypeNode rcTypeName = node.getRedirectedTypeName();
+        if (rcTypeName != null) {
+          InterfaceType rcType = (InterfaceType) resolveType(rcTypeName, true, true,
+              TypeErrorCode.NO_SUCH_TYPE, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+          switch (TypeKind.of(rcType)) {
+            case INTERFACE:
+              Element element = recordType(rcTypeName, rcType);
+              DartIdentifier rcName = node.getRedirectedConstructorName();
+              if (rcName != null) {
+                element = ((ClassElement) element).lookupConstructor(rcName.getName());
+                switch (ElementKind.of(element)) {
+                  case CONSTRUCTOR:
+                    recordElement(rcName, element);
+                    if (member.getModifiers().isConstant() && !element.getModifiers().isConstant()) {
+                      onError(rcName,
+                          ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST);
+                    }
+                    break;
+                }
+              }
+              break;
+          }
+        }
       }
 
       context = previousContext;
