@@ -1550,22 +1550,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(!deopt_info_array.IsNull());
   DeoptInfo& deopt_info = DeoptInfo::Handle();
   deopt_info ^= deopt_info_array.At(deopt_index);
-  if (deopt_info.IsNull()) {
-    // TODO(srdjan): Deprecate.
-    // Include the space for return address.
-    intptr_t stack_size_in_bytes = caller_frame->fp() - caller_frame->sp();
-    return stack_size_in_bytes + kWordSize;
-  } else {
-    // For functions with optional argument deoptimization info does not
-    // describe incoming arguments.
-    const Function& function = Function::Handle(optimized_code.function());
-    const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-        0 : function.num_fixed_parameters();
-    intptr_t unoptimized_stack_size =
-        + deopt_info.Length() - num_args
-        - 2;  // Subtract caller FP and PC.
-    return unoptimized_stack_size * kWordSize;
-  }
+  ASSERT(!deopt_info.IsNull());
+  // For functions with optional argument deoptimization info does not
+  // describe incoming arguments.
+  const Function& function = Function::Handle(optimized_code.function());
+  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
+      0 : function.num_fixed_parameters();
+  intptr_t unoptimized_stack_size =
+      + deopt_info.Length() - num_args
+      - 2;  // Subtract caller FP and PC.
+  return unoptimized_stack_size * kWordSize;
 }
 END_LEAF_RUNTIME_ENTRY
 
@@ -1645,28 +1639,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   ASSERT(!deopt_info_array.IsNull());
   DeoptInfo& deopt_info = DeoptInfo::Handle();
   deopt_info ^= deopt_info_array.At(deopt_index);
-  if (deopt_info.IsNull()) {
-    // TODO(srdjan): Deprecate.
-    const intptr_t deopt_frame_copy_size = isolate->deopt_frame_copy_size();
-    const intptr_t pc_marker_index =
-        ((caller_frame->fp() - caller_frame->sp()) / kWordSize);
-    // Patch the return PC and saved PC marker in frame to point to the
-    // unoptimized version.
-    frame_copy[0] = continue_at_pc;
-    frame_copy[pc_marker_index] =
-        unoptimized_code.EntryPoint() +
-        AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
-    intptr_t* start =
-        reinterpret_cast<intptr_t*>(caller_frame->sp() - kWordSize);
-    for (intptr_t i = 0; i < deopt_frame_copy_size; i++) {
-      if (FLAG_trace_deopt) {
-        OS::Print("%d. 0x%x\n", i, frame_copy[i]);
-      }
-      *(start + i) = frame_copy[i];
-    }
-  } else {
-    DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame);
-  }
+  ASSERT(!deopt_info.IsNull());
+  DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame);
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
