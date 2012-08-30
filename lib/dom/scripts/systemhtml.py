@@ -554,8 +554,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
          ID=typename,
          EXTENDS=extends_str)
 
-    # TODO(efortuna): Are there domMembers here also?
-    self._type_comment_emitter.Emit("/// @domTypes $DOMNAME",
+    self._type_comment_emitter.Emit("/// @domName $DOMNAME",
         DOMNAME=self._interface.doc_js_name)
 
     if self._backend.HasImplementation():
