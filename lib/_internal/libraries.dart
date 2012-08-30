@@ -22,12 +22,6 @@ const int VM_PLATFORM = 2;
  */
 const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
-  "builtin": const LibraryInfo(
-      "builtin/builtin_runtime.dart",
-      category: "Server",
-      documented: false,
-      platforms: VM_PLATFORM),
-
   "core": const LibraryInfo(
       "core/core.dart",
       dart2jsPath: "compiler/implementation/lib/core.dart"),
