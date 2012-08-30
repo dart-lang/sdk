@@ -41,7 +41,7 @@ void expect(actual, [matcher = isTrue, String reason = null,
   var matchState = new MatchState();
   try {
     doesMatch = matcher.matches(actual, matchState);
-  } catch (var e, var trace) {
+  } catch (e, trace) {
     doesMatch = false;
     if (reason == null) {
       reason = '${(e is String) ? e : e.toString()} at $trace';

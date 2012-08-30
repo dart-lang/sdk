@@ -7,7 +7,7 @@
 // This test is very similar to NamedParameters3Test, but exersizes a
 // different corner case in the frog compiler. frog wasn't detecting unused
 // named arguments when no other arguments were expected. So, this test
-// purposely passes the exact number of positional parameters 
+// purposely passes the exact number of positional parameters.
 
 int test(int a) {
   return a;
@@ -17,7 +17,7 @@ main() {
   bool foundError = false;
   try {
     test(10, x:99);  // 1 positional arg, as expected. Param x does not exist.
-  } catch (Exception e) {
+  } on Exception catch (e) {
     foundError = true;
   }
   Expect.equals(true, foundError);

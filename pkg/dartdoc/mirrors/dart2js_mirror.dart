@@ -212,7 +212,7 @@ class LibraryCompiler extends api.Compiler {
   bool _runList(List<Uri> uriList) {
     try {
       runCompilerList(uriList);
-    } catch (CompilerCancelledException exception) {
+    } on CompilerCancelledException catch (exception) {
       log(exception.toString());
       log('compilation failed');
       return false;
@@ -294,7 +294,7 @@ class Dart2JsCompilation implements Compilation {
     String source;
     try {
       source = readAll(uriPathToNative(uri.path));
-    } catch (FileIOException ex) {
+    } on FileIOException catch (ex) {
       throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
     }
     sourceFiles[uri.toString()] =

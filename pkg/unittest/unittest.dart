@@ -217,7 +217,7 @@ void expectThrow(function, [bool callback(exception)]) {
   bool threw = false;
   try {
     function();
-  } catch (var e) {
+  } catch (e) {
     threw = true;
 
     // Also let the callback look at it.
@@ -582,7 +582,7 @@ void group(String description, void body()) {
     _testSetup = null;
     _testTeardown = null;
     body();
-  } catch(var e, var trace) {
+  } catch (e, trace) {
     _reportTestError(e.toString(), trace == null ? '' : trace.toString());
   } finally {
     // Now that the group is over, restore the previous one.
@@ -723,7 +723,7 @@ guardAsync(tryBody, [finallyBody, testNum = -1]) {
   if (testNum < 0) testNum = _currentTest;
   try {
     return tryBody();
-  } catch (var e, var trace) {
+  } catch (e, trace) {
     _registerException(testNum, e, trace);
   } finally {
     if (finallyBody != null) finallyBody();
