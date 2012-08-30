@@ -2336,7 +2336,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     };
 
     if (node.isChecked) {
-      Type type = node.type.computeType(compiler);
+      DartType type = node.type.computeType(compiler);
       Element element = type.element;
       world.registerIsCheck(element);
 
