@@ -5,9 +5,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 """
-Find an Android device with a given ABI
+Find an Android device with a given ABI.
 
-The name of the Android device is printed to stdout
+The name of the Android device is printed to stdout.
 
 Optionally configure and launch an emulator if there's no existing device for a
 given ABI. Will download and install Android SDK components as needed.
@@ -30,7 +30,7 @@ def BuildOptions():
   result.add_option(
       "-a", "--abi",
       action="store", type="string",
-      help="Desired ABI. armeabi-v7a or x86")
+      help="Desired ABI. armeabi-v7a or x86.")
   result.add_option(
       "-b", "--bootstrap",
       help='Bootstrap - create an emulator, installing SDK packages if needed.',
@@ -52,7 +52,7 @@ def ProcessOptions(options):
   global VERBOSE
   VERBOSE = options.verbose
   if options.abi is None:
-    sys.stderr.write('--abi not specified\n')
+    sys.stderr.write('--abi not specified.\n')
     return False
   return True
 
@@ -61,13 +61,13 @@ def ParseAndroidListSdkResult(text):
   """
   Parse the output of an 'android list sdk' command.
 
-  Return list of (id-num, id-key, type, description)
+  Return list of (id-num, id-key, type, description).
   """
   header_regex = re.compile(
       r'Packages available for installation or update: \d+\n')
   packages = re.split(header_regex, text)
   if len(packages) != 2:
-    raise Exception("Could not get a list of packages to install")
+    raise utils.Error("Could not get a list of packages to install")
   entry_regex = re.compile(
       r'^id\: (\d+) or "([^"]*)"\n\s*Type\: ([^\n]*)\n\s*Desc\: (.*)')
   entries = []
@@ -86,10 +86,16 @@ def AndroidListSdk():
 
 
 def AndroidSdkFindPackage(packages, key):
-  """key is (id-key, type, description-prefix)"""
+  """
+  Args:
+    packages: list of (id-num, id-key, type, description).
+    key: (id-key, type, description-prefix).
+  """
+  (key_id, key_type, key_description_prefix) = key
   for package in packages:
-    if (package[1] == key[0] and package[2] == key[1]
-        and package[3].find(key[2]) == 0):
+    (package_num, package_id, package_type, package_description) = package
+    if (package_id == key_id and package_type == key_type
+        and package_description.startswith(key_description_prefix)):
       return package
   return None
 
@@ -104,13 +110,13 @@ def EnsureSdkPackageInstalled(packages, key):
   """
   entry = AndroidSdkFindPackage(packages, key)
   if entry is None:
-    raise Exception("Could not find a package for key %s" % key)
+    raise utils.Error("Could not find a package for key %s" % key)
   packageId = entry[0]
   if VERBOSE:
     sys.stderr.write('Checking Android SDK package %s...\n' % str(entry))
   out = utils.RunCommand(
       ["android", "update", "sdk", "-a", "-u", "--filter", str(packageId)])
-  return out.find('\nInstalling Archives:\n') >= 0
+  return '\nInstalling Archives:\n' in out
 
 
 def SdkPackagesForAbi(abi):
@@ -130,7 +136,7 @@ def SdkPackagesForAbi(abi):
   }
 
   if abi not in packagesForAbi:
-    raise Exception('Unsupported abi %s' % abi)
+    raise utils.Error('Unsupported abi %s' % abi)
   return packagesForAbi[abi]
 
 
@@ -138,6 +144,7 @@ def TargetForAbi(abi):
   for package in SdkPackagesForAbi(abi):
     if package[1] == 'Platform':
       return package[0]
+
 
 def EnsureAndroidSdkPackagesInstalled(abi):
   """Return true if at least one package was not already installed."""
@@ -167,7 +174,7 @@ def ParseAndroidListAvdResult(text):
         continue
       match = line_re.match(line)
       if match is None:
-        raise Exception('Match failed')
+        raise utils.Error('Match failed')
       entry[match.group(1)] = match.group(2)
     if len(entry) > 0:
       result.append(entry)
@@ -193,7 +200,7 @@ def CreateAvd(avdName, abi):
   if out.find('Created AVD ') < 0:
     if VERBOSE:
         sys.stderr.write('Could not create AVD:\n%s\n' % out)
-    raise Exception('Could not create AVD')
+    raise utils.Error('Could not create AVD')
 
 
 def AvdExists(avdName):
@@ -212,12 +219,6 @@ def EnsureAvdExists(avdName, abi):
         return
   CreateAvd(avdName, abi)
 
-def dumpenv(map):
-  e = map.keys()
-  e.sort()
-  for k in e:
-    sys.stderr.write("%s: %s\n" % (k, map[k]))
-
 
 def StartEmulator(abi, avdName, pollFn):
   """
@@ -231,7 +232,7 @@ def StartEmulator(abi, avdName, pollFn):
   Implementation note: Normally we would call the 'emulator' binary, which
   is a wrapper that launches the appropriate abi-specific emulator. But there
   is a bug that causes the emulator to exit immediately with a result code of
-  -11 if run from a ssh shell or a NX Machine shell. (And only if called from
+  -11 if run from a ssh shell or a No Machine shell. (And only if called from
   three levels of nested python scripts.) Calling the ABI-specific versions
   of the emulator directly works around this bug.
   """
@@ -309,12 +310,13 @@ def AddSdkToolsToPath():
     if i in os.environ:
       del os.environ[i]
 
+
 def FindAndroid(abi, bootstrap):
   if VERBOSE:
     sys.stderr.write('Looking for an Android device running abi %s...\n' % abi)
   AddSdkToolsToPath()
   device = FindAndroidRunning(abi)
-  if device is None:
+  if not device:
     if bootstrap:
       if VERBOSE:
         sys.stderr.write("No emulator found, try to create one.\n")
@@ -357,7 +359,7 @@ def Main():
       if VERBOSE:
         sys.stderr.write('Could not find device\n')
       return 2
-  except Exception as e:
+  except utils.Error as e:
     sys.stderr.write("error: %s\n" % e)
     if DEBUG:
       traceback.print_exc(file=sys.stderr)
