@@ -236,6 +236,7 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xAB: return "bts";
     case 0xB1: return "cmpxchg";
     case 0x57: return "xorps";
+    case 0x28: return "movaps";
     default: return NULL;
   }
 }
@@ -1204,6 +1205,15 @@ int X86Decoder::InstructionDecode(uword pc) {
               PrintCPURegister(regop);
               Print(",cl");
             }
+          } else if (f0byte == 0x28) {
+            // movaps
+            Print(f0mnem);
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print(" ");
+            PrintXmmRegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
           } else {
             UNIMPLEMENTED();
           }
