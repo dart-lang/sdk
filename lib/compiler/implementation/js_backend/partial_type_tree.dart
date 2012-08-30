@@ -60,7 +60,7 @@ class PartialTypeTree {
 
   // TODO(kasperl): Move this to the Selector class?
   ClassElement selectorType(Selector selector) {
-    Type type = selector.receiverType;
+    DartType type = selector.receiverType;
     return (type !== null) ? type.element : compiler.objectClass;
   }
 

@@ -31,7 +31,7 @@
 #source('value_set.dart');
 
 class RuntimeTypeInformation {
-  bool hasTypeArguments(Type type) {
+  bool hasTypeArguments(DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
       return !interfaceType.arguments.isEmpty();

@@ -13,7 +13,7 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedSetters;
   final Map<SourceString, Set<Selector>> fieldGetters;
   final Map<SourceString, Set<Selector>> fieldSetters;
-  // TODO(ngeoffray): This should be a Set<Type>.
+  // TODO(ngeoffray): This should be a Set<DartType>.
   final Set<Element> isChecks;
   final RuntimeTypeInformation rti;
 
@@ -168,7 +168,7 @@ class Selector implements Hashable {
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
-  Type get receiverType => null;
+  DartType get receiverType => null;
 
   bool applies(Element element, Compiler compiler)
       => appliesUntyped(element, compiler);
@@ -330,7 +330,7 @@ class TypedSelector extends Selector {
    * The type of the receiver. Any subtype of that type can be the
    * target of the invocation.
    */
-  final Type receiverType;
+  final DartType receiverType;
 
   TypedSelector(this.receiverType, Selector selector)
     : super(selector.kind,

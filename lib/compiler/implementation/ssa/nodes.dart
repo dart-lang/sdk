@@ -2402,7 +2402,7 @@ class HIndexAssign extends HInvokeStatic {
 }
 
 class HIs extends HInstruction {
-  final Type typeExpression;
+  final DartType typeExpression;
   final bool nullOk;
 
   HIs.withTypeInfoCall(this.typeExpression, HInstruction expression,

@@ -117,8 +117,8 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     // annotation that disagrees with the speculated type.
     Element source = instruction.sourceElement;
     if (source !== null) {
-      Type sourceType = source.computeType(compiler);
-      Type speculatedType = speculativeType.computeType(compiler);
+      DartType sourceType = source.computeType(compiler);
+      DartType speculatedType = speculativeType.computeType(compiler);
       if (speculatedType !== null
           && !compiler.types.isAssignable(speculatedType, sourceType)) {
         return false;

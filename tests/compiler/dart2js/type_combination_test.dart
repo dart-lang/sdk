@@ -4,8 +4,8 @@
 
 #source("../../../lib/compiler/implementation/ssa/types.dart");
 
-class Type {
-  const Type(this.str);
+class DartType {
+  const DartType(this.str);
   final String str;
 }
 
@@ -20,12 +20,12 @@ const STRING = HType.STRING;
 const READABLE_ARRAY = HType.READABLE_ARRAY;
 const MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
 const EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
-const NON_PRIMITIVE1 = const HBoundedType.nonNull(const Type("type1"));
-const NON_PRIMITIVE2 = const HBoundedType.nonNull(const Type("type2"));
+const NON_PRIMITIVE1 = const HBoundedType.nonNull(const DartType("type1"));
+const NON_PRIMITIVE2 = const HBoundedType.nonNull(const DartType("type2"));
 const POTENTIAL_ARRAY =
-    const HBoundedPotentialPrimitiveArray(const Type('type 3'), true);
+    const HBoundedPotentialPrimitiveArray(const DartType('type 3'), true);
 const POTENTIAL_STRING =
-    const HBoundedPotentialPrimitiveString(const Type('type 4'), true);
+    const HBoundedPotentialPrimitiveString(const DartType('type 4'), true);
 const BOOLEAN_OR_NULL = HType.BOOLEAN_OR_NULL;
 const NUMBER_OR_NULL = HType.NUMBER_OR_NULL;
 const INTEGER_OR_NULL = HType.INTEGER_OR_NULL;

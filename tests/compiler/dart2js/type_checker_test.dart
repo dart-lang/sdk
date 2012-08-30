@@ -10,11 +10,11 @@
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 
-Type intType;
-Type boolType;
-Type stringType;
-Type doubleType;
-Type objectType;
+DartType intType;
+DartType boolType;
+DartType stringType;
+DartType doubleType;
+DartType objectType;
 
 main() {
   List tests = [testSimpleTypes,
@@ -353,10 +353,11 @@ testThis() {
 
 testFunctionSubtyping() {
   // Checks that the type (in1 -> out1) is a subtype of (in2 -> out2).
-  bool isSubtype(List<Type> in1, Type out1, List<Type> in2, Type out2) {
+  bool isSubtype(List<DartType> in1, DartType out1, List<DartType> in2,
+                 DartType out2) {
     return compiler.types.isSubtype(
-        new FunctionType(out1, new Link<Type>.fromList(in1), null),
-        new FunctionType(out2, new Link<Type>.fromList(in2), null));
+        new FunctionType(out1, new Link<DartType>.fromList(in1), null),
+        new FunctionType(out2, new Link<DartType>.fromList(in2), null));
   }
   Expect.isTrue(isSubtype([], intType, [], intType));
   Expect.isTrue(isSubtype([], intType, [], objectType));
@@ -407,7 +408,7 @@ void setup() {
   objectType = compiler.objectClass.computeType(compiler);
 }
 
-Type analyzeType(String text) {
+DartType analyzeType(String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor =
       new TypeCheckerVisitor(compiler, new TreeElementMapping(), types);

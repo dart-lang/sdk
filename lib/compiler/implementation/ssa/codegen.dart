@@ -1479,7 +1479,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(4434): For private members we need to use the untyped selector.
     if (defaultSelector.name.isPrivate()) return defaultSelector;
     HType receiverHType = types[node.inputs[0]];
-    Type receiverType = receiverHType.computeType(compiler);
+    DartType receiverType = receiverHType.computeType(compiler);
     if (receiverType !== null) {
       return new TypedSelector(receiverType, defaultSelector);
     } else {
@@ -1579,7 +1579,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     push(new js.PropertyAccess.field(pop(), name), node);
     HType receiverHType = types[node.receiver];
-    Type type = receiverHType.computeType(compiler);
+    DartType type = receiverHType.computeType(compiler);
     if (type != null) {
       world.registerFieldGetter(
           node.element.name, node.element.getLibrary(), type);
@@ -1608,7 +1608,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                             node.value.guaranteedType);
     }
     String name = compiler.namer.getName(node.element);
-    Type type = types[node.receiver].computeType(compiler);
+    DartType type = types[node.receiver].computeType(compiler);
     if (type != null) {
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(
@@ -2230,7 +2230,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIs(HIs node) {
-    Type type = node.typeExpression;
+    DartType type = node.typeExpression;
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables", instruction: node);
@@ -2284,7 +2284,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.hasTypeInfo()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
-      Link<Type> arguments = interfaceType.arguments;
+      Link<DartType> arguments = interfaceType.arguments;
       js.Expression result = pop();
       for (TypeVariableType typeVariable in cls.typeVariables) {
         use(node.typeInfoCall);

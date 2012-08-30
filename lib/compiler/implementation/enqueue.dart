@@ -215,7 +215,7 @@ class Enqueuer {
       // supertypes.
       cls.ensureResolved(compiler);
 
-      for (Link<Type> supertypes = cls.allSupertypesAndSelf;
+      for (Link<DartType> supertypes = cls.allSupertypesAndSelf;
            !supertypes.isEmpty(); supertypes = supertypes.tail) {
         cls = supertypes.head.element;
         if (seenClasses.contains(cls)) continue;
@@ -314,7 +314,7 @@ class Enqueuer {
 
   void registerFieldGetter(SourceString getterName,
                            LibraryElement library,
-                           Type type) {
+                           DartType type) {
     task.measure(() {
       Selector getter = new Selector.getter(getterName, library);
       registerNewSelector(getterName,
@@ -325,7 +325,7 @@ class Enqueuer {
 
   void registerFieldSetter(SourceString setterName,
                            LibraryElement library,
-                           Type type) {
+                           DartType type) {
     task.measure(() {
       Selector setter = new Selector.setter(setterName, library);
       registerNewSelector(setterName,

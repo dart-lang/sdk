@@ -5,28 +5,28 @@
 interface TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
-  Type getType(TypeAnnotation annotation);
+  DartType getType(TypeAnnotation annotation);
 }
 
 class TreeElementMapping implements TreeElements {
   Map<Node, Element> map;
   Map<Node, Selector> selectors;
-  Map<TypeAnnotation, Type> types;
+  Map<TypeAnnotation, DartType> types;
 
   TreeElementMapping()
     : map = new LinkedHashMap<Node, Element>(),
       selectors = new LinkedHashMap<Node, Selector>(),
-      types = new LinkedHashMap<TypeAnnotation, Type>();
+      types = new LinkedHashMap<TypeAnnotation, DartType>();
 
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
   void remove(Node node) { map.remove(node); }
 
-  void setType(TypeAnnotation annotation, Type type) {
+  void setType(TypeAnnotation annotation, DartType type) {
     types[annotation] = type;
   }
 
-  Type getType(TypeAnnotation annotation) => types[annotation];
+  DartType getType(TypeAnnotation annotation) => types[annotation];
 
   void setSelector(Node node, Selector selector) {
     selectors[node] = selector;
@@ -150,7 +150,7 @@ class ResolverTask extends CompilerTask {
     if (constructor.defaultImplementation !== constructor) return;
     ClassElement intrface = constructor.getEnclosingClass();
     if (!intrface.isInterface()) return;
-    Type defaultType = intrface.defaultClass;
+    DartType defaultType = intrface.defaultClass;
     if (defaultType === null) {
       error(node, MessageKind.NO_DEFAULT_CLASS, [intrface.name]);
     }
@@ -204,10 +204,10 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+  DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
     if (annotation === null) return compiler.types.dynamicType;
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
-    Type result = visitor.resolveTypeAnnotation(annotation);
+    DartType result = visitor.resolveTypeAnnotation(annotation);
     if (result === null) {
       // TODO(karklose): warning.
       return compiler.types.dynamicType;
@@ -230,7 +230,7 @@ class ResolverTask extends CompilerTask {
           MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
           api.Diagnostic.ERROR);
         cls.supertypeLoadState = STATE_DONE;
-        cls.allSupertypes = const EmptyLink<Type>().prepend(
+        cls.allSupertypes = const EmptyLink<DartType>().prepend(
             compiler.objectClass.computeType(compiler));
         // TODO(ahe): We should also set cls.supertype here to avoid
         // creating a malformed class hierarchy.
@@ -427,7 +427,7 @@ class ResolverTask extends CompilerTask {
 
   FunctionType computeFunctionType(Element element,
                                    FunctionSignature signature) {
-    LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
+    LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
     for (Link<Element> link = signature.requiredParameters;
          !link.isEmpty();
          link = link.tail) {
@@ -842,10 +842,10 @@ class TypeResolver {
   // flags instead of closures.
   // TODO(johnniwinther): Should never return [null] but instead an erroneous
   // type.
-  Type resolveTypeAnnotation(TypeAnnotation node,
-                             [Scope inScope, ClassElement inClass,
-                              onFailure(Node, MessageKind, [List arguments]),
-                              whenResolved(Node, Type)]) {
+  DartType resolveTypeAnnotation(TypeAnnotation node,
+                                 [Scope inScope, ClassElement inClass,
+                                 onFailure(Node, MessageKind, [List arguments]),
+                                 whenResolved(Node, Type)]) {
     if (onFailure === null) {
       onFailure = (n, k, [arguments]) {};
     }
@@ -862,10 +862,10 @@ class TypeResolver {
                                           whenResolved);
   }
 
-  Type resolveTypeAnnotationInContext(Scope scope, TypeAnnotation node,
-                                      onFailure, whenResolved) {
+  DartType resolveTypeAnnotationInContext(Scope scope, TypeAnnotation node,
+                                          onFailure, whenResolved) {
     Element element = resolveTypeName(scope, node);
-    Type type;
+    DartType type;
     if (element === null) {
       onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
     } else if (!element.impliesType()) {
@@ -877,7 +877,7 @@ class TypeResolver {
       } else if (element.isClass()) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
-        Link<Type> arguments =
+        Link<DartType> arguments =
             resolveTypeArguments(node, cls.typeVariables, scope,
                                  onFailure, whenResolved);
         if (cls.typeVariables.isEmpty() && arguments.isEmpty()) {
@@ -891,7 +891,7 @@ class TypeResolver {
         // TODO(ahe): Should be [ensureResolved].
         compiler.resolveTypedef(typdef);
         typdef.computeType(compiler);
-        Link<Type> arguments = resolveTypeArguments(
+        Link<DartType> arguments = resolveTypeArguments(
             node, typdef.typeVariables,
             scope, onFailure, whenResolved);
         if (typdef.typeVariables.isEmpty() && arguments.isEmpty()) {
@@ -911,20 +911,20 @@ class TypeResolver {
     return type;
   }
 
-  Link<Type> resolveTypeArguments(TypeAnnotation node,
-                                  Link<Type> typeVariables,
-                                  Scope scope, onFailure, whenResolved) {
+  Link<DartType> resolveTypeArguments(TypeAnnotation node,
+                                      Link<DartType> typeVariables,
+                                      Scope scope, onFailure, whenResolved) {
     if (node.typeArguments == null) {
-      return const EmptyLink<Type>();
+      return const EmptyLink<DartType>();
     }
-    var arguments = new LinkBuilder<Type>();
+    var arguments = new LinkBuilder<DartType>();
     for (Link<Node> typeArguments = node.typeArguments.nodes;
          !typeArguments.isEmpty();
          typeArguments = typeArguments.tail) {
       if (typeVariables.isEmpty()) {
         onFailure(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
       }
-      Type argType = resolveTypeAnnotationInContext(scope,
+      DartType argType = resolveTypeAnnotationInContext(scope,
                                                     typeArguments.head,
                                                     onFailure,
                                                     whenResolved);
@@ -1029,7 +1029,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element visitTypeAnnotation(TypeAnnotation node) {
-    Type type = resolveTypeAnnotation(node);
+    DartType type = resolveTypeAnnotation(node);
     if (type !== null) return type.element;
     return null;
   }
@@ -1052,7 +1052,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return mapping[node] = element;
   }
 
-  Type useType(TypeAnnotation annotation, Type type) {
+  DartType useType(TypeAnnotation annotation, DartType type) {
     if (type !== null) {
       mapping.setType(annotation, type);
       useElement(annotation, type.element);
@@ -1242,7 +1242,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return target;
   }
 
-  Type resolveTypeTest(Node argument) {
+  DartType resolveTypeTest(Node argument) {
     TypeAnnotation node = argument.asTypeAnnotation();
     if (node === null) {
       // node is of the form !Type.
@@ -1585,15 +1585,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return constructor;
   }
 
-  Type resolveTypeRequired(TypeAnnotation node) {
+  DartType resolveTypeRequired(TypeAnnotation node) {
     bool old = typeRequired;
     typeRequired = true;
-    Type result = resolveTypeAnnotation(node);
+    DartType result = resolveTypeAnnotation(node);
     typeRequired = old;
     return result;
   }
 
-  Type resolveTypeAnnotation(TypeAnnotation node) {
+  DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
     return typeResolver.resolveTypeAnnotation(node, inScope: scope,
                                               onFailure: report,
@@ -1858,7 +1858,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 }
 
-class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
+class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
   Scope scope;
   TypeDeclarationElement element;
   TypeResolver typeResolver;
@@ -1874,7 +1874,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
 
     var nameSet = new Set<SourceString>();
     // Resolve the bounds of type variables.
-    Link<Type> typeLink = element.typeVariables;
+    Link<DartType> typeLink = element.typeVariables;
     Link<Node> nodeLink = node.nodes;
     while (!nodeLink.isEmpty()) {
       TypeVariableType typeVariable = typeLink.head;
@@ -1887,7 +1887,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
 
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound !== null) {
-        Type boundType = typeResolver.resolveTypeAnnotation(
+        DartType boundType = typeResolver.resolveTypeAnnotation(
             typeNode.bound, inScope: scope, onFailure: warning);
         if (boundType !== null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like
@@ -1949,7 +1949,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   ClassResolverVisitor(Compiler compiler, ClassElement classElement)
     : super(compiler, classElement);
 
-  Type visitClassNode(ClassNode node) {
+  DartType visitClassNode(ClassNode node) {
     compiler.ensure(element !== null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
 
@@ -1961,7 +1961,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     resolveTypeVariableBounds(node.typeParameters);
 
     // Find super type.
-    Type supertype = visit(node.superclass);
+    DartType supertype = visit(node.superclass);
     if (supertype !== null && supertype.element.isExtendable()) {
       element.supertype = supertype;
       if (isBlackListed(supertype)) {
@@ -1982,11 +1982,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       element.supertype = new InterfaceType(objectElement);
     }
     assert(element.interfaces === null);
-    Link<Type> interfaces = const EmptyLink<Type>();
+    Link<DartType> interfaces = const EmptyLink<DartType>();
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
-      Type interfaceType = visit(link.head);
+      DartType interfaceType = visit(link.head);
       if (interfaceType !== null && interfaceType.element.isExtendable()) {
         interfaces = interfaces.prepend(interfaceType);
         if (isBlackListed(interfaceType)) {
@@ -2006,11 +2006,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return element.computeType(compiler);
   }
 
-  Type visitTypeAnnotation(TypeAnnotation node) {
+  DartType visitTypeAnnotation(TypeAnnotation node) {
     return visit(node.typeName);
   }
 
-  Type visitIdentifier(Identifier node) {
+  DartType visitIdentifier(Identifier node) {
     Element element = scope.lookup(node.source);
     if (element === null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
@@ -2032,7 +2032,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return null;
   }
 
-  Type visitSend(Send node) {
+  DartType visitSend(Send node) {
     Identifier prefix = node.receiver.asIdentifier();
     if (prefix === null) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
@@ -2058,17 +2058,18 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
     if (cls.allSupertypes !== null) return;
-    final Type supertype = cls.supertype;
+    final DartType supertype = cls.supertype;
     if (supertype != null) {
       ClassElement superElement = supertype.element;
-      Link<Type> superSupertypes = superElement.allSupertypes;
+      Link<DartType> superSupertypes = superElement.allSupertypes;
       assert(superSupertypes !== null);
-      Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
-      for (Link<Type> interfaces = cls.interfaces;
+      Link<DartType> supertypes =
+          new Link<DartType>(supertype, superSupertypes);
+      for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
         ClassElement element = interfaces.head.element;
-        Link<Type> interfaceSupertypes = element.allSupertypes;
+        Link<DartType> interfaceSupertypes = element.allSupertypes;
         assert(interfaceSupertypes !== null);
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
         supertypes = supertypes.prepend(interfaces.head);
@@ -2076,7 +2077,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       cls.allSupertypes = supertypes;
     } else {
       assert(cls === compiler.objectClass);
-      cls.allSupertypes = const EmptyLink<Type>();
+      cls.allSupertypes = const EmptyLink<DartType>();
     }
   }
 
@@ -2089,8 +2090,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     SynthesizedConstructorElement constructor =
       new SynthesizedConstructorElement(element);
     element.addToScope(constructor, compiler);
-    Type returnType = compiler.types.voidType;
-    constructor.type = new FunctionType(returnType, const EmptyLink<Type>(),
+    DartType returnType = compiler.types.voidType;
+    constructor.type = new FunctionType(returnType, const EmptyLink<DartType>(),
                                         constructor);
     constructor.cachedNode =
       new FunctionExpression(new Identifier(element.position()),
@@ -2099,7 +2100,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
                              null, null, null, null);
   }
 
-  isBlackListed(Type type) {
+  isBlackListed(DartType type) {
     LibraryElement lib = element.getLibrary();
     return
       lib !== compiler.coreLibrary &&
@@ -2279,7 +2280,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       // Normal parameter: [:Type name:].
       return identifier.source;
     } else {
-      // Function type parameter: [:void name(Type arg):].
+      // Function type parameter: [:void name(DartType arg):].
       var functionExpression = node.selector.asFunctionExpression();
       if (functionExpression !== null &&
           functionExpression.name.asIdentifier() !== null) {
@@ -2388,7 +2389,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       requiredParameterCount  = parametersBuilder.length;
       parameters = parametersBuilder.toLink();
     }
-    Type returnType = compiler.resolveTypeAnnotation(element, returnNode);
+    DartType returnType = compiler.resolveTypeAnnotation(element, returnNode);
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
                                  requiredParameterCount,
@@ -2549,7 +2550,7 @@ class TypeDeclarationScope extends Scope {
   }
 
   Element lookup(SourceString name) {
-    Link<Type> typeVariableLink = element.typeVariables;
+    Link<DartType> typeVariableLink = element.typeVariables;
     while (!typeVariableLink.isEmpty()) {
       TypeVariableType typeVariable = typeVariableLink.head;
       if (typeVariable.name == name) {

@@ -358,7 +358,7 @@ class LocalsHandler {
       // not have any thisElement if the closure was created inside a static
       // context.
       ClassElement cls = function.getEnclosingClass();
-      Type type = cls.computeType(builder.compiler);
+      DartType type = cls.computeType(builder.compiler);
       HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
       builder.add(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
@@ -451,7 +451,7 @@ class LocalsHandler {
         assert(closureData.isClosure());
         Element element = closureData.thisElement;
         ClassElement cls = element.enclosingElement.getEnclosingClass();
-        Type type = cls.computeType(builder.compiler);
+        DartType type = cls.computeType(builder.compiler);
         cachedTypeOfThis = new HBoundedType.nonNull(type);
       }
       res.guaranteedType = cachedTypeOfThis;
@@ -1271,7 +1271,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction convertType(HInstruction original,
                            Element sourceElement,
                            int kind) {
-    Type type = sourceElement.computeType(compiler);
+    DartType type = sourceElement.computeType(compiler);
     if (type === null) return original;
     if (type.element === compiler.dynamicClass) return original;
     if (type.element === compiler.objectClass) return original;
@@ -2071,7 +2071,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         isNot = true;
       }
 
-      Type type = elements.getType(typeAnnotation);
+      DartType type = elements.getType(typeAnnotation);
       HInstruction typeInfo = null;
       if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
         pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
@@ -2101,7 +2101,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction expression = pop();
       Node argument = node.arguments.head;
       TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
-      Type type = elements.getType(typeAnnotation);
+      DartType type = elements.getType(typeAnnotation);
       HInstruction converted = convertType(expression, type.element,
                                            HTypeConversion.CAST_TYPE_CHECK);
       stack.add(converted);
@@ -2456,7 +2456,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction analyzeTypeArgument(Type argument, Node currentNode) {
+  HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
     if (argument.element.isTypeVariable()) {
       if (work.element.isFactoryConstructor()
           || work.element.isGenerativeConstructor()) {
@@ -2524,7 +2524,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     TypeAnnotation annotation = getTypeAnnotationFromSend(node);
-    elements.getType(annotation).arguments.forEach((Type argument) {
+    elements.getType(annotation).arguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument, node));
     });
 
@@ -3447,7 +3447,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       void pushCondition(CatchBlock catchBlock) {
         if (catchBlock.onKeyword != null) {
-          Type type = elements.getType(catchBlock.type);
+          DartType type = elements.getType(catchBlock.type);
           if (type == null) {
             compiler.cancel('On with unresolved type',
                             node: catchBlock.type);
@@ -3466,7 +3466,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             // "if" condition above and this "else" branch should be deleted as
             // type of declared variable won't matter for the catch
             // condition
-            Type type = elements.getType(declaration.type);
+            DartType type = elements.getType(declaration.type);
             if (type == null) {
               compiler.cancel('Catch with unresolved type', node: catchBlock);
             }

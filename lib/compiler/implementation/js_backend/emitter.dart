@@ -583,7 +583,7 @@ function(collectedClasses) {
   void generateInterfacesIsTests(ClassElement cls,
                                  void generateTypeTest(ClassElement element),
                                  Set<Element> alreadyGenerated) {
-    for (Type interfaceType in cls.interfaces) {
+    for (DartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       if (!alreadyGenerated.contains(element) &&
           compiler.codegenWorld.isChecks.contains(element)) {
@@ -894,7 +894,7 @@ $classesCollector.$mangledName = {'':
     // receiver type.
     Map<ClassElement, Set<ClassElement>> noSuchMethodHolders =
         new Map<ClassElement, Set<ClassElement>>();
-    Set<ClassElement> noSuchMethodHoldersFor(Type type) {
+    Set<ClassElement> noSuchMethodHoldersFor(DartType type) {
       ClassElement element = type.element;
       Set<ClassElement> result = noSuchMethodHolders[element];
       if (result === null) {
@@ -924,7 +924,7 @@ $classesCollector.$mangledName = {'':
     void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
       // Cache the object class and type.
       ClassElement objectClass = compiler.objectClass;
-      Type objectType = objectClass.computeType(compiler);
+      DartType objectType = objectClass.computeType(compiler);
 
       for (Selector selector in selectors) {
         // Introduce a helper function that determines if the given
@@ -952,7 +952,7 @@ $classesCollector.$mangledName = {'':
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
-        Type receiverType = objectType;
+        DartType receiverType = objectType;
         ClassElement receiverClass = objectClass;
         if (selector is TypedSelector) {
           TypedSelector typedSelector = selector;

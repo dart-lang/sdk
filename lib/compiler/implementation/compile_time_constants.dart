@@ -289,7 +289,7 @@ class StringConstant extends PrimitiveConstant {
 }
 
 class ObjectConstant extends Constant {
-  final Type type;
+  final DartType type;
 
   ObjectConstant(this.type);
   bool isObject() => true;
@@ -308,7 +308,7 @@ class ListConstant extends ObjectConstant {
   final List<Constant> entries;
   int _hashCode;
 
-  ListConstant(Type type, this.entries) : super(type) {
+  ListConstant(DartType type, this.entries) : super(type) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
     for (Constant input in entries) hash ^= input.hashCode();
@@ -369,7 +369,7 @@ class MapConstant extends ObjectConstant {
   final Constant protoValue;
   int _hashCode;
 
-  MapConstant(Type type, this.keys, this.values, this.protoValue)
+  MapConstant(DartType type, this.keys, this.values, this.protoValue)
       : super(type) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
@@ -465,7 +465,7 @@ class ConstructedConstant extends ObjectConstant {
   final List<Constant> fields;
   int _hashCode;
 
-  ConstructedConstant(Type type, this.fields) : super(type) {
+  ConstructedConstant(DartType type, this.fields) : super(type) {
     assert(type !== null);
     // TODO(floitsch): create a better hash.
     int hash = 0;
@@ -781,7 +781,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       arguments.add(evaluate(link.head));
     }
     // TODO(floitsch): get type from somewhere.
-    Type type = null;
+    DartType type = null;
     Constant constant = new ListConstant(type, arguments);
     compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
@@ -815,7 +815,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     }
     bool hasProtoKey = (protoValue !== null);
     // TODO(floitsch): this should be a List<String> type.
-    Type keysType = null;
+    DartType keysType = null;
     ListConstant keysList = new ListConstant(keysType, keys);
     compiler.constantHandler.registerCompileTimeConstant(keysList);
     SourceString className = hasProtoKey
@@ -824,7 +824,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
-    Type type = new InterfaceType(classElement);
+    DartType type = new InterfaceType(classElement);
     compiler.registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
     compiler.constantHandler.registerCompileTimeConstant(constant);
@@ -1045,7 +1045,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 
     compiler.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
-    Type type = classElement.computeType(compiler);
+    DartType type = classElement.computeType(compiler);
     Constant constant = new ConstructedConstant(type, jsNewArguments);
     compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;

@@ -51,7 +51,7 @@ List<ParameterMirror> _parametersFromFunctionSignature(
 
 Dart2JsTypeMirror _convertTypeToTypeMirror(
     Dart2JsMirrorSystem system,
-    Type type,
+    DartType type,
     InterfaceType defaultType,
     [FunctionSignature functionSignature]) {
   if (type === null) {
@@ -726,7 +726,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
 
   Map<Object, InterfaceMirror> get interfaces() {
     var map = new Map<String, InterfaceMirror>();
-    Link<Type> link = _class.interfaces;
+    Link<DartType> link = _class.interfaces;
     while (!link.isEmpty()) {
       var type = _convertTypeToTypeMirror(system, link.head,
                                           system.compiler.types.dynamicType);
@@ -962,7 +962,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
 
 abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
     implements Dart2JsTypeMirror {
-  final Type _type;
+  final DartType _type;
 
   Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, this._type)
     : super(system);
@@ -1031,7 +1031,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   List<TypeMirror> get typeArguments() {
     if (_typeArguments == null) {
       _typeArguments = <TypeMirror>[];
-      Link<Type> type = _interfaceType.arguments;
+      Link<DartType> type = _interfaceType.arguments;
       while (type != null && type.head != null) {
         _typeArguments.add(_convertTypeToTypeMirror(system, type.head,
             system.compiler.types.dynamicType));
