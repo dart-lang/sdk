@@ -91,6 +91,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_NAMED_ARGUMENT("Duplicate named parameter argument"),
   DUPLICATE_PARAMETER("Duplicate parameter '%s'"),
   DUPLICATE_TOP_LEVEL_DECLARATION("duplicate top-level declaration %s at %s"),
+  DUPLICATE_TOP_LEVEL_DECLARATION_IMPORT("Duplicate import '%s' in %s prefix '%s' -  %s - %s"),
   DUPLICATE_TYPE_VARIABLE("Duplicate type variable '%s'"),
   // TODO(zundel): error message needs JUnit test, (reachable code?)
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(

@@ -20,10 +20,10 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLabel;
-import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -592,6 +592,38 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     // No source for target.
     return "<unknown>";
+  }
+
+  /**
+   * @return the full location of the given {@link Element} - library and unit.
+   */
+  public static String getLibraryUnitLocation(Element element) {
+    try {
+      StringBuilder sb = new StringBuilder();
+      // library URI
+      String libraryUri;
+      {
+        LibraryUnit libraryUnit = getDeclaringLibrary(element).getLibraryUnit();
+        libraryUri = libraryUnit.getSource().getUri().toString();
+        sb.append(libraryUri);
+      }
+      // unit URI
+      SourceInfo sourceInfo = element.getSourceInfo();
+      {
+        String unitUri = sourceInfo.getSource().getUri().toString();
+        if (!unitUri.equals(libraryUri)) {
+          sb.append(" ");
+          sb.append(unitUri);
+        }
+      }
+      // line
+      sb.append(":");
+      sb.append(sourceInfo.getLine());
+      // done
+      return sb.toString();
+    } catch (Throwable e) {
+      return "<exception>";
+    }
   }
 
   /**
