@@ -257,6 +257,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
   if ((cls.library() != Library::CoreLibrary()) &&
       (cls.library() != Library::CoreImplLibrary())) {
     // Prevent extending core implementation classes.
+    bool is_error = false;
     switch (super_class.id()) {
       case kNumberCid:
       case kIntegerCid:
@@ -295,15 +296,22 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kFloat64ArrayCid:
       case kExternalFloat64ArrayCid:
       case kDartFunctionCid:
-      case kWeakPropertyCid: {
-        const Script& script = Script::Handle(cls.script());
-        ReportError(script, cls.token_pos(),
-                    "'%s' is not allowed to extend '%s'",
-                    String::Handle(cls.Name()).ToCString(),
-                    String::Handle(super_class.Name()).ToCString());
+      case kWeakPropertyCid:
+        is_error = true;
         break;
-      }
-      default: break;
+      default:
+        // Special case: classes for which we don't have a known class id.
+        if (Type::Handle(Type::Double()).type_class() == super_class.raw()) {
+          is_error = true;
+        }
+        break;
+    }
+    if (is_error) {
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, cls.token_pos(),
+                  "'%s' is not allowed to extend '%s'",
+                  String::Handle(cls.Name()).ToCString(),
+                  String::Handle(super_class.Name()).ToCString());
     }
   }
   return;
@@ -1231,7 +1239,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
       if (interface.IsBoolType() ||
           interface.IsNumberType() ||
           interface.IsIntInterface() ||
-          interface.IsDoubleInterface() ||
+          interface.IsDoubleType() ||
           interface.IsStringInterface() ||
           (interface.IsFunctionType() && !cls.IsSignatureClass()) ||
           interface.IsDynamicType()) {

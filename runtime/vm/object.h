@@ -871,8 +871,8 @@ class AbstractType : public Object {
   // Check if this type represents the 'int' interface.
   bool IsIntInterface() const;
 
-  // Check if this type represents the 'double' interface.
-  bool IsDoubleInterface() const;
+  // Check if this type represents the 'double' type.
+  bool IsDoubleType() const;
 
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
@@ -995,8 +995,8 @@ class Type : public AbstractType {
   // The 'Mint' type.
   static RawType* MintType();
 
-  // The 'double' interface type.
-  static RawType* DoubleInterface();
+  // The 'double' type.
+  static RawType* Double();
 
   // The 'num' interface type.
   static RawType* Number();
@@ -3361,6 +3361,8 @@ class Bigint : public Integer {
 };
 
 
+// Class Double represents class Double in corelib_impl, which implements
+// abstract class double in corelib.
 class Double : public Number {
  public:
   double value() const {

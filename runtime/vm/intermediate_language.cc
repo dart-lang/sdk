@@ -1009,7 +1009,7 @@ intptr_t BinaryMintOpComp::ResultCid() const {
 
 
 RawAbstractType* BinaryDoubleOpComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1019,7 +1019,7 @@ intptr_t BinaryDoubleOpComp::ResultCid() const {
 
 
 RawAbstractType* UnboxedDoubleBinaryOpComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1034,7 +1034,7 @@ intptr_t BoxDoubleComp::ResultCid() const {
 
 
 RawAbstractType* BoxDoubleComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1045,17 +1045,17 @@ RawAbstractType* UnarySmiOpComp::CompileType() const {
 
 RawAbstractType* NumberNegateComp::CompileType() const {
   // Implemented only for doubles.
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
 RawAbstractType* DoubleToDoubleComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
 RawAbstractType* SmiToDoubleComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 

@@ -4688,7 +4688,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
     *value = CurrentIntegerLiteral();
     return true;
   } else if ((CurrentToken() == Token::kDOUBLE) &&
-      (no_check || type.IsDoubleInterface() || type.IsNumberType())) {
+      (no_check || type.IsDoubleType() || type.IsNumberType())) {
     *value = CurrentDoubleLiteral();
     return true;
   } else if ((CurrentToken() == Token::kSTRING) &&

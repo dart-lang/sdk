@@ -30,7 +30,6 @@ enum {
   kSmiType,
   kMintType,
   kDoubleType,
-  kDoubleInterface,
   kIntInterface,
   kBoolType,
   kStringInterface,

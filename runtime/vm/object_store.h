@@ -79,11 +79,6 @@ class ObjectStore {
   void set_smi_type(const Type& value) { smi_type_ = value.raw();
   }
 
-  RawType* double_interface() const { return double_interface_; }
-  void set_double_interface(const Type& value) {
-    double_interface_ = value.raw();
-  }
-
   RawClass* double_class() const { return double_class_; }
   void set_double_class(const Class& value) { double_class_ = value.raw(); }
 
@@ -480,7 +475,6 @@ class ObjectStore {
   RawClass* mint_class_;
   RawType* mint_type_;
   RawClass* bigint_class_;
-  RawType* double_interface_;
   RawClass* double_class_;
   RawType* double_type_;
   RawType* string_interface_;

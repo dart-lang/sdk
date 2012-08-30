@@ -467,7 +467,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
   } else if (type.IsIntInterface()) {
     args.Add(kMintCid);
     args.Add(kBigintCid);
-  } else if (type.IsDoubleInterface()) {
+  } else if (type.IsDoubleType()) {
     args.Add(kDoubleCid);
   }
   CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);

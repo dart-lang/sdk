@@ -64,7 +64,6 @@ static RawType* GetType(ObjectStore* object_store, int index) {
     case kSmiType: return object_store->smi_type();
     case kMintType: return object_store->mint_type();
     case kDoubleType: return object_store->double_type();
-    case kDoubleInterface: return object_store->double_interface();
     case kIntInterface: return object_store->int_interface();
     case kBoolType: return object_store->bool_type();
     case kStringInterface: return object_store->string_interface();
@@ -97,8 +96,6 @@ static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
     return kMintType;
   } else if (raw_type == object_store->double_type()) {
     return kDoubleType;
-  } else if (raw_type == object_store->double_interface()) {
-    return kDoubleInterface;
   } else if (raw_type == object_store->int_interface()) {
     return kIntInterface;
   } else if (raw_type == object_store->bool_type()) {

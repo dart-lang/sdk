@@ -778,10 +778,12 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_interface(type);
 
-  cls = CreateAndRegisterInterface("double", script, core_lib);
+  name = Symbols::New("double");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_double_interface(type);
+  object_store->set_double_type(type);
 
   cls = CreateAndRegisterInterface("String", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -805,10 +807,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls = object_store->smi_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_smi_type(type);
-
-  cls = object_store->double_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_double_type(type);
 
   cls = object_store->mint_class();
   type = Type::NewNonParameterizedType(cls);
@@ -2565,9 +2563,9 @@ bool AbstractType::IsIntInterface() const {
 }
 
 
-bool AbstractType::IsDoubleInterface() const {
+bool AbstractType::IsDoubleType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::DoubleInterface()).type_class());
+      (type_class() == Type::Handle(Type::Double()).type_class());
 }
 
 
@@ -2706,8 +2704,8 @@ RawType* Type::MintType() {
 }
 
 
-RawType* Type::DoubleInterface() {
-  return Isolate::Current()->object_store()->double_interface();
+RawType* Type::Double() {
+  return Isolate::Current()->object_store()->double_type();
 }
 
 
