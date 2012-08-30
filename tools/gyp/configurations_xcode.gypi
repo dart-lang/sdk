@@ -1,17 +1,11 @@
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# The purpose of this file and others in this directory is to simulate
-# the Chromium build enviroment. This file is included in all GYP
-# files that are used by the Dart project. This includes V8's GYP
-# files.
-
-# READ BEFORE EDITING:
-# Do not add Dart VM specific configuration to this file. Instead,
-# modify runtime/tools/gyp/runtime-configurations.gypi.
-
 {
+  'variables': {
+    'dart_debug_optimization_level%': '2',
+  },
   'target_defaults': {
     'configurations': {
       'Dart_Base': {
@@ -27,6 +21,8 @@
           'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES', # -fvisibility=hidden
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES', # -fvisibility-inlines-hidden
           'GCC_WARN_NON_VIRTUAL_DESTRUCTOR': 'YES', # -Wnon-virtual-dtor
+          # TODO(v8-team): Fix V8 build.
+          #'GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS': 'YES', # -Woverloaded-virtual
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'YES', # -Werror
           'WARNING_CFLAGS': [
             '<@(common_gcc_warning_flags)',
@@ -50,6 +46,37 @@
           'GCC_ENABLE_PASCAL_STRINGS': 'NO',
           'GCC_ENABLE_TRIGRAPHS': 'NO',
           'PREBINDING': 'NO',
+        },
+      },
+
+      'Dart_ia32_Base': {
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+        },
+      },
+
+      'Dart_x64_Base': {
+        'xcode_settings': {
+          'ARCHS': [ 'x86_64' ],
+        },
+      },
+
+      'Dart_simarm_Base': {
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+          'GCC_OPTIMIZATION_LEVEL': '3',
+        },
+      },
+
+      'Dart_Debug': {
+        'xcode_settings': {
+          'GCC_OPTIMIZATION_LEVEL': '<(dart_debug_optimization_level)',
+        },
+      },
+
+      'Dart_Release': {
+        'xcode_settings': {
+          'GCC_OPTIMIZATION_LEVEL': '3',
         },
       },
     },

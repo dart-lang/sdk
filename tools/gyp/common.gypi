@@ -12,6 +12,7 @@
   'variables': {
     'library': 'static_library',
     'component': 'static_library',
+    'host_arch': 'ia32',
     'target_arch': 'ia32',
     'v8_location': '<(DEPTH)/../third_party/v8',
   },
