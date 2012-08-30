@@ -80,6 +80,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptCheckClass)                                                           \
   V(DeoptCheckSmi)                                                             \
   V(DeoptAtCall)                                                               \
+  V(DeoptNumReasons)                                                           \
 
 enum DeoptReasonId {
 #define DEFINE_ENUM_LIST(name) k##name,
@@ -90,6 +91,8 @@ DEOPT_REASONS(DEFINE_ENUM_LIST)
 
 RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                           const Instance& receiver);
+
+void DeoptimizeAll();
 
 }  // namespace dart
 

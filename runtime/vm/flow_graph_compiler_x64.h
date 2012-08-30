@@ -87,6 +87,12 @@ class FlowGraphCompiler : public ValueObject {
                     PcDescriptors::Kind kind,
                     LocationSummary* locs);
 
+  void GenerateDartCall(intptr_t deopt_id,
+                        intptr_t token_pos,
+                        const ExternalLabel* label,
+                        PcDescriptors::Kind kind,
+                        LocationSummary* locs);
+
   void GenerateAssertAssignable(intptr_t deopt_id,
                                 intptr_t token_pos,
                                 const AbstractType& dst_type,

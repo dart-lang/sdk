@@ -52,7 +52,7 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
   }
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;
-  compiler->pc_descriptors_list()->AddDeoptInfo(
+  compiler->pc_descriptors_list()->AddDeoptIndex(
       compiler->assembler()->CodeSize(),
       deopt_id_,
       reason_,
@@ -1011,6 +1011,29 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
 }
 
 
+void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
+                                         intptr_t token_pos,
+                                         const ExternalLabel* label,
+                                         PcDescriptors::Kind kind,
+                                         LocationSummary* locs) {
+  ASSERT(!IsLeaf());
+  __ call(label);
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                         deopt_id,
+                         token_pos);
+  }
+}
+
+
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             intptr_t token_pos,
                                             const RuntimeEntry& entry,
@@ -1032,11 +1055,11 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, arguments_descriptor);
-
-  __ call(target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall, deopt_id, token_pos);
-  RecordSafepoint(locs);
-
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
   __ Drop(argument_count);
 }
 
@@ -1050,12 +1073,11 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, function);
   __ LoadObject(R10, arguments_descriptor);
-  __ call(&StubCode::CallStaticFunctionLabel());
-  AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos);
-  RecordSafepoint(locs);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id, token_pos);
-  }
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
   __ Drop(argument_count);
 }
 

@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
+#include "vm/code_generator.h"
 #include "vm/exceptions.h"
 #include "vm/native_arguments.h"
 #include "vm/verifier.h"
@@ -15,6 +16,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(bool, trace_natives);
 
 // Forward declarations.
@@ -41,6 +43,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
       HANDLESCOPE(arguments->isolate());                                       \
       arguments->SetReturnUnsafe(                                              \
           DN_Helper##name(arguments->isolate(), arguments));                   \
+      if (FLAG_deoptimize_alot) DeoptimizeAll();                               \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \

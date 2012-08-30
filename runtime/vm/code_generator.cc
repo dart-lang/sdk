@@ -26,6 +26,9 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, deoptimize_alot, false,
+    "Deoptimizes all live frames when we are about to return to Dart code from"
+    " native entries.");
 DEFINE_FLAG(bool, inline_cache, true, "Enable inline caches");
 DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
@@ -1376,6 +1379,7 @@ static void GetDeoptIxDescrAtPc(const Code& code,
                                 intptr_t* deopt_id,
                                 intptr_t* deopt_reason,
                                 intptr_t* deopt_index) {
+  ASSERT(code.is_optimized());
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
@@ -1394,6 +1398,32 @@ static void GetDeoptIxDescrAtPc(const Code& code,
   *deopt_index = -1;
 }
 
+
+// Currently checks only that all optimized frames have kDeoptIndex
+// and unoptimized code has the kDeoptAfter.
+void DeoptimizeAll() {
+  DartFrameIterator iterator;
+  StackFrame* frame = iterator.NextFrame();
+  Code& optimized_code = Code::Handle();
+  Function& function = Function::Handle();
+  Code& unoptimized_code = Code::Handle();
+  while (frame != NULL) {
+    optimized_code = frame->LookupDartCode();
+    if (optimized_code.is_optimized()) {
+      intptr_t deopt_id, deopt_reason, deopt_index;
+      GetDeoptIxDescrAtPc(optimized_code, frame->pc(),
+                          &deopt_id, &deopt_reason, &deopt_index);
+      ASSERT(deopt_id != Isolate::kNoDeoptId);
+      function = optimized_code.function();
+      unoptimized_code = function.unoptimized_code();
+      ASSERT(!unoptimized_code.IsNull());
+      uword continue_at_pc =
+          unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
+      ASSERT(continue_at_pc != 0);
+    }
+    frame = iterator.NextFrame();
+  }
+}
 
 
 // Copy saved registers into the isolate buffer.
@@ -1563,7 +1593,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
                       &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
-  uword continue_at_pc = unoptimized_code.GetDeoptPcAtDeoptId(deopt_id);
+  uword continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
   if (FLAG_trace_deopt) {
     OS::Print("  -> continue at 0x%x\n", continue_at_pc);
     // TODO(srdjan): If we could allow GC, we could print the line where

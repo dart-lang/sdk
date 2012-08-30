@@ -100,7 +100,8 @@ class DeoptRetAddrInstr : public DeoptInstr {
     deopt_id_as_smi ^= deopt_context->ObjectAt(object_table_index_ + 1);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
-    uword continue_at_pc = code.GetDeoptPcAtDeoptId(deopt_id_as_smi.Value());
+    uword continue_at_pc =
+        code.GetDeoptBeforePcAtDeoptId(deopt_id_as_smi.Value());
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
   }

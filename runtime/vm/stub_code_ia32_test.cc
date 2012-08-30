@@ -114,53 +114,6 @@ TEST_CASE(CallLeafRuntimeStubCode) {
   EXPECT_EQ((value1 + value2), result.Value());
 }
 
-
-// Test calls to stub code which calls a native C function.
-static void GenerateCallToCallNativeCFunctionStub(Assembler* assembler,
-                                                  int value1, int value2) {
-  const int argc = 2;
-  const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
-  const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
-  const Object& result = Object::ZoneHandle();
-  Dart_NativeFunction native_function = TestSmiSub;
-  ASSERT(native_function != NULL);
-  const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
-  ASSERT(context.isolate() == Isolate::Current());
-  __ enter(Immediate(0));
-  __ LoadObject(CTX, context);
-  __ PushObject(smi1);  // Push argument 1 smi1.
-  __ PushObject(smi2);  // Push argument 2 smi2.
-  __ PushObject(result);  // Push Null object for return value.
-  // Pass a pointer to the first argument in EAX.
-  __ leal(EAX, Address(ESP, 2 * kWordSize));
-  __ movl(ECX, Immediate(reinterpret_cast<uword>(native_function)));
-  __ movl(EDX, Immediate(argc));
-  __ call(&StubCode::CallNativeCFunctionLabel());
-  __ popl(EAX);  // Pop return value from return slot.
-  __ AddImmediate(ESP, Immediate(argc * kWordSize));
-  __ leave();
-  __ ret();
-}
-
-
-TEST_CASE(CallNativeCFunctionStubCode) {
-  extern const Function& RegisterFakeFunction(const char* name,
-                                              const Code& code);
-  const int value1 = 15;
-  const int value2 = 20;
-  const char* kName = "Test_CallNativeCFunctionStubCode";
-  Assembler _assembler_;
-  GenerateCallToCallNativeCFunctionStub(&_assembler_, value1, value2);
-  const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction(kName), &_assembler_));
-  const Function& function = RegisterFakeFunction(kName, code);
-  GrowableArray<const Object*>  arguments;
-  const Array& kNoArgumentNames = Array::Handle();
-  Smi& result = Smi::Handle();
-  result ^= DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);
-  EXPECT_EQ((value1 - value2), result.Value());
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

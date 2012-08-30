@@ -2261,12 +2261,13 @@ class PcDescriptors : public Object {
 
  public:
   enum Kind {
-    kDeopt = 0,   // Deoptimization continuation point.
-    kDeoptIndex,  // Index into deopt info array.
-    kPatchCode,   // Buffer for patching code entry.
-    kIcCall,      // IC call.
-    kFuncCall,    // Call to known target, e.g. static call, closure call.
-    kReturn,      // Return from function.
+    kDeoptBefore = 0,  // Deoptimization continuation point before instruction.
+    kDeoptAfter,       // Deoptimization continuation point after instruction.
+    kDeoptIndex,       // Index into deopt info array.
+    kPatchCode,        // Buffer for patching code entry.
+    kIcCall,           // IC call.
+    kFuncCall,         // Call to known target, e.g. static call, closure call.
+    kReturn,           // Return from function.
     kOther
   };
 
@@ -2641,7 +2642,8 @@ class Code : public Object {
   // Find pc of patch code buffer. Return 0 if not found.
   uword GetPatchCodePc() const;
 
-  uword GetDeoptPcAtDeoptId(intptr_t deopt_id) const;
+  uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
+  uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
 
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
@@ -2688,6 +2690,8 @@ class Code : public Object {
   void SetPointerOffsetAt(int index, int32_t offset_in_instructions) {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
+
+  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates

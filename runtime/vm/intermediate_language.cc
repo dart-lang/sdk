@@ -1321,11 +1321,11 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       DartEntry::ArgumentsDescriptor(argument_count - 1,
                                          argument_names());
   __ LoadObject(temp_reg, arguments_descriptor);
-
-  compiler->GenerateCall(token_pos(),
-                         &StubCode::CallClosureFunctionLabel(),
-                         PcDescriptors::kOther,
-                         locs());
+  compiler->GenerateDartCall(deopt_id(),
+                             token_pos(),
+                             &StubCode::CallClosureFunctionLabel(),
+                             PcDescriptors::kOther,
+                             locs());
   __ Drop(argument_count);
 }
 
@@ -1336,7 +1336,7 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 
 
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                  deopt_id(),
                                  token_pos());
   compiler->GenerateInstanceCall(deopt_id(),

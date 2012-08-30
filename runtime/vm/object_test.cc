@@ -2512,7 +2512,7 @@ TEST_CASE(PcDescriptors) {
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= PcDescriptors::New(kNumEntries);
   descriptors.AddDescriptor(0, 10, PcDescriptors::kOther, 1, 20, 1);
-  descriptors.AddDescriptor(1, 20, PcDescriptors::kDeopt, 2, 30, 0);
+  descriptors.AddDescriptor(1, 20, PcDescriptors::kDeoptBefore, 2, 30, 0);
   descriptors.AddDescriptor(2, 30, PcDescriptors::kOther, 3, 40, 1);
   descriptors.AddDescriptor(3, 10, PcDescriptors::kOther, 4, 40, 2);
   descriptors.AddDescriptor(4, 10, PcDescriptors::kOther, 5, 80, 3);
@@ -2536,7 +2536,7 @@ TEST_CASE(PcDescriptors) {
   EXPECT_EQ(static_cast<uword>(80), pc_descs.PC(5));
   EXPECT_EQ(150, pc_descs.TokenPos(5));
   EXPECT_EQ(PcDescriptors::kOther, pc_descs.DescriptorKind(0));
-  EXPECT_EQ(PcDescriptors::kDeopt, pc_descs.DescriptorKind(1));
+  EXPECT_EQ(PcDescriptors::kDeoptBefore, pc_descs.DescriptorKind(1));
 }
 
 
