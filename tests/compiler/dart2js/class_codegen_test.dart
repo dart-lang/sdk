@@ -64,14 +64,14 @@ main() {
 
 twoClasses() {
   String generated = compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains('\$.A = {"":\n [],\n super: "Object"'));
-  Expect.isTrue(generated.contains('\$.B = {"":\n [],\n super: "Object"'));
+  Expect.isTrue(generated.contains('\$.A = {"":\n [],\n "super": "Object"'));
+  Expect.isTrue(generated.contains('\$.B = {"":\n [],\n "super": "Object"'));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains('\$.A = {"":\n [],\n super: "Object"'));
-    Expect.isTrue(generated.contains('\$.B = {"":\n [],\n super: "A"'));
+    Expect.isTrue(generated.contains('\$.A = {"":\n [],\n "super": "Object"'));
+    Expect.isTrue(generated.contains('\$.B = {"":\n [],\n "super": "A"'));
   }
 
   checkOutput(compileAll(TEST_TWO));
@@ -84,7 +84,7 @@ fieldTest() {
   Expect.isTrue(generated.contains(@"""
 $.B = {"":
  ["y", "z", "x"],
- super: "A"
+ "super": "A"
 }"""));
 }
 

@@ -567,7 +567,7 @@ function(collectedClasses) {
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
     // That does currently not work because the native classes have a different
     // syntax.
-    buffer.add(' super: "$superName"');
+    buffer.add(' "super": "$superName"');
     emitInstanceMembers(classElement, buffer, true);
     buffer.add('\n};\n\n');
   }
