@@ -135,6 +135,7 @@ resource_test: Skip # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
 throw7_negative_test: Fail     # Issue 3654
+try_catch3_test: Fail          # Issue 4840
 # try_catch_syntax_test/08: Fail # Issue 3795
 
 type_variable_bounds_test/00: Fail # issue 3079
@@ -278,6 +279,7 @@ gc_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
+final_field_initialization_order_test: Fail # Issue 4839
 # VM specific tests.
 disable_privacy_test: Fail, Ok
 # This test hard codes name of file being run and precise position.
