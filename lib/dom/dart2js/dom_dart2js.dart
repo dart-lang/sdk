@@ -12064,6 +12064,14 @@ class _BlobFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DOMFormDataFactoryProvider {
+  factory DOMFormData([FormElement form]) native
+      '''return new DOMFormData(form);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _DOMParserFactoryProvider {
   factory DOMParser() native
       '''return new DOMParser();''';
@@ -13623,7 +13631,9 @@ interface DOMFileSystemSync {
 
 // WARNING: Do not edit - generated code.
 
-interface FormData {
+interface FormData default _FormDataFactoryProvider {
+
+  FormData([FormElement form]);
 
   void append(String name, String value, String filename);
 }
@@ -25209,6 +25219,15 @@ class _AudioContextFactoryProvider {
     var constructor = window.AudioContext || window.webkitAudioContext;
     return new constructor();
 ''';
+}
+
+class _FormDataFactoryProvider {
+
+  factory FormData([FormElement form = null]) native '''
+    if (form == null) return new FormData();
+    return new FormData(form);
+  ''';
+
 }
 
 class _WebKitPointFactoryProvider {
