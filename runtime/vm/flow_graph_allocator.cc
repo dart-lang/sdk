@@ -569,6 +569,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
   range->DefineAt(graph_entry->start_pos());
   range->set_assigned_location(
       Location::Constant(null_defn->computation()->AsConstant()->value()));
+  range->set_spill_slot(
+      Location::Constant(null_defn->computation()->AsConstant()->value()));
   range->finger()->Initialize(range);
   UsePosition* use =
       range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
@@ -1935,6 +1937,18 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
 }
 
 
+bool FlowGraphAllocator::TargetLocationIsSpillSlot(LiveRange* range,
+                                                   Location target) {
+  if (target.IsStackSlot() ||
+      target.IsDoubleStackSlot() ||
+      target.IsConstant()) {
+    ASSERT(GetLiveRange(range->vreg())->spill_slot().Equals(target));
+    return true;
+  }
+  return false;
+}
+
+
 void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
                                               BlockEntryInstr* source_block,
                                               BlockEntryInstr* target_block) {
@@ -1992,8 +2006,7 @@ void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
   if (source.Equals(target)) return;
 
   // Values are eagerly spilled. Spill slot already contains appropriate value.
-  if (target.IsStackSlot() || target.IsDoubleStackSlot()) {
-    ASSERT(parent->spill_slot().Equals(target));
+  if (TargetLocationIsSpillSlot(parent, target)) {
     return;
   }
 
@@ -2024,8 +2037,7 @@ void FlowGraphAllocator::ResolveControlFlow() {
       TRACE_ALLOC(sibling->assigned_location().Print());
       TRACE_ALLOC(OS::Print("]\n"));
       if ((range->End() == sibling->Start()) &&
-          !sibling->assigned_location().IsStackSlot() &&
-          !sibling->assigned_location().IsDoubleStackSlot() &&
+          !TargetLocationIsSpillSlot(range, sibling->assigned_location()) &&
           !range->assigned_location().Equals(sibling->assigned_location()) &&
           !IsBlockEntry(range->End())) {
         AddMoveAt(sibling->Start(),
@@ -2054,7 +2066,8 @@ void FlowGraphAllocator::ResolveControlFlow() {
   for (intptr_t i = 0; i < spilled_.length(); i++) {
     LiveRange* range = spilled_[i];
     if (range->assigned_location().IsStackSlot() ||
-        range->assigned_location().IsDoubleStackSlot()) {
+        range->assigned_location().IsDoubleStackSlot() ||
+        range->assigned_location().IsConstant()) {
       ASSERT(range->assigned_location().Equals(range->spill_slot()));
     } else {
       AddMoveAt(range->Start() + 1,
