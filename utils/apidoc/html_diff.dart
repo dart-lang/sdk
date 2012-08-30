@@ -85,10 +85,7 @@ class HtmlDiff {
    */
   static void initialize(Path libDir) {
     _compilation = new Compilation.library(
-        const <Path>[
-            const Path(DOM_LIBRARY_NAME),
-            const Path(HTML_LIBRARY_NAME)
-        ], libDir);
+        const <Path>[const Path(HTML_LIBRARY_NAME)], libDir);
     _mirrors = _compilation.mirrors;
 
     // Find 'dart:dom_deprecated' by its library tag 'dom'.
@@ -112,7 +109,7 @@ class HtmlDiff {
   /**
    * Computes the `dart:dom_deprecated` to `dart:html` mapping, and
    * places it in [domToHtml], [htmlToDom], [domTypesToHtml], and
-   * [htmlTypesToDom]. Before this is run, Frog should be initialized
+   * [htmlTypesToDom]. Before this is run, dart2js should be initialized
    * (via [parseOptions] and [initializeWorld]) and
    * [HtmlDiff.initialize] should be called.
    */
@@ -126,14 +123,15 @@ class HtmlDiff {
       final domTypes = htmlToDomTypes(htmlType);
       if (domTypes.isEmpty()) continue;
 
-      htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
+      htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,// map of html->[its dom types]
           () => new Set()).addAll(domTypes);
-      domTypes.forEach((t) =>
+      domTypes.forEach((t) => // map of dom type -> [the html name].
           domTypesToHtml.putIfAbsent(t.qualifiedName,
             () => new Set()).add(htmlType));
 
       htmlType.declaredMembers.forEach(
-          (_, m) => _addMemberDiff(m, domTypes));
+          (_, m) => _addMemberDiff(m, domTypes)); // add those dom member types to each
+          // of the html member (name/type) we're looking at
     }
   }
 
@@ -155,8 +153,9 @@ class HtmlDiff {
     if (htmlMember == null) return;
     if (!domMembers.isEmpty()) {
       htmlToDom[htmlMember.qualifiedName] = domMembers;
+      //htmlToDom[htmlmembername] -> list of corresponding dom members
     }
-    domMembers.forEach((m) =>
+    domMembers.forEach((m) => // add the html member name to the domToHtml
         domToHtml.putIfAbsent(m, () => new Set()).add(htmlMember));
   }
 
@@ -168,7 +167,8 @@ class HtmlDiff {
   List<InterfaceMirror> htmlToDomTypes(InterfaceMirror htmlType) {
     if (htmlType.simpleName == null) return [];
     final tags = _getTags(comments.find(htmlType.location));
-    if (tags.containsKey('domName')) {
+    if (tags.containsKey('domName')) { // TODO(efortuna): instead just tag with
+      // domTypes and domMembers instead of domName
       var domNames = <String>[];
       for (var s in tags['domName'].split(',')) {
         domNames.add(s.trim());
