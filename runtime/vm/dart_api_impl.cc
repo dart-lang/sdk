@@ -254,6 +254,36 @@ void Api::InitOnce() {
 }
 
 
+bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
+  NoGCScope no_gc_scope;
+  RawObject* raw_obj = Api::UnwrapHandle(object);
+  switch (Api::ClassId(object)) {
+    case kExternalOneByteStringCid: {
+      RawExternalOneByteString* raw_string =
+          reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint8_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+    case kExternalTwoByteStringCid: {
+      RawExternalTwoByteString* raw_string =
+          reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint16_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+    case kExternalFourByteStringCid: {
+      RawExternalFourByteString* raw_string =
+          reinterpret_cast<RawExternalFourByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint32_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+  }
+  return false;
+}
+
+
 // --- Handles ---
 
 
@@ -1526,43 +1556,13 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
 }
 
 
-bool ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
-  NoGCScope no_gc_scope;
-  RawObject* raw_obj = Api::UnwrapHandle(object);
-  switch (Api::ClassId(object)) {
-    case kExternalOneByteStringCid: {
-      RawExternalOneByteString* raw_string =
-          reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();
-      ExternalStringData<uint8_t>* data = raw_string->external_data_;
-      *peer = data->peer();
-      return true;
-    }
-    case kExternalTwoByteStringCid: {
-      RawExternalTwoByteString* raw_string =
-          reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();
-      ExternalStringData<uint16_t>* data = raw_string->external_data_;
-      *peer = data->peer();
-      return true;
-    }
-    case kExternalFourByteStringCid: {
-      RawExternalFourByteString* raw_string =
-          reinterpret_cast<RawExternalFourByteString*>(raw_obj)->ptr();
-      ExternalStringData<uint32_t>* data = raw_string->external_data_;
-      *peer = data->peer();
-      return true;
-    }
-  }
-  return false;
-}
-
-
 DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer) {
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
   }
 
-  if (ExternalStringGetPeerHelper(object, peer)) {
+  if (Api::ExternalStringGetPeerHelper(object, peer)) {
     return Api::Success(Isolate::Current());
   }
 

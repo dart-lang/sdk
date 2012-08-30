@@ -149,6 +149,9 @@ class Api : AllStatic {
   // Performs one-time initialization needed by the API.
   static void InitOnce();
 
+  // Helper function to get the peer value of an external string object.
+  static bool ExternalStringGetPeerHelper(Dart_Handle object, void** peer);
+
  private:
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.

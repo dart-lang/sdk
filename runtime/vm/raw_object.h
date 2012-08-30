@@ -10,8 +10,6 @@
 #include "vm/token.h"
 #include "vm/snapshot.h"
 
-#include "include/dart_api.h"
-
 namespace dart {
 
 // Macrobatics to define the Object hierarchy of VM implementation classes.
@@ -1127,7 +1125,7 @@ class RawExternalOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
 
   ExternalStringData<uint8_t>* external_data_;
-  friend bool ExternalStringGetPeerHelper(Dart_Handle, void**);
+  friend class Api;
 };
 
 
@@ -1135,7 +1133,7 @@ class RawExternalTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
 
   ExternalStringData<uint16_t>* external_data_;
-  friend bool ExternalStringGetPeerHelper(Dart_Handle, void**);
+  friend class Api;
 };
 
 
@@ -1143,7 +1141,7 @@ class RawExternalFourByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString);
 
   ExternalStringData<uint32_t>* external_data_;
-  friend bool ExternalStringGetPeerHelper(Dart_Handle, void**);
+  friend class Api;
 };
 
 
