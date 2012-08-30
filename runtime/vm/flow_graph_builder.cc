@@ -64,7 +64,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 }
 
 
-UseVal* EffectGraphVisitor::Bind(Computation* computation) {
+Value* EffectGraphVisitor::Bind(Computation* computation) {
   ASSERT(is_open());
   DeallocateTempIndex(computation->InputCount());
   BindInstr* bind_instr = new BindInstr(BindInstr::kUsed, computation);
@@ -75,7 +75,7 @@ UseVal* EffectGraphVisitor::Bind(Computation* computation) {
     exit()->set_next(bind_instr);
   }
   exit_ = bind_instr;
-  return new UseVal(bind_instr);
+  return new Value(bind_instr);
 }
 
 
@@ -1730,7 +1730,6 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   const LocalVariable& t2 = node->allocated_object_var();
   Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
       node->token_pos(), NULL);
-  ASSERT(instantiator_type_arguments->IsUse());
   Value* stored_instantiator =
       Bind(BuildStoreLocal(t1, instantiator_type_arguments));
   // t1: instantiator type arguments.

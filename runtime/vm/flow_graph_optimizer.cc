@@ -154,7 +154,7 @@ static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
   for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     PushArgumentInstr* push = comp->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->AsUse()->definition());
+    push->ReplaceUsesWith(push->value()->definition());
     push->RemoveFromGraph();
   }
 }
@@ -224,15 +224,15 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
       Value* index = comp->ArgumentAt(1)->value();
       // Insert class check and index smi checks and attach a copy of the
       // original environment because the operation can still deoptimize.
-      AddCheckClass(instr, comp, array->CopyValue());
+      AddCheckClass(instr, comp, array->Copy());
       InsertBefore(instr,
-                   new CheckSmiComp(index->CopyValue(), comp),
+                   new CheckSmiComp(index->Copy(), comp),
                    instr->env(),
                    BindInstr::kUnused);
       // Insert array bounds check.
       InsertBefore(instr,
-                   new CheckArrayBoundComp(array->CopyValue(),
-                                           index->CopyValue(),
+                   new CheckArrayBoundComp(array->Copy(),
+                                           index->Copy(),
                                            class_id,
                                            comp),
                    instr->env(),
@@ -348,27 +348,27 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
       // Unbox operands.
       BindInstr* unbox_left = InsertBefore(
           instr,
-          new UnboxDoubleComp(left->CopyValue(), comp),
+          new UnboxDoubleComp(left->Copy(), comp),
           instr->env(),
           BindInstr::kUsed);
       BindInstr* unbox_right = InsertBefore(
           instr,
-          new UnboxDoubleComp(right->CopyValue(), comp),
+          new UnboxDoubleComp(right->Copy(), comp),
           instr->env(),
           BindInstr::kUsed);
 
       UnboxedDoubleBinaryOpComp* double_bin_op =
           new UnboxedDoubleBinaryOpComp(op_kind,
-                                        new UseVal(unbox_left),
-                                        new UseVal(unbox_right));
+                                        new Value(unbox_left),
+                                        new Value(unbox_right));
       double_bin_op->set_ic_data(comp->ic_data());
       instr->set_computation(double_bin_op);
 
       if (instr->is_used()) {
         // Box result.
-        UseVal* use_val = new UseVal(instr);
+        Value* value = new Value(instr);
         BindInstr* bind = InsertAfter(instr,
-                                      new BoxDoubleComp(use_val, comp),
+                                      new BoxDoubleComp(value, comp),
                                       NULL,
                                       BindInstr::kUsed);
         instr->ReplaceUsesWith(bind);
@@ -397,11 +397,11 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     // Insert two smi checks and attach a copy of the original
     // environment because the smi operation can still deoptimize.
     InsertBefore(instr,
-                 new CheckSmiComp(left->CopyValue(), comp),
+                 new CheckSmiComp(left->Copy(), comp),
                  instr->env(),
                  BindInstr::kUnused);
     InsertBefore(instr,
-                 new CheckSmiComp(right->CopyValue(), comp),
+                 new CheckSmiComp(right->Copy(), comp),
                  instr->env(),
                  BindInstr::kUnused);
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
@@ -428,7 +428,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   if (HasOneSmi(*comp->ic_data())) {
     Value* value = comp->ArgumentAt(0)->value();
     InsertBefore(instr,
-                 new CheckSmiComp(value->CopyValue(), comp),
+                 new CheckSmiComp(value->Copy(), comp),
                  instr->env(),
                  BindInstr::kUnused);
     unary_op = new UnarySmiOpComp(op_kind,
@@ -486,7 +486,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
 
-    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
     // Detach environment from the original instruction because it can't
     // deoptimize.
     instr->set_env(NULL);
@@ -623,7 +623,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
       if (HasOneTarget(unary_checks) &&
           (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
         // Type propagation has not run yet, we cannot eliminate the check.
-        AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+        AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
         // Call can still deoptimize, do not detach environment from instr.
         call_with_checks = false;
       } else {
@@ -681,7 +681,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->CopyValue());
+  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
   // Detach environment from the original instruction because it can't
   // deoptimize.
   instr->set_env(NULL);
@@ -765,7 +765,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
     // TODO(regis): Remove is_eliminated_ field and support.
     comp->eliminate();
 
-    UseVal* use = comp->value()->AsUse();
+    Value* use = comp->value();
     ASSERT(use != NULL);
     Definition* result = use->definition();
     ASSERT(result != NULL);
@@ -808,8 +808,7 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
     // TODO(regis): Remove is_eliminated_ field and support.
     comp->eliminate();
 
-    UseVal* use = comp->value()->AsUse();
-    ASSERT(use != NULL);
+    Value* use = comp->value();
     Definition* result = use->definition();
     ASSERT(result != NULL);
     // Replace uses and remove the current instructions via the iterator.
@@ -849,8 +848,7 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfComp* comp,
       comp->value()->BindsToConstant() &&
       !comp->value()->BindsToConstantNull() &&
       comp->value()->CompileTypeIsMoreSpecificThan(comp->type())) {
-    UseVal* use = comp->value()->AsUse();
-    ASSERT(use != NULL);
+    Value* use = comp->value();
     Definition* result = use->definition();
     ASSERT(result != NULL);
     // Replace uses and remove the current instructions via the iterator.
@@ -883,12 +881,10 @@ void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
   // Visit incoming parameters.
   for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
     Value* val = graph_entry->start_env()->values()[i];
-    if (val->IsUse()) {
-      ParameterInstr* param = val->AsUse()->definition()->AsParameter();
-      if (param != NULL) {
-        ASSERT(param->index() == i);
-        VisitParameter(param);
-      }
+    ParameterInstr* param = val->definition()->AsParameter();
+    if (param != NULL) {
+      ASSERT(param->index() == i);
+      VisitParameter(param);
     }
   }
 }

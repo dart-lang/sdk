@@ -22,10 +22,10 @@ TEST_CASE(InstructionTests) {
 TEST_CASE(OptimizationTests) {
   Definition* def1 = new PhiInstr(0);
   Definition* def2 = new PhiInstr(0);
-  UseVal* use1a = new UseVal(def1);
-  UseVal* use1b = new UseVal(def1);
+  Value* use1a = new Value(def1);
+  Value* use1b = new Value(def1);
   EXPECT(use1a->Equals(use1b));
-  UseVal* use2 = new UseVal(def2);
+  Value* use2 = new Value(def2);
   EXPECT(!use2->Equals(use1a));
 
   ConstantComp* c1 = new ConstantComp(Bool::ZoneHandle(Bool::True()));

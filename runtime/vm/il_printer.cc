@@ -150,7 +150,7 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void UseVal::PrintTo(BufferFormatter* f) const {
+void Value::PrintTo(BufferFormatter* f) const {
   if (definition()->HasSSATemp()) {
     f->Print("v%d", definition()->ssa_temp_index());
   } else {
@@ -429,12 +429,10 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
     f->Print("\n{\n");
     const GrowableArray<Value*>& values = start_env_->values();
     for (intptr_t i = 0; i < values.length(); i++) {
-      if (values[i]->IsUse()) {
-        Definition* def = values[i]->AsUse()->definition();
-        f->Print("  ", i);
-        def->PrintTo(f);
-        f->Print("\n");
-      }
+      Definition* def = values[i]->definition();
+      f->Print("  ", i);
+      def->PrintTo(f);
+      f->Print("\n");
     }
     f->Print("} ");
     start_env_->PrintTo(f);

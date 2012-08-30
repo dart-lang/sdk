@@ -127,7 +127,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Append a graph fragment to this graph.  Assumes this graph is open.
   void Append(const EffectGraphVisitor& other_fragment);
   // Append a computation with one use.  Assumes this graph is open.
-  UseVal* Bind(Computation* computation);
+  Value* Bind(Computation* computation);
   // Append a computation with no uses.  Assumes this graph is open.
   void Do(Computation* computation);
   // Append a single (non-Definition, non-Entry) instruction.  Assumes this
@@ -306,10 +306,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
  private:
   // Helper to set the output state to return a Value.
-  virtual void ReturnValue(Value* value) {
-    ASSERT(value->IsUse());
-    value_ = value;
-  }
+  virtual void ReturnValue(Value* value) { value_ = value; }
 
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and returns its temporary value (i.e., set the output

@@ -1052,7 +1052,6 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Pop the element values from the stack into the array.
   __ leal(EDX, FieldAddress(EAX, Array::data_offset()));
   for (int i = ArgumentCount() - 1; i >= 0; --i) {
-    ASSERT(ArgumentAt(i)->value()->IsUse());
     __ popl(Address(EDX, i * kWordSize));
   }
 }
@@ -1254,7 +1253,6 @@ LocationSummary*
 
 void ExtractConstructorInstantiatorComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  ASSERT(instantiator()->IsUse());
   Register instantiator_reg = locs()->in(0).reg();
   ASSERT(locs()->out().reg() == instantiator_reg);
   Register temp_reg = locs()->temp(0).reg();

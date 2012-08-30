@@ -49,12 +49,6 @@ class FlowGraphVisitor;
 class Function;
 class LocalVariable;
 
-// M is a two argument macro.  It is applied to each concrete value's
-// typename and classname.
-#define FOR_EACH_VALUE(M)                                                      \
-  M(Use, UseVal)                                                               \
-
-
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
 #define FOR_EACH_COMPUTATION(M)                                                \
@@ -113,7 +107,6 @@ class LocalVariable;
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
 FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
-FOR_EACH_VALUE(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 // Forward declarations.
@@ -122,7 +115,9 @@ class BranchInstr;
 class BufferFormatter;
 class ComparisonComp;
 class Definition;
+class Definition;
 class Instruction;
+class PhiInstr;
 class PushArgumentInstr;
 class Value;
 
@@ -337,38 +332,44 @@ class TemplateComputation : public Computation {
 
 class Value : public ZoneAllocated {
  public:
-  Value() { }
+  explicit Value(Definition* definition)
+      : definition_(definition),
+        next_use_(NULL),
+        instruction_(NULL),
+        use_index_(-1) { }
 
-  // Declare an enum value used to define kind-test predicates.
-  enum ValueKind {
-#define DECLARE_VALUE_KIND(ShortName, ClassName) k##ShortName,
-  FOR_EACH_VALUE(DECLARE_VALUE_KIND)
-#undef DECLARE_VALUE_KIND
-  };
+  Definition* definition() const { return definition_; }
+  void set_definition(Definition* definition) { definition_ = definition; }
 
-  // Declare predicate for each value.
-#define DECLARE_PREDICATE(ShortName, ClassName)                                \
-  inline bool Is##ShortName() const;                                           \
-  inline const ClassName* As##ShortName() const;                               \
-  inline ClassName* As##ShortName();
-FOR_EACH_VALUE(DECLARE_PREDICATE)
-#undef DECLARE_PREDICATE
+  Value* next_use() const { return next_use_; }
+  void set_next_use(Value* next) { next_use_ = next; }
 
-  virtual ValueKind value_kind() const = 0;
+  Instruction* instruction() const { return instruction_; }
+  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
 
-  virtual RawAbstractType* CompileType() const = 0;
-  virtual intptr_t ResultCid() const = 0;
+  intptr_t use_index() const { return use_index_; }
+  void set_use_index(intptr_t index) { use_index_ = index; }
 
-  virtual void PrintTo(BufferFormatter* f) const = 0;
+  void AddToInputUseList();
+  void AddToEnvUseList();
+
+  Value* Copy() { return new Value(definition_); }
+
+  RawAbstractType* CompileType() const;
+  intptr_t ResultCid() const;
+
+  void PrintTo(BufferFormatter* f) const;
+
+  const char* DebugName() const { return "Value"; }
 
   // Returns true if the value represents a constant.
-  virtual bool BindsToConstant() const = 0;
+  bool BindsToConstant() const;
 
-  // Returns true if the value represents constant null.
-  virtual bool BindsToConstantNull() const = 0;
+  // Returns true if the value represents the constant null.
+  bool BindsToConstantNull() const;
 
-  // Assert if BindsToConstant() is false, otherwise returns constant.
-  virtual const Object& BoundConstant() const = 0;
+  // Assert if BindsToConstant() is false, otherwise returns the constant value.
+  const Object& BoundConstant() const;
 
   // Reminder: The type of the constant null is the bottom type, which is more
   // specific than any type.
@@ -378,11 +379,14 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   // the store buffer.
   bool NeedsStoreBuffer() const;
 
-  virtual bool Equals(Value* other) const = 0;
-
-  virtual Value* CopyValue() = 0;
+  bool Equals(Value* other) const;
 
  private:
+  Definition* definition_;
+  Value* next_use_;
+  Instruction* instruction_;
+  intptr_t use_index_;
+
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
@@ -399,16 +403,6 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   virtual LocationSummary* MakeLocationSummary() const;                        \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
-// Functions defined in all concrete value classes.
-#define DECLARE_VALUE(ShortName)                                               \
-  virtual ValueKind value_kind() const {                                       \
-    return Value::k##ShortName;                                                \
-  }                                                                            \
-  virtual const char* DebugName() const { return #ShortName; }                 \
-  virtual RawAbstractType* CompileType() const;                                \
-  virtual bool Equals(Value* other) const;                                     \
-  virtual void PrintTo(BufferFormatter* f) const;
-
 
 // Function defined in all call computation classes.
 #define DECLARE_CALL_COMPUTATION(ShortName)                                    \
@@ -420,60 +414,6 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   virtual RawAbstractType* CompileType() const;                                \
   virtual LocationSummary* MakeLocationSummary() const;                        \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-
-class Definition;
-class PhiInstr;
-
-class UseVal : public Value {
- public:
-  explicit UseVal(Definition* definition)
-      : definition_(definition),
-        next_use_(NULL),
-        instruction_(NULL),
-        use_index_(-1) { }
-
-  DECLARE_VALUE(Use)
-
-  inline Definition* definition() const { return definition_; }
-  void set_definition(Definition* definition) { definition_ = definition; }
-
-  // Returns true if the value represents a constant.
-  virtual bool BindsToConstant() const;
-  virtual const Object& BoundConstant() const;
-
-  // Returns true if the value represents constant null.
-  virtual bool BindsToConstantNull() const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  UseVal* next_use() const { return next_use_; }
-  void set_next_use(UseVal* next) { next_use_ = next; }
-
-  Instruction* instruction() const { return instruction_; }
-  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
-
-  intptr_t use_index() const { return use_index_; }
-  void set_use_index(intptr_t index) { use_index_ = index; }
-
-  void AddToInputUseList();
-  void AddToEnvUseList();
-
-  virtual intptr_t ResultCid() const;
-
-  virtual Value* CopyValue() { return new UseVal(definition_); }
-
- private:
-  Definition* definition_;
-  UseVal* next_use_;
-  Instruction* instruction_;
-  intptr_t use_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(UseVal);
-};
-
-
-#undef DECLARE_VALUE
 
 
 class ConstantComp : public TemplateComputation<0> {
@@ -2088,21 +2028,6 @@ ClassName* Computation::As##ShortName() {                                      \
 FOR_EACH_COMPUTATION(DEFINE_COMPUTATION_PREDICATE)
 #undef DEFINE_COMPUTATION_PREDICATE
 
-#define DEFINE_VALUE_PREDICATE(ShortName, ClassName)                           \
-bool Value::Is##ShortName() const {                                            \
-  return value_kind() == k##ShortName;                                         \
-}                                                                              \
-const ClassName* Value::As##ShortName() const {                                \
-  if (!Is##ShortName()) return NULL;                                           \
-  return static_cast<const ClassName*>(this);                                  \
-}                                                                              \
-ClassName* Value::As##ShortName() {                                            \
-  if (!Is##ShortName()) return NULL;                                           \
-  return static_cast<ClassName*>(this);                                        \
-}
-FOR_EACH_VALUE(DEFINE_VALUE_PREDICATE)
-#undef DEFINE_VALUE_PREDICATE
-
 // Instructions.
 
 // M is a single argument macro.  It is applied to each concrete instruction
@@ -2755,11 +2680,11 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  UseVal* input_use_list() { return input_use_list_; }
-  void set_input_use_list(UseVal* head) { input_use_list_ = head; }
+  Value* input_use_list() { return input_use_list_; }
+  void set_input_use_list(Value* head) { input_use_list_ = head; }
 
-  UseVal* env_use_list() { return env_use_list_; }
-  void set_env_use_list(UseVal* head) { env_use_list_ = head; }
+  Value* env_use_list() { return env_use_list_; }
+  void set_env_use_list(Value* head) { env_use_list_ = head; }
 
   // Replace uses of this definition with uses of other definition or value.
   // Precondition: use lists must be properly calculated.
@@ -2773,8 +2698,8 @@ class Definition : public Instruction {
   // For now:
   AbstractType& propagated_type_;
   intptr_t propagated_cid_;
-  UseVal* input_use_list_;
-  UseVal* env_use_list_;
+  Value* input_use_list_;
+  Value* env_use_list_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };

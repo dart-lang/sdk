@@ -25,10 +25,8 @@ DECLARE_FLAG(bool, enable_type_checks);
 intptr_t Computation::Hashcode() const {
   intptr_t result = computation_kind();
   for (intptr_t i = 0; i < InputCount(); ++i) {
-    UseVal* val = InputAt(i)->AsUse();
-    intptr_t j = val != NULL
-        ? val->definition()->ssa_temp_index()
-        : -1;
+    Value* value = InputAt(i);
+    intptr_t j = value->definition()->ssa_temp_index();
     result = result * 31 + j;
   }
   return result;
@@ -44,9 +42,8 @@ bool Computation::Equals(Computation* other) const {
 }
 
 
-bool UseVal::Equals(Value* other) const {
-  return other->IsUse()
-      && definition() == other->AsUse()->definition();
+bool Value::Equals(Value* other) const {
+  return definition() == other->definition();
 }
 
 
@@ -75,14 +72,14 @@ bool CheckArrayBoundComp::AttributesEqual(Computation* other) const {
 
 
 // Returns true if the value represents a constant.
-bool UseVal::BindsToConstant() const {
+bool Value::BindsToConstant() const {
   BindInstr* bind = definition()->AsBind();
   return (bind != NULL) && (bind->computation()->AsConstant() != NULL);
 }
 
 
 // Returns true if the value represents constant null.
-bool UseVal::BindsToConstantNull() const {
+bool Value::BindsToConstantNull() const {
   BindInstr* bind = definition()->AsBind();
   if (bind == NULL) {
     return false;
@@ -92,7 +89,7 @@ bool UseVal::BindsToConstantNull() const {
 }
 
 
-const Object& UseVal::BoundConstant() const {
+const Object& Value::BoundConstant() const {
   ASSERT(BindsToConstant());
   BindInstr* bind = definition()->AsBind();
   ASSERT(bind != NULL);
@@ -394,13 +391,13 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 }
 
 
-void UseVal::AddToInputUseList() {
+void Value::AddToInputUseList() {
   set_next_use(definition()->input_use_list());
   definition()->set_input_use_list(this);
 }
 
 
-void UseVal::AddToEnvUseList() {
+void Value::AddToEnvUseList() {
   set_next_use(definition()->env_use_list());
   definition()->set_env_use_list(this);
 }
@@ -410,13 +407,13 @@ void Definition::ReplaceUsesWith(Definition* other) {
   ASSERT(other != NULL);
   ASSERT(this != other);
   while (input_use_list_ != NULL) {
-    UseVal* current = input_use_list_;
+    Value* current = input_use_list_;
     input_use_list_ = input_use_list_->next_use();
     current->set_definition(other);
     current->AddToInputUseList();
   }
   while (env_use_list_ != NULL) {
-    UseVal* current = env_use_list_;
+    Value* current = env_use_list_;
     env_use_list_ = env_use_list_->next_use();
     current->set_definition(other);
     current->AddToEnvUseList();
@@ -680,7 +677,7 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
-RawAbstractType* UseVal::CompileType() const {
+RawAbstractType* Value::CompileType() const {
   if (definition()->HasPropagatedType()) {
     return definition()->PropagatedType();
   }
@@ -693,7 +690,7 @@ RawAbstractType* UseVal::CompileType() const {
 }
 
 
-intptr_t UseVal::ResultCid() const {
+intptr_t Value::ResultCid() const {
   return definition()->GetPropagatedCid();
 }
 
@@ -1089,24 +1086,21 @@ Definition* Computation::TryReplace(BindInstr* instr) const {
 
 
 Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
-  UseVal* left_use = left()->AsUse();
-  UseVal* right_use = right()->AsUse();
-  if ((right_use == NULL) || (left_use == NULL)) return instr;
-  if (!right_use->BindsToConstant()) return instr;
-  const Object& right_constant = right_use->BoundConstant();
-  Definition* left = left_use->definition();
+  if (!right()->BindsToConstant()) return instr;
+  const Object& right_constant = right()->BoundConstant();
+  Definition* left_defn = left()->definition();
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
   // Handles e === true.
   if ((kind() == Token::kEQ_STRICT) &&
       (right_constant.raw() == Bool::True()) &&
-      (left_use->ResultCid() == kBoolCid)) {
+      (left()->ResultCid() == kBoolCid)) {
     // Remove the constant from the graph.
-    BindInstr* right = right_use->definition()->AsBind();
-    if (right != NULL) {
-      right->RemoveFromGraph();
+    BindInstr* right_defn = right()->definition()->AsBind();
+    if (right_defn != NULL) {
+      right_defn->RemoveFromGraph();
     }
     // Return left subexpression as the replacement for this instruction.
-    return left;
+    return left_defn;
   }
   return instr;
 }
@@ -1512,7 +1506,7 @@ Environment::Environment(const GrowableArray<Definition*>& definitions,
       locations_(NULL),
       fixed_parameter_count_(fixed_parameter_count) {
   for (intptr_t i = 0; i < definitions.length(); ++i) {
-    values_.Add(new UseVal(definitions[i]));
+    values_.Add(new Value(definitions[i]));
   }
 }
 
@@ -1523,14 +1517,11 @@ void Environment::CopyTo(Instruction* instr) const {
                                       fixed_parameter_count());
   GrowableArray<Value*>* values_copy = copy->values_ptr();
   for (intptr_t i = 0; i < values().length(); ++i) {
-    Value* value = values()[i]->CopyValue();
+    Value* value = values()[i]->Copy();
     values_copy->Add(value);
-    UseVal* use = value->AsUse();
-    if (use != NULL) {
-      use->set_instruction(instr);
-      use->set_use_index(i);
-      use->AddToEnvUseList();
-    }
+    value->set_instruction(instr);
+    value->set_use_index(i);
+    value->AddToEnvUseList();
   }
   instr->set_env(copy);
 }

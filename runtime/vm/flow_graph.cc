@@ -69,7 +69,7 @@ void FlowGraph::DiscoverBlocks() {
 #ifdef DEBUG
 // Debugging code to verify the construction of use lists.
 
-static intptr_t MembershipCount(UseVal* use, UseVal* list) {
+static intptr_t MembershipCount(Value* use, Value* list) {
   intptr_t count = 0;
   while (list != NULL) {
     if (list == use) ++count;
@@ -86,16 +86,14 @@ static void ResetUseListsInInstruction(Instruction* instr) {
     defn->set_env_use_list(NULL);
   }
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
-    UseVal* use = instr->InputAt(i)->AsUse();
-    if (use == NULL) continue;
+    Value* use = instr->InputAt(i);
     use->set_instruction(NULL);
     use->set_use_index(-1);
     use->set_next_use(NULL);
   }
   if (instr->env() != NULL) {
     for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
-      UseVal* use = instr->env()->values()[i]->AsUse();
-      if (use == NULL) continue;
+      Value* use = instr->env()->values()[i];
       use->set_instruction(NULL);
       use->set_use_index(-1);
       use->set_next_use(NULL);
@@ -110,8 +108,8 @@ bool FlowGraph::ResetUseLists() {
 
   // Reset definitions referenced from the start environment.
   for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
-    UseVal* env_use = graph_entry_->start_env()->values()[i]->AsUse();
-    if (env_use != NULL) ResetUseListsInInstruction(env_use->definition());
+    Value* env_use = graph_entry_->start_env()->values()[i];
+    ResetUseListsInInstruction(env_use->definition());
   }
 
   // Reset phis in join entries and the instructions in each block.
@@ -136,29 +134,27 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
   ASSERT(instr != NULL);
   ASSERT(!instr->IsJoinEntry());
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
-    UseVal* use = instr->InputAt(i)->AsUse();
-    if (use == NULL) continue;
+    Value* use = instr->InputAt(i);
     ASSERT(use->use_index() == i);
     ASSERT(1 == MembershipCount(use, use->definition()->input_use_list()));
   }
   Environment* env = instr->env();
   if (env != NULL) {
     for (intptr_t i = 0; i < env->values().length(); ++i) {
-      UseVal* use = env->values()[i]->AsUse();
-      if (use == NULL) continue;
+      Value* use = env->values()[i];
       ASSERT(use->use_index() == i);
       ASSERT(1 == MembershipCount(use, use->definition()->env_use_list()));
     }
   }
   Definition* defn = instr->AsDefinition();
   if (defn != NULL) {
-    for (UseVal* use = defn->input_use_list();
+    for (Value* use = defn->input_use_list();
          use != NULL;
          use = use->next_use()) {
       ASSERT(defn == use->definition());
       ASSERT(use == use->instruction()->InputAt(use->use_index()));
     }
-    for (UseVal* use = defn->env_use_list();
+    for (Value* use = defn->env_use_list();
          use != NULL;
          use = use->next_use()) {
       ASSERT(defn == use->definition());
@@ -174,8 +170,8 @@ bool FlowGraph::ValidateUseLists() {
 
   // Validate definitions referenced from the start environment.
   for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
-    UseVal* env_use = graph_entry_->start_env()->values()[i]->AsUse();
-    if (env_use != NULL) ValidateUseListsInInstruction(env_use->definition());
+    Value* env_use = graph_entry_->start_env()->values()[i];
+    ValidateUseListsInInstruction(env_use->definition());
   }
 
   // Validate phis in join entries and the instructions in each block.
@@ -209,8 +205,7 @@ static void ClearUseLists(Definition* defn) {
 static void RecordInputUses(Instruction* instr) {
   ASSERT(instr != NULL);
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
-    UseVal* use = instr->InputAt(i)->AsUse();
-    if (use == NULL) continue;
+    Value* use = instr->InputAt(i);
     DEBUG_ASSERT(use->instruction() == NULL);
     DEBUG_ASSERT(use->use_index() == -1);
     DEBUG_ASSERT(use->next_use() == NULL);
@@ -227,8 +222,7 @@ static void RecordEnvUses(Instruction* instr) {
   ASSERT(instr != NULL);
   if (instr->env() == NULL) return;
   for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
-    UseVal* use = instr->env()->values()[i]->AsUse();
-    if (use == NULL) continue;
+    Value* use = instr->env()->values()[i];
     DEBUG_ASSERT(use->instruction() == NULL);
     DEBUG_ASSERT(use->use_index() == -1);
     DEBUG_ASSERT(use->next_use() == NULL);
@@ -271,8 +265,7 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
       for (intptr_t i = 0; i < join->phis()->length(); ++i) {
         PhiInstr* phi = (*join->phis())[i];
         if (phi == NULL) continue;
-        UseVal* use = phi->InputAt(pred_index)->AsUse();
-        if (use == NULL) continue;
+        Value* use = phi->InputAt(pred_index);
         DEBUG_ASSERT(use->instruction() == NULL);
         DEBUG_ASSERT(use->use_index() == -1);
         DEBUG_ASSERT(use->next_use() == NULL);
@@ -551,14 +544,13 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // from the environment.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
-      if (!v->IsUse()) continue;
       // Update expression stack.
       ASSERT(env->length() > variable_count());
 
       Definition* input_defn = env->Last();
       env->RemoveLast();
 
-      BindInstr* as_bind = v->AsUse()->definition()->AsBind();
+      BindInstr* as_bind = v->definition()->AsBind();
       if ((as_bind != NULL) &&
           (as_bind->computation()->IsLoadLocal() ||
            as_bind->computation()->IsStoreLocal())) {
@@ -566,7 +558,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         as_bind->RemoveFromGraph();
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(input_defn->ssa_temp_index() != -1);
-        current->SetInputAt(i, new UseVal(input_defn));
+        current->SetInputAt(i, new Value(input_defn));
       }
     }
 
@@ -587,8 +579,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (store != NULL) {
           index = store->local().BitIndexIn(non_copied_parameter_count_);
           // Update renaming environment.
-          ASSERT(store->value()->IsUse());
-          (*env)[index] = store->value()->AsUse()->definition();
+          (*env)[index] = store->value()->definition();
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
@@ -646,7 +637,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*successor->phis())[i];
         if (phi != NULL) {
           // Rename input operand.
-          phi->SetInputAt(pred_index, new UseVal((*env)[i]));
+          phi->SetInputAt(pred_index, new Value((*env)[i]));
         }
       }
     }
@@ -660,8 +651,7 @@ void FlowGraph::MarkLivePhis(GrowableArray<PhiInstr*>* live_phis) {
     live_phis->RemoveLast();
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
       Value* val = phi->InputAt(i);
-      if (!val->IsUse()) continue;
-      PhiInstr* used_phi = val->AsUse()->definition()->AsPhi();
+      PhiInstr* used_phi = val->definition()->AsPhi();
       if ((used_phi != NULL) && !used_phi->is_alive()) {
         used_phi->mark_alive();
         live_phis->Add(used_phi);
@@ -729,7 +719,7 @@ void FlowGraph::InlineCall(BindInstr* caller_instr,
     // TODO(zerny): Support one exit graph containing control flow.
     ASSERT(callee_entry == GetBlockEntry(exit));
     // For just one exit, replace the uses and remove the call from the graph.
-    caller_instr->ReplaceUsesWith(exit->value()->AsUse()->definition());
+    caller_instr->ReplaceUsesWith(exit->value()->definition());
     Link(caller_instr->previous(), callee_entry->next());
     Link(exit->previous(), caller_instr->next());
   } else {
@@ -743,7 +733,7 @@ void FlowGraph::InlineCall(BindInstr* caller_instr,
   // Remove original arguments to the call.
   for (intptr_t i = 0; i < caller_comp->ArgumentCount(); ++i) {
     PushArgumentInstr* push = caller_comp->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->AsUse()->definition());
+    push->ReplaceUsesWith(push->value()->definition());
     push->RemoveFromGraph();
   }
 }
