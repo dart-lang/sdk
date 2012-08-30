@@ -178,10 +178,10 @@ class SsaBuilderTask extends CompilerTask {
 
       // If there is an estimate of the parameter types assume these types when
       // compiling.
-      List<HType> parameterTypes =
-          backend.optimisticParameterTypesWithRecompilationOnTypeChange(
+      HTypeList parameterTypes =
+          backend.optimisticParameterTypes(
               element);
-      if (parameterTypes != null) {
+      if (!parameterTypes.allUnknown) {
         FunctionSignature signature = element.computeSignature(compiler);
         int i = 0;
         signature.forEachParameter((Element param) {

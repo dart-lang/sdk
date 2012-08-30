@@ -135,11 +135,11 @@ void runTest(String test, [List<HType> expectedTypes = null]) {
     'x',
     (backend, x) {
       List<HType> types =
-          backend.optimisticParameterTypesWithRecompilationOnTypeChange(x);
+          backend.optimisticParameterTypes(x);
       if (expectedTypes != null) {
         Expect.listEquals(expectedTypes, types);
       } else {
-        Expect.isNull(types);
+        Expect.isTrue(types.allUnknown);
       }
   });
 }
