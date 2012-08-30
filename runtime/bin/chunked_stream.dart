@@ -29,7 +29,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     return result;
   }
 
-  int get chunkSize() => _chunkSize;
+  int get chunkSize => _chunkSize;
 
   void set chunkSize(int chunkSize) {
     _chunkSize = chunkSize;
@@ -37,7 +37,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     _checkScheduleCallback();
   }
 
-  bool get closed() => _closed;
+  bool get closed => _closed;
 
   void set onData(void callback()) {
     _clientDataHandler = callback;

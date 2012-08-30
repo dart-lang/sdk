@@ -28,14 +28,14 @@ class _BufferList {
    * buffer and does not remove the buffer from the list. Use
    * [index] to determine the index of the first byte in the buffer.
    */
-  List<int> get first() => _buffers.first();
+  List<int> get first => _buffers.first();
 
   /**
    * Returns the current index of the next byte. This will always be
    * an index into the first buffer as when the index is advanced past
    * the end of a buffer it is removed from the list.
    */
-  int get index() =>  _index;
+  int get index =>  _index;
 
   /**
    * Peek at the next available byte.
@@ -129,7 +129,7 @@ class _BufferList {
   /**
    * Returns the total number of bytes remaining in the buffers.
    */
-  int get length() => _length;
+  int get length => _length;
 
   /**
    * Returns whether the buffer list is empty that is has no bytes
