@@ -7,9 +7,10 @@ package com.google.dart.compiler.resolver;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartObsoleteMetadata;
-import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
@@ -65,7 +66,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       metadata = node.getObsoleteMetadata();
       modifiers = node.getModifiers();
       nameLocation = node.getName().getSourceInfo();
-      declarationNameWithTypeParameter = new DartParameterizedTypeNode(node.getName(), node.getTypeParameters()).toSource();
+      declarationNameWithTypeParameter = createDeclarationName(node.getName(), node.getTypeParameters());
     } else {
       isInterface = false;
       metadata = DartObsoleteMetadata.EMPTY;
@@ -353,6 +354,24 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       seenSupertypes.get().remove(this);
     }
     return supertypes;
+  }
+
+  private String createDeclarationName(
+      DartIdentifier name, List<DartTypeParameter> typeParameters) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(name.toSource());
+    int count = typeParameters.size();
+    if (count > 0) {
+      builder.append("<");
+      for (int i = 0; i < count; i++) {
+        if (i > 0) {
+          builder.append(", ");
+        }
+        builder.append(typeParameters.get(i).toSource());
+      }
+      builder.append(">");
+    }
+    return builder.toString();
   }
 
   private void addInterfaceToSupertypes(Map<ClassElement, InterfaceType> interfaces,

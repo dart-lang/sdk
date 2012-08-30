@@ -61,7 +61,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
                    boolean isInterface,
                    Modifiers modifiers) {
     super(name);
-    this.nativeName = nativeName;
+    this.nativeName = becomeParentOf(nativeName);
     this.superclass = becomeParentOf(superclass);
     this.members.addAll(members);
     this.typeParameters.addAll(typeParameters);
