@@ -692,7 +692,9 @@ class _File extends _FileBase implements File {
     var chunks = new _BufferList();
     var stream = openInputStream();
     stream.onClosed = () {
-      completer.complete(chunks.readBytes(chunks.length));
+      var result = chunks.readBytes(chunks.length);
+      if (result == null) result = <int>[];
+      completer.complete(result);
     };
     stream.onData = () {
       var chunk = stream.read();
@@ -717,6 +719,7 @@ class _File extends _FileBase implements File {
   Future<String> readAsText([Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
     return readAsBytes().transform((bytes) {
+      if (bytes.length == 0) return "";
       var decoder = _StringDecoders.decoder(encoding);
       decoder.write(bytes);
       return decoder.decoded;
@@ -726,6 +729,7 @@ class _File extends _FileBase implements File {
   String readAsTextSync([Encoding encoding = Encoding.UTF_8]) {
     var decoder = _StringDecoders.decoder(encoding);
     List<int> bytes = readAsBytesSync();
+    if (bytes.length == 0) return "";
     decoder.write(bytes);
     return decoder.decoded;
   }
