@@ -1546,10 +1546,6 @@ static const intptr_t kNumberOfVolatileXmmRegisters =
     kNumberOfXmmRegisters - 1;
 
 
-static const intptr_t kNumberOfVolatileRegisters =
-    kNumberOfVolatileCpuRegisters + kNumberOfVolatileXmmRegisters;
-
-
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   enter(Immediate(0));
 
@@ -1577,7 +1573,10 @@ void Assembler::LeaveCallRuntimeFrame() {
   // ESP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
-  leal(ESP, Address(EBP, -kNumberOfVolatileRegisters * kWordSize));
+  const intptr_t kPushedRegistersSize =
+      kNumberOfVolatileCpuRegisters * kWordSize +
+      kNumberOfVolatileXmmRegisters * kDoubleSize;
+  leal(ESP, Address(EBP, -kPushedRegistersSize));
 
   // Restore all XMM registers except XMM0
   // XMM registers have the lowest register number at the lowest address.

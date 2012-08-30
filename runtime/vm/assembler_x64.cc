@@ -1699,10 +1699,6 @@ static const intptr_t kNumberOfVolatileXmmRegisters =
     kNumberOfXmmRegisters - 1;
 
 
-static const intptr_t kNumberOfVolatileRegisters =
-    kNumberOfVolatileCpuRegisters + kNumberOfVolatileXmmRegisters;
-
-
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   enter(Immediate(0));
 
@@ -1730,7 +1726,10 @@ void Assembler::LeaveCallRuntimeFrame() {
   // RSP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
-  leaq(RSP, Address(RBP, -kNumberOfVolatileRegisters * kWordSize));
+  const intptr_t kPushedRegistersSize =
+      kNumberOfVolatileCpuRegisters * kWordSize +
+      kNumberOfVolatileXmmRegisters * kDoubleSize;
+  leaq(RSP, Address(RBP, -kPushedRegistersSize));
 
   // Restore all XMM registers except XMM0
   // XMM registers have the lowest register number at the lowest address.
