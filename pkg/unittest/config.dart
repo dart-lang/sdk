@@ -17,7 +17,7 @@ class Configuration {
    * If true, then tests are started automatically (otherwise [runTests]
    * must be called explicitly after the tests are set up.
    */
-  get autoStart() => true;
+  get autoStart => true;
 
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
@@ -104,11 +104,7 @@ class Configuration {
     var success = false;
     if (passed == 0 && failed == 0 && errors == 0) {
       print('No tests found.');
-      // This is considered a failure too: if this happens you probably have a
-      // bug in your unit tests, unless you are filtering.
-      if (filter != null) {
-        success = true;
-      }
+      // This is considered a failure too.
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       print('All $passed tests passed.');
       success = true;
