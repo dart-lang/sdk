@@ -62,7 +62,7 @@ class Backend {
     return new ItemCompilationContext();
   }
 
-  SourceString getCheckedModeHelper(Type type) => null;
+  SourceString getCheckedModeHelper(DartType type) => null;
 }
 
 class Compiler implements DiagnosticListener {

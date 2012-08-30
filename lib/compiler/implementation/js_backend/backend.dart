@@ -545,7 +545,7 @@ class JavaScriptBackend extends Backend {
     return info.returnType;
   }
 
-  SourceString getCheckedModeHelper(Type type) {
+  SourceString getCheckedModeHelper(DartType type) {
     Element element = type.element;
     bool nativeCheck =
           emitter.nativeEmitter.requiresNativeIsCheck(element);
