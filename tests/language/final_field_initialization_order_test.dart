@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that field initializers are evaluated in the right order.
+// Test that initializers for final fields are evaluated in the right
+// order.
 
 int counter = 0;
 
@@ -14,7 +15,7 @@ class Mark {
 }
 
 class OneField {
-  var a = new Mark('a');
+  final a = new Mark('a');
 
   OneField();
 
@@ -22,8 +23,8 @@ class OneField {
 }
 
 class TwoFields {
-  var b = new Mark('b');
-  var a = new Mark('a');
+  final b = new Mark('b');
+  final a = new Mark('a');
 
   TwoFields();
 
@@ -35,7 +36,7 @@ class TwoFields {
 }
 
 class InheritOneField extends OneField {
-  var b = new Mark('b');
+  final b = new Mark('b');
 
   InheritOneField() : super();
 
