@@ -125,7 +125,7 @@ class TestCase {
     }
   }
 
-  int get timeout() {
+  int get timeout {
     if (expectedOutcomes.contains(SLOW)) {
       return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
     } else {
@@ -133,7 +133,7 @@ class TestCase {
     }
   }
 
-  String get configurationString() {
+  String get configurationString {
     final compiler = configuration['compiler'];
     final runtime = configuration['runtime'];
     final mode = configuration['mode'];
@@ -141,12 +141,12 @@ class TestCase {
     return "$compiler-$runtime ${mode}_$arch";
   }
 
-  List<String> get batchRunnerArguments() => ['-batch'];
-  List<String> get batchTestArguments() => commands.last().arguments;
+  List<String> get batchRunnerArguments => ['-batch'];
+  List<String> get batchTestArguments => commands.last().arguments;
 
   void completed() { completedHandler(this); }
 
-  bool get usesWebDriver() => Contains(
+  bool get usesWebDriver => Contains(
       configuration['runtime'],
       const ['chrome', 'dartium', 'ff', 'safari', 'ie', 'opera']);
 }
@@ -171,11 +171,11 @@ class BrowserTestCase extends TestCase {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 
-  List<String> get _lastArguments() => commands.last().arguments;
+  List<String> get _lastArguments => commands.last().arguments;
 
-  List<String> get batchRunnerArguments() => [_lastArguments[0], '--batch'];
+  List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
 
-  List<String> get batchTestArguments() =>
+  List<String> get batchTestArguments =>
       _lastArguments.getRange(1, _lastArguments.length - 1);
 }
 
@@ -190,27 +190,27 @@ interface TestOutput default TestOutputImpl {
   TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
     List<String> stdout, List<String> stderr, Duration time);
 
-  String get result();
+  String get result;
 
-  bool get unexpectedOutput();
+  bool get unexpectedOutput;
 
-  bool get hasCrashed();
+  bool get hasCrashed;
 
-  bool get hasTimedOut();
+  bool get hasTimedOut;
 
-  bool get didFail();
+  bool get didFail;
 
   bool requestRetry;
 
-  Duration get time();
+  Duration get time;
 
-  int get exitCode();
+  int get exitCode;
 
-  List<String> get stdout();
+  List<String> get stdout;
 
-  List<String> get stderr();
+  List<String> get stderr;
 
-  List<String> get diagnostics();
+  List<String> get diagnostics;
 }
 
 class TestOutputImpl implements TestOutput {
@@ -264,12 +264,12 @@ class TestOutputImpl implements TestOutput {
       stdout, stderr, time);
   }
 
-  String get result() =>
+  String get result =>
       hasCrashed ? CRASH : (hasTimedOut ? TIMEOUT : (hasFailed ? FAIL : PASS));
 
-  bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
+  bool get unexpectedOutput => !testCase.expectedOutcomes.contains(result);
 
-  bool get hasCrashed() {
+  bool get hasCrashed {
     // The Java dartc runner and dart2js exits with code 253 in case
     // of unhandled exceptions.
     if (exitCode == 253) return true;
@@ -284,14 +284,14 @@ class TestOutputImpl implements TestOutput {
     return !timedOut && ((exitCode < 0));
   }
 
-  bool get hasTimedOut() => timedOut;
+  bool get hasTimedOut => timedOut;
 
-  bool get didFail() {
+  bool get didFail {
     return (exitCode != 0 && !hasCrashed);
   }
 
   // Reverse result of a negative test.
-  bool get hasFailed() => testCase.isNegative ? !didFail : didFail;
+  bool get hasFailed => testCase.isNegative ? !didFail : didFail;
 
 }
 
@@ -299,7 +299,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
   BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
     super(testCase, exitCode, timedOut, stdout, stderr, time);
 
-  bool get didFail() {
+  bool get didFail {
     // Browser case:
     // If the browser test failed, it may have been because DumpRenderTree
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
@@ -352,7 +352,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     super(testCase, exitCode, timedOut, stdout, stderr, time) {
   }
 
-  bool get didFail() {
+  bool get didFail {
     if (!alreadyComputed) {
       failResult = _didFail();
       alreadyComputed = true;
@@ -682,7 +682,7 @@ class BatchRunnerProcess {
     _isWebDriver = testCase.usesWebDriver;
   }
 
-  bool get active() => _currentTest != null;
+  bool get active => _currentTest != null;
 
   void startTest(TestCase testCase) {
     Expect.isNull(_currentTest);
@@ -997,11 +997,11 @@ class ProcessQueue {
    * True if we are using a browser + platform combination that needs the
    * Selenium server jar.
    */
-  bool get _needsSelenium() => Platform.operatingSystem == 'macos' &&
+  bool get _needsSelenium => Platform.operatingSystem == 'macos' &&
       browserUsed == 'safari';
 
   /** True if the Selenium Server is ready to be used. */
-  bool get _isSeleniumAvailable() => _seleniumServer != null ||
+  bool get _isSeleniumAvailable => _seleniumServer != null ||
       _seleniumAlreadyRunning;
 
   /**

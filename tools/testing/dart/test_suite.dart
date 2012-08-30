@@ -755,7 +755,7 @@ class StandardTestSuite implements TestSuite {
     return new File(generatedTestPath).fullPathSync().replaceAll('\\', '/');
   }
 
-  String get scriptType() {
+  String get scriptType {
     switch (configuration['compiler']) {
       case 'none':
       case 'dart2dart':
@@ -770,7 +770,7 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
-  bool get hasRuntime() {
+  bool get hasRuntime {
     switch(configuration['runtime']) {
       case null:
         Expect.fail("configuration['runtime'] is not set");
@@ -790,7 +790,7 @@ class StandardTestSuite implements TestSuite {
         "${configuration['compiler']}-${configuration['runtime']}.html";
   }
 
-  String get dumpRenderTreeFilename() {
+  String get dumpRenderTreeFilename {
     if (configuration['drt'] != '') {
       return configuration['drt'];
     }
@@ -801,7 +801,7 @@ class StandardTestSuite implements TestSuite {
     return dartDir.append('client/tests/drt/DumpRenderTree').toNativePath();
   }
 
-  String get dartiumFilename() {
+  String get dartiumFilename {
     if (configuration['dartium'] != '') {
       return configuration['dartium'];
     }
