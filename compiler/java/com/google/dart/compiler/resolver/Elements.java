@@ -746,7 +746,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       MethodElement methodElement = (MethodElement) element;
       return Objects.equal(methodElement.getName(), "assert")
           && methodElement.getEnclosingElement() instanceof LibraryElement
-          && methodElement.getEnclosingElement().getName().equals("dart://core/core_runtime.dart");
+          && methodElement.getEnclosingElement().getName().equals("dart://core/core.dart");
     }
     return false;
   }

@@ -22,7 +22,7 @@
         '../../runtime/dart-runtime.gyp:dart',
       ],
       'includes': [
-        '../../corelib/src/corelib_sources.gypi',
+        '../../lib/core/corelib_sources.gypi',
       ],
       'actions': [
         {

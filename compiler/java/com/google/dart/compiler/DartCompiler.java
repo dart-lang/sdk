@@ -850,14 +850,14 @@ public class DartCompiler {
         }
         
         // auto-magically define "assert" function
-        if (dartSrc.getUri().toString().equals("dart://core/runtime/object.dart")) {
+        if (dartSrc.getUri().toString().equals("dart://core/object.dart")) {
           srcCode += "\nvoid assert(x) {}";
         }
 
         // inject "Type" type from 1.0 M1 specification
         // remove once it will be added into SDK
         // http://code.google.com/p/dart/issues/detail?id=3368
-        if (dartSrc.getUri().toString().equals("dart://core/runtime/object.dart")) {
+        if (dartSrc.getUri().toString().equals("dart://core/object.dart")) {
           srcCode += "\nclass Type {}";
         }
 

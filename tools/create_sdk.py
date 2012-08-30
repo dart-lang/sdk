@@ -133,9 +133,6 @@ def CopyDart2Js(build_dir, sdk_root):
   '''
   copytree('lib', os.path.join(sdk_root, 'lib', 'dart2js', 'lib'),
            ignore=ignore_patterns('.svn'))
-  copytree(os.path.join('corelib', 'src'),
-           os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'src'),
-           ignore=ignore_patterns('.svn'))
   copytree(os.path.join('runtime', 'lib'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
            ignore=ignore_patterns('.svn'))
@@ -162,19 +159,8 @@ def CopyDart2Js(build_dir, sdk_root):
 
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
-  builtin_runtime_sources = \
-    (eval(open("runtime/bin/builtin_sources.gypi").read()))['sources']
   io_runtime_sources = \
     (eval(open("runtime/bin/io_sources.gypi").read()))['sources']
-  corelib_sources = \
-    (eval(open("corelib/src/corelib_sources.gypi").read()))['sources']
-  corelib_runtime_sources = \
-    (eval(open("runtime/lib/lib_sources.gypi").read()))['sources']
-  coreimpl_sources = \
-    (eval(open("corelib/src/implementation/corelib_impl_sources.gypi").read()))\
-    ['sources']
-  coreimpl_runtime_sources = \
-    (eval(open("runtime/lib/lib_impl_sources.gypi").read()))['sources']
 
   HOME = dirname(dirname(realpath(__file__)))
 
@@ -237,33 +223,6 @@ def Main(argv):
 
   LIB = join(SDK_tmp, 'lib')
   os.makedirs(LIB)
-  corelib_dest_dir = join(LIB, 'core')
-  os.makedirs(corelib_dest_dir)
-  os.makedirs(join(corelib_dest_dir, 'runtime'))
-
-  coreimpl_dest_dir = join(LIB, 'coreimpl')
-  os.makedirs(coreimpl_dest_dir)
-  os.makedirs(join(coreimpl_dest_dir, 'runtime'))
-
-
-  #
-  # Create and populate lib/builtin.
-  #
-  builtin_dest_dir = join(LIB, 'builtin')
-  os.makedirs(builtin_dest_dir)
-  assert len(builtin_runtime_sources) == 1
-  assert builtin_runtime_sources[0] == 'builtin.dart'
-  copyfile(join(HOME, 'runtime', 'bin', 'builtin.dart'),
-           join(builtin_dest_dir, 'builtin_runtime.dart'))
-  #
-  # rename the print function in dart:builtin
-  # so that it does not conflict with the print function in dart:core
-  #
-  ReplaceInFiles([
-      join(builtin_dest_dir, 'builtin_runtime.dart')
-    ], [
-      ('void print\(', 'void builtinPrint(')
-    ])
 
   #
   # Create and populate lib/io.
@@ -333,11 +292,11 @@ def Main(argv):
            join(dom_dest_dir, 'dom_dart2js.dart'))
 
   #
-  # Create and populate lib/{crypto, json, uri, utf, ...}.
+  # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'crypto', 'json', 'math', 'mirrors', 'uri',
-                  'utf', 'web']:
+  for library in ['_internal', 'core', 'coreimpl', 'crypto', 'isolate', 'json',
+                  'math', 'mirrors', 'uri', 'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
@@ -345,70 +304,6 @@ def Main(argv):
     for filename in os.listdir(src_dir):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
-
-  # Create and populate lib/isolate
-  copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
-           ignore=ignore_patterns('.svn'))
-
-  #
-  # Create and populate lib/core.
-  #
-
-  # First, copy corelib/* to lib/runtime
-  for filename in corelib_sources:
-    for target_dir in ['runtime']:
-      copyfile(join('corelib', 'src', filename),
-               join(corelib_dest_dir, target_dir, filename))
-
-  # Next, copy the runtime library source on top of core/runtime
-  for filename in corelib_runtime_sources:
-    if filename.endswith('.dart'):
-      copyfile(join('runtime', 'lib', filename),
-               join(corelib_dest_dir, 'runtime', filename))
-
-  #
-  # At this point, it's time to create lib/core/core*dart .
-  #
-  # construct lib/core_runtime.dart from whole cloth.
-  dest_file = open(join(corelib_dest_dir, 'core_runtime.dart'), 'w')
-  dest_file.write('#library("dart:core");\n')
-  dest_file.write('#import("dart:coreimpl");\n')
-  dest_file.write('#import("dart:math");\n')
-  for filename in corelib_sources:
-    dest_file.write('#source("runtime/' + filename + '");\n')
-  for filename in corelib_runtime_sources:
-    if filename.endswith('.dart'):
-      dest_file.write('#source("runtime/' + filename + '");\n')
-  # include the missing print function
-  dest_file.write('void print(Object arg) { /* native */ }\n')
-  dest_file.close()
-
-  #
-  # Create and populate lib/coreimpl.
-  #
-
-  # First, copy corelib/src/implementation to corelib/runtime.
-  for filename in coreimpl_sources:
-    for target_dir in ['runtime']:
-      copyfile(join('corelib', 'src', 'implementation', filename),
-               join(coreimpl_dest_dir, target_dir, filename))
-
-  for filename in coreimpl_runtime_sources:
-    if filename.endswith('.dart') and not filename.endswith('_patch.dart'):
-      copyfile(join('runtime', 'lib', filename),
-               join(coreimpl_dest_dir, 'runtime', filename))
-
-  # Construct lib/coreimpl/coreimpl_runtime.dart from whole cloth.
-  dest_file = open(join(coreimpl_dest_dir, 'coreimpl_runtime.dart'), 'w')
-  dest_file.write('#library("dart:coreimpl");\n')
-  dest_file.write('#import("dart:math");\n')
-  for filename in coreimpl_sources:
-    dest_file.write('#source("runtime/' + filename + '");\n')
-  for filename in coreimpl_runtime_sources:
-    if filename.endswith('.dart') and not filename.endswith('_patch.dart'):
-      dest_file.write('#source("runtime/' + filename + '");\n')
-  dest_file.close()
-
 
   # Create and copy pkg.
   PKG = join(SDK_tmp, 'pkg')

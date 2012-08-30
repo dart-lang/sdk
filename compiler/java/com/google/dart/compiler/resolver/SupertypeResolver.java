@@ -151,7 +151,7 @@ public class SupertypeResolver {
         || Elements.isLibrarySource(source, "corelib_impl.dart")
         
         // New core library file names
-        || Elements.isLibrarySource(source, "core_runtime.dart")
-        || Elements.isLibrarySource(source, "coreimpl_runtime.dart");
+        || Elements.isLibrarySource(source, "core.dart")
+        || Elements.isLibrarySource(source, "coreimpl.dart");
   }
 }

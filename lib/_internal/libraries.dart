@@ -29,11 +29,11 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       platforms: VM_PLATFORM),
 
   "core": const LibraryInfo(
-      "core/core_runtime.dart",
+      "core/core.dart",
       dart2jsPath: "compiler/implementation/lib/core.dart"),
 
   "coreimpl": const LibraryInfo(
-      "coreimpl/coreimpl_runtime.dart",
+      "coreimpl/coreimpl.dart",
       implementation: true,
       dart2jsPath: "compiler/implementation/lib/coreimpl.dart",
       dart2jsPatchPath: "compiler/implementation/lib/coreimpl_patch.dart"),
