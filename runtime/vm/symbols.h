@@ -15,12 +15,13 @@ class Isolate;
 class ObjectPointerVisitor;
 
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
+  V(Empty, "")                                                                 \
   V(Dot, ".")                                                                  \
   V(Equals, "=")                                                               \
   V(IndexToken, "[]")                                                          \
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \
-  V(Empty, "")                                                                 \
+  V(DefaultLabel, ":L")                                                        \
   V(This, "this")                                                              \
   V(HasNext, "hasNext")                                                        \
   V(Next, "next")                                                              \
@@ -44,6 +45,8 @@ class ObjectPointerVisitor;
   V(Interpolate, "_interpolate")                                               \
   V(GetIterator, "iterator")                                                   \
   V(NoSuchMethod, "noSuchMethod")                                              \
+  V(SavedArgDescVarPrefix, ":saved_args_desc_var")                             \
+  V(SavedEntryContextVar, ":saved_entry_context_var")                          \
   V(SavedContextVar, ":saved_context_var")                                     \
   V(ExceptionVar, ":exception_var")                                            \
   V(StacktraceVar, ":stacktrace_var")                                          \
@@ -167,6 +170,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
                         intptr_t begin_index,
                         intptr_t length);
 
+  // Returns char* of predefined symbol.
+  static const char* Name(intptr_t symbol);
 
  private:
   enum {

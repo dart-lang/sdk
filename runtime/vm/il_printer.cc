@@ -185,6 +185,14 @@ void AssertBooleanComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void ArgumentDefinitionTestComp::PrintOperandsTo(BufferFormatter* f) const {
+  saved_arguments_descriptor()->PrintTo(f);
+  f->Print(", ?%s @%d",
+           formal_parameter_name().ToCString(),
+           formal_parameter_index());
+}
+
+
 void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");

@@ -119,24 +119,52 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 }
 
 
+LocalVariable* ParsedFunction::GetSavedArgumentsDescriptorVar() const {
+  const int num_parameters = function().NumberOfParameters();
+  LocalScope* scope = node_sequence()->scope();
+  if (scope->num_variables() > num_parameters) {
+    LocalVariable* saved_args_desc_var = scope->VariableAt(num_parameters);
+    ASSERT(saved_args_desc_var != NULL);
+    // The scope of the formal parameters may also contain at this position
+    // an alias for the saved arguments descriptor variable of the enclosing
+    // function (check its scope owner) or an internal variable such as the
+    // expression temp variable or the saved entry context variable (check its
+    // name).
+    if ((saved_args_desc_var->owner() == scope) &&
+        saved_args_desc_var->name().StartsWith(
+            String::Handle(Symbols::SavedArgDescVarPrefix()))) {
+      return saved_args_desc_var;
+    }
+  }
+  return NULL;
+}
+
+
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
   const int fixed_parameter_count = function().num_fixed_parameters();
   const int optional_parameter_count = function().num_optional_parameters();
-  const int parameter_count = fixed_parameter_count + optional_parameter_count;
+  int parameter_count = fixed_parameter_count + optional_parameter_count;
   const bool is_native_instance_closure =
       function().is_native() && function().IsImplicitInstanceClosureFunction();
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  if (optional_parameter_count == 0 && !is_native_instance_closure) {
+  if ((optional_parameter_count == 0) && !is_native_instance_closure) {
     // Parameter i will be at fp[1 + parameter_count - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - j].
+    ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
     first_parameter_index_ = 1 + parameter_count;
     first_stack_local_index_ = kFirstLocalSlotIndex;
     copied_parameter_count_ = 0;
   } else {
     // Parameter i will be at fp[kFirstLocalSlotIndex - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - parameter_count - j].
+    // The saved argument descriptor variable must be allocated similarly to
+    // a parameter, so that it gets both a frame slot and a context slot when
+    // captured.
+    if (GetSavedArgumentsDescriptorVar() != NULL) {
+      parameter_count += 1;
+    }
     first_parameter_index_ = kFirstLocalSlotIndex;
     first_stack_local_index_ = first_parameter_index_ - parameter_count;
     copied_parameter_count_ = parameter_count;
@@ -161,8 +189,8 @@ void ParsedFunction::AllocateVariables() {
   // variables, the context needs to be saved on entry and restored on exit.
   // Add and allocate a local variable to this purpose.
   if ((context_owner != NULL) && !function().IsClosureFunction()) {
-    const String& context_var_name = String::ZoneHandle(
-        Symbols::New(LocalVariable::kSavedContextVarName));
+    const String& context_var_name =
+        String::ZoneHandle(Symbols::SavedEntryContextVar());
     LocalVariable* context_var =
         new LocalVariable(function().token_pos(),
                           context_var_name,
@@ -261,7 +289,7 @@ Parser::Parser(const Script& script,
       current_class_(Class::Handle(current_function_.Owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL),
-      expression_temp_(NULL)  {
+      expression_temp_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!function.IsNull());
   if (FLAG_enable_type_checks) {
@@ -1133,12 +1161,10 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
 
   if (LookaheadToken(1) != Token::kRPAREN) {
     // Parse positional parameters.
-    ParseFormalParameters(allow_explicit_default_values,
-                          params);
+    ParseFormalParameters(allow_explicit_default_values, params);
     if (params->has_named_optional_parameters) {
       // Parse named optional parameters.
-      ParseFormalParameters(allow_explicit_default_values,
-                            params);
+      ParseFormalParameters(allow_explicit_default_values, params);
       if (CurrentToken() != Token::kRBRACK) {
         ErrorMsg("',' or ']' expected");
       }
@@ -7356,6 +7382,94 @@ LocalVariable* Parser::LookupLocalScope(const String& ident) {
 }
 
 
+// Returns true if ident resolves to a formal parameter of the current function
+// or of one of its enclosing functions.
+// Make sure not to capture the formal parameter, since it is not accessed.
+bool Parser::IsFormalParameter(const String& ident,
+                               Function* owner_function,
+                               LocalScope** owner_scope,
+                               intptr_t* local_index) {
+  if (current_block_ == NULL) {
+    return false;
+  }
+  if (ident.Equals(String::Handle(Symbols::This()))) {
+    // 'this' is not a formal parameter.
+    return false;
+  }
+  // Since an argument definition test does not use the value of the formal
+  // parameter, there is no reason to capture it.
+  const bool kTestOnly = true;  // No capturing.
+  LocalVariable* local =
+      current_block_->scope->LookupVariable(ident, kTestOnly);
+  if (local == NULL) {
+    if (!current_function().IsLocalFunction()) {
+      // We are not generating code for a local function, so all locals,
+      // captured or not, are in scope. However, 'ident' was not found, so it
+      // does not exist.
+      return false;
+    }
+    // The formal parameter may belong to an enclosing function and may not have
+    // been captured, so it was not included in the context scope and it cannot
+    // be found by LookupVariable.
+    // 'ident' necessarily refers to the formal parameter of one of the
+    // enclosing functions, or a compile error would have prevented the
+    // outermost enclosing function to be executed and we would not be compiling
+    // this local function.
+    // Therefore, look for ident directly in the formal parameter lists of the
+    // enclosing functions.
+    // There is no need to return the owner_scope, since the caller will not
+    // create the saved_arguments_descriptor variable, which already exists.
+    Function& function = Function::Handle(innermost_function().raw());
+    String& param_name = String::Handle();
+    do {
+      const int num_parameters = function.NumberOfParameters();
+      for (intptr_t i = 0; i < num_parameters; i++) {
+        param_name = function.ParameterNameAt(i);
+        if (ident.Equals(param_name)) {
+          *owner_function = function.raw();
+          *owner_scope = NULL;
+          *local_index = i;
+          return true;
+        }
+      }
+      function = function.parent_function();
+    } while (!function.IsNull());
+    UNREACHABLE();
+  }
+  // Verify that local is a formal parameter of the current function or of one
+  // of its enclosing functions.
+  // Note that scopes are not yet associated to functions.
+  Function& function = Function::Handle(innermost_function().raw());
+  LocalScope* scope = current_block_->scope;
+  while (scope != NULL) {
+    ASSERT(!function.IsNull());
+    // Find the top scope for this function level.
+    while ((scope->parent() != NULL) &&
+           (scope->parent()->function_level() == scope->function_level())) {
+      scope = scope->parent();
+    }
+    if (scope == local->owner()) {
+      // Scope contains 'local' and the formal parameters of 'function'.
+      const int num_parameters = function.NumberOfParameters();
+      for (intptr_t i = 0; i < num_parameters; i++) {
+        if (scope->VariableAt(i) == local) {
+          *owner_function = function.raw();
+          *owner_scope = scope;
+          *local_index = i;
+          return true;
+        }
+      }
+      // The variable 'local' is not a formal parameter.
+      return false;
+    }
+    scope = scope->parent();
+    function = function.parent_function();
+  }
+  // The variable 'local' does not belong to a function top scope.
+  return false;
+}
+
+
 void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
                                       const String& field_name) {
   // Fields are not accessible from a static function, except from a
@@ -8828,6 +8942,65 @@ String* Parser::ParseImportStringLiteral() {
 }
 
 
+AstNode* Parser::ParseArgumentDefinitionTest() {
+  const intptr_t test_pos = TokenPos();
+  ConsumeToken();
+  const intptr_t ident_pos = TokenPos();
+  String* ident = ExpectIdentifier("parameter name expected");
+  Function& owner_function = Function::Handle();
+  LocalScope* owner_scope;
+  intptr_t param_index;
+  if (!IsFormalParameter(*ident, &owner_function, &owner_scope, &param_index)) {
+    ErrorMsg(ident_pos, "formal parameter name expected");
+  }
+  if (param_index < owner_function.num_fixed_parameters()) {
+    // The formal parameter is not optional, therefore the corresponding
+    // argument is always passed and defined.
+    return new LiteralNode(test_pos, Bool::ZoneHandle(Bool::True()));
+  }
+  char name[64];
+  OS::SNPrint(name, 64, "%s_%d",
+              Symbols::Name(Symbols::kSavedArgDescVarPrefix),
+              owner_function.token_pos());
+  const String& saved_args_desc_name = String::ZoneHandle(Symbols::New(name));
+  LocalVariable* saved_args_desc_var = LookupLocalScope(saved_args_desc_name);
+  if (saved_args_desc_var == NULL) {
+    ASSERT(owner_scope != NULL);
+    ASSERT(owner_function.raw() == current_function().raw());
+    // We currently generate code for 'owner_function', otherwise the variable
+    // would have been created when compiling the enclosing function of the
+    // currently being compiled local function.
+    saved_args_desc_var =
+        new LocalVariable(owner_function.token_pos(),
+                          saved_args_desc_name,
+                          Type::ZoneHandle(Type::ListInterface()));
+    saved_args_desc_var->set_is_final();
+    // The saved arguments descriptor variable must be added just after the
+    // formal parameters. This simplifies the 2-step saving of a captured
+    // arguments descriptor.
+    // At this time, the owner scope should only contain formal parameters.
+    ASSERT(owner_scope->num_variables() == owner_function.NumberOfParameters());
+    bool success = owner_scope->AddVariable(saved_args_desc_var);
+    ASSERT(success);
+    // Capture the saved argument descriptor variable if necessary.
+    if (current_function().raw() != innermost_function().raw()) {
+      LocalVariable* local = LookupLocalScope(saved_args_desc_name);
+      ASSERT(local == saved_args_desc_var);
+      ASSERT(local->is_captured());
+    }
+  } else {
+    // If we currently generate code for a local function of the owner function,
+    // the saved arguments descriptor variable must have been captured by the
+    // above lookup.
+    ASSERT((owner_function.raw() == current_function().raw()) ||
+           saved_args_desc_var->is_captured());
+  }
+  const String& param_name = String::ZoneHandle(Symbols::New(*ident));
+  return new ArgumentDefinitionTestNode(
+      test_pos, param_index, param_name, saved_args_desc_var);
+}
+
+
 AstNode* Parser::ParsePrimary() {
   TRACE_PARSER("ParsePrimary");
   ASSERT(!is_top_level_);
@@ -8947,6 +9120,8 @@ AstNode* Parser::ParsePrimary() {
     } else {
       ErrorMsg("illegal super call");
     }
+  } else if (CurrentToken() == Token::kCONDITIONAL) {
+    primary = ParseArgumentDefinitionTest();
   } else {
     UnexpectedToken();
   }

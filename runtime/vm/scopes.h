@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/growable_array.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -78,10 +79,6 @@ class LocalVariable : public ZoneAllocated {
   // all parameters.
   int BitIndexIn(intptr_t var_count) const;
 
-  // Name of the internal variable that is used to save the context chain
-  // on function entry.
-  static const char* kSavedContextVarName;
-
  private:
   static const int kUnitializedIndex = INT_MIN;
 
@@ -134,7 +131,7 @@ class SourceLabel : public ZoneAllocated {
       return new SourceLabel(token_pos, *name, kind);
     } else {
       return new SourceLabel(token_pos,
-                             String::ZoneHandle(String::New(kDefaultLabelName)),
+                             String::ZoneHandle(Symbols::DefaultLabel()),
                              kind);
     }
   }
@@ -188,7 +185,6 @@ class SourceLabel : public ZoneAllocated {
   JoinEntryInstr* join_for_break_;
   JoinEntryInstr* join_for_continue_;
   bool is_continue_target_;  // Needed for CaseNode.
-  static const char* kDefaultLabelName;
 
   DISALLOW_COPY_AND_ASSIGN(SourceLabel);
 };

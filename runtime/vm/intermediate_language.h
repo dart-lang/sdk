@@ -54,6 +54,7 @@ class LocalVariable;
 #define FOR_EACH_COMPUTATION(M)                                                \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(AssertBoolean, AssertBooleanComp)                                          \
+  M(ArgumentDefinitionTest, ArgumentDefinitionTestComp)                        \
   M(CurrentContext, CurrentContextComp)                                        \
   M(StoreContext, StoreContextComp)                                            \
   M(ClosureCall, ClosureCallComp)                                              \
@@ -547,6 +548,38 @@ class AssertBooleanComp : public TemplateComputation<1> {
   bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
+};
+
+
+class ArgumentDefinitionTestComp : public TemplateComputation<1> {
+ public:
+  ArgumentDefinitionTestComp(ArgumentDefinitionTestNode* node,
+                             Value* saved_arguments_descriptor)
+      : ast_node_(*node) {
+    ASSERT(saved_arguments_descriptor != NULL);
+    inputs_[0] = saved_arguments_descriptor;
+  }
+
+  DECLARE_COMPUTATION(ArgumentDefinitionTest)
+
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
+  intptr_t formal_parameter_index() const {
+    return ast_node_.formal_parameter_index();
+  }
+  const String& formal_parameter_name() const {
+    return ast_node_.formal_parameter_name();
+  }
+  Value* saved_arguments_descriptor() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kBoolCid; }
+
+ private:
+  const ArgumentDefinitionTestNode& ast_node_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArgumentDefinitionTestComp);
 };
 
 

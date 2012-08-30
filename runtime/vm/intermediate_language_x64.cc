@@ -230,6 +230,35 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ArgumentDefinitionTestComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
+}
+
+
+void ArgumentDefinitionTestComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register saved_args_desc = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  __ pushq(Immediate(Smi::RawValue(formal_parameter_index())));
+  __ PushObject(formal_parameter_name());
+  __ pushq(saved_args_desc);
+  compiler->GenerateCallRuntime(deopt_id(),
+                                token_pos(),
+                                kArgumentDefinitionTestRuntimeEntry,
+                                locs());
+  __ Drop(3);
+  __ popq(result);  // Pop bool result.
+}
+
+
 static Condition TokenKindToSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQUAL;

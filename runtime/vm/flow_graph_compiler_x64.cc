@@ -932,6 +932,8 @@ void FlowGraphCompiler::CompileGraph() {
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are debug mode or unless we are compiling a closure.
+  LocalVariable* saved_args_desc_var =
+      parsed_function().GetSavedArgumentsDescriptorVar();
   if (copied_parameter_count == 0) {
 #ifdef DEBUG
     const bool check_arguments = true;
@@ -956,12 +958,26 @@ void FlowGraphCompiler::CompileGraph() {
       }
       __ Bind(&argc_in_range);
     }
+    // The arguments descriptor is never saved in the absence of optional
+    // parameters, since any argument definition test would always yield true.
+    ASSERT(saved_args_desc_var == NULL);
   } else {
+    if (saved_args_desc_var != NULL) {
+      __ Comment("Save arguments descriptor");
+      const Register kArgumentsDescriptorReg = R10;
+      // The saved_args_desc_var is allocated one slot before the first local.
+      const intptr_t slot = parsed_function().first_stack_local_index() + 1;
+      // If the saved_args_desc_var is captured, it is first moved to the stack
+      // and later to the context, once the context is allocated.
+      ASSERT(saved_args_desc_var->is_captured() ||
+             (saved_args_desc_var->index() == slot));
+      __ movq(Address(RBP, slot * kWordSize), kArgumentsDescriptorReg);
+    }
     CopyParameters();
   }
 
   // In unoptimized code, initialize (non-argument) stack allocated slots to
-  // null.
+  // null. This does not cover the saved_args_desc_var slot.
   if (!is_optimizing() && (local_count > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();

@@ -738,6 +738,11 @@ RawAbstractType* AssertBooleanComp::CompileType() const {
 }
 
 
+RawAbstractType* ArgumentDefinitionTestComp::CompileType() const {
+  return Type::BoolType();
+}
+
+
 RawAbstractType* CurrentContextComp::CompileType() const {
   return AbstractType::null();
 }

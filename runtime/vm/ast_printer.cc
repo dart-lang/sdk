@@ -48,6 +48,15 @@ void AstPrinter::VisitArgumentListNode(ArgumentListNode* arguments) {
 }
 
 
+void AstPrinter::VisitArgumentDefinitionTestNode(
+    ArgumentDefinitionTestNode* node) {
+  OS::Print("(%s ?%s @%d)",
+            node->Name(),
+            node->formal_parameter_name().ToCString(),
+            node->formal_parameter_index());
+}
+
+
 void AstPrinter::VisitReturnNode(ReturnNode* node) {
   VisitGenericAstNode(node);
 }

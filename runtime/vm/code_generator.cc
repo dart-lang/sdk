@@ -654,6 +654,38 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
 }
 
 
+// Test whether a formal parameter was defined by a passed-in argument.
+// Arg0: formal parameter index as Smi.
+// Arg1: formal parameter name as Symbol.
+// Arg2: arguments descriptor array.
+// Return value: true or false.
+DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
+  ASSERT(arguments.Count() ==
+         kArgumentDefinitionTestRuntimeEntry.argument_count());
+  const Smi& param_index = Smi::CheckedHandle(arguments.At(0));
+  const String& param_name = String::CheckedHandle(arguments.At(1));
+  ASSERT(param_name.IsSymbol());
+  const Array& arg_desc = Array::CheckedHandle(arguments.At(2));
+  const intptr_t num_pos_args = Smi::CheckedHandle(arg_desc.At(1)).Value();
+  // Check if the formal parameter is defined by a positional argument.
+  bool is_defined = num_pos_args > param_index.Value();
+  if (!is_defined) {
+    // Check if the formal parameter is defined by a named argument.
+    const intptr_t num_named_args =
+        Smi::CheckedHandle(arg_desc.At(0)).Value() - num_pos_args;
+    String& arg_name = String::Handle();
+    for (intptr_t i = 0; i < num_named_args; i++) {
+      arg_name ^= arg_desc.At(2*i + 2);
+      if (arg_name.raw() == param_name.raw()) {
+        is_defined = true;
+        break;
+      }
+    }
+  }
+  arguments.SetReturn(Bool::Handle(Bool::Get(is_defined)));
+}
+
+
 // Report that the type of the given object is not bool in conditional context.
 // Arg0: bad object.
 // Return value: none, throws a TypeError.
