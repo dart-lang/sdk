@@ -91,15 +91,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Dart_Error("Do not know how to load '%s'", url_chars);
     }
   }
-  result = DartUtils::LoadSource(NULL,
-                                 library,
-                                 url,
-                                 tag,
-                                 url_chars);
-  if (!Dart_IsError(result) && (tag == kImportTag)) {
-    Builtin::ImportLibrary(result, Builtin::kBuiltinLibrary);
-  }
-  return result;
+  return DartUtils::LoadSource(NULL,
+                               library,
+                               url,
+                               tag,
+                               url_chars);
 }
 
 

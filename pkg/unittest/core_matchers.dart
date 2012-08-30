@@ -300,7 +300,7 @@ class _Throws extends BaseMatcher {
     try {
       item();
       return false;
-    } catch (final e, final s) {
+    } catch (e, s) {
       if (_matcher == null ||_matcher.matches(e, matchState)) {
         return true;
       } else {
@@ -347,7 +347,7 @@ class _ReturnsNormally extends BaseMatcher {
     try {
       f();
       return true;
-    } catch (final e, final s) {
+    } catch (e, s) {
       matchState.state = {
           'exception' : e,
           'stack': s
@@ -538,7 +538,7 @@ class _HasLength extends BaseMatcher {
         return mismatchDescription.add(' with length of ').
             addDescriptionOf(item.length);
       }
-    } catch (var e) {
+    } catch (e) {
       return mismatchDescription.add(' has no length property');
     }
   }

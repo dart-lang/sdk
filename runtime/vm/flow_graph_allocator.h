@@ -19,6 +19,9 @@ class UsePosition;
 
 class FlowGraphAllocator : public ValueObject {
  public:
+  // Number of stack slots needed for a double spill slot.
+  static const intptr_t kDoubleSpillSlotFactor = kDoubleSize / kWordSize;
+
   explicit FlowGraphAllocator(const FlowGraph& flow_graph);
 
   void AllocateRegisters();

@@ -2360,6 +2360,11 @@ class Stackmap : public Object {
   uword PC() const { return raw_ptr()->pc_; }
   void SetPC(uword value) const { raw_ptr()->pc_ = value; }
 
+  intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
+  void SetRegisterBitCount(intptr_t register_bit_count) const {
+    raw_ptr()->register_bit_count_ = register_bit_count;
+  }
+
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
@@ -2373,7 +2378,9 @@ class Stackmap : public Object {
         Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
     return RoundedAllocationSize(sizeof(RawStackmap) + payload_size);
   }
-  static RawStackmap* New(intptr_t pc_offset, BitmapBuilder* bmap);
+  static RawStackmap* New(intptr_t pc_offset,
+                          BitmapBuilder* bmap,
+                          intptr_t register_bit_count);
 
  private:
   void SetLength(intptr_t length) const { raw_ptr()->length_ = length; }

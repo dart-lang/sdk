@@ -22,7 +22,7 @@ void processNativeClasses(Enqueuer world,
 
 void addSubtypes(ClassElement cls,
                  NativeEmitter emitter) {
-  for (Type type in cls.allSupertypes) {
+  for (DartType type in cls.allSupertypes) {
     List<Element> subtypes = emitter.subtypes.putIfAbsent(
         type.element,
         () => <ClassElement>[]);
@@ -238,7 +238,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((Element parameter) {
-      Type type = parameter.computeType(compiler).unalias(compiler);
+      DartType type = parameter.computeType(compiler).unalias(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
@@ -274,7 +274,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     // mangling problem will go away once we switch these libraries
     // to use Leg's 'JS' function.
     parameters.forEachParameter((Element parameter) {
-      Type type = parameter.computeType(compiler).unalias(compiler);
+      DartType type = parameter.computeType(compiler).unalias(compiler);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
         // typedef(s).

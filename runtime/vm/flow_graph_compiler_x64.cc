@@ -453,7 +453,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
                                            intptr_t token_pos,
-                                           intptr_t try_index,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
@@ -496,8 +495,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
     __ pushq(RDX);  // Instantiator type arguments.
     __ LoadObject(RAX, test_cache);
     __ pushq(RAX);
-    GenerateCallRuntime(deopt_id, token_pos, try_index,
-                        kInstanceofRuntimeEntry, locs);
+    GenerateCallRuntime(deopt_id, token_pos, kInstanceofRuntimeEntry, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -538,7 +536,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
 // as they throw an exception.
 void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                                                  intptr_t token_pos,
-                                                 intptr_t try_index,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
@@ -568,7 +565,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
     __ PushObject(error_message);
     GenerateCallRuntime(deopt_id,
                         token_pos,
-                        try_index,
                         kMalformedTypeErrorRuntimeEntry,
                         locs);
     // We should never return here.
@@ -598,7 +594,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
   __ pushq(RAX);
   GenerateCallRuntime(deopt_id,
                       token_pos,
-                      try_index,
                       kTypeCheckRuntimeEntry,
                       locs);
   // Pop the parameters supplied to the runtime entry. The result of the
@@ -781,8 +776,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ CallRuntime(kClosureArgumentMismatchRuntimeEntry);
     AddCurrentDescriptor(PcDescriptors::kOther,
                          Isolate::kNoDeoptId,
-                         0,  // No token position.
-                         CatchClauseNode::kInvalidTryIndex);
+                         0);  // No token position.
   } else {
     ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
@@ -804,7 +798,8 @@ void FlowGraphCompiler::CopyParameters() {
   }
   if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                      empty_stack_bitmap);
+                                      empty_stack_bitmap,
+                                      0);
   }
 
   if (FLAG_trace_functions) {
@@ -815,11 +810,11 @@ void FlowGraphCompiler::CopyParameters() {
     __ CallRuntime(kTraceFunctionExitRuntimeEntry);
     AddCurrentDescriptor(PcDescriptors::kOther,
                          Isolate::kNoDeoptId,
-                         0,  // No token position.
-                         CatchClauseNode::kInvalidTryIndex);
+                         0);  // No token position.
     if (is_optimizing()) {
       stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                        empty_stack_bitmap);
+                                        empty_stack_bitmap,
+                                        0);
     }
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
@@ -954,7 +949,6 @@ void FlowGraphCompiler::CompileGraph() {
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(Isolate::kNoDeoptId,
                             function.token_pos(),
-                            CatchClauseNode::kInvalidTryIndex,
                             kClosureArgumentMismatchRuntimeEntry,
                             prologue_locs);
       } else {
@@ -1007,25 +1001,23 @@ void FlowGraphCompiler::CompileGraph() {
 
 
 void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
-                                     intptr_t try_index,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ call(label);
-  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos, try_index);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
 
 
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             intptr_t token_pos,
-                                            intptr_t try_index,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ CallRuntime(entry);
-  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
 }
 
@@ -1036,14 +1028,13 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t argument_count,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
-                                         intptr_t try_index,
                                          LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, arguments_descriptor);
 
   __ call(target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall, deopt_id, token_pos, try_index);
+  AddCurrentDescriptor(PcDescriptors::kIcCall, deopt_id, token_pos);
   RecordSafepoint(locs);
 
   __ Drop(argument_count);
@@ -1055,49 +1046,17 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t argument_count,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
-                                       intptr_t try_index,
                                        LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, function);
   __ LoadObject(R10, arguments_descriptor);
   __ call(&StubCode::CallStaticFunctionLabel());
-  AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos,
-                       try_index);
+  AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos);
   RecordSafepoint(locs);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id, token_pos);
   }
   __ Drop(argument_count);
-}
-
-
-// Checks class id of instance against all 'class_ids'. Jump to 'deopt' label
-// if no match or instance is Smi.
-void FlowGraphCompiler::EmitClassChecksNoSmi(const ICData& ic_data,
-                                             Register instance_reg,
-                                             Register temp_reg,
-                                             Label* deopt) {
-  Label ok;
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
-  __ testq(instance_reg, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  Label is_ok;
-  const intptr_t num_checks = ic_data.NumberOfChecks();
-  const bool use_near_jump = num_checks < 5;
-  __ LoadClassId(temp_reg, instance_reg);
-  for (intptr_t i = 0; i < num_checks; i++) {
-    __ cmpl(temp_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
-    if (i == (num_checks - 1)) {
-      __ j(NOT_EQUAL, deopt);
-    } else {
-      if (use_near_jump) {
-        __ j(EQUAL, &is_ok, Assembler::kNearJump);
-      } else {
-        __ j(EQUAL, &is_ok);
-      }
-    }
-  }
-  __ Bind(&is_ok);
 }
 
 
@@ -1124,18 +1083,22 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
   if (xmm_regs_count > 0) {
-    // Pointer maps don't support pushed untagged values so we reserve spill
-    // slots at the top of the spill slot area for live XMM registers.
-    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    __ subq(RSP, Immediate(xmm_regs_count * kDoubleSize));
+    // Store XMM registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
-        __ movsd(Address(RBP, -stack_offs), xmm_reg);
-        stack_offs += kDoubleSize;
+        __ movsd(Address(RSP, offset), xmm_reg);
+        offset += kDoubleSize;
       }
     }
+    ASSERT(offset == (xmm_regs_count * kDoubleSize));
   }
 
+  // Store general purpose registers with the highest register number at the
+  // lowest address.
   for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {
@@ -1146,6 +1109,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+  // General purpose registers have the highest register number at the
+  // lowest address.
   for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {
@@ -1155,16 +1120,17 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 
   const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
   if (xmm_regs_count > 0) {
-    // Pointer maps don't support pushed untagged values so we reserve spill
-    // slots at the top of the spill slot area for live XMM registers.
-    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    // XMM registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
-        __ movsd(xmm_reg, Address(RBP, -stack_offs));
-        stack_offs += kDoubleSize;
+        __ movsd(xmm_reg, Address(RSP, offset));
+        offset += kDoubleSize;
       }
     }
+    ASSERT(offset == (xmm_regs_count * kDoubleSize));
+    __ addq(RSP, Immediate(offset));
   }
 }
 

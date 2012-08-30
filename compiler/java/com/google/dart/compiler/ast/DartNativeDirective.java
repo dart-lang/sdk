@@ -20,6 +20,7 @@ public class DartNativeDirective extends DartDirective {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(nativeUri, visitor);
   }
 

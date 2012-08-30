@@ -22,15 +22,29 @@ def BuildOptions():
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm]',
       default=utils.GuessArchitecture())
+  result.add_option("--os",
+    help='Target OSs (comma-separated).',
+    metavar='[all,host,android]',
+    default='all')
   return result
+
+
+def ProcessOsOption(os):
+  if os == 'host':
+    return HOST_OS
+  return os
+
 
 def ProcessOptions(options):
   if options.arch == 'all':
     options.arch = 'ia32,x64'
   if options.mode == 'all':
     options.mode = 'release,debug'
+  if options.os == 'all':
+    options.os = 'host,android'
   options.mode = options.mode.split(',')
   options.arch = options.arch.split(',')
+  options.os = options.os.split(',')
   for mode in options.mode:
     if not mode in ['debug', 'release']:
       print "Unknown mode %s" % mode
@@ -38,6 +52,11 @@ def ProcessOptions(options):
   for arch in options.arch:
     if not arch in ['ia32', 'x64', 'simarm', 'arm']:
       print "Unknown arch %s" % arch
+      return False
+  options.os = [ProcessOsOption(os) for os in options.os]
+  for os in options.os:
+    if not os in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+      print "Unknown os %s" % os
       return False
   return True
 
@@ -51,14 +70,16 @@ def Main():
   # Delete the output for the targets for each requested configuration.
   for mode in options.mode:
     for arch in options.arch:
-      build_root = utils.GetBuildRoot(HOST_OS, mode=mode, arch=arch)
-      print "Deleting %s" % (build_root)
-      shutil.rmtree(build_root, ignore_errors=True)
-      # On windows we have additional object files within the runtime library.
-      if HOST_OS == 'win32':
-        runtime_root = 'runtime/' + build_root
-        print "Deleting %s" % (runtime_root)
-        shutil.rmtree(runtime_root, ignore_errors=True)
+      for target_os in options.os:
+        build_root = utils.GetBuildRoot(
+            HOST_OS, mode=mode, arch=arch, target_os=target_os)
+        print "Deleting %s" % (build_root)
+        shutil.rmtree(build_root, ignore_errors=True)
+        # On windows we have additional object files within the runtime library.
+        if HOST_OS == 'win32':
+          runtime_root = 'runtime/' + build_root
+          print "Deleting %s" % (runtime_root)
+          shutil.rmtree(runtime_root, ignore_errors=True)
   return 0
 
 if __name__ == '__main__':

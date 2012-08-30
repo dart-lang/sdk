@@ -9,7 +9,7 @@ class FunctionSet extends PartialTypeTree {
 
   FunctionSet(Compiler compiler) : super(compiler);
 
-  FunctionSetNode newNode(ClassElement type)
+  FunctionSetNode newSpecializedNode(ClassElement type)
       => new FunctionSetNode(type);
 
   // TODO(kasperl): Allow static members too?
@@ -39,6 +39,29 @@ class FunctionSet extends PartialTypeTree {
    * Returns all elements that may be invoked with the given [selector].
    */
   Set<Element> filterBySelector(Selector selector) {
+    // TODO(kasperl): For now, we use a different implementation for
+    // filtering if the tree contains interface subtypes.
+    return containsInterfaceSubtypes
+        ? filterAllBySelector(selector)
+        : filterHierarchyBySelector(selector);
+  }
+
+  Set<Element> filterAllBySelector(Selector selector) {
+    Set<Element> result = new Set<Element>();
+    if (root === null) return result;
+    root.visitRecursively((FunctionSetNode node) {
+      Element member = node.membersByName[selector.name];
+      // Since we're running through the entire tree we have to use
+      // the applies method that takes types into account.
+      if (member !== null && selector.applies(member, compiler)) {
+        result.add(member);
+      }
+      return true;
+    });
+    return result;
+  }
+
+  Set<Element> filterHierarchyBySelector(Selector selector) {
     Set<Element> result = new Set<Element>();
     if (root === null) return result;
     visitHierarchy(selectorType(selector), (FunctionSetNode node) {

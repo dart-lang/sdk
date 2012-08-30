@@ -4,6 +4,7 @@
 
 #import("dart:uri");
 
+#import("../../../lib/compiler/implementation/js_backend/js_backend.dart");
 #import("../../../lib/compiler/implementation/ssa/ssa.dart");
 
 #import('compiler_helper.dart');
@@ -128,18 +129,28 @@ const String TEST_12 = @"""
   }
 """;
 
+const String TEST_13 = @"""
+  class A {
+    x(p) => 1;
+  }
+  f(p) => p.x(2.2);
+  main() {
+    new A().x(1);
+    f(null);
+  }
+""";
+
 void runTest(String test, [List<HType> expectedTypes = null]) {
   compileAndFind(
     test,
     'A',
     'x',
     (backend, x) {
-      List<HType> types =
-          backend.optimisticParameterTypesWithRecompilationOnTypeChange(x);
+      HTypeList types = backend.optimisticParameterTypes(x);
       if (expectedTypes != null) {
-        Expect.listEquals(expectedTypes, types);
+        Expect.listEquals(expectedTypes, types.types);
       } else {
-        Expect.isNull(types);
+        Expect.isTrue(types.allUnknown);
       }
   });
 }
@@ -157,6 +168,7 @@ void test() {
   runTest(TEST_10);
   runTest(TEST_11);
   runTest(TEST_12);
+  runTest(TEST_13, [HType.NUMBER]);
 }
 
 void main() {

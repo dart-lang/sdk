@@ -24,7 +24,7 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
-interface Type {
+interface DartType {
   SourceString get name();
   Element get element();
 
@@ -38,17 +38,17 @@ interface Type {
    * function type [: (B) -> A :] and the unaliased type of
    * [: Func<int,String> :] is the function type [: (String) -> int :].
    */
-  Type unalias(Compiler compiler);
+  DartType unalias(Compiler compiler);
 }
 
-class TypeVariableType implements Type {
+class TypeVariableType implements DartType {
   final TypeVariableElement element;
 
   TypeVariableType(this.element);
 
   SourceString get name => element.name;
 
-  Type unalias(Compiler compiler) => this;
+  DartType unalias(Compiler compiler) => this;
 
   String toString() => name.slowToString();
 }
@@ -56,7 +56,7 @@ class TypeVariableType implements Type {
 /**
  * A statement type tracks whether a statement returns or may return.
  */
-class StatementType implements Type {
+class StatementType implements DartType {
   final String stringName;
   Element get element => null;
 
@@ -73,31 +73,31 @@ class StatementType implements Type {
     return (this === other) ? this : MAYBE_RETURNING;
   }
 
-  Type unalias(Compiler compiler) => this;
+  DartType unalias(Compiler compiler) => this;
 
   String toString() => stringName;
 }
 
-class VoidType implements Type {
+class VoidType implements DartType {
   const VoidType(this.element);
   SourceString get name => element.name;
   final VoidElement element;
 
-  Type unalias(Compiler compiler) => this;
+  DartType unalias(Compiler compiler) => this;
 
   String toString() => name.slowToString();
 }
 
-class InterfaceType implements Type {
+class InterfaceType implements DartType {
   final Element element;
-  final Link<Type> arguments;
+  final Link<DartType> arguments;
 
   const InterfaceType(this.element,
-                      [this.arguments = const EmptyLink<Type>()]);
+                      [this.arguments = const EmptyLink<DartType>()]);
 
   SourceString get name => element.name;
 
-  Type unalias(Compiler compiler) => this;
+  DartType unalias(Compiler compiler) => this;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -111,15 +111,15 @@ class InterfaceType implements Type {
   }
 }
 
-class FunctionType implements Type {
+class FunctionType implements DartType {
   final Element element;
-  Type returnType;
-  Link<Type> parameterTypes;
+  DartType returnType;
+  Link<DartType> parameterTypes;
 
-  FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
+  FunctionType(DartType this.returnType, Link<DartType> this.parameterTypes,
                Element this.element);
 
-  Type unalias(Compiler compiler) => this;
+  DartType unalias(Compiler compiler) => this;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -146,16 +146,16 @@ class FunctionType implements Type {
   }
 }
 
-class TypedefType implements Type {
+class TypedefType implements DartType {
   final TypedefElement element;
-  final Link<Type> typeArguments;
+  final Link<DartType> typeArguments;
 
   const TypedefType(this.element,
-      [this.typeArguments = const EmptyLink<Type>()]);
+      [this.typeArguments = const EmptyLink<DartType>()]);
 
   SourceString get name => element.name;
 
-  Type unalias(Compiler compiler) {
+  DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
     compiler.resolveTypedef(element);
     return element.alias.unalias(compiler);
@@ -190,7 +190,7 @@ class Types {
       dynamicType = new InterfaceType(dynamicElement);
 
   /** Returns true if t is a subtype of s */
-  bool isSubtype(Type t, Type s) {
+  bool isSubtype(DartType t, DartType s) {
     if (t === s ||
         t === dynamicType ||
         s === dynamicType ||
@@ -206,10 +206,10 @@ class Types {
       if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
       if (tc === s.element) return true;
-      for (Link<Type> supertypes = tc.allSupertypes;
+      for (Link<DartType> supertypes = tc.allSupertypes;
            supertypes != null && !supertypes.isEmpty();
            supertypes = supertypes.tail) {
-        Type supertype = supertypes.head;
+        DartType supertype = supertypes.head;
         if (supertype.element === s.element) return true;
       }
       return false;
@@ -218,8 +218,8 @@ class Types {
       if (s is !FunctionType) return false;
       FunctionType tf = t;
       FunctionType sf = s;
-      Link<Type> tps = tf.parameterTypes;
-      Link<Type> sps = sf.parameterTypes;
+      Link<DartType> tps = tf.parameterTypes;
+      Link<DartType> sps = sf.parameterTypes;
       while (!tps.isEmpty() && !sps.isEmpty()) {
         if (!isAssignable(tps.head, sps.head)) return false;
         tps = tps.tail;
@@ -236,7 +236,7 @@ class Types {
     }
   }
 
-  bool isAssignable(Type r, Type s) {
+  bool isAssignable(DartType r, DartType s) {
     return isSubtype(r, s) || isSubtype(s, r);
   }
 }
@@ -248,23 +248,23 @@ class CancelTypeCheckException {
   CancelTypeCheckException(this.node, this.reason);
 }
 
-class TypeCheckerVisitor implements Visitor<Type> {
+class TypeCheckerVisitor implements Visitor<DartType> {
   final Compiler compiler;
   final TreeElements elements;
   final Types types;
 
   Node lastSeenNode;
-  Type expectedReturnType;
+  DartType expectedReturnType;
   ClassElement currentClass;
 
-  Link<Type> cascadeTypes = const EmptyLink<Type>();
+  Link<DartType> cascadeTypes = const EmptyLink<DartType>();
 
-  Type intType;
-  Type doubleType;
-  Type boolType;
-  Type stringType;
-  Type objectType;
-  Type listType;
+  DartType intType;
+  DartType doubleType;
+  DartType boolType;
+  DartType stringType;
+  DartType objectType;
+  DartType listType;
 
   TypeCheckerVisitor(this.compiler, this.elements, this.types) {
     intType = compiler.intClass.computeType(compiler);
@@ -275,7 +275,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     listType = compiler.listClass.computeType(compiler);
   }
 
-  Type fail(node, [reason]) {
+  DartType fail(node, [reason]) {
     String message = 'cannot type-check';
     if (reason !== null) {
       message = '$message: $reason';
@@ -288,22 +288,22 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   // TODO(karlklose): remove these functions.
-  Type unhandledStatement() => StatementType.NOT_RETURNING;
-  Type unhandledExpression() => types.dynamicType;
+  DartType unhandledStatement() => StatementType.NOT_RETURNING;
+  DartType unhandledExpression() => types.dynamicType;
 
-  Type analyzeNonVoid(Node node) {
-    Type type = analyze(node);
+  DartType analyzeNonVoid(Node node) {
+    DartType type = analyze(node);
     if (type == types.voidType) {
       reportTypeWarning(node, MessageKind.VOID_EXPRESSION);
     }
     return type;
   }
 
-  Type analyzeWithDefault(Node node, Type defaultValue) {
+  DartType analyzeWithDefault(Node node, DartType defaultValue) {
     return node !== null ? analyze(node) : defaultValue;
   }
 
-  Type analyze(Node node) {
+  DartType analyze(Node node) {
     if (node == null) {
       final String error = 'internal error: unexpected node: null';
       if (lastSeenNode != null) {
@@ -314,7 +314,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     } else {
       lastSeenNode = node;
     }
-    Type result = node.accept(this);
+    DartType result = node.accept(this);
     // TODO(karlklose): record type?
     if (result === null) {
       fail(node, 'internal error: type is null');
@@ -326,7 +326,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
    * Check if a value of type t can be assigned to a variable,
    * parameter or return value of type s.
    */
-  checkAssignable(Node node, Type s, Type t) {
+  checkAssignable(Node node, DartType s, DartType t) {
     if (!types.isAssignable(s, t)) {
       reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE, [s, t]);
     }
@@ -336,48 +336,48 @@ class TypeCheckerVisitor implements Visitor<Type> {
     checkAssignable(condition, boolType, analyze(condition));
   }
 
-  void pushCascadeType(Type type) {
+  void pushCascadeType(DartType type) {
     cascadeTypes = cascadeTypes.prepend(type);
   }
 
-  Type popCascadeType() {
-    Type type = cascadeTypes.head;
+  DartType popCascadeType() {
+    DartType type = cascadeTypes.head;
     cascadeTypes = cascadeTypes.tail;
     return type;
   }
 
-  Type visitBlock(Block node) {
+  DartType visitBlock(Block node) {
     return analyze(node.statements);
   }
 
-  Type visitCascade(Cascade node) {
+  DartType visitCascade(Cascade node) {
     analyze(node.expression);
     return popCascadeType();
   }
 
-  Type visitCascadeReceiver(CascadeReceiver node) {
-    Type type = analyze(node.expression);
+  DartType visitCascadeReceiver(CascadeReceiver node) {
+    DartType type = analyze(node.expression);
     pushCascadeType(type);
     return type;
   }
 
-  Type visitClassNode(ClassNode node) {
+  DartType visitClassNode(ClassNode node) {
     fail(node);
   }
 
-  Type visitDoWhile(DoWhile node) {
+  DartType visitDoWhile(DoWhile node) {
     StatementType bodyType = analyze(node.body);
     checkCondition(node.condition);
     return bodyType.join(StatementType.NOT_RETURNING);
   }
 
-  Type visitExpressionStatement(ExpressionStatement node) {
+  DartType visitExpressionStatement(ExpressionStatement node) {
     analyze(node.expression);
     return StatementType.NOT_RETURNING;
   }
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
-  Type visitFor(For node) {
+  DartType visitFor(For node) {
     analyzeWithDefault(node.initializer, StatementType.NOT_RETURNING);
     checkCondition(node.condition);
     analyzeWithDefault(node.update, StatementType.NOT_RETURNING);
@@ -385,15 +385,15 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return bodyType.join(StatementType.NOT_RETURNING);
   }
 
-  Type visitFunctionDeclaration(FunctionDeclaration node) {
+  DartType visitFunctionDeclaration(FunctionDeclaration node) {
     analyze(node.function);
     return StatementType.NOT_RETURNING;
   }
 
-  Type visitFunctionExpression(FunctionExpression node) {
-    Type type;
-    Type returnType;
-    Type previousType;
+  DartType visitFunctionExpression(FunctionExpression node) {
+    DartType type;
+    DartType returnType;
+    DartType previousType;
     final FunctionElement element = elements[node];
     if (Element.isInvalid(element)) return types.dynamicType;
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
@@ -405,7 +405,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       returnType = functionType.returnType;
       type = functionType;
     }
-    Type previous = expectedReturnType;
+    DartType previous = expectedReturnType;
     expectedReturnType = returnType;
     if (element.isMember()) currentClass = element.getEnclosingClass();
     StatementType bodyType = analyze(node.body);
@@ -423,7 +423,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return type;
   }
 
-  Type visitIdentifier(Identifier node) {
+  DartType visitIdentifier(Identifier node) {
     if (node.isThis()) {
       return currentClass.computeType(compiler);
     } else {
@@ -432,7 +432,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
-  Type visitIf(If node) {
+  DartType visitIf(If node) {
     checkCondition(node.condition);
     StatementType thenType = analyze(node.thenPart);
     StatementType elseType = node.hasElsePart ? analyze(node.elsePart)
@@ -440,16 +440,16 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return thenType.join(elseType);
   }
 
-  Type visitLoop(Loop node) {
+  DartType visitLoop(Loop node) {
     return unhandledStatement();
   }
 
-  Type lookupMethodType(Node node, ClassElement classElement,
+  DartType lookupMethodType(Node node, ClassElement classElement,
                         SourceString name) {
     Element member = classElement.lookupLocalMember(name);
     if (member === null) {
       classElement.ensureResolved(compiler);
-      for (Link<Type> supertypes = classElement.allSupertypes;
+      for (Link<DartType> supertypes = classElement.allSupertypes;
            !supertypes.isEmpty() && member === null;
            supertypes = supertypes.tail) {
         ClassElement lookupTarget = supertypes.head.element;
@@ -464,7 +464,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
-  void analyzeArguments(Send send, Type type) {
+  void analyzeArguments(Send send, DartType type) {
     Link<Node> arguments = send.arguments;
     if (type === null || type === types.dynamicType) {
       while(!arguments.isEmpty()) {
@@ -473,7 +473,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       }
     } else {
       FunctionType funType = type;
-      Link<Type> parameterTypes = funType.parameterTypes;
+      Link<DartType> parameterTypes = funType.parameterTypes;
       while (!arguments.isEmpty() && !parameterTypes.isEmpty()) {
         checkAssignable(arguments.head, parameterTypes.head,
                         analyze(arguments.head));
@@ -489,7 +489,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
-  Type visitSend(Send node) {
+  DartType visitSend(Send node) {
     Element element = elements[node];
 
     if (Elements.isClosureSend(node, element)) {
@@ -505,10 +505,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
       return boolType;
     } else if (node.isOperator) {
       final Node firstArgument = node.receiver;
-      final Type firstArgumentType = analyze(node.receiver);
+      final DartType firstArgumentType = analyze(node.receiver);
       final arguments = node.arguments;
       final Node secondArgument = arguments.isEmpty() ? null : arguments.head;
-      final Type secondArgumentType = analyzeWithDefault(secondArgument, null);
+      final DartType secondArgumentType =
+          analyzeWithDefault(secondArgument, null);
 
       if (name === '+' || name === '=' || name === '-'
           || name === '*' || name === '/' || name === '%'
@@ -544,7 +545,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     } else {
       FunctionType computeFunType() {
         if (node.receiver !== null) {
-          Type receiverType = analyze(node.receiver);
+          DartType receiverType = analyze(node.receiver);
           if (receiverType.element == compiler.dynamicClass) return null;
           if (receiverType === null) {
             fail(node.receiver, 'receivertype is null');
@@ -567,7 +568,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
           }
           ClassElement classElement = receiverType.element;
           // TODO(karlklose): substitute type arguments.
-          Type memberType =
+          DartType memberType =
             lookupMethodType(selector, classElement, selector.source);
           if (memberType.element === compiler.dynamicClass) return null;
           return memberType;
@@ -598,58 +599,58 @@ class TypeCheckerVisitor implements Visitor<Type> {
     final name = node.assignmentOperator.source.stringValue;
     if (name === '++' || name === '--') {
       final Element element = elements[node.selector];
-      final Type receiverType = computeType(element);
+      final DartType receiverType = computeType(element);
       // TODO(karlklose): this should be the return type instead of int.
       return node.isPrefix ? intType : receiverType;
     } else {
-      Type targetType = computeType(elements[node]);
+      DartType targetType = computeType(elements[node]);
       Node value = node.arguments.head;
       checkAssignable(value, targetType, analyze(value));
       return targetType;
     }
   }
 
-  Type visitLiteralInt(LiteralInt node) {
+  DartType visitLiteralInt(LiteralInt node) {
     return intType;
   }
 
-  Type visitLiteralDouble(LiteralDouble node) {
+  DartType visitLiteralDouble(LiteralDouble node) {
     return doubleType;
   }
 
-  Type visitLiteralBool(LiteralBool node) {
+  DartType visitLiteralBool(LiteralBool node) {
     return boolType;
   }
 
-  Type visitLiteralString(LiteralString node) {
+  DartType visitLiteralString(LiteralString node) {
     return stringType;
   }
 
-  Type visitStringJuxtaposition(StringJuxtaposition node) {
+  DartType visitStringJuxtaposition(StringJuxtaposition node) {
     analyze(node.first);
     analyze(node.second);
     return stringType;
   }
 
-  Type visitLiteralNull(LiteralNull node) {
+  DartType visitLiteralNull(LiteralNull node) {
     return types.dynamicType;
   }
 
-  Type visitNewExpression(NewExpression node) {
+  DartType visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
     analyzeArguments(node.send, computeType(element));
     return analyze(node.send.selector);
   }
 
-  Type visitLiteralList(LiteralList node) {
+  DartType visitLiteralList(LiteralList node) {
     return listType;
   }
 
-  Type visitNodeList(NodeList node) {
-    Type type = StatementType.NOT_RETURNING;
+  DartType visitNodeList(NodeList node) {
+    DartType type = StatementType.NOT_RETURNING;
     bool reportedDeadCode = false;
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      Type nextType = analyze(link.head);
+      DartType nextType = analyze(link.head);
       if (type == StatementType.RETURNING) {
         if (!reportedDeadCode) {
           reportTypeWarning(link.head, MessageKind.UNREACHABLE_CODE);
@@ -666,12 +667,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return type;
   }
 
-  Type visitOperator(Operator node) {
+  DartType visitOperator(Operator node) {
     fail(node, 'internal error');
   }
 
   /** Dart Programming Language Specification: 11.10 Return */
-  Type visitReturn(Return node) {
+  DartType visitReturn(Return node) {
     if (node.getBeginToken().stringValue === 'native') {
       return StatementType.RETURNING;
     }
@@ -703,18 +704,18 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return StatementType.RETURNING;
   }
 
-  Type visitThrow(Throw node) {
+  DartType visitThrow(Throw node) {
     if (node.expression !== null) analyze(node.expression);
     return StatementType.RETURNING;
   }
 
-  Type computeType(Element element) {
+  DartType computeType(Element element) {
     if (Element.isInvalid(element)) return types.dynamicType;
-    Type result = element.computeType(compiler);
+    DartType result = element.computeType(compiler);
     return (result !== null) ? result : types.dynamicType;
   }
 
-  Type visitTypeAnnotation(TypeAnnotation node) {
+  DartType visitTypeAnnotation(TypeAnnotation node) {
     return elements.getType(node);
   }
 
@@ -722,8 +723,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
-  Type visitVariableDefinitions(VariableDefinitions node) {
-    Type type = analyzeWithDefault(node.type, types.dynamicType);
+  DartType visitVariableDefinitions(VariableDefinitions node) {
+    DartType type = analyzeWithDefault(node.type, types.dynamicType);
     if (type == types.voidType) {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
       type = types.dynamicType;
@@ -734,14 +735,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
       compiler.ensure(initialization is Identifier
                       || initialization is Send);
       if (initialization is Send) {
-        Type initializer = analyzeNonVoid(link.head);
+        DartType initializer = analyzeNonVoid(link.head);
         checkAssignable(node, type, initializer);
       }
     }
     return StatementType.NOT_RETURNING;
   }
 
-  Type visitWhile(While node) {
+  DartType visitWhile(While node) {
     checkCondition(node.condition);
     StatementType bodyType = analyze(node.body);
     Expression cond = node.condition.asParenthesizedExpression().expression;
@@ -757,14 +758,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
-  Type visitParenthesizedExpression(ParenthesizedExpression node) {
+  DartType visitParenthesizedExpression(ParenthesizedExpression node) {
     return analyze(node.expression);
   }
 
-  Type visitConditional(Conditional node) {
+  DartType visitConditional(Conditional node) {
     checkCondition(node.condition);
-    Type thenType = analyzeNonVoid(node.thenExpression);
-    Type elseType = analyzeNonVoid(node.elseExpression);
+    DartType thenType = analyzeNonVoid(node.thenExpression);
+    DartType elseType = analyzeNonVoid(node.elseExpression);
     if (types.isSubtype(thenType, elseType)) {
       return thenType;
     } else if (types.isSubtype(elseType, thenType)) {
@@ -774,7 +775,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
-  Type visitModifiers(Modifiers node) {}
+  DartType visitModifiers(Modifiers node) {}
 
   visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);

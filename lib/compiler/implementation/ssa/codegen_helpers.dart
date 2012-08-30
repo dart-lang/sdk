@@ -305,6 +305,7 @@ class SsaConditionMerger extends HGraphVisitor {
       if (otherIf.joinBlock !== end) {
         // This could be a join block that just feeds into our join block.
         HBasicBlock otherJoin = otherIf.joinBlock;
+        if (otherJoin.first != otherJoin.last) return;
         if (otherJoin.successors.length != 1) return;
         if (otherJoin.successors[0] != end) return;
         if (otherJoin.phis.isEmpty()) return;

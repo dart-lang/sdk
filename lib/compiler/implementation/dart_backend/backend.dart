@@ -220,12 +220,11 @@ List sorted(Iterable l, comparison) {
   return result;
 }
 
-List<Element> sortElements(Collection<Element> elements) {
-  compareElements(e0, e1) {
-    int result = compareBy((e) => e.getLibrary().uri.toString())(e0, e1);
-    if (result != 0) return result;
-    return compareBy((e) => e.position().charOffset)(e0, e1);
-  }
-
-  return sorted(elements, compareElements);
+compareElements(e0, e1) {
+  int result = compareBy((e) => e.getLibrary().uri.toString())(e0, e1);
+  if (result != 0) return result;
+  return compareBy((e) => e.position().charOffset)(e0, e1);
 }
+
+List<Element> sortElements(Collection<Element> elements) =>
+    sorted(elements, compareElements);

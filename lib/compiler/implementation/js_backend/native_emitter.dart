@@ -184,7 +184,7 @@ function(cls, fields, methods) {
       // If [name] is not in [argumentsBuffer], then the parameter is
       // an optional parameter that was not provided for that stub.
       if (argumentsBuffer.indexOf(name) == -1) return;
-      Type type = parameter.computeType(compiler).unalias(compiler);
+      DartType type = parameter.computeType(compiler).unalias(compiler);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
         // typedef(s).

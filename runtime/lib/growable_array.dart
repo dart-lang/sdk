@@ -53,7 +53,7 @@ class GrowableObjectArray<T> implements List<T> {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    List list = new List<T>();
+    List list = new GrowableObjectArray<T>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
@@ -176,8 +176,7 @@ class GrowableObjectArray<T> implements List<T> {
                            new GrowableObjectArray.withCapacity(length), f);
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, T element)) {
+  reduce(initialValue, combine(previousValue, T element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 

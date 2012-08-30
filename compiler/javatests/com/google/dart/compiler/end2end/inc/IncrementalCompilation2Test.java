@@ -606,8 +606,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "library application;",
             "import 'A.dart' as p;",
             "import 'B.dart' as p;",
-//            "import 'A.dart';",
-//            "import 'B.dart';",
             ""));
     appSource.setContent(
         "A.dart",
@@ -627,8 +625,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(
         errors,
-        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7),
-        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7));
+        errEx(APP, ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION_IMPORT, 1, 1, 0));
   }
 
   public void test_reportMissingSource() throws Exception {

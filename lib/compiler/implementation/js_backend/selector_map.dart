@@ -6,7 +6,7 @@ class SelectorMap<T> extends PartialTypeTree {
 
   SelectorMap(Compiler compiler) : super(compiler);
 
-  SelectorMapNode<T> newNode(ClassElement type)
+  SelectorMapNode<T> newSpecializedNode(ClassElement type)
       => new SelectorMapNode<T>(type);
 
   T operator [](Selector selector) {
@@ -69,6 +69,33 @@ class SelectorMap<T> extends PartialTypeTree {
   void visitMatching(Element member, bool visit(Selector selector, T value)) {
     assert(member.isMember());
     if (root === null) return;
+    // TODO(kasperl): For now, we use a different implementation for
+    // visiting if the tree contains interface subtypes.
+    if (containsInterfaceSubtypes) {
+      visitAllMatching(member, visit);
+    } else {
+      visitHierarchyMatching(member, visit);
+    }
+  }
+
+  void visitAllMatching(Element member, bool visit(selector, value)) {
+    root.visitRecursively((SelectorMapNode<T> node) {
+      Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
+      if (selectors === null) return true;
+      for (Link link = selectors; !link.isEmpty(); link = link.tail) {
+        SelectorValue<T> existing = link.head;
+        Selector selector = existing.selector;
+        // Since we're running through the entire tree we have to use
+        // the applies method that takes types into account.
+        if (selector.applies(member, compiler)) {
+          if (!visit(selector, existing.value)) return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  void visitHierarchyMatching(Element member, bool visit(selector, value)) {
     visitHierarchy(member.getEnclosingClass(), (SelectorMapNode<T> node) {
       Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
       if (selectors === null) return true;

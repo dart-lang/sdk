@@ -79,33 +79,28 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateCallRuntime(intptr_t deopt_id,
                            intptr_t token_pos,
-                           intptr_t try_index,
                            const RuntimeEntry& entry,
                            LocationSummary* locs);
 
   void GenerateCall(intptr_t token_pos,
-                    intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateAssertAssignable(intptr_t deopt_id,
                                 intptr_t token_pos,
-                                intptr_t try_index,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
   void GenerateInstanceOf(intptr_t deopt_id,
                           intptr_t token_pos,
-                          intptr_t try_index,
                           const AbstractType& type,
                           bool negate_result,
                           LocationSummary* locs);
 
   void GenerateInstanceCall(intptr_t deopt_id,
                             intptr_t token_pos,
-                            intptr_t try_index,
                             const String& function_name,
                             intptr_t argument_count,
                             const Array& argument_names,
@@ -114,7 +109,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateStaticCall(intptr_t deopt_id,
                           intptr_t token_pos,
-                          intptr_t try_index,
                           const Function& function,
                           intptr_t argument_count,
                           const Array& argument_names,
@@ -134,18 +128,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
-  void EmitClassChecksNoSmi(const ICData& ic_data,
-                            Register instance_reg,
-                            Register temp_reg,
-                            Label* deopt);
-
   void EmitInstanceCall(ExternalLabel* target_label,
                         const ICData& ic_data,
                         const Array& arguments_descriptor,
                         intptr_t argument_count,
                         intptr_t deopt_id,
                         intptr_t token_pos,
-                        intptr_t try_index,
                         LocationSummary* locs);
 
   void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
@@ -156,7 +144,6 @@ class FlowGraphCompiler : public ValueObject {
                        Label* deopt,
                        intptr_t deopt_id,
                        intptr_t token_index,
-                       intptr_t try_index,
                        LocationSummary* locs);
 
   void EmitDoubleCompareBranch(Condition true_condition,
@@ -180,8 +167,7 @@ class FlowGraphCompiler : public ValueObject {
   void AddExceptionHandler(intptr_t try_index, intptr_t pc_offset);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t deopt_id,
-                            intptr_t token_pos,
-                            intptr_t try_index);
+                            intptr_t token_pos);
 
   void RecordSafepoint(LocationSummary* locs);
 
@@ -208,6 +194,13 @@ class FlowGraphCompiler : public ValueObject {
   // Returns true if the compiled function has a finally clause.
   bool HasFinally() const;
 
+  intptr_t CurrentTryIndex() const {
+    if (current_block_ == NULL) {
+      return CatchClauseNode::kInvalidTryIndex;
+    }
+    return current_block_->try_index();
+  }
+
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
  private:
@@ -225,7 +218,6 @@ class FlowGraphCompiler : public ValueObject {
                       intptr_t argument_count,
                       intptr_t deopt_id,
                       intptr_t token_pos,
-                      intptr_t try_index,
                       LocationSummary* locs);
 
   // Type checking helper methods.

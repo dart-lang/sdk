@@ -254,6 +254,36 @@ void Api::InitOnce() {
 }
 
 
+bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
+  NoGCScope no_gc_scope;
+  RawObject* raw_obj = Api::UnwrapHandle(object);
+  switch (Api::ClassId(object)) {
+    case kExternalOneByteStringCid: {
+      RawExternalOneByteString* raw_string =
+          reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint8_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+    case kExternalTwoByteStringCid: {
+      RawExternalTwoByteString* raw_string =
+          reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint16_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+    case kExternalFourByteStringCid: {
+      RawExternalFourByteString* raw_string =
+          reinterpret_cast<RawExternalFourByteString*>(raw_obj)->ptr();
+      ExternalStringData<uint32_t>* data = raw_string->external_data_;
+      *peer = data->peer();
+      return true;
+    }
+  }
+  return false;
+}
+
+
 // --- Handles ---
 
 
@@ -1528,22 +1558,25 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
 
 DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str = Api::UnwrapStringHandle(isolate, object);
-  if (str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, String);
-  }
-  if (!str.IsExternal()) {
-    return
-        Api::NewError("%s expects argument 'object' to be an external String.",
-                      CURRENT_FUNC);
-  }
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
   }
-  *peer = str.GetPeer();
-  return Api::Success(isolate);
+
+  if (Api::ExternalStringGetPeerHelper(object, peer)) {
+    return Api::Success(Isolate::Current());
+  }
+
+  // It's not an external string, return appropriate error.
+  // Note: this is invoked outside of the NoGCScope'd block above, since
+  // error messages allocate new handles.
+  if (!RawObject::IsStringClassId(Api::ClassId(object))) {
+    RETURN_TYPE_ERROR(Isolate::Current(), object, String);
+  } else {
+    return
+        Api::NewError(
+            "%s expects argument 'object' to be an external String.",
+            CURRENT_FUNC);
+  }
 }
 
 

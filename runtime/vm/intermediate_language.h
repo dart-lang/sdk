@@ -49,12 +49,6 @@ class FlowGraphVisitor;
 class Function;
 class LocalVariable;
 
-// M is a two argument macro.  It is applied to each concrete value's
-// typename and classname.
-#define FOR_EACH_VALUE(M)                                                      \
-  M(Use, UseVal)                                                               \
-
-
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
 #define FOR_EACH_COMPUTATION(M)                                                \
@@ -113,7 +107,6 @@ class LocalVariable;
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
 FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
-FOR_EACH_VALUE(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 // Forward declarations.
@@ -122,7 +115,9 @@ class BranchInstr;
 class BufferFormatter;
 class ComparisonComp;
 class Definition;
+class Definition;
 class Instruction;
+class PhiInstr;
 class PushArgumentInstr;
 class Value;
 
@@ -337,38 +332,44 @@ class TemplateComputation : public Computation {
 
 class Value : public ZoneAllocated {
  public:
-  Value() { }
+  explicit Value(Definition* definition)
+      : definition_(definition),
+        next_use_(NULL),
+        instruction_(NULL),
+        use_index_(-1) { }
 
-  // Declare an enum value used to define kind-test predicates.
-  enum ValueKind {
-#define DECLARE_VALUE_KIND(ShortName, ClassName) k##ShortName,
-  FOR_EACH_VALUE(DECLARE_VALUE_KIND)
-#undef DECLARE_VALUE_KIND
-  };
+  Definition* definition() const { return definition_; }
+  void set_definition(Definition* definition) { definition_ = definition; }
 
-  // Declare predicate for each value.
-#define DECLARE_PREDICATE(ShortName, ClassName)                                \
-  inline bool Is##ShortName() const;                                           \
-  inline const ClassName* As##ShortName() const;                               \
-  inline ClassName* As##ShortName();
-FOR_EACH_VALUE(DECLARE_PREDICATE)
-#undef DECLARE_PREDICATE
+  Value* next_use() const { return next_use_; }
+  void set_next_use(Value* next) { next_use_ = next; }
 
-  virtual ValueKind value_kind() const = 0;
+  Instruction* instruction() const { return instruction_; }
+  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
 
-  virtual RawAbstractType* CompileType() const = 0;
-  virtual intptr_t ResultCid() const = 0;
+  intptr_t use_index() const { return use_index_; }
+  void set_use_index(intptr_t index) { use_index_ = index; }
 
-  virtual void PrintTo(BufferFormatter* f) const = 0;
+  void AddToInputUseList();
+  void AddToEnvUseList();
+
+  Value* Copy() { return new Value(definition_); }
+
+  RawAbstractType* CompileType() const;
+  intptr_t ResultCid() const;
+
+  void PrintTo(BufferFormatter* f) const;
+
+  const char* DebugName() const { return "Value"; }
 
   // Returns true if the value represents a constant.
-  virtual bool BindsToConstant() const = 0;
+  bool BindsToConstant() const;
 
-  // Returns true if the value represents constant null.
-  virtual bool BindsToConstantNull() const = 0;
+  // Returns true if the value represents the constant null.
+  bool BindsToConstantNull() const;
 
-  // Assert if BindsToConstant() is false, otherwise returns constant.
-  virtual const Object& BoundConstant() const = 0;
+  // Assert if BindsToConstant() is false, otherwise returns the constant value.
+  const Object& BoundConstant() const;
 
   // Reminder: The type of the constant null is the bottom type, which is more
   // specific than any type.
@@ -378,11 +379,14 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   // the store buffer.
   bool NeedsStoreBuffer() const;
 
-  virtual bool Equals(Value* other) const = 0;
-
-  virtual Value* CopyValue() = 0;
+  bool Equals(Value* other) const;
 
  private:
+  Definition* definition_;
+  Value* next_use_;
+  Instruction* instruction_;
+  intptr_t use_index_;
+
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
@@ -399,16 +403,6 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   virtual LocationSummary* MakeLocationSummary() const;                        \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
-// Functions defined in all concrete value classes.
-#define DECLARE_VALUE(ShortName)                                               \
-  virtual ValueKind value_kind() const {                                       \
-    return Value::k##ShortName;                                                \
-  }                                                                            \
-  virtual const char* DebugName() const { return #ShortName; }                 \
-  virtual RawAbstractType* CompileType() const;                                \
-  virtual bool Equals(Value* other) const;                                     \
-  virtual void PrintTo(BufferFormatter* f) const;
-
 
 // Function defined in all call computation classes.
 #define DECLARE_CALL_COMPUTATION(ShortName)                                    \
@@ -420,60 +414,6 @@ FOR_EACH_VALUE(DECLARE_PREDICATE)
   virtual RawAbstractType* CompileType() const;                                \
   virtual LocationSummary* MakeLocationSummary() const;                        \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-
-class Definition;
-class PhiInstr;
-
-class UseVal : public Value {
- public:
-  explicit UseVal(Definition* definition)
-      : definition_(definition),
-        next_use_(NULL),
-        instruction_(NULL),
-        use_index_(-1) { }
-
-  DECLARE_VALUE(Use)
-
-  inline Definition* definition() const { return definition_; }
-  void set_definition(Definition* definition) { definition_ = definition; }
-
-  // Returns true if the value represents a constant.
-  virtual bool BindsToConstant() const;
-  virtual const Object& BoundConstant() const;
-
-  // Returns true if the value represents constant null.
-  virtual bool BindsToConstantNull() const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  UseVal* next_use() const { return next_use_; }
-  void set_next_use(UseVal* next) { next_use_ = next; }
-
-  Instruction* instruction() const { return instruction_; }
-  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
-
-  intptr_t use_index() const { return use_index_; }
-  void set_use_index(intptr_t index) { use_index_ = index; }
-
-  void AddToInputUseList();
-  void AddToEnvUseList();
-
-  virtual intptr_t ResultCid() const;
-
-  virtual Value* CopyValue() { return new UseVal(definition_); }
-
- private:
-  Definition* definition_;
-  UseVal* next_use_;
-  Instruction* instruction_;
-  intptr_t use_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(UseVal);
-};
-
-
-#undef DECLARE_VALUE
 
 
 class ConstantComp : public TemplateComputation<0> {
@@ -502,14 +442,12 @@ class ConstantComp : public TemplateComputation<0> {
 class AssertAssignableComp : public TemplateComputation<3> {
  public:
   AssertAssignableComp(intptr_t token_pos,
-                       intptr_t try_index,
                        Value* value,
                        Value* instantiator,
                        Value* instantiator_type_arguments,
                        const AbstractType& dst_type,
                        const String& dst_name)
       : token_pos_(token_pos),
-        try_index_(try_index),
         dst_type_(dst_type),
         dst_name_(dst_name),
         is_eliminated_(false) {
@@ -530,7 +468,6 @@ class AssertAssignableComp : public TemplateComputation<3> {
   Value* instantiator_type_arguments() const { return inputs_[2]; }
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
@@ -549,7 +486,6 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   const AbstractType& dst_type_;
   const String& dst_name_;
   bool is_eliminated_;
@@ -561,10 +497,8 @@ class AssertAssignableComp : public TemplateComputation<3> {
 class AssertBooleanComp : public TemplateComputation<1> {
  public:
   AssertBooleanComp(intptr_t token_pos,
-                    intptr_t try_index,
                     Value* value)
       : token_pos_(token_pos),
-        try_index_(try_index),
         is_eliminated_(false) {
     ASSERT(value != NULL);
     inputs_[0] = value;
@@ -573,7 +507,6 @@ class AssertBooleanComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(AssertBoolean)
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   Value* value() const { return inputs_[0]; }
 
   bool is_eliminated() const {
@@ -591,7 +524,6 @@ class AssertBooleanComp : public TemplateComputation<1> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
@@ -636,17 +568,14 @@ class StoreContextComp : public TemplateComputation<1> {
 class ClosureCallComp : public TemplateComputation<0> {
  public:
   ClosureCallComp(ClosureCallNode* node,
-                  intptr_t try_index,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
-        try_index_(try_index),
         arguments_(arguments) { }
 
   DECLARE_CALL_COMPUTATION(ClosureCall)
 
   const Array& argument_names() const { return ast_node_.arguments()->names(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t try_index() const { return try_index_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
@@ -660,7 +589,6 @@ class ClosureCallComp : public TemplateComputation<0> {
 
  private:
   const ClosureCallNode& ast_node_;
-  const intptr_t try_index_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
@@ -670,14 +598,12 @@ class ClosureCallComp : public TemplateComputation<0> {
 class InstanceCallComp : public TemplateComputation<0> {
  public:
   InstanceCallComp(intptr_t token_pos,
-                   intptr_t try_index,
                    const String& function_name,
                    Token::Kind token_kind,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
       : token_pos_(token_pos),
-        try_index_(try_index),
         function_name_(function_name),
         token_kind_(token_kind),
         arguments_(arguments),
@@ -697,7 +623,6 @@ class InstanceCallComp : public TemplateComputation<0> {
   DECLARE_CALL_COMPUTATION(InstanceCall)
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
@@ -714,7 +639,6 @@ class InstanceCallComp : public TemplateComputation<0> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
@@ -803,13 +727,11 @@ class StrictCompareComp : public ComparisonComp {
 class EqualityCompareComp : public ComparisonComp {
  public:
   EqualityCompareComp(intptr_t token_pos,
-                      intptr_t try_index,
                       Token::Kind kind,
                       Value* left,
                       Value* right)
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
-        try_index_(try_index),
         receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
@@ -817,7 +739,6 @@ class EqualityCompareComp : public ComparisonComp {
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   // Receiver class id is computed from collected ICData.
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
@@ -833,7 +754,6 @@ class EqualityCompareComp : public ComparisonComp {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
@@ -843,13 +763,11 @@ class EqualityCompareComp : public ComparisonComp {
 class RelationalOpComp : public ComparisonComp {
  public:
   RelationalOpComp(intptr_t token_pos,
-                   intptr_t try_index,
                    Token::Kind kind,
                    Value* left,
                    Value* right)
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
-        try_index_(try_index),
         operands_class_id_(kIllegalCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
@@ -857,7 +775,6 @@ class RelationalOpComp : public ComparisonComp {
   DECLARE_COMPUTATION(RelationalOp)
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   // TODO(srdjan): instead of class-id pass an enum that can differentiate
   // between boxed and unboxed doubles and integers.
@@ -877,7 +794,6 @@ class RelationalOpComp : public ComparisonComp {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(RelationalOpComp);
@@ -887,12 +803,10 @@ class RelationalOpComp : public ComparisonComp {
 class StaticCallComp : public TemplateComputation<0> {
  public:
   StaticCallComp(intptr_t token_pos,
-                 intptr_t try_index,
                  const Function& function,
                  const Array& argument_names,
                  ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : token_pos_(token_pos),
-        try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments),
@@ -907,7 +821,6 @@ class StaticCallComp : public TemplateComputation<0> {
   const Function& function() const { return function_; }
   const Array& argument_names() const { return argument_names_; }
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
@@ -924,7 +837,6 @@ class StaticCallComp : public TemplateComputation<0> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
@@ -993,13 +905,12 @@ class StoreLocalComp : public TemplateComputation<1> {
 
 class NativeCallComp : public TemplateComputation<0> {
  public:
-  NativeCallComp(NativeBodyNode* node, intptr_t try_index)
-      : ast_node_(*node), try_index_(try_index) {}
+  explicit NativeCallComp(NativeBodyNode* node)
+      : ast_node_(*node) {}
 
   DECLARE_COMPUTATION(NativeCall)
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t try_index() const { return try_index_; }
 
   const String& native_name() const {
     return ast_node_.native_c_function_name();
@@ -1026,7 +937,6 @@ class NativeCallComp : public TemplateComputation<0> {
 
  private:
   const NativeBodyNode& ast_node_;
-  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallComp);
 };
@@ -1218,14 +1128,12 @@ class BooleanNegateComp : public TemplateComputation<1> {
 class InstanceOfComp : public TemplateComputation<3> {
  public:
   InstanceOfComp(intptr_t token_pos,
-                 intptr_t try_index,
                  Value* value,
                  Value* instantiator,
                  Value* instantiator_type_arguments,
                  const AbstractType& type,
                  bool negate_result)
       : token_pos_(token_pos),
-        try_index_(try_index),
         type_(type),
         negate_result_(negate_result) {
     ASSERT(value != NULL);
@@ -1246,7 +1154,6 @@ class InstanceOfComp : public TemplateComputation<3> {
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1255,7 +1162,6 @@ class InstanceOfComp : public TemplateComputation<3> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   Value* value_;
   Value* instantiator_;
   Value* type_arguments_;
@@ -1269,9 +1175,8 @@ class InstanceOfComp : public TemplateComputation<3> {
 class AllocateObjectComp : public TemplateComputation<0> {
  public:
   AllocateObjectComp(ConstructorCallNode* node,
-                     intptr_t try_index,
                      ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
+      : ast_node_(*node), arguments_(arguments) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -1285,7 +1190,6 @@ class AllocateObjectComp : public TemplateComputation<0> {
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1294,7 +1198,6 @@ class AllocateObjectComp : public TemplateComputation<0> {
 
  private:
   const ConstructorCallNode& ast_node_;
-  const intptr_t try_index_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
@@ -1304,10 +1207,9 @@ class AllocateObjectComp : public TemplateComputation<0> {
 class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
  public:
   AllocateObjectWithBoundsCheckComp(ConstructorCallNode* node,
-                                    intptr_t try_index,
                                     Value* type_arguments,
                                     Value* instantiator)
-      : ast_node_(*node), try_index_(try_index) {
+      : ast_node_(*node) {
     ASSERT(type_arguments != NULL);
     ASSERT(instantiator != NULL);
     inputs_[0] = type_arguments;
@@ -1318,7 +1220,6 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1327,7 +1228,6 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
 
  private:
   const ConstructorCallNode& ast_node_;
-  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectWithBoundsCheckComp);
 };
@@ -1336,12 +1236,10 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
 class CreateArrayComp : public TemplateComputation<1> {
  public:
   CreateArrayComp(intptr_t token_pos,
-                  intptr_t try_index,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const AbstractType& type,
                   Value* element_type)
       : token_pos_(token_pos),
-        try_index_(try_index),
         arguments_(arguments),
         type_(type) {
 #if defined(DEBUG)
@@ -1361,7 +1259,6 @@ class CreateArrayComp : public TemplateComputation<1> {
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   PushArgumentInstr* ArgumentAt(intptr_t i) const { return (*arguments_)[i]; }
   const AbstractType& type() const { return type_; }
   Value* element_type() const { return inputs_[0]; }
@@ -1373,7 +1270,6 @@ class CreateArrayComp : public TemplateComputation<1> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   const AbstractType& type_;
 
@@ -1384,16 +1280,13 @@ class CreateArrayComp : public TemplateComputation<1> {
 class CreateClosureComp : public TemplateComputation<0> {
  public:
   CreateClosureComp(ClosureNode* node,
-                    intptr_t try_index,
                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
-        try_index_(try_index),
         arguments_(arguments) { }
 
   DECLARE_CALL_COMPUTATION(CreateClosure)
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
@@ -1408,7 +1301,6 @@ class CreateClosureComp : public TemplateComputation<0> {
 
  private:
   const ClosureNode& ast_node_;
-  const intptr_t try_index_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
@@ -1422,8 +1314,7 @@ class LoadVMFieldComp : public TemplateComputation<1> {
                   const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
-        result_cid_(kDynamicCid),
-        original_(NULL) {
+        result_cid_(kDynamicCid) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
@@ -1434,21 +1325,17 @@ class LoadVMFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
-  const InstanceCallComp* original() const { return original_; }
-  void set_original(InstanceCallComp* value) { original_ = value; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return result_cid_; }
 
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
   intptr_t result_cid_;
-  const InstanceCallComp* original_;  // For optimizations.
-  // If non-NULL, the instruction is valid only for the class ids listed.
 
   DISALLOW_COPY_AND_ASSIGN(LoadVMFieldComp);
 };
@@ -1491,11 +1378,9 @@ class StoreVMFieldComp : public TemplateComputation<2> {
 class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
  public:
   InstantiateTypeArgumentsComp(intptr_t token_pos,
-                               intptr_t try_index,
                                const AbstractTypeArguments& type_arguments,
                                Value* instantiator)
       : token_pos_(token_pos),
-        try_index_(try_index),
         type_arguments_(type_arguments) {
     ASSERT(type_arguments.IsZoneHandle());
     ASSERT(instantiator != NULL);
@@ -1509,7 +1394,6 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
     return type_arguments_;
   }
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1518,7 +1402,6 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   const AbstractTypeArguments& type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsComp);
@@ -1529,11 +1412,9 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
  public:
   ExtractConstructorTypeArgumentsComp(
       intptr_t token_pos,
-      intptr_t try_index,
       const AbstractTypeArguments& type_arguments,
       Value* instantiator)
       : token_pos_(token_pos),
-        try_index_(try_index),
         type_arguments_(type_arguments) {
     ASSERT(instantiator != NULL);
     inputs_[0] = instantiator;
@@ -1546,7 +1427,6 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
     return type_arguments_;
   }
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1555,7 +1435,6 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   const AbstractTypeArguments& type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsComp);
@@ -1593,16 +1472,13 @@ class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
 class AllocateContextComp : public TemplateComputation<0> {
  public:
   AllocateContextComp(intptr_t token_pos,
-                      intptr_t try_index,
                       intptr_t num_context_variables)
       : token_pos_(token_pos),
-        try_index_(try_index),
         num_context_variables_(num_context_variables) {}
 
   DECLARE_COMPUTATION(AllocateContext);
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -1612,7 +1488,6 @@ class AllocateContextComp : public TemplateComputation<0> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
   const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextComp);
@@ -1641,16 +1516,13 @@ class ChainContextComp : public TemplateComputation<1> {
 class CloneContextComp : public TemplateComputation<1> {
  public:
   CloneContextComp(intptr_t token_pos,
-                   intptr_t try_index,
                    Value* context_value)
-      : token_pos_(token_pos),
-        try_index_(try_index) {
+      : token_pos_(token_pos) {
     ASSERT(context_value != NULL);
     inputs_[0] = context_value;
   }
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   Value* context_value() const { return inputs_[0]; }
 
   DECLARE_COMPUTATION(CloneContext)
@@ -1660,7 +1532,6 @@ class CloneContextComp : public TemplateComputation<1> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextComp);
 };
@@ -1972,12 +1843,10 @@ class NumberNegateComp : public TemplateComputation<1> {
 
 class CheckStackOverflowComp : public TemplateComputation<0> {
  public:
-  CheckStackOverflowComp(intptr_t token_pos, intptr_t try_index)
-      : token_pos_(token_pos),
-        try_index_(try_index) {}
+  explicit CheckStackOverflowComp(intptr_t token_pos)
+      : token_pos_(token_pos) {}
 
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   DECLARE_COMPUTATION(CheckStackOverflow)
 
@@ -1986,7 +1855,6 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowComp);
 };
@@ -2057,7 +1925,6 @@ class CheckClassComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
 
   intptr_t deopt_id() const { return original_->deopt_id(); }
-  intptr_t try_index() const { return original_->try_index(); }
 
   virtual Definition* TryReplace(BindInstr* instr) const;
 
@@ -2092,7 +1959,6 @@ class CheckSmiComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
 
   intptr_t deopt_id() const { return original_->deopt_id(); }
-  intptr_t try_index() const { return original_->try_index(); }
 
  private:
   InstanceCallComp* original_;
@@ -2129,7 +1995,6 @@ class CheckArrayBoundComp : public TemplateComputation<2> {
   intptr_t array_type() const { return array_type_; }
 
   intptr_t deopt_id() const { return original_->deopt_id(); }
-  intptr_t try_index() const { return original_->try_index(); }
 
  private:
   intptr_t array_type_;
@@ -2157,21 +2022,6 @@ ClassName* Computation::As##ShortName() {                                      \
 }
 FOR_EACH_COMPUTATION(DEFINE_COMPUTATION_PREDICATE)
 #undef DEFINE_COMPUTATION_PREDICATE
-
-#define DEFINE_VALUE_PREDICATE(ShortName, ClassName)                           \
-bool Value::Is##ShortName() const {                                            \
-  return value_kind() == k##ShortName;                                         \
-}                                                                              \
-const ClassName* Value::As##ShortName() const {                                \
-  if (!Is##ShortName()) return NULL;                                           \
-  return static_cast<const ClassName*>(this);                                  \
-}                                                                              \
-ClassName* Value::As##ShortName() {                                            \
-  if (!Is##ShortName()) return NULL;                                           \
-  return static_cast<ClassName*>(this);                                        \
-}
-FOR_EACH_VALUE(DEFINE_VALUE_PREDICATE)
-#undef DEFINE_VALUE_PREDICATE
 
 // Instructions.
 
@@ -2546,9 +2396,12 @@ class BlockEntryInstr : public Instruction {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  intptr_t try_index() const { return try_index_; }
+
  protected:
-  BlockEntryInstr()
-      : preorder_number_(-1),
+  explicit BlockEntryInstr(intptr_t try_index)
+      : try_index_(try_index),
+        preorder_number_(-1),
         postorder_number_(-1),
         block_id_(-1),
         dominator_(NULL),
@@ -2557,6 +2410,7 @@ class BlockEntryInstr : public Instruction {
         parallel_move_(NULL) { }
 
  private:
+  const intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
   // Starting and ending lifetime positions for this block.  Used by
@@ -2665,6 +2519,8 @@ class GraphEntryInstr : public BlockEntryInstr {
     spill_slot_count_ = count;
   }
 
+  TargetEntryInstr* normal_entry() const { return normal_entry_; }
+
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
@@ -2678,8 +2534,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  JoinEntryInstr()
-      : BlockEntryInstr(),
+  explicit JoinEntryInstr(intptr_t try_index)
+      : BlockEntryInstr(try_index),
         predecessors_(2),  // Two is the assumed to be the common case.
         phis_(NULL),
         phi_count_(0) { }
@@ -2717,16 +2573,16 @@ class JoinEntryInstr : public BlockEntryInstr {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr()
-      : BlockEntryInstr(),
+  explicit TargetEntryInstr(intptr_t try_index)
+      : BlockEntryInstr(try_index),
         predecessor_(NULL),
-        try_index_(CatchClauseNode::kInvalidTryIndex) { }
+        catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
 
   // Used for exception catch entries.
-  explicit TargetEntryInstr(intptr_t try_index)
-      : BlockEntryInstr(),
+  explicit TargetEntryInstr(intptr_t try_index, intptr_t catch_try_index)
+      : BlockEntryInstr(try_index),
         predecessor_(NULL),
-        try_index_(try_index) { }
+        catch_try_index_(catch_try_index) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -2742,20 +2598,23 @@ class TargetEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
-  bool HasTryIndex() const {
-    return try_index_ != CatchClauseNode::kInvalidTryIndex;
+  // Returns true if this Block is an entry of a catch handler.
+  bool IsCatchEntry() const {
+    return catch_try_index_ != CatchClauseNode::kInvalidTryIndex;
   }
 
-  intptr_t try_index() const {
-    ASSERT(HasTryIndex());
-    return try_index_;
+  // Returns try index for the try block to which this catch handler
+  // corresponds.
+  intptr_t catch_try_index() const {
+    ASSERT(IsCatchEntry());
+    return catch_try_index_;
   }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
  private:
   BlockEntryInstr* predecessor_;
-  const intptr_t try_index_;
+  const intptr_t catch_try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
@@ -2816,11 +2675,11 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  UseVal* input_use_list() { return input_use_list_; }
-  void set_input_use_list(UseVal* head) { input_use_list_ = head; }
+  Value* input_use_list() { return input_use_list_; }
+  void set_input_use_list(Value* head) { input_use_list_ = head; }
 
-  UseVal* env_use_list() { return env_use_list_; }
-  void set_env_use_list(UseVal* head) { env_use_list_ = head; }
+  Value* env_use_list() { return env_use_list_; }
+  void set_env_use_list(Value* head) { env_use_list_ = head; }
 
   // Replace uses of this definition with uses of other definition or value.
   // Precondition: use lists must be properly calculated.
@@ -2834,8 +2693,8 @@ class Definition : public Instruction {
   // For now:
   AbstractType& propagated_type_;
   intptr_t propagated_cid_;
-  UseVal* input_use_list_;
-  UseVal* env_use_list_;
+  Value* input_use_list_;
+  Value* env_use_list_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -3058,10 +2917,9 @@ class ReturnInstr : public TemplateInstruction<1> {
 
 class ThrowInstr : public TemplateInstruction<0> {
  public:
-  ThrowInstr(intptr_t token_pos, intptr_t try_index)
+  explicit ThrowInstr(intptr_t token_pos)
       : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos),
-        try_index_(try_index) { }
+        token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(Throw)
 
@@ -3069,7 +2927,6 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -3080,7 +2937,6 @@ class ThrowInstr : public TemplateInstruction<0> {
  private:
   const intptr_t deopt_id_;
   const intptr_t token_pos_;
-  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
@@ -3088,11 +2944,9 @@ class ThrowInstr : public TemplateInstruction<0> {
 
 class ReThrowInstr : public TemplateInstruction<0> {
  public:
-  ReThrowInstr(intptr_t token_pos,
-               intptr_t try_index)
+  explicit ReThrowInstr(intptr_t token_pos)
       : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos),
-        try_index_(try_index) { }
+        token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(ReThrow)
 
@@ -3100,7 +2954,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
 
   intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -3111,7 +2964,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
  private:
   const intptr_t deopt_id_;
   const intptr_t token_pos_;
-  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };

@@ -7,14 +7,14 @@ var fs = require('fs');
 try {
   fs.mkdirSync('output/crawl');
 } catch (e) {
-  // It doesn't matter if the directories already exist.    
+  // It doesn't matter if the directories already exist.
 }
 
 var domTypes = JSON.parse(fs.readFileSync('data/domTypes.json', 'utf8'));
 
 var cacheData = {};
 
-function scrape(filename, link) { 
+function scrape(filename, link) {
   console.log(link);
   var httpsPrefix = "https://";
   var prefix = 'https://developer.mozilla.org/';
@@ -100,7 +100,7 @@ for (var i = 0; i < domTypes.length; i++) {
     scrape(type + 0, link);
     continue;
   }
-  
+
   for (j = 0; j < items.length; j++) {
     var item = items[j];
     var prefix = 'https://developer.mozilla.org/';

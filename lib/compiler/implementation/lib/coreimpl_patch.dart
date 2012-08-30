@@ -2,9 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Patch file for dart:core classes.
+// Patch file for dart:coreimpl classes.
 
-// Path for Object implementation.
+// Patch for 'print' function.
+patch class PrintImplementation {
+  patch static void print(var obj) {
+    if (obj is String) {
+      Primitives.printString(obj);
+    } else {
+      Primitives.printString(obj.toString());
+    }
+  }
+}
+
+
+// Patch for Object implementation.
 // TODO(ager): Split out into object_patch.dart and allow #source
 // in patch files?
 patch class ObjectImplementation {

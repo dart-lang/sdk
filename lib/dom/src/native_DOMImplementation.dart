@@ -32,11 +32,10 @@ class _Utils {
   }
 
   static window() native "Utils_window";
+  static print(String message) native "Utils_print";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 }
-
-Utils_print(String message) native "Utils_print";
 
 class _NPObject extends NativeFieldWrapperClass1 {
   _NPObject();
@@ -105,3 +104,11 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
   int get length() => Maps.length(this);
   bool isEmpty() => Maps.isEmpty(this);
 }
+
+get _printClosure => (s) {
+  try {
+    window.console.log(s);
+  } on Dynamic catch(_) {
+    _Utils.print(s);
+  }
+};

@@ -143,4 +143,3 @@ class DeoptInfoBuilder : public ValueObject {
 }  // namespace dart
 
 #endif  // VM_DEOPT_INSTRUCTIONS_H_
-

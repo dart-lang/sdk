@@ -26,25 +26,15 @@ public interface CoreTypeProvider {
 
   DynamicType getDynamicType();
 
-  InterfaceType getFallThroughError();
-
   InterfaceType getArrayType(Type elementType);
-
-  InterfaceType getArrayLiteralType(Type elementType);
   
   InterfaceType getIteratorType(Type elementType);
   
   InterfaceType getMapType(Type key, Type value);
 
-  InterfaceType getMapLiteralType(Type key, Type value);
-
-  InterfaceType getObjectArrayType();
-
   InterfaceType getObjectType();
 
   InterfaceType getNumType();
 
-  InterfaceType getStringImplementationType();
-  
   InterfaceType getTypeType();
 }

@@ -148,7 +148,9 @@ class Entrypoint {
         if (id.source is RootSource) return new Future.immediate(id);
         return install(id);
       }));
-    }).chain(_saveLockFile).chain(_installSelfReference);
+    }).chain(_saveLockFile)
+      .chain(_installSelfReference)
+      .chain(_linkSecondaryPackageDirs);
   }
 
   /**
@@ -223,6 +225,74 @@ class Entrypoint {
     return exists(linkPath).chain((exists) {
       if (exists) return new Future.immediate(null);
       return ensureDir(path).chain((_) => createSymlink(root.dir, linkPath));
+    });
+  }
+
+  /**
+   * If `bin/`, `test/`, or `example/` directories exist, symlink `packages/`
+   * into them so that their entrypoints can be run. Do the same for any
+   * subdirectories of `test/` and `example/`.
+   */
+  Future _linkSecondaryPackageDirs(_) {
+    var binDir = join(root.dir, 'bin');
+    var testDir = join(root.dir, 'test');
+    var exampleDir = join(root.dir, 'example');
+    return dirExists(binDir).chain((exists) {
+      if (!exists) return new Future.immediate(null);
+      return _linkSecondaryPackageDir(binDir);
+    }).chain((_) => _linkSecondaryPackageDirsRecursively(testDir))
+      .chain((_) => _linkSecondaryPackageDirsRecursively(exampleDir));
+  }
+
+  /**
+   * Creates a symlink to the `packages` directory in [dir] and all its
+   * subdirectories.
+   */
+  Future _linkSecondaryPackageDirsRecursively(String dir) {
+    return dirExists(dir).chain((exists) {
+      if (!exists) return new Future.immediate(null);
+      return _linkSecondaryPackageDir(dir)
+        .chain((_) => _listDirWithoutPackages(dir))
+        .chain((files) {
+        return Futures.wait(files.map((file) {
+          return dirExists(file).chain((isDir) {
+            if (!isDir) return new Future.immediate(null);
+            return _linkSecondaryPackageDir(file);
+          });
+        }));
+      });
+    });
+  }
+
+  // TODO(nweiz): roll this into [listDir] in io.dart once issue 4775 is fixed.
+  /**
+   * Recursively lists the contents of [dir], excluding hidden `.DS_Store` files
+   * and `package` files.
+   */
+  Future<List<String>> _listDirWithoutPackages(dir) {
+    return listDir(dir).chain((files) {
+      return Futures.wait(files.map((file) {
+        if (basename(file) == 'packages') return new Future.immediate([]);
+        return dirExists(file).chain((isDir) {
+          if (!isDir) return new Future.immediate([]);
+          return _listDirWithoutPackages(file);
+        }).transform((subfiles) {
+          var fileAndSubfiles = [file];
+          fileAndSubfiles.addAll(subfiles);
+          return fileAndSubfiles;
+        });
+      }));
+    }).transform(flatten);
+  }
+
+  /**
+   * Creates a symlink to the `packages` directory in [dir] if none exists.
+   */
+  Future _linkSecondaryPackageDir(String dir) {
+    var to = join(dir, 'packages');
+    return exists(to).chain((exists) {
+      if (exists) return new Future.immediate(null);
+      return createSymlink(path, to);
     });
   }
 

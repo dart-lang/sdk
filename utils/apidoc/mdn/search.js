@@ -11,7 +11,7 @@ try {
   fs.mkdirSync('output');
   fs.mkdirSync('output/search');
 } catch (e) {
-  // It doesn't matter if the directories already exist.    
+  // It doesn't matter if the directories already exist.
 }
 
 function searchForType(type) {

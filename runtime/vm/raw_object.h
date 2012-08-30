@@ -10,8 +10,6 @@
 #include "vm/token.h"
 #include "vm/snapshot.h"
 
-#include "include/dart_api.h"
-
 namespace dart {
 
 // Macrobatics to define the Object hierarchy of VM implementation classes.
@@ -815,7 +813,11 @@ class RawStackmap : public RawObject {
 
   RawCode* code_;  // Code object corresponding to the frame described.
 
+  // TODO(kmillikin): We need a small number of bits to encode the register
+  // count.  Consider packing them in with the length.
   intptr_t length_;  // Length of payload, in bits.
+  intptr_t register_bit_count_;  // Live register bits, included in length_.
+
   uword pc_;  // PC corresponding to this stack map representation.
 
   // Variable length data follows here (bitmap of the stack layout).
@@ -1127,6 +1129,7 @@ class RawExternalOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
 
   ExternalStringData<uint8_t>* external_data_;
+  friend class Api;
 };
 
 
@@ -1134,6 +1137,7 @@ class RawExternalTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
 
   ExternalStringData<uint16_t>* external_data_;
+  friend class Api;
 };
 
 
@@ -1141,6 +1145,7 @@ class RawExternalFourByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString);
 
   ExternalStringData<uint32_t>* external_data_;
+  friend class Api;
 };
 
 

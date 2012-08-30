@@ -285,7 +285,7 @@ class PlaceholderCollector extends AbstractVisitor {
         identifier, () => new Set<Identifier>()).add(node);
   }
 
-  void makeTypePlaceholder(Node node, Type type) {
+  void makeTypePlaceholder(Node node, DartType type) {
     makeElementPlaceholder(node, type.element);
   }
 
@@ -525,7 +525,7 @@ class PlaceholderCollector extends AbstractVisitor {
     if (node.defaultClause !== null) {
       // Can't just visit class node's default clause because of the bug in the
       // resolver, it just crashes when it meets type variable.
-      Type defaultType = classElement.defaultClass;
+      DartType defaultType = classElement.defaultClass;
       assert(defaultType !== null);
       makeTypePlaceholder(node.defaultClause.typeName, defaultType);
       visit(node.defaultClause.typeArguments);
@@ -545,7 +545,7 @@ class PlaceholderCollector extends AbstractVisitor {
     }
     // Another poor man type resolution.
     // Find this variable in enclosing type declaration parameters.
-    for (Type type in typeDeclaration.typeVariables) {
+    for (DartType type in typeDeclaration.typeVariables) {
       if (type.name.slowToString() == name.source.slowToString()) {
         makeTypePlaceholder(name, type);
         return true;

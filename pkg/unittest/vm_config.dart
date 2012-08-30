@@ -15,7 +15,7 @@ class VmConfiguration extends Configuration {
       String uncaughtError) {
     try {
       super.onDone(passed, failed, errors, results, uncaughtError);
-    } catch (Exception ex) {
+    } on Exception catch (ex) {
       // A non-zero exit code is used by the test infrastructure to detect
       // failure.
       exit(1);

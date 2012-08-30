@@ -284,6 +284,15 @@ module core {
   };
 }
 
+module html {
+    [Supplemental,
+     CustomConstructor,
+     // Provide missing constructor signature.
+     Constructor([Optional] in FormElement form)]
+    interface FormData {
+    };
+}
+
 module storage {
   [Supplemental]
   interface SQLResultSetRowList {

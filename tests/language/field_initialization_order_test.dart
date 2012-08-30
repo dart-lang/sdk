@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // Test that field initializers are evaluated in the right order.
 
 int counter = 0;
@@ -62,9 +63,14 @@ main() {
   Expect.equals('b.a.bi.', run(() => new TwoFields.initB()));
   Expect.equals('b.a.ai.bi.', run(() => new TwoFields.initBoth()));
 
-  Expect.equals('b.a.', run(() => new InheritOneField()));
-  Expect.equals('b.bi.a.', run(() => new InheritOneField.init()));
-  Expect.equals('b.a.ai.', run(() => new InheritOneField.superWithInit()));
-  Expect.equals('b.bi.a.ai.', run(() => new InheritOneField.initWithSuperInit()));
-  Expect.equals('b.a.ai.bi.', run(() => new InheritOneField.initWithSuperInit2()));
+  Expect.equals('b.a.', run(() =>
+      new InheritOneField()));
+  Expect.equals('b.bi.a.', run(() =>
+      new InheritOneField.init()));
+  Expect.equals('b.a.ai.', run(() =>
+      new InheritOneField.superWithInit()));
+  Expect.equals('b.bi.a.ai.', run(() =>
+      new InheritOneField.initWithSuperInit()));
+  Expect.equals('b.a.ai.bi.', run(() =>
+      new InheritOneField.initWithSuperInit2()));
 }

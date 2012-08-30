@@ -733,10 +733,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
 
-    assert (not (
-      'synthesizedV8EnabledPerContext' in ext_attrs and
-      'synthesizedV8EnabledAtRuntime' in ext_attrs))
-    if 'synthesizedV8EnabledPerContext' in ext_attrs:
+    v8EnabledPerContext = ext_attrs.get('synthesizedV8EnabledPerContext', ext_attrs.get('V8EnabledPerContext'))
+    v8EnabledAtRuntime = ext_attrs.get('synthesizedV8EnabledAtRuntime', ext_attrs.get('V8EnabledAtRuntime'))
+    assert(not (v8EnabledPerContext and v8EnabledAtRuntime))
+
+    if v8EnabledPerContext:
       raises_exceptions = True
       self._cpp_impl_includes.add('"ContextFeatures.h"')
       self._cpp_impl_includes.add('"DOMWindow.h"')
@@ -745,9 +746,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
-          FEATURE=ext_attrs['synthesizedV8EnabledPerContext'])
+          FEATURE=v8EnabledPerContext)
 
-    if 'synthesizedV8EnabledAtRuntime' in ext_attrs:
+    if v8EnabledAtRuntime:
       raises_exceptions = True
       self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
       runtime_check = emitter.Format(
@@ -755,7 +756,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
-          FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
+          FEATURE=_ToWebKitName(v8EnabledAtRuntime))
 
     body_emitter = self._cpp_definitions_emitter.Emit(
         '\n'

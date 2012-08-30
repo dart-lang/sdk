@@ -35,10 +35,6 @@ static const intptr_t kTempVirtualRegister = -2;
 static const intptr_t kIllegalPosition = -1;
 static const intptr_t kMaxPosition = 0x7FFFFFFF;
 
-// Number of stack slots needed for a double spill slot.
-static const intptr_t kDoubleSpillSlotFactor = kDoubleSize / kWordSize;
-
-
 static intptr_t MinPosition(intptr_t a, intptr_t b) {
   return (a < b) ? a : b;
 }
@@ -101,19 +97,17 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
         ASSERT(current->env() != NULL);
         GrowableArray<Value*>* values = current->env()->values_ptr();
         for (intptr_t i = 0; i < values->length(); i++) {
-          UseVal* use = (*values)[i]->AsUse();
-          if (use == NULL) continue;
-
+          Value* use = (*values)[i];
           Definition* def = use->definition();
           PushArgumentInstr* push_argument = def->AsPushArgument();
           if ((push_argument != NULL) && push_argument->WasEliminated()) {
-            (*values)[i] = push_argument->value()->CopyValue();
+            (*values)[i] = push_argument->value()->Copy();
             continue;
           }
 
           PhiInstr* phi = def->AsPhi();
           if ((phi != NULL) && !phi->is_alive()) {
-            (*values)[i] = new UseVal(constant_null);
+            (*values)[i] = new Value(constant_null);
             continue;
           }
         }
@@ -147,19 +141,17 @@ void FlowGraphAllocator::ComputeInitialSets() {
       // Handle uses.
       for (intptr_t j = 0; j < current->InputCount(); j++) {
         Value* input = current->InputAt(j);
-        if (input->IsUse()) {
-          const intptr_t use = input->AsUse()->definition()->ssa_temp_index();
-          live_in->Add(use);
-        }
+        const intptr_t use = input->definition()->ssa_temp_index();
+        live_in->Add(use);
       }
 
       // Add uses from the deoptimization environment.
       if (current->env() != NULL) {
         const GrowableArray<Value*>& values = current->env()->values();
         for (intptr_t j = 0; j < values.length(); j++) {
-          UseVal* use_val = values[j]->AsUse();
-          if ((use_val != NULL) && !use_val->definition()->IsPushArgument()) {
-            live_in->Add(use_val->definition()->ssa_temp_index());
+          Value* value = values[j];
+          if (!value->definition()->IsPushArgument()) {
+            live_in->Add(value->definition()->ssa_temp_index());
           }
         }
       }
@@ -180,12 +172,10 @@ void FlowGraphAllocator::ComputeInitialSets() {
           // live-in for a predecessor.
           for (intptr_t k = 0; k < phi->InputCount(); k++) {
             Value* val = phi->InputAt(k);
-            if (val->IsUse()) {
-              BlockEntryInstr* pred = block->PredecessorAt(k);
-              const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-              if (!kill_[pred->postorder_number()]->Contains(use)) {
-                live_in_[pred->postorder_number()]->Add(use);
-              }
+            BlockEntryInstr* pred = block->PredecessorAt(k);
+            const intptr_t use = val->definition()->ssa_temp_index();
+            if (!kill_[pred->postorder_number()]->Contains(use)) {
+              live_in_[pred->postorder_number()]->Add(use);
             }
           }
         }
@@ -197,11 +187,9 @@ void FlowGraphAllocator::ComputeInitialSets() {
   GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
   for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
     Value* val = graph_entry->start_env()->values()[i];
-    if (val->IsUse()) {
-      intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
-      kill_[graph_entry->postorder_number()]->Add(vreg);
-      live_in_[graph_entry->postorder_number()]->Remove(vreg);
-    }
+    intptr_t vreg = val->definition()->ssa_temp_index();
+    kill_[graph_entry->postorder_number()]->Add(vreg);
+    live_in_[graph_entry->postorder_number()]->Remove(vreg);
   }
 
   // Process global constants.
@@ -533,8 +521,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
   GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
   for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
     Value* val = graph_entry->start_env()->values()[i];
-    ASSERT(val->IsUse());
-    ParameterInstr* param = val->AsUse()->definition()->AsParameter();
+    ParameterInstr* param = val->definition()->AsParameter();
     if (param == NULL) continue;
 
     // Handle the parameters specially.  They are spilled on entry.
@@ -650,15 +637,13 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
     Value* val = phi->InputAt(pred_idx);
     MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
-    ASSERT(val->IsUse());
     // Expected shape of live ranges:
     //
     //                 g  g'
     //      value    --*
     //
 
-    LiveRange* range =
-        GetLiveRange(val->AsUse()->definition()->ssa_temp_index());
+    LiveRange* range = GetLiveRange(val->definition()->ssa_temp_index());
 
     range->AddUseInterval(block->start_pos(), pos);
     range->AddHintedUse(pos, move->src_slot(), move->dest_slot());
@@ -749,9 +734,8 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
 
   for (intptr_t i = 0; i < values.length(); ++i) {
     Value* value = values[i];
-    ASSERT(value->IsUse());
     locations[i] = Location::Any();
-    Definition* def = value->AsUse()->definition();
+    Definition* def = value->definition();
 
     if (def->IsPushArgument()) {
       // Frame size is unknown until after allocation.
@@ -821,8 +805,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
        j < current->InputCount();
        j++) {
     Value* input = current->InputAt(j);
-    ASSERT(input->IsUse());  // Can not be a constant currently.
-    const intptr_t vreg = input->AsUse()->definition()->ssa_temp_index();
+    const intptr_t vreg = input->definition()->ssa_temp_index();
     LiveRange* range = GetLiveRange(vreg);
 
     Location* in_ref = locs->in_slot(j);
@@ -981,9 +964,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     // Add uses to the live range of the input.
     Value* input = current->InputAt(0);
-    ASSERT(input->IsUse());  // Can not be a constant currently.
-    LiveRange* input_range = GetLiveRange(
-      input->AsUse()->definition()->ssa_temp_index());
+    LiveRange* input_range =
+        GetLiveRange(input->definition()->ssa_temp_index());
     input_range->AddUseInterval(block->start_pos(), pos);
     input_range->AddUse(pos, move->src_slot());
 
@@ -1779,11 +1761,16 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
     ConvertUseTo(use, loc);
   }
 
+  // Add live registers at all safepoints for instructions with slow-path
+  // code.
   if (loc.IsMachineRegister()) {
     for (SafepointPosition* safepoint = range->first_safepoint();
          safepoint != NULL;
          safepoint = safepoint->next()) {
-      safepoint->locs()->live_registers()->Add(loc);
+      if (!safepoint->locs()->always_calls()) {
+        ASSERT(safepoint->locs()->can_call());
+        safepoint->locs()->live_registers()->Add(loc);
+      }
     }
   }
 }
@@ -2127,23 +2114,11 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   ResolveControlFlow();
 
-  // Reserve spill slots for XMM registers alive across slow path code.
-  // TODO(vegorov): remove this code when safepoints with registers are
-  // implemented.
-  intptr_t deferred_xmm_spills = 0;
-  for (intptr_t i = 0; i < safepoints_.length(); i++) {
-    if (!safepoints_[i]->locs()->always_calls()) {
-      const intptr_t count =
-          safepoints_[i]->locs()->live_registers()->xmm_regs_count();
-      if (count > deferred_xmm_spills) deferred_xmm_spills = count;
-    }
-  }
-
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
-  entry->set_spill_slot_count(
-      (deferred_xmm_spills + spill_slots_.length()) * kDoubleSpillSlotFactor +
-      cpu_spill_slot_count_);
+  intptr_t double_spill_slot_count =
+      spill_slots_.length() * kDoubleSpillSlotFactor;
+  entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
 
   if (FLAG_print_ssa_liveranges) {
     const Function& function = flow_graph_.parsed_function().function();

@@ -5,10 +5,16 @@
 # This file contains a set of utilities functions used by other Python-based
 # scripts.
 
-import platform
-import re
-import os
 import commands
+import os
+import platform
+import Queue
+import re
+import StringIO
+import subprocess
+import sys
+import threading
+import time
 
 
 # Try to guess the host operating system.
@@ -128,12 +134,116 @@ def GetBuildConf(mode, arch):
   return GetBuildMode(mode) + arch.upper()
 
 
-def GetBuildRoot(target_os, mode=None, arch=None):
+def GetBuildRoot(host_os, mode=None, arch=None):
   global BUILD_ROOT
   if mode:
-    return os.path.join(BUILD_ROOT[target_os], GetBuildConf(mode, arch))
+    return os.path.join(BUILD_ROOT[host_os], GetBuildConf(mode, arch))
   else:
-    return BUILD_ROOT[target_os]
+    return BUILD_ROOT[host_os]
+
+
+def RunCommand(command, input=None, pollFn=None, outStream=None, errStream=None,
+               killOnEarlyReturn=True, verbose=False, debug=False,
+               printErrorInfo=False):
+  """
+  Run a command, with optional input and polling function.
+
+  Args:
+    command: list of the command and its arguments.
+    input: optional string of input to feed to the command, it should be
+        short enough to fit in an i/o pipe buffer.
+    pollFn: if present will be called occasionally to check if the command
+        should be finished early. If pollFn() returns true then the command
+        will finish early.
+    outStream: if present, the stdout output of the command will be written to
+        outStream.
+    errStream: if present, the stderr output of the command will be written to
+        errStream.
+    killOnEarlyReturn: if true and pollFn returns true, then the subprocess will
+        be killed, otherwise the subprocess will be detached.
+    verbose: if true, the command is echoed to stderr.
+    debug: if true, prints debugging information to stderr.
+    printErrorInfo: if true, prints error information when the subprocess
+    returns a non-zero exit code.
+  Returns: the output of the subprocess.
+
+  Raises an exception if the subprocess returns an error code.
+  """
+  if verbose:
+    sys.stderr.write("command %s\n" % command)
+  stdin = None
+  if input is not None:
+    stdin = subprocess.PIPE
+  try:
+    process = subprocess.Popen(args=command,
+                               stdin=stdin,
+                               bufsize=1,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+  except Exception as e:
+    if not isinstance(command, basestring):
+      command = ' '.join(command)
+    if printErrorInfo:
+      sys.stderr.write("Command failed: '%s'\n" % command)
+    raise e
+
+  def StartThread(out):
+    queue = Queue.Queue()
+    def EnqueueOutput(out, queue):
+      for line in iter(out.readline, b''):
+        queue.put(line)
+      out.close()
+    thread = threading.Thread(target=EnqueueOutput, args=(out, queue))
+    thread.daemon = True
+    thread.start()
+    return queue
+  outQueue = StartThread(process.stdout)
+  errQueue = StartThread(process.stderr)
+
+  def ReadQueue(queue, out, out2):
+    try:
+      while True:
+        line = queue.get(False)
+        out.write(line)
+        if out2 != None:
+          out2.write(line)
+    except Queue.Empty:
+      pass
+
+  outBuf = StringIO.StringIO()
+  errorBuf = StringIO.StringIO()
+  if input != None:
+    process.stdin.write(input)
+  while True:
+    returncode = process.poll()
+    if returncode != None:
+      break
+    ReadQueue(errQueue, errorBuf, errStream)
+    ReadQueue(outQueue, outBuf, outStream)
+    if pollFn != None and pollFn():
+      returncode = 0
+      if killOnEarlyReturn:
+        process.kill()
+      break
+    time.sleep(0.1)
+  # Drain queue
+  ReadQueue(errQueue, errorBuf, errStream)
+  ReadQueue(outQueue, outBuf, outStream)
+
+  out = outBuf.getvalue();
+  error = errorBuf.getvalue();
+  if returncode != 0:
+    if not isinstance(command, basestring):
+      command = ' '.join(command)
+    if printErrorInfo:
+      sys.stderr.write("Command failed: '%s'\n" % command)
+      sys.stderr.write("        stdout: '%s'\n" % out)
+      sys.stderr.write("        stderr: '%s'\n" % error)
+      sys.stderr.write("    returncode: %d\n" % returncode)
+    raise Exception("Command failed: %s" % command)
+  if debug:
+    sys.stderr.write("output: %s\n" % out)
+  return out
 
 
 def Main(argv):

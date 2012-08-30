@@ -56,11 +56,6 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     private final DynamicType dynamicType = Types.newDynamicType();
 
     @Override
-    public InterfaceType getArrayLiteralType(Type elementType) {
-      return getArrayType(elementType);
-    }
-
-    @Override
     public InterfaceType getArrayType(Type elementType) {
       return list.getType().subst(Arrays.asList(elementType), list.getTypeParameters());
     }
@@ -81,11 +76,6 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     }
 
     @Override
-    public InterfaceType getFallThroughError() {
-      throw new AssertionError();
-    }
-
-    @Override
     public InterfaceType getFunctionType() {
       return function.getType();
     }
@@ -99,11 +89,6 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     public InterfaceType getIteratorType(Type elementType) {
       InterfaceType iteratorType = iterElement.getType();
       return iteratorType.subst(Arrays.asList(elementType), iterElement.getTypeParameters());
-    }
-
-    @Override
-    public InterfaceType getMapLiteralType(Type key, Type value) {
-      return getMapType(key, value);
     }
 
     @Override
@@ -124,18 +109,8 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     }
 
     @Override
-    public InterfaceType getObjectArrayType() {
-      throw new AssertionError();
-    }
-
-    @Override
     public InterfaceType getObjectType() {
       return object.getType();
-    }
-
-    @Override
-    public InterfaceType getStringImplementationType() {
-      throw new AssertionError();
     }
 
     @Override

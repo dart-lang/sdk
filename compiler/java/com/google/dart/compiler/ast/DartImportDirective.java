@@ -78,6 +78,7 @@ public class DartImportDirective extends DartDirective {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(libraryUri, visitor);
     safelyVisitChild(prefix, visitor);
     combinators.accept(visitor);

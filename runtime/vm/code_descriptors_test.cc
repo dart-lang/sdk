@@ -72,7 +72,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
       EXPECT_EQ(expectation0[i], stack_bitmap->Get(i));
     }
     // Add a stack map entry at pc offset 0.
-    stackmap_table_builder->AddEntry(0, stack_bitmap);
+    stackmap_table_builder->AddEntry(0, stack_bitmap, 0);
 
     stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
@@ -89,7 +89,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
       EXPECT_EQ(expectation1[i], stack_bitmap->Get(i));
     }
     // Add a stack map entry at pc offset 1.
-    stackmap_table_builder->AddEntry(1, stack_bitmap);
+    stackmap_table_builder->AddEntry(1, stack_bitmap, 0);
 
     stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
@@ -108,7 +108,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
       EXPECT_EQ(expectation2[i], stack_bitmap->Get(i));
     }
     // Add a stack map entry at pc offset 2.
-    stackmap_table_builder->AddEntry(2, stack_bitmap);
+    stackmap_table_builder->AddEntry(2, stack_bitmap, 0);
 
     stack_bitmap = new BitmapBuilder();
     EXPECT(stack_bitmap != NULL);
@@ -130,7 +130,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
       EXPECT_EQ(expectation3[i], stack_bitmap->Get(i));
     }
     // Add a stack map entry at pc offset 3.
-    stackmap_table_builder->AddEntry(3, stack_bitmap);
+    stackmap_table_builder->AddEntry(3, stack_bitmap, 0);
 
     const Error& error =
         Error::Handle(Compiler::CompileParsedFunction(parsed_function));
@@ -257,7 +257,8 @@ TEST_CASE(StackmapGC) {
   for (int i = 0; i < descriptors.Length(); ++i) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
       stackmap_table_builder->AddEntry(descriptors.PC(i) - code.EntryPoint(),
-                                       stack_bitmap);
+                                       stack_bitmap,
+                                       0);
       ++call_count;
     }
   }

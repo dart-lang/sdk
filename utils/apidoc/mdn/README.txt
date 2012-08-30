@@ -1,3 +1,19 @@
+***** Current status
+
+Currently it runs all the way through, but the database.json has all
+members[] lists empty.  Most entries are skipped for "Suspect title";
+some have ".pageText not found".
+
+Currently only works on Linux; OS X (or other) will need minor path changes.
+
+You will need a reasonably modern node.js installed.
+0.5.9 is too old; 0.8.8 is not too old.
+
+I needed to add my own "DumpRenderTree_resources/missingImage.gif",
+for some reason.
+
+***** Overview
+
 Here's a rough walkthrough of how this works. The ultimate output file is
 database.filtered.json.
 
@@ -48,3 +64,7 @@ extract.dart
   - write output/examples.html
   - write output/obsolete.html
   - write output/database.filtered.json which is the best matches
+
+***** Process for updating database.json using these scripts.
+
+TODO(eub) when I get the scripts to work all the way through.

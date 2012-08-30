@@ -135,12 +135,19 @@ def GetBuildConf(mode, arch):
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 
-def GetBuildRoot(target_os, mode=None, arch=None):
+
+def GetBuildDir(host_os, target_os):
   global BUILD_ROOT
+  build_dir = BUILD_ROOT[host_os]
+  if target_os and target_os != host_os:
+    build_dir = os.path.join(build_dir, target_os)
+  return build_dir
+
+def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
+  build_root = GetBuildDir(host_os, target_os)
   if mode:
-    return os.path.join(BUILD_ROOT[target_os], GetBuildConf(mode, arch))
-  else:
-    return BUILD_ROOT[target_os]
+    build_root = os.path.join(build_root, GetBuildConf(mode, arch))
+  return build_root
 
 def GetBaseDir():
   return BASE_DIR

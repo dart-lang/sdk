@@ -114,7 +114,7 @@ TEST_CASE(UnhandledExceptions) {
       "  static int method3(int param) {\n"
       "    try {\n"
       "      UnhandledExceptions.invoke2();\n"
-      "    } catch (Second e) {\n"
+      "    } on Second catch (e) {\n"
       "      return 3;\n"
       "    }\n"
       "    return 2;\n"

@@ -177,7 +177,7 @@ class ProgressIndicator {
     }
   }
 
-  int get numFailedTests() => _failedTests;
+  int get numFailedTests => _failedTests;
 
   int _completedTests() => _passedTests + _failedTests;
 

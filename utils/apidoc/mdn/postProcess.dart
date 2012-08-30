@@ -1,16 +1,27 @@
+/**
+ * Read database.json,
+ * write database.filtered.json (with "best" entries)
+ * and obsolete.json (with entries marked obsolete).
+ */
+
 #library("postProcess");
 
+#import("dart:io");
 #import("dart:json");
 #import("util.dart");
 
 void main() {
   // Database of code documentation.
   Map<String, List> database = JSON.parse(
-      fs.readFileSync('output/database.json', 'utf8'));
+      new File('output/database.json').readAsTextSync());
   final filteredDb = {};
   final obsolete = [];
   for (String type in database.getKeys()) {
     final entry = pickBestEntry(database[type], type);
+    if (entry == null) {
+      print("Can't find ${type} in database.  Skipping.");
+      continue;
+    }
     filteredDb[type] = entry;
     if (entry.containsKey("members")) {
       Map members = getMembersMap(entry);
@@ -22,7 +33,6 @@ void main() {
       }
     }
   }
-  fs.writeFileSync("output/database.filtered.json",
-      JSON.stringify(filteredDb));
-  fs.writeFileSync("output/obsolete.json", JSON.stringify(obsolete));
+  writeFileSync("output/database.filtered.json", JSON.stringify(filteredDb));
+  writeFileSync("output/obsolete.json", JSON.stringify(obsolete));
 }

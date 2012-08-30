@@ -36,6 +36,14 @@
         '..',
       ],
       'conditions': [
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [
+              '-lc',
+              '-lpthread',
+            ],
+          },
+        }],
         ['OS=="linux"', {
           'link_settings': {
             'libraries': [
@@ -110,7 +118,7 @@
       'type': 'none',
       'includes': [
         # Load the shared core library sources.
-        '../../corelib/src/corelib_sources.gypi',
+        '../../lib/core/corelib_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -186,7 +194,7 @@
       'type': 'none',
       'includes': [
         # Load the shared core library sources.
-        '../../corelib/src/implementation/corelib_impl_sources.gypi',
+        '../../lib/coreimpl/corelib_impl_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.

@@ -30,7 +30,7 @@ public class PackageLibraryManagerTest extends TestCase {
     assertNotNull(fullUri);
     assertEquals("dart", fullUri.getScheme());
     assertEquals("core", fullUri.getHost());
-    assertTrue(getPath(fullUri).endsWith("/core_runtime.dart"));
+    assertTrue(getPath(fullUri).endsWith("/core.dart"));
   }
 
   public void testExpand2() throws Exception {
@@ -39,7 +39,7 @@ public class PackageLibraryManagerTest extends TestCase {
     assertNotNull(fullUri);
     assertEquals("dart", fullUri.getScheme());
     assertEquals("coreimpl", fullUri.getHost());
-    assertTrue(getPath(fullUri).endsWith("/coreimpl_runtime.dart"));
+    assertTrue(getPath(fullUri).endsWith("/coreimpl.dart"));
   }
 
   public void testExpand3() throws Exception {
@@ -49,7 +49,7 @@ public class PackageLibraryManagerTest extends TestCase {
     assertNotNull(fullUri2);
     assertEquals("dart", fullUri2.getScheme());
     assertEquals("coreimpl", fullUri2.getHost());
-    assertTrue(getPath(fullUri2).endsWith("/coreimpl_runtime.dart"));
+    assertTrue(getPath(fullUri2).endsWith("/coreimpl.dart"));
   }
 
   public void testExpand4() throws Exception {
@@ -65,7 +65,7 @@ public class PackageLibraryManagerTest extends TestCase {
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file"));
-    assertTrue(getPath(translatedURI).endsWith("/core_runtime.dart"));
+    assertTrue(getPath(translatedURI).endsWith("/core.dart"));
   }
 
   public void testTranslate2() throws Exception {
@@ -75,7 +75,7 @@ public class PackageLibraryManagerTest extends TestCase {
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file"));
-    assertTrue(getPath(translatedURI).endsWith("/coreimpl_runtime.dart"));
+    assertTrue(getPath(translatedURI).endsWith("/coreimpl.dart"));
   }
 
   public void testTranslate3() throws Exception {

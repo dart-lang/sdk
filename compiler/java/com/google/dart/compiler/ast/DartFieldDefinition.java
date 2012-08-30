@@ -33,6 +33,7 @@ public class DartFieldDefinition extends DartNodeWithMetadata {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(typeNode, visitor);
     fields.accept(visitor);
   }

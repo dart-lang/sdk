@@ -48,18 +48,6 @@ public class SystemLibrariesReaderTest extends TestCase {
     assertEquals("dart:coreimpl",library.getShortName());
     assertTrue(library.isImplementation());
     assertEquals("Shared", library.getCategory());
-   
-    //   "builtin": const LibraryInfo(
-    //       "builtin/builtin_runtime.dart",
-    //       category: "Server",
-    //       platforms: VM_PLATFORM),
-    library = librariesMap.get("dart:builtin");
-    assertTrue(library != null);
-    assertEquals("dart:builtin",library.getShortName());
-    assertFalse(library.isImplementation());
-    assertTrue(library.isVmLibrary());
-    assertEquals("Server", library.getCategory());
-   
   }
   
 }

@@ -155,7 +155,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = inputs[0];
     if (input.isBoolean(types)) return input;
     // All values !== true are boolified to false.
-    Type type = types[input].computeType(compiler);
+    DartType type = types[input].computeType(compiler);
     if (type !== null && type.element !== compiler.boolClass) {
       return graph.addConstantBool(false);
     }
@@ -491,7 +491,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitIs(HIs node) {
-    Type type = node.typeExpression;
+    DartType type = node.typeExpression;
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
@@ -546,7 +546,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
                && !compiler.codegenWorld.rti.hasTypeArguments(type)) {
-      Type receiverType = expressionType.computeType(compiler);
+      DartType receiverType = expressionType.computeType(compiler);
       if (receiverType !== null) {
         if (compiler.types.isSubtype(receiverType, type)) {
           return graph.addConstantBool(true);
@@ -560,7 +560,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
-    Type type = types[node].computeType(compiler);
+    DartType type = types[node].computeType(compiler);
     if (type.element === compiler.dynamicClass
         || type.element === compiler.objectClass) {
       return value;
@@ -574,7 +574,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType receiverType = types[receiver];
     if (!receiverType.isUseful()) return null;
     if (receiverType.canBeNull()) return null;
-    Type type = receiverType.computeType(compiler);
+    DartType type = receiverType.computeType(compiler);
     if (type === null) return null;
     return compiler.world.locateSingleField(type, selector);
   }

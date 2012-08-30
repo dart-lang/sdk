@@ -36,6 +36,7 @@ public class DartLibraryDirective extends DartDirective {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
   }
 

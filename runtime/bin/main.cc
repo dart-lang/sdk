@@ -465,15 +465,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     }
     return Extensions::LoadExtension(url_string, library);
   }
-  result = DartUtils::LoadSource(NULL,
-                                 library,
-                                 url,
-                                 tag,
-                                 url_string);
-  if (!Dart_IsError(result) && (tag == kImportTag)) {
-    Builtin::ImportLibrary(result, Builtin::kBuiltinLibrary);
-  }
-  return result;
+  return DartUtils::LoadSource(NULL,
+                               library,
+                               url,
+                               tag,
+                               url_string);
 }
 
 
@@ -591,6 +587,14 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     return false;
   }
 
+  // Setup the corelib 'print' function.
+  Dart_Handle print =
+      Dart_Invoke(builtin_lib, Dart_NewString("_getPrintClosure"), 0, 0);
+  Dart_Handle coreimpl = Dart_LookupLibrary(Dart_NewString("dart:coreimpl"));
+  Dart_Handle print_impl =
+      Dart_GetClass(coreimpl, Dart_NewString("PrintImplementation"));
+  Dart_SetField(print_impl, Dart_NewString("_printClosure"), print);
+
   // Setup the IO library.
   Dart_Handle io_lib = Builtin::LoadLibrary(Builtin::kIOLibrary);
   Builtin::SetupIOLibrary(io_lib);
@@ -636,8 +640,6 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_ShutdownIsolate();
     return false;
   }
-  // Implicitly import builtin into app.
-  Builtin::ImportLibrary(library, Builtin::kBuiltinLibrary);
   Dart_ExitScope();
   return true;
 }

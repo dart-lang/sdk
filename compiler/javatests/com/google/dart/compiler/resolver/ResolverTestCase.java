@@ -284,38 +284,13 @@ abstract class ResolverTestCase extends TestCase {
     }
 
     @Override
-    public InterfaceType getFallThroughError() {
-      throw new AssertionError();
-    }
-
-    @Override
     public InterfaceType getMapType(Type key, Type value) {
       return defaultMapLiteralType;
     }
 
     @Override
-    public InterfaceType getObjectArrayType() {
-      throw new AssertionError();
-    }
-
-    @Override
     public InterfaceType getObjectType() {
       return objectElement.getType();
-    }
-
-    @Override
-    public InterfaceType getArrayLiteralType(Type value) {
-      return defaultListType;
-    }
-
-    @Override
-    public InterfaceType getMapLiteralType(Type key, Type value) {
-      return defaultMapLiteralType;
-    }
-
-    @Override
-    public InterfaceType getStringImplementationType() {
-      throw new AssertionError();
     }
 
     @Override

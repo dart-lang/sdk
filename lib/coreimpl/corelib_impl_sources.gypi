@@ -18,6 +18,7 @@
     'maps.dart',
     'object.dart',
     'options.dart',
+    'print.dart',
     'queue.dart',
     'regexp.dart',
     'splay_tree.dart',

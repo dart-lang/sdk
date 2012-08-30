@@ -122,7 +122,7 @@ class Element implements Hashable {
     listener.cancel("Internal Error: $this.parseNode", token: position());
   }
 
-  Type computeType(Compiler compiler) {
+  DartType computeType(Compiler compiler) {
     compiler.internalError("$this.computeType.", token: position());
   }
 
@@ -559,7 +559,7 @@ class PrefixElement extends Element {
 
   lookupLocalMember(SourceString memberName) => imported[memberName];
 
-  Type computeType(Compiler compiler) => compiler.types.dynamicType;
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   Token position() => firstPosition;
 
@@ -571,7 +571,7 @@ class PrefixElement extends Element {
 class TypedefElement extends Element implements TypeDeclarationElement {
   Typedef cachedNode;
   TypedefType cachedType;
-  Type alias;
+  DartType alias;
 
   bool isResolved = false;
   bool isBeingResolved = false;
@@ -592,14 +592,14 @@ class TypedefElement extends Element implements TypeDeclarationElement {
   TypedefType computeType(Compiler compiler) {
     if (cachedType !== null) return cachedType;
     Typedef node = parseNode(compiler);
-    Link<Type> parameters =
+    Link<DartType> parameters =
         TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
     cachedType = new TypedefType(this, parameters);
     compiler.resolveTypedef(this);
     return cachedType;
   }
 
-  Link<Type> get typeVariables => cachedType.typeArguments;
+  Link<DartType> get typeVariables => cachedType.typeArguments;
 
   Scope buildScope() =>
       new TypeDeclarationScope(enclosingElement.buildScope(), this);
@@ -641,11 +641,11 @@ class VariableElement extends Element {
     listener.cancel('internal error: could not find $name', node: variables);
   }
 
-  Type computeType(Compiler compiler) {
+  DartType computeType(Compiler compiler) {
     return variables.computeType(compiler);
   }
 
-  Type get type => variables.type;
+  DartType get type => variables.type;
 
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
@@ -694,7 +694,7 @@ class FieldParameterElement extends VariableElement {
 // [computeType] and [parseNode] methods to this element.
 class VariableListElement extends Element {
   VariableDefinitions cachedNode;
-  Type type;
+  DartType type;
   final Modifiers modifiers;
 
   /**
@@ -720,7 +720,7 @@ class VariableListElement extends Element {
     return cachedNode;
   }
 
-  Type computeType(Compiler compiler) {
+  DartType computeType(Compiler compiler) {
     if (type != null) return type;
     VariableDefinitions node = parseNode(compiler);
     if (node.type !== null) {
@@ -764,7 +764,7 @@ class ForeignElement extends Element {
   ForeignElement(SourceString name, ContainerElement enclosingElement)
     : super(name, ElementKind.FOREIGN, enclosingElement);
 
-  Type computeType(Compiler compiler) {
+  DartType computeType(Compiler compiler) {
     return compiler.types.dynamicType;
   }
 
@@ -785,7 +785,7 @@ class AbstractFieldElement extends Element {
   AbstractFieldElement(SourceString name, Element enclosing)
       : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
 
-  Type computeType(Compiler compiler) {
+  DartType computeType(Compiler compiler) {
     throw "internal error: AbstractFieldElement has no type";
   }
 
@@ -835,7 +835,7 @@ class AbstractFieldElement extends Element {
 class FunctionSignature {
   Link<Element> requiredParameters;
   Link<Element> optionalParameters;
-  Type returnType;
+  DartType returnType;
   int requiredParameterCount;
   int optionalParameterCount;
   FunctionSignature(this.requiredParameters,
@@ -862,7 +862,7 @@ class FunctionSignature {
 
 class FunctionElement extends Element {
   FunctionExpression cachedNode;
-  Type type;
+  DartType type;
   final Modifiers modifiers;
 
   FunctionSignature functionSignature;
@@ -1038,7 +1038,7 @@ class SynthesizedConstructorElement extends FunctionElement {
 class VoidElement extends Element {
   VoidElement(Element enclosing)
       : super(const SourceString('void'), ElementKind.VOID, enclosing);
-  Type computeType(compiler) => compiler.types.voidType;
+  DartType computeType(compiler) => compiler.types.voidType;
   Node parseNode(_) {
     throw 'internal error: parseNode on void';
   }
@@ -1059,19 +1059,19 @@ abstract class TypeDeclarationElement implements Element {
    */
   // TODO(johnniwinther): Find a (better) way to decouple [typeVariables] from
   // [Compiler].
-  abstract Link<Type> get typeVariables;
+  abstract Link<DartType> get typeVariables;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
    * type variables declared in [parameter] on [element]. The bounds of the type
    * variables are not set until [element] has been resolved.
    */
-  static Link<Type> createTypeVariables(TypeDeclarationElement element,
+  static Link<DartType> createTypeVariables(TypeDeclarationElement element,
                                         NodeList parameters) {
-    if (parameters === null) return const EmptyLink<Type>();
+    if (parameters === null) return const EmptyLink<DartType>();
 
     // Create types and elements for type variable.
-    var arguments = new LinkBuilder<Type>();
+    var arguments = new LinkBuilder<DartType>();
     for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
       TypeVariable node = link.head;
       SourceString variableName = node.name.source;
@@ -1089,9 +1089,9 @@ class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
   final int id;
   InterfaceType type;
-  Type supertype;
-  Type defaultClass;
-  Link<Type> interfaces;
+  DartType supertype;
+  DartType defaultClass;
+  Link<DartType> interfaces;
   SourceString nativeName;
   int supertypeLoadState;
   int resolutionState;
@@ -1100,7 +1100,7 @@ class ClassElement extends ScopeContainerElement
   // compilation. They don't have any user-side counter-part.
   Link<Element> backendMembers = const EmptyLink<Element>();
 
-  Link<Type> allSupertypes;
+  Link<DartType> allSupertypes;
 
   // Lazily applied patch of class members.
   ClassElement patch = null;
@@ -1113,7 +1113,7 @@ class ClassElement extends ScopeContainerElement
   InterfaceType computeType(compiler) {
     if (type == null) {
       ClassNode node = parseNode(compiler);
-      Link<Type> parameters =
+      Link<DartType> parameters =
           TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
       type = new InterfaceType(this, parameters);
     }
@@ -1122,7 +1122,7 @@ class ClassElement extends ScopeContainerElement
 
   bool get isPatched => patch != null;
 
-  Link<Type> get typeVariables => type.arguments;
+  Link<DartType> get typeVariables => type.arguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -1344,7 +1344,7 @@ class ClassElement extends ScopeContainerElement
   }
 
   bool implementsInterface(ClassElement intrface) {
-    for (Type implementedInterfaceType in allSupertypes) {
+    for (DartType implementedInterfaceType in allSupertypes) {
       ClassElement implementedInterface = implementedInterfaceType.element;
       if (implementedInterface === intrface) {
         return true;
@@ -1378,7 +1378,7 @@ class ClassElement extends ScopeContainerElement
     listener.internalErrorOnElement(this, 'unsupported operation');
   }
 
-  Link<Type> get allSupertypesAndSelf {
+  Link<DartType> get allSupertypesAndSelf {
     return allSupertypes.prepend(new InterfaceType(this));
   }
 }
@@ -1589,7 +1589,7 @@ class TargetElement extends Element {
 class TypeVariableElement extends Element {
   final Node cachedNode;
   TypeVariableType type;
-  Type bound;
+  DartType bound;
 
   TypeVariableElement(name, Element enclosing, this.cachedNode,
                       [this.type, this.bound])

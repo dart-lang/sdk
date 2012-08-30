@@ -27,6 +27,13 @@ class _BlobFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DOMFormDataFactoryProvider {
+  factory DOMFormData([FormElement form]) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _DOMParserFactoryProvider {
   factory DOMParser() => _dummy();
 }
@@ -1532,7 +1539,9 @@ interface DOMFileSystemSync {
 
 // WARNING: Do not edit - generated code.
 
-interface FormData {
+interface FormData default _FormDataFactoryProvider {
+
+  FormData([FormElement form]);
 
   void append(String name, String value, String filename);
 }

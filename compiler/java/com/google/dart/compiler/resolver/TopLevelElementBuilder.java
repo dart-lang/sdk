@@ -103,8 +103,8 @@ public class TopLevelElementBuilder {
       LibraryUnit lib = libraryImport.getLibrary();
       // Prepare scope for this import.
       Scope scopeForImport;
+      String prefix = libraryImport.getPrefix();
       {
-        String prefix = libraryImport.getPrefix();
         if (prefix != null) {
           // Put the prefix in the scope.
           LibraryPrefixElement libraryPrefixElement = libraryPrefixElements.get(prefix);
@@ -131,7 +131,12 @@ public class TopLevelElementBuilder {
       for (Element element : lib.getElement().getExportedElements()) {
         String name = element.getName();
         if (libraryImport.isVisible(name)) {
-          declare(element, listener, scopeForImport);
+          {
+            Element oldElement = scopeForImport.declareElement(name, element);
+            if (shouldReportDuplicateDeclaration(oldElement, element)) {
+              reportDuplicateTopLevelDeclarationImport(listener, library, prefix, oldElement, element);
+            }
+          }
           // May re-export.
           if (libraryImport.isExported()) {
             Elements.addExportedElement(library.getElement(), element);
@@ -143,6 +148,19 @@ public class TopLevelElementBuilder {
     library.getElement().getScope().markStateReady();
   }
 
+  private static void reportDuplicateTopLevelDeclarationImport(DartCompilerListener listener,
+      LibraryUnit library, String prefix, Element oldElement, Element newElement) {
+    String name = newElement.getName();
+    SourceInfo errorLocation = new SourceInfo(library.getSource(), 0, 0);
+    compilationError(listener, errorLocation,
+        ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION_IMPORT,
+        name,
+        library.getSource().getUri(),
+        prefix,
+        Elements.getLibraryUnitLocation(oldElement),
+        Elements.getLibraryUnitLocation(newElement));
+  }
+  
   @VisibleForTesting
   void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope,
       List<Element> exportedElements) {
@@ -167,7 +185,7 @@ public class TopLevelElementBuilder {
     }
   }
   
-  private void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
+  private static void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
                         Object... args) {
     DartCompilationError error = new DartCompilationError(node, errorCode, args);
     listener.onError(error);
@@ -175,28 +193,34 @@ public class TopLevelElementBuilder {
 
   private void declare(Element newElement, DartCompilerListener listener, Scope scope) {
     Element oldElement = scope.declareElement(newElement.getName(), newElement);
-    // We had already node with such name, report duplicate.
-    if (oldElement != null) {
-      // ignore "assert"
-      if (Elements.isArtificialAssertMethod(oldElement)) {
-        return;
-      }
-      // Getter/setter can shared same name, but not setter/setter and getter/getter.
-      if (newElement.getModifiers().isAbstractField()
-          && oldElement.getModifiers().isAbstractField()) {
-        if (newElement.getModifiers().isGetter() && !oldElement.getModifiers().isGetter()) {
-          return;
-        }
-        if (newElement.getModifiers().isSetter() && !oldElement.getModifiers().isSetter()) {
-          return;
-        }
-      }
-      // Report two duplicate for both old/new nodes.
+    if (shouldReportDuplicateDeclaration(oldElement, newElement)) {
       reportDuplicateDeclaration(listener, oldElement, newElement);
       reportDuplicateDeclaration(listener, newElement, oldElement);
     }
   }
 
+  private static boolean shouldReportDuplicateDeclaration(Element oldElement, Element newElement) {
+    if (oldElement == null) {
+      return false;
+    }
+    // ignore "assert"
+    if (Elements.isArtificialAssertMethod(oldElement)) {
+      return false;
+    }
+    // Getter/setter can shared same name, but not setter/setter and getter/getter.
+    if (newElement.getModifiers().isAbstractField()
+        && oldElement.getModifiers().isAbstractField()) {
+      if (newElement.getModifiers().isGetter() && !oldElement.getModifiers().isGetter()) {
+        return false;
+      }
+      if (newElement.getModifiers().isSetter() && !oldElement.getModifiers().isSetter()) {
+        return false;
+      }
+    }
+    // yes
+    return true;
+  }
+  
   /**
    * Reports {@link ResolverErrorCode#DUPLICATE_TOP_LEVEL_DECLARATION} for given named element.
    */

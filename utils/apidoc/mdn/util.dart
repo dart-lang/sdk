@@ -1,5 +1,6 @@
 #library("util");
 
+#import("dart:io");
 #import("dart:json");
 
 Map<String, Map> _allProps;
@@ -7,7 +8,8 @@ Map<String, Map> _allProps;
 Map<String, Map> get allProps() {
   if (_allProps == null) {
     // Database of expected property names for each type in WebKit.
-    _allProps = JSON.parse(fs.readFileSync('data/dartIdl.json', 'utf8'));
+    _allProps = JSON.parse(
+        new File('data/dartIdl.json').readAsTextSync());
   }
   return _allProps;
 }
@@ -81,4 +83,14 @@ Map pickBestEntry(List entries, String type) {
     }
   }
   return bestEntry;
+}
+
+/**
+ * Helper for sync creation of a whole file from a string.
+ */
+void writeFileSync(String filename, String data) {
+  File f = new File(filename);
+  RandomAccessFile raf = f.openSync(FileMode.WRITE);
+  raf.writeStringSync(data);
+  raf.closeSync();
 }

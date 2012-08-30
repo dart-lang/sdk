@@ -9,6 +9,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/locations.h"
@@ -50,7 +51,7 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   intptr_t height = compiler->StackSize();
   for (intptr_t i = 0; i < values.length(); i++) {
     if (deoptimization_env_->LocationAt(i).IsInvalid()) {
-      ASSERT(values[i]->AsUse()->definition()->IsPushArgument());
+      ASSERT(values[i]->definition()->IsPushArgument());
       *deoptimization_env_->LocationSlotAt(i) = Location::StackSlot(height++);
     }
   }
@@ -159,6 +160,7 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
   }
+  set_current_block(NULL);
 }
 
 
@@ -222,13 +224,12 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             intptr_t token_pos,
-                                             intptr_t try_index) {
+                                             intptr_t token_pos) {
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        deopt_id,
                                        token_pos,
-                                       try_index);
+                                       CurrentTryIndex());
 }
 
 
@@ -251,8 +252,49 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
   if (is_optimizing()) {
     BitmapBuilder* bitmap = locs->stack_bitmap();
     ASSERT(bitmap != NULL);
+    ASSERT(bitmap->Length() <= StackSize());
+    // Pad the bitmap out to describe all the spill slots.
     bitmap->SetLength(StackSize());
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), bitmap);
+
+    // Mark the bits in the stack map in the same order we push registers in
+    // slow path code (see FlowGraphCompiler::SaveLiveRegisters).
+    //
+    // Slow path code can have registers at the safepoint.
+    if (!locs->always_calls()) {
+      RegisterSet* regs = locs->live_registers();
+      if (regs->xmm_regs_count() > 0) {
+        // Denote XMM registers with 0 bits in the stackmap.  Based on the
+        // assumption that there are normally few live XMM registers, this
+        // encoding is simpler and roughly as compact as storing a separate
+        // count of XMM registers.
+        //
+        // XMM registers have the highest register number at the highest
+        // address (i.e., first in the stackmap).
+        for (intptr_t i = kNumberOfXmmRegisters - 1; i >= 0; --i) {
+          XmmRegister reg = static_cast<XmmRegister>(i);
+          if (regs->ContainsXmmRegister(reg)) {
+            for (intptr_t j = 0;
+                 j < FlowGraphAllocator::kDoubleSpillSlotFactor;
+                 ++j) {
+              bitmap->Set(bitmap->Length(), false);
+            }
+          }
+        }
+      }
+      // General purpose registers have the lowest register number at the
+      // highest address (i.e., first in the stackmap).
+      for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+        Register reg = static_cast<Register>(i);
+        if (locs->live_registers()->ContainsRegister(reg)) {
+          bitmap->Set(bitmap->Length(), true);
+        }
+      }
+    }
+
+    intptr_t register_bit_count = bitmap->Length() - StackSize();
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                      bitmap,
+                                      register_bit_count);
   }
 }
 
@@ -369,7 +411,6 @@ bool FlowGraphCompiler::TryIntrinsify() {
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
-    intptr_t try_index,
     const String& function_name,
     intptr_t argument_count,
     const Array& argument_names,
@@ -397,13 +438,12 @@ void FlowGraphCompiler::GenerateInstanceCall(
   ExternalLabel target_label("InlineCache", label_address);
 
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
-                   deopt_id, token_pos, try_index, locs);
+                   deopt_id, token_pos, locs);
 }
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t token_pos,
-                                           intptr_t try_index,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
@@ -411,7 +451,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   EmitStaticCall(function, arguments_descriptor, argument_count,
-                 deopt_id, token_pos, try_index, locs);
+                 deopt_id, token_pos, locs);
 }
 
 
@@ -475,7 +515,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* deopt,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
-                                        intptr_t try_index,
                                         LocationSummary* locs) {
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
@@ -491,7 +530,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     GenerateStaticCall(deopt_id,
                        token_index,
-                       try_index,
                        target,
                        arg_count,
                        arg_names,

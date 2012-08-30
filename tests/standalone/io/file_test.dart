@@ -1003,11 +1003,30 @@ class FileTest {
     });
   }
 
+  static void testReadAsBytesEmptyFile() {
+    var port = new ReceivePort();
+    port.receive((result, replyTo) {
+      port.close();
+      Expect.equals(0, result);
+    });
+    var name = getFilename("tests/vm/data/empty_file");
+    var f = new File(name);
+    f.readAsBytes().then((bytes) {
+      port.toSendPort().send(bytes.length);
+    });
+  }
+
   static void testReadAsBytesSync() {
     var name = getFilename("tests/vm/data/fixed_length_file");
     var bytes = new File(name).readAsBytesSync();
     Expect.isTrue(new String.fromCharCodes(bytes).endsWith("42 bytes."));
     Expect.equals(bytes.length, 42);
+  }
+
+  static void testReadAsBytesSyncEmptyFile() {
+    var name = getFilename("tests/vm/data/empty_file");
+    var bytes = new File(name).readAsBytesSync();
+    Expect.equals(bytes.length, 0);
   }
 
   static void testReadAsText() {
@@ -1044,6 +1063,20 @@ class FileTest {
     });
   }
 
+  static void testReadAsTextEmptyFile() {
+    var port = new ReceivePort();
+    port.receive((result, replyTo) {
+      port.close();
+      Expect.equals(0, result);
+    });
+    var name = getFilename("tests/vm/data/empty_file");
+    var f = new File(name);
+    f.readAsText(Encoding.UTF_8).then((text) {
+      port.toSendPort().send(text.length);
+      return true;
+    });
+  }
+
   static void testReadAsTextSync() {
     var name = getFilename("tests/vm/data/fixed_length_file");
     var text = new File(name).readAsTextSync();
@@ -1059,6 +1092,12 @@ class FileTest {
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.charCodes());
+  }
+
+  static void testReadAsTextSyncEmptyFile() {
+    var name = getFilename("tests/vm/data/empty_file");
+    var text = new File(name).readAsTextSync();
+    Expect.equals(0, text.length);
   }
 
   static void testReadAsLines() {
@@ -1201,9 +1240,13 @@ class FileTest {
     testOpenDirectoryAsFileSync();
     testOpenFileFromPath();
     testReadAsBytes();
+    testReadAsBytesEmptyFile();
     testReadAsBytesSync();
+    testReadAsBytesSyncEmptyFile();
     testReadAsText();
+    testReadAsTextEmptyFile();
     testReadAsTextSync();
+    testReadAsTextSyncEmptyFile();
     testReadAsLines();
     testReadAsLinesSync();
     testReadAsErrors();

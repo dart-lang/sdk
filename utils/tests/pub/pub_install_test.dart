@@ -48,4 +48,76 @@ main() {
 
     run();
   });
+
+  group('creates a packages directory in', () {
+    test('"test/" and its subdirectories', () {
+      dir(appPath, [
+        appPubspec([]),
+        dir("test", [dir("subtest")])
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(appPath, [
+        dir("test", [
+          dir("packages", [
+            dir("myapp", [appPubspec([])])            
+          ]),
+          dir("subtest", [
+            dir("packages", [
+              dir("myapp", [appPubspec([])])            
+            ])
+          ])
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
+    test('"example/" and its subdirectories', () {
+      dir(appPath, [
+        appPubspec([]),
+        dir("example", [dir("subexample")])
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(appPath, [
+        dir("example", [
+          dir("packages", [
+            dir("myapp", [appPubspec([])])            
+          ]),
+          dir("subexample", [
+            dir("packages", [
+              dir("myapp", [appPubspec([])])            
+            ])
+          ])
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
+    test('"bin/"', () {
+      dir(appPath, [
+        appPubspec([]),
+        dir("bin")
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(appPath, [
+        dir("bin", [
+          dir("packages", [
+            dir("myapp", [appPubspec([])])            
+          ])
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+  });
 }

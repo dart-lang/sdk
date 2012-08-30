@@ -4,6 +4,7 @@
 
 #import("dart:uri");
 
+#import("../../../lib/compiler/implementation/js_backend/js_backend.dart");
 #import("../../../lib/compiler/implementation/ssa/ssa.dart");
 
 #import('compiler_helper.dart');
@@ -76,12 +77,11 @@ void runTest(String test, [List<HType> expectedTypes = null]) {
     test,
     'f',
     (backend, x) {
-      List<HType> types =
-          backend.optimisticParameterTypesWithRecompilationOnTypeChange(x);
+      HTypeList types = backend.optimisticParameterTypes(x);
       if (expectedTypes != null) {
-        Expect.listEquals(expectedTypes, types);
+        Expect.listEquals(expectedTypes, types.types);
       } else {
-        Expect.isNull(types);
+        Expect.isTrue(types.allUnknown);
       }
   });
 }

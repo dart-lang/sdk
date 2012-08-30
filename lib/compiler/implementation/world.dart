@@ -14,7 +14,7 @@ class World {
         compiler.internalErrorOnElement(
             cls, 'Class "${cls.name.slowToString()}" is not resolved.');
       }
-      for (Type type in cls.allSupertypes) {
+      for (DartType type in cls.allSupertypes) {
         Set<Element> subtypesOfCls =
           subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
         subtypesOfCls.add(cls);
@@ -33,7 +33,7 @@ class World {
    * [selector] on a receiver with the given [type]. This includes all sub
    * types.
    */
-  MemberSet _memberSetFor(Type type, Selector selector) {
+  MemberSet _memberSetFor(DartType type, Selector selector) {
     assert(compiler !== null);
     ClassElement cls = type.element;
     SourceString name = selector.name;
@@ -60,7 +60,7 @@ class World {
    * If no such field exists, or a subclass overrides the field
    * returns [:null:].
    */
-  VariableElement locateSingleField(Type type, Selector selector) {
+  VariableElement locateSingleField(DartType type, Selector selector) {
     MemberSet memberSet = _memberSetFor(type, selector);
     ClassElement cls = type.element;
     Element result = cls.lookupSelector(selector);
@@ -73,7 +73,7 @@ class World {
     return result;
   }
 
-  Set<ClassElement> findNoSuchMethodHolders(Type type) {
+  Set<ClassElement> findNoSuchMethodHolders(DartType type) {
     Set<ClassElement> result = new Set<ClassElement>();
     Selector noSuchMethodSelector = new Selector.noSuchMethod();
     MemberSet memberSet = _memberSetFor(type, noSuchMethodSelector);

@@ -86,7 +86,7 @@ testTypeVariables() {
     Expect.equals(definition.type.typeArguments.length(),
                   length(type.arguments));
     int index = 0;
-    Link<Type> arguments = type.arguments;
+    Link<DartType> arguments = type.arguments;
     while (!arguments.isEmpty()) {
       Expect.equals(true, index < expectedElements.length);
       Expect.equals(expectedElements[index], arguments.head.element);
@@ -609,7 +609,7 @@ testClassHierarchy() {
   Expect.equals(0, compiler.warnings.length);
   Expect.equals(0, compiler.errors.length);
   ClassElement aElement = compiler.mainApp.find(buildSourceString("A"));
-  Link<Type> supertypes = aElement.allSupertypes;
+  Link<DartType> supertypes = aElement.allSupertypes;
   Expect.equals(<String>['B', 'C', 'Object'].toString(),
                 asSortedStrings(supertypes).toString());
 }
