@@ -64,17 +64,35 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Stackmap map;
     map = code.GetStackmap(pc(), &maps, &map);
     if (!map.IsNull()) {
-      // A stack map is present in the code object, use the stack map to visit
-      // frame slots which are marked as having objects.
+      // A stack map is present in the code object, use the stack map to
+      // visit frame slots which are marked as having objects.
+      //
+      // The layout of the frame is (lower addresses to the right):
+      // | spill slots | outgoing arguments | saved registers |
+      // |XXXXXXXXXXXXX|--------------------|XXXXXXXXXXXXXXXXX|
+      //
+      // The splill slots and any saved registers are described in the stack
+      // map.  The outgoing arguments are assumed to be tagged; the number
+      // of outgoing arguments is not explicitly tracked.
+      //
+      // TODO(kmillikin): This does not handle slow path calls with
+      // arguments, where the arguments are pushed after the live registers.
+      // Enable such calls.
       intptr_t length = map.Length();
-      for (intptr_t bit_index = 0; bit_index < length; ++bit_index) {
-        if (map.IsObject(bit_index)) {
-          visitor->VisitPointer(end_addr - bit_index);
-        }
+      // Spill slots are at the 'bottom' of the frame.
+      intptr_t spill_slot_count = length - map.RegisterBitCount();
+      for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
+        if (map.IsObject(bit)) visitor->VisitPointer(end_addr);
+        --end_addr;
       }
-      // The stack slots that are not spill slots (i.e., outgoing arguments)
-      // are tagged objects.
-      end_addr -= length;
+
+      // The live registers at the 'top' of the frame comprise the rest of the
+      // stack map.
+      for (intptr_t bit = length - 1; bit >= spill_slot_count; --bit) {
+        if (map.IsObject(bit)) visitor->VisitPointer(start_addr);
+        ++start_addr;
+      }
+
       // The end address can be one slot (but not more) past the start
       // address in the case that all slots were covered by the stack map.
       ASSERT((end_addr + 1) >= start_addr);

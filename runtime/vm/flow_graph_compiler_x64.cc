@@ -798,7 +798,8 @@ void FlowGraphCompiler::CopyParameters() {
   }
   if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                      empty_stack_bitmap);
+                                      empty_stack_bitmap,
+                                      0);
   }
 
   if (FLAG_trace_functions) {
@@ -812,7 +813,8 @@ void FlowGraphCompiler::CopyParameters() {
                          0);  // No token position.
     if (is_optimizing()) {
       stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                        empty_stack_bitmap);
+                                        empty_stack_bitmap,
+                                        0);
     }
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
@@ -1111,18 +1113,22 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
   if (xmm_regs_count > 0) {
-    // Pointer maps don't support pushed untagged values so we reserve spill
-    // slots at the top of the spill slot area for live XMM registers.
-    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    __ subq(RSP, Immediate(xmm_regs_count * kDoubleSize));
+    // Store XMM registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
-        __ movsd(Address(RBP, -stack_offs), xmm_reg);
-        stack_offs += kDoubleSize;
+        __ movsd(Address(RSP, offset), xmm_reg);
+        offset += kDoubleSize;
       }
     }
+    ASSERT(offset == (xmm_regs_count * kDoubleSize));
   }
 
+  // Store general purpose registers with the highest register number at the
+  // lowest address.
   for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {
@@ -1133,6 +1139,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+  // General purpose registers have the highest register number at the
+  // lowest address.
   for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {
@@ -1142,16 +1150,17 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 
   const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
   if (xmm_regs_count > 0) {
-    // Pointer maps don't support pushed untagged values so we reserve spill
-    // slots at the top of the spill slot area for live XMM registers.
-    intptr_t stack_offs = (StackSize() + 1) * kWordSize;
+    // XMM registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
-        __ movsd(xmm_reg, Address(RBP, -stack_offs));
-        stack_offs += kDoubleSize;
+        __ movsd(xmm_reg, Address(RSP, offset));
+        offset += kDoubleSize;
       }
     }
+    ASSERT(offset == (xmm_regs_count * kDoubleSize));
+    __ addq(RSP, Immediate(offset));
   }
 }
 

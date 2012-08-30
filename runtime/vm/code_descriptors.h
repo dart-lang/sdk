@@ -71,7 +71,9 @@ class StackmapTableBuilder : public ZoneAllocated {
             GrowableObjectArray::New(Heap::kOld))) { }
   ~StackmapTableBuilder() { }
 
-  void AddEntry(intptr_t pc_offset, BitmapBuilder* bitmap);
+  void AddEntry(intptr_t pc_offset,
+                BitmapBuilder* bitmap,
+                intptr_t register_bit_count);
 
   bool Verify();
 

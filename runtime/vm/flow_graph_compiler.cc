@@ -9,6 +9,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/locations.h"
@@ -251,8 +252,49 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
   if (is_optimizing()) {
     BitmapBuilder* bitmap = locs->stack_bitmap();
     ASSERT(bitmap != NULL);
+    ASSERT(bitmap->Length() <= StackSize());
+    // Pad the bitmap out to describe all the spill slots.
     bitmap->SetLength(StackSize());
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), bitmap);
+
+    // Mark the bits in the stack map in the same order we push registers in
+    // slow path code (see FlowGraphCompiler::SaveLiveRegisters).
+    //
+    // Slow path code can have registers at the safepoint.
+    if (!locs->always_calls()) {
+      RegisterSet* regs = locs->live_registers();
+      if (regs->xmm_regs_count() > 0) {
+        // Denote XMM registers with 0 bits in the stackmap.  Based on the
+        // assumption that there are normally few live XMM registers, this
+        // encoding is simpler and roughly as compact as storing a separate
+        // count of XMM registers.
+        //
+        // XMM registers have the highest register number at the highest
+        // address (i.e., first in the stackmap).
+        for (intptr_t i = kNumberOfXmmRegisters - 1; i >= 0; --i) {
+          XmmRegister reg = static_cast<XmmRegister>(i);
+          if (regs->ContainsXmmRegister(reg)) {
+            for (intptr_t j = 0;
+                 j < FlowGraphAllocator::kDoubleSpillSlotFactor;
+                 ++j) {
+              bitmap->Set(bitmap->Length(), false);
+            }
+          }
+        }
+      }
+      // General purpose registers have the lowest register number at the
+      // highest address (i.e., first in the stackmap).
+      for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+        Register reg = static_cast<Register>(i);
+        if (locs->live_registers()->ContainsRegister(reg)) {
+          bitmap->Set(bitmap->Length(), true);
+        }
+      }
+    }
+
+    intptr_t register_bit_count = bitmap->Length() - StackSize();
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                      bitmap,
+                                      register_bit_count);
   }
 }
 

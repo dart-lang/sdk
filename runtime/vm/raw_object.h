@@ -813,7 +813,11 @@ class RawStackmap : public RawObject {
 
   RawCode* code_;  // Code object corresponding to the frame described.
 
+  // TODO(kmillikin): We need a small number of bits to encode the register
+  // count.  Consider packing them in with the length.
   intptr_t length_;  // Length of payload, in bits.
+  intptr_t register_bit_count_;  // Live register bits, included in length_.
+
   uword pc_;  // PC corresponding to this stack map representation.
 
   // Variable length data follows here (bitmap of the stack layout).

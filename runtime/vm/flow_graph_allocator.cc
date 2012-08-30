@@ -35,10 +35,6 @@ static const intptr_t kTempVirtualRegister = -2;
 static const intptr_t kIllegalPosition = -1;
 static const intptr_t kMaxPosition = 0x7FFFFFFF;
 
-// Number of stack slots needed for a double spill slot.
-static const intptr_t kDoubleSpillSlotFactor = kDoubleSize / kWordSize;
-
-
 static intptr_t MinPosition(intptr_t a, intptr_t b) {
   return (a < b) ? a : b;
 }
@@ -1765,11 +1761,16 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
     ConvertUseTo(use, loc);
   }
 
+  // Add live registers at all safepoints for instructions with slow-path
+  // code.
   if (loc.IsMachineRegister()) {
     for (SafepointPosition* safepoint = range->first_safepoint();
          safepoint != NULL;
          safepoint = safepoint->next()) {
-      safepoint->locs()->live_registers()->Add(loc);
+      if (!safepoint->locs()->always_calls()) {
+        ASSERT(safepoint->locs()->can_call());
+        safepoint->locs()->live_registers()->Add(loc);
+      }
     }
   }
 }
@@ -2113,23 +2114,11 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   ResolveControlFlow();
 
-  // Reserve spill slots for XMM registers alive across slow path code.
-  // TODO(vegorov): remove this code when safepoints with registers are
-  // implemented.
-  intptr_t deferred_xmm_spills = 0;
-  for (intptr_t i = 0; i < safepoints_.length(); i++) {
-    if (!safepoints_[i]->locs()->always_calls()) {
-      const intptr_t count =
-          safepoints_[i]->locs()->live_registers()->xmm_regs_count();
-      if (count > deferred_xmm_spills) deferred_xmm_spills = count;
-    }
-  }
-
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
-  entry->set_spill_slot_count(
-      (deferred_xmm_spills + spill_slots_.length()) * kDoubleSpillSlotFactor +
-      cpu_spill_slot_count_);
+  intptr_t double_spill_slot_count =
+      spill_slots_.length() * kDoubleSpillSlotFactor;
+  entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
 
   if (FLAG_print_ssa_liveranges) {
     const Function& function = flow_graph_.parsed_function().function();
