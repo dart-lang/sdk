@@ -14,26 +14,21 @@ class PrettyPrinter implements Visitor {
   static const String INDENT = "  ";
 
   StringBuffer sb;
-  int depth;
-  /** Prefix for the type passed to the next [openNode()] call. */
-  String nextTypePrefix;
-  /** Nodes that were opened with [openNode()] calls. */
-  Link<String> currentNodeTypes;
+  Link<String> tagStack;
 
   PrettyPrinter() :
       sb = new StringBuffer(),
-      depth = 0,
-      currentNodeTypes = new EmptyLink<String>();
+      tagStack = new EmptyLink<String>();
 
-  void pushCurrentNodeType(String nodeType) {
-    currentNodeTypes = currentNodeTypes.prepend(nodeType);
+  void pushTag(String tag) {
+    tagStack = tagStack.prepend(tag);
   }
 
-  String popCurrentNodeType() {
-    assert(!currentNodeTypes.isEmpty());
-    String currentNodeType = currentNodeTypes.head;
-    currentNodeTypes = currentNodeTypes.tail;
-    return currentNodeType;
+  String popTag() {
+    assert(!tagStack.isEmpty());
+    String tag = tagStack.head;
+    tagStack = tagStack.tail;
+    return tag;
   }
 
   /**
@@ -49,7 +44,7 @@ class PrettyPrinter implements Visitor {
   }
 
   /**
-   * Adds given node type to result string, increasing current depth by 1.
+   * Adds given node type to result string.
    * The method "opens" the node, meaning that all output after calling
    * this method and before calling closeNode() will represent contents
    * of given node.
@@ -61,12 +56,11 @@ class PrettyPrinter implements Visitor {
     addBeginAndEndTokensToParams(node, params);
     addTypeWithParams(type, params);
     sb.add(">\n");
-    pushCurrentNodeType(type);
-    depth++;
+    pushTag(type);
   }
 
   /**
-   * Adds given node to result string, depth is not affected.
+   * Adds given node to result string.
    */
   void openAndCloseNode(Node node, String type, [Map params]) {
     if (params === null) params = new Map();
@@ -78,38 +72,35 @@ class PrettyPrinter implements Visitor {
   }
 
   /**
-   * Closes current node type, decreasing current depth by 1.
+   * Closes current node type.
    */
   void closeNode() {
-    depth--;
+    String tag = popTag();
     addCurrentIndent();
     sb.add("</");
-    addTypeWithParams(popCurrentNodeType());
+    addTypeWithParams(tag);
     sb.add(">\n");
   }
 
   void addTypeWithParams(String type, [Map params]) {
     if (params === null) params = new Map();
-    if (nextTypePrefix !== null) {
-      sb.add(nextTypePrefix);
-      nextTypePrefix = null;
-    }
     sb.add("${type}");
-    // TODO(smok): Escape doublequotes in values.
     params.forEach((k, v) {
-      sb.add(' $k=');
+      String value;
       if (v !== null) {
-        sb.add('"$v"');
+        value = v
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "'");
       } else {
-        sb.add('null');
+        value = "[null]";
       }
+      sb.add(' $k="$value"');
     });
   }
 
   void addCurrentIndent() {
-    for (int i = 0; i < depth; i++) {
-      sb.add(INDENT);
-    }
+    tagStack.forEach((_) { sb.add(INDENT); });
   }
 
   /**
@@ -155,11 +146,11 @@ class PrettyPrinter implements Visitor {
     openNode(node, "ClassNode", {
       "extendsKeyword" : tokenToStringOrNull(node.extendsKeyword)
     });
-    visitWithPrefix(node.name, "name:");
-    visitWithPrefix(node.superclass, "superclass:");
-    visitWithPrefix(node.interfaces, "interfaces:");
-    visitWithPrefix(node.typeParameters, "typeParameters:");
-    visitWithPrefix(node.defaultClause, "defaultClause:");
+    visitChildNode(node.name, "name");
+    visitChildNode(node.superclass, "superclass");
+    visitChildNode(node.interfaces, "interfaces");
+    visitChildNode(node.typeParameters, "typeParameters");
+    visitChildNode(node.defaultClause, "defaultClause");
     closeNode();
   }
 
@@ -199,12 +190,12 @@ class PrettyPrinter implements Visitor {
     openNode(node, "FunctionExpression", {
       "getOrSet" : tokenToStringOrNull(node.getOrSet)
     });
-    visitWithPrefix(node.modifiers, "modifiers:");
-    visitWithPrefix(node.returnType, "returnType:");
-    visitWithPrefix(node.name, "name:");
-    visitWithPrefix(node.parameters, "parameters:");
-    visitWithPrefix(node.initializers, "initializers:");
-    visitWithPrefix(node.body, "body:");
+    visitChildNode(node.modifiers, "modifiers");
+    visitChildNode(node.returnType, "returnType");
+    visitChildNode(node.name, "name");
+    visitChildNode(node.parameters, "parameters");
+    visitChildNode(node.initializers, "initializers");
+    visitChildNode(node.body, "body");
     closeNode();
   }
 
@@ -248,8 +239,8 @@ class PrettyPrinter implements Visitor {
     openNode(node, "LiteralList", {
       "constKeyword" : tokenToStringOrNull(node.constKeyword)
     });
-    visitWithPrefix(node.typeArguments, "typeArguments:");
-    visitWithPrefix(node.elements, "elements:");
+    visitChildNode(node.typeArguments, "typeArguments");
+    visitChildNode(node.elements, "elements");
     closeNode();
   }
 
@@ -306,7 +297,7 @@ class PrettyPrinter implements Visitor {
 
   visitReturn(Return node) {
     openNode(node, "Return");
-    visitWithPrefix(node.expression, "expression:");
+    visitChildNode(node.expression, "expression");
     closeNode();
   }
 
@@ -314,11 +305,15 @@ class PrettyPrinter implements Visitor {
     visitNodeWithChildren(node, "ScriptTag");
   }
 
-  /** Custom helper to visit given node and print its type with prefix. */
-  visitWithPrefix(Node node, String prefix) {
+  visitChildNode(Node node, String fieldName) {
     if (node === null) return;
-    nextTypePrefix = prefix;
+    addCurrentIndent();
+    sb.add("<$fieldName>\n");
+    pushTag(fieldName);
     node.accept(this);
+    popTag();
+    addCurrentIndent();
+    sb.add("</$fieldName>\n");
   }
 
   openSendNodeWithFields(Send node, String type) {
@@ -327,9 +322,9 @@ class PrettyPrinter implements Visitor {
         "isPostfix" : "${node.isPostfix}",
         "isIndex" : "${node.isIndex}"
     });
-    visitWithPrefix(node.receiver, "receiver:");
-    visitWithPrefix(node.selector, "selector:");
-    visitWithPrefix(node.argumentsNode, "argumentsNode:");
+    visitChildNode(node.receiver, "receiver");
+    visitChildNode(node.selector, "selector");
+    visitChildNode(node.argumentsNode, "argumentsNode");
   }
 
   visitSend(Send node) {
@@ -339,7 +334,7 @@ class PrettyPrinter implements Visitor {
 
   visitSendSet(SendSet node) {
     openSendNodeWithFields(node, "SendSet");
-    visitWithPrefix(node.assignmentOperator, "assignmentOperator:");
+    visitChildNode(node.assignmentOperator, "assignmentOperator");
     closeNode();
   }
 
@@ -373,8 +368,8 @@ class PrettyPrinter implements Visitor {
 
   visitTypeAnnotation(TypeAnnotation node) {
     openNode(node, "TypeAnnotation");
-    visitWithPrefix(node.typeName, "typeName:");
-    visitWithPrefix(node.typeArguments, "typeArguments:");
+    visitChildNode(node.typeName, "typeName");
+    visitChildNode(node.typeArguments, "typeArguments");
     closeNode();
   }
 
@@ -384,16 +379,16 @@ class PrettyPrinter implements Visitor {
 
   visitTypeVariable(TypeVariable node) {
     openNode(node, "TypeVariable");
-    visitWithPrefix(node.name, "name:");
-    visitWithPrefix(node.bound, "bound:");
+    visitChildNode(node.name, "name");
+    visitChildNode(node.bound, "bound");
     closeNode();
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
     openNode(node, "VariableDefinitions");
-    visitWithPrefix(node.type, "type:");
-    visitWithPrefix(node.modifiers, "modifiers:");
-    visitWithPrefix(node.definitions, "definitions:");
+    visitChildNode(node.type, "type");
+    visitChildNode(node.modifiers, "modifiers");
+    visitChildNode(node.definitions, "definitions");
     closeNode();
   }
 
