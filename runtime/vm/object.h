@@ -2675,6 +2675,8 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_instructions(RawInstructions* instructions) {
+    // RawInstructions are never allocated in New space and hence a
+    // store buffer update is not needed here.
     raw_ptr()->instructions_ = instructions;
   }
   void set_pointer_offsets_length(intptr_t value) {

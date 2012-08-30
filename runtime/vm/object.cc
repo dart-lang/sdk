@@ -3463,8 +3463,7 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
   ASSERT(!IsCanonical());
-  // TODO(iposva): Add storing NoGCScope.
-  *TypeAddr(index) = value.raw();
+  StorePointer(TypeAddr(index), value.raw());
 }
 
 
@@ -7463,7 +7462,7 @@ RawString* ContextScope::NameAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetNameAt(intptr_t scope_index, const String& name) const {
-  VariableDescAddr(scope_index)->name = name.raw();
+  StorePointer(&(VariableDescAddr(scope_index)->name), name.raw());
 }
 
 
@@ -7484,7 +7483,7 @@ RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
 
 void ContextScope::SetTypeAt(
     intptr_t scope_index, const AbstractType& type) const {
-  VariableDescAddr(scope_index)->type = type.raw();
+  StorePointer(&(VariableDescAddr(scope_index)->type), type.raw());
 }
 
 
