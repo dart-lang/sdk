@@ -61,6 +61,8 @@ class Backend {
   ItemCompilationContext createItemCompilationContext() {
     return new ItemCompilationContext();
   }
+
+  SourceString getCheckedModeHelper(Type type) => null;
 }
 
 class Compiler implements DiagnosticListener {

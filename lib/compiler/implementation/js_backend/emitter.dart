@@ -69,24 +69,26 @@ class CodeEmitterTask extends CompilerTask {
 
   String get generateGetterSetterFunction {
     return """
-function(field, prototype) {
-  var len = field.length;
-  var lastChar = field[len - 1];
-  var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-  var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-  if (needsGetter || needsSetter) field = field.substring(0, len - 1);
-  if (needsGetter) {
-    var getterString = "return this." + field + ";";
-""" /* The supportsProtoCheck below depends on the getter/setter convention.
-       When changing here, update the protoCheck too. */ """
-    prototype["get\$" + field] = new Function(getterString);
-  }
-  if (needsSetter) {
-    var setterString = "this." + field + " = v;";
-    prototype["set\$" + field] = new Function("v", setterString);
-  }
-  return field;
-}""";
+  function(field, prototype) {
+    var len = field.length;
+    var lastChar = field[len - 1];
+    var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+    var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+    if (needsGetter || needsSetter) field = field.substring(0, len - 1);
+    if (needsGetter) {
+      var getterString = "return this." + field + ";";
+  """
+  /* The supportsProtoCheck below depends on the getter/setter convention.
+         When changing here, update the protoCheck too. */
+  """
+      prototype["get\$" + field] = new Function(getterString);
+    }
+    if (needsSetter) {
+      var setterString = "this." + field + " = v;";
+      prototype["set\$" + field] = new Function("v", setterString);
+    }
+    return field;
+  }""";
   }
 
   String get defineClassFunction {
@@ -432,11 +434,29 @@ function(collectedClasses) {
     emitExtraAccessors(member, defineInstanceMember);
   }
 
-  Set<Element> emitClassFields(ClassElement classElement, CodeBuffer buffer) {
+  String generateCheckedSetter(Element member, String fieldName) {
+    Type type = member.computeType(compiler);
+    if (type.element.isTypeVariable()
+        || type.element == compiler.dynamicClass
+        || type.element == compiler.objectClass) {
+      // TODO(ngeoffray): Support type checks on type parameters.
+      return null;
+    } else {
+      SourceString helper = compiler.backend.getCheckedModeHelper(type);
+      Element helperElement = compiler.findHelper(helper);
+      String helperName = compiler.namer.isolateAccess(helperElement);
+      String additionalArgument = compiler.namer.operatorIs(type.element);
+      return " set\$$fieldName: function(v) { "
+          "this.$fieldName = $helperName(v, '$additionalArgument'); }";
+    }
+  }
+
+  List<String> emitClassFields(ClassElement classElement, CodeBuffer buffer) {
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
     bool isInstantiated =
         compiler.codegenWorld.instantiatedClasses.contains(classElement);
+    List<String> checkedSetters = <String>[];
 
     bool isFirstField = true;
     void addField(ClassElement enclosingClass, Element member) {
@@ -472,6 +492,13 @@ function(collectedClasses) {
         String fieldName = isShadowed
             ? namer.shadowedFieldName(member)
             : namer.getName(member);
+        if (needsDynamicSetter && compiler.enableTypeAssertions) {
+          String setter = generateCheckedSetter(member, fieldName);
+          if (setter != null) {
+            needsDynamicSetter = false;
+            checkedSetters.add(setter);
+          }
+        }
         // Getters and setters with suffixes will be generated dynamically.
         buffer.add('"$fieldName');
         if (needsDynamicGetter || needsDynamicSetter) {
@@ -495,6 +522,7 @@ function(collectedClasses) {
         addField,
         includeBackendMembers: true,
         includeSuperMembers: isInstantiated && !classElement.isNative());
+    return checkedSetters;
   }
 
   void emitInstanceMembers(ClassElement classElement,
@@ -562,12 +590,16 @@ function(collectedClasses) {
 
     buffer.add('$classesCollector.$className = {"":\n');
     buffer.add(' [');
-    emitClassFields(classElement, buffer);
+    List<String> checkedSetters = emitClassFields(classElement, buffer);
     buffer.add('],\n');
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
     // That does currently not work because the native classes have a different
     // syntax.
     buffer.add(' "super": "$superName"');
+    if (!checkedSetters.isEmpty()) {
+      buffer.add(',\n');
+      buffer.add('${Strings.join(checkedSetters, ",\n")}');
+    }
     emitInstanceMembers(classElement, buffer, true);
     buffer.add('\n};\n\n');
   }

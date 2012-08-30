@@ -544,4 +544,43 @@ class JavaScriptBackend extends Backend {
     }
     return info.returnType;
   }
+
+  SourceString getCheckedModeHelper(Type type) {
+    Element element = type.element;
+    bool nativeCheck =
+          emitter.nativeEmitter.requiresNativeIsCheck(element);
+    if (element == compiler.stringClass) {
+      return const SourceString('stringTypeCheck');
+    } else if (element == compiler.doubleClass) {
+      return const SourceString('doubleTypeCheck');
+    } else if (element == compiler.numClass) {
+      return const SourceString('numTypeCheck');
+    } else if (element == compiler.boolClass) {
+      return const SourceString('boolTypeCheck');
+    } else if (element == compiler.functionClass || element.isTypedef()) {
+      return const SourceString('functionTypeCheck');
+    } else if (element == compiler.intClass) {
+      return const SourceString('intTypeCheck');
+    } else if (Elements.isStringSupertype(element, compiler)) {
+      if (nativeCheck) {
+        return const SourceString('stringSuperNativeTypeCheck');
+      } else {
+        return const SourceString('stringSuperTypeCheck');
+      }
+    } else if (element === compiler.listClass) {
+      return const SourceString('listTypeCheck');
+    } else {
+      if (Elements.isListSupertype(element, compiler)) {
+        if (nativeCheck) {
+          return const SourceString('listSuperNativeTypeCheck');
+        } else {
+          return const SourceString('listSuperTypeCheck');
+        }
+      } else if (nativeCheck) {
+        return const SourceString('callTypeCheck');
+      } else {
+        return const SourceString('propertyTypeCheck');
+      }
+    }
+  }
 }

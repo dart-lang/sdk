@@ -2336,12 +2336,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     };
 
     if (node.isChecked) {
-      Element element = node.type.computeType(compiler).element;
+      Type type = node.type.computeType(compiler);
+      Element element = type.element;
       world.registerIsCheck(element);
-      SourceString helper;
-      String additionalArgument;
-      bool nativeCheck =
-          backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
 
       if (node.isArgumentTypeCheck) {
         if (element == compiler.intClass) {
@@ -2362,41 +2359,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
 
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-      if (element == compiler.stringClass) {
-        helper = const SourceString('stringTypeCheck');
-      } else if (element == compiler.doubleClass) {
-        helper = const SourceString('doubleTypeCheck');
-      } else if (element == compiler.numClass) {
-        helper = const SourceString('numTypeCheck');
-      } else if (element == compiler.boolClass) {
-        helper = const SourceString('boolTypeCheck');
-      } else if (element == compiler.functionClass || element.isTypedef()) {
-        helper = const SourceString('functionTypeCheck');
-      } else if (element == compiler.intClass) {
-        helper = const SourceString('intTypeCheck');
-      } else if (Elements.isStringSupertype(element, compiler)) {
-        additionalArgument = compiler.namer.operatorIs(element);
-        if (nativeCheck) {
-          helper = const SourceString('stringSuperNativeTypeCheck');
-        } else {
-          helper = const SourceString('stringSuperTypeCheck');
-        }
-      } else if (element === compiler.listClass) {
-        helper = const SourceString('listTypeCheck');
-      } else {
-        additionalArgument = compiler.namer.operatorIs(element);
-        if (Elements.isListSupertype(element, compiler)) {
-          if (nativeCheck) {
-            helper = const SourceString('listSuperNativeTypeCheck');
-          } else {
-            helper = const SourceString('listSuperTypeCheck');
-          }
-        } else if (nativeCheck) {
-          helper = const SourceString('callTypeCheck');
-        } else {
-          helper = const SourceString('propertyTypeCheck');
-        }
-      }
+      SourceString helper = backend.getCheckedModeHelper(type);
+      String additionalArgument = compiler.namer.operatorIs(element);
       if (node.isCastTypeCheck) {
         helper = castNames[helper.stringValue];
       }
@@ -2405,9 +2369,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);
       arguments.add(pop());
-      if (additionalArgument !== null) {
-        arguments.add(new js.LiteralString("'$additionalArgument'"));
-      }
+      arguments.add(new js.LiteralString("'$additionalArgument'"));
       String helperName = compiler.namer.isolateAccess(helperElement);
       push(new js.Call(new js.VariableUse(helperName), arguments));
     } else {
