@@ -1094,12 +1094,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testTryCatchFinally() {
-    analyze("try { } catch (var _) { } finally { }");
-    analyzeFail("try { int i = 4.2; } catch (var _) { } finally { }",
+    analyze("try { } catch (_) { } finally { }");
+    analyzeFail("try { int i = 4.2; } catch (_) { } finally { }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("try { } catch (var _) { int i = 4.2; } finally { }",
+    analyzeFail("try { } catch (_) { int i = 4.2; } finally { }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("try { } catch (var _) { } finally { int i = 4.2; }",
+    analyzeFail("try { } catch (_) { } finally { int i = 4.2; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 

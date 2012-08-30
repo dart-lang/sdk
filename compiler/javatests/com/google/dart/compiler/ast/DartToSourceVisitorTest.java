@@ -22,7 +22,7 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
        "  m() {\n" +
        "    try {\n" +
        "    }\n" +
-       "    catch (var e) {\n" +
+       "    catch (e) {\n" +
        "      throw;\n" +
        "    }\n" +
        "  }\n";

@@ -4812,7 +4812,7 @@ public class DartParser extends CompletionHooksParserBase {
           exception.setMetadata(metadata);
         } else {
           // Old-style parameter
-          //reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
+          reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
           exception = parseCatchParameter();
         }
         DartParameter stackTrace = null;
@@ -4825,7 +4825,7 @@ public class DartParser extends CompletionHooksParserBase {
             stackTrace.setMetadata(metadata);
           } else {
             // Old-style parameter
-            //reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
+            reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
             stackTrace = parseCatchParameter();
           }
         }
