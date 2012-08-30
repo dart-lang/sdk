@@ -194,7 +194,7 @@ void AstPrinter::VisitCaseNode(CaseNode* node) {
 }
 
 
-void AstPrinter::VisitSwitchNode(SwitchNode *node) {
+void AstPrinter::VisitSwitchNode(SwitchNode* node) {
   OS::Print("(switch ");
   node->body()->Visit(this);
   OS::Print(")");

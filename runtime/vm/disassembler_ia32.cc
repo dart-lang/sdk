@@ -979,7 +979,7 @@ void X86Decoder::CheckPrintStop(uint8_t* data) {
   // Recognize stop pattern.
   if (*reinterpret_cast<uint8_t*>(data + 5) == 0xCC) {
     Print("  STOP:'");
-    const char* text = *reinterpret_cast<const char **>(data + 1);
+    const char* text = *reinterpret_cast<const char**>(data + 1);
     Print(text);
     Print("'");
   }

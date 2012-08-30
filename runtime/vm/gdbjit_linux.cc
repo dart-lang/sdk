@@ -16,9 +16,9 @@ extern "C" {
   } jit_actions_t;
 
   struct jit_code_entry {
-    struct jit_code_entry *next_entry;
-    struct jit_code_entry *prev_entry;
-    const char *symfile_addr;
+    struct jit_code_entry* next_entry;
+    struct jit_code_entry* prev_entry;
+    const char* symfile_addr;
     uint64_t symfile_size;
   };
 
@@ -27,8 +27,8 @@ extern "C" {
     /* This type should be jit_actions_t, but we use uint32_t
        to be explicit about the bitwidth.  */
     uint32_t action_flag;
-    struct jit_code_entry *relevant_entry;
-    struct jit_code_entry *first_entry;
+    struct jit_code_entry* relevant_entry;
+    struct jit_code_entry* first_entry;
   };
 
   /* GDB puts a breakpoint in this function.  */

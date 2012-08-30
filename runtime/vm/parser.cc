@@ -4919,7 +4919,7 @@ bool Parser::IsForInStatement() {
 }
 
 
-static bool ContainsAbruptCompletingStatement(SequenceNode *seq);
+static bool ContainsAbruptCompletingStatement(SequenceNode* seq);
 
 static bool IsAbruptCompleting(AstNode* statement) {
   return statement->IsReturnNode() ||
@@ -4930,7 +4930,7 @@ static bool IsAbruptCompleting(AstNode* statement) {
 }
 
 
-static bool ContainsAbruptCompletingStatement(SequenceNode *seq) {
+static bool ContainsAbruptCompletingStatement(SequenceNode* seq) {
   for (int i = 0; i < seq->length(); i++) {
     if (IsAbruptCompleting(seq->NodeAt(i))) {
       return true;
