@@ -195,7 +195,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    RawObject** p = reinterpret_cast<RawObject**>(handle);
+    RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
       FinalizablePersistentHandle::Finalize(handle);
     }

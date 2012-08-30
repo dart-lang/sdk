@@ -130,7 +130,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);
 #endif
-  return *(reinterpret_cast<RawObject**>(object));
+  return (reinterpret_cast<LocalHandle*>(object))->raw();
 }
 
 #define DEFINE_UNWRAP(type)                                                    \
