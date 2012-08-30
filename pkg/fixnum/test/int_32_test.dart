@@ -32,19 +32,19 @@ void main() {
   try {
     new int32.fromInt(17) >> -1;
     Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
   }
 
   try {
     new int32.fromInt(17) << -1;
     Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
   }
 
   try {
     new int32.fromInt(17).shiftRightUnsigned(-1);
     Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
   }
 
   // wraparound
@@ -129,29 +129,29 @@ void main() {
       new int32.fromInt(0x12345678) << 7);
   Expect.equals(new int32.fromInt(0x12345678 >> 7),
       new int32.fromInt(0x12345678).shiftRightUnsigned(7));
-  
+
   try {
     new int32.fromInt(17) < null;
     Expect.fail("x < null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int32.fromInt(17) <= null;
     Expect.fail("x <= null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int32.fromInt(17) > null;
     Expect.fail("x > null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int32.fromInt(17) < null;
     Expect.fail("x >= null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   Expect.isFalse(new int32.fromInt(17) == null);

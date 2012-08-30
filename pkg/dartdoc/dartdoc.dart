@@ -253,7 +253,7 @@ void cleanOutputDirectory(Path path) {
     // due to invalid result from dir.existsSync() (probably due to race
     // conditions).
     outputDir.createSync();
-  } catch (DirectoryIOException e) {
+  } on DirectoryIOException catch (e) {
     // Ignore.
   }
 }
@@ -520,7 +520,7 @@ class Dartdoc {
       // race conditions).
       try {
         dir.createSync();
-      } catch (DirectoryIOException e) {
+      } on DirectoryIOException catch (e) {
         // Ignore.
       }
     }
@@ -696,7 +696,7 @@ class Dartdoc {
       // race conditions).
       try {
         dir.createSync();
-      } catch (DirectoryIOException e) {
+      } on DirectoryIOException catch (e) {
         // Ignore.
       }
     }

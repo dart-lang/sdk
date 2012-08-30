@@ -142,29 +142,29 @@ void testComparisons() {
   Expect.isTrue(!(largePosPlusOne == largePos));
   Expect.isTrue(largePosPlusOne >= largePos);
   Expect.isTrue(largePosPlusOne > largePos);
-  
+
   try {
     new int64.fromInt(17) < null;
     Expect.fail("x < null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int64.fromInt(17) <= null;
     Expect.fail("x <= null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int64.fromInt(17) > null;
     Expect.fail("x > null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int64.fromInt(17) < null;
     Expect.fail("x >= null should throw NullPointerException");
-  } catch (NullPointerException e) {
+  } on NullPointerException catch (e) {
   }
 
   Expect.isFalse(new int64.fromInt(17) == null);
@@ -377,7 +377,7 @@ void testMultiplicative() {
       0x12345678, 0x12345678) ~/ new int64.fromInts(0x0, 0x123));
   Expect.equals(new int64.fromInts(0x0, 0x10003), new int64.fromInts(
       0x12345678, 0x12345678) ~/ new int64.fromInts(0x1234, 0x12345678));
-  Expect.equals(new int64.fromInts(0xffffffff, 0xffff3dfe), 
+  Expect.equals(new int64.fromInts(0xffffffff, 0xffff3dfe),
       new int64.fromInts(0xf2345678, 0x12345678) ~/
       new int64.fromInts(0x1234, 0x12345678));
   Expect.equals(new int64.fromInts(0x0, 0xeda), new int64.fromInts(0xf2345678,
@@ -386,10 +386,10 @@ void testMultiplicative() {
   try {
     new int64.fromInt(1) ~/ new int64.fromInt(0);
     Expect.fail("Expected an IntegerDivisionByZeroException");
-  } catch (IntegerDivisionByZeroException e) {
+  } on IntegerDivisionByZeroException catch (e) {
   }
 
-  Expect.equals(new int64.fromInts(0xc0000000, 0x00000000), 
+  Expect.equals(new int64.fromInts(0xc0000000, 0x00000000),
       int64.MIN_VALUE ~/ new int64.fromInt(2));
   Expect.equals(int64.MIN_VALUE, int64.MIN_VALUE ~/
       new int64.fromInt(1));
@@ -516,19 +516,19 @@ void testShift() {
   try {
     new int64.fromInt(17) >> -1;
     Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
   }
 
   try {
     new int64.fromInt(17) << -1;
     Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
   }
 
   try {
     new int64.fromInt(17).shiftRightUnsigned(-1);
     Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } catch (IllegalArgumentException e) {
+  } on IllegalArgumentException catch (e) {
   }
 
 }

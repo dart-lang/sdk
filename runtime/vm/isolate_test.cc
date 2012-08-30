@@ -28,7 +28,7 @@ TEST_CASE(IsolateSpawn) {
       "int testMain() {\n"
       "  try {\n"
       "    spawnFunction(entry);\n"
-      "  } catch (var e) {\n"
+      "  } catch (e) {\n"
       "    throw;\n"
       "  }\n"
       "  return 0;\n"

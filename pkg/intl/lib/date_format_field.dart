@@ -145,7 +145,7 @@ class _DateFormatPatternField extends _DateFormatField {
        case 'Z': break; // time zone RFC
        default: return;
      }
-   } catch (var e) { throwFormatException(input); }
+   } catch (e) { throwFormatException(input); }
  }
 
   /** Formatting logic if we are of type FIELD */
