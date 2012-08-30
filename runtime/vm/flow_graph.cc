@@ -282,6 +282,11 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
 
 void FlowGraph::ComputeUseLists() {
   DEBUG_ASSERT(ResetUseLists());
+  // Clear global constants and definitions in the start environment.
+  ClearUseLists(graph_entry_->constant_null());
+  for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
+    ClearUseLists(graph_entry_->start_env()->values()[i]->definition());
+  }
   ComputeUseListsRecursive(graph_entry_);
   DEBUG_ASSERT(ValidateUseLists());
 }
