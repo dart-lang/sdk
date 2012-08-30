@@ -7,7 +7,6 @@ String typeNameInChrome(obj) {
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'WebKitMutationObserver') return 'MutationObserver';
-  if (name == 'FormData') return 'DOMFormData';
   return name;
 }
 
@@ -17,14 +16,12 @@ String typeNameInSafari(obj) {
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'WebKitMutationObserver') return 'MutationObserver';
-  if (name == 'FormData') return 'DOMFormData';
   return name;
 }
 
 String typeNameInOpera(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
-  if (name == 'FormData') return 'DOMFormData';
   return name;
 }
 
@@ -36,7 +33,6 @@ String typeNameInFirefox(obj) {
   if (name == 'WorkerMessageEvent') return 'MessageEvent';
   if (name == 'DragEvent') return 'MouseEvent';
   if (name == 'DataTransfer') return 'Clipboard';
-  if (name == 'FormData') return 'DOMFormData';
   return name;
 }
 
@@ -59,7 +55,6 @@ String typeNameInIE(obj) {
   if (name == 'HTMLPhraseElement') return 'HTMLElement';
   if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
   if (name == 'MouseWheelEvent') return 'WheelEvent';
-  if (name == 'FormData') return 'DOMFormData';
   return name;
 }
 

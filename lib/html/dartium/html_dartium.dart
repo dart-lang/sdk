@@ -4603,17 +4603,9 @@ class _DOMFileSystemSyncImpl extends NativeFieldWrapperClass1 implements DOMFile
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FormDataFactoryProvider {
-  factory FormData([FormElement form]) => _createFormData(form);
-  static FormData _createFormData([FormElement form]) native "DOMFormData_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
-class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements FormData {
+class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements DOMFormData {
 
   void append(String name, String value, String filename) native "DOMFormData_append_Callback";
 
@@ -21155,11 +21147,6 @@ class _Elements {
     return _e;
   }
 
-  factory FormElement() {
-    _HTMLFormElementImpl _e = _document.$dom_createElement("form");
-    return _e;
-  }
-
   factory HRElement() {
     _HTMLHRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
@@ -25624,6 +25611,18 @@ interface DOMFileSystemSync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMFormData
+interface DOMFormData {
+
+  /** @domName DOMFormData.append */
+  void append(String name, String value, String filename);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DOMImplementation
 interface DOMImplementation {
 
@@ -27966,24 +27965,8 @@ interface FontElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMFormData
-interface FormData default _FormDataFactoryProvider {
-
-  FormData([FormElement form]);
-
-  /** @domName DOMFormData.append */
-  void append(String name, String value, String filename);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLFormElement
-interface FormElement extends Element default _Elements {
-
-  FormElement();
+interface FormElement extends Element {
 
   /** @domName HTMLFormElement.acceptCharset */
   String acceptCharset;

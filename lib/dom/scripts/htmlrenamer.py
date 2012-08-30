@@ -4,7 +4,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 _html_interface_renames = {
-    'DOMFormData': 'FormData',
     'DOMWindow': 'Window',
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',

@@ -108,6 +108,7 @@
 #source('interface/DOMException.dartdoc');
 #source('interface/DOMFileSystem.dartdoc');
 #source('interface/DOMFileSystemSync.dartdoc');
+#source('interface/DOMFormData.dartdoc');
 #source('interface/DOMImplementation.dartdoc');
 #source('interface/DOMMimeTypeArray.dartdoc');
 #source('interface/DOMMimeType.dartdoc');
@@ -157,7 +158,6 @@
 #source('interface/Float32Array.dartdoc');
 #source('interface/Float64Array.dartdoc');
 #source('interface/FontElement.dartdoc');
-#source('interface/FormData.dartdoc');
 #source('interface/FormElement.dartdoc');
 #source('interface/FrameElement.dartdoc');
 #source('interface/FrameSetElement.dartdoc');

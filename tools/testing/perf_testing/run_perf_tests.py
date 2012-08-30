@@ -98,8 +98,6 @@ class TestRunner(object):
             shutil.rmtree(to_remove)#, ignore_errors=True)
           else:
             os.remove(to_remove)
-        elif any(line.startswith(status) for status in ['A', 'M', 'C', 'D']):
-          self.RunCmd(['svn', 'revert', line.split()[1]])
 
   def GetArchive(self, archive_name):
     """Wrapper around the pulling down a specific archive from Google Storage.
@@ -251,15 +249,8 @@ class TestRunner(object):
       return (HasPerfAffectingResults(GetFileList(
           revision_num)), revision_num)
     else:
-      latest_interesting_server_rev = None
-      while not latest_interesting_server_rev:
-        results, _ = self.RunCmd(['svn', 'st', '-u'], std_in='p\r\n')
-        if len(results.split('\n')) >= 2:
-          latest_interesting_server_rev = int(
-              results.split('\n')[-2].split()[-1])
-          print 'success'
-        else:
-          print 'hrmmmm'
+      results, _ = self.RunCmd(['svn', 'st', '-u'], std_in='p\r\n')
+      latest_interesting_server_rev = int(results.split('\n')[-2].split()[-1])
       if self.backfill:
         done_cls = list(UpdateSetOfDoneCls())
         done_cls.sort()
@@ -422,8 +413,6 @@ class Test(object):
     """
     # TODO(vsm): This avoids a bug in 32-bit Chrome (dartium)
     # running JS dromaeo.
-    if variant == 'js':
-      return False
     if platform == 'dartium' and variant == 'js':
       return False
     if (platform == 'safari' and variant == 'dart2js' and
@@ -665,7 +654,6 @@ class CommonBrowserTest(RuntimePerformanceTest):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage and/or we can
           delete the trace file."""
-      print afile
       os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
                             'testing', 'perf_testing'))
       parts = afile.split('-')
@@ -923,7 +911,6 @@ class DromaeoTest(RuntimePerformanceTest):
     def ProcessFile(self, afile, should_post_file):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage."""
-      print afile
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
@@ -940,7 +927,7 @@ class DromaeoTest(RuntimePerformanceTest):
 
       upload_success = True
       for line in lines:
-        rev = re.match(revision_pattern, line.strip().replace('"', ''))
+        rev = re.match(revision_pattern, line.strip())
         if rev:
           revision_num = int(rev.group(1))
           continue
