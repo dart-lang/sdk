@@ -7,6 +7,7 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 regress/4740_test: Fail
+interface_type_optimization_test: Fail
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK
