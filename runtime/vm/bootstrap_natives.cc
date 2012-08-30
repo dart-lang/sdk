@@ -13,6 +13,11 @@
 
 namespace dart {
 
+// Helper macros for declaring and defining native entries.
+#define REGISTER_NATIVE_ENTRY(name, count)                                     \
+  { ""#name, BootstrapNatives::DN_##name, count },
+
+
 // List all native functions implemented in the vm or core bootstrap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
@@ -25,8 +30,8 @@ static struct NativeEntries {
 };
 
 
-static Dart_NativeFunction NativeLookup(Dart_Handle name,
-                                        int argument_count) {
+Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
+                                             int argument_count) {
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -48,25 +53,24 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 void Bootstrap::SetupNativeResolver() {
   Library& library = Library::Handle();
 
+  Dart_NativeEntryResolver resolver =
+      reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup);
+
   library = Library::CoreLibrary();
   ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
+  library.set_native_entry_resolver(resolver);
 
   library = Library::CoreImplLibrary();
   ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
+  library.set_native_entry_resolver(resolver);
 
   library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
+  library.set_native_entry_resolver(resolver);
 
   library = Library::IsolateLibrary();
   ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
+  library.set_native_entry_resolver(resolver);
 }
 
 }  // namespace dart

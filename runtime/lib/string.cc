@@ -41,15 +41,13 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     }
     temp[i] = value;
   }
-  String& result = String::Handle(isolate);
   if (is_one_byte_string) {
-    result ^= OneByteString::New(temp, len, Heap::kNew);
+    return OneByteString::New(temp, len, Heap::kNew);
   } else if (is_two_byte_string) {
-    result ^= TwoByteString::New(temp, len, Heap::kNew);
+    return TwoByteString::New(temp, len, Heap::kNew);
   } else {
-    result ^= FourByteString::New(temp, len, Heap::kNew);
+    return FourByteString::New(temp, len, Heap::kNew);
   }
-  arguments->SetReturn(result);
 }
 
 
@@ -60,10 +58,7 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
 
   intptr_t start = start_obj.Value();
   intptr_t end = end_obj.Value();
-
-  const String& result = String::Handle(
-      isolate, String::SubString(receiver, start, (end - start)));
-  arguments->SetReturn(result);
+  return String::SubString(receiver, start, (end - start));
 }
 
 
@@ -72,14 +67,13 @@ DEFINE_NATIVE_ENTRY(String_hashCode, 1) {
   intptr_t hash_val = receiver.Hash();
   ASSERT(hash_val > 0);
   ASSERT(Smi::IsValid(hash_val));
-  const Smi& hash_smi = Smi::Handle(Smi::New(hash_val));
-  arguments->SetReturn(hash_smi);
+  return Smi::New(hash_val);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_getLength, 1) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
-  arguments->SetReturn(Smi::Handle(Smi::New(receiver.Length())));
+  return Smi::New(receiver.Length());
 }
 
 
@@ -109,7 +103,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   GET_NATIVE_ARGUMENT(Integer, index, arguments->At(1));
   uint32_t value = StringValueAt(receiver, index);
   ASSERT(value <= 0x10FFFF);
-  arguments->SetReturn(String::Handle(Symbols::New(&value, 1)));
+  return Symbols::New(&value, 1);
 }
 
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
@@ -118,31 +112,28 @@ DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
   int32_t value = StringValueAt(receiver, index);
   ASSERT(value >= 0);
   ASSERT(value <= 0x10FFFF);
-  arguments->SetReturn(Smi::Handle(Smi::New(value)));
+  return Smi::New(value);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
   GET_NATIVE_ARGUMENT(String, b, arguments->At(1));
-  const String& result = String::Handle(String::Concat(receiver, b));
-  arguments->SetReturn(result);
+  return String::Concat(receiver, b);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
   ASSERT(!receiver.IsNull());
-  const String& result = String::Handle(String::ToLowerCase(receiver));
-  arguments->SetReturn(result);
+  return String::ToLowerCase(receiver);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
   ASSERT(!receiver.IsNull());
-  const String& result = String::Handle(String::ToUpperCase(receiver));
-  arguments->SetReturn(result);
+  return String::ToUpperCase(receiver);
 }
 
 
@@ -163,8 +154,7 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
       Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
     }
   }
-  const String& result = String::Handle(String::ConcatAll(strings));
-  arguments->SetReturn(result);
+  return String::ConcatAll(strings);
 }
 
 }  // namespace dart

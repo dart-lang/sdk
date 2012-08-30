@@ -120,13 +120,14 @@ DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
   if (port.IsError()) {
     Exceptions::PropagateError(Error::Cast(port));
   }
-  arguments->SetReturn(port);
+  return port.raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(ReceivePortImpl_closeInternal, 1) {
   GET_NATIVE_ARGUMENT(Smi, id, arguments->At(0));
   PortMap::ClosePort(id.Value());
+  return Object::null();
 }
 
 
@@ -144,6 +145,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
   PortMap::PostMessage(new Message(send_id.Value(), reply_id.Value(),
                                    data, writer.BytesWritten(),
                                    Message::kNormalPriority));
+  return Object::null();
 }
 
 
@@ -366,7 +368,7 @@ static bool RunIsolate(uword parameter) {
 }
 
 
-static void Spawn(NativeArguments* arguments, SpawnState* state) {
+static RawObject* Spawn(NativeArguments* arguments, SpawnState* state) {
   // Create a new isolate.
   char* error = NULL;
   if (!CreateIsolate(state, &error)) {
@@ -391,7 +393,7 @@ static void Spawn(NativeArguments* arguments, SpawnState* state) {
       Dart::thread_pool(), RunIsolate, ShutdownIsolate,
       reinterpret_cast<uword>(state->isolate()));
 
-  arguments->SetReturn(port);
+  return port.raw();
 }
 
 
@@ -411,7 +413,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
   ASSERT(ctx.num_variables() == 0);
 #endif
 
-  Spawn(arguments, new SpawnState(func));
+  return Spawn(arguments, new SpawnState(func));
 }
 
 
@@ -430,7 +432,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
     ThrowIsolateSpawnException(msg);
   }
 
-  Spawn(arguments, new SpawnState(canonical_uri));
+  return Spawn(arguments, new SpawnState(canonical_uri));
 }
 
 
@@ -439,7 +441,7 @@ DEFINE_NATIVE_ENTRY(isolate_getPortInternal, 0) {
   if (port.IsError()) {
     Exceptions::PropagateError(Error::Cast(port));
   }
-  arguments->SetReturn(port);
+  return port.raw();
 }
 
 }  // namespace dart

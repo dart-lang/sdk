@@ -29,33 +29,28 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   GET_NATIVE_ARGUMENT(Instance, handle_ignore_case, arguments->At(3));
   bool ignore_case = handle_ignore_case.raw() == Bool::True();
   bool multi_line = handle_multi_line.raw() == Bool::True();
-  const JSRegExp& new_regex = JSRegExp::Handle(
-      Jscre::Compile(pattern, multi_line, ignore_case));
-  arguments->SetReturn(new_regex);
+  return Jscre::Compile(pattern, multi_line, ignore_case);
 }
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getPattern, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
   ASSERT(!regexp.IsNull());
-  const String& result = String::Handle(regexp.pattern());
-  arguments->SetReturn(result);
+  return regexp.pattern();
 }
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_multiLine, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
   ASSERT(!regexp.IsNull());
-  const Bool& result = Bool::Handle(Bool::Get(regexp.is_multi_line()));
-  arguments->SetReturn(result);
+  return Bool::Get(regexp.is_multi_line());
 }
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ignoreCase, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
   ASSERT(!regexp.IsNull());
-  const Bool& result = Bool::Handle(Bool::Get(regexp.is_ignore_case()));
-  arguments->SetReturn(result);
+  return Bool::Get(regexp.is_ignore_case());
 }
 
 
@@ -63,9 +58,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
   ASSERT(!regexp.IsNull());
   if (regexp.is_initialized()) {
-    const Smi& result = Smi::Handle(regexp.num_bracket_expressions());
-    arguments->SetReturn(result);
-    return;
+    return regexp.num_bracket_expressions();
   }
   const String& pattern = String::Handle(regexp.pattern());
   const String& errmsg =
@@ -74,6 +67,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
   args.Add(&pattern);
   args.Add(&errmsg);
   Exceptions::ThrowByType(Exceptions::kIllegalJSRegExp, args);
+  return Object::null();
 }
 
 
@@ -84,9 +78,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   CheckAndThrowExceptionIfNull(arg1);
   GET_NATIVE_ARGUMENT(String, str, arguments->At(1));
   GET_NATIVE_ARGUMENT(Smi, start_index, arguments->At(2));
-  const Array& result =
-      Array::Handle(Jscre::Execute(regexp, str, start_index.Value()));
-  arguments->SetReturn(result);
+  return Jscre::Execute(regexp, str, start_index.Value());
 }
 
 }  // namespace dart

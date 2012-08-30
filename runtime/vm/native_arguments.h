@@ -12,6 +12,7 @@
 namespace dart {
 
 // Forward declarations.
+class BootstrapNatives;
 class Isolate;
 class Object;
 class RawObject;
@@ -76,6 +77,14 @@ class NativeArguments {
   }
 
  private:
+  friend class BootstrapNatives;
+
+  // Since this function is passed a RawObject directly, we need to be
+  // exceedingly careful when we use it.  If there are any other side
+  // effects in the statement that may cause GC, it could lead to
+  // bugs.
+  void SetReturnUnsafe(RawObject* value) const;
+
   Isolate* isolate_;  // Current isolate pointer.
   int argc_;  // Number of arguments passed to the runtime call.
   RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.

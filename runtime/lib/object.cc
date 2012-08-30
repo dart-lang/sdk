@@ -13,7 +13,7 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->At(0));
   const char* c_str = instance.ToCString();
-  arguments->SetReturn(String::Handle(String::New(c_str)));
+  return String::New(c_str);
 }
 
 
@@ -53,6 +53,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
     dart_arguments.Add(&array);
   }
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+  return Object::null();
 }
 
 }  // namespace dart

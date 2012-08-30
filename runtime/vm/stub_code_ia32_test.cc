@@ -122,9 +122,7 @@ static void GenerateCallToCallNativeCFunctionStub(Assembler* assembler,
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   const Object& result = Object::ZoneHandle();
-  const String& native_name = String::ZoneHandle(String::New("TestSmiSub"));
-  Dart_NativeFunction native_function =
-      NativeTestEntry_Lookup(native_name, argc);
+  Dart_NativeFunction native_function = TestSmiSub;
   ASSERT(native_function != NULL);
   const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   ASSERT(context.isolate() == Isolate::Current());

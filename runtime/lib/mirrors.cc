@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/bootstrap_natives.h"
-
-#include "platform/json.h"
 #include "include/dart_api.h"
 #include "include/dart_debugger_api.h"
+#include "platform/json.h"
+#include "vm/bootstrap_natives.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/message.h"
@@ -28,8 +27,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   Integer& id = Integer::Handle();
   id ^= id_obj.raw();
   Dart_Port port_id = static_cast<Dart_Port>(id.AsInt64Value());
-  const Bool& is_local = Bool::Handle(Bool::Get(PortMap::IsLocalPort(port_id)));
-  arguments->SetReturn(is_local);
+  return Bool::Get(PortMap::IsLocalPort(port_id));
 }
 
 

@@ -24,8 +24,8 @@ CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
   const bool has_opt_params = false;
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestStaticCallPatching"));
-  NativeFunction native_function = reinterpret_cast<NativeFunction>(
-      NATIVE_ENTRY_FUNCTION(TestStaticCallPatching));
+  NativeFunction native_function =
+      reinterpret_cast<NativeFunction>(TestStaticCallPatching);
   node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
                                new NativeBodyNode(Scanner::kDummyTokenIndex,
                                                   native_name,

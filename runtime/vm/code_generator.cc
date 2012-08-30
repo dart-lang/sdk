@@ -792,7 +792,7 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const Code& code = Code::Handle(
       ResolveCompileInstanceCallTarget(isolate, receiver));
-  arguments.SetReturn(Code::Handle(code.raw()));
+  arguments.SetReturn(code);
 }
 
 

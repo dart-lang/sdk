@@ -16,21 +16,19 @@ DEFINE_NATIVE_ENTRY(WeakProperty_new, 2) {
   const WeakProperty& weak_property = WeakProperty::Handle(WeakProperty::New());
   weak_property.set_key(key);
   weak_property.set_value(value);
-  arguments->SetReturn(weak_property);
+  return weak_property.raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(WeakProperty_getKey, 1) {
   GET_NATIVE_ARGUMENT(WeakProperty, weak_property, arguments->At(0));
-  const Object& key = Object::Handle(weak_property.key());
-  arguments->SetReturn(key);
+  return weak_property.key();
 }
 
 
 DEFINE_NATIVE_ENTRY(WeakProperty_getValue, 1) {
   GET_NATIVE_ARGUMENT(WeakProperty, weak_property, arguments->At(0));
-  const Object& value = Object::Handle(weak_property.value());
-  arguments->SetReturn(value);
+  return weak_property.value();
 }
 
 
@@ -38,6 +36,7 @@ DEFINE_NATIVE_ENTRY(WeakProperty_setValue, 2) {
   GET_NATIVE_ARGUMENT(WeakProperty, weak_property, arguments->At(0));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->At(1));
   weak_property.set_value(value);
+  return Object::null();
 }
 
 }  // namespace dart
