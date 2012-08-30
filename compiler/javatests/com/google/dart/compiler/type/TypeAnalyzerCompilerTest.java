@@ -2211,6 +2211,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "a1", "List<String>");
     assertInferredElementTypeString(testUnit, "b1", "List<String>");
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4791
+   */
+  public void test_typesPropagation_multiAssign_type_null() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = null;",
+        "  var v1 = v;",
+        "  if (true) {",
+        "    v = '';",
+        "    var v2 = v;",
+        "  }",
+        "  var v3 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v3", "String");
+  }
 
   /**
    * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
