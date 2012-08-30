@@ -48,7 +48,7 @@ class ObjectArray<E> implements List<E> {
   List<E> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    List list = new List<E>();
+    List list = new GrowableObjectArray<E>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
@@ -66,8 +66,7 @@ class ObjectArray<E> implements List<E> {
     return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
+  reduce(initialValue, combine(previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
@@ -203,8 +202,7 @@ class ImmutableArray<E> implements List<E> {
     return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
+  reduce(initialValue, combine(previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
