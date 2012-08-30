@@ -136,8 +136,6 @@
     'flow_graph_compiler_ia32.h',
     'flow_graph_compiler_x64.cc',
     'flow_graph_compiler_x64.h',
-    'flow_graph_inliner.cc',
-    'flow_graph_inliner.h',
     'flow_graph_optimizer.cc',
     'flow_graph_optimizer.h',
     'freelist.cc',

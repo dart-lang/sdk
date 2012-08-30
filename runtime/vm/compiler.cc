@@ -17,7 +17,6 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_inliner.h"
 #include "vm/flow_graph_optimizer.h"
 #include "vm/il_printer.h"
 #include "vm/longjump.h"
@@ -39,7 +38,6 @@ DEFINE_FLAG(bool, cse, true, "Do common subexpression elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
-DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DECLARE_FLAG(bool, print_flow_graph);
 
 
@@ -190,14 +188,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
         // Compute the use lists.
         flow_graph->ComputeUseLists();
-
-        // Inlining (mutates the flow graph)
-        if (FLAG_use_inlining) {
-          FlowGraphInliner inliner(flow_graph);
-          inliner.Inline();
-          // Verify that the use lists are still valid.
-          DEBUG_ASSERT(flow_graph->ValidateUseLists());
-        }
 
         // Propagate types and eliminate more type tests.
         FlowGraphTypePropagator propagator(*flow_graph);

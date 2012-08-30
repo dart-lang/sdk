@@ -10,14 +10,11 @@
 
 namespace dart {
 
-class BindInstr;
 class BlockEntryInstr;
-class StaticCallComp;
 class Definition;
 class FlowGraphBuilder;
 class GraphEntryInstr;
 class PhiInstr;
-class ReturnInstr;
 
 // Class to incapsulate the construction and manipulation of the flow graph.
 class FlowGraph: public ZoneAllocated {
@@ -63,18 +60,11 @@ class FlowGraph: public ZoneAllocated {
     return graph_entry_;
   }
 
-  ZoneGrowableArray<ReturnInstr*>* exits() const { return exits_; }
-  void set_exits(ZoneGrowableArray<ReturnInstr*>* exits) { exits_ = exits; }
-
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   // Operations on the flow graph.
-  void ComputeSSA(intptr_t next_virtual_register_number = 0);
+  void ComputeSSA();
   void ComputeUseLists();
-
-  void InlineCall(BindInstr* caller_instr,
-                  StaticCallComp* caller_comp,
-                  FlowGraph* callee_graph);
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
@@ -131,7 +121,6 @@ class FlowGraph: public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
-  ZoneGrowableArray<ReturnInstr*>* exits_;
 };
 
 }  // namespace dart

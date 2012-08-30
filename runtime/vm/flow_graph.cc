@@ -8,7 +8,6 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
-#include "vm/growable_array.h"
 
 namespace dart {
 
@@ -24,8 +23,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
-    reverse_postorder_(),
-    exits_(NULL) {
+    reverse_postorder_() {
   DiscoverBlocks();
 }
 
@@ -294,8 +292,7 @@ void FlowGraph::ComputeUseLists() {
 }
 
 
-void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
-  current_ssa_temp_index_ = next_virtual_register_number;
+void FlowGraph::ComputeSSA() {
   GrowableArray<BitVector*> dominance_frontier;
   ComputeDominators(&preorder_, &parent_, &dominance_frontier);
   InsertPhis(preorder_, assigned_vars_, dominance_frontier);
@@ -680,72 +677,6 @@ void FlowGraph::Bailout(const char* reason) const {
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));
   Isolate::Current()->long_jump_base()->Jump(1, error);
-}
-
-
-// Helper to get the block-entry of an instruction.
-static BlockEntryInstr* GetBlockEntry(Instruction* instr) {
-  while (!instr->IsBlockEntry()) instr = instr->previous();
-  return instr->AsBlockEntry();
-}
-
-
-// Helper to link two instructions in the graph.
-static void Link(Instruction* prev, Instruction* next) {
-  ASSERT(prev != next);
-  prev->set_next(next);
-  next->set_previous(prev);
-}
-
-
-// Inline a flow graph at a call site.
-//
-// Assumes the callee graph was computed with BuildGraphForInlining and
-// transformed to SSA with ComputeSSAForInlining, and that the use lists have
-// been correctly computed.
-//
-// After inlining the caller graph will correctly have adjusted the pre/post
-// orders, the dominator tree and the use lists.
-void FlowGraph::InlineCall(BindInstr* caller_instr,
-                           StaticCallComp* caller_comp,
-                           FlowGraph* callee_graph) {
-  ASSERT(callee_graph->exits() != NULL);
-  ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
-  ASSERT(callee_graph->max_virtual_register_number() >
-         max_virtual_register_number());
-
-  // TODO(zerny): Implement support for callee graphs with control flow.
-  ASSERT(callee_graph->preorder().length() == 2);
-
-  // Adjust the SSA temp index by the callee graph's index.
-  current_ssa_temp_index_ = callee_graph->max_virtual_register_number();
-
-  TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
-  ZoneGrowableArray<ReturnInstr*>* callee_exits = callee_graph->exits();
-
-  // 1. Insert the callee graph into the caller graph.
-  if (callee_exits->length() == 1) {
-    ReturnInstr* exit = (*callee_exits)[0];
-    // TODO(zerny): Support one exit graph containing control flow.
-    ASSERT(callee_entry == GetBlockEntry(exit));
-    // For just one exit, replace the uses and remove the call from the graph.
-    caller_instr->ReplaceUsesWith(exit->value()->AsUse()->definition());
-    Link(caller_instr->previous(), callee_entry->next());
-    Link(exit->previous(), caller_instr->next());
-  } else {
-    // TODO(zerny): Support multiple exits.
-    UNREACHABLE();
-  }
-
-  // TODO(zerny): Adjust pre/post orders.
-  // TODO(zerny): Update dominator tree.
-
-  // Remove original arguments to the call.
-  for (intptr_t i = 0; i < caller_comp->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = caller_comp->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->AsUse()->definition());
-    push->RemoveFromGraph();
-  }
 }
 
 

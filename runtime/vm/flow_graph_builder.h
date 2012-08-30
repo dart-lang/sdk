@@ -21,15 +21,7 @@ class FlowGraphBuilder: public ValueObject {
  public:
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function);
 
-  enum InliningContext {
-    kNotInlining,
-    kValueContext,
-    kEffectContext,
-    kTestContext
-  };
-
   FlowGraph* BuildGraph();
-  FlowGraph* BuildGraphForInlining(InliningContext context);
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
@@ -57,14 +49,6 @@ class FlowGraphBuilder: public ValueObject {
     return stack_local_count_;
   }
 
-  bool InInliningContext() const { return inlining_context_ != kNotInlining; }
-  void AddReturnExit(ReturnInstr* return_instr) {
-    if (InInliningContext()) {
-      ASSERT(exits_ != NULL);
-      exits_->Add(return_instr);
-    }
-  }
-
  private:
   intptr_t parameter_count() const {
     return copied_parameter_count_ + non_copied_parameter_count_;
@@ -83,8 +67,6 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t last_used_try_index_;
   intptr_t try_index_;
   GraphEntryInstr* graph_entry_;
-  InliningContext inlining_context_;
-  ZoneGrowableArray<ReturnInstr*>* exits_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -122,7 +104,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   bool is_open() const { return is_empty() || exit_ != NULL; }
 
   void Bailout(const char* reason);
-  void InlineBailout(const char* reason);
 
   // Append a graph fragment to this graph.  Assumes this graph is open.
   void Append(const EffectGraphVisitor& other_fragment);
@@ -152,13 +133,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Wraps a value in a push-argument instruction and adds the result to the
   // graph.
   PushArgumentInstr* PushArgument(Value* value);
-
-  // This implementation shares state among visitors by using the builder.
-  // The implementation is incorrect if a visitor that hits a return is not
-  // actually added to the graph.
-  void AddReturnExit(ReturnInstr* return_instr) {
-    owner()->AddReturnExit(return_instr);
-  }
 
  protected:
   Computation* BuildStoreLocal(const LocalVariable& local, Value* value);

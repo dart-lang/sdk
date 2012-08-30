@@ -2599,8 +2599,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     spill_slot_count_ = count;
   }
 
-  TargetEntryInstr* normal_entry() const { return normal_entry_; }
-
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
