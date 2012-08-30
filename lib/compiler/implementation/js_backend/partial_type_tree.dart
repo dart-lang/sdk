@@ -7,9 +7,56 @@ class PartialTypeTree {
   final Compiler compiler;
   PartialTypeTreeNode root;
 
+  // TODO(kasperl): This should be final but the VM will not allow
+  // that without making the map a compile-time constant.
+  Map<ClassElement, PartialTypeTreeNode> nodes =
+      new Map<ClassElement, PartialTypeTreeNode>();
+
+  // TODO(kasperl): For now, we keep track of whether or not the tree
+  // contains two classes with a subtype relationship that isn't a
+  // subclass relationship.
+  bool containsInterfaceSubtypes = false;
+
+  // TODO(kasperl): This should be final but the VM will not allow
+  // that without making the set a compile-time constant.
+  Set<ClassElement> unseenInterfaceSubtypes =
+      new Set<ClassElement>();
+
   PartialTypeTree(this.compiler);
 
-  abstract PartialTypeTreeNode newNode(ClassElement type);
+  abstract PartialTypeTreeNode newSpecializedNode(ClassElement type);
+
+  PartialTypeTreeNode newNode(ClassElement type) {
+    PartialTypeTreeNode node = newSpecializedNode(type);
+    nodes[type] = node;
+    if (containsInterfaceSubtypes) return node;
+
+    // Check if the implied interface of the new class is implemented
+    // by another class that is already in the tree.
+    if (unseenInterfaceSubtypes.contains(type)) {
+      containsInterfaceSubtypes = true;
+      unseenInterfaceSubtypes.clear();
+      return node;
+    }
+
+    // Run through all the implied interfaces the class that we're
+    // adding implements and see if any of them are already in the
+    // tree. If so, we have a tree with interface subtypes. If not,
+    // keep track of them so we can deal with it if the interface is
+    // added to the tree later.
+    for (Link link = type.interfaces; !link.isEmpty(); link = link.tail) {
+      InterfaceType superType = link.head;
+      ClassElement superTypeElement = superType.element;
+      if (nodes.containsKey(superTypeElement)) {
+        containsInterfaceSubtypes = true;
+        unseenInterfaceSubtypes.clear();
+        break;
+      } else {
+        unseenInterfaceSubtypes.add(superTypeElement);
+      }
+    }
+    return node;
+  }
 
   // TODO(kasperl): Move this to the Selector class?
   ClassElement selectorType(Selector selector) {
@@ -85,6 +132,7 @@ class PartialTypeTree {
    * the [visit] function ever returns false, we abort the traversal.
    */
   void visitHierarchy(ClassElement type, bool visit(PartialTypeTreeNode node)) {
+    assert(!containsInterfaceSubtypes);
     PartialTypeTreeNode current = root;
     L: while (current.type !== type) {
       assert(type.isSubclassOf(current.type));
