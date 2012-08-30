@@ -4771,8 +4771,7 @@ public class DartParser extends CompletionHooksParserBase {
       if (peekPseudoKeyword(0, ON_KEYWORD)) {
         beginCatchClause();
         next();
-        beginTypeAnnotation();
-        DartTypeNode exceptionType = done(new DartTypeNode(parseQualified(false)));
+        DartTypeNode exceptionType = parseTypeAnnotation();
         DartParameter exception = null;
         DartParameter stackTrace = null;
         if (optional(Token.CATCH)) {
