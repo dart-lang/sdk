@@ -11,19 +11,18 @@ class _Timer implements Timer {
   void cancel() { canceller(); }
 }
 
-_getTimerFactoryClosure() =>
-  (int milliSeconds, void callback(Timer timer), bool repeating) {
-    var maker;
-    var canceller;
-    if (repeating) {
-      maker = window.setInterval;
-      canceller = window.clearInterval;
-    } else {
-      maker = window.setTimeout;
-      canceller = window.clearTimeout;
-    }
-    Timer timer;
-    final int id = maker(() { callback(timer); }, milliSeconds);
-    timer = new _Timer(() { canceller(id); });
-    return timer;
-  };
+get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool repeating) {
+  var maker;
+  var canceller;
+  if (repeating) {
+    maker = window.setInterval;
+    canceller = window.clearInterval;
+  } else {
+    maker = window.setTimeout;
+    canceller = window.clearTimeout;
+  }
+  Timer timer;
+  final int id = maker(() { callback(timer); }, milliSeconds);
+  timer = new _Timer(() { canceller(id); });
+  return timer;
+};
