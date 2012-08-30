@@ -742,7 +742,7 @@ class ElementListener extends Listener {
   }
 
   void handleModifiers(int count) {
-    NodeList modifierNodes = makeNodeList(count, null, null, null);
+    NodeList modifierNodes = makeNodeList(count, null, null, ' ');
     pushNode(new Modifiers(modifierNodes));
   }
 
