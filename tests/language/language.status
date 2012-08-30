@@ -158,7 +158,7 @@ import_core_no_prefix_test: Fail # Issue 4607
 [ $runtime == dartium ]
 import_core_no_prefix_test: Fail # Issue 4607
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 import_core_no_prefix_test: Fail # Issue 4607
 
 [ $runtime == chrome ]
