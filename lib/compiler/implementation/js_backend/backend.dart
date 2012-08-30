@@ -64,13 +64,34 @@ class HTypeList {
   int get length => types.length;
   HType operator[](int index) => types[index];
 
+  HTypeList union(HTypeList other) {
+    if (allUnknown) return this;
+    if (other.allUnknown) return other;
+    if (length != other.length) return HTypeList.ALL_UNKNOWN;
+    bool onlyUnknown = true;
+    HTypeList result = this;
+    for (int i = 0; i < length; i++) {
+      HType newType = this[i].union(other[i]);
+      if (result == this && newType != this[i]) {
+        // Create a new argument types object with the matching types copied.
+        result = new HTypeList(length);
+        result.types.setRange(0, i, this.types);
+      }
+      if (result != this) {
+        result.types[i] = newType;
+      }
+      if (result[i] != HType.UNKNOWN) onlyUnknown = false;
+    }
+    return onlyUnknown ? HTypeList.ALL_UNKNOWN : result;
+  }
+
   /**
    * Create the union of this [HTypeList] object with the types used by
    * the [node]. If the union results in exactly the same types the receiver
    * is returned. Otherwise a different [HTypeList] object is returned
    * with the type union information.
    */
-  HTypeList union(HInvoke node, HTypeMap types) {
+  HTypeList unionWithInvoke(HInvoke node, HTypeMap types) {
     // Union an all unknown list with something stays all unknown.
     if (allUnknown) return this;
 
@@ -131,7 +152,7 @@ class ArgumentTypesRegistry {
       staticTypeMap[element] = computeProvidedTypes(node, types);
     } else {
       if (oldTypes.allUnknown) return;
-      HTypeList newTypes = oldTypes.union(node, types);
+      HTypeList newTypes = oldTypes.unionWithInvoke(node, types);
       if (newTypes === oldTypes) return;
       staticTypeMap[element] = newTypes;
       if (optimizedStaticFunctions.contains(element)) {
@@ -175,7 +196,7 @@ class ArgumentTypesRegistry {
       selectorTypeMap[selector] = providedTypes;
     } else {
       HTypeList oldTypes = selectorTypeMap[selector];
-      HTypeList newTypes = oldTypes.union(node, types);
+      HTypeList newTypes = oldTypes.unionWithInvoke(node, types);
       if (newTypes === oldTypes) return;
       selectorTypeMap[selector] = newTypes;
     }
@@ -231,16 +252,15 @@ class ArgumentTypesRegistry {
     HTypeList found = null;
     selectorTypeMap.visitMatching(element,
         (Selector selector, HTypeList types) {
-      if (selector.argumentCount != signature.parameterCount ||
-          types === null) {
+      if (selector.argumentCount != signature.parameterCount) {
         found = HTypeList.ALL_UNKNOWN;
         return false;
       } else if (found === null) {
         found = types;
         return true;
       } else {
-        found = HTypeList.ALL_UNKNOWN;
-        return false;
+        found = found.union(types);
+        return !found.allUnknown;
       }
     });
     return found !== null ? found : HTypeList.ALL_UNKNOWN;

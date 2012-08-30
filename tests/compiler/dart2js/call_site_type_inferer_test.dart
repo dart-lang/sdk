@@ -129,6 +129,17 @@ const String TEST_12 = @"""
   }
 """;
 
+const String TEST_13 = @"""
+  class A {
+    x(p) => 1;
+  }
+  f(p) => p.x(2.2);
+  main() {
+    new A().x(1);
+    f(null);
+  }
+""";
+
 void runTest(String test, [List<HType> expectedTypes = null]) {
   compileAndFind(
     test,
@@ -157,6 +168,7 @@ void test() {
   runTest(TEST_10);
   runTest(TEST_11);
   runTest(TEST_12);
+  runTest(TEST_13, [HType.NUMBER]);
 }
 
 void main() {
