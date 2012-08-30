@@ -7,11 +7,11 @@
 pub_test: Skip
 pub_install_test: Skip
 pub_install_git_test: Skip
-pub_install_repo_test: Skip
+pub_install_hosted_test: Skip
 pub_install_sdk_test: Skip
 pub_update_test: Skip
 pub_update_git_test: Skip
-pub_update_repo_test: Skip
+pub_update_hosted_test: Skip
 version_test: Skip
 pubspec_test: Skip
 lock_file_test: Skip
@@ -25,11 +25,11 @@ version_solver_test: Fail # dart:io is using private named parameters
 pub_test: Skip
 pub_install_test: Skip
 pub_install_git_test: Skip
-pub_install_repo_test: Skip
+pub_install_hosted_test: Skip
 pub_install_sdk_test: Skip
 pub_update_test: Skip
 pub_update_git_test: Skip
-pub_update_repo_test: Skip
+pub_update_hosted_test: Skip
 version_test: Skip
 pubspec_test: Skip
 lock_file_test: Skip
@@ -40,11 +40,11 @@ version_solver_test: Skip
 pub_test: Skip
 pub_install_test: Skip
 pub_install_git_test: Skip
-pub_install_repo_test: Skip
+pub_install_hosted_test: Skip
 pub_install_sdk_test: Skip
 pub_update_test: Skip
 pub_update_git_test: Skip
-pub_update_repo_test: Skip
+pub_update_hosted_test: Skip
 
 [ $compiler == frog ]
 yaml_test: Fail # Issue 3215
