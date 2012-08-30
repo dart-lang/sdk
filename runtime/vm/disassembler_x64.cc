@@ -770,6 +770,30 @@ int DisassemblerX64::PrintOperands(const char* mnem,
 }
 
 
+static const char* ObjectToCStringNoGC(const Object& obj) {
+  if (obj.IsSmi() ||
+      obj.IsMint() ||
+      obj.IsDouble() ||
+      obj.IsString() ||
+      obj.IsNull() ||
+      obj.IsBool() ||
+      obj.IsClass() ||
+      obj.IsFunction() ||
+      obj.IsICData() ||
+      obj.IsField()) {
+    return obj.ToCString();
+  }
+
+  const Class& clazz = Class::CheckedHandle(obj.clazz());
+  const char* full_class_name = clazz.ToCString();
+  const char* format = "instance of %s";
+  intptr_t len = OS::SNPrint(NULL, 0, format, full_class_name) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, full_class_name);
+  return chars;
+}
+
+
 void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
   NoGCScope no_gc;
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
@@ -787,14 +811,14 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
       while (i < len) {
         obj = arr.At(i);
         if (i > 0) AppendToBuffer(", ");
-        AppendToBuffer(obj.ToCString());
+        AppendToBuffer(ObjectToCStringNoGC(obj));
         i++;
       }
       if (i < arr.Length()) AppendToBuffer(", ...");
       AppendToBuffer("]");
       return;
     }
-    AppendToBuffer("  '%s'", obj.ToCString());
+    AppendToBuffer("  '%s'", ObjectToCStringNoGC(obj));
   } else {
     // 'addr' is not an object, but probably a code address.
     const char* name_of_stub = StubCode::NameOfStub(addr);

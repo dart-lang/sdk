@@ -390,6 +390,30 @@ void X86Decoder::PrintXmmRegister(int reg) {
 }
 
 
+static const char* ObjectToCStringNoGC(const Object& obj) {
+  if (obj.IsSmi() ||
+      obj.IsMint() ||
+      obj.IsDouble() ||
+      obj.IsString() ||
+      obj.IsNull() ||
+      obj.IsBool() ||
+      obj.IsClass() ||
+      obj.IsFunction() ||
+      obj.IsICData() ||
+      obj.IsField()) {
+    return obj.ToCString();
+  }
+
+  const Class& clazz = Class::CheckedHandle(obj.clazz());
+  const char* full_class_name = clazz.ToCString();
+  const char* format = "instance of %s";
+  intptr_t len = OS::SNPrint(NULL, 0, format, full_class_name) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, full_class_name);
+  return chars;
+}
+
+
 void X86Decoder::PrintAddress(uword addr) {
   NoGCScope no_gc;
   char addr_buffer[32];
@@ -408,7 +432,7 @@ void X86Decoder::PrintAddress(uword addr) {
       while (i < len) {
         obj = arr.At(i);
         if (i > 0) Print(", ");
-        Print(obj.ToCString());
+        Print(ObjectToCStringNoGC(obj));
         i++;
       }
       if (i < arr.Length()) Print(", ...");
@@ -416,7 +440,7 @@ void X86Decoder::PrintAddress(uword addr) {
       return;
     }
     Print("  '");
-    Print(obj.ToCString());
+    Print(ObjectToCStringNoGC(obj));
     Print("'");
   } else {
     // 'addr' is not an object, but probably a code address.
