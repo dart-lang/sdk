@@ -32,6 +32,7 @@
 #source('../../../../corelib/src/object.dart');
 #source('../../../../corelib/src/options.dart');
 #source('../../../../corelib/src/pattern.dart');
+#source('../../../../corelib/src/print.dart');
 #source('../../../../corelib/src/queue.dart');
 #source('../../../../corelib/src/regexp.dart');
 #source('../../../../corelib/src/set.dart');
@@ -41,11 +42,3 @@
 #source('../../../../corelib/src/strings.dart');
 #source('errors.dart');
 #source('mock.dart');
-
-void print(var obj) {
-  if (obj is String) {
-    Primitives.printString(obj);
-  } else {
-    Primitives.printString(obj.toString());
-  }
-}
