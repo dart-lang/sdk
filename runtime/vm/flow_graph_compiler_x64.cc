@@ -1060,36 +1060,6 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 }
 
 
-// Checks class id of instance against all 'class_ids'. Jump to 'deopt' label
-// if no match or instance is Smi.
-void FlowGraphCompiler::EmitClassChecksNoSmi(const ICData& ic_data,
-                                             Register instance_reg,
-                                             Register temp_reg,
-                                             Label* deopt) {
-  Label ok;
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
-  __ testq(instance_reg, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  Label is_ok;
-  const intptr_t num_checks = ic_data.NumberOfChecks();
-  const bool use_near_jump = num_checks < 5;
-  __ LoadClassId(temp_reg, instance_reg);
-  for (intptr_t i = 0; i < num_checks; i++) {
-    __ cmpl(temp_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
-    if (i == (num_checks - 1)) {
-      __ j(NOT_EQUAL, deopt);
-    } else {
-      if (use_near_jump) {
-        __ j(EQUAL, &is_ok, Assembler::kNearJump);
-      } else {
-        __ j(EQUAL, &is_ok);
-      }
-    }
-  }
-  __ Bind(&is_ok);
-}
-
-
 void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
                                              Register reg,
                                              Register temp,

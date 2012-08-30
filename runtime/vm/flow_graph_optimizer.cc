@@ -521,13 +521,14 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
       default:
         UNREACHABLE();
     }
+    // Check receiver class.
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
+
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->ArgumentAt(0)->value(),
         length_offset,
         Type::ZoneHandle(Type::SmiType()));
     load->set_result_cid(kSmiCid);
-    load->set_original(comp);
-    load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
     RemovePushArguments(comp);
     return true;
@@ -538,14 +539,14 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
       // Target is not only StringBase_get_length.
       return false;
     }
-    ASSERT(HasOneTarget(ic_data));
+    // Check receiver class.
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
+
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->ArgumentAt(0)->value(),
         String::length_offset(),
         Type::ZoneHandle(Type::SmiType()));
     load->set_result_cid(kSmiCid);
-    load->set_original(comp);
-    load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
     RemovePushArguments(comp);
     return true;

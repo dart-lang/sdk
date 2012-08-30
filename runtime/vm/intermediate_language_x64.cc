@@ -1123,16 +1123,6 @@ LocationSummary* LoadVMFieldComp::MakeLocationSummary() const {
 void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
-  if (HasICData()) {
-    ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          kDeoptInstanceGetterSameTarget);
-    // Smis do not have instance fields (Smi class is always first).
-    // Use 'result' as temporary register.
-    ASSERT(result_reg != instance_reg);
-    ASSERT(ic_data() != NULL);
-    compiler->EmitClassChecksNoSmi(*ic_data(), instance_reg, result_reg, deopt);
-  }
 
   __ movq(result_reg, FieldAddress(instance_reg, offset_in_bytes()));
 }

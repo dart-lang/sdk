@@ -128,11 +128,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
-  void EmitClassChecksNoSmi(const ICData& ic_data,
-                            Register instance_reg,
-                            Register temp_reg,
-                            Label* deopt);
-
   void EmitInstanceCall(ExternalLabel* target_label,
                         const ICData& ic_data,
                         const Array& arguments_descriptor,
