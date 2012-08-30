@@ -582,6 +582,24 @@ void FlowGraphAllocator::BuildLiveRanges() {
 }
 
 
+static Location::Kind RegisterKindFromPolicy(Location loc) {
+  if (loc.policy() == Location::kRequiresXmmRegister) {
+    return Location::kXmmRegister;
+  } else {
+    return Location::kRegister;
+  }
+}
+
+
+static Location::Kind RegisterKindForResult(Instruction* instr) {
+  if (instr->representation() == kUnboxedDouble) {
+    return Location::kXmmRegister;
+  } else {
+    return Location::kRegister;
+  }
+}
+
+
 //
 // When describing shape of live ranges in comments below we are going to use
 // the following notation:
@@ -702,8 +720,7 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
       // complete.
       AssignSafepoints(range);
 
-      // TODO(vegorov): unboxed double phis.
-      CompleteRange(range, Location::kRegister);
+      CompleteRange(range, RegisterKindForResult(phi));
 
       move_idx++;
     }
@@ -752,24 +769,6 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
   }
 
   env->set_locations(locations);
-}
-
-
-static Location::Kind RegisterKindFromPolicy(Location loc) {
-  if (loc.policy() == Location::kRequiresXmmRegister) {
-    return Location::kXmmRegister;
-  } else {
-    return Location::kRegister;
-  }
-}
-
-
-static Location::Kind RegisterKindForResult(Instruction* instr) {
-  if (instr->representation() == kUnboxedDouble) {
-    return Location::kXmmRegister;
-  } else {
-    return Location::kRegister;
-  }
 }
 
 
@@ -872,6 +871,14 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                     pos,
                     pos + 1);
     }
+
+    for (intptr_t reg = 0; reg < kNumberOfXmmRegisters; reg++) {
+      BlockLocation(
+          Location::XmmRegisterLocation(static_cast<XmmRegister>(reg)),
+          pos,
+          pos + 1);
+    }
+
 
 #if defined(DEBUG)
     // Verify that temps, inputs and output were specified as fixed
@@ -1190,7 +1197,8 @@ UsePosition* AllocationFinger::FirstRegisterUse(intptr_t after) {
        use = use->next()) {
     Location* loc = use->location_slot();
     if (loc->IsUnallocated() &&
-        (loc->policy() == Location::kRequiresRegister)) {
+        ((loc->policy() == Location::kRequiresRegister) ||
+        (loc->policy() == Location::kRequiresXmmRegister))) {
       first_register_use_ = use;
       return use;
     }
@@ -1436,9 +1444,15 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   if (register_kind_ == Location::kRegister) {
     range->set_spill_slot(Location::StackSlot(idx));
   } else {
+    // Double spill slots are essentially one (x64) or two (ia32) normal
+    // word size spill slots.  We use the index of the slot with the lowest
+    // address as an index for the double spill slot. In terms of indexes
+    // this relation is inverted: so we have to take the highest index.
+    const intptr_t slot_idx =
+        idx * kDoubleSpillSlotFactor + (kDoubleSpillSlotFactor - 1);
     range->set_spill_slot(
         Location::DoubleStackSlot(
-            cpu_spill_slot_count_ + idx * kDoubleSpillSlotFactor));
+            cpu_spill_slot_count_ + slot_idx));
   }
 
   spilled_.Add(range);
@@ -1676,7 +1690,7 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
     if (allocated->vreg() < 0) continue;  // Can't be evicted.
     if (EvictIntersection(allocated, unallocated)) {
       // If allocated was not spilled convert all pending uses.
-      if (allocated->assigned_location().IsRegister()) {
+      if (allocated->assigned_location().IsMachineRegister()) {
         ASSERT(allocated->End() <= unallocated->Start());
         ConvertAllUses(allocated);
       }

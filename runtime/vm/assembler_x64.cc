@@ -1693,13 +1693,33 @@ static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     RAX, RCX, RDX, RSI, RDI, R8, R9, R10, R11
 };
 
+// XMM0 is used only as a scratch register in the optimized code. No need to
+// save it.
+static const intptr_t kNumberOfVolatileXmmRegisters =
+    kNumberOfXmmRegisters - 1;
+
+
+static const intptr_t kNumberOfVolatileRegisters =
+    kNumberOfVolatileCpuRegisters + kNumberOfVolatileXmmRegisters;
+
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   enter(Immediate(0));
 
-  // Preserve volatile registers.
+  // Preserve volatile CPU registers.
   for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
     pushq(volatile_cpu_registers[i]);
+  }
+
+  // Preserve all XMM registers except XMM0
+  subq(RSP, Immediate((kNumberOfXmmRegisters - 1) * kDoubleSize));
+  // Store XMM registers with the lowest register number at the lowest
+  // address.
+  intptr_t offset = 0;
+  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    movsd(Address(RSP, offset), xmm_reg);
+    offset += kDoubleSize;
   }
 
   ReserveAlignedFrameSpace(frame_space);
@@ -1710,9 +1730,19 @@ void Assembler::LeaveCallRuntimeFrame() {
   // RSP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
-  leaq(RSP, Address(RBP, -kNumberOfVolatileCpuRegisters * kWordSize));
+  leaq(RSP, Address(RBP, -kNumberOfVolatileRegisters * kWordSize));
 
-  // Restore volatile registers.
+  // Restore all XMM registers except XMM0
+  // XMM registers have the lowest register number at the lowest address.
+  intptr_t offset = 0;
+  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    movsd(xmm_reg, Address(RSP, offset));
+    offset += kDoubleSize;
+  }
+  addq(RSP, Immediate(offset));
+
+  // Restore volatile CPU registers.
   for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
     popq(volatile_cpu_registers[i]);
   }

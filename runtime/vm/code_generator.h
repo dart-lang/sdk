@@ -42,6 +42,7 @@ DECLARE_RUNTIME_ENTRY(StackOverflow);
 DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
+DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
 
 #define DEOPT_REASONS(V)                                                       \
   V(DeoptUnknown)                                                              \

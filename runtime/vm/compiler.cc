@@ -179,10 +179,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
 
       if (optimized) {
-        // TODO(vegorov): we need to compute uses for the
-        // purposes of unboxing. Move unboxing to a later
-        // stage.
-        // Compute the use lists.
         flow_graph->ComputeUseLists();
 
         FlowGraphOptimizer optimizer(flow_graph);
@@ -209,7 +205,12 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();
 
+        // Unbox doubles.
+        flow_graph->ComputeUseLists();
+        optimizer.SelectRepresentations();
+
         if (FLAG_cse) {
+          flow_graph->ComputeUseLists();
           DominatorBasedCSE::Optimize(flow_graph->graph_entry());
         }
 

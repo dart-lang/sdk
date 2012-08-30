@@ -31,10 +31,33 @@ class ObjectPointerVisitor;
 class ObjectStore;
 class RawArray;
 class RawContext;
+class RawDouble;
 class RawError;
 class StackResource;
 class StubCode;
 class Zone;
+
+
+// Used by the deoptimization infrastructure to defer allocation of Double
+// objects until frame is fully rewritten and GC is safe.
+// See callers of Isolate::DeferDoubleMaterialization.
+class DeferredDouble {
+ public:
+  DeferredDouble(double value, RawDouble** slot, DeferredDouble* next)
+      : value_(value), slot_(slot), next_(next) { }
+
+  double value() const { return value_; }
+  RawDouble** slot() const { return slot_; }
+  DeferredDouble* next() const { return next_; }
+
+ private:
+  const double value_;
+  RawDouble** const slot_;
+  DeferredDouble* const next_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredDouble);
+};
+
 
 class Isolate : public BaseIsolate {
  public:
@@ -220,10 +243,19 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
-  intptr_t* deopt_registers_copy() const { return deopt_registers_copy_; }
-  void set_deopt_registers_copy(intptr_t* value) {
-    ASSERT((value == NULL) || (deopt_registers_copy_ == NULL));
-    deopt_registers_copy_ = value;
+  intptr_t* deopt_cpu_registers_copy() const {
+    return deopt_cpu_registers_copy_;
+  }
+  void set_deopt_cpu_registers_copy(intptr_t* value) {
+    ASSERT((value == NULL) || (deopt_cpu_registers_copy_ == NULL));
+    deopt_cpu_registers_copy_ = value;
+  }
+  double* deopt_xmm_registers_copy() const {
+    return deopt_xmm_registers_copy_;
+  }
+  void set_deopt_xmm_registers_copy(double* value) {
+    ASSERT((value == NULL) || (deopt_xmm_registers_copy_ == NULL));
+    deopt_xmm_registers_copy_ = value;
   }
   intptr_t* deopt_frame_copy() const { return deopt_frame_copy_; }
   void SetDeoptFrameCopy(intptr_t* value, intptr_t size) {
@@ -233,6 +265,17 @@ class Isolate : public BaseIsolate {
     deopt_frame_copy_size_ = size;
   }
   intptr_t deopt_frame_copy_size() const { return deopt_frame_copy_size_; }
+
+  void DeferDoubleMaterialization(double value, RawDouble** slot) {
+    deferred_doubles_ = new DeferredDouble(
+        value, slot, deferred_doubles_);
+  }
+
+  DeferredDouble* DetachDeferredDoubles() {
+    DeferredDouble* list = deferred_doubles_;
+    deferred_doubles_ = NULL;
+    return list;
+  }
 
  private:
   Isolate();
@@ -273,9 +316,11 @@ class Isolate : public BaseIsolate {
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
   // Deoptimization support.
-  intptr_t* deopt_registers_copy_;
+  intptr_t* deopt_cpu_registers_copy_;
+  double* deopt_xmm_registers_copy_;
   intptr_t* deopt_frame_copy_;
   intptr_t deopt_frame_copy_size_;
+  DeferredDouble* deferred_doubles_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

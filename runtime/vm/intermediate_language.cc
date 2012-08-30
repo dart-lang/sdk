@@ -603,7 +603,7 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
     }
   }
   ASSERT((*phis_)[var_index] == NULL);
-  (*phis_)[var_index] = new PhiInstr(PredecessorCount());
+  (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
   phi_count_++;
 }
 

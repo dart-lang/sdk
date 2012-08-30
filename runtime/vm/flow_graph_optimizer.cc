@@ -54,6 +54,107 @@ void FlowGraphOptimizer::OptimizeComputations() {
 }
 
 
+static Computation* CreateConversion(Representation from,
+                                     Representation to,
+                                     Definition* def,
+                                     Instruction* deopt_target) {
+  if ((from == kUnboxedDouble) && (to == kTagged)) {
+    return new BoxDoubleComp(new Value(def), NULL);
+  } else if ((from == kTagged) && (to == kUnboxedDouble)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
+    return new UnboxDoubleComp(new Value(def), deopt_id);
+  } else {
+    UNREACHABLE();
+    return NULL;
+  }
+}
+
+
+void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
+  const Representation from_rep = def->representation();
+
+  for (Value* use = def->input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    const Representation to_rep =
+        use->instruction()->RequiredInputRepresentation(use->use_index());
+    if (from_rep == to_rep) {
+      continue;
+    }
+
+    Instruction* deopt_target = NULL;
+    Instruction* instr = use->instruction();
+    if (instr->IsPhi()) {
+      if (!instr->AsPhi()->is_alive()) continue;
+
+      // For phis conversions have to be inserted in the predecessor.
+      const BlockEntryInstr* pred =
+          instr->AsPhi()->block()->PredecessorAt(use->use_index());
+      instr = pred->last_instruction();
+    } else {
+      deopt_target = instr;
+    }
+
+    BindInstr* converted = InsertBefore(
+      instr,
+      CreateConversion(from_rep, to_rep, def, deopt_target),
+      use->instruction()->env(),
+      BindInstr::kUsed);
+
+    use->set_definition(converted);
+  }
+}
+
+void FlowGraphOptimizer::SelectRepresentations() {
+  // Convervatively unbox all phis that were proven to be of type Double.
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
+    if (join_entry == NULL) continue;
+
+    if (join_entry->phis() != NULL) {
+      for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
+        PhiInstr* phi = (*join_entry->phis())[i];
+        if ((phi != NULL) && (phi->GetPropagatedCid() == kDoubleCid)) {
+          phi->set_representation(kUnboxedDouble);
+        }
+      }
+    }
+  }
+
+  // Process all instructions and insert conversions where needed.
+  GraphEntryInstr* graph_entry = block_order_[0]->AsGraphEntry();
+
+  // Visit incoming parameters.
+  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
+    Value* val = graph_entry->start_env()->values()[i];
+    InsertConversionsFor(val->definition());
+  }
+
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+
+    JoinEntryInstr* join_entry = entry->AsJoinEntry();
+    if ((join_entry != NULL) && (join_entry->phis() != NULL)) {
+      for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
+        PhiInstr* phi = (*join_entry->phis())[i];
+        if ((phi != NULL) && (phi->is_alive())) {
+          InsertConversionsFor(phi);
+        }
+      }
+    }
+
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      Definition* def = it.Current()->AsDefinition();
+      if (def != NULL) {
+        InsertConversionsFor(def);
+      }
+    }
+  }
+}
+
+
 static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -341,38 +442,19 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
       // Check that either left or right are not a smi.  Result or a
       // binary operation with two smis is a smi not a double.
       InsertBefore(instr,
-                   new CheckEitherNonSmiComp(left, right, comp),
+                   new CheckEitherNonSmiComp(left->Copy(),
+                                             right->Copy(),
+                                             comp),
                    instr->env(),
                    BindInstr::kUnused);
 
-      // Unbox operands.
-      BindInstr* unbox_left = InsertBefore(
-          instr,
-          new UnboxDoubleComp(left->Copy(), comp),
-          instr->env(),
-          BindInstr::kUsed);
-      BindInstr* unbox_right = InsertBefore(
-          instr,
-          new UnboxDoubleComp(right->Copy(), comp),
-          instr->env(),
-          BindInstr::kUsed);
-
       UnboxedDoubleBinaryOpComp* double_bin_op =
           new UnboxedDoubleBinaryOpComp(op_kind,
-                                        new Value(unbox_left),
-                                        new Value(unbox_right));
+                                        left->Copy(),
+                                        right->Copy(),
+                                        comp);
       double_bin_op->set_ic_data(comp->ic_data());
       instr->set_computation(double_bin_op);
-
-      if (instr->is_used()) {
-        // Box result.
-        Value* value = new Value(instr);
-        BindInstr* bind = InsertAfter(instr,
-                                      new BoxDoubleComp(value, comp),
-                                      NULL,
-                                      BindInstr::kUsed);
-        instr->ReplaceUsesWith(bind);
-      }
 
       RemovePushArguments(comp);
     } else {

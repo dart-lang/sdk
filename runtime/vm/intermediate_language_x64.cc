@@ -249,10 +249,17 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const bool is_checked_strict_equal =
       HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  if ((receiver_class_id() == kSmiCid) ||
-      (receiver_class_id() == kDoubleCid) ||
-      is_checked_strict_equal) {
-    const intptr_t kNumTemps = 1;
+  if (receiver_class_id() == kDoubleCid) {
+    const intptr_t kNumTemps =  0;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresXmmRegister());
+    locs->set_in(1, Location::RequiresXmmRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if ((receiver_class_id() == kSmiCid) || is_checked_strict_equal) {
+    const intptr_t kNumTemps =  1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
@@ -590,23 +597,17 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
-                                   BranchInstr* branch,
-                                   intptr_t deopt_id) {
-  Register left = locs.in(0).reg();
-  Register right = locs.in(1).reg();
-  // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptDoubleComparison);
-  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
-  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+                                   BranchInstr* branch) {
+  XmmRegister left = locs.in(0).xmm_reg();
+  XmmRegister right = locs.in(1).xmm_reg();
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
   if (branch != NULL) {
     compiler->EmitDoubleCompareBranch(
-        true_condition, XMM0, XMM1, branch);
+        true_condition, left, right, branch);
   } else {
     compiler->EmitDoubleCompareBool(
-        true_condition, XMM0, XMM1, locs.out().reg());
+        true_condition, left, right, locs.out().reg());
   }
 }
 
@@ -621,7 +622,7 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   if (receiver_class_id() == kDoubleCid) {
     // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
   const bool is_checked_strict_equal =
@@ -659,7 +660,7 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
   }
   if (receiver_class_id() == kDoubleCid) {
     // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   const bool is_checked_strict_equal =
@@ -691,7 +692,15 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* RelationalOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if (operands_class_id() == kSmiCid || operands_class_id() == kDoubleCid) {
+  if (operands_class_id() == kDoubleCid) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresXmmRegister());
+    summary->set_in(1, Location::RequiresXmmRegister());
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  } else if (operands_class_id() == kSmiCid) {
     const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -718,7 +727,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (operands_class_id() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
 
@@ -776,7 +785,7 @@ void RelationalOpComp::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   if (operands_class_id() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   EmitNativeCode(compiler);
@@ -1835,13 +1844,11 @@ class BoxDoubleSlowPath : public SlowPathCode {
         Code::Handle(StubCode::GetAllocationStubForClass(double_class));
     const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
-    // TODO(vegorov): here stack map needs to be set up correctly to skip
-    // double registers.
     LocationSummary* locs = computation_->locs();
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(computation_->instance_call()->token_pos(),
+    compiler->GenerateCall(computation_->token_pos(),
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -1893,8 +1900,7 @@ void UnboxDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().xmm_reg();
   if (v_cid != kDoubleCid) {
-    Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                          kDeoptBinaryDoubleOp);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
     compiler->LoadDoubleOrSmiToXmm(result,
                                    value,
                                    locs()->temp(0).reg(),

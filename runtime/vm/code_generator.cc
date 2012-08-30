@@ -1427,15 +1427,23 @@ void DeoptimizeAll() {
 
 
 // Copy saved registers into the isolate buffer.
-static void CopySavedRegisters(intptr_t* saved_registers_address) {
-  intptr_t* registers_copy = new intptr_t[kNumberOfCpuRegisters];
-  ASSERT(registers_copy != NULL);
-  ASSERT(saved_registers_address != NULL);
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-    registers_copy[i] = *saved_registers_address;
-    saved_registers_address++;
+static void CopySavedRegisters(uword saved_registers_address) {
+  double* xmm_registers_copy = new double[kNumberOfXmmRegisters];
+  ASSERT(xmm_registers_copy != NULL);
+  for (intptr_t i = 0; i < kNumberOfXmmRegisters; i++) {
+    xmm_registers_copy[i] = *reinterpret_cast<double*>(saved_registers_address);
+    saved_registers_address += kDoubleSize;
   }
-  Isolate::Current()->set_deopt_registers_copy(registers_copy);
+  Isolate::Current()->set_deopt_xmm_registers_copy(xmm_registers_copy);
+
+  intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
+  ASSERT(cpu_registers_copy != NULL);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    cpu_registers_copy[i] =
+        *reinterpret_cast<intptr_t*>(saved_registers_address);
+    saved_registers_address += kWordSize;
+  }
+  Isolate::Current()->set_deopt_cpu_registers_copy(cpu_registers_copy);
 }
 
 
@@ -1469,14 +1477,14 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimzied frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                          intptr_t* saved_registers_address) {
+                          uword saved_registers_address) {
   Isolate* isolate = Isolate::Current();
   Zone zone(isolate);
   HANDLESCOPE(isolate);
 
   // All registers have been saved below last-fp.
-  const uword last_fp =
-      reinterpret_cast<uword>(saved_registers_address + kNumberOfCpuRegisters);
+  const uword last_fp = saved_registers_address +
+      kNumberOfCpuRegisters * kWordSize + kNumberOfXmmRegisters * kDoubleSize;
   CopySavedRegisters(saved_registers_address);
 
   // Get optimized code and frame that need to be deoptimized.
@@ -1587,7 +1595,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   ASSERT(!unoptimized_code.IsNull() && !unoptimized_code.is_optimized());
 
   intptr_t* frame_copy = isolate->deopt_frame_copy();
-  intptr_t* registers_copy = isolate->deopt_registers_copy();
+  intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
+  double* xmm_registers_copy = isolate->deopt_xmm_registers_copy();
 
   intptr_t deopt_id, deopt_reason, deopt_index;
   GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
@@ -1628,9 +1637,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   }
 
   isolate->SetDeoptFrameCopy(NULL, 0);
-  isolate->set_deopt_registers_copy(NULL);
+  isolate->set_deopt_cpu_registers_copy(NULL);
+  isolate->set_deopt_xmm_registers_copy(NULL);
   delete[] frame_copy;
-  delete[] registers_copy;
+  delete[] cpu_registers_copy;
+  delete[] xmm_registers_copy;
 
   // Clear invocation counter so that the function gets optimized after
   // classes have been collected.
@@ -1642,5 +1653,27 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   }
 }
 END_LEAF_RUNTIME_ENTRY
+
+
+DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
+  DeferredDouble* deferred_double = Isolate::Current()->DetachDeferredDoubles();
+
+  while (deferred_double != NULL) {
+    DeferredDouble* current = deferred_double;
+    deferred_double = deferred_double->next();
+
+    RawDouble** slot = current->slot();
+    *slot = Double::New(current->value());
+
+    if (FLAG_trace_deopt) {
+      OS::Print("materialing double at 0x%" PRIxPTR ": %g\n",
+                current->slot(),
+                current->value());
+    }
+
+    delete current;
+  }
+}
+
 
 }  // namespace dart

@@ -1534,19 +1534,39 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
-// TODO(srdjan): Add XMM registers once they are used by the compiler.
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
 static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     EAX, ECX, EDX
 };
 
 
+// XMM0 is used only as a scratch register in the optimized code. No need to
+// save it.
+static const intptr_t kNumberOfVolatileXmmRegisters =
+    kNumberOfXmmRegisters - 1;
+
+
+static const intptr_t kNumberOfVolatileRegisters =
+    kNumberOfVolatileCpuRegisters + kNumberOfVolatileXmmRegisters;
+
+
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   enter(Immediate(0));
 
-  // Preserve volatile registers.
+  // Preserve volatile CPU registers.
   for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
     pushl(volatile_cpu_registers[i]);
+  }
+
+  // Preserve all XMM registers except XMM0
+  subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kDoubleSize));
+  // Store XMM registers with the lowest register number at the lowest
+  // address.
+  intptr_t offset = 0;
+  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    movsd(Address(ESP, offset), xmm_reg);
+    offset += kDoubleSize;
   }
 
   ReserveAlignedFrameSpace(frame_space);
@@ -1557,9 +1577,19 @@ void Assembler::LeaveCallRuntimeFrame() {
   // ESP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
-  leal(ESP, Address(EBP, -kNumberOfVolatileCpuRegisters * kWordSize));
+  leal(ESP, Address(EBP, -kNumberOfVolatileRegisters * kWordSize));
 
-  // Restore volatile registers.
+  // Restore all XMM registers except XMM0
+  // XMM registers have the lowest register number at the lowest address.
+  intptr_t offset = 0;
+  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    movsd(xmm_reg, Address(ESP, offset));
+    offset += kDoubleSize;
+  }
+  addl(ESP, Immediate(offset));
+
+  // Restore volatile CPU registers.
   for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
     popl(volatile_cpu_registers[i]);
   }

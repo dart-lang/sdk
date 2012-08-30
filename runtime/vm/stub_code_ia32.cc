@@ -477,7 +477,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 
 DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                            intptr_t deopt_reason,
-                           intptr_t* saved_registers_address);
+                           uword saved_registers_address);
 
 DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
@@ -489,6 +489,8 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // - Call C routine to copy the stack and saved registers into temporary buffer.
 // - Adjust caller's frame to correct unoptimized frame size.
 // - Fill the unoptimized frame.
+// - Materialize objects that require allocation (e.g. Double instances).
+// GC can occur only after frame is fully rewritten.
 // Stack:
 //   +------------------+
 //   | 0 as PC marker   | <- TOS
@@ -507,6 +509,14 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
     __ pushl(static_cast<Register>(i));
   }
+  __ subl(ESP, Immediate(kNumberOfXmmRegisters * kDoubleSize));
+  intptr_t offset = 0;
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    __ movsd(Address(ESP, offset), xmm_reg);
+    offset += kDoubleSize;
+  }
+
   __ movl(ECX, ESP);  // Saved saved registers block.
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ SmiUntag(EAX);
@@ -524,6 +534,13 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), ECX);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
+  __ LeaveFrame();
+
+  // Frame is fully rewritten at this point and it is safe to perform a GC.
+  // Materialize any objects that were deferred by FillFrame because they
+  // require allocation.
+  __ EnterFrame(0);
+  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
   __ LeaveFrame();
   __ ret();
 }

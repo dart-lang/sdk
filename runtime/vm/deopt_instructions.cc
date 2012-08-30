@@ -21,11 +21,13 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
       from_frame_(NULL),
       from_frame_size_(0),
       registers_copy_(NULL),
+      xmm_registers_copy_(NULL),
       num_args_(num_args),
       isolate_(Isolate::Current()) {
   from_frame_ = isolate_->deopt_frame_copy();
   from_frame_size_ = isolate_->deopt_frame_copy_size();
-  registers_copy_ = isolate_->deopt_registers_copy();
+  registers_copy_ = isolate_->deopt_cpu_registers_copy();
+  xmm_registers_copy_ = isolate_->deopt_xmm_registers_copy();
 }
 
 
@@ -71,6 +73,41 @@ class DeoptStackSlotInstr : public DeoptInstr {
   const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
 
   DISALLOW_COPY_AND_ASSIGN(DeoptStackSlotInstr);
+};
+
+
+class DeoptDoubleStackSlotInstr : public DeoptInstr {
+ public:
+  explicit DeoptDoubleStackSlotInstr(intptr_t from_index)
+      : stack_slot_index_(from_index) {
+    ASSERT(stack_slot_index_ >= 0);
+  }
+
+  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual DeoptInstr::Kind kind() const { return kCopyDoubleStackSlot; }
+
+  virtual const char* ToCString() const {
+    intptr_t len = OS::SNPrint(NULL, 0, "ds%d", stack_slot_index_);
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, "ds%d", stack_slot_index_);
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t from_index =
+       deopt_context->from_frame_size() - stack_slot_index_ - 1;
+    double* from_addr = reinterpret_cast<double*>(
+        deopt_context->GetFromFrameAddressAt(from_index));
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    Isolate::Current()->DeferDoubleMaterialization(
+        *from_addr, reinterpret_cast<RawDouble**>(to_addr));
+  }
+
+ private:
+  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptDoubleStackSlotInstr);
 };
 
 
@@ -146,7 +183,7 @@ class DeoptConstantInstr : public DeoptInstr {
 };
 
 
-// Deoptimization instruction moving a register.
+// Deoptimization instruction moving a CPU register.
 class DeoptRegisterInstr: public DeoptInstr {
  public:
   explicit DeoptRegisterInstr(intptr_t reg_as_int)
@@ -169,6 +206,34 @@ class DeoptRegisterInstr: public DeoptInstr {
   const Register reg_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptRegisterInstr);
+};
+
+
+// Deoptimization instruction moving an XMM register.
+class DeoptXmmRegisterInstr: public DeoptInstr {
+ public:
+  explicit DeoptXmmRegisterInstr(intptr_t reg_as_int)
+      : reg_(static_cast<XmmRegister>(reg_as_int)) {}
+
+  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual DeoptInstr::Kind kind() const { return kCopyXmmRegister; }
+
+  virtual const char* ToCString() const {
+    return Assembler::XmmRegisterName(reg_);
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    double value = deopt_context->XmmRegisterValue(reg_);
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    Isolate::Current()->DeferDoubleMaterialization(
+        value, reinterpret_cast<RawDouble**>(to_addr));
+  }
+
+ private:
+  const XmmRegister reg_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptXmmRegisterInstr);
 };
 
 
@@ -260,9 +325,11 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
   Kind kind = static_cast<Kind>(kind_as_int);
   switch (kind) {
     case kCopyStackSlot: return new DeoptStackSlotInstr(from_index);
+    case kCopyDoubleStackSlot: return new DeoptDoubleStackSlotInstr(from_index);
     case kSetRetAddress: return new DeoptRetAddrInstr(from_index);
     case kCopyConstant:  return new DeoptConstantInstr(from_index);
     case kCopyRegister:  return new DeoptRegisterInstr(from_index);
+    case kCopyXmmRegister: return new DeoptXmmRegisterInstr(from_index);
     case kSetPcMarker:   return new DeoptPcMarkerInstr(from_index);
     case kSetCallerFp:   return new DeoptCallerFpInstr();
     case kSetCallerPc:   return new DeoptCallerPcInstr();
@@ -315,12 +382,20 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
     deopt_instr = new DeoptConstantInstr(object_table_index);
   } else if (from_loc.IsRegister()) {
     deopt_instr = new DeoptRegisterInstr(from_loc.reg());
+  } else if (from_loc.IsXmmRegister()) {
+    deopt_instr = new DeoptXmmRegisterInstr(from_loc.xmm_reg());
   } else if (from_loc.IsStackSlot()) {
     intptr_t from_index = (from_loc.stack_index() < 0) ?
         from_loc.stack_index() + num_args_ :
         from_loc.stack_index() + num_args_ -
             ParsedFunction::kFirstLocalSlotIndex + 1;
     deopt_instr = new DeoptStackSlotInstr(from_index);
+  } else if (from_loc.IsDoubleStackSlot()) {
+    intptr_t from_index = (from_loc.stack_index() < 0) ?
+        from_loc.stack_index() + num_args_ :
+        from_loc.stack_index() + num_args_ -
+            ParsedFunction::kFirstLocalSlotIndex + 1;
+    deopt_instr = new DeoptDoubleStackSlotInstr(from_index);
   } else {
     UNREACHABLE();
   }
