@@ -76,7 +76,7 @@ void compile(List<String> argv) {
   List<String> options = new List<String>();
   bool explicitOut = false;
   bool wantHelp = false;
-  bool enableColors = true;
+  bool enableColors = false;
 
   passThrough(String argument) => options.add(argument);
 
@@ -125,7 +125,9 @@ void compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify', passThrough),
+    // TODO(ahe): Remove the --no-colors option.
     new OptionHandler('--no-colors', (_) => enableColors = false),
+    new OptionHandler('--colors', (_) => enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler(@'--help|/\?|/h', (_) => wantHelp = true),
@@ -172,7 +174,11 @@ void compile(List<String> argv) {
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind === api.Diagnostic.VERBOSE_INFO) return;
-    print('${colors.green("info:")} $message');
+    if (enableColors) {
+      print('${colors.green("info:")} $message');
+    } else {
+      print('info: $message');
+    }
   }
 
   bool isAborting = false;
@@ -291,9 +297,10 @@ void compilerMain(Options options) {
 }
 
 void help() {
-  // This message should be no longer than 22 lines. The default
+  // This message should be no longer than 20 lines. The default
   // terminal size normally 80x24. Two lines are used for the prompts
-  // before and after running the compiler.
+  // before and after running the compiler. Another two lines may be
+  // used to print an error message.
   print('''
 Usage: dart2js [options] dartfile
 
@@ -333,8 +340,8 @@ Supported options:
   --suppress-warnings
     Do not display any warnings.
 
-  --no-colors
-    Do not add colors to diagnostic messages.
+  --colors
+    Add colors to diagnostic messages.
 
 The following options are only used for compiler development and may
 be removed in a future version:
