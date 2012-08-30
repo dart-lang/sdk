@@ -155,7 +155,10 @@ testRoundTripParsing(String localeName, Date date) {
       DateFormat.YEAR,
       DateFormat.YEAR_NUM_MONTH,
       DateFormat.YEAR_ABBR_MONTH,
-      DateFormat.YEAR_MONTH];
+      DateFormat.YEAR_MONTH,
+      DateFormat.MONTH_WEEKDAY_DAY,
+      DateFormat.NUM_MONTH_WEEKDAY_DAY,
+      DateFormat.ABBR_MONTH_WEEKDAY_DAY];
   for(int i = 0; i < formatsToTest.length; i++) {
     var skeleton = formatsToTest[i];
     if (!badSkeletons.some((x) => x == skeleton)) {

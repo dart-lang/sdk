@@ -7,9 +7,11 @@
  * up incrementally.
  */
 class _DateBuilder {
-  int year = 0,
-      month = 0,
-      day = 0,
+  // Default the date values to the EPOCH so that there's a valid date
+  // in case the format doesn't set them.
+  int year = 1970,
+      month = 1,
+      day = 1,
       hour = 0,
       minute = 0,
       second = 0,
@@ -29,16 +31,9 @@ class _DateBuilder {
 
   /**
    * Return a date built using our values. If no date portion is set,
-   * use today's date, as otherwise the constructor will fail.
+   * use the "Epoch" of January 1, 1970.
    */
   Date asDate() {
-    if (year == 0 || month == 0 || day == 0) {
-      var today = new Date.now();
-      if (year == 0) year = today.year;
-      if (month == 0) month = today.month;
-      if (day == 0) day = today.day;
-    }
-
     // TODO(alanknight): Validate the date, especially for things which
     // can crash the VM, e.g. large month values.
     return new Date(
