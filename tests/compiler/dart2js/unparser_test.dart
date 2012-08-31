@@ -296,11 +296,16 @@ main() {
 }
 ''';
   var expectedResult =
-      'globalfoo(){}var globalVar;var globalVarInitialized=6,globalVarInitialized2=7;'
-      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static const field=5;}'
-      'p_globalfoo(){}var p_globalVar;var p_globalVarInitialized=6,p_globalVarInitialized2=7;'
-      'class p_A{p_A(){}p_A.fromFoo(){}static p_staticfoo(){}foo(){}static const p_field=5;}'
-      'main(){p_globalVar;p_globalVarInitialized;p_globalVarInitialized2;p_globalfoo();'
+      'globalfoo(){}var globalVar;'
+      'var globalVarInitialized=6,globalVarInitialized2=7;'
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}'
+          'static const field=5;}'
+      'p_globalfoo(){}'
+      'var p_globalVar;var p_globalVarInitialized=6,p_globalVarInitialized2=7;'
+      'class p_A{p_A(){}p_A.fromFoo(){}static p_staticfoo(){}foo(){}'
+          'static const p_field=5;}'
+      'main(){p_globalVar;p_globalVarInitialized;'
+         'p_globalVarInitialized2;p_globalfoo();'
          'p_A.p_field;p_A.p_staticfoo();'
          'new p_A();new p_A.fromFoo();new p_A().foo();'
          'globalVar;globalVarInitialized;globalVarInitialized2;globalfoo();'
@@ -357,9 +362,11 @@ main() {
 ''';
   var expectedResult =
       'globalfoo(){}'
-      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static const field=5;}'
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}'
+          'static const field=5;}'
       'myglobalfoo(){}'
-      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}static const myfield=5;}'
+      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}'
+          'static const myfield=5;}'
       'main(){myglobalfoo();MyA.myfield;MyA.mystaticfoo();new MyA();'
           'new MyA.myfromFoo();new MyA().myfoo();globalfoo();A.field;'
           'A.staticfoo();new A();new A.fromFoo();new A().foo();}';
@@ -410,7 +417,8 @@ main() {
     'p_topfoo(){var x=5;}'
     'class p_A{num foo(){}p_A.fromFoo(){}A myliba;List<p_A> mylist;}'
     'A getA()=>null;'
-    'main(){var a=new A();a.foo();var b=new p_A.fromFoo();b.foo();var GREATVAR=b.myliba;b.mylist;a=getA();p_topfoo();topfoo();}';
+    'main(){var a=new A();a.foo();var b=new p_A.fromFoo();b.foo();'
+        'var GREATVAR=b.myliba;b.mylist;a=getA();p_topfoo();topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
