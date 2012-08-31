@@ -226,6 +226,11 @@ def Main(argv):
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
+  # TODO(dgrove): fix this really ugly hack
+  ReplaceInFiles(
+      [join(LIB, 'compiler', 'implementation', 'lib', 'io.dart')],
+      [('../../../runtime/bin', '../io/runtime')])
+
   # Create and copy pkg.
   PKG = join(SDK_tmp, 'pkg')
   os.makedirs(PKG)
