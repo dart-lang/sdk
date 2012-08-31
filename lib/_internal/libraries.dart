@@ -43,7 +43,7 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       documented: false),
 
   "html": const LibraryInfo(
-      "html/html_dartium.dart",
+      "html/dartium/html_dartium.dart",
       category: "Client",
       dart2jsPath: "html/dart2js/html_dart2js.dart"),
 
