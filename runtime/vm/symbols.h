@@ -33,6 +33,8 @@ class ObjectPointerVisitor;
   V(AssertionError, "AssertionErrorImplementation")                            \
   V(TypeError, "TypeErrorImplementation")                                      \
   V(FallThroughError, "FallThroughErrorImplementation")                        \
+  V(AbstractClassInstantiationError,                                           \
+    "AbstractClassInstantiationErrorImplementation")                           \
   V(StaticResolutionException, "StaticResolutionException")                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \

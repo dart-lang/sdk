@@ -14,3 +14,6 @@ class CastException extends TypeError {
 class FallThroughError {
   const FallThroughError();
 }
+
+class AbstractClassInstantiationError {
+}

@@ -1835,6 +1835,11 @@ void Class::set_is_interface() const {
   raw_ptr()->state_bits_ = InterfaceBit::update(true, bits);
 }
 
+void Class::set_is_abstract() const {
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = AbstractBit::update(true, bits);
+}
+
 
 void Class::set_is_const() const {
   uword bits = raw_ptr()->state_bits_;

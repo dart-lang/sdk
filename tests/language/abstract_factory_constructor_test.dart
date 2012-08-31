@@ -14,15 +14,15 @@ class B extends A1 {
 class A1 {
   A1() {}
   abstract method();
-  factory A1.make() { return new B(); }    
+  factory A1.make() { return new B(); }
 }
 
-class A2 {                           
-  abstract method();                 
+class A2 {
+  abstract method();
   A2.make() {}
 }
 
 main() {
   new A1.make();
-  new A2.make();              /// 01: static type warning
+  new A2.make();              /// 00: static type warning, runtime error
 }

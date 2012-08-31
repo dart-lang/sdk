@@ -107,3 +107,25 @@ class StaticResolutionException implements Exception {
   final int line;
   final int column;
 }
+
+
+class AbstractClassInstantiationErrorImplementation
+    implements AbstractClassInstantiationError {
+
+  factory AbstractClassInstantiationErrorImplementation._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "AbstractClassInstantiationError can only be allocated by the VM");
+  }
+
+  static _throwNew(int case_clause_pos, String className)
+      native "AbstractClassInstantiationError_throwNew";
+
+  String toString() {
+    return "Cannot instantiate abstract class $className: "
+           "url '$url' line $line";
+  }
+
+  final String className;
+  final String url;
+  final int line;
+}
