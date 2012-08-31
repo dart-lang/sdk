@@ -69,6 +69,7 @@ gc_test: Skip  # Takes too long.
 
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
+interface_negative_test: Fail # instantiation of abstract class
 argument_definition_test/*: Skip # Not implemented.
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail  # Runtime only test, rewrite as multitest
