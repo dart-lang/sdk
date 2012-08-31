@@ -69,7 +69,7 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       platforms: VM_PLATFORM),
 
   "nativewrappers": const LibraryInfo(
-      "html/nativewrappers.dart",
+      "html/dartium/nativewrappers.dart",
       category: "Client",
       implementation: true,
       documented: false,
