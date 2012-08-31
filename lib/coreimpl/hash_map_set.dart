@@ -37,10 +37,10 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   int _numberOfDeleted;
 
   // The sentinel when a key is deleted from the map.
-  static final _DeletedKeySentinel _DELETED_KEY = const _DeletedKeySentinel();
+  static const _DeletedKeySentinel _DELETED_KEY = const _DeletedKeySentinel();
 
   // The initial capacity of a hash map.
-  static final int _INITIAL_CAPACITY = 8;  // must be power of 2
+  static const int _INITIAL_CAPACITY = 8;  // must be power of 2
 
   HashMapImplementation() {
     _numberOfEntries = 0;
