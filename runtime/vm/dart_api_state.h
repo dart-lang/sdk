@@ -105,6 +105,7 @@ class PersistentHandle {
   void set_raw(RawObject* ref) { raw_ = ref; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
+  RawObject** raw_addr() { return &raw_; }
   static intptr_t raw_offset() { return OFFSET_OF(PersistentHandle, raw_); }
 
  private:
@@ -141,6 +142,7 @@ class FinalizablePersistentHandle {
   void set_raw(RawObject* raw) { raw_ = raw; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
+  RawObject** raw_addr() { return &raw_; }
   static intptr_t raw_offset() {
     return OFFSET_OF(FinalizablePersistentHandle, raw_);
   }
@@ -391,14 +393,14 @@ class WeakReferenceSet {
   RawObject** get_key(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_keys_);
-    return reinterpret_cast<RawObject**>(keys_[i]);
+    return (reinterpret_cast<PersistentHandle*>(keys_[i]))->raw_addr();
   }
 
   intptr_t num_values() const { return num_values_; }
   RawObject** get_value(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_values_);
-    return reinterpret_cast<RawObject**>(values_[i]);
+    return (reinterpret_cast<PersistentHandle*>(values_[i]))->raw_addr();
   }
 
   static WeakReferenceSet* Pop(WeakReferenceSet** queue) {

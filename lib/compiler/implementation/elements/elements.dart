@@ -722,27 +722,27 @@ class VariableListElement extends Element {
 
   DartType computeType(Compiler compiler) {
     if (type != null) return type;
-    VariableDefinitions node = parseNode(compiler);
-    if (node.type !== null) {
-      type = compiler.resolveTypeAnnotation(this, node.type);
-    } else {
-      // Is node.definitions exactly one FunctionExpression?
-      Link<Node> link = node.definitions.nodes;
-      if (!link.isEmpty() &&
-          link.head.asFunctionExpression() !== null &&
-          link.tail.isEmpty()) {
-        FunctionExpression functionExpression = link.head;
-        // We found exactly one FunctionExpression
-        compiler.withCurrentElement(this, () {
+    compiler.withCurrentElement(this, () {
+      VariableDefinitions node = parseNode(compiler);
+      if (node.type !== null) {
+        type = compiler.resolveTypeAnnotation(this, node.type);
+      } else {
+        // Is node.definitions exactly one FunctionExpression?
+        Link<Node> link = node.definitions.nodes;
+        if (!link.isEmpty() &&
+            link.head.asFunctionExpression() !== null &&
+            link.tail.isEmpty()) {
+          FunctionExpression functionExpression = link.head;
+          // We found exactly one FunctionExpression
           functionSignature =
               compiler.resolveFunctionExpression(this, functionExpression);
-        });
-        type = compiler.computeFunctionType(compiler.functionClass,
-                                            functionSignature);
-      } else {
-        type = compiler.types.dynamicType;
+          type = compiler.computeFunctionType(compiler.functionClass,
+                                              functionSignature);
+        } else {
+          type = compiler.types.dynamicType;
+        }
       }
-    }
+    });
     assert(type != null);
     return type;
   }

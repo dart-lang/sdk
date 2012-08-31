@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 
+#include "vm/bootstrap_natives.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/object.h"

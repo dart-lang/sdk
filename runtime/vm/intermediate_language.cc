@@ -603,7 +603,7 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
     }
   }
   ASSERT((*phis_)[var_index] == NULL);
-  (*phis_)[var_index] = new PhiInstr(PredecessorCount());
+  (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
   phi_count_++;
 }
 
@@ -734,6 +734,11 @@ RawAbstractType* AssertAssignableComp::CompileType() const {
 
 
 RawAbstractType* AssertBooleanComp::CompileType() const {
+  return Type::BoolType();
+}
+
+
+RawAbstractType* ArgumentDefinitionTestComp::CompileType() const {
   return Type::BoolType();
 }
 
@@ -1009,7 +1014,7 @@ intptr_t BinaryMintOpComp::ResultCid() const {
 
 
 RawAbstractType* BinaryDoubleOpComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1019,7 +1024,7 @@ intptr_t BinaryDoubleOpComp::ResultCid() const {
 
 
 RawAbstractType* UnboxedDoubleBinaryOpComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1034,7 +1039,7 @@ intptr_t BoxDoubleComp::ResultCid() const {
 
 
 RawAbstractType* BoxDoubleComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1045,17 +1050,17 @@ RawAbstractType* UnarySmiOpComp::CompileType() const {
 
 RawAbstractType* NumberNegateComp::CompileType() const {
   // Implemented only for doubles.
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
 RawAbstractType* DoubleToDoubleComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
 RawAbstractType* SmiToDoubleComp::CompileType() const {
-  return Type::DoubleInterface();
+  return Type::Double();
 }
 
 
@@ -1171,8 +1176,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -1185,8 +1189,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kReThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -1321,11 +1324,11 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       DartEntry::ArgumentsDescriptor(argument_count - 1,
                                          argument_names());
   __ LoadObject(temp_reg, arguments_descriptor);
-
-  compiler->GenerateCall(token_pos(),
-                         &StubCode::CallClosureFunctionLabel(),
-                         PcDescriptors::kOther,
-                         locs());
+  compiler->GenerateDartCall(deopt_id(),
+                             token_pos(),
+                             &StubCode::CallClosureFunctionLabel(),
+                             PcDescriptors::kOther,
+                             locs());
   __ Drop(argument_count);
 }
 
@@ -1336,7 +1339,7 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 
 
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                  deopt_id(),
                                  token_pos());
   compiler->GenerateInstanceCall(deopt_id(),
@@ -1372,8 +1375,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
-    compiler->GenerateAssertAssignable(deopt_id(),
-                                       token_pos(),
+    compiler->GenerateAssertAssignable(token_pos(),
                                        dst_type(),
                                        dst_name(),
                                        locs());

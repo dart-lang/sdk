@@ -279,21 +279,23 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 
 BENCHMARK(Dart2JSCompileAll) {
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
-  Dart_Handle import_map;
+  char* script = NULL;
   if (dart_root != NULL) {
-    import_map = Dart_NewList(2);
-    Dart_ListSetAt(import_map, 0, Dart_NewString("DART_ROOT"));
-    Dart_ListSetAt(import_map, 1, Dart_NewString(dart_root));
+    const char* kFormatStr ="#import('%s/lib/compiler/compiler.dart');";
+    intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;
+    script = reinterpret_cast<char*>(malloc(len));
+    EXPECT(script != NULL);
+    OS::SNPrint(script, len, kFormatStr, dart_root);
+    Dart_Handle lib = TestCase::LoadTestScript(
+        script,
+        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+    EXPECT_VALID(lib);
   } else {
-    import_map = Dart_NewList(0);
+    Dart_Handle lib = TestCase::LoadTestScript(
+        "#import('lib/compiler/compiler.dart');",
+        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+    EXPECT_VALID(lib);
   }
-  const char* kScriptChars =
-      "#import('${DART_ROOT}/lib/compiler/compiler.dart');";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver),
-      import_map);
-  EXPECT_VALID(lib);
   Timer timer(true, "Compile all of dart2js benchmark");
   timer.Start();
   Dart_Handle result = Dart_CompileAll();
@@ -302,6 +304,7 @@ BENCHMARK(Dart2JSCompileAll) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
   free(dart_root);
+  free(script);
 }
 
 

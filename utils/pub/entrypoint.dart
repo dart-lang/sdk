@@ -303,16 +303,17 @@ class Entrypoint {
   Future _validatePubspec() {
     var future = new Future.immediate(null);;
     if (root.pubspec.isEmpty) {
-      future = exists(join(path, "pubspec.yaml")).transform((exists) {
+      future = exists(join(root.dir, "pubspec.yaml")).transform((exists) {
         if (exists) return;
-        throw 'Could not find a file named "pubspec.yaml" in the directory'
+        throw 'Could not find a file named "pubspec.yaml" in the directory '
           '$path.';
       });
     }
 
     return future.transform((_) {
       if (root.pubspec.name != null) return;
-      throw '"pubspec.yaml" must contain a "name" key.';
+      throw '"pubspec.yaml" is missing the required "name" field (e.g. "name: '
+        '${root.name}").';
     });
   }
 }

@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
+#include "vm/code_generator.h"
 #include "vm/exceptions.h"
 #include "vm/native_arguments.h"
 #include "vm/verifier.h"
@@ -15,6 +16,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(bool, trace_natives);
 
 // Forward declarations.
@@ -24,17 +26,13 @@ class String;
 typedef void (*NativeFunction)(NativeArguments* arguments);
 
 
-#define NATIVE_ENTRY_FUNCTION(name) DN_##name
-
-
-// Helper macros for declaring and defining native entries.
-#define REGISTER_NATIVE_ENTRY(name, count)                                     \
-  { ""#name, NATIVE_ENTRY_FUNCTION(name), count },
+#define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
 
 
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
-  static void DN_Helper##name(Isolate* isolate, NativeArguments* arguments);   \
-  void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
+  static RawObject* DN_Helper##name(Isolate* isolate,                          \
+                                    NativeArguments* arguments);               \
+  void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {         \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
@@ -43,15 +41,15 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     {                                                                          \
       Zone zone(arguments->isolate());                                         \
       HANDLESCOPE(arguments->isolate());                                       \
-      DN_Helper##name(arguments->isolate(), arguments);                        \
+      arguments->SetReturnUnsafe(                                              \
+          DN_Helper##name(arguments->isolate(), arguments));                   \
+      if (FLAG_deoptimize_alot) DeoptimizeAll();                               \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
-  static void DN_Helper##name(Isolate* isolate, NativeArguments* arguments)
+  static RawObject* DN_Helper##name(Isolate* isolate,                          \
+                                    NativeArguments* arguments)
 
-
-#define DECLARE_NATIVE_ENTRY(name, argument_count)                             \
-  extern void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments arguments);
 
 // Natives should throw an exception if an illegal argument is passed.
 // type name = value.

@@ -597,14 +597,14 @@ class RuntimePerformanceTest(Test):
 class BrowserTester(Tester):
   @staticmethod
   def GetBrowsers(add_dartium=True):
-    browsers = ['ff', 'chrome']
+    browsers = ['ff']#, 'chrome']
     if add_dartium:
-      browsers += ['dartium']
+      pass#browsers += ['dartium']
     has_shell = False
     if platform.system() == 'Darwin':
       browsers += ['safari']
     if platform.system() == 'Windows':
-      browsers += ['ie']
+      #browsers += ['ie']
       has_shell = True
     return browsers
 

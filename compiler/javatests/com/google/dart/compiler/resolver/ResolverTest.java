@@ -923,7 +923,7 @@ public class ResolverTest extends ResolverTestCase {
         "class MyClass {",
         "  foo() {",
         "    try {",
-        "    } catch (Unknown e) {",
+        "    } on Unknown catch (e) {",
         "    }",
         "  }",
         "}"),
@@ -1154,7 +1154,7 @@ public class ResolverTest extends ResolverTestCase {
         "main() {",
         "  try {",
         "    0.25 - f;",
-        "  } catch(var e) {}",
+        "  } catch(e) {}",
         "}"),
         ResolverErrorCode.CANNOT_USE_TYPE);
   }

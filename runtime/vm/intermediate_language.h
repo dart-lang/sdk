@@ -54,6 +54,7 @@ class LocalVariable;
 #define FOR_EACH_COMPUTATION(M)                                                \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(AssertBoolean, AssertBooleanComp)                                          \
+  M(ArgumentDefinitionTest, ArgumentDefinitionTestComp)                        \
   M(CurrentContext, CurrentContextComp)                                        \
   M(StoreContext, StoreContextComp)                                            \
   M(ClosureCall, ClosureCallComp)                                              \
@@ -241,8 +242,22 @@ class Computation : public ZoneAllocated {
 
   virtual ComputationKind computation_kind() const = 0;
 
+  // Returns representation expected for the input operand at the given index.
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+
+  // Representation of the value produced by this computation.
   virtual Representation representation() const {
     return kTagged;
+  }
+
+  // Returns deoptimization id that corresponds to the deoptimization target
+  // that input operands conversions inserted for this instruction can jump
+  // to. Can return kNoDeoptId.
+  virtual intptr_t DeoptimizationTarget() const {
+    UNREACHABLE();
+    return Isolate::kNoDeoptId;
   }
 
   // Declare predicate for each computation.
@@ -252,6 +267,12 @@ class Computation : public ZoneAllocated {
   inline ClassName* As##ShortName();
 FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 #undef DECLARE_PREDICATE
+
+ protected:
+  // Fetch deopt id without checking if this computation can deoptimize.
+  intptr_t GetDeoptId() const {
+    return deopt_id_;
+  }
 
  private:
   friend class BranchInstr;
@@ -481,7 +502,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -519,7 +540,7 @@ class AssertBooleanComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -527,6 +548,38 @@ class AssertBooleanComp : public TemplateComputation<1> {
   bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
+};
+
+
+class ArgumentDefinitionTestComp : public TemplateComputation<1> {
+ public:
+  ArgumentDefinitionTestComp(ArgumentDefinitionTestNode* node,
+                             Value* saved_arguments_descriptor)
+      : ast_node_(*node) {
+    ASSERT(saved_arguments_descriptor != NULL);
+    inputs_[0] = saved_arguments_descriptor;
+  }
+
+  DECLARE_COMPUTATION(ArgumentDefinitionTest)
+
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
+  intptr_t formal_parameter_index() const {
+    return ast_node_.formal_parameter_index();
+  }
+  const String& formal_parameter_name() const {
+    return ast_node_.formal_parameter_name();
+  }
+  Value* saved_arguments_descriptor() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kBoolCid; }
+
+ private:
+  const ArgumentDefinitionTestNode& ast_node_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArgumentDefinitionTestComp);
 };
 
 
@@ -584,7 +637,7 @@ class ClosureCallComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -746,11 +799,23 @@ class EqualityCompareComp : public ComparisonComp {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const {
+    return (receiver_class_id() != kDoubleCid);
+  }
+
   virtual intptr_t ResultCid() const;
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (receiver_class_id() == kDoubleCid) ? kUnboxedDouble : kTagged;
+  }
 
  private:
   const intptr_t token_pos_;
@@ -786,11 +851,24 @@ class RelationalOpComp : public ComparisonComp {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const {
+    return operands_class_id() != kDoubleCid;
+  }
+
   virtual intptr_t ResultCid() const;
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
+
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (operands_class_id() == kDoubleCid) ? kUnboxedDouble : kTagged;
+  }
 
  private:
   const intptr_t token_pos_;
@@ -1157,7 +1235,7 @@ class InstanceOfComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1223,7 +1301,7 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1397,7 +1475,7 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1527,7 +1605,7 @@ class CloneContextComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(CloneContext)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -1598,22 +1676,30 @@ class CheckEitherNonSmiComp : public TemplateComputation<2> {
 class BoxDoubleComp : public TemplateComputation<1> {
  public:
   BoxDoubleComp(Value* value, InstanceCallComp* instance_call)
-      : instance_call_(instance_call) {
+      : token_pos_((instance_call != NULL) ? instance_call->token_pos() : 0) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   Value* value() const { return inputs_[0]; }
-  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  intptr_t token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual bool HasSideEffect() const { return false; }
+  virtual bool AttributesEqual(Computation* other) const { return true; }
 
   virtual intptr_t ResultCid() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
 
   DECLARE_COMPUTATION(BoxDouble)
 
  private:
-  InstanceCallComp* instance_call_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleComp);
 };
@@ -1621,29 +1707,32 @@ class BoxDoubleComp : public TemplateComputation<1> {
 
 class UnboxDoubleComp : public TemplateComputation<1> {
  public:
-  UnboxDoubleComp(Value* value, InstanceCallComp* instance_call)
-      : instance_call_(instance_call) {
+  UnboxDoubleComp(Value* value, intptr_t deopt_id)
+      : deopt_id_(deopt_id) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   Value* value() const { return inputs_[0]; }
-  InstanceCallComp* instance_call() const { return instance_call_; }
 
   virtual bool CanDeoptimize() const {
     return value()->ResultCid() != kDoubleCid;
   }
-  // The output is not an instance.
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+
+  // The output is not an instance but when it is boxed it becomes double.
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
   }
 
+  virtual bool HasSideEffect() const { return false; }
+  virtual bool AttributesEqual(Computation* other) const { return true; }
+
   DECLARE_COMPUTATION(UnboxDouble)
 
  private:
-  InstanceCallComp* instance_call_;
+  const intptr_t deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleComp);
 };
@@ -1653,8 +1742,9 @@ class UnboxedDoubleBinaryOpComp : public TemplateComputation<2> {
  public:
   UnboxedDoubleBinaryOpComp(Token::Kind op_kind,
                             Value* left,
-                            Value* right)
-      : op_kind_(op_kind) {
+                            Value* right,
+                            InstanceCallComp* call)
+      : op_kind_(op_kind), deopt_id_(call->deopt_id()) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -1669,17 +1759,33 @@ class UnboxedDoubleBinaryOpComp : public TemplateComputation<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
-  // The output is not an instance.
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Computation* other) const {
+    return op_kind() == other->AsUnboxedDoubleBinaryOp()->op_kind();
+  }
+
+  // The output is not an instance but when it is boxed it becomes double.
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return deopt_id_;
   }
 
   DECLARE_COMPUTATION(UnboxedDoubleBinaryOp)
 
  private:
   const Token::Kind op_kind_;
+  const intptr_t deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedDoubleBinaryOpComp);
 };
@@ -1850,7 +1956,7 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 
   DECLARE_COMPUTATION(CheckStackOverflow)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -2183,8 +2289,26 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     lifetime_position_ = pos;
   }
 
+  // Returns representation expected for the input operand at the given index.
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+
+  // Representation of the value produced by this computation.
   virtual Representation representation() const {
     return kTagged;
+  }
+
+  bool WasEliminated() const {
+    return next() == NULL;
+  }
+
+  // Returns deoptimization id that corresponds to the deoptimization target
+  // that input operands conversions inserted for this instruction can jump
+  // to.
+  virtual intptr_t DeoptimizationTarget() const {
+    UNREACHABLE();
+    return Isolate::kNoDeoptId;
   }
 
  private:
@@ -2752,8 +2876,16 @@ class BindInstr : public Definition {
   // Insert this instruction after 'prev'.
   void InsertAfter(Instruction* prev);
 
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return computation()->RequiredInputRepresentation(i);
+  }
+
   virtual Representation representation() const {
     return computation()->representation();
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return computation()->DeoptimizationTarget();
   }
 
  private:
@@ -2766,12 +2898,17 @@ class BindInstr : public Definition {
 
 class PhiInstr : public Definition {
  public:
-  explicit PhiInstr(intptr_t num_inputs)
-    : inputs_(num_inputs), is_alive_(false) {
+  explicit PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
+    : block_(block),
+      inputs_(num_inputs),
+      is_alive_(false),
+      representation_(kTagged) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
   }
+
+  JoinEntryInstr* block() const { return block_; }
 
   virtual RawAbstractType* CompileType() const;
   virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
@@ -2793,11 +2930,25 @@ class PhiInstr : public Definition {
   bool is_alive() const { return is_alive_; }
   void mark_alive() { is_alive_ = true; }
 
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return representation_;
+  }
+
+  virtual Representation representation() const {
+    return representation_;
+  }
+
+  virtual void set_representation(Representation r) {
+    representation_ = r;
+  }
+
   DECLARE_INSTRUCTION(Phi)
 
  private:
+  JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;
   bool is_alive_;
+  Representation representation_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -2872,10 +3023,6 @@ class PushArgumentInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  bool WasEliminated() const {
-    return next() == NULL;
-  }
-
  private:
   Value* value_;
   LocationSummary* locs_;
@@ -2917,15 +3064,12 @@ class ReturnInstr : public TemplateInstruction<1> {
 
 class ThrowInstr : public TemplateInstruction<0> {
  public:
-  explicit ThrowInstr(intptr_t token_pos)
-      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) { }
+  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(Throw)
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
@@ -2935,7 +3079,6 @@ class ThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t deopt_id_;
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
@@ -2944,15 +3087,12 @@ class ThrowInstr : public TemplateInstruction<0> {
 
 class ReThrowInstr : public TemplateInstruction<0> {
  public:
-  explicit ReThrowInstr(intptr_t token_pos)
-      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) { }
+  explicit ReThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(ReThrow)
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
-  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
@@ -2962,7 +3102,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t deopt_id_;
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
@@ -3083,6 +3222,14 @@ class BranchInstr : public ControlInstruction {
       computation_->locs_ = summary;
     }
     return computation_->locs_;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return computation_->DeoptimizationTarget();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return computation()->RequiredInputRepresentation(i);
   }
 
  private:

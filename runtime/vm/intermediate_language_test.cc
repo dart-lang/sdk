@@ -20,8 +20,11 @@ TEST_CASE(InstructionTests) {
 
 
 TEST_CASE(OptimizationTests) {
-  Definition* def1 = new PhiInstr(0);
-  Definition* def2 = new PhiInstr(0);
+  JoinEntryInstr* join =
+      new JoinEntryInstr(CatchClauseNode::kInvalidTryIndex);
+
+  Definition* def1 = new PhiInstr(join, 0);
+  Definition* def2 = new PhiInstr(join, 0);
   Value* use1a = new Value(def1);
   Value* use1b = new Value(def1);
   EXPECT(use1a->Equals(use1b));

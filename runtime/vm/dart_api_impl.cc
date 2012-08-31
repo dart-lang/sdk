@@ -130,7 +130,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);
 #endif
-  return *(reinterpret_cast<RawObject**>(object));
+  return (reinterpret_cast<LocalHandle*>(object))->raw();
 }
 
 #define DEFINE_UNWRAP(type)                                                    \
@@ -3733,18 +3733,6 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   isolate->set_library_tag_handler(handler);
-  return Api::Success(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_SetImportMap(Dart_Handle import_map) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
-  if (mapping_array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, import_map, Array);
-  }
-  isolate->object_store()->set_import_map(mapping_array);
   return Api::Success(isolate);
 }
 

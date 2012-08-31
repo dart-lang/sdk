@@ -10,67 +10,54 @@
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/unit_test.h"
 
 namespace dart {
-
-struct NativeTestEntries {
-  const char* name_;
-  Dart_NativeFunction function_;
-  int argument_count_;
-} TestEntries[] = {
-  REGISTER_NATIVE_ENTRY(TestSmiSub, 2)
-  REGISTER_NATIVE_ENTRY(TestSmiSum, 6)
-  REGISTER_NATIVE_ENTRY(TestStaticCallPatching, 0)
-};
-
-
-Dart_NativeFunction NativeTestEntry_Lookup(const String& name,
-                                           int argument_count) {
-  int num_entries = sizeof(TestEntries) / sizeof(struct NativeTestEntries);
-  for (int i = 0; i < num_entries; i++) {
-    struct NativeTestEntries* entry = &(TestEntries[i]);
-    if (name.Equals(entry->name_)) {
-      if (entry->argument_count_ == argument_count) {
-        return entry->function_;
-      } else {
-        // Wrong number of arguments.
-        return NULL;
-      }
-    }
-  }
-  return NULL;
-}
 
 
 // A native call for test purposes.
 // Arg0: a smi.
 // Arg1: a smi.
 // Result: a smi representing arg0 - arg1.
-DEFINE_NATIVE_ENTRY(TestSmiSub, 2) {
-  const Smi& left = Smi::CheckedHandle(arguments->At(0));
-  const Smi& right = Smi::CheckedHandle(arguments->At(1));
+void TestSmiSub(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle left = Dart_GetNativeArgument(args, 0);
+  Dart_Handle right = Dart_GetNativeArgument(args, 1);
+  int64_t left_value = -1;
+  int64_t right_value = -1;
+  EXPECT_VALID(Dart_IntegerToInt64(left, &left_value));
+  EXPECT_VALID(Dart_IntegerToInt64(right, &right_value));
+
   // Ignoring overflow in the calculation below.
-  intptr_t result = left.Value() - right.Value();
-  arguments->SetReturn(Smi::Handle(Smi::New(result)));
+  int64_t result = left_value - right_value;
+  Dart_SetReturnValue(args, Dart_NewInteger(result));
+  Dart_ExitScope();
 }
 
 
 // A native call for test purposes.
 // Arg0-4: 5 smis.
 // Result: a smi representing the sum of all arguments.
-DEFINE_NATIVE_ENTRY(TestSmiSum, 5) {
-  intptr_t result = 0;
-  for (int i = 0; i < arguments->Count(); i++) {
-    const Smi& arg = Smi::CheckedHandle(arguments->At(i));
+void TestSmiSum(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int64_t result = 0;
+  int arg_count = Dart_GetNativeArgumentCount(args);
+  for (int i = 0; i < arg_count; i++) {
+    Dart_Handle arg = Dart_GetNativeArgument(args, i);
+    int64_t arg_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(arg, &arg_value));
+
     // Ignoring overflow in the addition below.
-    result += arg.Value();
+    result += arg_value;
   }
-  arguments->SetReturn(Smi::Handle(Smi::New(result)));
+  Dart_SetReturnValue(args, Dart_NewInteger(result));
+  Dart_ExitScope();
 }
 
 
 // Test code patching.
-DEFINE_NATIVE_ENTRY(TestStaticCallPatching, 0) {
+void TestStaticCallPatching(Dart_NativeArguments args) {
+  Dart_EnterScope();
   uword target_address = 0;
   Function& target_function = Function::Handle();
   DartFrameIterator iterator;
@@ -84,6 +71,7 @@ DEFINE_NATIVE_ENTRY(TestStaticCallPatching, 0) {
   const uword function_entry_address =
       Code::Handle(target_function.CurrentCode()).EntryPoint();
   EXPECT_EQ(function_entry_address, target_address);
+  Dart_ExitScope();
 }
 
 }  // namespace dart

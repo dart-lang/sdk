@@ -29,7 +29,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
   }
   const Array& new_array = Array::Handle(Array::New(length.Value()));
   new_array.SetTypeArguments(type_arguments);
-  arguments->SetReturn(new_array);
+  return new_array.raw();
 }
 
 
@@ -41,8 +41,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
     arguments.Add(&index);
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
   }
-  const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
-  arguments->SetReturn(obj);
+  return array.At(index.Value());
 }
 
 
@@ -56,13 +55,13 @@ DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
   }
   array.SetAt(index.Value(), value);
+  return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(ObjectArray_getLength, 1) {
   const Array& array = Array::CheckedHandle(arguments->At(0));
-  const Smi& length = Smi::Handle(Smi::New(array.Length()));
-  arguments->SetReturn(length);
+  return Smi::New(array.Length());
 }
 
 
@@ -79,7 +78,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   if (icount == 0) {
-    return;
+    return Object::null();
   }
   intptr_t isrc_start = src_start.Value();
   intptr_t idst_start = dst_start.Value();
@@ -106,6 +105,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
       dest.SetAt(idst_start + i, src_obj);
     }
   }
+  return Object::null();
 }
 
 }  // namespace dart

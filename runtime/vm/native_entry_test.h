@@ -5,23 +5,13 @@
 #ifndef VM_NATIVE_ENTRY_TEST_H_
 #define VM_NATIVE_ENTRY_TEST_H_
 
-#include "vm/native_entry.h"
-
 #include "include/dart_api.h"
 
 namespace dart {
 
-// Forward declarations.
-class String;
-
-
-DECLARE_NATIVE_ENTRY(TestSmiSub, 2);
-DECLARE_NATIVE_ENTRY(TestSmiSum, 6);
-DECLARE_NATIVE_ENTRY(TestStaticCallPatching, 0);
-
-// Helper function for looking up native test functions.
-extern Dart_NativeFunction NativeTestEntry_Lookup(const String& name,
-                                                  int argument_count);
+void TestSmiSub(Dart_NativeArguments args);
+void TestSmiSum(Dart_NativeArguments args);
+void TestStaticCallPatching(Dart_NativeArguments args);
 
 }  // namespace dart
 

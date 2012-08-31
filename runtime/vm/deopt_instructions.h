@@ -47,6 +47,10 @@ class DeoptimizationContext : public ValueObject {
     return registers_copy_[reg];
   }
 
+  double XmmRegisterValue(XmmRegister reg) const {
+    return xmm_registers_copy_[reg];
+  }
+
   Isolate* isolate() const { return isolate_; }
 
   intptr_t from_frame_size() const { return from_frame_size_; }
@@ -58,6 +62,7 @@ class DeoptimizationContext : public ValueObject {
   intptr_t* from_frame_;
   intptr_t from_frame_size_;
   intptr_t* registers_copy_;
+  double* xmm_registers_copy_;
   const intptr_t num_args_;
   Isolate* isolate_;
 
@@ -86,7 +91,9 @@ class DeoptInstr : public ZoneAllocated {
     kSetRetAddress,
     kCopyConstant,
     kCopyRegister,
+    kCopyXmmRegister,
     kCopyStackSlot,
+    kCopyDoubleStackSlot,
     kSetPcMarker,
     kSetCallerFp,
     kSetCallerPc,

@@ -18,9 +18,9 @@
 #import('command_version.dart');
 #import('entrypoint.dart');
 #import('git_source.dart');
+#import('hosted_source.dart');
 #import('package.dart');
 #import('pubspec.dart');
-#import('repo_source.dart');
 #import('sdk_source.dart');
 #import('source.dart');
 #import('source_registry.dart');
@@ -88,9 +88,8 @@ main() {
   var cache = new SystemCache(cacheDir);
   cache.register(new SdkSource(sdkDir));
   cache.register(new GitSource());
-  cache.register(new RepoSource());
-  // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists
-  cache.sources.setDefault('sdk');
+  cache.register(new HostedSource());
+  cache.sources.setDefault('hosted');
 
   // Select the command.
   var command = pubCommands[globalOptions.rest[0]];

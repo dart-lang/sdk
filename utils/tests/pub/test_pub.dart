@@ -19,8 +19,8 @@
 #import('../../../pkg/unittest/unittest.dart');
 #import('../../lib/file_system.dart', prefix: 'fs');
 #import('../../pub/git_source.dart');
+#import('../../pub/hosted_source.dart');
 #import('../../pub/io.dart');
-#import('../../pub/repo_source.dart');
 #import('../../pub/sdk_source.dart');
 #import('../../pub/utils.dart');
 #import('../../pub/yaml/yaml.dart');
@@ -265,7 +265,7 @@ Map package(String name, String version, [List dependencies]) {
  */
 Map dependency(String name, [String versionConstraint]) {
   var url = port.transform((p) => "http://localhost:$p");
-  var dependency = {"repo": {"name": name, "url": url}};
+  var dependency = {"hosted": {"name": name, "url": url}};
   if (versionConstraint != null) dependency["version"] = versionConstraint;
   return dependency;
 }
@@ -338,7 +338,7 @@ DirectoryDescriptor cacheDir(Map packages) {
     }
   });
   return dir(cachePath, [
-    dir('repo', [
+    dir('hosted', [
       async(port.transform((p) => dir('localhost%58$p', contents)))
     ])
   ]);
@@ -366,8 +366,8 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
       case "git":
         source = new GitSource();
         break;
-      case "repo":
-        source = new RepoSource();
+      case "hosted":
+        source = new HostedSource();
         break;
       case "sdk":
         source = new SdkSource('');
@@ -379,7 +379,7 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
       result[source.packageName(dependency[sourceName])] = dependency;
     }
     return result;
-  }); 
+  });
 }
 
 /**

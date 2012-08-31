@@ -71,6 +71,20 @@ public class Types {
   }
     
   public Type intersection(List<Type> types) {
+    // exclude Dynamic type
+    {
+      List<Type> newTypes = Lists.newArrayList();
+      for (Type type : types) {
+        if (TypeKind.of(type) != TypeKind.DYNAMIC) {
+          newTypes.add(type);
+        }
+      }
+      types = newTypes;
+    }
+    // no types, so Dynamic
+    if (types.isEmpty()) {
+      return typeProvider.getDynamicType();
+    }
     // prepare all super types
     List<List<InterfaceType>> superTypesLists = Lists.newArrayList();
     List<Map<InterfaceType, InterfaceType>> superTypesMaps = Lists.newArrayList();

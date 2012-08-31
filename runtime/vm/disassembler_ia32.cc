@@ -236,6 +236,7 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xAB: return "bts";
     case 0xB1: return "cmpxchg";
     case 0x57: return "xorps";
+    case 0x28: return "movaps";
     default: return NULL;
   }
 }
@@ -390,6 +391,30 @@ void X86Decoder::PrintXmmRegister(int reg) {
 }
 
 
+static const char* ObjectToCStringNoGC(const Object& obj) {
+  if (obj.IsSmi() ||
+      obj.IsMint() ||
+      obj.IsDouble() ||
+      obj.IsString() ||
+      obj.IsNull() ||
+      obj.IsBool() ||
+      obj.IsClass() ||
+      obj.IsFunction() ||
+      obj.IsICData() ||
+      obj.IsField()) {
+    return obj.ToCString();
+  }
+
+  const Class& clazz = Class::CheckedHandle(obj.clazz());
+  const char* full_class_name = clazz.ToCString();
+  const char* format = "instance of %s";
+  intptr_t len = OS::SNPrint(NULL, 0, format, full_class_name) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, full_class_name);
+  return chars;
+}
+
+
 void X86Decoder::PrintAddress(uword addr) {
   NoGCScope no_gc;
   char addr_buffer[32];
@@ -408,7 +433,7 @@ void X86Decoder::PrintAddress(uword addr) {
       while (i < len) {
         obj = arr.At(i);
         if (i > 0) Print(", ");
-        Print(obj.ToCString());
+        Print(ObjectToCStringNoGC(obj));
         i++;
       }
       if (i < arr.Length()) Print(", ...");
@@ -416,7 +441,7 @@ void X86Decoder::PrintAddress(uword addr) {
       return;
     }
     Print("  '");
-    Print(obj.ToCString());
+    Print(ObjectToCStringNoGC(obj));
     Print("'");
   } else {
     // 'addr' is not an object, but probably a code address.
@@ -955,7 +980,7 @@ void X86Decoder::CheckPrintStop(uint8_t* data) {
   // Recognize stop pattern.
   if (*reinterpret_cast<uint8_t*>(data + 5) == 0xCC) {
     Print("  STOP:'");
-    const char* text = *reinterpret_cast<const char **>(data + 1);
+    const char* text = *reinterpret_cast<const char**>(data + 1);
     Print(text);
     Print("'");
   }
@@ -1180,6 +1205,15 @@ int X86Decoder::InstructionDecode(uword pc) {
               PrintCPURegister(regop);
               Print(",cl");
             }
+          } else if (f0byte == 0x28) {
+            // movaps
+            Print(f0mnem);
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print(" ");
+            PrintXmmRegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
           } else {
             UNIMPLEMENTED();
           }

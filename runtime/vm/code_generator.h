@@ -18,6 +18,7 @@ DECLARE_RUNTIME_ENTRY(AllocateImplicitStaticClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
 DECLARE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck);
+DECLARE_RUNTIME_ENTRY(ArgumentDefinitionTest);
 DECLARE_RUNTIME_ENTRY(BreakpointStaticHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointReturnHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointDynamicHandler);
@@ -42,6 +43,7 @@ DECLARE_RUNTIME_ENTRY(StackOverflow);
 DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
+DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
 
 #define DEOPT_REASONS(V)                                                       \
   V(DeoptUnknown)                                                              \
@@ -80,6 +82,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptCheckClass)                                                           \
   V(DeoptCheckSmi)                                                             \
   V(DeoptAtCall)                                                               \
+  V(DeoptNumReasons)                                                           \
 
 enum DeoptReasonId {
 #define DEFINE_ENUM_LIST(name) k##name,
@@ -90,6 +93,8 @@ DEOPT_REASONS(DEFINE_ENUM_LIST)
 
 RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                           const Instance& receiver);
+
+void DeoptimizeAll();
 
 }  // namespace dart
 

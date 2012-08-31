@@ -4,24 +4,28 @@
 
 // Dart core library.
 
-interface double extends num {
+// TODO: Convert this abstract class into a concrete class double
+// that uses the patch class functionality to account for the
+// different platform implementations.
+
+abstract class double implements num {
   static final double NAN = 0.0 / 0.0;
   static final double INFINITY = 1.0 / 0.0;
   static final double NEGATIVE_INFINITY = -INFINITY;
 
   // Specialization of super-interface. Double is contagious. We can therefore
   // specialize more methods than in other num sub-interfaces.
-  double remainder(num other);
-  double operator +(num other);
-  double operator -(num other);
-  double operator *(num other);
-  double operator %(num other);
-  double operator /(num other);
-  double operator ~/(num other);
-  double operator negate();
-  double abs();
-  double round();
-  double floor();
-  double ceil();
-  double truncate();
+  abstract double remainder(num other);
+  abstract double operator +(num other);
+  abstract double operator -(num other);
+  abstract double operator *(num other);
+  abstract double operator %(num other);
+  abstract double operator /(num other);
+  abstract double operator ~/(num other);
+  abstract double operator negate();
+  abstract double abs();
+  abstract double round();
+  abstract double floor();
+  abstract double ceil();
+  abstract double truncate();
 }

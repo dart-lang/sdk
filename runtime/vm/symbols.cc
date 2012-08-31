@@ -28,6 +28,12 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 };
 
 
+const char* Symbols::Name(intptr_t symbol) {
+  ASSERT((symbol > kIllegal) && (symbol < kMaxId));
+  return names[symbol];
+}
+
+
 void Symbols::InitOnce(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());

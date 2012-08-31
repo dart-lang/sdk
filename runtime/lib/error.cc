@@ -46,6 +46,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   // Throw AssertionError instance.
   Exceptions::Throw(assertion_error);
   UNREACHABLE();
+  return Object::null();
 }
 
 
@@ -68,6 +69,8 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
       String::Handle(Type::Handle(src_value.GetType()).UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, malformed_error);
+  UNREACHABLE();
+  return Object::null();
 }
 
 
@@ -98,6 +101,7 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   // Throw FallThroughError instance.
   Exceptions::Throw(fallthrough_error);
   UNREACHABLE();
+  return Object::null();
 }
 
 
@@ -126,6 +130,7 @@ DEFINE_NATIVE_ENTRY(StaticResolutionException_throwNew, 1) {
 
   Exceptions::Throw(resolution_exception);
   UNREACHABLE();
+  return Object::null();
 }
 
 }  // namespace dart

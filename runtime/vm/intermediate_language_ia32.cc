@@ -84,8 +84,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(temp, function);
     __ pushl(result);  // Preserve result.
     __ pushl(temp);
-    compiler->GenerateCallRuntime(Isolate::kNoDeoptId,
-                                  0,
+    compiler->GenerateCallRuntime(0,
                                   kTraceFunctionExitRuntimeEntry,
                                   locs());
     __ popl(temp);  // Remove argument.
@@ -209,8 +208,7 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(EQUAL, &done, Assembler::kNearJump);
 
     __ pushl(obj);  // Push the source object.
-    compiler->GenerateCallRuntime(deopt_id(),
-                                  token_pos(),
+    compiler->GenerateCallRuntime(token_pos(),
                                   kConditionTypeErrorRuntimeEntry,
                                   locs());
     // We should never return here.
@@ -218,6 +216,34 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&done);
   }
   ASSERT(obj == result);
+}
+
+
+LocationSummary* ArgumentDefinitionTestComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
+}
+
+
+void ArgumentDefinitionTestComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register saved_args_desc = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  __ pushl(Immediate(Smi::RawValue(formal_parameter_index())));
+  __ PushObject(formal_parameter_name());
+  __ pushl(saved_args_desc);
+  compiler->GenerateCallRuntime(token_pos(),
+                                kArgumentDefinitionTestRuntimeEntry,
+                                locs());
+  __ Drop(3);
+  __ popl(result);  // Pop bool result.
 }
 
 
@@ -240,9 +266,16 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const bool is_checked_strict_equal =
       HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  if ((receiver_class_id() == kSmiCid) ||
-      (receiver_class_id() == kDoubleCid) ||
-      is_checked_strict_equal) {
+  if (receiver_class_id() == kDoubleCid) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresXmmRegister());
+    locs->set_in(1, Location::RequiresXmmRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if ((receiver_class_id() == kSmiCid) || is_checked_strict_equal) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -277,7 +310,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t token_pos,
                                        Token::Kind kind,
                                        LocationSummary* locs) {
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                  deopt_id,
                                  token_pos);
   const String& operator_name = String::ZoneHandle(Symbols::New("=="));
@@ -580,23 +613,17 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
-                                   BranchInstr* branch,
-                                   intptr_t deopt_id) {
-  Register left = locs.in(0).reg();
-  Register right = locs.in(1).reg();
-  // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptDoubleComparison);
-  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
-  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+                                   BranchInstr* branch) {
+  XmmRegister left = locs.in(0).xmm_reg();
+  XmmRegister right = locs.in(1).xmm_reg();
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
   if (branch != NULL) {
     compiler->EmitDoubleCompareBranch(
-        true_condition, XMM0, XMM1, branch);
+        true_condition, left, right, branch);
   } else {
     compiler->EmitDoubleCompareBool(
-        true_condition, XMM0, XMM1, locs.out().reg());
+        true_condition, left, right, locs.out().reg());
   }
 }
 
@@ -610,8 +637,7 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
-    // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
   const bool is_checked_strict_equal =
@@ -644,8 +670,7 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
-    // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   const bool is_checked_strict_equal =
@@ -677,7 +702,15 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* RelationalOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if ((operands_class_id() == kSmiCid) || (operands_class_id() == kDoubleCid)) {
+  if (operands_class_id() == kDoubleCid) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresXmmRegister());
+    summary->set_in(1, Location::RequiresXmmRegister());
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  } else if (operands_class_id() == kSmiCid) {
     const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -704,7 +737,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (operands_class_id() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
 
@@ -739,7 +772,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const String& function_name =
       String::ZoneHandle(Symbols::New(Token::Str(kind())));
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                  deopt_id(),
                                  token_pos());
   const intptr_t kNumArguments = 2;
@@ -761,7 +794,7 @@ void RelationalOpComp::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   if (operands_class_id() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   EmitNativeCode(compiler);
@@ -1019,8 +1052,7 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == ECX);  // Instantiator.
   ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
 
-  compiler->GenerateInstanceOf(deopt_id(),
-                               token_pos(),
+  compiler->GenerateInstanceOf(token_pos(),
                                type(),
                                negate_result(),
                                locs());
@@ -1082,8 +1114,7 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
   __ PushObject(cls);
   __ pushl(type_arguments);
   __ pushl(instantiator_type_arguments);
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
                                 locs());
   // Pop instantiator type arguments, type arguments, and class.
@@ -1158,8 +1189,7 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ PushObject(type_arguments());
   __ pushl(instantiator_reg);  // Push instantiator type arguments.
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
                                 locs());
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
@@ -1337,8 +1367,7 @@ void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushl(context_value);
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kCloneContextRuntimeEntry,
                                 locs());
   __ popl(result);  // Remove argument.
@@ -1392,8 +1421,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(computation_->locs());
-    compiler->GenerateCallRuntime(computation_->deopt_id(),
-                                  computation_->token_pos(),
+    compiler->GenerateCallRuntime(computation_->token_pos(),
                                   kStackOverflowRuntimeEntry,
                                   computation_->locs());
     compiler->RestoreLiveRegisters(computation_->locs());
@@ -1821,13 +1849,11 @@ class BoxDoubleSlowPath : public SlowPathCode {
         Code::Handle(StubCode::GetAllocationStubForClass(double_class));
     const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
-    // TODO(vegorov): here stack map needs to be set up correctly to skip
-    // double registers.
     LocationSummary* locs = computation_->locs();
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(computation_->instance_call()->token_pos(),
+    compiler->GenerateCall(computation_->token_pos(),
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -1879,8 +1905,7 @@ void UnboxDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().xmm_reg();
   if (v_cid != kDoubleCid) {
-    Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                          kDeoptBinaryDoubleOp);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
     compiler->LoadDoubleOrSmiToXmm(result,
                                    value,
                                    locs()->temp(0).reg(),

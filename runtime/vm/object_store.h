@@ -79,11 +79,6 @@ class ObjectStore {
   void set_smi_type(const Type& value) { smi_type_ = value.raw();
   }
 
-  RawType* double_interface() const { return double_interface_; }
-  void set_double_interface(const Type& value) {
-    double_interface_ = value.raw();
-  }
-
   RawClass* double_class() const { return double_class_; }
   void set_double_class(const Class& value) { double_class_ = value.raw(); }
 
@@ -407,11 +402,6 @@ class ObjectStore {
     libraries_ = value.raw();
   }
 
-  RawArray* import_map() const { return import_map_; }
-  void set_import_map(const Array& value) {
-    import_map_ = value.raw();
-  }
-
   RawGrowableObjectArray* pending_classes() const { return pending_classes_; }
   void set_pending_classes(const GrowableObjectArray& value) {
     ASSERT(!value.IsNull());
@@ -480,7 +470,6 @@ class ObjectStore {
   RawClass* mint_class_;
   RawType* mint_type_;
   RawClass* bigint_class_;
-  RawType* double_interface_;
   RawClass* double_class_;
   RawType* double_type_;
   RawType* string_interface_;
@@ -533,7 +522,6 @@ class ObjectStore {
   RawLibrary* builtin_library_;
   RawLibrary* root_library_;
   RawGrowableObjectArray* libraries_;
-  RawArray* import_map_;
   RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;
   RawContext* empty_context_;

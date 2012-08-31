@@ -5,6 +5,7 @@
 #ifndef VM_CODE_DESCRIPTORS_H_
 #define VM_CODE_DESCRIPTORS_H_
 
+#include "vm/code_generator.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
@@ -17,8 +18,14 @@ class DescriptorList : public ZoneAllocated {
     intptr_t pc_offset;        // PC offset value of the descriptor.
     PcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
     intptr_t deopt_id;         // Deoptimization id.
-    intptr_t token_index;      // Token position in source of PC.
+    intptr_t data;             // Token position or deopt rason.
     intptr_t try_index;        // Try block index of PC or deopt array index.
+    void SetTokenPos(intptr_t value) { data = value; }
+    intptr_t TokenPos() const { return data; }
+    void SetDeoptReason(DeoptReasonId value) { data = value; }
+    DeoptReasonId DeoptReason() const {
+      return static_cast<DeoptReasonId>(data);
+    }
   };
 
   explicit DescriptorList(intptr_t initial_capacity) : list_(initial_capacity) {
@@ -39,7 +46,10 @@ class DescriptorList : public ZoneAllocated {
     return list_[index].deopt_id;
   }
   intptr_t TokenPos(int index) const {
-    return list_[index].token_index;
+    return list_[index].TokenPos();
+  }
+  DeoptReasonId DeoptReason(int index) const {
+    return list_[index].DeoptReason();
   }
   intptr_t TryIndex(int index) const {
     return list_[index].try_index;
@@ -50,10 +60,10 @@ class DescriptorList : public ZoneAllocated {
                      intptr_t deopt_id,
                      intptr_t token_index,
                      intptr_t try_index);
-  void AddDeoptInfo(intptr_t pc_offset,
-                    intptr_t deopt_id,
-                    intptr_t token_index,
-                    intptr_t deopt_array_index);
+  void AddDeoptIndex(intptr_t pc_offset,
+                     intptr_t deopt_id,
+                     DeoptReasonId deopt_reason,
+                     intptr_t deopt_array_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
 

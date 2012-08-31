@@ -2211,6 +2211,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "a1", "List<String>");
     assertInferredElementTypeString(testUnit, "b1", "List<String>");
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4791
+   */
+  public void test_typesPropagation_multiAssign_type_null() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = null;",
+        "  var v1 = v;",
+        "  if (true) {",
+        "    v = '';",
+        "    var v2 = v;",
+        "  }",
+        "  var v3 = v;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v3", "String");
+  }
 
   /**
    * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
@@ -4033,9 +4055,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       });
     }
     abstract void checkArgs(int invocationIndex);
-    void assertId(int index, Object expected) {
+    void assertId(int index, String expectedParameterName) {
       DartExpression argument = arguments.get(index);
-      assertEquals(expected, argument.getInvocationParameterId());
+      String idString = argument.getInvocationParameterId().toString();
+      assertEquals("PARAMETER " + expectedParameterName, idString);
     }
   }
 
@@ -4055,21 +4078,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       void checkArgs(int invocationIndex) {
         switch (invocationIndex) {
           case 0: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
+            assertId(0, "a");
+            assertId(1, "b");
             break;
           }
           case 1: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
-            assertId(2, Integer.valueOf(2));
+            assertId(0, "a");
+            assertId(1, "b");
+            assertId(2, "c");
             break;
           }
           case 3: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
-            assertId(2, Integer.valueOf(2));
-            assertId(3, Integer.valueOf(3));
+            assertId(0, "a");
+            assertId(1, "b");
+            assertId(2, "c");
+            assertId(3, "d");
             break;
           }
         }
@@ -4094,25 +4117,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       void checkArgs(int invocationIndex) {
         switch (invocationIndex) {
           case 0: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
+            assertId(0, "a");
+            assertId(1, "b");
             break;
           }
           case 1: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
+            assertId(0, "a");
+            assertId(1, "b");
             assertId(2, "c");
             break;
           }
           case 2: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
+            assertId(0, "a");
+            assertId(1, "b");
             assertId(2, "d");
             break;
           }
           case 3: {
-            assertId(0, Integer.valueOf(0));
-            assertId(1, Integer.valueOf(1));
+            assertId(0, "a");
+            assertId(1, "b");
             assertId(2, "d");
             assertId(3, "c");
             break;
@@ -4157,7 +4180,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * TODO(scheglov)
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3968
    */

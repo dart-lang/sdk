@@ -2,12 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('test2.dart');
+class A {
+  A a;
 
-#source('../$SRC/test2a.dart');
+  bar(c) {
+    c.a = 2; /// 01: dynamic type error
+  }
+}
 
-int test2() {
-  var result = test2a();
-  Expect.equals(2, result);
-  return result;
+class B {
+  int a;
+}
+
+main() {
+  new A().bar(new A()); /// 01: continued
+  new A().bar(new B());
 }

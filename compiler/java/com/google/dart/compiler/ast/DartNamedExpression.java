@@ -13,7 +13,7 @@ public class DartNamedExpression extends DartExpression {
   private DartExpression expression;
 
   public DartNamedExpression(DartIdentifier ident, DartExpression expression) {
-    this.name = ident;
+    this.name = becomeParentOf(ident);
     this.expression = becomeParentOf(expression);
   }
 

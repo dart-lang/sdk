@@ -167,12 +167,14 @@ def RunCommand(command, input=None, pollFn=None, outStream=None, errStream=None,
     returns a non-zero exit code.
   Returns: the output of the subprocess.
 
-  Raises an exception if the subprocess returns an error code.
+  Exceptions:
+    Raises Error if the subprocess returns an error code.
+    Raises ValueError if called with invalid arguments.
   """
   if verbose:
     sys.stderr.write("command %s\n" % command)
   stdin = None
-  if input is not None:
+  if input:
     stdin = subprocess.PIPE
   try:
     process = subprocess.Popen(args=command,
@@ -180,12 +182,12 @@ def RunCommand(command, input=None, pollFn=None, outStream=None, errStream=None,
                                bufsize=1,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
-  except Exception as e:
+  except OSError as e:
     if not isinstance(command, basestring):
       command = ' '.join(command)
     if printErrorInfo:
       sys.stderr.write("Command failed: '%s'\n" % command)
-    raise e
+    raise Error(e)
 
   def StartThread(out):
     queue = Queue.Queue()
@@ -212,7 +214,7 @@ def RunCommand(command, input=None, pollFn=None, outStream=None, errStream=None,
 
   outBuf = StringIO.StringIO()
   errorBuf = StringIO.StringIO()
-  if input != None:
+  if input:
     process.stdin.write(input)
   while True:
     returncode = process.poll()
@@ -232,7 +234,7 @@ def RunCommand(command, input=None, pollFn=None, outStream=None, errStream=None,
 
   out = outBuf.getvalue();
   error = errorBuf.getvalue();
-  if returncode != 0:
+  if returncode:
     if not isinstance(command, basestring):
       command = ' '.join(command)
     if printErrorInfo:
@@ -240,7 +242,7 @@ def RunCommand(command, input=None, pollFn=None, outStream=None, errStream=None,
       sys.stderr.write("        stdout: '%s'\n" % out)
       sys.stderr.write("        stderr: '%s'\n" % error)
       sys.stderr.write("    returncode: %d\n" % returncode)
-    raise Exception("Command failed: %s" % command)
+    raise Error("Command failed: %s" % command)
   if debug:
     sys.stderr.write("output: %s\n" % out)
   return out
@@ -251,6 +253,10 @@ def Main(argv):
   print "GuessArchitecture() -> ", GuessArchitecture()
   print "GuessCpus() -> ", GuessCpus()
   print "IsWindows() -> ", IsWindows()
+
+
+class Error(Exception):
+  pass
 
 
 if __name__ == "__main__":

@@ -871,8 +871,8 @@ class AbstractType : public Object {
   // Check if this type represents the 'int' interface.
   bool IsIntInterface() const;
 
-  // Check if this type represents the 'double' interface.
-  bool IsDoubleInterface() const;
+  // Check if this type represents the 'double' type.
+  bool IsDoubleType() const;
 
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
@@ -995,8 +995,8 @@ class Type : public AbstractType {
   // The 'Mint' type.
   static RawType* MintType();
 
-  // The 'double' interface type.
-  static RawType* DoubleInterface();
+  // The 'double' type.
+  static RawType* Double();
 
   // The 'num' interface type.
   static RawType* Number();
@@ -2261,12 +2261,13 @@ class PcDescriptors : public Object {
 
  public:
   enum Kind {
-    kDeopt = 0,   // Deoptimization continuation point.
-    kDeoptIndex,  // Index into deopt info array.
-    kPatchCode,   // Buffer for patching code entry.
-    kIcCall,      // IC call.
-    kFuncCall,    // Call to known target, e.g. static call, closure call.
-    kReturn,      // Return from function.
+    kDeoptBefore = 0,  // Deoptimization continuation point before instruction.
+    kDeoptAfter,       // Deoptimization continuation point after instruction.
+    kDeoptIndex,       // Index into deopt info array.
+    kPatchCode,        // Buffer for patching code entry.
+    kIcCall,           // IC call.
+    kFuncCall,         // Call to known target, e.g. static call, closure call.
+    kReturn,           // Return from function.
     kOther
   };
 
@@ -2641,7 +2642,8 @@ class Code : public Object {
   // Find pc of patch code buffer. Return 0 if not found.
   uword GetPatchCodePc() const;
 
-  uword GetDeoptPcAtDeoptId(intptr_t deopt_id) const;
+  uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
+  uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
 
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
@@ -2673,6 +2675,8 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_instructions(RawInstructions* instructions) {
+    // RawInstructions are never allocated in New space and hence a
+    // store buffer update is not needed here.
     raw_ptr()->instructions_ = instructions;
   }
   void set_pointer_offsets_length(intptr_t value) {
@@ -2688,6 +2692,8 @@ class Code : public Object {
   void SetPointerOffsetAt(int index, int32_t offset_in_instructions) {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
+
+  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
@@ -3102,7 +3108,9 @@ class Instance : public Object {
                     const AbstractTypeArguments& type_instantiator,
                     Error* malformed_error) const;
 
-  bool IsValidNativeIndex(int index) const;
+  bool IsValidNativeIndex(int index) const {
+    return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
+  }
 
   intptr_t GetNativeField(int index) const {
     return *NativeFieldAddr(index);
@@ -3361,6 +3369,8 @@ class Bigint : public Integer {
 };
 
 
+// Class Double represents class Double in corelib_impl, which implements
+// abstract class double in corelib.
 class Double : public Number {
  public:
   double value() const {

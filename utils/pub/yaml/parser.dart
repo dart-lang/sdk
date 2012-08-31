@@ -144,6 +144,12 @@ class _Parser {
   int farthestColumn = 0;
 
   /**
+   * The farthest position in the source string that has been parsed
+   * successfully before backtracking. Used for error reporting.
+   */
+  int farthestPos = 0;
+
+  /**
    * The name of the context of the farthest position that has been parsed
    * successfully before backtracking. Used for error reporting.
    */
@@ -151,6 +157,12 @@ class _Parser {
 
   /** A stack of the names of parse contexts. Used for error reporting. */
   List<String> contextStack;
+
+  /**
+   * Annotations attached to ranges of the source string that add extra
+   * information to any errors that occur in the annotated range.
+   */
+  _RangeMap<String> errorAnnotations;
 
   /**
    * The buffer containing the string currently being captured.
@@ -170,7 +182,8 @@ class _Parser {
   _Parser(String s)
     : this.s = s,
       len = s.length,
-      contextStack = <String>["document"];
+      contextStack = <String>["document"],
+      errorAnnotations = new _RangeMap();
 
   /**
    * Return the character at the current position, then move that position
@@ -194,6 +207,7 @@ class _Parser {
       farthestColumn = column;
       farthestContext = contextStack.last();
     }
+    farthestPos = pos;
 
     return char;
   }
@@ -416,6 +430,22 @@ class _Parser {
     }
   }
 
+  /**
+   * Adds [message] as extra information to any errors that occur between the
+   * current position and the position of the cursor after running [fn]. The
+   * cursor is reset after [fn] is run.
+   */
+  annotateError(String message, fn()) {
+    var start = pos;
+    var end;
+    transaction(() {
+      fn();
+      end = pos;
+      return false;
+    });
+    errorAnnotations[new _Range(start, end)] = message;
+  }
+
   /** Throws an error with additional context information. */
   error(String message) {
     // Line and column should be one-based.
@@ -437,8 +467,10 @@ class _Parser {
    * [farthestColumn], and [farthestContext] to provide additional information.
    */
   parseFailed() {
-    throw new SyntaxError(farthestLine + 1, farthestColumn + 1,
-        "invalid YAML in $farthestContext");
+    var message = "invalid YAML in $farthestContext";
+    var extraError = errorAnnotations[farthestPos];
+    if (extraError != null) message = "$message ($extraError)";
+    throw new SyntaxError(farthestLine + 1, farthestColumn + 1, message);
   }
 
   /** Returns the number of spaces after the current position. */
@@ -674,12 +706,29 @@ class _Parser {
     }));
 
   // 63
-  bool s_indent(int indent) => nAtOnce(indent, (c, i) => c == SP);
+  bool s_indent(int indent) {
+    var result = nAtOnce(indent, (c, i) => c == SP);
+    if (peek() == TAB) {
+      annotateError("tab characters are not allowed as indentation in YAML",
+          () => zeroOrMore(() => consume(isSpace)));
+    }
+    return result;
+  }
 
   // 64
   bool s_indentLessThan(int indent) {
     for (int i = 0; i < indent - 1; i++) {
-      if (!consumeChar(SP)) break;
+      if (!consumeChar(SP)) {
+        if (peek() == TAB) {
+          annotateError("tab characters are not allowed as indentation in YAML",
+              () {
+            for (; i < indent - 1; i++) {
+              if (!consume(isSpace)) break;
+            }
+          });
+        }
+        break;
+      }
     }
     return true;
   }
@@ -1900,4 +1949,51 @@ class _BlockHeader {
   _BlockHeader(this.additionalIndent, this.chomping);
 
   bool get autoDetectIndent => additionalIndent == null;
+}
+
+/**
+ * A range of characters in the YAML document, from [start] to [end] (inclusive).
+ */
+class _Range {
+  /** The first character in the range. */
+  final int start;
+
+  /** The last character in the range. */
+  final int end;
+
+  _Range(this.start, this.end);
+
+  /** Returns whether or not [pos] lies within this range. */
+  bool contains(int pos) => pos >= start && pos <= end;
+}
+
+/**
+ * A map that associates [E] values with [_Range]s. It's efficient to create new
+ * associations, but finding the value associated with a position is more
+ * expensive.
+ */
+class _RangeMap<E> {
+  /** The ranges and their associated elements. */
+  final List<_Pair<_Range, E>> contents;
+
+  _RangeMap() : this.contents = <_Pair<_Range, E>>[];
+
+  /**
+   * Returns the value associated with the range in which [pos] lies, or null if
+   * there is no such range. If there's more than one such range, the most
+   * recently set one is used.
+   */
+  E operator[](int pos) {
+    // Iterate backwards through contents so the more recent range takes
+    // precedence. TODO(nweiz): clean this up when issue 2804 is fixed.
+    for (var i = contents.length - 1; i >= 0; i--) {
+      var pair = contents[i];
+      if (pair.first.contains(pos)) return pair.last;
+    }
+    return null;
+  }
+
+  /** Associates [value] with [range]. */
+  operator[]=(_Range range, E value) =>
+    contents.add(new _Pair<_Range, E>(range, value));
 }

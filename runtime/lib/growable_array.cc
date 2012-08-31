@@ -27,7 +27,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_allocate, 2) {
   const GrowableObjectArray& new_array =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data));
   new_array.SetTypeArguments(type_arguments);
-  arguments->SetReturn(new_array);
+  return new_array.raw();
 }
 
 
@@ -41,7 +41,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_getIndexed, 2) {
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
   }
   const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
-  arguments->SetReturn(obj);
+  return obj.raw();
 }
 
 
@@ -56,22 +56,21 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setIndexed, 3) {
   }
   GET_NATIVE_ARGUMENT(Instance, value, arguments->At(2));
   array.SetAt(index.Value(), value);
+  return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_getLength, 1) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->At(0));
-  const Smi& length = Smi::Handle(isolate, Smi::New(array.Length()));
-  arguments->SetReturn(length);
+  return Smi::New(array.Length());
 }
 
 
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_getCapacity, 1) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->At(0));
-  const Smi& capacity = Smi::Handle(isolate, Smi::New(array.Capacity()));
-  arguments->SetReturn(capacity);
+  return Smi::New(array.Capacity());
 }
 
 
@@ -85,6 +84,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setLength, 2) {
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
   }
   array.SetLength(length.Value());
+  return Object::null();
 }
 
 
@@ -94,6 +94,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setData, 2) {
   GET_NATIVE_ARGUMENT(Array, data, arguments->At(1));
   ASSERT(data.Length() > 0);
   array.SetData(data);
+  return Object::null();
 }
 
 }  // namespace dart

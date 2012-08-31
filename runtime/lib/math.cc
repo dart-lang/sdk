@@ -18,59 +18,57 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(MathNatives_sqrt, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(sqrt(operand.value()))));
+  return Double::New(sqrt(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_sin, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(sin(operand.value()))));
+  return Double::New(sin(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_cos, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(cos(operand.value()))));
+  return Double::New(cos(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_tan, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(tan(operand.value()))));
+  return Double::New(tan(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_asin, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(asin(operand.value()))));
+  return Double::New(asin(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_acos, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(acos(operand.value()))));
+  return Double::New(acos(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_atan, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(atan(operand.value()))));
+  return Double::New(atan(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_atan2, 2) {
   GET_NATIVE_ARGUMENT(Double, operand1, arguments->At(0));
   GET_NATIVE_ARGUMENT(Double, operand2, arguments->At(1));
-  arguments->SetReturn(Double::Handle(Double::New(
-      atan2(operand1.value(), operand2.value()))));
+  return Double::New(atan2(operand1.value(), operand2.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_exp, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(exp(operand.value()))));
+  return Double::New(exp(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_log, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
-  arguments->SetReturn(Double::Handle(Double::New(log(operand.value()))));
+  return Double::New(log(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_random, 0) {
-  arguments->SetReturn(Double::Handle(Double::
-      New(static_cast<double>(Random::RandomInt32()-1)/0x80000000)));
+  return Double::New(static_cast<double>(Random::RandomInt32()-1)/0x80000000);
 }
 
 
@@ -111,20 +109,19 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
   String* int_string;
   bool is_positive;
   if (IsValidLiteral(tokens, Token::kINTEGER, &is_positive, &int_string)) {
-    Integer& result = Integer::Handle();
     if (is_positive) {
-      result = Integer::New(*int_string);
+      return Integer::New(*int_string);
     } else {
       String& temp = String::Handle();
       temp = String::Concat(String::Handle(Symbols::New("-")),
                             *int_string);
-      result = Integer::New(temp);
+      return Integer::New(temp);
     }
-    arguments->SetReturn(result);
   } else {
     GrowableArray<const Object*> args;
     args.Add(&value);
     Exceptions::ThrowByType(Exceptions::kFormat, args);
+    return Object::null();
   }
 }
 
@@ -143,40 +140,36 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseDouble, 1) {
     if (!is_positive) {
       double_value = -double_value;
     }
-    Double& result = Double::Handle(Double::New(double_value));
-    arguments->SetReturn(result);
-    return;
+    return Double::New(double_value);
   }
 
   if (IsValidLiteral(tokens, Token::kINTEGER, &is_positive, &number_string)) {
     Integer& res = Integer::Handle(Integer::New(*number_string));
     if (is_positive) {
-      arguments->SetReturn(Double::Handle(Double::New(res.AsDoubleValue())));
+      return Double::New(res.AsDoubleValue());
     } else {
-      arguments->SetReturn(Double::Handle(Double::New(-res.AsDoubleValue())));
+      return Double::New(-res.AsDoubleValue());
     }
-    return;
   }
 
   // Infinity and nan.
   if (IsValidLiteral(tokens, Token::kIDENT, &is_positive, &number_string)) {
     if (number_string->Equals("NaN")) {
-      arguments->SetReturn(Double::Handle(Double::New(NAN)));
-      return;
+      return Double::New(NAN);
     }
     if (number_string->Equals("Infinity")) {
       if (is_positive) {
-        arguments->SetReturn(Double::Handle(Double::New(INFINITY)));
+        return Double::New(INFINITY);
       } else {
-        arguments->SetReturn(Double::Handle(Double::New(-INFINITY)));
+        return Double::New(-INFINITY);
       }
-      return;
     }
   }
 
   GrowableArray<const Object*> args;
   args.Add(&value);
   Exceptions::ThrowByType(Exceptions::kFormat, args);
+  return Object::null();
 }
 
 }  // namespace dart

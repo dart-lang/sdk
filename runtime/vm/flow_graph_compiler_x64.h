@@ -77,8 +77,7 @@ class FlowGraphCompiler : public ValueObject {
   // no fall-through to regular code is needed.
   bool TryIntrinsify();
 
-  void GenerateCallRuntime(intptr_t deopt_id,
-                           intptr_t token_pos,
+  void GenerateCallRuntime(intptr_t token_pos,
                            const RuntimeEntry& entry,
                            LocationSummary* locs);
 
@@ -87,14 +86,18 @@ class FlowGraphCompiler : public ValueObject {
                     PcDescriptors::Kind kind,
                     LocationSummary* locs);
 
-  void GenerateAssertAssignable(intptr_t deopt_id,
-                                intptr_t token_pos,
+  void GenerateDartCall(intptr_t deopt_id,
+                        intptr_t token_pos,
+                        const ExternalLabel* label,
+                        PcDescriptors::Kind kind,
+                        LocationSummary* locs);
+
+  void GenerateAssertAssignable(intptr_t token_pos,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
-  void GenerateInstanceOf(intptr_t deopt_id,
-                          intptr_t token_pos,
+  void GenerateInstanceOf(intptr_t token_pos,
                           const AbstractType& type,
                           bool negate_result,
                           LocationSummary* locs);

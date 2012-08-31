@@ -430,6 +430,7 @@ class RawClass : public RawObject {
   intptr_t token_pos_;
   uint8_t state_bits_;  // state, is_const, is_interface.
 
+  friend class Instance;
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;

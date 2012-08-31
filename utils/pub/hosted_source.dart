@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('dartlang_source');
+#library('hosted_source');
 
 #import('dart:io');
 #import('dart:json');
@@ -16,28 +16,21 @@
 #import('version.dart');
 
 /**
- * A package source that installs packages from a package repository that uses
- * the same API as pub.dartlang.org.
+ * A package source that installs packages from a package hosting site that
+ * uses the same API as pub.dartlang.org.
  */
-class RepoSource extends Source {
-  final String name = "repo";
+class HostedSource extends Source {
+  final name = "hosted";
+  final shouldCache = true;
 
-  final bool shouldCache = true;
-
-  // TODO(nweiz): update this comment once pub.dartlang.org is online
   /**
    * The URL of the default package repository.
-   *
-   * At time of writing, pub.dartlang.org is not yet online, but it should be
-   * soon.
    */
-  static final String defaultUrl = "http://pub.dartlang.org";
-
-  RepoSource();
+  static final defaultUrl = "http://pub.dartlang.org";
 
   /**
-   * Downloads a list of all versions of a package that have been uploaded to
-   * pub.dartlang.org.
+   * Downloads a list of all versions of a package that are available from the
+   * site.
    */
   Future<List<Version>> getVersions(description) {
     var parsed = _parseDescription(description);
@@ -50,7 +43,7 @@ class RepoSource extends Source {
 
   /**
    * Downloads and parses the pubspec for a specific version of a package that
-   * has been uploaded to pub.dartlang.org.
+   * is available from the site.
    */
   Future<Pubspec> describe(PackageId id) {
     var parsed = _parseDescription(id.description);
@@ -63,7 +56,7 @@ class RepoSource extends Source {
   }
 
   /**
-   * Downloads a package from a package repository and unpacks it.
+   * Downloads a package from the site and unpacks it.
    */
   Future<bool> install(PackageId id, String destPath) {
     var parsedDescription = _parseDescription(id.description);
@@ -77,10 +70,10 @@ class RepoSource extends Source {
   }
 
   /**
-   * The system cache directory for the repo source contains subdirectories for
-   * each separate repository URL that's used on the system. Each of these
-   * subdirectories then contains a subdirectory for each package installed from
-   * that repository.
+   * The system cache directory for the hosted source contains subdirectories
+   * for each separate repository URL that's used on the system. Each of these
+   * subdirectories then contains a subdirectory for each package installed
+   * from that site.
    */
   String systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
@@ -94,22 +87,21 @@ class RepoSource extends Source {
   String packageName(description) => _parseDescription(description).first;
 
   bool descriptionsEqual(description1, description2) =>
-    _parseDescription(description1) == _parseDescription(description2);
+      _parseDescription(description1) == _parseDescription(description2);
 
   /**
-   * Ensures that [description] is a valid repo description.
+   * Ensures that [description] is a valid hosted package description.
    *
    * There are two valid formats. A plain string refers to a package with the
-   * given name from the default repository, while a map with keys "name" and
-   * "url" refers to a package with the given name from the repo at the given
-   * URL.
+   * given name from the default host, while a map with keys "name" and "url"
+   * refers to a package with the given name from the host at the given URL.
    */
   void validateDescription(description, [bool fromLockFile=false]) {
     _parseDescription(description);
   }
 
   /**
-   * Parses the description blob for a package.
+   * Parses the description for a package.
    *
    * If the package parses correctly, this returns a (name, url) pair. If not,
    * this throws a descriptive FormatException.

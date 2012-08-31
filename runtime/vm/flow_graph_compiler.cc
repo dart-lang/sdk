@@ -238,12 +238,12 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   // TODO(srdjan): Temporary use deopt stubs to maintain deopt-indexes.
   // kDeoptAtCall will not emit code, but will only generate deoptimization
   // information.
+  ASSERT(is_optimizing());
   const intptr_t deopt_index = deopt_stubs_.length();
   AddDeoptStub(deopt_id, kDeoptAtCall);
-  pc_descriptors_list()->AddDescriptor(PcDescriptors::kDeoptIndex,
-                                       assembler()->CodeSize(),
+  pc_descriptors_list()->AddDeoptIndex(assembler()->CodeSize(),
                                        deopt_id,
-                                       token_pos,
+                                       kDeoptAtCall,
                                        deopt_index);
 }
 
@@ -467,7 +467,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
   } else if (type.IsIntInterface()) {
     args.Add(kMintCid);
     args.Add(kBigintCid);
-  } else if (type.IsDoubleInterface()) {
+  } else if (type.IsDoubleType()) {
     args.Add(kDoubleCid);
   }
   CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);

@@ -5,6 +5,8 @@
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final bool cutDeclarationTypes;
+  // TODO(antonm): make available from command-line options.
+  final bool outputAst = false;
 
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
@@ -154,6 +156,29 @@ class DartBackend extends Backend {
     classMembers.forEach((classElement, members) {
       sortedClassMembers[classElement] = sortElements(members);
     });
+
+    if (outputAst) {
+      // TODO(antonm): Ideally XML should be a separate backend.
+      // TODO(antonm): obey renames and minification, at least as an option.
+      StringBuffer sb = new StringBuffer();
+      sb.add('<Program>\n');
+      outputElement(element) {
+        sb.add(element.parseNode(compiler).toDebugString());
+      }
+
+      // Emit XML for AST instead of the program.
+      for (final topLevel in sortedTopLevels) {
+        if (topLevel is ClassElement) {
+          // TODO(antonm): add some class info.
+          sortedClassMembers[topLevel].forEach(outputElement);
+        } else {
+          outputElement(topLevel);
+        }
+      }
+      sb.add('</Program>\n');
+      compiler.assembledCode = sb.toString();
+      return;
+    }
 
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
     compiler.assembledCode = emitCode(

@@ -11,16 +11,13 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(Stopwatch_now, 0) {
   // TODO(iposva): investigate other hi-res time sources such as cycle count.
-  const Integer& micros =
-      Integer::Handle(Integer::New(OS::GetCurrentTimeMicros()));
-  arguments->SetReturn(micros);
+  return Integer::New(OS::GetCurrentTimeMicros());
 }
 
 
 DEFINE_NATIVE_ENTRY(Stopwatch_frequency, 0) {
   // TODO(iposva): investigate other hi-res time sources such as cycle count.
-  const Integer& frequency = Integer::Handle(Integer::New(1000000));
-  arguments->SetReturn(frequency);
+  return Integer::New(1000000);
 }
 
 }  // namespace dart

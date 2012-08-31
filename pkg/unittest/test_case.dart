@@ -18,13 +18,13 @@ class TestCase {
   /** The setup function to call before the test, if any. */
   Function _setUp;
 
-  Function get setUp() => _setUp;
+  Function get setUp => _setUp;
   set setUp(Function value) => _setUp = value;
 
   /** The teardown function to call after the test, if any. */
   Function _tearDown;
 
-  Function get tearDown() => _tearDown;
+  Function get tearDown => _tearDown;
   set tearDown(Function value) => _tearDown = value;
 
   /** The body of the test case. */
@@ -56,7 +56,7 @@ class TestCase {
 
   bool enabled = true;
 
-  bool _doneTeardown;
+  bool _doneTeardown = false;
 
   TestCase(this.id, this.description, this.test,
            this.callbackFunctionsOutstanding)
@@ -64,7 +64,7 @@ class TestCase {
     _setUp = _testSetup,
     _tearDown = _testTeardown;
 
-  bool get isComplete() => !enabled || result != null;
+  bool get isComplete => !enabled || result != null;
 
   void run() {
     if (enabled) {
@@ -75,11 +75,19 @@ class TestCase {
         _setUp();
       }
       _config.onTestStart(this);
+      startTime = new Date.now();
+      runningTime = null;
       test();
     }
   }
 
   void _complete() {
+    if (runningTime == null) {
+      // TODO(gram): currently the duration measurement code is blocked
+      // by issue 4437. When that is fixed replace the line below with:
+      //    runningTime = new Date.now().difference(startTime);
+      runningTime = new Duration(milliseconds:0);
+    }
     if (!_doneTeardown) {
       if (_tearDown != null) {
         _tearDown();
@@ -95,10 +103,18 @@ class TestCase {
   }
 
   void fail(String messageText, String stack) {
-    result = _FAIL;
-    message = messageText;
-    stackTrace = stack;
-    _complete();
+    if (result != null) {
+      if (result == _PASS) {
+        error('Test failed after initially passing: $messageText', stack);
+      } else if (result == _FAIL) {
+        error('Test failed more than once: $messageText', stack);
+      }
+    } else {
+      result = _FAIL;
+      message = messageText;
+      stackTrace = stack;
+      _complete();
+    }
   }
 
   void error(String messageText, String stack) {

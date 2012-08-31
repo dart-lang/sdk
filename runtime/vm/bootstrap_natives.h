@@ -196,7 +196,17 @@ namespace dart {
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
 
-BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)
+class BootstrapNatives : public AllStatic {
+ public:
+  static Dart_NativeFunction Lookup(Dart_Handle name, int argument_count);
+
+#define DECLARE_BOOTSTRAP_NATIVE(name, ignored)         \
+  static void DN_##name(Dart_NativeArguments args);
+
+  BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
+
+#undef DECLARE_BOOTSTRAP_NATIVE
+};
 
 }  // namespace dart
 

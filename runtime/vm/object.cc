@@ -778,10 +778,12 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_interface(type);
 
-  cls = CreateAndRegisterInterface("double", script, core_lib);
+  name = Symbols::New("double");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_double_interface(type);
+  object_store->set_double_type(type);
 
   cls = CreateAndRegisterInterface("String", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -805,10 +807,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls = object_store->smi_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_smi_type(type);
-
-  cls = object_store->double_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_double_type(type);
 
   cls = object_store->mint_class();
   type = Type::NewNonParameterizedType(cls);
@@ -2565,9 +2563,9 @@ bool AbstractType::IsIntInterface() const {
 }
 
 
-bool AbstractType::IsDoubleInterface() const {
+bool AbstractType::IsDoubleType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::DoubleInterface()).type_class());
+      (type_class() == Type::Handle(Type::Double()).type_class());
 }
 
 
@@ -2706,8 +2704,8 @@ RawType* Type::MintType() {
 }
 
 
-RawType* Type::DoubleInterface() {
-  return Isolate::Current()->object_store()->double_interface();
+RawType* Type::Double() {
+  return Isolate::Current()->object_store()->double_type();
 }
 
 
@@ -3465,8 +3463,7 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
   ASSERT(!IsCanonical());
-  // TODO(iposva): Add storing NoGCScope.
-  *TypeAddr(index) = value.raw();
+  StorePointer(TypeAddr(index), value.raw());
 }
 
 
@@ -3909,7 +3906,8 @@ void Function::set_num_optional_parameters(intptr_t n) const {
 
 bool Function::is_optimizable() const {
   return OptimizableBit::decode(raw_ptr()->kind_tag_) &&
-         (script() != Script::null());
+         (script() != Script::null()) &&
+         !is_native();
 }
 
 
@@ -6654,13 +6652,14 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt:      return "deopt   ";
-    case PcDescriptors::kDeoptIndex: return "deopt-ix";
-    case PcDescriptors::kPatchCode:  return "patch   ";
-    case PcDescriptors::kIcCall:     return "ic-call ";
-    case PcDescriptors::kFuncCall:   return "fn-call ";
-    case PcDescriptors::kReturn:     return "return  ";
-    case PcDescriptors::kOther:      return "other   ";
+    case PcDescriptors::kDeoptBefore: return "deopt-before ";
+    case PcDescriptors::kDeoptAfter:  return "deopt-after  ";
+    case PcDescriptors::kDeoptIndex:  return "deopt-ix     ";
+    case PcDescriptors::kPatchCode:   return "patch        ";
+    case PcDescriptors::kIcCall:      return "ic-call      ";
+    case PcDescriptors::kFuncCall:    return "fn-call      ";
+    case PcDescriptors::kReturn:      return "return       ";
+    case PcDescriptors::kOther:       return "other        ";
   }
   UNREACHABLE();
   return "";
@@ -6742,7 +6741,7 @@ void PcDescriptors::Verify(bool check_ids) const {
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
     if (check_ids) {
-      if ((DescriptorKind(i) == PcDescriptors::kDeopt) ||
+      if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
           (DescriptorKind(i) == PcDescriptors::kIcCall)) {
         deopt_id = DeoptId(i);
       }
@@ -7289,15 +7288,29 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
 }
 
 
-uword Code::GetDeoptPcAtDeoptId(intptr_t deopt_id) const {
+uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if ((descriptors.DeoptId(i) == deopt_id) &&
-        (descriptors.DescriptorKind(i) == PcDescriptors::kDeopt)) {
-      return descriptors.PC(i);
+        (descriptors.DescriptorKind(i) == kind)) {
+      uword pc = descriptors.PC(i);
+      ASSERT((EntryPoint() < pc) && (pc < (EntryPoint() + Size())));
+      return pc;
     }
   }
   return 0;
+}
+
+
+uword Code::GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const {
+  ASSERT(!is_optimized());
+  return GetPcForDeoptId(deopt_id, PcDescriptors::kDeoptBefore);
+}
+
+
+uword Code::GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const {
+  ASSERT(!is_optimized());
+  return GetPcForDeoptId(deopt_id, PcDescriptors::kDeoptAfter);
 }
 
 
@@ -7449,7 +7462,7 @@ RawString* ContextScope::NameAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetNameAt(intptr_t scope_index, const String& name) const {
-  VariableDescAddr(scope_index)->name = name.raw();
+  StorePointer(&(VariableDescAddr(scope_index)->name), name.raw());
 }
 
 
@@ -7470,7 +7483,7 @@ RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
 
 void ContextScope::SetTypeAt(
     intptr_t scope_index, const AbstractType& type) const {
-  VariableDescAddr(scope_index)->type = type.raw();
+  StorePointer(&(VariableDescAddr(scope_index)->type), type.raw());
 }
 
 
@@ -8198,12 +8211,6 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
                          malformed_error);
-}
-
-
-bool Instance::IsValidNativeIndex(int index) const {
-  const Class& cls = Class::Handle(clazz());
-  return (index >= 0 && index < cls.num_native_fields());
 }
 
 

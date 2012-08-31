@@ -70,6 +70,24 @@ main() {
     });
   });
 
+  group('has a friendly error message for', () {
+    var tabError = predicate((e) =>
+        e.toString().contains('tab characters are not allowed as indentation'));
+
+    test('using a tab as indentation', () {
+      expect(() => loadYaml('foo:\n\tbar'),
+          throwsA(tabError));
+    });
+
+    test('using a tab not as indentation', () {
+      expect(() => loadYaml('''
+          "foo
+          \tbar"
+          error'''),
+        throwsA(isNot(tabError)));
+    });
+  });
+
   // The following tests are all taken directly from the YAML spec
   // (http://www.yaml.org/spec/1.2/spec.html). Most of them are code examples
   // that are directly included in the spec, but additional tests are derived

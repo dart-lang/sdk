@@ -26,7 +26,8 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['update'],
-          error: const RegExp(@'^"pubspec.yaml" must contain a "name" key\.'));
+          error: const RegExp(@'^"pubspec.yaml" is missing the required "name" '
+              @'field \(e\.g\. "name: myapp"\)\.'));
 
       run();
     });

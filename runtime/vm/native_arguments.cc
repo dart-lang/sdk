@@ -13,4 +13,8 @@ void NativeArguments::SetReturn(const Object& value) const {
   *retval_ = value.raw();
 }
 
+void NativeArguments::SetReturnUnsafe(RawObject* value) const {
+  *retval_ = value;
+}
+
 }  // namespace dart

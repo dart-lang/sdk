@@ -387,7 +387,7 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
     return AllocateDartCObjectBool(false);
   }
   if (object_id == kDynamicType ||
-      object_id == kDoubleInterface ||
+      object_id == kDoubleType ||
       object_id == kIntInterface ||
       object_id == kBoolType ||
       object_id == kStringInterface) {

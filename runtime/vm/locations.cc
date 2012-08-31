@@ -77,6 +77,8 @@ const char* Location::Name() const {
 void Location::PrintTo(BufferFormatter* f) const {
   if (kind() == kStackSlot) {
     f->Print("S%+d", stack_index());
+  } else if (kind() == kDoubleStackSlot) {
+    f->Print("DS%+d", stack_index());
   } else {
     f->Print("%s", Name());
   }

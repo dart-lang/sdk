@@ -185,6 +185,14 @@ void AssertBooleanComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void ArgumentDefinitionTestComp::PrintOperandsTo(BufferFormatter* f) const {
+  saved_arguments_descriptor()->PrintTo(f);
+  f->Print(", ?%s @%d",
+           formal_parameter_name().ToCString(),
+           formal_parameter_index());
+}
+
+
 void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
@@ -529,12 +537,12 @@ void ReturnInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s" , DebugName());
 }
 
 
 void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s ", DebugName());
 }
 
 
@@ -771,12 +779,12 @@ void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), deopt_id());
+  f->Print("_ %s ", DebugName());
 }
 
 
 void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), deopt_id());
+  f->Print("_ %s ", DebugName());
 }
 
 

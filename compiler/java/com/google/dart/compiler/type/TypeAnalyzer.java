@@ -350,7 +350,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         FunctionType methodType = getMethodType(lhsType, member, methodName, diagnosticNode);
         checkDeprecated(problemTarget, element);
         Type returnType = checkInvocation(Collections.<DartExpression> singletonList(rhs),
-            diagnosticNode, methodName, methodType);
+            diagnosticNode, methodName, methodType, null);
         // tweak return type for int/int and int/double operators
         {
           boolean lhsInt = intType.equals(lhsType);
@@ -1002,7 +1002,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private Type checkArguments(DartNode diagnosticNode,
                                 List<DartExpression> argumentNodes,
-                                Iterator<Type> argumentTypes, FunctionType ftype) {
+                                Iterator<Type> argumentTypes, FunctionType ftype,
+                                List<VariableElement> parameters) {
       int argumentIndex = 0;
       // Check positional parameters.
       {
@@ -1013,10 +1014,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             Type argumentType = argumentTypes.next();
             argumentType.getClass(); // quick null check
             DartExpression argumentNode = argumentNodes.get(argumentIndex);
-            argumentNode.setInvocationParameterId(argumentIndex);
             if (argumentNode instanceof DartNamedExpression) {
               onError(argumentNode, TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, parameterType);
               return ftype.getReturnType();
+            }
+            if (parameters != null) {
+              argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
+            } else {
+              argumentNode.setInvocationParameterId(argumentIndex);
             }
             if (checkAssignable(argumentNode, parameterType, argumentType)) {
               inferFunctionLiteralParametersTypes(argumentNode, parameterType);
@@ -1044,7 +1049,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type argumentType = argumentTypes.next();
           argumentType.getClass(); // quick null check
           DartExpression argumentNode = argumentNodes.get(argumentIndex);
-          argumentNode.setInvocationParameterId(argumentIndex);
+          if (parameters != null) {
+            argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
+          } else {
+            argumentNode.setInvocationParameterId(argumentIndex);
+          }
           if (checkAssignable(argumentNode, optionalType, argumentType)) {
             inferFunctionLiteralParametersTypes(argumentNode, optionalType);
           }
@@ -1072,7 +1081,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type argumentType = argumentTypes.next();
           argumentType.getClass(); // quick null check
           DartExpression argumentNode = argumentNodes.get(argumentIndex);
-          argumentNode.setInvocationParameterId(argumentIndex);
+          if (parameters != null) {
+            argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
+          } else {
+            argumentNode.setInvocationParameterId(argumentIndex);
+          }
           if (checkAssignable(argumentNode, namedType, argumentType)) {
             inferFunctionLiteralParametersTypes(argumentNode, namedType);
           }
@@ -1086,8 +1099,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression argumentNode = namedExpression.getExpression();
           // Prepare parameter name.
           String parameterName = namedExpression.getName().getName();
-          namedExpression.setInvocationParameterId(parameterName);
-          argumentNode.setInvocationParameterId(parameterName);
+          if (parameters != null) {
+            for (VariableElement parameter : parameters) {
+              if (Objects.equal(parameter.getName(), parameterName)) {
+                namedExpression.setInvocationParameterId(parameter);
+                namedExpression.getName().setInvocationParameterId(parameter);
+                argumentNode.setInvocationParameterId(parameter);
+                break;
+              }
+            }
+          } else {
+            namedExpression.setInvocationParameterId(parameterName);
+            argumentNode.setInvocationParameterId(parameterName);
+          }
           if (usedNamedParametersPositional.contains(parameterName)) {
             onError(namedExpression, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);
           } else if (usedNamedParametersNamed.contains(parameterName)) {
@@ -2373,7 +2397,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               node.setElement(element);
               FunctionType methodType = getMethodType(type, member, name, node);
               checkDeprecated(problemTarget, element);
-              return checkInvocation(Collections.<DartExpression>emptyList(), node, name, methodType);
+              return checkInvocation(Collections.<DartExpression>emptyList(), node, name, methodType, null);
             } else {
               return dynamicType;
             }
@@ -2510,10 +2534,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
         Type type) {
       List<DartExpression> argumentNodes = node.getArguments();
+      List<VariableElement> parameters;
+      if (node.getElement() instanceof MethodElement) {
+        MethodElement methodElement = (MethodElement) node.getElement();
+        parameters = methodElement.getParameters();
+      } else {
+        parameters = null;
+      }
       if (node instanceof DartMethodInvocation) {
         DartMethodInvocation invocation = (DartMethodInvocation) node;
         if (invocation.isCascade()) {
-          checkInvocation(argumentNodes, diagnosticNode, name, type);
+          checkInvocation(argumentNodes, diagnosticNode, name, type, parameters);
           DartExpression target = invocation.getTarget();
           if (target == null) {
             return getCurrentClass();
@@ -2521,11 +2552,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return target.accept(this);
         }
       }
-      return checkInvocation(argumentNodes, diagnosticNode, name, type);
+      return checkInvocation(argumentNodes, diagnosticNode, name, type, parameters);
     }
 
     private Type checkInvocation(List<DartExpression> argumentNodes, DartNode diagnosticNode,
-        String name, Type type) {
+        String name, Type type, List<VariableElement> parameters) {
       // Prepare argument types.
       List<Type> argumentTypes = Lists.newArrayListWithCapacity(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
@@ -2537,10 +2568,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         switch (TypeKind.of(type)) {
           case FUNCTION_ALIAS:
             return checkArguments(diagnosticNode, argumentNodes, argumentTypes.iterator(),
-                Types.asFunctionType((FunctionAliasType) type));
+                Types.asFunctionType((FunctionAliasType) type), parameters);
           case FUNCTION:
             return checkArguments(diagnosticNode, argumentNodes, argumentTypes.iterator(),
-                (FunctionType) type);
+                (FunctionType) type, parameters);
           case DYNAMIC:
             return type;
           default:

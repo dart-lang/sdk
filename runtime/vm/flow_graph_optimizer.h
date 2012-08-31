@@ -24,6 +24,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void OptimizeComputations();
 
+  void EliminateDeadPhis();
+
+  void SelectRepresentations();
+
   virtual void VisitStaticCall(StaticCallComp* comp, BindInstr* instr);
   virtual void VisitInstanceCall(InstanceCallComp* comp, BindInstr* instr);
   virtual void VisitRelationalOp(RelationalOpComp* comp, BindInstr* instr);
@@ -60,6 +64,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                          Computation* comp,
                          Environment* env,
                          BindInstr::UseKind use_kind);
+
+  void InsertConversionsFor(Definition* def);
 
   FlowGraph* flow_graph_;
 

@@ -408,8 +408,8 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
                         Snapshot::kMessage, Isolate::Current());
   Bigint& serialized_bigint = Bigint::Handle();
   serialized_bigint ^= reader.ReadObject();
-  const char *str1 = BigintOperations::ToHexCString(bigint, allocator);
-  const char *str2 =
+  const char* str1 = BigintOperations::ToHexCString(bigint, allocator);
+  const char* str2 =
       BigintOperations::ToHexCString(serialized_bigint, allocator);
   EXPECT_STREQ(str1, str2);
   free(const_cast<char*>(str1));

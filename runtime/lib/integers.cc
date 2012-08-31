@@ -152,7 +152,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_AND, left, right));
-  arguments->SetReturn(Integer::Handle(AsInteger(result)));
+  return AsInteger(result);
 }
 
 
@@ -167,7 +167,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_OR, left, right));
-  arguments->SetReturn(Integer::Handle(AsInteger(result)));
+  return AsInteger(result);
 }
 
 
@@ -182,7 +182,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_XOR, left, right));
-  arguments->SetReturn(Integer::Handle(AsInteger(result)));
+  return AsInteger(result);
 }
 
 
@@ -316,9 +316,7 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
     OS::Print("Integer_addFromInteger %s + %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  const Integer& result =
-      Integer::Handle(IntegerBinopHelper(Token::kADD, left_int, right_int));
-  arguments->SetReturn(result);
+  return IntegerBinopHelper(Token::kADD, left_int, right_int);
 }
 
 
@@ -331,9 +329,7 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
     OS::Print("Integer_subFromInteger %s - %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  const Integer& result =
-      Integer::Handle(IntegerBinopHelper(Token::kSUB, left_int, right_int));
-  arguments->SetReturn(result);
+  return IntegerBinopHelper(Token::kSUB, left_int, right_int);
 }
 
 
@@ -346,9 +342,7 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
     OS::Print("Integer_mulFromInteger %s * %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  const Integer& result =
-      Integer::Handle(IntegerBinopHelper(Token::kMUL, left_int, right_int));
-  arguments->SetReturn(result);
+  return IntegerBinopHelper(Token::kMUL, left_int, right_int);
 }
 
 
@@ -358,9 +352,7 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
   ASSERT(!right_int.IsZero());
-  const Integer& result = Integer::Handle(
-      IntegerBinopHelper(Token::kTRUNCDIV, left_int, right_int));
-  arguments->SetReturn(result);
+  return IntegerBinopHelper(Token::kTRUNCDIV, left_int, right_int);
 }
 
 
@@ -377,9 +369,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
     // Should have been caught before calling into runtime.
     UNIMPLEMENTED();
   }
-  const Integer& result =
-      Integer::Handle(IntegerBinopHelper(Token::kMOD, left_int, right_int));
-  arguments->SetReturn(result);
+  return IntegerBinopHelper(Token::kMOD, left_int, right_int);
 }
 
 
@@ -392,8 +382,7 @@ DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 2) {
     OS::Print("Integer_greaterThanFromInteger %s > %s\n",
         left.ToCString(), right.ToCString());
   }
-  const Bool& result = Bool::Handle(Bool::Get(left.CompareWith(right) == 1));
-  arguments->SetReturn(result);
+  return Bool::Get(left.CompareWith(right) == 1);
 }
 
 
@@ -406,8 +395,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
     OS::Print("Integer_equalToInteger %s == %s\n",
         left.ToCString(), right.ToCString());
   }
-  const Bool& result = Bool::Handle(Bool::Get(left.CompareWith(right) == 0));
-  arguments->SetReturn(result);
+  return Bool::Get(left.CompareWith(right) == 0);
 }
 
 
@@ -516,7 +504,7 @@ DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   ASSERT(CheckInteger(value));
   Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHR, value, amount));
-  arguments->SetReturn(Integer::Handle(AsInteger(result)));
+  return AsInteger(result);
 }
 
 
@@ -532,7 +520,7 @@ DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
   }
   Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHL, value, amount));
-  arguments->SetReturn(Integer::Handle(AsInteger(result)));
+  return AsInteger(result);
 }
 
 
@@ -543,7 +531,7 @@ DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
   }
   intptr_t result = ~operand.Value();
   ASSERT(Smi::IsValid(result));
-  arguments->SetReturn(Smi::Handle(Smi::New(result)));
+  return Smi::New(result);
 }
 
 // Mint natives.
@@ -555,7 +543,7 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
     OS::Print("Mint_bitNegate: %s\n", operand.ToCString());
   }
   int64_t result = ~operand.value();
-  arguments->SetReturn(Integer::Handle(Integer::New(result)));
+  return Integer::New(result);
 }
 
 // Bigint natives.
@@ -565,7 +553,7 @@ DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
   const Bigint& result = Bigint::Handle(BigintOperations::BitNot(value));
   ASSERT(CheckInteger(value));
   ASSERT(CheckInteger(result));
-  arguments->SetReturn(Integer::Handle(AsInteger(result)));
+  return AsInteger(result);
 }
 
 }  // namespace dart

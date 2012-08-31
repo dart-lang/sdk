@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-int test2a() {
-  return 2;
+class A {
+  int e;
+}
+
+int main() {
+  new A().e = "String"; /// 01: static type warning, dynamic type error
 }

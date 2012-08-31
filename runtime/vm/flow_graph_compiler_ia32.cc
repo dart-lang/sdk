@@ -49,7 +49,7 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
   }
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;
-  compiler->pc_descriptors_list()->AddDeoptInfo(
+  compiler->pc_descriptors_list()->AddDeoptIndex(
       compiler->assembler()->CodeSize(),
       deopt_id_,
       reason_,
@@ -447,8 +447,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Clobbers ECX and EDX.
 // Returns:
 // - true or false in EAX.
-void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
-                                           intptr_t token_pos,
+void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
@@ -491,7 +490,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
     __ pushl(EDX);  // Instantiator type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
-    GenerateCallRuntime(deopt_id, token_pos, kInstanceofRuntimeEntry, locs);
+    GenerateCallRuntime(token_pos, kInstanceofRuntimeEntry, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -530,8 +529,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
 // - object in EAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
-                                                 intptr_t token_pos,
+void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
@@ -559,8 +557,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
-    GenerateCallRuntime(deopt_id,
-                        token_pos,
+    GenerateCallRuntime(token_pos,
                         kMalformedTypeErrorRuntimeEntry,
                         locs);
     // We should never return here.
@@ -588,7 +585,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateCallRuntime(deopt_id, token_pos, kTypeCheckRuntimeEntry, locs);
+  GenerateCallRuntime(token_pos, kTypeCheckRuntimeEntry, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -923,6 +920,8 @@ void FlowGraphCompiler::CompileGraph() {
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are debug mode or unless we are compiling a closure.
+  LocalVariable* saved_args_desc_var =
+      parsed_function().GetSavedArgumentsDescriptorVar();
   if (copied_parameter_count == 0) {
 #ifdef DEBUG
     const bool check_arguments = true;
@@ -938,8 +937,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmpl(EAX, Immediate(Smi::RawValue(parameter_count)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
-        GenerateCallRuntime(Isolate::kNoDeoptId,
-                            function.token_pos(),
+        GenerateCallRuntime(function.token_pos(),
                             kClosureArgumentMismatchRuntimeEntry,
                             prologue_locs);
       } else {
@@ -947,12 +945,26 @@ void FlowGraphCompiler::CompileGraph() {
       }
       __ Bind(&argc_in_range);
     }
+    // The arguments descriptor is never saved in the absence of optional
+    // parameters, since any argument definition test would always yield true.
+    ASSERT(saved_args_desc_var == NULL);
   } else {
+    if (saved_args_desc_var != NULL) {
+      __ Comment("Save arguments descriptor");
+      const Register kArgumentsDescriptorReg = EDX;
+      // The saved_args_desc_var is allocated one slot before the first local.
+      const intptr_t slot = parsed_function().first_stack_local_index() + 1;
+      // If the saved_args_desc_var is captured, it is first moved to the stack
+      // and later to the context, once the context is allocated.
+      ASSERT(saved_args_desc_var->is_captured() ||
+             (saved_args_desc_var->index() == slot));
+      __ movl(Address(EBP, slot * kWordSize), kArgumentsDescriptorReg);
+    }
     CopyParameters();
   }
 
   // In unoptimized code, initialize (non-argument) stack allocated slots to
-  // null.
+  // null. This does not cover the saved_args_desc_var slot.
   if (!is_optimizing() && (local_count > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
@@ -999,13 +1011,35 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
 }
 
 
-void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
-                                            intptr_t token_pos,
+void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
+                                         intptr_t token_pos,
+                                         const ExternalLabel* label,
+                                         PcDescriptors::Kind kind,
+                                         LocationSummary* locs) {
+  ASSERT(!IsLeaf());
+  __ call(label);
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                         deopt_id,
+                         token_pos);
+  }
+}
+
+
+void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
   ASSERT(!IsLeaf());
   __ CallRuntime(entry);
-  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
 
@@ -1020,11 +1054,11 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
   ASSERT(!IsLeaf());
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
-
-  __ call(target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall, deopt_id, token_pos);
-  RecordSafepoint(locs);
-
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
   __ Drop(argument_count);
 }
 
@@ -1038,12 +1072,11 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
   ASSERT(!IsLeaf());
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
-  __ call(&StubCode::CallStaticFunctionLabel());
-  AddCurrentDescriptor(PcDescriptors::kFuncCall, deopt_id, token_pos);
-  RecordSafepoint(locs);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id, token_pos);
-  }
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
   __ Drop(argument_count);
 }
 

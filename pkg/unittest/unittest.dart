@@ -156,9 +156,12 @@
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;
 
+Configuration get config => _config;
+
 /**
  * Set the [Configuration] used by the unittest library. Returns any
  * previous configuration.
+ * TODO: consider deprecating in favor of a setter now we have a getter.
  */
 Configuration configure(Configuration config) {
   Configuration _oldConfig = _config;
@@ -174,11 +177,14 @@ void logMessage(String message) => _config.log(message);
  */
 String _currentGroup = '';
 
+/** Separator used between group names and test names. */
+String groupSep = ' ';
+
 /** Tests executed in this suite. */
 List<TestCase> _tests;
 
 /** Get the list of tests. */
-get testCases() => _tests;
+get testCases => _tests;
 
 /**
  * Callback used to run tests. Entrypoints can replace this with their own
@@ -236,20 +242,12 @@ void expectThrow(function, [bool callback(exception)]) {
 }
 
 /**
- * The regexp pattern filter which constrains which tests to run
- * based on their descriptions.
- */
-
-String filter = null;
-
-/**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-
   _tests.add(new TestCase(_tests.length + 1, _fullSpec(spec), body, 0));
 }
 
@@ -562,12 +560,11 @@ Function protectAsync2(Function callback) {
  */
 void group(String description, void body()) {
   ensureInitialized();
-
   // Concatenate the new group.
   final parentGroup = _currentGroup;
   if (_currentGroup != '') {
     // Add a space.
-    _currentGroup = '$_currentGroup $description';
+    _currentGroup = '$_currentGroup$groupSep$description';
   } else {
     // The first group.
     _currentGroup = description;
@@ -693,6 +690,24 @@ rerunTests() {
   runTests();
 }
 
+/**
+ * Filter the tests. [testFilter] can be a [RegExp], a [String] or a
+ * predicate function. This is different to enabling/disabling tests
+ * in that it removes the tests completely.
+ */
+void filterTests(testFilter) {
+  var filterFunction;
+  if (testFilter is String) {
+    RegExp re = new RegExp(testFilter);
+    filterFunction = (t) => re.hasMatch(t.description);
+  } else if (testFilter is RegExp) {
+    filterFunction = (t) => testFilter.hasMatch(t.description);
+  } else if (testFilter is Function) {
+    filterFunction = testFilter;
+  }
+  _tests = _tests.filter(filterFunction);
+}
+
 /** Runs all queued tests, one at a time. */
 runTests() {
   _currentTest = 0;
@@ -700,12 +715,7 @@ runTests() {
 
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
-    _tests = _tests.filter((t) => t == _soloTest);
-  }
-
-  if (filter != null) {
-    RegExp re = new RegExp(filter);
-    _tests = _tests.filter((t) => re.hasMatch(t.description));
+    filterTests((t) => t == _soloTest);
   }
 
   _config.onStart();
@@ -796,7 +806,7 @@ _completeTests() {
 
 String _fullSpec(String spec) {
   if (spec === null) return '$_currentGroup';
-  return _currentGroup != '' ? '$_currentGroup $spec' : spec;
+  return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 
 void _fail(String message) {
@@ -807,7 +817,9 @@ void _fail(String message) {
  * Lazily initializes the test library if not already initialized.
  */
 ensureInitialized() {
-  if (_initialized) return;
+  if (_initialized) {
+    return;
+  }
   _initialized = true;
 
   _tests = <TestCase>[];

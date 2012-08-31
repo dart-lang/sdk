@@ -113,17 +113,20 @@ class Api : AllStatic {
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
+    // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
     RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
     return !raw->IsHeapObject();
   }
 
   // Returns the value of a Smi.
   static intptr_t SmiValue(Dart_Handle handle) {
+    // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
     uword value = *(reinterpret_cast<uword*>(handle));
     return Smi::ValueFromRaw(value);
   }
 
   static intptr_t ClassId(Dart_Handle handle) {
+    // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
     RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
     if (!raw->IsHeapObject()) {
       return kSmiCid;

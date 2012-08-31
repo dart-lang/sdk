@@ -554,20 +554,20 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
     return null;
   }
 
-  private void visitCatchParameter(DartParameter x) {
-    if (!x.getModifiers().isFinal() && x.getTypeNode() == null) {
-      p("var ");
-    }
-    accept(x);
-  }
-
   @Override
   public Void visitCatchBlock(DartCatchBlock x) {
+    DartParameter catchParameter = x.getException();
+    DartTypeNode type = catchParameter.getTypeNode();
+    if (type != null) {
+      p("on ");
+      accept(type);
+      p(" ");
+    }
     p("catch (");
-    visitCatchParameter(x.getException());
+    accept(catchParameter.getName());
     if (x.getStackTrace() != null) {
       p(", ");
-      visitCatchParameter(x.getStackTrace());
+      accept(x.getStackTrace());
     }
     p(") ");
     accept(x.getBlock());

@@ -163,19 +163,27 @@ class Enqueuer {
   void processInstantiatedClassMember(Element member) {
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] !== null) return;
-
     if (!member.isInstanceMember()) return;
-    if (member.isField()) return;
+
+    if (member.kind === ElementKind.FIELD) {
+      universe.instantiatedClassInstanceFields.add(member.name);
+      if (compiler.enableTypeAssertions) {
+        Type type = member.computeType(compiler);
+        registerIsCheck(type.element);
+        SourceString helper = compiler.backend.getCheckedModeHelper(type);
+        if (helper != null) {
+          Element helperElement = compiler.findHelper(helper);
+          registerStaticUse(helperElement);
+        }
+      }  
+      return;
+    }
 
     String memberName = member.name.slowToString();
     Link<Element> members = instanceMembersByName.putIfAbsent(
         memberName, () => const EmptyLink<Element>());
     instanceMembersByName[memberName] = members.prepend(member);
 
-    if (member.kind === ElementKind.GETTER ||
-        member.kind === ElementKind.FIELD) {
-      universe.instantiatedClassInstanceFields.add(member.name);
-    }
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
@@ -194,6 +202,7 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
+      universe.instantiatedClassInstanceFields.add(member.name);
       if (universe.hasInvokedGetter(member, compiler)) {
         return addToWorkList(member);
       }

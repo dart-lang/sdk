@@ -222,7 +222,7 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestSmiSub"));
   NativeFunction native_function =
-      reinterpret_cast<NativeFunction>(NATIVE_ENTRY_FUNCTION(TestSmiSub));
+      reinterpret_cast<NativeFunction>(TestSmiSub);
   node_seq->Add(new ReturnNode(kPos,
                                new NativeBodyNode(kPos,
                                                   native_name,
@@ -399,7 +399,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestSmiSum"));
   NativeFunction native_function =
-      reinterpret_cast<NativeFunction>(NATIVE_ENTRY_FUNCTION(TestSmiSum));
+      reinterpret_cast<NativeFunction>(TestSmiSum);
   node_seq->Add(new ReturnNode(kPos,
                                new NativeBodyNode(kPos,
                                                   native_name,

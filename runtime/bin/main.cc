@@ -30,11 +30,6 @@ extern const uint8_t* snapshot_buffer;
 static const char* original_working_directory = NULL;
 
 
-// Global state that stores the import URL map specified on the
-// command line.
-static CommandLineOptions* import_map_options = NULL;
-
-
 // Global state that indicates whether perf_events symbol information
 // is to be generated or not.
 static File* perf_events_symbols_file = NULL;
@@ -165,12 +160,6 @@ static void ProcessFlowGraphOption(const char* flowgraph_option) {
 }
 
 
-static void ProcessImportMapOption(const char* map) {
-  ASSERT(map != NULL);
-  import_map_options->AddArgument(map);
-}
-
-
 static struct {
   const char* option_name;
   void (*process)(const char* option);
@@ -180,7 +169,6 @@ static struct {
   { "--debug", ProcessDebugOption },
   { "--generate_perf_events_symbols", ProcessPerfEventsOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
-  { "--import_map=", ProcessImportMapOption },
   { "--package-root=", ProcessPackageRootOption },
   { "--generate_flow_graph", ProcessFlowGraphOption },
   { NULL, NULL }
@@ -507,30 +495,6 @@ static Dart_Handle LoadScript(const char* script_uri,
 }
 
 
-static Dart_Handle CreateImportMap(CommandLineOptions* map) {
-  intptr_t length =  (map == NULL) ? 0 : map->count();
-  Dart_Handle import_map = Dart_NewList(length * 2);
-  for (intptr_t i = 0; i < length; i++) {
-    ASSERT(map->GetArgument(i) != NULL);
-    char* name = strdup(map->GetArgument(i));
-    ASSERT(name != NULL);
-    char* map_name = strchr(name, ',');
-    intptr_t index = i * 2;
-    if (map_name != NULL) {
-      *map_name = '\0';
-      map_name += 1;
-      Dart_ListSetAt(import_map, index, Dart_NewString(name));
-      Dart_ListSetAt(import_map, (index + 1), Dart_NewString(map_name));
-    } else {
-      Dart_ListSetAt(import_map, index, Dart_NewString(name));
-      Dart_ListSetAt(import_map, (index + 1), Dart_NewString(""));
-    }
-    free(name);
-  }
-  return import_map;
-}
-
-
 // Returns true on success, false on failure.
 static bool CreateIsolateAndSetupHelper(const char* script_uri,
                                         const char* main,
@@ -555,15 +519,6 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
 
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
-  if (Dart_IsError(result)) {
-    *error = strdup(Dart_GetError(result));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    return false;
-  }
-
-  // Set up the import map for this isolate.
-  result = Dart_SetImportMap(CreateImportMap(import_map_options));
   if (Dart_IsError(result)) {
     *error = strdup(Dart_GetError(result));
     Dart_ExitScope();
@@ -744,8 +699,6 @@ int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
-  CommandLineOptions import_map(argc);
-  import_map_options = &import_map;
   bool print_flags_seen = false;
 
   // Perform platform specific initialization.

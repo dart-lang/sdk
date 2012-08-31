@@ -24,8 +24,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   const char* name = OS::GetTimeZoneName(seconds);
-  const String& dart_name = String::Handle(String::New(name));
-  arguments->SetReturn(dart_name);
+  return String::New(name);
 }
 
 
@@ -38,22 +37,18 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   int offset = OS::GetTimeZoneOffsetInSeconds(seconds);
-  const Integer& dart_offset = Integer::Handle(Integer::New(offset));
-  arguments->SetReturn(dart_offset);
+  return Integer::New(offset);
 }
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_localTimeZoneAdjustmentInSeconds, 0) {
   int adjustment = OS::GetLocalTimeZoneAdjustmentInSeconds();
-  const Integer& dart_adjustment = Integer::Handle(Integer::New(adjustment));
-  arguments->SetReturn(dart_adjustment);
+  return Integer::New(adjustment);
 }
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_currentTimeMillis, 0) {
-  const Integer& time = Integer::Handle(
-      Integer::New(OS::GetCurrentTimeMillis()));
-  arguments->SetReturn(time);
+  return Integer::New(OS::GetCurrentTimeMillis());
 }
 
 }  // namespace dart
