@@ -120,7 +120,7 @@ def CopyShellScript(src_file, dest_dir):
   Copy(src, dest)
 
 
-def CopyDart2Js(build_dir, sdk_root):
+def CopyDart2Js(build_dir, sdk_root, revision):
   '''
   Install dart2js in SDK/lib/dart2js.
 
@@ -131,14 +131,19 @@ def CopyDart2Js(build_dir, sdk_root):
   point we should be able to simplify Main below and share the dart
   files between the various components to minimize SDK download size.
   '''
-  copytree('lib', os.path.join(sdk_root, 'lib', 'dart2js', 'lib'),
-           ignore=ignore_patterns('.svn'))
+  dart2js_lib = os.path.join(sdk_root, 'lib', 'dart2js', 'lib')
+  copytree('lib', dart2js_lib, ignore=ignore_patterns('.svn'))
   copytree(os.path.join('runtime', 'lib'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
            ignore=ignore_patterns('.svn'))
   copytree(os.path.join('runtime', 'bin'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'bin'),
            ignore=ignore_patterns('.svn'))
+  if revision:
+    ReplaceInFiles([os.path.join(dart2js_lib,
+                                 'compiler/implementation/compiler.dart')],
+                   [(r"BUILD_ID = 'build number could not be determined'",
+                     r"BUILD_ID = '%s'" % revision)])
   if utils.GuessOS() == 'win32':
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js.bat')
     Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
@@ -378,11 +383,12 @@ def Main(argv):
     import_dst = join(LIB, 'config', 'import_' + platform + '.config')
     copyfile(import_src, import_dst);
 
+  revision = utils.GetSVNRevision()
+
   # Copy dart2js.
-  CopyDart2Js(build_dir, SDK_tmp)
+  CopyDart2Js(build_dir, SDK_tmp, revision)
 
   # Write the 'revision' file
-  revision = utils.GetSVNRevision()
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:
       f.write(revision + '\n')

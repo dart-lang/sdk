@@ -15,6 +15,17 @@ const bool REPORT_EXCESS_RESOLUTION = false;
 const bool REPORT_PASS2_OPTIMIZATIONS = false;
 
 /**
+ * A string to identify the revision or build.
+ *
+ * This ID is displayed if the compiler crashes and in verbose mode, and is
+ * an aid in reproducing bug reports.
+ *
+ * The actual string is rewritten during the SDK build process.
+ */
+const String BUILD_ID = 'build number could not be determined';
+
+
+/**
  * Contains backend-specific data that is used throughout the compilation of
  * one work item.
  */
@@ -229,9 +240,7 @@ class Compiler implements DiagnosticListener {
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
-    // TODO(ahe): Obtain the build ID.
-    var buildId = 'build number could not be determined';
-    print(MessageKind.PLEASE_REPORT_THE_CRASH.message([buildId]));
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
   }
 
   void cancel([String reason, Node node, Token token,
@@ -522,6 +531,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void runCompiler(Uri uri) {
+    log('compiling $uri ($BUILD_ID)');
     scanBuiltinLibraries();
     mainApp = scanner.loadLibrary(uri, null, uri);
     libraries.forEach((_, library) {

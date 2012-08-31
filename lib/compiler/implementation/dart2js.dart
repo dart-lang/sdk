@@ -239,7 +239,6 @@ void compile(List<String> argv) {
     packageRoot = uri.resolve('./packages/');
   }
 
-  info('compiling $uri');
   info('package root is $packageRoot');
 
   // TODO(ahe): We expect the future to be complete and call value
