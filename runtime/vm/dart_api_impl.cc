@@ -3716,11 +3716,17 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 }
 
 
-DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
-                                     Dart_Handle retval) {
+// This function has friend access to SetReturnUnsafe.
+void SetReturnValueHelper(Dart_NativeArguments args, Dart_Handle retval) {
   NoGCScope no_gc_scope;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturnUnsafe(Api::UnwrapHandle(retval));
+}
+
+
+DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
+                                     Dart_Handle retval) {
+  SetReturnValueHelper(args, retval);
 }
 
 
