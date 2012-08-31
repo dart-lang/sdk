@@ -291,7 +291,8 @@ String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
  */
 InputStream httpGet(uri) {
   var resultStream = new ListInputStream();
-  var connection = new HttpClient().getUrl(_getUri(uri));
+  var client = new HttpClient();
+  var connection = client.getUrl(_getUri(uri));
 
   // TODO(nweiz): propagate this error to the return value. See issue 3657.
   connection.onError = (e) { throw e; };
@@ -302,7 +303,7 @@ InputStream httpGet(uri) {
           "HTTP request for $uri failed with status ${response.statusCode}");
     }
 
-    pipeInputToInput(response.inputStream, resultStream);
+    pipeInputToInput(response.inputStream, resultStream, client.shutdown);
   };
 
   return resultStream;
