@@ -56,7 +56,6 @@ function_type_alias6_test: Crash, Fail
 static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
-argument_definition_test/*: Skip # Not implemented.
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
@@ -139,7 +138,7 @@ map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode 
 named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
 type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
 type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
-
+argument_definition_test/none: Fail # Argument definition test always returns true.
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 external_test/16: Fail, OK # Bad test: assumes eager loading.
