@@ -30,7 +30,7 @@ void _logResolution(String msg) {
   }
 }
 
-String _setPackageRoot(String packageRoot) {
+_setPackageRoot(String packageRoot) {
   // TODO(mattsh) - refactor windows drive and path handling code
   // so it can be used here if needed.
   _packageRoot = packageRoot;
