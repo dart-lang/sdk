@@ -66,6 +66,8 @@ named_parameters_aggregated_test/05: Fail # Compile-time error reported instead 
 gc_test: Skip  # Takes too long.
 
 [ $compiler == dartc ]
+
+get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 argument_definition_test/*: Skip # Not implemented.
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
