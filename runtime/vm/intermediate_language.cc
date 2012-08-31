@@ -1176,8 +1176,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -1190,8 +1189,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
+  compiler->GenerateCallRuntime(token_pos(),
                                 kReThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -1377,8 +1375,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
-    compiler->GenerateAssertAssignable(deopt_id(),
-                                       token_pos(),
+    compiler->GenerateAssertAssignable(token_pos(),
                                        dst_type(),
                                        dst_name(),
                                        locs());

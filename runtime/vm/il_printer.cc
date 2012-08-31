@@ -537,12 +537,12 @@ void ReturnInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s" , DebugName());
 }
 
 
 void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s ", DebugName());
 }
 
 
@@ -779,12 +779,12 @@ void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), deopt_id());
+  f->Print("_ %s ", DebugName());
 }
 
 
 void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), deopt_id());
+  f->Print("_ %s ", DebugName());
 }
 
 

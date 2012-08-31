@@ -502,7 +502,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -540,7 +540,7 @@ class AssertBooleanComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -573,7 +573,7 @@ class ArgumentDefinitionTestComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1235,7 +1235,7 @@ class InstanceOfComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1301,7 +1301,7 @@ class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1475,7 +1475,7 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1605,7 +1605,7 @@ class CloneContextComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(CloneContext)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -1956,7 +1956,7 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 
   DECLARE_COMPUTATION(CheckStackOverflow)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -3064,15 +3064,12 @@ class ReturnInstr : public TemplateInstruction<1> {
 
 class ThrowInstr : public TemplateInstruction<0> {
  public:
-  explicit ThrowInstr(intptr_t token_pos)
-      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) { }
+  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(Throw)
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
@@ -3082,7 +3079,6 @@ class ThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t deopt_id_;
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
@@ -3091,15 +3087,12 @@ class ThrowInstr : public TemplateInstruction<0> {
 
 class ReThrowInstr : public TemplateInstruction<0> {
  public:
-  explicit ReThrowInstr(intptr_t token_pos)
-      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) { }
+  explicit ReThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(ReThrow)
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
-  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
@@ -3109,7 +3102,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t deopt_id_;
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
