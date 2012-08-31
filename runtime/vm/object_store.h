@@ -402,11 +402,6 @@ class ObjectStore {
     libraries_ = value.raw();
   }
 
-  RawArray* import_map() const { return import_map_; }
-  void set_import_map(const Array& value) {
-    import_map_ = value.raw();
-  }
-
   RawGrowableObjectArray* pending_classes() const { return pending_classes_; }
   void set_pending_classes(const GrowableObjectArray& value) {
     ASSERT(!value.IsNull());
@@ -527,7 +522,6 @@ class ObjectStore {
   RawLibrary* builtin_library_;
   RawLibrary* root_library_;
   RawGrowableObjectArray* libraries_;
-  RawArray* import_map_;
   RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;
   RawContext* empty_context_;

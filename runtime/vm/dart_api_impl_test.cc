@@ -4822,12 +4822,6 @@ TEST_CASE(RootLibrary) {
 }
 
 
-static const char* var_mapping[] = {
-  "GOOGLE3", ".",
-  "ABC", "lala",
-  "var1", "",
-  "var2", "winner",
-};
 static int index = 0;
 
 
@@ -4862,72 +4856,6 @@ static Dart_Handle import_library_handler(Dart_LibraryTag tag,
   }
   index += 1;
   return Api::Success(Isolate::Current());
-}
-
-
-TEST_CASE(LoadImportScript) {
-  const char* kScriptChars =
-      "#import('$GOOGLE3/weird.dart');"
-      "#import('abc${ABC}def');"
-      "#import('${var1}$var2');"
-      "#import('abc${ABC}def/extra_weird.dart');"
-      "#import('$var2$var2');"
-      "main() {"
-      "  return 12345;"
-      "}";
-  Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Handle source = Dart_NewString(kScriptChars);
-  intptr_t length = (sizeof(var_mapping) / sizeof(var_mapping[0]));
-  Dart_Handle import_map = Dart_NewList(length);
-  for (intptr_t i = 0; i < length; i++) {
-    Dart_ListSetAt(import_map, i, Dart_NewString(var_mapping[i]));
-  }
-  Dart_Handle result = Dart_SetLibraryTagHandler(import_library_handler);
-  EXPECT_VALID(result);
-  result = Dart_SetImportMap(import_map);
-  EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
-  EXPECT_VALID(result);
-}
-
-
-TEST_CASE(LoadImportScriptError1) {
-  const char* kScriptChars =
-      "#import('abc${DEF}def/extra_weird.dart');"
-      "main() {"
-      "  return 12345;"
-      "}";
-  Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle result = Dart_SetLibraryTagHandler(import_library_handler);
-  EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
-  EXPECT(Dart_IsError(result));
-  EXPECT(strstr(Dart_GetError(result),
-                "import variable 'DEF' has not been defined"));
-}
-
-
-TEST_CASE(LoadImportScriptError2) {
-  const char* kScriptChars =
-      "#import('abc${ABC/extra_weird.dart');"
-      "main() {"
-      "  return 12345;"
-      "}";
-  Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Handle source = Dart_NewString(kScriptChars);
-  intptr_t length = (sizeof(var_mapping) / sizeof(var_mapping[0]));
-  Dart_Handle import_map = Dart_NewList(length);
-  for (intptr_t i = 0; i < length; i++) {
-    Dart_ListSetAt(import_map, i, Dart_NewString(var_mapping[i]));
-  }
-  Dart_Handle result = Dart_SetLibraryTagHandler(import_library_handler);
-  EXPECT_VALID(result);
-  result = Dart_SetImportMap(import_map);
-  EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
-  EXPECT(Dart_IsError(result));
-  EXPECT(strstr(Dart_GetError(result), "'}' expected"));
 }
 
 

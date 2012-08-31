@@ -72,7 +72,6 @@ ObjectStore::ObjectStore()
     builtin_library_(Library::null()),
     root_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
-    import_map_(Array::null()),
     pending_classes_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
     empty_context_(Context::null()),

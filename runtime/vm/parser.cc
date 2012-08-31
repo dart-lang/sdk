@@ -3960,7 +3960,8 @@ void Parser::ParseLibraryImport() {
     if (CurrentToken() != Token::kSTRING) {
       ErrorMsg("library url expected");
     }
-    const String& url = *ParseImportStringLiteral();
+    const String& url = *CurrentLiteral();
+    ConsumeToken();
     String& prefix = String::Handle();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
@@ -4024,7 +4025,8 @@ void Parser::ParseLibraryInclude() {
     if (CurrentToken() != Token::kSTRING) {
       ErrorMsg("source url expected");
     }
-    const String& url = *ParseImportStringLiteral();
+    const String& url = *CurrentLiteral();
+    ConsumeToken();
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
@@ -8043,33 +8045,6 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 }
 
 
-// Resolve variables used in an import string literal.
-// If the variable name cannot be resolved issue an error message.
-// Currently we only resolve against the global map which is passed in
-// when the script is loaded.
-RawString* Parser::ResolveImportVar(intptr_t ident_pos, const String& ident) {
-  TRACE_PARSER("ResolveImportVar");
-  const Array& import_map =
-      Array::Handle(Isolate::Current()->object_store()->import_map());
-  if (!import_map.IsNull()) {
-    intptr_t length = import_map.Length();
-    intptr_t index = 0;
-    String& name = String::Handle();
-    while (index < (length - 1)) {
-      name ^= import_map.At(index);
-      if (name.Equals(ident)) {
-        name ^= import_map.At(index + 1);
-        return name.raw();
-      }
-      index += 2;
-    }
-  }
-  ErrorMsg(ident_pos, "import variable '%s' has not been defined",
-           ident.ToCString());
-  return String::null();
-}
-
-
 // Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
 // finalize it according to the given type finalization mode.
 RawAbstractType* Parser::ParseType(
@@ -8883,62 +8858,6 @@ AstNode* Parser::ParseStringLiteral() {
     primary = MakeStaticCall(cls_name, func_name, interpolate_arg);
   }
   return primary;
-}
-
-
-// An import string literal consists of the concatenation of the next n tokens
-// that satisfy the EBNF grammar:
-// literal = kSTRING {{ interpol }+ kSTRING }
-// interpol = kINTERPOL_VAR
-// In other words, the scanner breaks down interpolated strings so that
-// a string literal always begins and ends with a kSTRING token, and
-// there are never two kSTRING tokens next to each other.
-String* Parser::ParseImportStringLiteral() {
-  TRACE_PARSER("ParseImportStringLiteral");
-  if ((CurrentToken() == Token::kSTRING) &&
-      (LookaheadToken(1) != Token::kINTERPOL_VAR) &&
-      (LookaheadToken(1) != Token::kINTERPOL_START)) {
-    // Common case: no interpolation.
-    String* result = CurrentLiteral();
-    ConsumeToken();
-    return result;
-  }
-  // String interpolation needed.
-  String& result = String::ZoneHandle(Symbols::Empty());
-  String& resolved_name = String::Handle();
-  while (CurrentToken() == Token::kSTRING) {
-    result = String::Concat(result, *CurrentLiteral());
-    ConsumeToken();
-    if ((CurrentToken() != Token::kINTERPOL_VAR) &&
-        (CurrentToken() != Token::kINTERPOL_START)) {
-      break;
-    }
-    while ((CurrentToken() == Token::kINTERPOL_VAR) ||
-           (CurrentToken() == Token::kINTERPOL_START)) {
-      if (CurrentToken() == Token::kINTERPOL_START) {
-        ConsumeToken();
-        if (IsIdentifier()) {
-          resolved_name = ResolveImportVar(TokenPos(), *CurrentLiteral());
-          result = String::Concat(result, resolved_name);
-          ConsumeToken();
-          if (CurrentToken() != Token::kINTERPOL_END) {
-            ErrorMsg("'}' expected");
-          }
-          ConsumeToken();
-        } else {
-          ErrorMsg("identifier expected");
-        }
-      } else {
-        ASSERT(CurrentToken() == Token::kINTERPOL_VAR);
-        resolved_name = ResolveImportVar(TokenPos(), *CurrentLiteral());
-        result = String::Concat(result, resolved_name);
-        ConsumeToken();
-      }
-    }
-    // A string literal always ends with a kSTRING token.
-    ASSERT(CurrentToken() == Token::kSTRING);
-  }
-  return &result;
 }
 
 

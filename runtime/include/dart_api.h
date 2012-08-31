@@ -2470,31 +2470,6 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
 DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
     Dart_LibraryTagHandler handler);
 
-/**
- * Sets the import map for the current isolate.
- *
- * The import map is a List of Strings, representing a set of (name,
- * value) pairs. The import map is used during the resolution of #
- * directives in source files to implement string interpolation.
- *
- * For example, if a source file imports:
- *
- *   #import('${foo}/dart.html');
- *
- * And the import map is:
- *
- *   [ "foo", "/home/user" ]
- *
- * Then the import would resolve to:
- *
- *   #import('/home/user/dart.html');
- *
- * \param import_map A List of Strings interpreted as a String to
- *   String mapping.
- * \return If no error occurs, the import map is set for the isolate.
- *   Otherwise an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_SetImportMap(Dart_Handle import_map);
 
 /**
  * Loads the root script for the current isolate.

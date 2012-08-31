@@ -100,13 +100,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
 
 Dart_Handle TestCase::LoadTestScript(const char* script,
-                                     Dart_NativeEntryResolver resolver,
-                                     Dart_Handle import_map) {
+                                     Dart_NativeEntryResolver resolver) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
-  result = Dart_SetImportMap(import_map);
   EXPECT_VALID(result);
   Dart_Handle lib = Dart_LoadScript(url, source);
   DART_CHECK_VALID(lib);

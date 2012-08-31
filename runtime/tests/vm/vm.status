@@ -21,11 +21,9 @@ cc/IsolateInterrupt: Skip
 cc/Dart2JSCompileAll: Skip
 
 [ $runtime == drt ]
-dart/import_map_test: Skip
 dart/isolate_mirror_local_test: Skip
 
 [ $compiler == dart2js || $compiler == dartc ]
-dart/import_map_test: Skip # compilers not aware of import maps.
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 

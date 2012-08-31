@@ -3737,18 +3737,6 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
 }
 
 
-DART_EXPORT Dart_Handle Dart_SetImportMap(Dart_Handle import_map) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Array& mapping_array = Api::UnwrapArrayHandle(isolate, import_map);
-  if (mapping_array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, import_map, Array);
-  }
-  isolate->object_store()->set_import_map(mapping_array);
-  return Api::Success(isolate);
-}
-
-
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
