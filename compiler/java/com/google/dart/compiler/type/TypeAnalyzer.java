@@ -934,6 +934,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private FunctionType getMethodType(Type receiver, Member member, String name,
                                          DartNode diagnosticNode) {
+      FunctionType functionType = getMethodType0(receiver, member, name, diagnosticNode);
+      if (receiver.isInferred()) {
+        functionType = (FunctionType) Types.makeInferred(functionType);
+      }
+      return functionType;
+    }
+      
+    private FunctionType getMethodType0(Type receiver, Member member, String name,
+        DartNode diagnosticNode) {
       if (member == null) {
         return dynamicType;
       }

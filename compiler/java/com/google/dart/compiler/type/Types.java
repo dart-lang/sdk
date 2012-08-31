@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -648,9 +649,20 @@ public class Types {
       inferred = (Type) Proxy.newProxyInstance(type.getClass().getClassLoader(),
           interfaces, new InvocationHandler() {
             @Override
+            @SuppressWarnings("unchecked")
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
               if (args == null && method.getName().equals("isInferred")) {
                 return true;
+              }
+              if (type instanceof FunctionType) {
+                if (args == null && method.getName().equals("getParameterTypes")) {
+                  List<Type> originalTypes = (List<Type>) method.invoke(type, args);
+                  return Lists.transform(originalTypes, new Function<Type, Type>() {
+                    public Type apply(Type input) {
+                      return makeInferred(input);
+                    }
+                  });
+                }
               }
               return method.invoke(type, args);
             }

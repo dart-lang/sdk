@@ -1352,7 +1352,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
     {
       DartMethodDefinition fB = (DartMethodDefinition) unit.getTopLevelNodes().get(1);
-      assertEquals("<dynamic>", fB.getElement().getReturnType().getElement().getName());
+      assertEquals("Dynamic", fB.getElement().getReturnType().getElement().getName());
     }
     {
       DartMethodDefinition fC = (DartMethodDefinition) unit.getTopLevelNodes().get(2);
@@ -1360,7 +1360,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
     {
       DartMethodDefinition fD = (DartMethodDefinition) unit.getTopLevelNodes().get(3);
-      assertEquals("<dynamic>", fD.getElement().getReturnType().getElement().getName());
+      assertEquals("Dynamic", fD.getElement().getReturnType().getElement().getName());
     }
   }
 
@@ -1964,6 +1964,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           result.getErrors(),
           errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 7, 1));
     }
+  }
+
+  /**
+   * When we resolved method from inferred type, it is possible that arguments of invocation
+   * don't is not assignable to the parameters. So, we report warning. But if we would not infer
+   * types, there would be no warnings.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4849
+   */
+  public void test_inferredTypes_invocationOfMethodFromInferredType_arguments() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo(int p) {}",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  a.foo('');",
+        "}",
+        "");
+    assertErrors(result.getErrors());
   }
 
   public void test_typesPropagation_assignAtDeclaration() throws Exception {

@@ -445,9 +445,7 @@ public abstract class CompilerTestCase extends TestCase {
    * @return the source-like {@link String} for the given {@link Type}.
    */
   protected static String getTypeSource(Type actualType) {
-    String source = actualType.toString();
-    source = StringUtils.replace(source, "<dynamic>", "Dynamic");
-    return source;
+    return actualType.toString();
   }
 
   /**
