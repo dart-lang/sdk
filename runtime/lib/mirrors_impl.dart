@@ -690,12 +690,12 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
 
   SourceLocation get location() {
     throw new NotImplementedException(
-        'MethodMirror.location not yet implemented');
+        'VariableMirror.location not yet implemented');
   }
 
-  TypeMirror get returnType() {
+  TypeMirror get type() {
     throw new NotImplementedException(
-        'MethodMirror.returnType not yet implemented');
+        'VariableMirror.type not yet implemented');
   }
 
   final bool isStatic;
