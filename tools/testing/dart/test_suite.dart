@@ -1190,7 +1190,7 @@ class JUnitTestSuite implements TestSuite {
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
          '$dartDir/third_party/junit/v4_8_2/junit.jar'],
-        ':');  // Path separator.
+        Platform.operatingSystem == 'windows'? ';': ':');  // Path separator.
   }
 }
 

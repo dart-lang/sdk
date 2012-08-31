@@ -132,12 +132,24 @@
       <regexpmapper from="${third_party.dir}/(.*)" to="$DART_ANALYZER_LIBS/\1"/>
     </pathconvert>
 
+    <pathconvert property="analyzer.classpath.runtime.win" targetos="windows" refid="classpath.runtime">
+      <regexpmapper from="(.*)third_party\\(.*)" to="%DART_ANALYZER_LIBS%\\\2"/>
+    </pathconvert>
+
     <copy file="scripts/dart_analyzer.sh" tofile="${dist.dir}/bin/dart_analyzer">
       <filterset>
         <filter token="CLASSPATH" value="$DART_ANALYZER_LIBS/dart_analyzer.jar:${analyzer.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${dist.dir}/bin/dart_analyzer" perm="a+rx"/>
+
+    <copy file="scripts/dart_analyzer.bat" tofile="${dist.dir}/bin/dart_analyzer.bat">
+      <filterset>
+        <filter
+          token="CLASSPATH"
+          value="%DART_ANALYZER_LIBS%\dart_analyzer.jar;${analyzer.classpath.runtime.win}"/>
+      </filterset>
+    </copy>
 
    <!--
       TODO: The following files are not strictly due to dist, move them out.
@@ -157,7 +169,7 @@
     -->
     <copy todir="${dist.dir}/util/analyzer">
       <path refid="classpath.runtime"/>
-      <regexpmapper from="${third_party.dir}/(.*)" to="\1"/>
+      <regexpmapper from="(.*)third_party[/\\](.*)" to="\2"/>
     </copy>
   </target>
 

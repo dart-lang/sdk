@@ -35,6 +35,7 @@
             '<@(javatests_resources)',
             'dart_analyzer.xml',
             'scripts/dart_analyzer.sh',
+            'scripts/dart_analyzer.bat',
             'scripts/analyzer_metrics.sh',
             '../third_party/args4j/2.0.12/args4j-2.0.12.jar',
             '../third_party/guava/r09/guava-r09.jar',
@@ -46,6 +47,7 @@
           'outputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/tests.jar',
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
+            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer.bat',
             '<(PRODUCT_DIR)/analyzer/util/analyzer/dart_analyzer.jar',
             '<(PRODUCT_DIR)/analyzer/util/analyzer/args4j/2.0.12/args4j-2.0.12.jar',
             '<(PRODUCT_DIR)/analyzer/util/analyzer/guava/r09/guava-r09.jar',

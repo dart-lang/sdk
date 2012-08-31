@@ -32,6 +32,12 @@ class Command {
   String commandLine;
 
   Command(this.executable, this.arguments) {
+    if (Platform.operatingSystem == 'windows') {
+      // Windows can't handle the first command if it is a .bat file or the like
+      // with the slashes going the other direction.
+      // TODO(efortuna): Remove this when fixed (Issue 1306).
+      executable = executable.replaceAll('/', '\\');
+    }
     commandLine = "$executable ${Strings.join(arguments, ' ')}";
   }
 
@@ -614,12 +620,6 @@ class RunningProcess {
 
   void runCommand(Command command,
                   void exitHandler(int exitCode)) {
-    if (Platform.operatingSystem == 'windows') {
-      // Windows can't handle the first command if it is a .bat file or the like
-      // with the slashes going the other direction.
-      // TODO(efortuna): Remove this when fixed (Issue 1306).
-      command.executable = command.executable.replaceAll('/', '\\');
-    }
     process = Process.start(command.executable, command.arguments);
     process.onExit = exitHandler;
     process.onError = (e) {

@@ -140,6 +140,12 @@
     </copy>
     <chmod file="${dist.dir}/bin/dart_analyzer" perm="a+rx"/>
 
+    <copy file="scripts/dart_analyzer.bat" tofile="${dist.dir}/bin/dart_analyzer.bat">
+      <filterset>
+        <filter token="CLASSPATH" value="$DART_ANALYZER_LIBS/dart_analyzer.jar:${analyzer.classpath.runtime.win}"/>
+      </filterset>
+    </copy>
+
    <!--
       TODO: The following files are not strictly due to dist, move them out.
     -->
