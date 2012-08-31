@@ -35,13 +35,6 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "crypto": const LibraryInfo(
       "crypto/crypto.dart"),
 
-  // dom/dom_frog.dart is a placeholder for dartium DOM.
-  "dom_deprecated": const LibraryInfo(
-      "dom/dom_dart2js.dart",
-      implementation: true,
-      dart2jsPath: "dom/dart2js/dom_dart2js.dart",
-      documented: false),
-
   "html": const LibraryInfo(
       "html/html_dartium.dart",
       category: "Client",

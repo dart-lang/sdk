@@ -75,7 +75,7 @@
  * of times the callback should be called (the default is 1).
  *
  *     #import('path-to-dart/pkg/unittest/unitest.dart');
- *     #import('dart:dom_deprecated');
+ *     #import('dart:html');
  *     main() {
  *       test('calllback is executed once', () {
  *         // wrap the callback of an asynchronous call with [expectAsync0] if
@@ -116,7 +116,7 @@
  * but will be coming here soon).
  *
  *     #import('path-to-dart/pkg/unittest/unitest.dart');
- *     #import('dart:dom_deprecated');
+ *     #import('dart:html');
  *     main() {
  *       test('calllback is executed', () {
  *         // indicate ahead of time that an async callback is expected.
