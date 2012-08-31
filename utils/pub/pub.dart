@@ -52,6 +52,7 @@ ArgParser get pubArgParser {
   parser.addFlag('version', negatable: false,
     help: 'Prints the version of Pub');
   parser.addFlag('trace', help: 'Prints a stack trace when an error occurs');
+  parser.addFlag('self-link', help: 'Temporary flag, do not use.');
   return parser;
 }
 
@@ -72,6 +73,12 @@ main() {
   if (globalOptions['help'] || globalOptions.rest.isEmpty()) {
     printUsage();
     return;
+  }
+
+  // TODO(rnystrom): Get rid of this flag (and make the default be true) when
+  // #4820 is fixed and the Editor can handle recursive symlinks.
+  if (globalOptions['self-link']) {
+    Entrypoint.installSelfLink = true;
   }
 
   // TODO(nweiz): Have a fallback for this this out automatically once 1145 is

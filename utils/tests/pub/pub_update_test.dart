@@ -33,6 +33,8 @@ main() {
     });
   });
 
+  // TODO(rnystrom): Re-enable this when #4820 is fixed.
+  /*
   test('creates a self-referential symlink', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
@@ -49,4 +51,5 @@ main() {
 
     run();
   });
+  */
 }
