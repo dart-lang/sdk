@@ -184,6 +184,8 @@ string_escape1_negative_test: Skip
 
 [ $compiler == dart2dart ]
 interface_negative_test: Fail
+abstract_factory_constructor_test/00: Fail
+interface_test/00: Fail
 argument_definition_test/*: Skip # Not implemented.
 call_constructor_on_unresolvable_class_test/01: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/02: Fail # generates 'new Unresolved()' which fails on the VM
