@@ -112,21 +112,62 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
 
 
 // Deoptimization instruction creating return address using function and
-// deopt-id stored at 'object_table_index'.
-class DeoptRetAddrInstr : public DeoptInstr {
+// deopt-id stored at 'object_table_index'. Uses the deopt-after
+// continuation point.
+class DeoptRetAddrAfterInstr : public DeoptInstr {
  public:
-  explicit DeoptRetAddrInstr(intptr_t object_table_index)
+  explicit DeoptRetAddrAfterInstr(intptr_t object_table_index)
       : object_table_index_(object_table_index) {
     ASSERT(object_table_index >= 0);
   }
 
   virtual intptr_t from_index() const { return object_table_index_; }
-  virtual DeoptInstr::Kind kind() const { return kSetRetAddress; }
+  virtual DeoptInstr::Kind kind() const { return kSetRetAfterAddress; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "ret oti:%d", object_table_index_);
+    intptr_t len = OS::SNPrint(NULL, 0, "ret aft oti:%d", object_table_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "ret oti:%d", object_table_index_);
+    OS::SNPrint(chars, len + 1, "ret aft oti:%d", object_table_index_);
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    Function& function = Function::Handle(deopt_context->isolate());
+    function ^= deopt_context->ObjectAt(object_table_index_);
+    Smi& deopt_id_as_smi = Smi::Handle(deopt_context->isolate());
+    deopt_id_as_smi ^= deopt_context->ObjectAt(object_table_index_ + 1);
+    const Code& code =
+        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    uword continue_at_pc =
+        code.GetDeoptAfterPcAtDeoptId(deopt_id_as_smi.Value());
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = continue_at_pc;
+  }
+
+ private:
+  const intptr_t object_table_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptRetAddrAfterInstr);
+};
+
+
+// Deoptimization instruction creating return address using function and
+// deopt-id stored at 'object_table_index'. Uses the deopt-before
+// continuation point.
+class DeoptRetAddrBeforeInstr : public DeoptInstr {
+ public:
+  explicit DeoptRetAddrBeforeInstr(intptr_t object_table_index)
+      : object_table_index_(object_table_index) {
+    ASSERT(object_table_index >= 0);
+  }
+
+  virtual intptr_t from_index() const { return object_table_index_; }
+  virtual DeoptInstr::Kind kind() const { return kSetRetBeforeAddress; }
+
+  virtual const char* ToCString() const {
+    intptr_t len = OS::SNPrint(NULL, 0, "ret bef oti:%d", object_table_index_);
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, "ret bef oti:%d", object_table_index_);
     return chars;
   }
 
@@ -146,7 +187,7 @@ class DeoptRetAddrInstr : public DeoptInstr {
  private:
   const intptr_t object_table_index_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptRetAddrInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptRetAddrBeforeInstr);
 };
 
 
@@ -326,7 +367,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
   switch (kind) {
     case kCopyStackSlot: return new DeoptStackSlotInstr(from_index);
     case kCopyDoubleStackSlot: return new DeoptDoubleStackSlotInstr(from_index);
-    case kSetRetAddress: return new DeoptRetAddrInstr(from_index);
+    case kSetRetAfterAddress: return new DeoptRetAddrAfterInstr(from_index);
+    case kSetRetBeforeAddress: return new DeoptRetAddrBeforeInstr(from_index);
     case kCopyConstant:  return new DeoptConstantInstr(from_index);
     case kCopyRegister:  return new DeoptRegisterInstr(from_index);
     case kCopyXmmRegister: return new DeoptXmmRegisterInstr(from_index);
@@ -352,15 +394,25 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 }
 
 
-// Will be neeeded for inlined functions, currently trivial.
-void DeoptInfoBuilder::AddReturnAddress(const Function& function,
-                                        intptr_t deopt_id,
-                                        intptr_t to_index) {
+void DeoptInfoBuilder::AddReturnAddressBefore(const Function& function,
+                                              intptr_t deopt_id,
+                                              intptr_t to_index) {
   const intptr_t object_table_index = object_table_.Length();
   object_table_.Add(function);
   object_table_.Add(Smi::ZoneHandle(Smi::New(deopt_id)));
   ASSERT(to_index == instructions_.length());
-  instructions_.Add(new DeoptRetAddrInstr(object_table_index));
+  instructions_.Add(new DeoptRetAddrBeforeInstr(object_table_index));
+}
+
+
+void DeoptInfoBuilder::AddReturnAddressAfter(const Function& function,
+                                             intptr_t deopt_id,
+                                             intptr_t to_index) {
+  const intptr_t object_table_index = object_table_.Length();
+  object_table_.Add(function);
+  object_table_.Add(Smi::ZoneHandle(Smi::New(deopt_id)));
+  ASSERT(to_index == instructions_.length());
+  instructions_.Add(new DeoptRetAddrAfterInstr(object_table_index));
 }
 
 

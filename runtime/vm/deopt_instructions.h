@@ -88,7 +88,8 @@ class DeoptInstr : public ZoneAllocated {
 
  protected:
   enum Kind {
-    kSetRetAddress,
+    kSetRetAfterAddress,
+    kSetRetBeforeAddress,
     kCopyConstant,
     kCopyRegister,
     kCopyXmmRegister,
@@ -123,10 +124,16 @@ class DeoptInfoBuilder : public ValueObject {
         object_table_(object_table),
         num_args_(num_args) {}
 
-  // Will be neeeded for inlined functions, currently trivial.
-  void AddReturnAddress(const Function& function,
-                        intptr_t deopt_id,
-                        intptr_t to_index);
+  // Return address before instruction.
+  void AddReturnAddressBefore(const Function& function,
+                              intptr_t deopt_id,
+                              intptr_t to_index);
+
+  // Return address after instruction.
+  void AddReturnAddressAfter(const Function& function,
+                             intptr_t deopt_id,
+                             intptr_t to_index);
+
   // Copy from optimized frame to unoptimized.
   void AddCopy(const Location& from_loc,
                const Value& from_value,

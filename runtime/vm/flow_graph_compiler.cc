@@ -30,7 +30,22 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
-RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
+
+void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
+                                           const Function& function,
+                                           intptr_t slot_ix) {
+  builder->AddReturnAddressAfter(function, deopt_id(), slot_ix);
+}
+
+
+void CompilerDeoptInfoWithStub::BuildReturnAddress(DeoptInfoBuilder* builder,
+                                                   const Function& function,
+                                                   intptr_t slot_ix) {
+  builder->AddReturnAddressBefore(function, deopt_id(), slot_ix);
+}
+
+
+RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   if (deoptimization_env_ == NULL) return DeoptInfo::null();
   const Function& function = compiler->parsed_function().function();
   // For functions with optional arguments, all incoming are copied to local
@@ -42,7 +57,7 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   DeoptInfoBuilder builder(compiler->object_table(), num_args);
 
   intptr_t slot_ix = 0;
-  builder.AddReturnAddress(function, deopt_id_, slot_ix++);
+  BuildReturnAddress(&builder, function, slot_ix++);
 
   // All locals between TOS and PC-marker.
   const GrowableArray<Value*>& values = deoptimization_env_->values();
@@ -87,7 +102,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       stackmap_table_builder_(
           is_optimizing ? new StackmapTableBuilder() : NULL),
       block_info_(block_order_.length()),
-      deopt_stubs_(),
+      deopt_infos_(),
       object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
       is_dart_leaf_(is_leaf),
@@ -209,8 +224,8 @@ void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
     slow_path_code_[i]->EmitNativeCode(this);
   }
-  for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
-    deopt_stubs_[i]->GenerateCode(this, i);
+  for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+    deopt_infos_[i]->GenerateCode(this, i);
   }
 }
 
@@ -235,12 +250,12 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
                                             intptr_t token_pos) {
-  // TODO(srdjan): Temporary use deopt stubs to maintain deopt-indexes.
-  // kDeoptAtCall will not emit code, but will only generate deoptimization
-  // information.
   ASSERT(is_optimizing());
-  const intptr_t deopt_index = deopt_stubs_.length();
-  AddDeoptStub(deopt_id, kDeoptAtCall);
+  const intptr_t deopt_index = deopt_infos_.length();
+  CompilerDeoptInfo* info = new CompilerDeoptInfo(deopt_id, kDeoptAtCall);
+  ASSERT(pending_deoptimization_env_ != NULL);
+  info->set_deoptimization_env(pending_deoptimization_env_);
+  deopt_infos_.Add(info);
   pc_descriptors_list()->AddDeoptIndex(assembler()->CodeSize(),
                                        deopt_id,
                                        kDeoptAtCall,
@@ -301,11 +316,12 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        DeoptReasonId reason) {
-  DeoptimizationStub* stub = new DeoptimizationStub(deopt_id, reason);
+  CompilerDeoptInfoWithStub* stub =
+      new CompilerDeoptInfoWithStub(deopt_id, reason);
   ASSERT(is_optimizing_);
   ASSERT(pending_deoptimization_env_ != NULL);
   stub->set_deoptimization_env(pending_deoptimization_env_);
-  deopt_stubs_.Add(stub);
+  deopt_infos_.Add(stub);
   return stub->entry_label();
 }
 
@@ -329,10 +345,10 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   const Array& array =
-      Array::Handle(Array::New(deopt_stubs_.length(), Heap::kOld));
+      Array::Handle(Array::New(deopt_infos_.length(), Heap::kOld));
   DeoptInfo& info = DeoptInfo::Handle();
-  for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
-    info = deopt_stubs_[i]->CreateDeoptInfo(this);
+  for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+    info = deopt_infos_[i]->CreateDeoptInfo(this);
     array.SetAt(i, info);
   }
   code.set_deopt_info_array(array);
