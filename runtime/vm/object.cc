@@ -8214,12 +8214,6 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
-bool Instance::IsValidNativeIndex(int index) const {
-  const Class& cls = Class::Handle(clazz());
-  return (index >= 0 && index < cls.num_native_fields());
-}
-
-
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   Instance& result = Instance::Handle();
   {

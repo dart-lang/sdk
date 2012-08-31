@@ -3108,7 +3108,9 @@ class Instance : public Object {
                     const AbstractTypeArguments& type_instantiator,
                     Error* malformed_error) const;
 
-  bool IsValidNativeIndex(int index) const;
+  bool IsValidNativeIndex(int index) const {
+    return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
+  }
 
   intptr_t GetNativeField(int index) const {
     return *NativeFieldAddr(index);
