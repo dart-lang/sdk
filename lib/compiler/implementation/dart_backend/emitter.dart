@@ -64,17 +64,9 @@ String emitCode(
     sb.add('}');
   }
 
-  final libraries = compiler.libraries;
-  for (final uri in libraries.getKeys()) {
-    // Same library element may be a value for different uris as of now
-    // e.g., core libraryElement is a value for both keys 'dart:core'
-    // and full file name.  Only care about uris with dart scheme.
-    if (!uri.startsWith('dart:')) continue;
-    final lib = libraries[uri];
-    if (imports.containsKey(lib)) {
-      sb.add('#import("$uri", prefix: "${imports[lib]}");');
-    }
-  }
+  imports.forEach((libraryElement, prefix) {
+    sb.add('#import("${libraryElement.uri}",prefix:"$prefix");');
+  });
 
   for (final element in topLevelElements) {
     if (element is ClassElement) {

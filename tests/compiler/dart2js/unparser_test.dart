@@ -686,7 +686,7 @@ main() {
   Platform.operatingSystem;
 }
 ''';
-  var expectedResult = '#import("dart:io", prefix: "p");'
+  var expectedResult = '#import("dart:io",prefix:"p");'
       'main(){p.Platform.operatingSystem;}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); });
