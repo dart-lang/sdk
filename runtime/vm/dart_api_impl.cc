@@ -3718,10 +3718,9 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
+  NoGCScope no_gc_scope;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
-  DARTSCOPE(isolate);
-  arguments->SetReturn(Object::Handle(isolate, Api::UnwrapHandle(retval)));
+  arguments->SetReturnUnsafe(Api::UnwrapHandle(retval));
 }
 
 

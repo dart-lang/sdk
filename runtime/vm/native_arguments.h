@@ -39,6 +39,9 @@ class RawObject;
 
 #endif
 
+DART_EXTERN_C {
+  void Dart_SetReturnValue(Dart_NativeArguments, Dart_Handle);
+}
 
 // Class NativeArguments is used to access arguments passed in from
 // generated dart code to a runtime function or a dart library native
@@ -78,6 +81,7 @@ class NativeArguments {
 
  private:
   friend class BootstrapNatives;
+  friend void Dart_SetReturnValue(Dart_NativeArguments, Dart_Handle);
 
   // Since this function is passed a RawObject directly, we need to be
   // exceedingly careful when we use it.  If there are any other side
