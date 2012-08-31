@@ -15,28 +15,28 @@
  */
 interface Date extends Comparable, Hashable default DateImplementation {
   // Weekday constants that are returned by [weekday] method:
-  static final int MON = 1;
-  static final int TUE = 2;
-  static final int WED = 3;
-  static final int THU = 4;
-  static final int FRI = 5;
-  static final int SAT = 6;
-  static final int SUN = 7;
-  static final int DAYS_IN_WEEK = 7;
+  static const int MON = 1;
+  static const int TUE = 2;
+  static const int WED = 3;
+  static const int THU = 4;
+  static const int FRI = 5;
+  static const int SAT = 6;
+  static const int SUN = 7;
+  static const int DAYS_IN_WEEK = 7;
 
   // Month constants that are returned by the [month] getter.
-  static final int JAN = 1;
-  static final int FEB = 2;
-  static final int MAR = 3;
-  static final int APR = 4;
-  static final int MAY = 5;
-  static final int JUN = 6;
-  static final int JUL = 7;
-  static final int AUG = 8;
-  static final int SEP = 9;
-  static final int OCT = 10;
-  static final int NOV = 11;
-  static final int DEC = 12;
+  static const int JAN = 1;
+  static const int FEB = 2;
+  static const int MAR = 3;
+  static const int APR = 4;
+  static const int MAY = 5;
+  static const int JUN = 6;
+  static const int JUL = 7;
+  static const int AUG = 8;
+  static const int SEP = 9;
+  static const int OCT = 10;
+  static const int NOV = 11;
+  static const int DEC = 12;
 
   /**
    * Constructs a [Date] instance based on the individual parts. The date is

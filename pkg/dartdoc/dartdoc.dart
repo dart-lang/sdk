@@ -36,14 +36,14 @@
 // TODO(johnniwinther): Note that [IN_SDK] gets initialized to true when this
 // file is modified by the SDK deployment script. If you change, be sure to test
 // that dartdoc still works when run from the built SDK directory.
-final bool IN_SDK = false;
+const bool IN_SDK = false;
 
 /**
  * Generates completely static HTML containing everything you need to browse
  * the docs. The only client side behavior is trivial stuff like syntax
  * highlighting code.
  */
-final MODE_STATIC = 0;
+const MODE_STATIC = 0;
 
 /**
  * Generated docs do not include baked HTML navigation. Instead, a single
@@ -57,9 +57,9 @@ final MODE_STATIC = 0;
  * preview docs locally, you will need to enable requesting file:// links in
  * your browser or run a little local server like `python -m SimpleHTTPServer`.
  */
-final MODE_LIVE_NAV = 1;
+const MODE_LIVE_NAV = 1;
 
-final API_LOCATION = 'http://api.dartlang.org/';
+const API_LOCATION = 'http://api.dartlang.org/';
 
 /**
  * Run this from the `pkg/dartdoc` directory.

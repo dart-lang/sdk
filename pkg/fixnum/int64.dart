@@ -20,13 +20,13 @@ class int64 implements intx {
   // instances before they are exposed to external code.
 
   // Note: several functions require _BITS == 22 -- do not change this value.
-  static final int _BITS = 22;
-  static final int _BITS01 = 44; // 2 * _BITS
-  static final int _BITS2 = 20; // 64 - _BITS01
-  static final int _MASK = 4194303; // (1 << _BITS) - 1
-  static final int _MASK_2 = 1048575; // (1 << _BITS2) - 1
-  static final int _SIGN_BIT = 19; // _BITS2 - 1
-  static final int _SIGN_BIT_VALUE = 524288; // 1 << _SIGN_BIT
+  static const int _BITS = 22;
+  static const int _BITS01 = 44; // 2 * _BITS
+  static const int _BITS2 = 20; // 64 - _BITS01
+  static const int _MASK = 4194303; // (1 << _BITS) - 1
+  static const int _MASK_2 = 1048575; // (1 << _BITS2) - 1
+  static const int _SIGN_BIT = 19; // _BITS2 - 1
+  static const int _SIGN_BIT_VALUE = 524288; // 1 << _SIGN_BIT
 
   // Cached constants
   static int64 _MAX_VALUE;

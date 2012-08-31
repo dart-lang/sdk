@@ -21,12 +21,12 @@
 /** The messages exchanged between master and slave. */
 
 class _Message {
-  static final START = 'start';
-  static final LOG = 'log';
-  static final STACK = 'stack';
-  static final PASS = 'pass';
-  static final FAIL = 'fail';
-  static final ERROR = 'error';
+  static const START = 'start';
+  static const LOG = 'log';
+  static const STACK = 'stack';
+  static const PASS = 'pass';
+  static const FAIL = 'fail';
+  static const ERROR = 'error';
 
   String messageType;
   int elapsed;
@@ -243,7 +243,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
     window.on.message.add(_messageHandler);
   }
 
-  static final _notAlphaNumeric = const RegExp('[^a-z0-9A-Z]');
+  static const _notAlphaNumeric = const RegExp('[^a-z0-9A-Z]');
 
   String _stringToDomId(String s) {
     if (s.length == 0) {
@@ -253,11 +253,11 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
   }
 
   // Used for DOM element IDs for tests result list entries.
-  static final _testIdPrefix = 'test-';
+  static const _testIdPrefix = 'test-';
   // Used for DOM element IDs for test log message lists.
-  static final _actionIdPrefix = 'act-';
+  static const _actionIdPrefix = 'act-';
   // Used for DOM element IDs for test checkboxes.
-  static final _selectedIdPrefix = 'selected-';
+  static const _selectedIdPrefix = 'selected-';
 
   void onTestStart(TestCase testCase) {
     var id = testCase.id;

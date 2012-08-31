@@ -12,25 +12,25 @@
  * fields here will be used as CSS class names for the generated spans.
  */
 class Classification {
-  static final NONE = null;
-  static final ERROR = "e";
-  static final COMMENT = "c";
-  static final IDENTIFIER = "i";
-  static final KEYWORD = "k";
-  static final OPERATOR = "o";
-  static final STRING = "s";
-  static final NUMBER = "n";
-  static final PUNCTUATION = "p";
+  static const NONE = null;
+  static const ERROR = "e";
+  static const COMMENT = "c";
+  static const IDENTIFIER = "i";
+  static const KEYWORD = "k";
+  static const OPERATOR = "o";
+  static const STRING = "s";
+  static const NUMBER = "n";
+  static const PUNCTUATION = "p";
 
   // A few things that are nice to make different:
-  static final TYPE_IDENTIFIER = "t";
+  static const TYPE_IDENTIFIER = "t";
 
   // Between a keyword and an identifier
-  static final SPECIAL_IDENTIFIER = "r";
+  static const SPECIAL_IDENTIFIER = "r";
 
-  static final ARROW_OPERATOR = "a";
+  static const ARROW_OPERATOR = "a";
 
-  static final STRING_INTERPOLATION = 'si';
+  static const STRING_INTERPOLATION = 'si';
 }
 
 String classifySource(String text) {

@@ -189,9 +189,9 @@
  * options and flags from them.
  */
 class ArgParser {
-  static final _SOLO_OPT = const RegExp(@'^-([a-zA-Z0-9])$');
-  static final _ABBR_OPT = const RegExp(@'^-([a-zA-Z0-9]+)(.*)$');
-  static final _LONG_OPT = const RegExp(@'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
+  static const _SOLO_OPT = const RegExp(@'^-([a-zA-Z0-9])$');
+  static const _ABBR_OPT = const RegExp(@'^-([a-zA-Z0-9]+)(.*)$');
+  static const _LONG_OPT = const RegExp(@'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
 
   final Map<String, _Option> _options;
 
@@ -565,7 +565,7 @@ class _Option {
  * spaces and wrapping to the next line to keep the cells correctly lined up.
  */
 class _Usage {
-  static final NUM_COLUMNS = 3; // Abbreviation, long name, help.
+  static const NUM_COLUMNS = 3; // Abbreviation, long name, help.
 
   /** The parser this is generating usage for. */
   final ArgParser args;

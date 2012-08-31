@@ -9,9 +9,9 @@
 // different platform implementations.
 
 abstract class double implements num {
-  static final double NAN = 0.0 / 0.0;
-  static final double INFINITY = 1.0 / 0.0;
-  static final double NEGATIVE_INFINITY = -INFINITY;
+  static const double NAN = 0.0 / 0.0;
+  static const double INFINITY = 1.0 / 0.0;
+  static const double NEGATIVE_INFINITY = -INFINITY;
 
   // Specialization of super-interface. Double is contagious. We can therefore
   // specialize more methods than in other num sub-interfaces.

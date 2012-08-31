@@ -206,9 +206,9 @@ bool _initialized = false;
 
 String _uncaughtErrorMessage = null;
 
-final _PASS  = 'pass';
-final _FAIL  = 'fail';
-final _ERROR = 'error';
+const _PASS  = 'pass';
+const _FAIL  = 'fail';
+const _ERROR = 'error';
 
 /** If set, then all other test cases will be ignored. */
 TestCase _soloTest;
@@ -300,7 +300,7 @@ class _Sentinel {
 
 // TODO(sigmund): make a singleton const field when frog supports passing those
 // as default values to named arguments.
-final _sentinel = const _Sentinel();
+const _sentinel = const _Sentinel();
 
 /** Simulates spread arguments using named arguments. */
 // TODO(sigmund): remove this class and simply use a closure with named

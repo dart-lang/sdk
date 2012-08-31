@@ -11,11 +11,11 @@ class _Tag implements Hashable {
   // TODO(nweiz): it would better match the semantics of the spec if there were
   // a singleton instance of this class for each tag.
 
-  static final SCALAR_KIND = 0;
-  static final SEQUENCE_KIND = 1;
-  static final MAPPING_KIND = 2;
+  static const SCALAR_KIND = 0;
+  static const SEQUENCE_KIND = 1;
+  static const MAPPING_KIND = 2;
 
-  static final String YAML_URI_PREFIX = 'tag:yaml.org,2002:';
+  static const String YAML_URI_PREFIX = 'tag:yaml.org,2002:';
 
   /** The name of the tag, either a URI or a local tag beginning with "!". */
   final String name;

@@ -12,7 +12,7 @@ class int32 implements intx {
    * The maximum positive value attainable by an [int32], namely
    * 2147483647.
    */
-  static final int32 MAX_VALUE = const int32._internal(0x7FFFFFFF);
+  static const int32 MAX_VALUE = const int32._internal(0x7FFFFFFF);
 
   /**
    * The minimum positive value attainable by an [int32], namely
@@ -36,12 +36,12 @@ class int32 implements intx {
   static int32 TWO = const int32._internal(2);
 
   // Hex digit char codes
-  static final int _CC_0 = 48; // '0'.charCodeAt(0)
-  static final int _CC_9 = 57; // '9'.charCodeAt(0)
-  static final int _CC_a = 97; // 'a'.charCodeAt(0)
-  static final int _CC_z = 122; // 'z'.charCodeAt(0)
-  static final int _CC_A = 65; // 'A'.charCodeAt(0)
-  static final int _CC_Z = 90; // 'Z'.charCodeAt(0)
+  static const int _CC_0 = 48; // '0'.charCodeAt(0)
+  static const int _CC_9 = 57; // '9'.charCodeAt(0)
+  static const int _CC_a = 97; // 'a'.charCodeAt(0)
+  static const int _CC_z = 122; // 'z'.charCodeAt(0)
+  static const int _CC_A = 65; // 'A'.charCodeAt(0)
+  static const int _CC_Z = 90; // 'Z'.charCodeAt(0)
 
   static int _decodeHex(int c) {
     if (c >= _CC_0 && c <= _CC_9) {

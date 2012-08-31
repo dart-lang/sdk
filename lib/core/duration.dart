@@ -47,20 +47,20 @@ interface Duration extends Comparable default DurationImplementation {
    */
   final int inMilliseconds;
 
-  static final int MILLISECONDS_PER_SECOND = 1000;
-  static final int SECONDS_PER_MINUTE = 60;
-  static final int MINUTES_PER_HOUR = 60;
-  static final int HOURS_PER_DAY = 24;
+  static const int MILLISECONDS_PER_SECOND = 1000;
+  static const int SECONDS_PER_MINUTE = 60;
+  static const int MINUTES_PER_HOUR = 60;
+  static const int HOURS_PER_DAY = 24;
 
-  static final int MILLISECONDS_PER_MINUTE =
+  static const int MILLISECONDS_PER_MINUTE =
       MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE;
-  static final int MILLISECONDS_PER_HOUR =
+  static const int MILLISECONDS_PER_HOUR =
       MILLISECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-  static final int MILLISECONDS_PER_DAY =
+  static const int MILLISECONDS_PER_DAY =
       MILLISECONDS_PER_HOUR * HOURS_PER_DAY;
 
-  static final int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-  static final int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
+  static const int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  static const int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
-  static final int MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
+  static const int MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
 }

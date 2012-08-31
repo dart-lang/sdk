@@ -102,14 +102,14 @@ MethodMirror _convertElementMethodToMethodMirror(Dart2JsObjectMirror library,
 }
 
 class Dart2JsMethodKind {
-  static final Dart2JsMethodKind NORMAL = const Dart2JsMethodKind("normal");
-  static final Dart2JsMethodKind CONSTRUCTOR
+  static const Dart2JsMethodKind NORMAL = const Dart2JsMethodKind("normal");
+  static const Dart2JsMethodKind CONSTRUCTOR
       = const Dart2JsMethodKind("constructor");
-  static final Dart2JsMethodKind CONST = const Dart2JsMethodKind("const");
-  static final Dart2JsMethodKind FACTORY = const Dart2JsMethodKind("factory");
-  static final Dart2JsMethodKind GETTER = const Dart2JsMethodKind("getter");
-  static final Dart2JsMethodKind SETTER = const Dart2JsMethodKind("setter");
-  static final Dart2JsMethodKind OPERATOR = const Dart2JsMethodKind("operator");
+  static const Dart2JsMethodKind CONST = const Dart2JsMethodKind("const");
+  static const Dart2JsMethodKind FACTORY = const Dart2JsMethodKind("factory");
+  static const Dart2JsMethodKind GETTER = const Dart2JsMethodKind("getter");
+  static const Dart2JsMethodKind SETTER = const Dart2JsMethodKind("setter");
+  static const Dart2JsMethodKind OPERATOR = const Dart2JsMethodKind("operator");
 
   final String text;
 

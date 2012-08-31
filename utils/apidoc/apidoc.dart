@@ -237,7 +237,7 @@ class Apidoc extends doc.Dartdoc {
 
   final Htmldoc htmldoc;
 
-  static final disqusShortname = 'dartapidocs';
+  static const disqusShortname = 'dartapidocs';
 
   /**
    * The URL to the page on MDN that content was pulled from for the current
