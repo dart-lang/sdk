@@ -125,6 +125,7 @@ void compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify', passThrough),
+    new OptionHandler('--cut-declaration-types', passThrough),
     // TODO(ahe): Remove the --no-colors option.
     new OptionHandler('--no-colors', (_) => enableColors = false),
     new OptionHandler('--colors', (_) => enableColors = true),

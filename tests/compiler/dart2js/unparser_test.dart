@@ -87,7 +87,7 @@ testDart2DartWithLibrary(
 
   final options = <String>['--output-type=dart'];
   if (minify) options.add('--minify');
-  if (cutDeclarationTypes) options.add('--cutDeclarationTypes');
+  if (cutDeclarationTypes) options.add('--cut-declaration-types');
 
   compile(
       scriptUri,
