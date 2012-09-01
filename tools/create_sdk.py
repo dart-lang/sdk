@@ -222,7 +222,7 @@ def Main(argv):
 
   for library in ['_internal', 'compiler', 'config', 'html', 'core', 'coreimpl',
                   'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf',
-                  'web']:
+                  'web', 'dom']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
