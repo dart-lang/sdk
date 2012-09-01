@@ -28,7 +28,7 @@ public class SystemLibrariesReaderTest extends TestCase {
       String path = entry.getValue().getPath();
       File file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
       if (!file.exists()) {
-        fail("Expected dart:" + entry.getKey() + " path in libraries.dart to exist in SDK"
+        fail("Expected " + entry.getKey() + " path in libraries.dart to exist in SDK"
             + "\n  could not find " + file);
       }
     }
