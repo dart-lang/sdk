@@ -18,25 +18,21 @@ import java.util.Map.Entry;
  */
 public class SystemLibrariesReaderTest extends TestCase {
 
-  
-  public void testLibrariesFileExists(){
-    File sdkLibPath = new File(PackageLibraryManager.DEFAULT_SDK_PATH, "lib");
-    File librariesFile = new File(new File(sdkLibPath, SystemLibrariesReader.INTERNAL_DIR), SystemLibrariesReader.LIBRARIES_FILE);
-    assertTrue(librariesFile.exists());
-  }
-  
-  public void testLibrariesFileContent() throws URISyntaxException{
+  public void testLibrariesFileContent() throws URISyntaxException {
     File sdkLibPath = new File(PackageLibraryManager.DEFAULT_SDK_PATH, "lib");
     URI base = sdkLibPath.toURI();
     SystemLibrariesReader reader = new SystemLibrariesReader(sdkLibPath);
     Map<String, DartLibrary> librariesMap = reader.getLibrariesMap();
     assertTrue(!librariesMap.isEmpty());
     for (Entry<String, DartLibrary> entry : librariesMap.entrySet()) {
-      String path = entry.getValue().getPath(); 
+      String path = entry.getValue().getPath();
       File file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
-      assertTrue(file.exists());
-   }
-   
+      if (!file.exists()) {
+        fail("Expected dart:" + entry.getKey() + " path in libraries.dart to exist in SDK"
+            + "\n  could not find " + file);
+      }
+    }
+
     // check content
     //   "coreimpl": const LibraryInfo(
     //       "coreimpl/coreimpl_runtime.dart",
@@ -45,9 +41,16 @@ public class SystemLibrariesReaderTest extends TestCase {
     //       dart2jsPatchPath: "compiler/implementation/lib/coreimpl_patch.dart")
     DartLibrary library = librariesMap.get("dart:coreimpl");
     assertTrue(library != null);
-    assertEquals("dart:coreimpl",library.getShortName());
+    assertEquals("dart:coreimpl", library.getShortName());
     assertTrue(library.isImplementation());
     assertEquals("Shared", library.getCategory());
   }
-  
+
+  public void testLibrariesFileExists() {
+    File sdkLibPath = new File(PackageLibraryManager.DEFAULT_SDK_PATH, "lib");
+    File librariesFile = new File(new File(sdkLibPath, SystemLibrariesReader.INTERNAL_DIR),
+        SystemLibrariesReader.LIBRARIES_FILE);
+    assertTrue(librariesFile.exists());
+  }
+
 }
