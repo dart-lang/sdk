@@ -32,11 +32,14 @@ public class SystemLibrariesReaderTest extends TestCase {
     Map<String, DartLibrary> librariesMap = reader.getLibrariesMap();
     assertTrue(!librariesMap.isEmpty());
     for (Entry<String, DartLibrary> entry : librariesMap.entrySet()) {
-      String path = entry.getValue().getPath(); 
+      String path = entry.getValue().getPath();
       File file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
-      assertTrue(file.exists());
-   }
-   
+      if (!file.exists()) {
+        fail("Expected " + entry.getKey() + " path in libraries.dart to exist in SDK"
+            + "\n  could not find " + file);
+      }
+    }
+
     // check content
     //   "coreimpl": const LibraryInfo(
     //       "coreimpl/coreimpl_runtime.dart",
