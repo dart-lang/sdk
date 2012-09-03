@@ -112,7 +112,7 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
       normal_entry_(normal_entry),
       catch_entries_(),
       start_env_(NULL),
-      constant_null_(new BindInstr(BindInstr::kUsed,
+      constant_null_(new BindInstr(Definition::kValue,
                          new ConstantComp(Object::ZoneHandle()))),
       spill_slot_count_(0) {
 }
@@ -199,7 +199,7 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
 }
 
 
-void BindInstr::InsertBefore(Instruction* next) {
+void Definition::InsertBefore(Instruction* next) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   next_ = next;
@@ -209,7 +209,7 @@ void BindInstr::InsertBefore(Instruction* next) {
 }
 
 
-void BindInstr::InsertAfter(Instruction* prev) {
+void Definition::InsertAfter(Instruction* prev) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   previous_ = prev;

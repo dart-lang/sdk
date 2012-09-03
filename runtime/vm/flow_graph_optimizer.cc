@@ -100,7 +100,7 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
       instr,
       CreateConversion(from_rep, to_rep, def, deopt_target),
       use->instruction()->env(),
-      BindInstr::kUsed);
+      Definition::kValue);
 
     use->set_definition(converted);
   }
@@ -314,7 +314,7 @@ void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
   const ICData& unary_checks =
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
   CheckClassComp* check = new CheckClassComp(value, comp, unary_checks);
-  InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
+  InsertBefore(instr, check, instr->env(), Definition::kEffect);
 }
 
 
@@ -341,7 +341,7 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
       InsertBefore(instr,
                    new CheckSmiComp(index->Copy(), comp->deopt_id()),
                    instr->env(),
-                   BindInstr::kUnused);
+                   Definition::kEffect);
       // Insert array bounds check.
       InsertBefore(instr,
                    new CheckArrayBoundComp(array->Copy(),
@@ -349,7 +349,7 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
                                            class_id,
                                            comp),
                    instr->env(),
-                   BindInstr::kUnused);
+                   Definition::kEffect);
       Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
         array_op = new LoadIndexedComp(array, index, class_id);
@@ -373,7 +373,7 @@ BindInstr* FlowGraphOptimizer::InsertBefore(Instruction* instr,
                                             BindInstr::UseKind use_kind) {
   BindInstr* bind = new BindInstr(use_kind, comp);
   if (env != NULL) env->CopyTo(bind);
-  if (use_kind == BindInstr::kUsed) {
+  if (use_kind == Definition::kValue) {
     bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
   bind->InsertBefore(instr);
@@ -387,7 +387,7 @@ BindInstr* FlowGraphOptimizer::InsertAfter(Instruction* instr,
                                            BindInstr::UseKind use_kind) {
   BindInstr* bind = new BindInstr(use_kind, comp);
   if (env != NULL) env->CopyTo(bind);
-  if (use_kind == BindInstr::kUsed) {
+  if (use_kind == Definition::kValue) {
     bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
   bind->InsertAfter(instr);
@@ -459,7 +459,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                            right->Copy(),
                                            comp),
                  instr->env(),
-                 BindInstr::kUnused);
+                 Definition::kEffect);
 
     UnboxedDoubleBinaryOpComp* double_bin_op =
         new UnboxedDoubleBinaryOpComp(op_kind,
@@ -487,11 +487,11 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     InsertBefore(instr,
                  new CheckSmiComp(left->Copy(), comp->deopt_id()),
                  instr->env(),
-                 BindInstr::kUnused);
+                 Definition::kEffect);
     InsertBefore(instr,
                  new CheckSmiComp(right->Copy(), comp->deopt_id()),
                  instr->env(),
-                 BindInstr::kUnused);
+                 Definition::kEffect);
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
                                                   comp,
                                                   left,
@@ -517,7 +517,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
     InsertBefore(instr,
                  new CheckSmiComp(value->Copy(), comp->deopt_id()),
                  instr->env(),
-                 BindInstr::kUnused);
+                 Definition::kEffect);
     unary_op = new UnarySmiOpComp(op_kind,
                                   (op_kind == Token::kNEGATE) ? comp : NULL,
                                   value);
@@ -801,12 +801,12 @@ static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
         instr,
         new CheckSmiComp(comp->left()->Copy(), comp->deopt_id()),
         instr->env(),
-        BindInstr::kUnused);
+        Definition::kEffect);
     optimizer->InsertBefore(
         instr,
         new CheckSmiComp(comp->right()->Copy(), comp->deopt_id()),
         instr->env(),
-        BindInstr::kUnused);
+        Definition::kEffect);
     comp->set_operands_class_id(kSmiCid);
   } else if (ShouldSpecializeForDouble(ic_data)) {
     comp->set_operands_class_id(kDoubleCid);
@@ -849,12 +849,12 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
           instr,
           new CheckSmiComp(comp->left()->Copy(), comp->deopt_id()),
           instr->env(),
-          BindInstr::kUnused);
+          Definition::kEffect);
       optimizer->InsertBefore(
           instr,
           new CheckSmiComp(comp->right()->Copy(), comp->deopt_id()),
           instr->env(),
-          BindInstr::kUnused);
+          Definition::kEffect);
       comp->set_receiver_class_id(kSmiCid);
     } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
       comp->set_receiver_class_id(kDoubleCid);

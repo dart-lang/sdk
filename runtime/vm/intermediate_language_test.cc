@@ -13,7 +13,7 @@ TEST_CASE(InstructionTests) {
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsBind());
   BindInstr* bind_instr =
-      new BindInstr(BindInstr::kUnused, new CurrentContextComp());
+      new BindInstr(Definition::kEffect, new CurrentContextComp());
   EXPECT(bind_instr->IsBind());
   EXPECT(!bind_instr->IsBlockEntry());
 }

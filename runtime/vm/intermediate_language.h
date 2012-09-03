@@ -20,6 +20,7 @@ class BlockEntryInstr;
 class BufferFormatter;
 class ComparisonComp;
 class Computation;
+class ControlInstruction;
 class Definition;
 class Environment;
 class FlowGraphCompiler;
@@ -202,7 +203,6 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION(type)                                              \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
-  virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
   virtual const char* DebugName() const { return #type; }                      \
   virtual void PrintTo(BufferFormatter* f) const;                              \
@@ -214,13 +214,14 @@ class Instruction : public ZoneAllocated {
   Instruction()
       : lifetime_position_(-1), previous_(NULL), next_(NULL), env_(NULL) { }
 
-  virtual bool IsBlockEntry() const { return false; }
-  BlockEntryInstr* AsBlockEntry() {
-    return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
-  }
-  virtual bool IsDefinition() const { return false; }
+  bool IsBlockEntry() { return (AsBlockEntry() != NULL); }
+  virtual BlockEntryInstr* AsBlockEntry() { return NULL; }
+
+  bool IsDefinition() { return (AsDefinition() != NULL); }
   virtual Definition* AsDefinition() { return NULL; }
-  virtual bool IsControl() const { return false; }
+
+  bool IsControl() { return (AsControl() != NULL); }
+  virtual ControlInstruction* AsControl() { return NULL; }
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -302,7 +303,7 @@ class Instruction : public ZoneAllocated {
   virtual void PrintToVisualizer(BufferFormatter* f) const = 0;
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
-  virtual bool Is##type() const { return false; }                              \
+  bool Is##type() { return (As##type() != NULL); }                             \
   virtual type##Instr* As##type() { return NULL; }
 FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
@@ -351,7 +352,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
-  friend class BindInstr;  // Needed for BindInstr::InsertBefore.
+  friend class Definition;  // Needed for InsertBefore, InsertAfter.
 
   intptr_t lifetime_position_;  // Position used by register allocator.
   Instruction* previous_;
@@ -489,7 +490,7 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 // branches.
 class BlockEntryInstr : public Instruction {
  public:
-  virtual bool IsBlockEntry() const { return true; }
+  virtual BlockEntryInstr* AsBlockEntry() { return this; }
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
@@ -786,15 +787,18 @@ class TargetEntryInstr : public BlockEntryInstr {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
+  enum UseKind { kEffect, kValue };
+
   Definition()
       : temp_index_(-1),
         ssa_temp_index_(-1),
         propagated_type_(AbstractType::Handle()),
         propagated_cid_(kIllegalCid),
         input_use_list_(NULL),
-        env_use_list_(NULL) { }
+        env_use_list_(NULL),
+        use_kind_(kValue) {  // Phis and parameters rely on this default.
+  }
 
-  virtual bool IsDefinition() const { return true; }
   virtual Definition* AsDefinition() { return this; }
 
   intptr_t temp_index() const { return temp_index_; }
@@ -803,9 +807,13 @@ class Definition : public Instruction {
   intptr_t ssa_temp_index() const { return ssa_temp_index_; }
   void set_ssa_temp_index(intptr_t index) {
     ASSERT(index >= 0);
+    ASSERT(is_used());
     ssa_temp_index_ = index;
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
+
+  bool is_used() const { return (use_kind_ != kEffect); }
+  void set_use_kind(UseKind kind) { use_kind_ = kind; }
 
   // Compile time type of the definition, which may be requested before type
   // propagation during graph building.
@@ -849,6 +857,12 @@ class Definition : public Instruction {
   // Postcondition: use lists and use values are still valid.
   void ReplaceUsesWith(Definition* other);
 
+  // Insert this definition before 'next'.
+  void InsertBefore(Instruction* next);
+
+  // Insert this definition after 'prev'.
+  void InsertAfter(Instruction* prev);
+
  private:
   intptr_t temp_index_;
   intptr_t ssa_temp_index_;
@@ -858,6 +872,7 @@ class Definition : public Instruction {
   intptr_t propagated_cid_;
   Value* input_use_list_;
   Value* env_use_list_;
+  UseKind use_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -865,49 +880,41 @@ class Definition : public Instruction {
 
 class BindInstr : public Definition {
  public:
-  enum UseKind { kUnused, kUsed };
-
   BindInstr(UseKind used, Computation* computation)
-      : computation_(computation), is_used_(used != kUnused) {
+      : computation_(computation) {
     ASSERT(computation != NULL);
+    set_use_kind(used);
   }
 
   DECLARE_INSTRUCTION(Bind)
 
+  // Overridden functions from class Instruction.
   virtual intptr_t ArgumentCount() const;
   intptr_t InputCount() const;
   Value* InputAt(intptr_t i) const;
   void SetInputAt(intptr_t i, Value* value);
   virtual bool CanDeoptimize() const;
-
-  Computation* computation() const { return computation_; }
-  void set_computation(Computation* value) { computation_ = value; }
-  bool is_used() const { return is_used_; }
-
-  virtual RawAbstractType* CompileType() const;
-  virtual intptr_t GetPropagatedCid();
-
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
-
-  intptr_t Hashcode() const;
-  bool Equals(BindInstr* other) const;
   virtual LocationSummary* locs();
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  // Insert this instruction before 'next'.
-  void InsertBefore(Instruction* next);
-
-  // Insert this instruction after 'prev'.
-  void InsertAfter(Instruction* prev);
-
   virtual Representation RequiredInputRepresentation(intptr_t i) const;
   virtual Representation representation() const;
   virtual intptr_t DeoptimizationTarget() const;
 
+  Computation* computation() const { return computation_; }
+  void set_computation(Computation* value) { computation_ = value; }
+
+  // Overridden functions from class Definition.
+  virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid();
+
+  // Other functions that forward to the computation.
+  intptr_t Hashcode() const;
+  bool Equals(BindInstr* other) const;
+
  private:
   Computation* computation_;
-  const bool is_used_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
@@ -1174,7 +1181,7 @@ class ControlInstruction : public Instruction {
  public:
   ControlInstruction() : true_successor_(NULL), false_successor_(NULL) { }
 
-  virtual bool IsControl() const { return true; }
+  virtual ControlInstruction* AsControl() { return this; }
 
   TargetEntryInstr* true_successor() const { return true_successor_; }
   TargetEntryInstr* false_successor() const { return false_successor_; }

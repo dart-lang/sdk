@@ -67,7 +67,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 Value* EffectGraphVisitor::Bind(Computation* computation) {
   ASSERT(is_open());
   DeallocateTempIndex(computation->InputCount());
-  BindInstr* bind_instr = new BindInstr(BindInstr::kUsed, computation);
+  BindInstr* bind_instr = new BindInstr(Definition::kValue, computation);
   bind_instr->set_temp_index(AllocateTempIndex());
   if (is_empty()) {
     entry_ = bind_instr;
@@ -82,7 +82,7 @@ Value* EffectGraphVisitor::Bind(Computation* computation) {
 void EffectGraphVisitor::Do(Computation* computation) {
   ASSERT(is_open());
   DeallocateTempIndex(computation->InputCount());
-  BindInstr* do_instr = new BindInstr(BindInstr::kUnused, computation);
+  BindInstr* do_instr = new BindInstr(Definition::kEffect, computation);
   if (is_empty()) {
     entry_ = do_instr;
   } else {
