@@ -123,6 +123,7 @@ class DartBackend extends Backend {
       element.kind !== ElementKind.VOID &&
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
       !element.getLibrary().isPlatformLibrary &&
+      element is !SynthesizedConstructorElement &&
       element is !AbstractFieldElement;
 
     final elementAsts = new Map<Element, ElementAst>();

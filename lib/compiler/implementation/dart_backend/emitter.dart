@@ -9,7 +9,6 @@ String emitCode(
       Collection<Element> topLevelElements,
       Map<ClassElement, Collection<Element>> classMembers) {
   void outputElement(Element element) {
-    if (element is SynthesizedConstructorElement) return;
     unparser.unparse(element.parseNode(compiler));
   }
 
