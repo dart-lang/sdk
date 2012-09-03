@@ -211,7 +211,7 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
 intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t port,
                                         intptr_t backlog) {
-  in_addr_t s_addr = TEMP_FAILURE_RETRY(inet_addr(host));
+  unsigned long s_addr = TEMP_FAILURE_RETRY(inet_addr(host));  // NOLINT
   if (s_addr == INADDR_NONE) {
     return -5;
   }
