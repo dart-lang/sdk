@@ -245,9 +245,23 @@ static bool HasOneDouble(const ICData& ic_data) {
 }
 
 
-static bool HasOnlyTwoDouble(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid, kDoubleCid);
+static bool ShouldSpecializeForDouble(const ICData& ic_data) {
+  if (ic_data.NumberOfChecks() != 1) return false;
+  if (ic_data.num_args_tested() != 2) return false;
+
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
+  ASSERT(class_ids.length() == 2);
+
+  const bool seen_double =
+      (class_ids[0] == kDoubleCid) || (class_ids[1] == kDoubleCid);
+
+  const bool seen_only_smi_or_double =
+      ((class_ids[0] == kDoubleCid) || (class_ids[0] == kSmiCid)) &&
+      ((class_ids[1] == kDoubleCid) || (class_ids[1] == kSmiCid));
+
+  return seen_double && seen_only_smi_or_double;
 }
 
 
@@ -394,19 +408,22 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     case Token::kMUL:
       if (HasOnlyTwoSmi(ic_data)) {
         operands_type = kSmiCid;
-      } else if (HasOnlyTwoDouble(ic_data)) {
+      } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
       } else {
         return false;
       }
       break;
     case Token::kDIV:
-    case Token::kMOD:
-      if (HasOnlyTwoDouble(ic_data)) {
+      if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
       } else {
         return false;
       }
+      break;
+    case Token::kMOD:
+      // TODO(vegorov): implement fast path code for modulo.
+      return false;
     case Token::kBIT_AND:
       if (HasOnlyTwoSmi(ic_data)) {
         operands_type = kSmiCid;
@@ -784,7 +801,7 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
 
   if (HasOnlyTwoSmi(ic_data)) {
     comp->set_operands_class_id(kSmiCid);
-  } else if (HasOnlyTwoDouble(ic_data)) {
+  } else if (ShouldSpecializeForDouble(ic_data)) {
     comp->set_operands_class_id(kDoubleCid);
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_operands_class_id(kNumberCid);
