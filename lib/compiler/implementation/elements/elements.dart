@@ -1510,6 +1510,8 @@ class Elements {
     } else if (selector == const SourceString('negate')) {
       // TODO(ahe): Remove this case: Legacy support for pre-0.11 spec.
       return selector;
+    } else if (str === '?') {
+      return selector;
     } else {
       throw new Exception('Unhandled selector: ${selector.slowToString()}');
     }

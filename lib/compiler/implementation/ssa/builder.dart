@@ -1779,6 +1779,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitUnary(Send node, Operator op) {
+    String value = op.source.stringValue;
+    if (value === '?') {
+      // TODO(ahe): Implement argument definition test.
+      stack.add(graph.addConstantBool(true));
+      return;
+    }
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
     assert(op.token.kind !== PLUS_TOKEN);
@@ -1788,7 +1794,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     HInvokeUnary result;
-    String value = op.source.stringValue;
     switch (value) {
       case "-": result = new HNegate(target, operand); break;
       case "~": result = new HBitNot(target, operand); break;

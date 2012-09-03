@@ -7,6 +7,11 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 regress/4740_test: Fail
+argument_definition_test/01: Fail
+argument_definition_test/02: Fail
+argument_definition_test/03: Fail
+argument_definition_test/04: Fail
+argument_definition_test/05: Fail
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK
