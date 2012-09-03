@@ -24,7 +24,7 @@ testClassDef() {
   compareCode('''
       class T{}
       ''', '''
-      class T {
+      class T{
       }
       ''');
 }
@@ -33,7 +33,7 @@ testClass1Field() {
   compareCode('''
       class T{var x;}
       ''', '''
-      class T {
+      class T{
         var x;
       }
   ''');
@@ -43,7 +43,7 @@ testClass2Fields() {
   compareCode('''
       class T{var x; var y;}
       ''', '''
-      class T {
+      class T{
         var x;
         var y;
       }
@@ -54,7 +54,7 @@ testClass1Field1Method() {
   compareCode('''
       class T{var x;m(){}}
       ''', '''
-      class T {
+      class T{
         var x;
         m(){}
       }
@@ -65,7 +65,7 @@ testClass1Field2Method() {
   compareCode('''
       class T{a(){}b(){}}
       ''', '''
-      class T {
+      class T{
         a(){}
         b(){}
       }
@@ -76,7 +76,7 @@ testClassDefTypeParam() {
   compareCode('''
       class T<X>{}
       ''', '''
-      class T<X> {
+      class T<X>{
       }
       ''');
 }

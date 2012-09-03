@@ -29,35 +29,12 @@ String emitCode(
   }
 
   void outputClass(ClassElement classElement, Collection<Element> members) {
-    ClassNode classNode = classElement.parseNode(compiler);
-    // classElement.beginToken is 'class', 'interface', or 'abstract'.
-    unparser.addToken(classNode.beginToken);
-    if (classNode.beginToken.stringValue == 'abstract') {
-      unparser.addToken(classNode.beginToken.next);
-    }
-    unparser.unparse(classNode.name);
-    if (classNode.typeParameters !== null) {
-      unparser.unparse(classNode.typeParameters);
-    }
-    if (classNode.extendsKeyword !== null) {
-      unparser.addString(' ');
-      unparser.addToken(classNode.extendsKeyword);
-      unparser.unparse(classNode.superclass);
-    }
-    if (!classNode.interfaces.isEmpty()) {
-      unparser.addString(' ');
-      unparser.unparse(classNode.interfaces);
-    }
-    if (classNode.defaultClause !== null) {
-      unparser.addString(' default ');
-      unparser.unparse(classNode.defaultClause);
-    }
-    unparser.addString('{');
-    members.forEach((element) {
-      // TODO(smok): Filter out default constructors here.
-      outputElement(element);
+    unparser.unparseClassWithBody(classElement.parseNode(compiler), () {
+      members.forEach((element) {
+        // TODO(smok): Filter out default constructors here.
+        outputElement(element);
+      });
     });
-    unparser.addString('}');
   }
 
   imports.forEach((libraryElement, prefix) {

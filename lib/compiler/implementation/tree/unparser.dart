@@ -66,34 +66,47 @@ class Unparser implements Visitor {
     visit(node.expression);
   }
 
-  visitClassNode(ClassNode node) {
+  unparseClassWithBody(ClassNode node, void classBodyEmitter()) {
     addToken(node.beginToken);
+    if (node.beginToken.stringValue == 'abstract') {
+      addToken(node.beginToken.next);
+    }
     visit(node.name);
     if (node.typeParameters !== null) {
       visit(node.typeParameters);
     }
-    sb.add(' ');
     if (node.extendsKeyword !== null) {
+      sb.add(' ');
       addToken(node.extendsKeyword);
       visit(node.superclass);
-      sb.add(' ');
     }
-    visit(node.interfaces);
+    if (!node.interfaces.isEmpty()) {
+      sb.add(' ');
+      visit(node.interfaces);
+    }
     if (node.defaultClause !== null) {
+      sb.add(' default ');
       visit(node.defaultClause);
-      sb.add(' ');
     }
-    sb.add('{\n');
-    NodeList body = node.body;
-    if (body !== null) {
-      Link nodes = body.nodes;
-      if (!nodes.isEmpty()) {
-        sb.add('  ');
-        nodes.printOn(sb, '\n  ');
+    sb.add('{');
+    classBodyEmitter();
+    sb.add('}');
+  }
+
+  visitClassNode(ClassNode node) {
+    unparseClassWithBody(node, () {
+      NodeList body = node.body;
+      if (body !== null) {
         sb.add('\n');
+        Link nodes = body.nodes;
+        if (!nodes.isEmpty()) {
+          sb.add('  ');
+          nodes.printOn(sb, '\n  ');
+          sb.add('\n');
+        }
       }
-    }
-    sb.add('}\n');
+    });
+    sb.add('\n');
   }
 
   visitConditional(Conditional node) {
