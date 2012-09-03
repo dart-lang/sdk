@@ -8,24 +8,9 @@ String emitCode(
       Map<LibraryElement, String> imports,
       Collection<Element> topLevelElements,
       Map<ClassElement, Collection<Element>> classMembers) {
-  final processedVariableLists = new Set<VariableListElement>();
-
   void outputElement(Element element) {
     if (element is SynthesizedConstructorElement) return;
-    if (element.isField()) {
-      assert(element is VariableElement);
-      // Different VariableElement's may refer to the same VariableListElement.
-      // Output this list only once.
-      // TODO: only emit used variables.
-      VariableElement variableElement = element;
-      final variableList = variableElement.variables;
-      if (!processedVariableLists.contains(variableList)) {
-        processedVariableLists.add(variableList);
-        unparser.unparse(variableList.parseNode(compiler));
-      }
-    } else {
-      unparser.unparse(element.parseNode(compiler));
-    }
+    unparser.unparse(element.parseNode(compiler));
   }
 
   void outputClass(ClassElement classElement, Collection<Element> members) {

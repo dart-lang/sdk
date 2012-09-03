@@ -215,39 +215,32 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
-  void collectFieldDeclarationPlaceholders(
-      Element element, VariableDefinitions node) {
-    Node fieldNode = element.parseNode(compiler);
-    Identifier name =
-        fieldNode is Identifier ? fieldNode : fieldNode.asSend().selector;
+  void collectFieldDeclarationPlaceholders(Element element, Node node) {
+    Identifier name = node is Identifier ? node : node.asSend().selector;
     if (Elements.isStaticOrTopLevel(element)) {
       makeElementPlaceholder(name, element);
     } else if (Elements.isInstanceField(element)) {
       tryMakeMemberPlaceholder(name);
     }
-    makeVarDeclarationTypePlaceholder(node);
   }
 
   void collect(Element element, TreeElements elements) {
     treeElements = elements;
-    Node elementNode;
+    currentElement = element;
+    Node elementNode = currentElement.parseNode(compiler);
     if (element is FunctionElement) {
-      currentElement = element;
-      elementNode = currentElement.parseNode(compiler);
       collectFunctionDeclarationPlaceholders(element, elementNode);
-    } else if (element.isField()) {
-      // TODO(smok): In the future make sure we don't process same
-      // variable list element twice, better merge this with emitter logic.
-      currentElement = (element as VariableElement).variables;
-      elementNode = currentElement.parseNode(compiler);
-      // We don't collect other elements from the same variable lists
-      // if they are not used. http://dartbug.com/4536
-      collectFieldDeclarationPlaceholders(element, elementNode);
-    } else if (element is ClassElement || element is TypedefElement) {
-      currentElement = element;
-      elementNode = currentElement.parseNode(compiler);
+    } else if (element is VariableListElement) {
+      VariableDefinitions definitions = elementNode;
+      for (Node definition in definitions.definitions) {
+        final definitionElement = elements[definition];
+        // definitionElement === null if variable is actually unused.
+        if (definitionElement === null) continue;
+        collectFieldDeclarationPlaceholders(definitionElement, definition);
+      }
+      makeVarDeclarationTypePlaceholder(definitions);
     } else {
-      unreachable();
+      assert(element is ClassElement || element is TypedefElement);
     }
     currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     compiler.withCurrentElement(element, () {
