@@ -229,6 +229,9 @@ class MessageKind {
   static const ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
       "Error: illegal constructor modifiers: #{1}.");
 
+  static const PARAMETER_NAME_EXPECTED = const MessageKind(
+      "Error: parameter name expected.");
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

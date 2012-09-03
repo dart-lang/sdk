@@ -1338,6 +1338,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         assert(node.arguments.tail.isEmpty());
         resolveTypeTest(node.arguments.head);
         resolvedArguments = true;
+      } else if (operatorString === '?') {
+        Element parameter = mapping[node.receiver];
+        if (parameter === null || parameter.kind !== ElementKind.PARAMETER) {
+          error(node.receiver, MessageKind.PARAMETER_NAME_EXPECTED);
+        } else {
+          warning(node, MessageKind.GENERIC,
+                  ['argument definition test operator is not implemented.']);
+        }
       }
     }
 
