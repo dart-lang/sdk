@@ -36,6 +36,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitBind(BindInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
 
+  // TODO(fschneider): Once we get rid of the distinction between Instruction
+  // and computation, this can be made private again.
+  BindInstr* InsertBefore(Instruction* instr,
+                          Computation* comp,
+                          Environment* env,
+                          BindInstr::UseKind use_kind);
+
  private:
   bool TryReplaceWithArrayOp(BindInstr* instr,
                              InstanceCallComp* comp,
@@ -54,11 +61,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
 
   void AddCheckClass(BindInstr* instr, InstanceCallComp* comp, Value* value);
-
-  BindInstr* InsertBefore(Instruction* instr,
-                          Computation* comp,
-                          Environment* env,
-                          BindInstr::UseKind use_kind);
 
   BindInstr* InsertAfter(Instruction* instr,
                          Computation* comp,

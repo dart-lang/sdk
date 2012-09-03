@@ -340,7 +340,7 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
       // original environment because the operation can still deoptimize.
       AddCheckClass(instr, comp, array->Copy());
       InsertBefore(instr,
-                   new CheckSmiComp(index->Copy(), comp),
+                   new CheckSmiComp(index->Copy(), comp->deopt_id()),
                    instr->env(),
                    BindInstr::kUnused);
       // Insert array bounds check.
@@ -491,11 +491,11 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
     // Insert two smi checks and attach a copy of the original
     // environment because the smi operation can still deoptimize.
     InsertBefore(instr,
-                 new CheckSmiComp(left->Copy(), comp),
+                 new CheckSmiComp(left->Copy(), comp->deopt_id()),
                  instr->env(),
                  BindInstr::kUnused);
     InsertBefore(instr,
-                 new CheckSmiComp(right->Copy(), comp),
+                 new CheckSmiComp(right->Copy(), comp->deopt_id()),
                  instr->env(),
                  BindInstr::kUnused);
     BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
@@ -521,7 +521,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   if (HasOneSmi(*comp->ic_data())) {
     Value* value = comp->ArgumentAt(0)->value();
     InsertBefore(instr,
-                 new CheckSmiComp(value->Copy(), comp),
+                 new CheckSmiComp(value->Copy(), comp->deopt_id()),
                  instr->env(),
                  BindInstr::kUnused);
     unary_op = new UnarySmiOpComp(op_kind,
@@ -789,8 +789,11 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
 }
 
 
-void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
-                                           BindInstr* instr) {
+// TODO(fschneider): Once we get rid of the distinction between Instruction
+// and computation, this helper can go away.
+static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
+                               RelationalOpComp* comp,
+                               Instruction* instr) {
   if (!comp->HasICData()) return;
 
   const ICData& ic_data = *comp->ic_data();
@@ -800,6 +803,16 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
   ASSERT(HasOneTarget(ic_data));
 
   if (HasOnlyTwoSmi(ic_data)) {
+    optimizer->InsertBefore(
+        instr,
+        new CheckSmiComp(comp->left()->Copy(), comp->deopt_id()),
+        instr->env(),
+        BindInstr::kUnused);
+    optimizer->InsertBefore(
+        instr,
+        new CheckSmiComp(comp->right()->Copy(), comp->deopt_id()),
+        instr->env(),
+        BindInstr::kUnused);
     comp->set_operands_class_id(kSmiCid);
   } else if (ShouldSpecializeForDouble(ic_data)) {
     comp->set_operands_class_id(kDoubleCid);
@@ -808,9 +821,18 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
   }
 }
 
+void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
+                                           BindInstr* instr) {
+  HandleRelationalOp(this, comp, instr);
+}
 
-void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
-                                              BindInstr* instr) {
+
+// TODO(fschneider): Once we get rid of the distinction between Instruction
+// and computation, this helper can go away.
+template <typename T>
+static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
+                                  EqualityCompareComp* comp,
+                                  T instr) {
   // If one of the inputs is null, no ICdata will be collected.
   if (comp->left()->BindsToConstantNull() ||
       comp->right()->BindsToConstantNull()) {
@@ -829,6 +851,16 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
     comp->ic_data()->GetCheckAt(0, &class_ids, &target);
     // TODO(srdjan): allow for mixed mode comparison.
     if ((class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
+      optimizer->InsertBefore(
+          instr,
+          new CheckSmiComp(comp->left()->Copy(), comp->deopt_id()),
+          instr->env(),
+          BindInstr::kUnused);
+      optimizer->InsertBefore(
+          instr,
+          new CheckSmiComp(comp->right()->Copy(), comp->deopt_id()),
+          instr->env(),
+          BindInstr::kUnused);
       comp->set_receiver_class_id(kSmiCid);
     } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
       comp->set_receiver_class_id(kDoubleCid);
@@ -841,13 +873,27 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
 }
 
 
+void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
+                                              BindInstr* instr) {
+  HandleEqualityCompare(this, comp, instr);
+}
+
+
 void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
   instr->computation()->Accept(this, instr);
 }
 
 
 void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
-  instr->computation()->Accept(this, NULL);
+  ComparisonComp* comparison = instr->computation();
+  if (comparison->IsRelationalOp()) {
+    HandleRelationalOp(this, comparison->AsRelationalOp(), instr);
+  } else if (comparison->IsEqualityCompare()) {
+    HandleEqualityCompare(this, comparison->AsEqualityCompare(), instr);
+  } else {
+    ASSERT(comparison->IsStrictCompare());
+    // Nothing to do.
+  }
 }
 
 

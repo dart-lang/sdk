@@ -573,19 +573,6 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 intptr_t deopt_id) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
-  const bool left_is_smi = (branch == NULL) ?
-      false : (branch->computation()->left()->ResultCid() == kSmiCid);
-  const bool right_is_smi = (branch == NULL) ?
-      false : (branch->computation()->right()->ResultCid() == kSmiCid);
-  // TODO(fschneider): Move smi smi checks outside this instruction.
-  if (!left_is_smi || !right_is_smi) {
-    Register temp = locs.temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptSmiCompareSmi);
-    __ movq(temp, left);
-    __ orq(temp, right);
-    __ testq(temp, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt);
-  }
 
   Condition true_condition = TokenKindToSmiCondition(kind);
   __ cmpq(left, right);

@@ -134,7 +134,7 @@ class Computation : public ZoneAllocated {
       : deopt_id_(Isolate::Current()->GetNextDeoptId()), locs_(NULL) { }
 
   // Unique id used for deoptimization.
-  intptr_t deopt_id() const {
+  virtual intptr_t deopt_id() const {
     ASSERT(CanDeoptimize());
     return deopt_id_;
   }
@@ -2059,7 +2059,7 @@ class CheckClassComp : public TemplateComputation<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  intptr_t deopt_id() const { return instance_call_->deopt_id(); }
+  virtual intptr_t deopt_id() const { return instance_call_->deopt_id(); }
 
   virtual Definition* TryReplace(BindInstr* instr) const;
 
@@ -2075,9 +2075,10 @@ class CheckClassComp : public TemplateComputation<1> {
 
 class CheckSmiComp : public TemplateComputation<1> {
  public:
-  CheckSmiComp(Value* value, InstanceCallComp* instance_call)
-      : instance_call_(instance_call) {
+  CheckSmiComp(Value* value, intptr_t original_deopt_id)
+      : original_deopt_id_(original_deopt_id) {
     ASSERT(value != NULL);
+    ASSERT(original_deopt_id != Isolate::kNoDeoptId);
     inputs_[0] = value;
   }
 
@@ -2094,10 +2095,10 @@ class CheckSmiComp : public TemplateComputation<1> {
 
   Value* value() const { return inputs_[0]; }
 
-  intptr_t deopt_id() const { return instance_call_->deopt_id(); }
+  virtual intptr_t deopt_id() const { return original_deopt_id_; }
 
  private:
-  InstanceCallComp* instance_call_;
+  const intptr_t original_deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiComp);
 };
@@ -2130,7 +2131,7 @@ class CheckArrayBoundComp : public TemplateComputation<2> {
 
   intptr_t array_type() const { return array_type_; }
 
-  intptr_t deopt_id() const { return instance_call_->deopt_id(); }
+  virtual intptr_t deopt_id() const { return instance_call_->deopt_id(); }
 
  private:
   intptr_t array_type_;
