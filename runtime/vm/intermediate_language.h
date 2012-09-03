@@ -130,22 +130,13 @@ enum Representation {
 
 class Computation : public ZoneAllocated {
  public:
-  Computation() : deopt_id_(Isolate::kNoDeoptId), ic_data_(NULL), locs_(NULL) {
-    Isolate* isolate = Isolate::Current();
-    deopt_id_ = isolate->GetNextDeoptId();
-    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
-  }
+  Computation()
+      : deopt_id_(Isolate::Current()->GetNextDeoptId()), locs_(NULL) { }
 
   // Unique id used for deoptimization.
   intptr_t deopt_id() const {
     ASSERT(CanDeoptimize());
     return deopt_id_;
-  }
-
-  const ICData* ic_data() const { return ic_data_; }
-  void set_ic_data(const ICData* value) { ic_data_ = value; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
   }
 
   // Visiting support.
@@ -278,7 +269,6 @@ FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
   friend class BranchInstr;
 
   intptr_t deopt_id_;
-  const ICData* ic_data_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -656,7 +646,8 @@ class InstanceCallComp : public TemplateComputation<0> {
                    ZoneGrowableArray<PushArgumentInstr*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
-      : token_pos_(token_pos),
+      : ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
+        token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
         arguments_(arguments),
@@ -675,6 +666,11 @@ class InstanceCallComp : public TemplateComputation<0> {
 
   DECLARE_CALL_COMPUTATION(InstanceCall)
 
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
+
   intptr_t token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
@@ -691,6 +687,7 @@ class InstanceCallComp : public TemplateComputation<0> {
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
+  const ICData* ic_data_;
   const intptr_t token_pos_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
@@ -704,8 +701,10 @@ class InstanceCallComp : public TemplateComputation<0> {
 
 class PolymorphicInstanceCallComp : public TemplateComputation<0> {
  public:
-  explicit PolymorphicInstanceCallComp(InstanceCallComp* comp, bool with_checks)
-      : instance_call_(comp), with_checks_(with_checks) {
+  PolymorphicInstanceCallComp(InstanceCallComp* comp,
+                              const ICData& ic_data,
+                              bool with_checks)
+      : instance_call_(comp), ic_data_(ic_data), with_checks_(with_checks) {
     ASSERT(instance_call_ != NULL);
   }
 
@@ -720,11 +719,14 @@ class PolymorphicInstanceCallComp : public TemplateComputation<0> {
 
   DECLARE_CALL_COMPUTATION(PolymorphicInstanceCall)
 
+  const ICData& ic_data() const { return ic_data_; }
+
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   InstanceCallComp* instance_call_;
+  const ICData& ic_data_;
   const bool with_checks_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallComp);
@@ -784,12 +786,18 @@ class EqualityCompareComp : public ComparisonComp {
                       Value* left,
                       Value* right)
       : ComparisonComp(kind, left, right),
+        ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
         token_pos_(token_pos),
         receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
+
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
 
   intptr_t token_pos() const { return token_pos_; }
 
@@ -818,6 +826,7 @@ class EqualityCompareComp : public ComparisonComp {
   }
 
  private:
+  const ICData* ic_data_;
   const intptr_t token_pos_;
   intptr_t receiver_class_id_;  // Set by optimizer.
 
@@ -832,12 +841,18 @@ class RelationalOpComp : public ComparisonComp {
                    Value* left,
                    Value* right)
       : ComparisonComp(kind, left, right),
+        ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
         token_pos_(token_pos),
         operands_class_id_(kIllegalCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
   DECLARE_COMPUTATION(RelationalOp)
+
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
 
   intptr_t token_pos() const { return token_pos_; }
 
@@ -871,6 +886,7 @@ class RelationalOpComp : public ComparisonComp {
   }
 
  private:
+  const ICData* ic_data_;
   const intptr_t token_pos_;
   intptr_t operands_class_id_;  // class id of both operands.
 
@@ -1812,6 +1828,8 @@ class BinarySmiOpComp : public TemplateComputation<2> {
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
+  const ICData* ic_data() const { return instance_call()->ic_data(); }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_COMPUTATION(BinarySmiOp)
@@ -1849,6 +1867,8 @@ class BinaryMintOpComp : public TemplateComputation<2> {
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
+  const ICData* ic_data() const { return instance_call()->ic_data(); }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_COMPUTATION(BinaryMintOp)
@@ -1872,6 +1892,8 @@ class BinaryDoubleOpComp : public TemplateComputation<0> {
   Token::Kind op_kind() const { return op_kind_; }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
+
+  const ICData* ic_data() const { return instance_call()->ic_data(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1934,6 +1956,8 @@ class NumberNegateComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
+
+  const ICData* ic_data() const { return instance_call()->ic_data(); }
 
   DECLARE_COMPUTATION(NumberNegate)
 
@@ -2013,8 +2037,11 @@ class SmiToDoubleComp : public TemplateComputation<0> {
 
 class CheckClassComp : public TemplateComputation<1> {
  public:
-  CheckClassComp(Value* value, InstanceCallComp* original)
-      : original_(original) {
+  CheckClassComp(Value* value,
+                 InstanceCallComp* instance_call,
+                 const ICData& unary_checks)
+      : instance_call_(instance_call),
+        unary_checks_(unary_checks) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
@@ -2030,14 +2057,17 @@ class CheckClassComp : public TemplateComputation<1> {
 
   Value* value() const { return inputs_[0]; }
 
-  intptr_t deopt_id() const { return original_->deopt_id(); }
+  const ICData& unary_checks() const { return unary_checks_; }
+
+  intptr_t deopt_id() const { return instance_call_->deopt_id(); }
 
   virtual Definition* TryReplace(BindInstr* instr) const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  InstanceCallComp* original_;
+  InstanceCallComp* instance_call_;
+  const ICData& unary_checks_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassComp);
 };
@@ -2045,8 +2075,8 @@ class CheckClassComp : public TemplateComputation<1> {
 
 class CheckSmiComp : public TemplateComputation<1> {
  public:
-  CheckSmiComp(Value* value, InstanceCallComp* original)
-      : original_(original) {
+  CheckSmiComp(Value* value, InstanceCallComp* instance_call)
+      : instance_call_(instance_call) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
@@ -2064,10 +2094,10 @@ class CheckSmiComp : public TemplateComputation<1> {
 
   Value* value() const { return inputs_[0]; }
 
-  intptr_t deopt_id() const { return original_->deopt_id(); }
+  intptr_t deopt_id() const { return instance_call_->deopt_id(); }
 
  private:
-  InstanceCallComp* original_;
+  InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiComp);
 };
@@ -2078,8 +2108,8 @@ class CheckArrayBoundComp : public TemplateComputation<2> {
   CheckArrayBoundComp(Value* array,
                       Value* index,
                       intptr_t array_type,
-                      InstanceCallComp* original)
-      : array_type_(array_type), original_(original) {
+                      InstanceCallComp* instance_call)
+      : array_type_(array_type), instance_call_(instance_call) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -2100,11 +2130,11 @@ class CheckArrayBoundComp : public TemplateComputation<2> {
 
   intptr_t array_type() const { return array_type_; }
 
-  intptr_t deopt_id() const { return original_->deopt_id(); }
+  intptr_t deopt_id() const { return instance_call_->deopt_id(); }
 
  private:
   intptr_t array_type_;
-  InstanceCallComp* original_;
+  InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundComp);
 };
@@ -2703,7 +2733,7 @@ class TargetEntryInstr : public BlockEntryInstr {
         catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
 
   // Used for exception catch entries.
-  explicit TargetEntryInstr(intptr_t try_index, intptr_t catch_try_index)
+  TargetEntryInstr(intptr_t try_index, intptr_t catch_try_index)
       : BlockEntryInstr(try_index),
         predecessor_(NULL),
         catch_try_index_(catch_try_index) { }

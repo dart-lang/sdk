@@ -50,13 +50,14 @@ bool Value::Equals(Value* other) const {
 bool CheckClassComp::AttributesEqual(Computation* other) const {
   CheckClassComp* other_check = other->AsCheckClass();
   if (other_check == NULL) return false;
-  if (ic_data()->NumberOfChecks() != other->ic_data()->NumberOfChecks()) {
+  if (unary_checks().NumberOfChecks() !=
+      other_check->unary_checks().NumberOfChecks()) {
     return false;
   }
-  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < unary_checks().NumberOfChecks(); ++i) {
     // TODO(fschneider): Make sure ic_data are sorted to hit more cases.
-    if (ic_data()->GetReceiverClassIdAt(i) !=
-        other->ic_data()->GetReceiverClassIdAt(i)) {
+    if (unary_checks().GetReceiverClassIdAt(i) !=
+        other_check->unary_checks().GetReceiverClassIdAt(i)) {
       return false;
     }
   }
@@ -1113,9 +1114,9 @@ Definition* StrictCompareComp::TryReplace(BindInstr* instr) const {
 
 Definition* CheckClassComp::TryReplace(BindInstr* instr) const {
   const intptr_t v_cid = value()->ResultCid();
-  const intptr_t num_checks = ic_data()->NumberOfChecks();
+  const intptr_t num_checks = unary_checks().NumberOfChecks();
   if ((num_checks == 1) &&
-      (v_cid == ic_data()->GetReceiverClassIdAt(0))) {
+      (v_cid == unary_checks().GetReceiverClassIdAt(0))) {
     // No checks needed.
     return NULL;
   }

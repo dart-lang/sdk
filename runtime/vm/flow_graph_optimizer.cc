@@ -277,7 +277,7 @@ static bool HasOneTarget(const ICData& ic_data) {
 }
 
 
-static intptr_t ReceiverClassId(Computation* comp) {
+static intptr_t ReceiverClassId(InstanceCallComp* comp) {
   if (!comp->HasICData()) return kIllegalCid;
 
   const ICData& ic_data = *comp->ic_data();
@@ -298,10 +298,9 @@ void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
                                        InstanceCallComp* comp,
                                        Value* value) {
   // Type propagation has not run yet, we cannot eliminate the check.
-  CheckClassComp* check = new CheckClassComp(value, comp);
   const ICData& unary_checks =
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
-  check->set_ic_data(&unary_checks);
+  CheckClassComp* check = new CheckClassComp(value, comp, unary_checks);
   InsertBefore(instr, check, instr->env(), BindInstr::kUnused);
 }
 
@@ -345,7 +344,6 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
         Value* value = comp->ArgumentAt(2)->value();
         array_op = new StoreIndexedComp(array, index, value, class_id);
       }
-      array_op->set_ic_data(comp->ic_data());
       instr->set_computation(array_op);
       RemovePushArguments(comp);
       return true;
@@ -453,13 +451,11 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                         left->Copy(),
                                         right->Copy(),
                                         comp);
-      double_bin_op->set_ic_data(comp->ic_data());
       instr->set_computation(double_bin_op);
 
       RemovePushArguments(comp);
     } else {
       BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
-      double_bin_op->set_ic_data(comp->ic_data());
       instr->set_computation(double_bin_op);
     }
   } else if (operands_type == kMintCid) {
@@ -469,7 +465,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                                     comp,
                                                     left,
                                                     right);
-    bin_op->set_ic_data(comp->ic_data());
     instr->set_computation(bin_op);
     RemovePushArguments(comp);
   } else {
@@ -490,7 +485,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                                   comp,
                                                   left,
                                                   right);
-    bin_op->set_ic_data(comp->ic_data());
     instr->set_computation(bin_op);
     RemovePushArguments(comp);
   }
@@ -521,7 +515,6 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   }
   if (unary_op == NULL) return false;
 
-  unary_op->set_ic_data(comp->ic_data());
   instr->set_computation(unary_op);
   RemovePushArguments(comp);
   return true;
@@ -713,8 +706,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
         call_with_checks = true;
       }
       PolymorphicInstanceCallComp* call =
-          new PolymorphicInstanceCallComp(comp, call_with_checks);
-      call->set_ic_data(&unary_checks);
+          new PolymorphicInstanceCallComp(comp,
+                                          unary_checks,
+                                          call_with_checks);
       instr->set_computation(call);
     }
   }

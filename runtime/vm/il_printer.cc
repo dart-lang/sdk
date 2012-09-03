@@ -136,9 +136,6 @@ void Computation::PrintTo(BufferFormatter* f) const {
   f->Print("%s:%d(", DebugName(), deopt_id_);
   PrintOperandsTo(f);
   f->Print(")");
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
 }
 
 
@@ -207,6 +204,9 @@ void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
   }
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
 }
 
 
@@ -214,9 +214,7 @@ void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
   f->Print("%s(", DebugName());
   instance_call()->PrintOperandsTo(f);
   f->Print(") ");
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
+  PrintICData(f, ic_data());
 }
 
 
@@ -232,6 +230,9 @@ void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s ", Token::Str(kind()));
   right()->PrintTo(f);
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
 }
 
 
@@ -305,6 +306,9 @@ void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
 }
 
 
@@ -423,11 +427,7 @@ void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void CheckClassComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", cid={");
-  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); i++) {
-    f->Print("%d ", ic_data()->GetReceiverClassIdAt(i));
-  }
-  f->Print("}");
+  PrintICData(f, unary_checks());
 }
 
 

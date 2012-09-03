@@ -2120,14 +2120,13 @@ LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
 void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         kDeoptPolymorphicInstanceCallTestFail);
-  if (!HasICData() || (ic_data()->NumberOfChecks() == 0)) {
+  if (ic_data().NumberOfChecks() == 0) {
     __ jmp(deopt);
     return;
   }
-  ASSERT(HasICData());
-  ASSERT(ic_data()->num_args_tested() == 1);
+  ASSERT(ic_data().num_args_tested() == 1);
   if (!with_checks()) {
-    const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(0));
+    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
     compiler->GenerateStaticCall(instance_call()->deopt_id(),
                                  instance_call()->token_pos(),
                                  target,
@@ -2146,7 +2145,7 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(ZERO, &done);
   __ LoadClassId(RDI, RAX);
   __ Bind(&done);
-  compiler->EmitTestAndCall(*ic_data(),
+  compiler->EmitTestAndCall(ic_data(),
                             RDI,  // Class id register.
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
@@ -2178,15 +2177,15 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckClass);
-  ASSERT(ic_data()->GetReceiverClassIdAt(0) != kSmiCid);
+  ASSERT(unary_checks().GetReceiverClassIdAt(0) != kSmiCid);
   __ testq(value, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   __ LoadClassId(temp, value);
   Label is_ok;
-  const intptr_t num_checks = ic_data()->NumberOfChecks();
+  const intptr_t num_checks = unary_checks().NumberOfChecks();
   const bool use_near_jump = num_checks < 5;
   for (intptr_t i = 0; i < num_checks; i++) {
-    __ cmpl(temp, Immediate(ic_data()->GetReceiverClassIdAt(i)));
+    __ cmpl(temp, Immediate(unary_checks().GetReceiverClassIdAt(i)));
     if (i == (num_checks - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
