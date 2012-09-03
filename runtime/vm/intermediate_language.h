@@ -14,6 +14,20 @@
 
 namespace dart {
 
+class BindInstr;
+class BitVector;
+class BlockEntryInstr;
+class BufferFormatter;
+class ComparisonComp;
+class Computation;
+class Definition;
+class Environment;
+class FlowGraphCompiler;
+class FlowGraphVisitor;
+class Instruction;
+class LocalVariable;
+
+
 // TODO(srdjan): Add _ByteArrayBase, get:length.
 
 #define RECOGNIZED_LIST(V)                                                     \
@@ -42,12 +56,1188 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 };
 
 
-class BitVector;
-class FlowGraphAllocator;
-class FlowGraphCompiler;
-class FlowGraphVisitor;
-class Function;
-class LocalVariable;
+class Value : public ZoneAllocated {
+ public:
+  explicit Value(Definition* definition)
+      : definition_(definition),
+        next_use_(NULL),
+        instruction_(NULL),
+        use_index_(-1) { }
+
+  Definition* definition() const { return definition_; }
+  void set_definition(Definition* definition) { definition_ = definition; }
+
+  Value* next_use() const { return next_use_; }
+  void set_next_use(Value* next) { next_use_ = next; }
+
+  Instruction* instruction() const { return instruction_; }
+  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
+
+  intptr_t use_index() const { return use_index_; }
+  void set_use_index(intptr_t index) { use_index_ = index; }
+
+  void AddToInputUseList();
+  void AddToEnvUseList();
+
+  Value* Copy() { return new Value(definition_); }
+
+  RawAbstractType* CompileType() const;
+  intptr_t ResultCid() const;
+
+  void PrintTo(BufferFormatter* f) const;
+
+  const char* DebugName() const { return "Value"; }
+
+  // Returns true if the value represents a constant.
+  bool BindsToConstant() const;
+
+  // Returns true if the value represents the constant null.
+  bool BindsToConstantNull() const;
+
+  // Assert if BindsToConstant() is false, otherwise returns the constant value.
+  const Object& BoundConstant() const;
+
+  // Reminder: The type of the constant null is the bottom type, which is more
+  // specific than any type.
+  bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
+
+  // Compile time constants, Bool, Smi and Nulls do not need to update
+  // the store buffer.
+  bool NeedsStoreBuffer() const;
+
+  bool Equals(Value* other) const;
+
+ private:
+  Definition* definition_;
+  Value* next_use_;
+  Instruction* instruction_;
+  intptr_t use_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(Value);
+};
+
+
+enum Representation {
+  kTagged, kUnboxedDouble
+};
+
+
+// An embedded container with N elements of type T.  Used (with partial
+// specialization for N=0) because embedded arrays cannot have size 0.
+template<typename T, intptr_t N>
+class EmbeddedArray {
+ public:
+  EmbeddedArray() {
+    for (intptr_t i = 0; i < N; i++) elements_[i] = NULL;
+  }
+
+  intptr_t length() const { return N; }
+
+  const T& operator[](intptr_t i) const {
+    ASSERT(i < length());
+    return elements_[i];
+  }
+
+  T& operator[](intptr_t i) {
+    ASSERT(i < length());
+    return elements_[i];
+  }
+
+  const T& At(intptr_t i) const {
+    return (*this)[i];
+  }
+
+  void SetAt(intptr_t i, const T& val) {
+    (*this)[i] = val;
+  }
+
+ private:
+  T elements_[N];
+};
+
+
+template<typename T>
+class EmbeddedArray<T, 0> {
+ public:
+  intptr_t length() const { return 0; }
+  const T& operator[](intptr_t i) const {
+    UNREACHABLE();
+    static T sentinel = 0;
+    return sentinel;
+  }
+  T& operator[](intptr_t i) {
+    UNREACHABLE();
+    static T sentinel = 0;
+    return sentinel;
+  }
+};
+
+
+// Instructions.
+
+// M is a single argument macro.  It is applied to each concrete instruction
+// type name.  The concrete instruction classes are the name with Instr
+// concatenated.
+#define FOR_EACH_INSTRUCTION(M)                                                \
+  M(GraphEntry)                                                                \
+  M(JoinEntry)                                                                 \
+  M(TargetEntry)                                                               \
+  M(Phi)                                                                       \
+  M(Bind)                                                                      \
+  M(Parameter)                                                                 \
+  M(ParallelMove)                                                              \
+  M(PushArgument)                                                              \
+  M(Return)                                                                    \
+  M(Throw)                                                                     \
+  M(ReThrow)                                                                   \
+  M(Goto)                                                                      \
+  M(Branch)                                                                    \
+
+
+#define FORWARD_DECLARATION(type) class type##Instr;
+FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
+#undef FORWARD_DECLARATION
+
+
+// Functions required in all concrete instruction classes.
+#define DECLARE_INSTRUCTION(type)                                              \
+  virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual bool Is##type() const { return true; }                               \
+  virtual type##Instr* As##type() { return this; }                             \
+  virtual const char* DebugName() const { return #type; }                      \
+  virtual void PrintTo(BufferFormatter* f) const;                              \
+  virtual void PrintToVisualizer(BufferFormatter* f) const;
+
+
+class Instruction : public ZoneAllocated {
+ public:
+  Instruction()
+      : lifetime_position_(-1), previous_(NULL), next_(NULL), env_(NULL) { }
+
+  virtual bool IsBlockEntry() const { return false; }
+  BlockEntryInstr* AsBlockEntry() {
+    return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
+  }
+  virtual bool IsDefinition() const { return false; }
+  virtual Definition* AsDefinition() { return NULL; }
+  virtual bool IsControl() const { return false; }
+
+  virtual intptr_t InputCount() const = 0;
+  virtual Value* InputAt(intptr_t i) const = 0;
+  virtual void SetInputAt(intptr_t i, Value* value) = 0;
+
+  // Call instructions override this function and return the
+  // number of pushed arguments.
+  virtual intptr_t ArgumentCount() const = 0;
+
+  // Returns true, if this instruction can deoptimize.
+  virtual bool CanDeoptimize() const = 0;
+
+  // Visiting support.
+  virtual void Accept(FlowGraphVisitor* visitor) = 0;
+
+  Instruction* previous() const { return previous_; }
+  void set_previous(Instruction* instr) {
+    ASSERT(!IsBlockEntry());
+    previous_ = instr;
+  }
+
+  Instruction* next() const { return next_; }
+  void set_next(Instruction* instr) {
+    ASSERT(!IsGraphEntry());
+    ASSERT(!IsReturn());
+    ASSERT(!IsControl());
+    ASSERT(!IsPhi());
+    ASSERT(instr == NULL || !instr->IsBlockEntry());
+    // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
+    // that do not have a successor. Currently, the graph builder will continue
+    // to append instruction in case of a Throw inside an expression. This
+    // condition should be handled in the graph builder
+    next_ = instr;
+  }
+
+  // Removed this instruction from the graph.
+  Instruction* RemoveFromGraph(bool return_previous = true);
+
+  // Normal instructions can have 0 (inside a block) or 1 (last instruction in
+  // a block) successors. Branch instruction with >1 successors override this
+  // function.
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  void Goto(JoinEntryInstr* entry);
+
+  // Discover basic-block structure by performing a recursive depth first
+  // traversal of the instruction graph reachable from this instruction.  As
+  // a side effect, the block entry instructions in the graph are assigned
+  // numbers in both preorder and postorder.  The array 'preorder' maps
+  // preorder block numbers to the block entry instruction with that number
+  // and analogously for the array 'postorder'.  The depth first spanning
+  // tree is recorded in the array 'parent', which maps preorder block
+  // numbers to the preorder number of the block's spanning-tree parent.
+  // The array 'assigned_vars' maps preorder block numbers to the set of
+  // assigned frame-allocated local variables in the block.  As a side
+  // effect of this function, the set of basic block predecessors (e.g.,
+  // block entry instructions of predecessor blocks) and also the last
+  // instruction in the block is recorded in each entry instruction.
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count) {
+    // Never called for instructions except block entries and branches.
+    UNREACHABLE();
+  }
+
+  // Mutate assigned_vars to add the local variable index for all
+  // frame-allocated locals assigned to by the instruction.
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
+
+  // Printing support.
+  virtual void PrintTo(BufferFormatter* f) const = 0;
+  virtual void PrintToVisualizer(BufferFormatter* f) const = 0;
+
+#define INSTRUCTION_TYPE_CHECK(type)                                           \
+  virtual bool Is##type() const { return false; }                              \
+  virtual type##Instr* As##type() { return NULL; }
+FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+#undef INSTRUCTION_TYPE_CHECK
+
+  // Returns structure describing location constraints required
+  // to emit native code for this instruction.
+  virtual LocationSummary* locs() {
+    // TODO(vegorov): This should be pure virtual method.
+    // However we are temporary using NULL for instructions that
+    // were not converted to the location based code generation yet.
+    return NULL;
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    UNIMPLEMENTED();
+  }
+
+  Environment* env() const { return env_; }
+  void set_env(Environment* env) { env_ = env; }
+
+  intptr_t lifetime_position() const { return lifetime_position_; }
+  void set_lifetime_position(intptr_t pos) {
+    lifetime_position_ = pos;
+  }
+
+  // Returns representation expected for the input operand at the given index.
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+
+  // Representation of the value produced by this computation.
+  virtual Representation representation() const {
+    return kTagged;
+  }
+
+  bool WasEliminated() const {
+    return next() == NULL;
+  }
+
+  // Returns deoptimization id that corresponds to the deoptimization target
+  // that input operands conversions inserted for this instruction can jump
+  // to.
+  virtual intptr_t DeoptimizationTarget() const {
+    UNREACHABLE();
+    return Isolate::kNoDeoptId;
+  }
+
+ private:
+  friend class BindInstr;  // Needed for BindInstr::InsertBefore.
+
+  intptr_t lifetime_position_;  // Position used by register allocator.
+  Instruction* previous_;
+  Instruction* next_;
+  Environment* env_;
+  DISALLOW_COPY_AND_ASSIGN(Instruction);
+};
+
+
+template<intptr_t N>
+class TemplateInstruction: public Instruction {
+ public:
+  TemplateInstruction<N>() : locs_(NULL) { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(value != NULL);
+    inputs_[i] = value;
+  }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  virtual LocationSummary* MakeLocationSummary() const = 0;
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  LocationSummary* locs_;
+};
+
+
+class MoveOperands : public ZoneAllocated {
+ public:
+  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
+
+  Location src() const { return src_; }
+  Location dest() const { return dest_; }
+
+  Location* src_slot() { return &src_; }
+  Location* dest_slot() { return &dest_; }
+
+  void set_src(const Location& value) { src_ = value; }
+  void set_dest(const Location& value) { dest_ = value; }
+
+  // The parallel move resolver marks moves as "in-progress" by clearing the
+  // destination (but not the source).
+  Location MarkPending() {
+    ASSERT(!IsPending());
+    Location dest = dest_;
+    dest_ = Location::NoLocation();
+    return dest;
+  }
+
+  void ClearPending(Location dest) {
+    ASSERT(IsPending());
+    dest_ = dest;
+  }
+
+  bool IsPending() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return dest_.IsInvalid() && !src_.IsInvalid();
+  }
+
+  // True if this move a move from the given location.
+  bool Blocks(Location loc) const {
+    return !IsEliminated() && src_.Equals(loc);
+  }
+
+  // A move is redundant if it's been eliminated, if its source and
+  // destination are the same, or if its destination is unneeded.
+  bool IsRedundant() const {
+    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
+  }
+
+  // We clear both operands to indicate move that's been eliminated.
+  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
+  bool IsEliminated() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return src_.IsInvalid();
+  }
+
+ private:
+  Location dest_;
+  Location src_;
+
+  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
+};
+
+
+class ParallelMoveInstr : public TemplateInstruction<0> {
+ public:
+  ParallelMoveInstr() : moves_(4) { }
+
+  DECLARE_INSTRUCTION(ParallelMove)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  MoveOperands* AddMove(Location dest, Location src) {
+    MoveOperands* move = new MoveOperands(dest, src);
+    moves_.Add(move);
+    return move;
+  }
+
+  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
+
+  void SetSrcSlotAt(intptr_t index, const Location& loc);
+  void SetDestSlotAt(intptr_t index, const Location& loc);
+
+  intptr_t NumMoves() const { return moves_.length(); }
+
+  LocationSummary* MakeLocationSummary() const { return NULL; }
+
+  void EmitNativeCode(FlowGraphCompiler* compiler) { UNREACHABLE(); }
+
+ private:
+  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
+
+  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
+};
+
+
+// Basic block entries are administrative nodes.  There is a distinguished
+// graph entry with no predecessor.  Joins are the only nodes with multiple
+// predecessors.  Targets are all other basic block entries.  The types
+// enforce edge-split form---joins are forbidden as the successors of
+// branches.
+class BlockEntryInstr : public Instruction {
+ public:
+  virtual bool IsBlockEntry() const { return true; }
+
+  virtual intptr_t PredecessorCount() const = 0;
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
+  virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
+
+  intptr_t preorder_number() const { return preorder_number_; }
+  void set_preorder_number(intptr_t number) { preorder_number_ = number; }
+
+  intptr_t postorder_number() const { return postorder_number_; }
+  void set_postorder_number(intptr_t number) { postorder_number_ = number; }
+
+  intptr_t block_id() const { return block_id_; }
+  void set_block_id(intptr_t value) { block_id_ = value; }
+
+  void set_start_pos(intptr_t pos) { start_pos_ = pos; }
+  intptr_t start_pos() const { return start_pos_; }
+  void  set_end_pos(intptr_t pos) { end_pos_ = pos; }
+  intptr_t end_pos() const { return end_pos_; }
+
+  BlockEntryInstr* dominator() const { return dominator_; }
+  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
+
+  const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
+    return dominated_blocks_;
+  }
+
+  void AddDominatedBlock(BlockEntryInstr* block) {
+    dominated_blocks_.Add(block);
+  }
+
+  Instruction* last_instruction() const { return last_instruction_; }
+  void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
+
+  ParallelMoveInstr* parallel_move() const {
+    return parallel_move_;
+  }
+
+  bool HasParallelMove() const {
+    return parallel_move_ != NULL;
+  }
+
+  ParallelMoveInstr* GetParallelMove() {
+    if (parallel_move_ == NULL) {
+      parallel_move_ = new ParallelMoveInstr();
+    }
+    return parallel_move_;
+  }
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
+
+  virtual intptr_t InputCount() const { return 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  intptr_t try_index() const { return try_index_; }
+
+ protected:
+  explicit BlockEntryInstr(intptr_t try_index)
+      : try_index_(try_index),
+        preorder_number_(-1),
+        postorder_number_(-1),
+        block_id_(-1),
+        dominator_(NULL),
+        dominated_blocks_(1),
+        last_instruction_(NULL),
+        parallel_move_(NULL) { }
+
+ private:
+  const intptr_t try_index_;
+  intptr_t preorder_number_;
+  intptr_t postorder_number_;
+  // Starting and ending lifetime positions for this block.  Used by
+  // the linear scan register allocator.
+  intptr_t block_id_;
+  intptr_t start_pos_;
+  intptr_t end_pos_;
+  BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
+  // TODO(fschneider): Optimize the case of one child to save space.
+  GrowableArray<BlockEntryInstr*> dominated_blocks_;
+  Instruction* last_instruction_;
+
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the start of the block.
+  ParallelMoveInstr* parallel_move_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
+};
+
+
+class ForwardInstructionIterator : public ValueObject {
+ public:
+  explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
+      : block_entry_(block_entry), current_(block_entry) {
+    ASSERT(block_entry_->last_instruction()->next() == NULL);
+    Advance();
+  }
+
+  void Advance() {
+    ASSERT(!Done());
+    current_ = current_->next();
+  }
+
+  bool Done() const { return current_ == NULL; }
+
+  // Removes 'current_' from graph and sets 'current_' to previous instruction.
+  void RemoveCurrentFromGraph();
+
+  Instruction* Current() const { return current_; }
+
+ private:
+  BlockEntryInstr* block_entry_;
+  Instruction* current_;
+};
+
+
+class BackwardInstructionIterator : public ValueObject {
+ public:
+  explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
+      : block_entry_(block_entry), current_(block_entry->last_instruction()) {
+    ASSERT(block_entry_->previous() == NULL);
+  }
+
+  void Advance() {
+    ASSERT(!Done());
+    current_ = current_->previous();
+  }
+
+  bool Done() const { return current_ == block_entry_; }
+
+  Instruction* Current() const { return current_; }
+
+ private:
+  BlockEntryInstr* block_entry_;
+  Instruction* current_;
+};
+
+
+class GraphEntryInstr : public BlockEntryInstr {
+ public:
+  explicit GraphEntryInstr(TargetEntryInstr* normal_entry);
+
+  DECLARE_INSTRUCTION(GraphEntry)
+
+  virtual intptr_t PredecessorCount() const { return 0; }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
+
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
+
+  void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+  Environment* start_env() const { return start_env_; }
+  void set_start_env(Environment* env) { start_env_ = env; }
+
+  Definition* constant_null() const { return constant_null_; }
+
+  intptr_t spill_slot_count() const { return spill_slot_count_; }
+  void set_spill_slot_count(intptr_t count) {
+    ASSERT(count >= 0);
+    spill_slot_count_ = count;
+  }
+
+  TargetEntryInstr* normal_entry() const { return normal_entry_; }
+
+ private:
+  TargetEntryInstr* normal_entry_;
+  GrowableArray<TargetEntryInstr*> catch_entries_;
+  Environment* start_env_;
+  Definition* constant_null_;
+  intptr_t spill_slot_count_;
+
+  DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
+};
+
+
+class JoinEntryInstr : public BlockEntryInstr {
+ public:
+  explicit JoinEntryInstr(intptr_t try_index)
+      : BlockEntryInstr(try_index),
+        predecessors_(2),  // Two is the assumed to be the common case.
+        phis_(NULL),
+        phi_count_(0) { }
+
+  DECLARE_INSTRUCTION(JoinEntry)
+
+  virtual intptr_t PredecessorCount() const { return predecessors_.length(); }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    return predecessors_[index];
+  }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    predecessors_.Add(predecessor);
+  }
+
+  // Returns -1 if pred is not in the list.
+  intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
+
+  ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+  void InsertPhi(intptr_t var_index, intptr_t var_count);
+  void RemoveDeadPhis();
+
+  intptr_t phi_count() const { return phi_count_; }
+
+ private:
+  GrowableArray<BlockEntryInstr*> predecessors_;
+  ZoneGrowableArray<PhiInstr*>* phis_;
+  intptr_t phi_count_;
+
+  DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
+};
+
+
+class TargetEntryInstr : public BlockEntryInstr {
+ public:
+  explicit TargetEntryInstr(intptr_t try_index)
+      : BlockEntryInstr(try_index),
+        predecessor_(NULL),
+        catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
+
+  // Used for exception catch entries.
+  TargetEntryInstr(intptr_t try_index, intptr_t catch_try_index)
+      : BlockEntryInstr(try_index),
+        predecessor_(NULL),
+        catch_try_index_(catch_try_index) { }
+
+  DECLARE_INSTRUCTION(TargetEntry)
+
+  virtual intptr_t PredecessorCount() const {
+    return (predecessor_ == NULL) ? 0 : 1;
+  }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    ASSERT((index == 0) && (predecessor_ != NULL));
+    return predecessor_;
+  }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
+
+  // Returns true if this Block is an entry of a catch handler.
+  bool IsCatchEntry() const {
+    return catch_try_index_ != CatchClauseNode::kInvalidTryIndex;
+  }
+
+  // Returns try index for the try block to which this catch handler
+  // corresponds.
+  intptr_t catch_try_index() const {
+    ASSERT(IsCatchEntry());
+    return catch_try_index_;
+  }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+ private:
+  BlockEntryInstr* predecessor_;
+  const intptr_t catch_try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
+};
+
+
+// Abstract super-class of all instructions that define a value (Bind, Phi).
+class Definition : public Instruction {
+ public:
+  Definition()
+      : temp_index_(-1),
+        ssa_temp_index_(-1),
+        propagated_type_(AbstractType::Handle()),
+        propagated_cid_(kIllegalCid),
+        input_use_list_(NULL),
+        env_use_list_(NULL) { }
+
+  virtual bool IsDefinition() const { return true; }
+  virtual Definition* AsDefinition() { return this; }
+
+  intptr_t temp_index() const { return temp_index_; }
+  void set_temp_index(intptr_t index) { temp_index_ = index; }
+
+  intptr_t ssa_temp_index() const { return ssa_temp_index_; }
+  void set_ssa_temp_index(intptr_t index) {
+    ASSERT(index >= 0);
+    ssa_temp_index_ = index;
+  }
+  bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
+
+  // Compile time type of the definition, which may be requested before type
+  // propagation during graph building.
+  virtual RawAbstractType* CompileType() const = 0;
+
+  bool HasPropagatedType() const {
+    return !propagated_type_.IsNull();
+  }
+  RawAbstractType* PropagatedType() const {
+    ASSERT(HasPropagatedType());
+    return propagated_type_.raw();
+  }
+  // Returns true if the propagated type has changed.
+  bool SetPropagatedType(const AbstractType& propagated_type) {
+    if (propagated_type.IsNull()) {
+      // Not a typed definition, e.g. access to a VM field.
+      return false;
+    }
+    const bool changed =
+        propagated_type_.IsNull() || !propagated_type.Equals(propagated_type_);
+    propagated_type_ = propagated_type.raw();
+    return changed;
+  }
+
+  bool has_propagated_cid() const { return propagated_cid_ != kIllegalCid; }
+  intptr_t propagated_cid() const { return propagated_cid_; }
+  // May compute and set propagated cid.
+  virtual intptr_t GetPropagatedCid() = 0;
+
+  // Returns true if the propagated cid has changed.
+  bool SetPropagatedCid(intptr_t cid);
+
+  Value* input_use_list() { return input_use_list_; }
+  void set_input_use_list(Value* head) { input_use_list_ = head; }
+
+  Value* env_use_list() { return env_use_list_; }
+  void set_env_use_list(Value* head) { env_use_list_ = head; }
+
+  // Replace uses of this definition with uses of other definition or value.
+  // Precondition: use lists must be properly calculated.
+  // Postcondition: use lists and use values are still valid.
+  void ReplaceUsesWith(Definition* other);
+
+ private:
+  intptr_t temp_index_;
+  intptr_t ssa_temp_index_;
+  // TODO(regis): GrowableArray<const AbstractType*> propagated_types_;
+  // For now:
+  AbstractType& propagated_type_;
+  intptr_t propagated_cid_;
+  Value* input_use_list_;
+  Value* env_use_list_;
+
+  DISALLOW_COPY_AND_ASSIGN(Definition);
+};
+
+
+class BindInstr : public Definition {
+ public:
+  enum UseKind { kUnused, kUsed };
+
+  BindInstr(UseKind used, Computation* computation)
+      : computation_(computation), is_used_(used != kUnused) {
+    ASSERT(computation != NULL);
+  }
+
+  DECLARE_INSTRUCTION(Bind)
+
+  virtual intptr_t ArgumentCount() const;
+  intptr_t InputCount() const;
+  Value* InputAt(intptr_t i) const;
+  void SetInputAt(intptr_t i, Value* value);
+  virtual bool CanDeoptimize() const;
+
+  Computation* computation() const { return computation_; }
+  void set_computation(Computation* value) { computation_ = value; }
+  bool is_used() const { return is_used_; }
+
+  virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid();
+
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
+
+  intptr_t Hashcode() const;
+  bool Equals(BindInstr* other) const;
+  virtual LocationSummary* locs();
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  // Insert this instruction before 'next'.
+  void InsertBefore(Instruction* next);
+
+  // Insert this instruction after 'prev'.
+  void InsertAfter(Instruction* prev);
+
+  virtual Representation RequiredInputRepresentation(intptr_t i) const;
+  virtual Representation representation() const;
+  virtual intptr_t DeoptimizationTarget() const;
+
+ private:
+  Computation* computation_;
+  const bool is_used_;
+
+  DISALLOW_COPY_AND_ASSIGN(BindInstr);
+};
+
+
+class PhiInstr : public Definition {
+ public:
+  explicit PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
+    : block_(block),
+      inputs_(num_inputs),
+      is_alive_(false),
+      representation_(kTagged) {
+    for (intptr_t i = 0; i < num_inputs; ++i) {
+      inputs_.Add(NULL);
+    }
+  }
+
+  JoinEntryInstr* block() const { return block_; }
+
+  virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  intptr_t InputCount() const { return inputs_.length(); }
+
+  Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  // TODO(regis): This helper will be removed once we support type sets.
+  RawAbstractType* LeastSpecificInputType() const;
+
+  // Phi is alive if it reaches a non-environment use.
+  bool is_alive() const { return is_alive_; }
+  void mark_alive() { is_alive_ = true; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return representation_;
+  }
+
+  virtual Representation representation() const {
+    return representation_;
+  }
+
+  virtual void set_representation(Representation r) {
+    representation_ = r;
+  }
+
+  DECLARE_INSTRUCTION(Phi)
+
+ private:
+  JoinEntryInstr* block_;
+  GrowableArray<Value*> inputs_;
+  bool is_alive_;
+  Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInstr);
+};
+
+
+class ParameterInstr : public Definition {
+ public:
+  explicit ParameterInstr(intptr_t index) : index_(index) { }
+
+  DECLARE_INSTRUCTION(Parameter)
+
+  intptr_t index() const { return index_; }
+
+  // Compile type of the passed-in parameter.
+  virtual RawAbstractType* CompileType() const;
+  // No known propagated cid for parameters.
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  intptr_t InputCount() const { return 0; }
+  Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+ private:
+  const intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
+};
+
+
+class PushArgumentInstr : public Definition {
+ public:
+  explicit PushArgumentInstr(Value* value) : value_(value), locs_(NULL) {
+    ASSERT(value != NULL);
+  }
+
+  DECLARE_INSTRUCTION(PushArgument)
+
+  intptr_t InputCount() const { return 1; }
+  Value* InputAt(intptr_t i) const {
+    ASSERT(i == 0);
+    return value_;
+  }
+  void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(i == 0);
+    value_ = value;
+  }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
+
+  Value* value() const { return value_; }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
+
+ private:
+  Value* value_;
+  LocationSummary* locs_;
+
+  DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
+};
+
+
+class ReturnInstr : public TemplateInstruction<1> {
+ public:
+  ReturnInstr(intptr_t token_pos, Value* value)
+      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  DECLARE_INSTRUCTION(Return)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  intptr_t deopt_id() const { return deopt_id_; }
+  intptr_t token_pos() const { return token_pos_; }
+  Value* value() const { return inputs_[0]; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
+
+ private:
+  const intptr_t deopt_id_;
+  const intptr_t token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
+};
+
+
+class ThrowInstr : public TemplateInstruction<0> {
+ public:
+  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
+
+  DECLARE_INSTRUCTION(Throw)
+
+  virtual intptr_t ArgumentCount() const { return 1; }
+
+  intptr_t token_pos() const { return token_pos_; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
+
+ private:
+  const intptr_t token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
+};
+
+
+class ReThrowInstr : public TemplateInstruction<0> {
+ public:
+  explicit ReThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
+
+  DECLARE_INSTRUCTION(ReThrow)
+
+  virtual intptr_t ArgumentCount() const { return 2; }
+
+  intptr_t token_pos() const { return token_pos_; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
+
+ private:
+  const intptr_t token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
+};
+
+
+class GotoInstr : public TemplateInstruction<0> {
+ public:
+  explicit GotoInstr(JoinEntryInstr* entry)
+    : successor_(entry),
+      parallel_move_(NULL) { }
+
+  DECLARE_INSTRUCTION(Goto)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  JoinEntryInstr* successor() const { return successor_; }
+  void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  ParallelMoveInstr* parallel_move() const {
+    return parallel_move_;
+  }
+
+  bool HasParallelMove() const {
+    return parallel_move_ != NULL;
+  }
+
+  ParallelMoveInstr* GetParallelMove() {
+    if (parallel_move_ == NULL) {
+      parallel_move_ = new ParallelMoveInstr();
+    }
+    return parallel_move_;
+  }
+
+ private:
+  JoinEntryInstr* successor_;
+
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the end of the block and resolve phis.
+  ParallelMoveInstr* parallel_move_;
+};
+
+
+class ControlInstruction : public Instruction {
+ public:
+  ControlInstruction() : true_successor_(NULL), false_successor_(NULL) { }
+
+  virtual bool IsControl() const { return true; }
+
+  TargetEntryInstr* true_successor() const { return true_successor_; }
+  TargetEntryInstr* false_successor() const { return false_successor_; }
+
+  TargetEntryInstr** true_successor_address() { return &true_successor_; }
+  TargetEntryInstr** false_successor_address() { return &false_successor_; }
+
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<intptr_t>* parent,
+      GrowableArray<BitVector*>* assigned_vars,
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
+
+
+  void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                             Condition true_condition);
+
+ private:
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(ControlInstruction);
+};
+
+
+class BranchInstr : public ControlInstruction {
+ public:
+  explicit BranchInstr(ComparisonComp* computation)
+      : computation_(computation), locs_(NULL) { }
+
+  DECLARE_INSTRUCTION(Branch)
+
+  virtual intptr_t ArgumentCount() const;
+  intptr_t InputCount() const;
+  Value* InputAt(intptr_t i) const;
+  void SetInputAt(intptr_t i, Value* value);
+  virtual bool CanDeoptimize() const;
+
+  ComparisonComp* computation() const { return computation_; }
+  void set_computation(ComparisonComp* value) { computation_ = value; }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual LocationSummary* locs();
+  virtual intptr_t DeoptimizationTarget() const;
+  virtual Representation RequiredInputRepresentation(intptr_t i) const;
+
+ private:
+  ComparisonComp* computation_;
+  LocationSummary* locs_;
+
+  DISALLOW_COPY_AND_ASSIGN(BranchInstr);
+};
+
+
+#undef DECLARE_INSTRUCTION
+
 
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
@@ -109,23 +1299,6 @@ class LocalVariable;
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
 FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
-
-// Forward declarations.
-class BindInstr;
-class BranchInstr;
-class BufferFormatter;
-class ComparisonComp;
-class Definition;
-class Definition;
-class Instruction;
-class PhiInstr;
-class PushArgumentInstr;
-class Value;
-
-
-enum Representation {
-  kTagged, kUnboxedDouble
-};
 
 
 class Computation : public ZoneAllocated {
@@ -275,55 +1448,59 @@ FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 };
 
 
-// An embedded container with N elements of type T.  Used (with partial
-// specialization for N=0) because embedded arrays cannot have size 0.
-template<typename T, intptr_t N>
-class EmbeddedArray {
- public:
-  EmbeddedArray() {
-    for (intptr_t i = 0; i < N; i++) elements_[i] = NULL;
-  }
-
-  intptr_t length() const { return N; }
-
-  const T& operator[](intptr_t i) const {
-    ASSERT(i < length());
-    return elements_[i];
-  }
-
-  T& operator[](intptr_t i) {
-    ASSERT(i < length());
-    return elements_[i];
-  }
-
-  const T& At(intptr_t i) const {
-    return (*this)[i];
-  }
-
-  void SetAt(intptr_t i, const T& val) {
-    (*this)[i] = val;
-  }
-
- private:
-  T elements_[N];
-};
+// Inlined functions from class BindInstr that forward to their computation.
+inline intptr_t BindInstr::ArgumentCount() const {
+  return computation()->ArgumentCount();
+}
 
 
-template<typename T>
-class EmbeddedArray<T, 0> {
- public:
-  intptr_t length() const { return 0; }
-  const T& operator[](intptr_t i) const {
-    UNREACHABLE();
-    static T sentinel = 0;
-    return sentinel;
-  }
-  T& operator[](intptr_t i) {
-    UNREACHABLE();
-    static T sentinel = 0;
-    return sentinel;
-  }
-};
+inline intptr_t BindInstr::InputCount() const {
+  return computation()->InputCount();
+}
+
+
+inline Value* BindInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
+}
+
+
+inline void BindInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
+}
+
+inline bool BindInstr::CanDeoptimize() const {
+  return computation()->CanDeoptimize();
+}
+
+
+inline intptr_t BindInstr::Hashcode() const {
+  return computation()->Hashcode();
+}
+
+
+inline bool BindInstr::Equals(BindInstr* other) const {
+  return computation()->Equals(other->computation());
+}
+
+
+inline LocationSummary* BindInstr::locs() {
+  return computation()->locs();
+}
+
+
+inline Representation BindInstr::RequiredInputRepresentation(intptr_t i) const {
+  return computation()->RequiredInputRepresentation(i);
+}
+
+
+inline Representation BindInstr::representation() const {
+  return computation()->representation();
+}
+
+
+inline intptr_t BindInstr::DeoptimizationTarget() const {
+  return computation()->DeoptimizationTarget();
+}
 
 
 template<intptr_t N>
@@ -338,67 +1515,6 @@ class TemplateComputation : public Computation {
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
-};
-
-
-class Value : public ZoneAllocated {
- public:
-  explicit Value(Definition* definition)
-      : definition_(definition),
-        next_use_(NULL),
-        instruction_(NULL),
-        use_index_(-1) { }
-
-  Definition* definition() const { return definition_; }
-  void set_definition(Definition* definition) { definition_ = definition; }
-
-  Value* next_use() const { return next_use_; }
-  void set_next_use(Value* next) { next_use_ = next; }
-
-  Instruction* instruction() const { return instruction_; }
-  void set_instruction(Instruction* instruction) { instruction_ = instruction; }
-
-  intptr_t use_index() const { return use_index_; }
-  void set_use_index(intptr_t index) { use_index_ = index; }
-
-  void AddToInputUseList();
-  void AddToEnvUseList();
-
-  Value* Copy() { return new Value(definition_); }
-
-  RawAbstractType* CompileType() const;
-  intptr_t ResultCid() const;
-
-  void PrintTo(BufferFormatter* f) const;
-
-  const char* DebugName() const { return "Value"; }
-
-  // Returns true if the value represents a constant.
-  bool BindsToConstant() const;
-
-  // Returns true if the value represents the constant null.
-  bool BindsToConstantNull() const;
-
-  // Assert if BindsToConstant() is false, otherwise returns the constant value.
-  const Object& BoundConstant() const;
-
-  // Reminder: The type of the constant null is the bottom type, which is more
-  // specific than any type.
-  bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
-
-  // Compile time constants, Bool, Smi and Nulls do not need to update
-  // the store buffer.
-  bool NeedsStoreBuffer() const;
-
-  bool Equals(Value* other) const;
-
- private:
-  Definition* definition_;
-  Value* next_use_;
-  Instruction* instruction_;
-  intptr_t use_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
 
@@ -752,6 +1868,54 @@ class ComparisonComp : public TemplateComputation<2> {
  private:
   Token::Kind kind_;
 };
+
+
+// Inlined functions from class BranchInstr that forward to their comparison.
+inline intptr_t BranchInstr::ArgumentCount() const {
+  return computation()->ArgumentCount();
+}
+
+
+inline intptr_t BranchInstr::InputCount() const {
+  return computation()->InputCount();
+}
+
+
+inline Value* BranchInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
+}
+
+
+inline void BranchInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
+}
+
+
+inline bool BranchInstr::CanDeoptimize() const {
+  return computation()->CanDeoptimize();
+}
+
+
+inline LocationSummary* BranchInstr::locs() {
+  if (computation_->locs_ == NULL) {
+    LocationSummary* summary = computation_->MakeLocationSummary();
+    // Branches don't produce a result.
+    summary->set_out(Location::NoLocation());
+    computation_->locs_ = summary;
+  }
+  return computation_->locs_;
+}
+
+
+inline intptr_t BranchInstr::DeoptimizationTarget() const {
+  return computation_->DeoptimizationTarget();
+}
+
+
+inline Representation BranchInstr::RequiredInputRepresentation(
+    intptr_t i) const {
+  return computation()->RequiredInputRepresentation(i);
+}
 
 
 class StrictCompareComp : public ComparisonComp {
@@ -2159,1119 +3323,6 @@ ClassName* Computation::As##ShortName() {                                      \
 }
 FOR_EACH_COMPUTATION(DEFINE_COMPUTATION_PREDICATE)
 #undef DEFINE_COMPUTATION_PREDICATE
-
-// Instructions.
-
-// M is a single argument macro.  It is applied to each concrete instruction
-// type name.  The concrete instruction classes are the name with Instr
-// concatenated.
-#define FOR_EACH_INSTRUCTION(M)                                                \
-  M(GraphEntry)                                                                \
-  M(JoinEntry)                                                                 \
-  M(TargetEntry)                                                               \
-  M(Phi)                                                                       \
-  M(Bind)                                                                      \
-  M(Parameter)                                                                 \
-  M(ParallelMove)                                                              \
-  M(PushArgument)                                                              \
-  M(Return)                                                                    \
-  M(Throw)                                                                     \
-  M(ReThrow)                                                                   \
-  M(Goto)                                                                      \
-  M(Branch)                                                                    \
-
-
-// Forward declarations for Instruction classes.
-class BlockEntryInstr;
-class FlowGraphBuilder;
-class Environment;
-
-#define FORWARD_DECLARATION(type) class type##Instr;
-FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
-#undef FORWARD_DECLARATION
-
-
-// Functions required in all concrete instruction classes.
-#define DECLARE_INSTRUCTION(type)                                              \
-  virtual void Accept(FlowGraphVisitor* visitor);                              \
-  virtual bool Is##type() const { return true; }                               \
-  virtual type##Instr* As##type() { return this; }                             \
-  virtual const char* DebugName() const { return #type; }                      \
-  virtual void PrintTo(BufferFormatter* f) const;                              \
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
-
-
-class Instruction : public ZoneAllocated {
- public:
-  Instruction()
-      : lifetime_position_(-1), previous_(NULL), next_(NULL), env_(NULL) { }
-
-  virtual bool IsBlockEntry() const { return false; }
-  BlockEntryInstr* AsBlockEntry() {
-    return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
-  }
-  virtual bool IsDefinition() const { return false; }
-  virtual Definition* AsDefinition() { return NULL; }
-  virtual bool IsControl() const { return false; }
-
-  virtual intptr_t InputCount() const = 0;
-  virtual Value* InputAt(intptr_t i) const = 0;
-  virtual void SetInputAt(intptr_t i, Value* value) = 0;
-
-  // Call instructions override this function and return the
-  // number of pushed arguments.
-  virtual intptr_t ArgumentCount() const = 0;
-
-  // Returns true, if this instruction can deoptimize.
-  virtual bool CanDeoptimize() const = 0;
-
-  // Visiting support.
-  virtual void Accept(FlowGraphVisitor* visitor) = 0;
-
-  Instruction* previous() const { return previous_; }
-  void set_previous(Instruction* instr) {
-    ASSERT(!IsBlockEntry());
-    previous_ = instr;
-  }
-
-  Instruction* next() const { return next_; }
-  void set_next(Instruction* instr) {
-    ASSERT(!IsGraphEntry());
-    ASSERT(!IsReturn());
-    ASSERT(!IsControl());
-    ASSERT(!IsPhi());
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
-    // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
-    // that do not have a successor. Currently, the graph builder will continue
-    // to append instruction in case of a Throw inside an expression. This
-    // condition should be handled in the graph builder
-    next_ = instr;
-  }
-
-  // Removed this instruction from the graph.
-  Instruction* RemoveFromGraph(bool return_previous = true);
-
-  // Normal instructions can have 0 (inside a block) or 1 (last instruction in
-  // a block) successors. Branch instruction with >1 successors override this
-  // function.
-  virtual intptr_t SuccessorCount() const;
-  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  void Goto(JoinEntryInstr* entry);
-
-  // Discover basic-block structure by performing a recursive depth first
-  // traversal of the instruction graph reachable from this instruction.  As
-  // a side effect, the block entry instructions in the graph are assigned
-  // numbers in both preorder and postorder.  The array 'preorder' maps
-  // preorder block numbers to the block entry instruction with that number
-  // and analogously for the array 'postorder'.  The depth first spanning
-  // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.
-  // The array 'assigned_vars' maps preorder block numbers to the set of
-  // assigned frame-allocated local variables in the block.  As a side
-  // effect of this function, the set of basic block predecessors (e.g.,
-  // block entry instructions of predecessor blocks) and also the last
-  // instruction in the block is recorded in each entry instruction.
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count) {
-    // Never called for instructions except block entries and branches.
-    UNREACHABLE();
-  }
-
-  // Mutate assigned_vars to add the local variable index for all
-  // frame-allocated locals assigned to by the instruction.
-  virtual void RecordAssignedVars(BitVector* assigned_vars,
-                                  intptr_t fixed_parameter_count);
-
-  // Printing support.
-  virtual void PrintTo(BufferFormatter* f) const = 0;
-  virtual void PrintToVisualizer(BufferFormatter* f) const = 0;
-
-#define INSTRUCTION_TYPE_CHECK(type)                                           \
-  virtual bool Is##type() const { return false; }                              \
-  virtual type##Instr* As##type() { return NULL; }
-FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
-#undef INSTRUCTION_TYPE_CHECK
-
-  // Returns structure describing location constraints required
-  // to emit native code for this instruction.
-  virtual LocationSummary* locs() {
-    // TODO(vegorov): This should be pure virtual method.
-    // However we are temporary using NULL for instructions that
-    // were not converted to the location based code generation yet.
-    return NULL;
-  }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    UNIMPLEMENTED();
-  }
-
-  Environment* env() const { return env_; }
-  void set_env(Environment* env) { env_ = env; }
-
-  intptr_t lifetime_position() const { return lifetime_position_; }
-  void set_lifetime_position(intptr_t pos) {
-    lifetime_position_ = pos;
-  }
-
-  // Returns representation expected for the input operand at the given index.
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return kTagged;
-  }
-
-  // Representation of the value produced by this computation.
-  virtual Representation representation() const {
-    return kTagged;
-  }
-
-  bool WasEliminated() const {
-    return next() == NULL;
-  }
-
-  // Returns deoptimization id that corresponds to the deoptimization target
-  // that input operands conversions inserted for this instruction can jump
-  // to.
-  virtual intptr_t DeoptimizationTarget() const {
-    UNREACHABLE();
-    return Isolate::kNoDeoptId;
-  }
-
- private:
-  friend class BindInstr;  // Needed for BindInstr::InsertBefore.
-
-  intptr_t lifetime_position_;  // Position used by register allocator.
-  Instruction* previous_;
-  Instruction* next_;
-  Environment* env_;
-  DISALLOW_COPY_AND_ASSIGN(Instruction);
-};
-
-
-template<intptr_t N>
-class TemplateInstruction: public Instruction {
- public:
-  TemplateInstruction<N>() : locs_(NULL) { }
-
-  virtual intptr_t InputCount() const { return N; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
-    inputs_[i] = value;
-  }
-
-  virtual LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
-  virtual LocationSummary* MakeLocationSummary() const = 0;
-
- protected:
-  EmbeddedArray<Value*, N> inputs_;
-
- private:
-  LocationSummary* locs_;
-};
-
-
-class MoveOperands : public ZoneAllocated {
- public:
-  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
-
-  Location src() const { return src_; }
-  Location dest() const { return dest_; }
-
-  Location* src_slot() { return &src_; }
-  Location* dest_slot() { return &dest_; }
-
-  void set_src(const Location& value) { src_ = value; }
-  void set_dest(const Location& value) { dest_ = value; }
-
-  // The parallel move resolver marks moves as "in-progress" by clearing the
-  // destination (but not the source).
-  Location MarkPending() {
-    ASSERT(!IsPending());
-    Location dest = dest_;
-    dest_ = Location::NoLocation();
-    return dest;
-  }
-
-  void ClearPending(Location dest) {
-    ASSERT(IsPending());
-    dest_ = dest;
-  }
-
-  bool IsPending() const {
-    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
-    return dest_.IsInvalid() && !src_.IsInvalid();
-  }
-
-  // True if this move a move from the given location.
-  bool Blocks(Location loc) const {
-    return !IsEliminated() && src_.Equals(loc);
-  }
-
-  // A move is redundant if it's been eliminated, if its source and
-  // destination are the same, or if its destination is unneeded.
-  bool IsRedundant() const {
-    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
-  }
-
-  // We clear both operands to indicate move that's been eliminated.
-  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
-  bool IsEliminated() const {
-    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
-    return src_.IsInvalid();
-  }
-
- private:
-  Location dest_;
-  Location src_;
-
-  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
-};
-
-
-class ParallelMoveInstr : public TemplateInstruction<0> {
- public:
-  ParallelMoveInstr() : moves_(4) { }
-
-  DECLARE_INSTRUCTION(ParallelMove)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  MoveOperands* AddMove(Location dest, Location src) {
-    MoveOperands* move = new MoveOperands(dest, src);
-    moves_.Add(move);
-    return move;
-  }
-
-  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
-
-  void SetSrcSlotAt(intptr_t index, const Location& loc);
-  void SetDestSlotAt(intptr_t index, const Location& loc);
-
-  intptr_t NumMoves() const { return moves_.length(); }
-
-  LocationSummary* MakeLocationSummary() const { return NULL; }
-
-  void EmitNativeCode(FlowGraphCompiler* compiler) { UNREACHABLE(); }
-
- private:
-  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
-
-  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
-};
-
-
-// Basic block entries are administrative nodes.  There is a distinguished
-// graph entry with no predecessor.  Joins are the only nodes with multiple
-// predecessors.  Targets are all other basic block entries.  The types
-// enforce edge-split form---joins are forbidden as the successors of
-// branches.
-class BlockEntryInstr : public Instruction {
- public:
-  virtual bool IsBlockEntry() const { return true; }
-
-  virtual intptr_t PredecessorCount() const = 0;
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
-  virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
-
-  intptr_t preorder_number() const { return preorder_number_; }
-  void set_preorder_number(intptr_t number) { preorder_number_ = number; }
-
-  intptr_t postorder_number() const { return postorder_number_; }
-  void set_postorder_number(intptr_t number) { postorder_number_ = number; }
-
-  intptr_t block_id() const { return block_id_; }
-  void set_block_id(intptr_t value) { block_id_ = value; }
-
-  void set_start_pos(intptr_t pos) { start_pos_ = pos; }
-  intptr_t start_pos() const { return start_pos_; }
-  void  set_end_pos(intptr_t pos) { end_pos_ = pos; }
-  intptr_t end_pos() const { return end_pos_; }
-
-  BlockEntryInstr* dominator() const { return dominator_; }
-  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
-
-  const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
-    return dominated_blocks_;
-  }
-
-  void AddDominatedBlock(BlockEntryInstr* block) {
-    dominated_blocks_.Add(block);
-  }
-
-  Instruction* last_instruction() const { return last_instruction_; }
-  void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
-
-  ParallelMoveInstr* parallel_move() const {
-    return parallel_move_;
-  }
-
-  bool HasParallelMove() const {
-    return parallel_move_ != NULL;
-  }
-
-  ParallelMoveInstr* GetParallelMove() {
-    if (parallel_move_ == NULL) {
-      parallel_move_ = new ParallelMoveInstr();
-    }
-    return parallel_move_;
-  }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
-  virtual intptr_t InputCount() const { return 0; }
-  virtual Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  intptr_t try_index() const { return try_index_; }
-
- protected:
-  explicit BlockEntryInstr(intptr_t try_index)
-      : try_index_(try_index),
-        preorder_number_(-1),
-        postorder_number_(-1),
-        block_id_(-1),
-        dominator_(NULL),
-        dominated_blocks_(1),
-        last_instruction_(NULL),
-        parallel_move_(NULL) { }
-
- private:
-  const intptr_t try_index_;
-  intptr_t preorder_number_;
-  intptr_t postorder_number_;
-  // Starting and ending lifetime positions for this block.  Used by
-  // the linear scan register allocator.
-  intptr_t block_id_;
-  intptr_t start_pos_;
-  intptr_t end_pos_;
-  BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
-  // TODO(fschneider): Optimize the case of one child to save space.
-  GrowableArray<BlockEntryInstr*> dominated_blocks_;
-  Instruction* last_instruction_;
-
-  // Parallel move that will be used by linear scan register allocator to
-  // connect live ranges at the start of the block.
-  ParallelMoveInstr* parallel_move_;
-
-  DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
-};
-
-
-class ForwardInstructionIterator : public ValueObject {
- public:
-  explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
-      : block_entry_(block_entry), current_(block_entry) {
-    ASSERT(block_entry_->last_instruction()->next() == NULL);
-    Advance();
-  }
-
-  void Advance() {
-    ASSERT(!Done());
-    current_ = current_->next();
-  }
-
-  bool Done() const { return current_ == NULL; }
-
-  // Removes 'current_' from graph and sets 'current_' to previous instruction.
-  void RemoveCurrentFromGraph();
-
-  Instruction* Current() const { return current_; }
-
- private:
-  BlockEntryInstr* block_entry_;
-  Instruction* current_;
-};
-
-
-class BackwardInstructionIterator : public ValueObject {
- public:
-  explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
-      : block_entry_(block_entry), current_(block_entry->last_instruction()) {
-    ASSERT(block_entry_->previous() == NULL);
-  }
-
-  void Advance() {
-    ASSERT(!Done());
-    current_ = current_->previous();
-  }
-
-  bool Done() const { return current_ == block_entry_; }
-
-  Instruction* Current() const { return current_; }
-
- private:
-  BlockEntryInstr* block_entry_;
-  Instruction* current_;
-};
-
-
-class GraphEntryInstr : public BlockEntryInstr {
- public:
-  explicit GraphEntryInstr(TargetEntryInstr* normal_entry);
-
-  DECLARE_INSTRUCTION(GraphEntry)
-
-  virtual intptr_t PredecessorCount() const { return 0; }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    UNREACHABLE();
-    return NULL;
-  }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
-
-  virtual intptr_t SuccessorCount() const;
-  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
-  void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
-  Environment* start_env() const { return start_env_; }
-  void set_start_env(Environment* env) { start_env_ = env; }
-
-  Definition* constant_null() const { return constant_null_; }
-
-  intptr_t spill_slot_count() const { return spill_slot_count_; }
-  void set_spill_slot_count(intptr_t count) {
-    ASSERT(count >= 0);
-    spill_slot_count_ = count;
-  }
-
-  TargetEntryInstr* normal_entry() const { return normal_entry_; }
-
- private:
-  TargetEntryInstr* normal_entry_;
-  GrowableArray<TargetEntryInstr*> catch_entries_;
-  Environment* start_env_;
-  Definition* constant_null_;
-  intptr_t spill_slot_count_;
-
-  DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
-};
-
-
-class JoinEntryInstr : public BlockEntryInstr {
- public:
-  explicit JoinEntryInstr(intptr_t try_index)
-      : BlockEntryInstr(try_index),
-        predecessors_(2),  // Two is the assumed to be the common case.
-        phis_(NULL),
-        phi_count_(0) { }
-
-  DECLARE_INSTRUCTION(JoinEntry)
-
-  virtual intptr_t PredecessorCount() const { return predecessors_.length(); }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    return predecessors_[index];
-  }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    predecessors_.Add(predecessor);
-  }
-
-  // Returns -1 if pred is not in the list.
-  intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
-
-  ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
-  void InsertPhi(intptr_t var_index, intptr_t var_count);
-  void RemoveDeadPhis();
-
-  intptr_t phi_count() const { return phi_count_; }
-
- private:
-  GrowableArray<BlockEntryInstr*> predecessors_;
-  ZoneGrowableArray<PhiInstr*>* phis_;
-  intptr_t phi_count_;
-
-  DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
-};
-
-
-class TargetEntryInstr : public BlockEntryInstr {
- public:
-  explicit TargetEntryInstr(intptr_t try_index)
-      : BlockEntryInstr(try_index),
-        predecessor_(NULL),
-        catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
-
-  // Used for exception catch entries.
-  TargetEntryInstr(intptr_t try_index, intptr_t catch_try_index)
-      : BlockEntryInstr(try_index),
-        predecessor_(NULL),
-        catch_try_index_(catch_try_index) { }
-
-  DECLARE_INSTRUCTION(TargetEntry)
-
-  virtual intptr_t PredecessorCount() const {
-    return (predecessor_ == NULL) ? 0 : 1;
-  }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
-    ASSERT((index == 0) && (predecessor_ != NULL));
-    return predecessor_;
-  }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
-    predecessor_ = predecessor;
-  }
-
-  // Returns true if this Block is an entry of a catch handler.
-  bool IsCatchEntry() const {
-    return catch_try_index_ != CatchClauseNode::kInvalidTryIndex;
-  }
-
-  // Returns try index for the try block to which this catch handler
-  // corresponds.
-  intptr_t catch_try_index() const {
-    ASSERT(IsCatchEntry());
-    return catch_try_index_;
-  }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
- private:
-  BlockEntryInstr* predecessor_;
-  const intptr_t catch_try_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
-};
-
-
-// Abstract super-class of all instructions that define a value (Bind, Phi).
-class Definition : public Instruction {
- public:
-  Definition()
-      : temp_index_(-1),
-        ssa_temp_index_(-1),
-        propagated_type_(AbstractType::Handle()),
-        propagated_cid_(kIllegalCid),
-        input_use_list_(NULL),
-        env_use_list_(NULL) { }
-
-  virtual bool IsDefinition() const { return true; }
-  virtual Definition* AsDefinition() { return this; }
-
-  intptr_t temp_index() const { return temp_index_; }
-  void set_temp_index(intptr_t index) { temp_index_ = index; }
-
-  intptr_t ssa_temp_index() const { return ssa_temp_index_; }
-  void set_ssa_temp_index(intptr_t index) {
-    ASSERT(index >= 0);
-    ssa_temp_index_ = index;
-  }
-  bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
-
-  // Compile time type of the definition, which may be requested before type
-  // propagation during graph building.
-  virtual RawAbstractType* CompileType() const = 0;
-
-  bool HasPropagatedType() const {
-    return !propagated_type_.IsNull();
-  }
-  RawAbstractType* PropagatedType() const {
-    ASSERT(HasPropagatedType());
-    return propagated_type_.raw();
-  }
-  // Returns true if the propagated type has changed.
-  bool SetPropagatedType(const AbstractType& propagated_type) {
-    if (propagated_type.IsNull()) {
-      // Not a typed definition, e.g. access to a VM field.
-      return false;
-    }
-    const bool changed =
-        propagated_type_.IsNull() || !propagated_type.Equals(propagated_type_);
-    propagated_type_ = propagated_type.raw();
-    return changed;
-  }
-
-  bool has_propagated_cid() const { return propagated_cid_ != kIllegalCid; }
-  intptr_t propagated_cid() const { return propagated_cid_; }
-  // May compute and set propagated cid.
-  virtual intptr_t GetPropagatedCid() = 0;
-
-  // Returns true if the propagated cid has changed.
-  bool SetPropagatedCid(intptr_t cid);
-
-  Value* input_use_list() { return input_use_list_; }
-  void set_input_use_list(Value* head) { input_use_list_ = head; }
-
-  Value* env_use_list() { return env_use_list_; }
-  void set_env_use_list(Value* head) { env_use_list_ = head; }
-
-  // Replace uses of this definition with uses of other definition or value.
-  // Precondition: use lists must be properly calculated.
-  // Postcondition: use lists and use values are still valid.
-  void ReplaceUsesWith(Definition* other);
-
- private:
-  intptr_t temp_index_;
-  intptr_t ssa_temp_index_;
-  // TODO(regis): GrowableArray<const AbstractType*> propagated_types_;
-  // For now:
-  AbstractType& propagated_type_;
-  intptr_t propagated_cid_;
-  Value* input_use_list_;
-  Value* env_use_list_;
-
-  DISALLOW_COPY_AND_ASSIGN(Definition);
-};
-
-
-class BindInstr : public Definition {
- public:
-  enum UseKind { kUnused, kUsed };
-
-  BindInstr(UseKind used, Computation* computation)
-      : computation_(computation), is_used_(used != kUnused) {
-    ASSERT(computation != NULL);
-  }
-
-  DECLARE_INSTRUCTION(Bind)
-
-  virtual intptr_t ArgumentCount() const {
-    return computation()->ArgumentCount();
-  }
-  intptr_t InputCount() const { return computation()->InputCount(); }
-
-  Value* InputAt(intptr_t i) const { return computation()->InputAt(i); }
-
-  void SetInputAt(intptr_t i, Value* value) {
-    computation()->SetInputAt(i, value);
-  }
-
-  virtual bool CanDeoptimize() const { return computation()->CanDeoptimize(); }
-
-  Computation* computation() const { return computation_; }
-  void set_computation(Computation* value) { computation_ = value; }
-  bool is_used() const { return is_used_; }
-
-  virtual RawAbstractType* CompileType() const;
-  virtual intptr_t GetPropagatedCid();
-
-  virtual void RecordAssignedVars(BitVector* assigned_vars,
-                                  intptr_t fixed_parameter_count);
-
-  intptr_t Hashcode() const { return computation()->Hashcode(); }
-
-  bool Equals(BindInstr* other) const {
-    return computation()->Equals(other->computation());
-  }
-
-  virtual LocationSummary* locs() {
-    return computation()->locs();
-  }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  // Insert this instruction before 'next'.
-  void InsertBefore(Instruction* next);
-
-  // Insert this instruction after 'prev'.
-  void InsertAfter(Instruction* prev);
-
-  virtual Representation RequiredInputRepresentation(intptr_t i) const {
-    return computation()->RequiredInputRepresentation(i);
-  }
-
-  virtual Representation representation() const {
-    return computation()->representation();
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return computation()->DeoptimizationTarget();
-  }
-
- private:
-  Computation* computation_;
-  const bool is_used_;
-
-  DISALLOW_COPY_AND_ASSIGN(BindInstr);
-};
-
-
-class PhiInstr : public Definition {
- public:
-  explicit PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
-    : block_(block),
-      inputs_(num_inputs),
-      is_alive_(false),
-      representation_(kTagged) {
-    for (intptr_t i = 0; i < num_inputs; ++i) {
-      inputs_.Add(NULL);
-    }
-  }
-
-  JoinEntryInstr* block() const { return block_; }
-
-  virtual RawAbstractType* CompileType() const;
-  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  intptr_t InputCount() const { return inputs_.length(); }
-
-  Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  // TODO(regis): This helper will be removed once we support type sets.
-  RawAbstractType* LeastSpecificInputType() const;
-
-  // Phi is alive if it reaches a non-environment use.
-  bool is_alive() const { return is_alive_; }
-  void mark_alive() { is_alive_ = true; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t i) const {
-    return representation_;
-  }
-
-  virtual Representation representation() const {
-    return representation_;
-  }
-
-  virtual void set_representation(Representation r) {
-    representation_ = r;
-  }
-
-  DECLARE_INSTRUCTION(Phi)
-
- private:
-  JoinEntryInstr* block_;
-  GrowableArray<Value*> inputs_;
-  bool is_alive_;
-  Representation representation_;
-
-  DISALLOW_COPY_AND_ASSIGN(PhiInstr);
-};
-
-
-class ParameterInstr : public Definition {
- public:
-  explicit ParameterInstr(intptr_t index) : index_(index) { }
-
-  DECLARE_INSTRUCTION(Parameter)
-
-  intptr_t index() const { return index_; }
-
-  // Compile type of the passed-in parameter.
-  virtual RawAbstractType* CompileType() const;
-  // No known propagated cid for parameters.
-  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  intptr_t InputCount() const { return 0; }
-  Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-  void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
-};
-
-
-class PushArgumentInstr : public Definition {
- public:
-  explicit PushArgumentInstr(Value* value) : value_(value), locs_(NULL) {
-    ASSERT(value != NULL);
-  }
-
-  DECLARE_INSTRUCTION(PushArgument)
-
-  intptr_t InputCount() const { return 1; }
-  Value* InputAt(intptr_t i) const {
-    ASSERT(i == 0);
-    return value_;
-  }
-  void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(i == 0);
-    value_ = value;
-  }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  virtual RawAbstractType* CompileType() const;
-  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
-
-  Value* value() const { return value_; }
-
-  virtual LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
-  LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  Value* value_;
-  LocationSummary* locs_;
-
-  DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
-};
-
-
-class ReturnInstr : public TemplateInstruction<1> {
- public:
-  ReturnInstr(intptr_t token_pos, Value* value)
-      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  DECLARE_INSTRUCTION(Return)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  intptr_t deopt_id() const { return deopt_id_; }
-  intptr_t token_pos() const { return token_pos_; }
-  Value* value() const { return inputs_[0]; }
-
-  virtual LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const intptr_t deopt_id_;
-  const intptr_t token_pos_;
-
-  DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
-};
-
-
-class ThrowInstr : public TemplateInstruction<0> {
- public:
-  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
-
-  DECLARE_INSTRUCTION(Throw)
-
-  virtual intptr_t ArgumentCount() const { return 1; }
-
-  intptr_t token_pos() const { return token_pos_; }
-
-  virtual LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-
-  DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
-};
-
-
-class ReThrowInstr : public TemplateInstruction<0> {
- public:
-  explicit ReThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
-
-  DECLARE_INSTRUCTION(ReThrow)
-
-  virtual intptr_t ArgumentCount() const { return 2; }
-
-  intptr_t token_pos() const { return token_pos_; }
-
-  virtual LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-
-  DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
-};
-
-
-class GotoInstr : public TemplateInstruction<0> {
- public:
-  explicit GotoInstr(JoinEntryInstr* entry)
-    : successor_(entry),
-      parallel_move_(NULL) { }
-
-  DECLARE_INSTRUCTION(Goto)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  JoinEntryInstr* successor() const { return successor_; }
-  void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
-  virtual intptr_t SuccessorCount() const;
-  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  virtual LocationSummary* MakeLocationSummary() const;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  ParallelMoveInstr* parallel_move() const {
-    return parallel_move_;
-  }
-
-  bool HasParallelMove() const {
-    return parallel_move_ != NULL;
-  }
-
-  ParallelMoveInstr* GetParallelMove() {
-    if (parallel_move_ == NULL) {
-      parallel_move_ = new ParallelMoveInstr();
-    }
-    return parallel_move_;
-  }
-
- private:
-  JoinEntryInstr* successor_;
-
-  // Parallel move that will be used by linear scan register allocator to
-  // connect live ranges at the end of the block and resolve phis.
-  ParallelMoveInstr* parallel_move_;
-};
-
-
-class ControlInstruction : public Instruction {
- public:
-  ControlInstruction() : true_successor_(NULL), false_successor_(NULL) { }
-
-  virtual bool IsControl() const { return true; }
-
-  TargetEntryInstr* true_successor() const { return true_successor_; }
-  TargetEntryInstr* false_successor() const { return false_successor_; }
-
-  TargetEntryInstr** true_successor_address() { return &true_successor_; }
-  TargetEntryInstr** false_successor_address() { return &false_successor_; }
-
-  virtual intptr_t SuccessorCount() const;
-  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
-
-  void EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                             Condition true_condition);
-
- private:
-  TargetEntryInstr* true_successor_;
-  TargetEntryInstr* false_successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(ControlInstruction);
-};
-
-
-class BranchInstr : public ControlInstruction {
- public:
-  explicit BranchInstr(ComparisonComp* computation)
-      : computation_(computation), locs_(NULL) { }
-
-  DECLARE_INSTRUCTION(Branch)
-
-  virtual intptr_t ArgumentCount() const {
-    return computation()->ArgumentCount();
-  }
-  intptr_t InputCount() const { return computation()->InputCount(); }
-
-  Value* InputAt(intptr_t i) const { return computation()->InputAt(i); }
-
-  void SetInputAt(intptr_t i, Value* value) {
-    computation()->SetInputAt(i, value);
-  }
-
-  virtual bool CanDeoptimize() const { return computation()->CanDeoptimize(); }
-
-  ComparisonComp* computation() const { return computation_; }
-  void set_computation(ComparisonComp* value) { computation_ = value; }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
-
-  virtual LocationSummary* locs() {
-    if (computation_->locs_ == NULL) {
-      LocationSummary* summary = computation_->MakeLocationSummary();
-      // Branches don't produce a result.
-      summary->set_out(Location::NoLocation());
-      computation_->locs_ = summary;
-    }
-    return computation_->locs_;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return computation_->DeoptimizationTarget();
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t i) const {
-    return computation()->RequiredInputRepresentation(i);
-  }
-
- private:
-  ComparisonComp* computation_;
-  LocationSummary* locs_;
-
-  DISALLOW_COPY_AND_ASSIGN(BranchInstr);
-};
-
-
-#undef DECLARE_INSTRUCTION
 
 
 class Environment : public ZoneAllocated {
