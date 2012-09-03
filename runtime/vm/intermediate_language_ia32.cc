@@ -1734,56 +1734,6 @@ void BinaryMintOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BinaryDoubleOpComp::MakeLocationSummary() const {
-  return MakeCallSummary();  // Calls into a stub for allocation.
-}
-
-
-void BinaryDoubleOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = EBX;
-  Register right = ECX;
-  Register temp = EDX;
-  Register result = locs()->out().reg();
-
-  const Class& double_class = compiler->double_class();
-  const Code& stub =
-    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(instance_call()->token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  // Newly allocated object is now in the result register (RAX).
-  ASSERT(result == EAX);
-  __ movl(right, Address(ESP, 0));
-  __ movl(left, Address(ESP, kWordSize));
-
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        kDeoptBinaryDoubleOp);
-
-  // Binary operation of two Smi's produces a Smi not a double.
-  __ movl(temp, left);
-  __ orl(temp, right);
-  __ testl(temp, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-
-  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
-  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
-
-  switch (op_kind()) {
-    case Token::kADD: __ addsd(XMM0, XMM1); break;
-    case Token::kSUB: __ subsd(XMM0, XMM1); break;
-    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
-    case Token::kDIV: __ divsd(XMM0, XMM1); break;
-    default: UNREACHABLE();
-  }
-
-  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
-
-  __ Drop(2);
-}
-
-
 LocationSummary* CheckEitherNonSmiComp::MakeLocationSummary() const {
   ASSERT((left()->ResultCid() != kDoubleCid) &&
          (right()->ResultCid() != kDoubleCid));

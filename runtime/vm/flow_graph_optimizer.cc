@@ -20,7 +20,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
-DEFINE_FLAG(bool, use_unboxed_doubles, true, "Try unboxing double values.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -450,31 +449,26 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
 
   ASSERT(comp->ArgumentCount() == 2);
   if (operands_type == kDoubleCid) {
-    if (FLAG_use_unboxed_doubles) {
-      Value* left = comp->ArgumentAt(0)->value();
-      Value* right = comp->ArgumentAt(1)->value();
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
 
-      // Check that either left or right are not a smi.  Result or a
-      // binary operation with two smis is a smi not a double.
-      InsertBefore(instr,
-                   new CheckEitherNonSmiComp(left->Copy(),
-                                             right->Copy(),
-                                             comp),
-                   instr->env(),
-                   BindInstr::kUnused);
+    // Check that either left or right are not a smi.  Result or a
+    // binary operation with two smis is a smi not a double.
+    InsertBefore(instr,
+                 new CheckEitherNonSmiComp(left->Copy(),
+                                           right->Copy(),
+                                           comp),
+                 instr->env(),
+                 BindInstr::kUnused);
 
-      UnboxedDoubleBinaryOpComp* double_bin_op =
-          new UnboxedDoubleBinaryOpComp(op_kind,
-                                        left->Copy(),
-                                        right->Copy(),
-                                        comp);
-      instr->set_computation(double_bin_op);
+    UnboxedDoubleBinaryOpComp* double_bin_op =
+        new UnboxedDoubleBinaryOpComp(op_kind,
+                                      left->Copy(),
+                                      right->Copy(),
+                                      comp);
+    instr->set_computation(double_bin_op);
 
-      RemovePushArguments(comp);
-    } else {
-      BinaryDoubleOpComp* double_bin_op = new BinaryDoubleOpComp(op_kind, comp);
-      instr->set_computation(double_bin_op);
-    }
+    RemovePushArguments(comp);
   } else if (operands_type == kMintCid) {
     Value* left = comp->ArgumentAt(0)->value();
     Value* right = comp->ArgumentAt(1)->value();

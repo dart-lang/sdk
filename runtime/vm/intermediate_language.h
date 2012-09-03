@@ -1280,7 +1280,6 @@ class BranchInstr : public ControlInstruction {
   M(CatchEntry, CatchEntryComp)                                                \
   M(BinarySmiOp, BinarySmiOpComp)                                              \
   M(BinaryMintOp, BinaryMintOpComp)                                            \
-  M(BinaryDoubleOp, BinaryDoubleOpComp)                                        \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
@@ -3047,34 +3046,6 @@ class BinaryMintOpComp : public TemplateComputation<2> {
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryMintOpComp);
-};
-
-
-class BinaryDoubleOpComp : public TemplateComputation<0> {
- public:
-  BinaryDoubleOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
-      : op_kind_(op_kind), instance_call_(instance_call) { }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  InstanceCallComp* instance_call() const { return instance_call_; }
-
-  const ICData* ic_data() const { return instance_call()->ic_data(); }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  DECLARE_CALL_COMPUTATION(BinaryDoubleOp)
-
-  virtual intptr_t ArgumentCount() const { return 2; }
-
-  virtual bool CanDeoptimize() const { return true; }
-  virtual intptr_t ResultCid() const;
-
- private:
-  const Token::Kind op_kind_;
-  InstanceCallComp* instance_call_;
-
-  DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpComp);
 };
 
 

@@ -1014,16 +1014,6 @@ intptr_t BinaryMintOpComp::ResultCid() const {
 }
 
 
-RawAbstractType* BinaryDoubleOpComp::CompileType() const {
-  return Type::Double();
-}
-
-
-intptr_t BinaryDoubleOpComp::ResultCid() const {
-  return kDoubleCid;
-}
-
-
 RawAbstractType* UnboxedDoubleBinaryOpComp::CompileType() const {
   return Type::Double();
 }
