@@ -168,14 +168,14 @@ class Enqueuer {
     if (member.kind === ElementKind.FIELD) {
       universe.instantiatedClassInstanceFields.add(member.name);
       if (compiler.enableTypeAssertions) {
-        Type type = member.computeType(compiler);
+        DartType type = member.computeType(compiler);
         registerIsCheck(type.element);
         SourceString helper = compiler.backend.getCheckedModeHelper(type);
         if (helper != null) {
           Element helperElement = compiler.findHelper(helper);
           registerStaticUse(helperElement);
         }
-      }  
+      }
       return;
     }
 
