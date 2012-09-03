@@ -27,7 +27,6 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, warn_legacy_catch, false, "Warning on legacy catch syntax");
 DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
 
@@ -5759,22 +5758,18 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         if (CurrentToken() == Token::kCOMMA) {
           ConsumeToken();
           stack_trace_param.is_final = true;
-          // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+          // TODO(hausner): Make implicit type be StackTrace, not Dynamic.
           stack_trace_param.type =
               &AbstractType::ZoneHandle(Type::DynamicType());
           stack_trace_param.token_pos = TokenPos();
           stack_trace_param.var = ExpectIdentifier("identifier expected");
         }
       } else {
-        // TODO(hausner): Remove legacy syntax support.
-        if (FLAG_warn_legacy_catch) {
-          Warning("legacy catch syntax");
-        }
-        ParseCatchParameter(&exception_param);
-        if (CurrentToken() == Token::kCOMMA) {
-          ConsumeToken();
-          ParseCatchParameter(&stack_trace_param);
-        }
+        // TODO(hausner): Improve error message and maybe also the
+        // structure of the code. Maybe you can get away with simply
+        // expecting an identifier followed by a comma or a right
+        // parenthesis?
+        ErrorMsg("identifier expected here, not type, final, or var");
       }
     } else {
       // on T catch(e) { ...
