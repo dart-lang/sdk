@@ -16,37 +16,28 @@ class Mark {
 
 class OneField {
   final a = new Mark('a');
-
   OneField();
-
-  OneField.init() : a = new Mark('ai');
 }
 
 class TwoFields {
-  final b = new Mark('b');
   final a = new Mark('a');
-
+  final b = new Mark('b');
   TwoFields();
-
-  TwoFields.initA() : a = new Mark('ai');
-
-  TwoFields.initB() : b = new Mark('bi');
-
-  TwoFields.initBoth() : a = new Mark('ai'), b = new Mark('bi');
 }
 
 class InheritOneField extends OneField {
   final b = new Mark('b');
+  InheritOneField();
+}
 
-  InheritOneField() : super();
-
-  InheritOneField.init() : b = new Mark('bi'), super();
-
-  InheritOneField.superWithInit() : super.init();
-
-  InheritOneField.initWithSuperInit() : b = new Mark('bi'), super.init();
-
-  InheritOneField.initWithSuperInit2() : super.init(), b = new Mark('bi');
+class MixedFields extends OneField {
+  final b = new Mark('b');
+  var c = new Mark('c');
+  final d = new Mark('d');
+  MixedFields();
+  MixedFields.c0() : c = new Mark('cc');
+  MixedFields.c1() : c = new Mark('cc'), super();
+  MixedFields.c2() : super(), c = new Mark('cc');
 }
 
 String run(callback) {
@@ -57,21 +48,11 @@ String run(callback) {
 
 main() {
   Expect.equals('a.', run(() => new OneField()));
-  Expect.equals('a.ai.', run(() => new OneField.init()));
+  Expect.equals('a.b.', run(() => new TwoFields()));
+  Expect.equals('b.a.', run(() => new InheritOneField()));
 
-  Expect.equals('b.a.', run(() => new TwoFields()));
-  Expect.equals('b.a.ai.', run(() => new TwoFields.initA()));
-  Expect.equals('b.a.bi.', run(() => new TwoFields.initB()));
-  Expect.equals('b.a.ai.bi.', run(() => new TwoFields.initBoth()));
-
-  Expect.equals('b.a.', run(() =>
-      new InheritOneField()));
-  Expect.equals('b.bi.a.', run(() =>
-      new InheritOneField.init()));
-  Expect.equals('b.a.ai.', run(() =>
-      new InheritOneField.superWithInit()));
-  Expect.equals('b.bi.a.ai.', run(() =>
-      new InheritOneField.initWithSuperInit()));
-  Expect.equals('b.a.ai.bi.', run(() =>
-      new InheritOneField.initWithSuperInit2()));
+  Expect.equals('b.c.d.a.', run(() => new MixedFields()));
+  Expect.equals('b.c.d.cc.a.', run(() => new MixedFields.c0()));
+  Expect.equals('b.c.d.cc.a.', run(() => new MixedFields.c1()));
+  Expect.equals('b.c.d.a.cc.', run(() => new MixedFields.c2()));
 }
