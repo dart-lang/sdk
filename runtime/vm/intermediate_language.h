@@ -1294,6 +1294,7 @@ class BranchInstr : public ControlInstruction {
   M(SmiToDouble, SmiToDoubleComp)                                              \
   M(CheckClass, CheckClassComp)                                                \
   M(CheckSmi, CheckSmiComp)                                                    \
+  M(CheckNonSmi, CheckNonSmiComp)                                              \
   M(Constant, ConstantComp)                                                    \
   M(CheckEitherNonSmi, CheckEitherNonSmiComp)                                  \
   M(UnboxedDoubleBinaryOp, UnboxedDoubleBinaryOpComp)                          \
@@ -3245,6 +3246,35 @@ class CheckSmiComp : public TemplateComputation<1> {
   const intptr_t original_deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiComp);
+};
+
+
+class CheckNonSmiComp : public TemplateComputation<1> {
+ public:
+  CheckNonSmiComp(Value* value, intptr_t original_deopt_id)
+      : original_deopt_id_(original_deopt_id) {
+    ASSERT(value != NULL);
+    ASSERT(original_deopt_id != Isolate::kNoDeoptId);
+    inputs_[0] = value;
+  }
+
+  DECLARE_COMPUTATION(CheckNonSmi)
+
+  virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
+
+  virtual bool AttributesEqual(Computation* other) const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual intptr_t deopt_id() const { return original_deopt_id_; }
+
+ private:
+  const intptr_t original_deopt_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckNonSmiComp);
 };
 
 
