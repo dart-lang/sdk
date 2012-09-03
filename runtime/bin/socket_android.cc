@@ -177,6 +177,11 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   intptr_t fd;
   struct sockaddr_in server_address;
 
+  in_addr_t s_addr = TEMP_FAILURE_RETRY(inet_addr(host));
+  if (s_addr == INADDR_NONE) {
+    return -5;
+  }
+
   fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
   if (fd < 0) {
     fprintf(stderr, "Error CreateBind: %s\n", strerror(errno));
@@ -189,7 +194,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
 
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port);
-  server_address.sin_addr.s_addr = inet_addr(host);
+  server_address.sin_addr.s_addr = s_addr;
   memset(&server_address.sin_zero, 0, sizeof(server_address.sin_zero));
 
   if (TEMP_FAILURE_RETRY(

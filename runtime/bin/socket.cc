@@ -238,7 +238,12 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
           socket_obj, DartUtils::kIdFieldName, socket);
       Dart_SetReturnValue(args, Dart_True());
     } else {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      if (socket == -5) {
+        OSError os_error(-1, "Invalid host", OSError::kUnknown);
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+      } else {
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      }
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);

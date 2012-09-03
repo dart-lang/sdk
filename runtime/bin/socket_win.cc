@@ -211,6 +211,11 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
 intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t port,
                                         intptr_t backlog) {
+  in_addr_t s_addr = TEMP_FAILURE_RETRY(inet_addr(host));
+  if (s_addr == INADDR_NONE) {
+    return -5;
+  }
+
   SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -232,7 +237,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = inet_addr(host);
+  addr.sin_addr.s_addr = s_addr;
   addr.sin_port = htons(port);
   status = bind(s,
                 reinterpret_cast<struct sockaddr *>(&addr),

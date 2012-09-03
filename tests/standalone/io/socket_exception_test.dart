@@ -28,6 +28,10 @@ class SocketExceptionTest {
     }
     Expect.equals(false, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
+
+    // Test invalid host.
+    Expect.throws(() => new ServerSocket("__INVALID_HOST__", PORT, 10),
+                  (e) => e is SocketIOException);
   }
 
   static void clientSocketExceptionTest() {
@@ -198,6 +202,7 @@ class SocketExceptionTest {
     clientSocketExceptionTest();
     indexOutOfRangeExceptionTest();
     unknownHostTest();
+
     // TODO(sgjesse): This test seems to fail on the buildbot.
     //unresponsiveHostTest();
   }
