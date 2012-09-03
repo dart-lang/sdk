@@ -1972,7 +1972,8 @@ class EqualityCompareComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
-    return (receiver_class_id() != kDoubleCid);
+    return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kSmiCid);
   }
 
   virtual intptr_t ResultCid() const;
@@ -2031,7 +2032,8 @@ class RelationalOpComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
-    return operands_class_id() != kDoubleCid;
+    return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kSmiCid);
   }
 
   virtual intptr_t ResultCid() const;

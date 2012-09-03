@@ -559,8 +559,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
-                                BranchInstr* branch,
-                                intptr_t deopt_id) {
+                                BranchInstr* branch) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
 
@@ -620,7 +619,7 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   BranchInstr* kNoBranch = NULL;
   if (receiver_class_id() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
-    EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch, deopt_id());
+    EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
@@ -653,7 +652,7 @@ void EqualityCompareComp::EmitBranchCode(FlowGraphCompiler* compiler,
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
   if (receiver_class_id() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
-    EmitSmiComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
@@ -720,7 +719,7 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
 
 void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operands_class_id() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL, deopt_id());
+    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
   if (operands_class_id() == kDoubleCid) {
@@ -777,7 +776,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 void RelationalOpComp::EmitBranchCode(FlowGraphCompiler* compiler,
                                       BranchInstr* branch) {
   if (operands_class_id() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), branch, deopt_id());
+    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   if (operands_class_id() == kDoubleCid) {
