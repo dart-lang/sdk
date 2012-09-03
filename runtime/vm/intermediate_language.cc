@@ -1065,11 +1065,6 @@ RawAbstractType* CheckSmiComp::CompileType() const {
 }
 
 
-RawAbstractType* CheckNonSmiComp::CompileType() const {
-  return AbstractType::null();
-}
-
-
 RawAbstractType* CheckArrayBoundComp::CompileType() const {
   return AbstractType::null();
 }

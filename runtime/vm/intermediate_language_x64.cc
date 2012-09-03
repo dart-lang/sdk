@@ -2114,6 +2114,8 @@ void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckClass);
   ASSERT(unary_checks().GetReceiverClassIdAt(0) != kSmiCid);
+  __ testq(value, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
   __ LoadClassId(temp, value);
   Label is_ok;
   const intptr_t num_checks = unary_checks().NumberOfChecks();
@@ -2146,27 +2148,10 @@ LocationSummary* CheckSmiComp::MakeLocationSummary() const {
 
 void CheckSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptCheckSmi);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        kDeoptCheckSmi);
   __ testq(value, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
-}
-
-
-LocationSummary* CheckNonSmiComp::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  return summary;
-}
-
-
-void CheckNonSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptCheckNonSmi);
-  __ testl(value, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
 }
 
 

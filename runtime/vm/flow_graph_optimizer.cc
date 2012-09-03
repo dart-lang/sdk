@@ -313,11 +313,8 @@ void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
   // Type propagation has not run yet, we cannot eliminate the check.
   const ICData& unary_checks =
       ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
-  CheckNonSmiComp* check_non_smi = new CheckNonSmiComp(value->Copy(),
-                                                       comp->deopt_id());
-  InsertBefore(instr, check_non_smi, instr->env(), Definition::kEffect);
-  CheckClassComp* check_class = new CheckClassComp(value, comp, unary_checks);
-  InsertBefore(instr, check_class, instr->env(), Definition::kEffect);
+  CheckClassComp* check = new CheckClassComp(value, comp, unary_checks);
+  InsertBefore(instr, check, instr->env(), Definition::kEffect);
 }
 
 

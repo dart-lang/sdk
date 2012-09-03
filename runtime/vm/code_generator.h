@@ -81,7 +81,6 @@ DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
   V(DeoptUnaryOp)                                                              \
   V(DeoptCheckClass)                                                           \
   V(DeoptCheckSmi)                                                             \
-  V(DeoptCheckNonSmi)                                                          \
   V(DeoptAtCall)                                                               \
   V(DeoptNumReasons)                                                           \
 
