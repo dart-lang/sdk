@@ -211,8 +211,8 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
 intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t port,
                                         intptr_t backlog) {
-  unsigned long s_addr = TEMP_FAILURE_RETRY(inet_addr(host));  // NOLINT
-  if (s_addr == INADDR_NONE) {
+  unsigned long socket_addr = inet_addr(host);  // NOLINT
+  if (socket_addr == INADDR_NONE) {
     return -5;
   }
 
@@ -237,7 +237,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = s_addr;
+  addr.sin_addr.s_addr = socket_addr;
   addr.sin_port = htons(port);
   status = bind(s,
                 reinterpret_cast<struct sockaddr *>(&addr),
