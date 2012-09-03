@@ -8,7 +8,6 @@ String emitCode(
       Map<LibraryElement, String> imports,
       Collection<Element> topLevelElements,
       Map<ClassElement, Collection<Element>> classMembers) {
-  final sb = new StringBuffer();
   final processedVariableLists = new Set<VariableListElement>();
 
   void outputElement(Element element) {
@@ -22,50 +21,47 @@ String emitCode(
       final variableList = variableElement.variables;
       if (!processedVariableLists.contains(variableList)) {
         processedVariableLists.add(variableList);
-        sb.add(unparser.unparse(variableList.parseNode(compiler)));
+        unparser.unparse(variableList.parseNode(compiler));
       }
     } else {
-      sb.add(unparser.unparse(element.parseNode(compiler)));
+      unparser.unparse(element.parseNode(compiler));
     }
   }
 
   void outputClass(ClassElement classElement, Collection<Element> members) {
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
-    sb.add(classNode.beginToken.slowToString());
-    if (classNode.beginToken.slowToString() == 'abstract') {
-      sb.add(' ');
-      sb.add(classNode.beginToken.next.slowToString());  // 'class'
+    unparser.addToken(classNode.beginToken);
+    if (classNode.beginToken.stringValue == 'abstract') {
+      unparser.addToken(classNode.beginToken.next);
     }
-    sb.add(' ');
-    sb.add(unparser.unparse(classNode.name));
+    unparser.unparse(classNode.name);
     if (classNode.typeParameters !== null) {
-      sb.add(unparser.unparse(classNode.typeParameters));
+      unparser.unparse(classNode.typeParameters);
     }
     if (classNode.extendsKeyword !== null) {
-      sb.add(' ');
-      classNode.extendsKeyword.value.printOn(sb);
-      sb.add(' ');
-      sb.add(unparser.unparse(classNode.superclass));
+      unparser.addString(' ');
+      unparser.addToken(classNode.extendsKeyword);
+      unparser.unparse(classNode.superclass);
     }
     if (!classNode.interfaces.isEmpty()) {
-      sb.add(' ');
-      sb.add(unparser.unparse(classNode.interfaces));
+      unparser.addString(' ');
+      unparser.unparse(classNode.interfaces);
     }
     if (classNode.defaultClause !== null) {
-      sb.add(' default ');
-      sb.add(unparser.unparse(classNode.defaultClause));
+      unparser.addString(' default ');
+      unparser.unparse(classNode.defaultClause);
     }
-    sb.add('{');
+    unparser.addString('{');
     members.forEach((element) {
       // TODO(smok): Filter out default constructors here.
       outputElement(element);
     });
-    sb.add('}');
+    unparser.addString('}');
   }
 
   imports.forEach((libraryElement, prefix) {
-    sb.add('#import("${libraryElement.uri}",prefix:"$prefix");');
+    unparser.addString('#import("${libraryElement.uri}",prefix:"$prefix");');
   });
 
   for (final element in topLevelElements) {
@@ -75,6 +71,4 @@ String emitCode(
       outputElement(element);
     }
   }
-
-  return sb.toString();
 }

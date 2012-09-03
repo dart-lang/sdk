@@ -99,7 +99,7 @@ class Node implements Hashable {
   /**
    * Returns this node unparsed to Dart source string.
    */
-  toString() => unparse();
+  toString() => unparse(this);
 
   /**
    * Returns Xml-like tree representation of this node.
@@ -109,16 +109,6 @@ class Node implements Hashable {
   }
 
   String getObjectDescription() => super.toString();
-
-  String unparse() {
-    Unparser unparser = new Unparser();
-    try {
-      return unparser.unparse(this);
-    } catch (e, trace) {
-      print(trace);
-      return '<<unparse error: ${getObjectDescription()}: ${unparser.sb}>>';
-    }
-  }
 
   abstract Token getBeginToken();
 

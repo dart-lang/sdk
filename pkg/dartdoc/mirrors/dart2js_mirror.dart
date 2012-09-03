@@ -610,7 +610,7 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
   String get defaultValue() {
     if (hasDefaultValue) {
       SendSet expression = _variableElement.cachedNode.asSendSet();
-      return expression.arguments.head.unparse();
+      return unparse(expression.arguments.head);
     }
     return null;
   }

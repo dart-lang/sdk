@@ -110,7 +110,7 @@ String doUnparse(String source) {
   parser.parseUnit(beginToken);
   Node node = listener.popNode();
   Expect.isTrue(listener.nodes.isEmpty());
-  return new Unparser().unparse(node);
+  return unparse(node);
 }
 
 class MessageCollector implements DiagnosticListener {

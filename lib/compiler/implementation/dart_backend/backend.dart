@@ -181,8 +181,8 @@ class DartBackend extends Backend {
     }
 
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
-    compiler.assembledCode = emitCode(
-        compiler, unparser, imports, sortedTopLevels, sortedClassMembers);
+    emitCode(compiler, unparser, imports, sortedTopLevels, sortedClassMembers);
+    compiler.assembledCode = unparser.result;
   }
 
   log(String message) => compiler.log('[DartBackend] $message');

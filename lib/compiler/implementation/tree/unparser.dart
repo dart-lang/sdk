@@ -5,21 +5,28 @@
 // Returns null if no need to rename a node.
 typedef String Renamer(Node node);
 
+String unparse(Node node) {
+  Unparser unparser = new Unparser();
+  unparser.unparse(node);
+  return unparser.result;
+}
+
 class Unparser implements Visitor {
   Renamer rename;
-  StringBuffer sb;
+  final StringBuffer sb;
 
-  Unparser() {
+  String get result => sb.toString();
+
+  Unparser() : sb = new StringBuffer() {
     // TODO(smok): Move this to initializer once dart2js stops complaining
     // about closures in initializers.
     rename = (Node node) => null;
   }
-  Unparser.withRenamer(this.rename);
+  Unparser.withRenamer(this.rename) : sb = new StringBuffer();
 
-  String unparse(Node node) {
-    sb = new StringBuffer();
-    visit(node);
-    return sb.toString();
+  // TODO(antonm): will go away soon.
+  void addString(String s) {
+    sb.add(s);
   }
 
   void add(SourceString string) {
@@ -33,6 +40,8 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
   }
+
+  unparse(Node node) { visit(node); }
 
   visit(Node node) {
     if (node === null) return;
