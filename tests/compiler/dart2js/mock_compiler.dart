@@ -37,6 +37,7 @@ const String DEFAULT_HELPERLIB = @'''
   indexSet(a, index, value) {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
+  stringTypeCheck(x) {}
   interface JavaScriptIndexingBehavior {}
   S() {}''';
 
@@ -72,10 +73,11 @@ class MockCompiler extends Compiler {
 
   MockCompiler([String coreSource = DEFAULT_CORELIB,
                 String helperSource = DEFAULT_HELPERLIB,
-                String interceptorsSource = DEFAULT_INTERCEPTORSLIB])
+                String interceptorsSource = DEFAULT_INTERCEPTORSLIB,
+                bool enableTypeAssertions = false])
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
-        super() {
+        super(enableTypeAssertions: enableTypeAssertions) {
     Uri uri = new Uri.fromComponents(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
