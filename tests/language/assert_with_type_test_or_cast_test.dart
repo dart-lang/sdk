@@ -1,6 +1,3 @@
-// VMOptions=
-// VMOptions=--enable_asserts
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10,6 +7,10 @@
 //
 // The cause was incomplete generic type skipping, so each of the assert
 // statements below would fail.
+//
+// VMOptions=
+// VMOptions=--enable_asserts
+
 main() {
  var names = new List<int>();
  
