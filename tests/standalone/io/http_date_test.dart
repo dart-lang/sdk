@@ -85,8 +85,31 @@ void testParseHttpDateFailures() {
   });
 }
 
+void testParseHttpCookieDate() {
+  Expect.throws(() => _HttpUtils.parseCookieDate(""));
+
+  test(int year,
+       int month,
+       int day,
+       int hours,
+       int minutes,
+       int seconds,
+       String formatted) {
+    Date date = new Date(
+        year, month, day, hours, minutes, seconds, 0, isUtc: true);
+    Expect.equals(date, _HttpUtils.parseCookieDate(formatted));
+  }
+
+  test(2012, Date.JUN, 19, 14, 15, 01, "tue, 19-jun-12 14:15:01 gmt");
+  test(2021, Date.JUN, 09, 10, 18, 14, "Wed, 09-Jun-2021 10:18:14 GMT");
+  test(2021, Date.JAN, 13, 22, 23, 01, "Wed, 13-Jan-2021 22:23:01 GMT");
+  test(2013, Date.JAN, 15, 21, 47, 38, "Tue, 15-Jan-2013 21:47:38 GMT");
+  test(1970, Date.JAN, 01, 00, 00, 01, "Thu, 01-Jan-1970 00:00:01 GMT");
+}
+
 void main() {
   testParseHttpDate();
   testFormatParseHttpDate();
   testParseHttpDateFailures();
+  testParseHttpCookieDate();
 }
