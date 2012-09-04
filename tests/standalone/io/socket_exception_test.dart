@@ -187,27 +187,15 @@ class SocketExceptionTest {
     s.onConnect = () => Expect.fail("Connection completed");
   }
 
-  static void unresponsiveHostTest() {
-    // Port to keep the VM alive until test completes.
-    var port = new ReceivePort();
-    port.receive((message, replyTo) => null);
-
-    Socket s =  new Socket("127.0.0.1", 65535);
-    s.onError = (e) => port.close();
-    s.onConnect = () => Expect.fail("Connection completed");
-  }
-
   static void testMain() {
     serverSocketExceptionTest();
     clientSocketExceptionTest();
     indexOutOfRangeExceptionTest();
     unknownHostTest();
-
-    // TODO(sgjesse): This test seems to fail on the buildbot.
-    //unresponsiveHostTest();
   }
 }
 
 main() {
   SocketExceptionTest.testMain();
 }
+
