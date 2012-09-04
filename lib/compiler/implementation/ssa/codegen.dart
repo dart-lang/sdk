@@ -1531,9 +1531,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element superClass = superMethod.getEnclosingClass();
     // Remove the element and 'this'.
     int argumentCount = node.inputs.length - 2;
-    String className = compiler.namer.isolateAccess(superClass);
     if (superMethod.kind == ElementKind.FIELD) {
       ClassElement currentClass = work.element.getEnclosingClass();
+      if (currentClass.isClosure()) {
+        ClosureClassElement closure = currentClass;
+        currentClass = closure.methodElement.getEnclosingClass();
+      }
       String fieldName;
       if (currentClass.isShadowedByField(superMethod)) {
         fieldName = compiler.namer.shadowedFieldName(superMethod);
@@ -1542,8 +1545,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         SourceString name = superMethod.name;
         fieldName = compiler.namer.instanceFieldName(library, name);
       }
+      use(node.inputs[1]);
       js.PropertyAccess access =
-          new js.PropertyAccess.field(new js.This(), fieldName);
+          new js.PropertyAccess.field(pop(), fieldName);
       if (node.isSetter) {
         use(node.value);
         push(new js.Assignment(access, pop()), node);
@@ -1564,6 +1568,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         methodName =
             compiler.namer.setterName(currentLibrary, superMethod.name);
       }
+      String className = compiler.namer.isolateAccess(superClass);
       js.VariableUse classReference = new js.VariableUse(className);
       js.PropertyAccess prototype =
           new js.PropertyAccess.field(classReference, "prototype");

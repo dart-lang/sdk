@@ -60,6 +60,7 @@ class ClosureFieldElement extends Element {
 class ClosureClassElement extends ClassElement {
   ClosureClassElement(SourceString name,
                       Compiler compiler,
+                      this.methodElement,
                       Element enclosingElement)
       : super(name,
               enclosingElement,
@@ -73,7 +74,13 @@ class ClosureClassElement extends ClassElement {
     interfaces = const EmptyLink<DartType>();
     allSupertypes = new Link<DartType>(supertype);
   }
+
   bool isClosure() => true;
+
+  /**
+   * The most outer method this closure is declared into.
+   */
+  Element methodElement;
 }
 
 class BoxElement extends Element {
@@ -395,7 +402,7 @@ class ClosureTranslator extends AbstractVisitor {
     SourceString closureName =
         new SourceString(compiler.namer.closureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
-        closureName, compiler, element.getCompilationUnit());
+        closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
         new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
                                  element,

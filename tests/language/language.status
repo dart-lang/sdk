@@ -46,6 +46,7 @@ call_operator_test: Fail
 constructor_redirect_test/01: Fail # Issue 2103.
 
 closure_with_super_send_test: Fail # Issue 3197.
+closure_with_super_field_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
 parameter_initializer6_negative_test: Fail # Issue 3502
 

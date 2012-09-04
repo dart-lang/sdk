@@ -767,8 +767,8 @@ function(collectedClasses) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
       SourceString name = const SourceString("BoundClosure");
-      ClassElement closureClassElement =
-          new ClosureClassElement(name, compiler, member.getCompilationUnit());
+      ClassElement closureClassElement = new ClosureClassElement(
+          name, compiler, member, member.getCompilationUnit());
       String mangledName = namer.getName(closureClassElement);
       String superName = namer.getName(closureClassElement.superclass);
       needsClosureClass = true;
