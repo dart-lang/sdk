@@ -17,9 +17,6 @@ variable_type_test/01: Fail, OK
 operator_test: Skip
 string_interpolation_test: Skip
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == safari) ]
-naming_test: Fail # BUG(3305)
-
 [ $compiler == dart2js && $runtime == ie ]
 class_test: Fail
 
