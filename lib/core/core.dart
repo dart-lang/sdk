@@ -23,10 +23,9 @@
 #source("iterator.dart");
 #source("list.dart");
 #source("map.dart");
-#source("options.dart");
 #source("num.dart");
 #source("object.dart");
-// TODO: Add num.dart once the editor don't manually add it.
+#source("options.dart");
 #source("pattern.dart");
 #source("print.dart");
 #source("queue.dart");
