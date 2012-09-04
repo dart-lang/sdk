@@ -88,7 +88,7 @@ class _WebSocketProtocolProcessor {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.TEXT;
-              if (onMessageStart != null) {
+              if (onMessageStart !== null) {
                 onMessageStart(_WebSocketMessageType.TEXT);
               }
               break;
@@ -98,7 +98,7 @@ class _WebSocketProtocolProcessor {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.BINARY;
-              if (onMessageStart != null) {
+              if (onMessageStart !== null) {
                 onMessageStart(_WebSocketMessageType.BINARY);
               }
               break;
@@ -194,7 +194,7 @@ class _WebSocketProtocolProcessor {
 
                 case _WebSocketMessageType.TEXT:
                 case _WebSocketMessageType.BINARY:
-                  if (onMessageData != null) {
+                  if (onMessageData !== null) {
                     onMessageData(buffer, index, payload);
                   }
                   index += payload;
@@ -218,7 +218,8 @@ class _WebSocketProtocolProcessor {
         index++;
       }
     } catch (e) {
-      _reportError(e);
+      if (onClosed !== null) onClosed(1006, "Protocol error");
+      _state = FAILURE;
     }
   }
 
@@ -227,7 +228,7 @@ class _WebSocketProtocolProcessor {
    */
   void closed() {
     if (_state == START || _state == CLOSED || _state == FAILURE) return;
-    _reportError(new WebSocketException("Protocol error $_state"));
+    if (onClosed !== null) onClosed(1006, "Connection closed unexpectedly");
     _state = CLOSED;
   }
 
@@ -253,14 +254,14 @@ class _WebSocketProtocolProcessor {
       if (_isControlFrame()) {
         switch (_opcode) {
           case _WebSocketOpcode.CLOSE:
-            if (onClosed != null) onClosed(null, null);
+            if (onClosed !== null) onClosed(1005, "");
             _state = CLOSED;
             break;
           case _WebSocketOpcode.PING:
-            if (onPing != null) onPing(null);
+            if (onPing !== null) onPing(null);
             break;
           case _WebSocketOpcode.PONG:
-            if (onPong != null) onPong(null);
+            if (onPong !== null) onPong(null);
             break;
         }
         _prepareForNextFrame();
@@ -274,7 +275,7 @@ class _WebSocketProtocolProcessor {
 
   void _messageFrameEnd() {
     if (_fin) {
-      if (onMessageEnd != null) onMessageEnd();
+      if (onMessageEnd !== null) onMessageEnd();
       _currentMessageType = _WebSocketMessageType.NONE;
     }
     _prepareForNextFrame();
@@ -283,8 +284,8 @@ class _WebSocketProtocolProcessor {
   void _controlFrameEnd() {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
-        int status;
-        String reason;
+        int status = 1005;
+        String reason = "";
         if (_controlPayload.length > 0) {
           if (_controlPayload.length == 1) {
             throw new WebSocketException("Protocol error");
@@ -297,16 +298,16 @@ class _WebSocketProtocolProcessor {
             reason = decoder.decoded;
           }
         }
-        if (onClosed != null) onClosed(status, reason);
+        if (onClosed !== null) onClosed(status, reason);
         _state = CLOSED;
         break;
 
       case _WebSocketOpcode.PING:
-        if (onPing != null) onPing(_controlPayload);
+        if (onPing !== null) onPing(_controlPayload);
         break;
 
       case _WebSocketOpcode.PONG:
-        if (onPong != null) onPong(_controlPayload);
+        if (onPong !== null) onPong(_controlPayload);
         break;
     }
     _prepareForNextFrame();
@@ -332,17 +333,6 @@ class _WebSocketProtocolProcessor {
     _controlPayload = null;
   }
 
-  void _reportError(e) {
-    // Report the error through the error callback if any. Otherwise
-    // throw the error.
-    if (onError != null) {
-      onError(e);
-      _state = FAILURE;
-    } else {
-      throw e;
-    }
-  }
-
   int _state;
   bool _fin;
   int _opcode;
@@ -363,17 +353,13 @@ class _WebSocketProtocolProcessor {
   Function onPing;
   Function onPong;
   Function onClosed;
-  Function onError;
 }
 
 
 class _WebSocketConnectionBase  {
   void _socketConnected(Socket socket) {
     _socket = socket;
-    _socket.onError = (e) {
-      _reportError(e);
-      _socket.close();
-    };
+    _socket.onError = (e) => _socket.close();
   }
 
   void _startProcessing(List<int> unparsedData) {
@@ -384,8 +370,7 @@ class _WebSocketConnectionBase  {
     processor.onPing = _onWebSocketPing;
     processor.onPong = _onWebSocketPong;
     processor.onClosed = _onWebSocketClosed;
-    processor.onError = _onWebSocketError;
-    if (unparsedData != null) {
+    if (unparsedData !== null) {
       processor.update(unparsedData, 0, unparsedData.length);
     }
     _socket.onData = () {
@@ -399,9 +384,9 @@ class _WebSocketConnectionBase  {
       if (_closeSent) {
         // Got socket close in response to close frame. Don't treat
         // that as an error.
-        if (_closeTimer != null) _closeTimer.cancel();
+        if (_closeTimer !== null) _closeTimer.cancel();
       } else {
-        _reportError(new WebSocketException("Unexpected close"));
+        if (_onClosed !== null) _onClosed(1006, "Unexpected close");
       }
       _socket.close();
     };
@@ -415,17 +400,13 @@ class _WebSocketConnectionBase  {
     _onClosed = callback;
   }
 
-  void set onError(void callback(e)) {
-    _onError = callback;
-  }
-
   send(message) {
     if (_closeSent) {
       throw new WebSocketException("Connection closed");
     }
     List<int> data;
     int opcode;
-    if (message != null) {
+    if (message !== null) {
       if (message is String) {
         opcode = _WebSocketOpcode.TEXT;
         data = _StringEncoders.encoder(Encoding.UTF_8).encodeString(message);
@@ -445,11 +426,11 @@ class _WebSocketConnectionBase  {
   close([int status, String reason]) {
     if (_closeSent) return;
     List<int> data;
-    if (status != null) {
+    if (status !== null) {
       data = new List<int>();
       data.add((status >> 8) & 0xFF);
       data.add(status & 0xFF);
-      if (reason != null) {
+      if (reason !== null) {
         data.addAll(
            _StringEncoders.encoder(Encoding.UTF_8).encodeString(reason));
       }
@@ -461,7 +442,7 @@ class _WebSocketConnectionBase  {
       // does not take too long.
       _socket.outputStream.close();
       _socket.outputStream.onClosed = () {
-        if (_closeTimer != null) _closeTimer.cancel();
+        if (_closeTimer !== null) _closeTimer.cancel();
         _socket.close();
       };
       _closeTimer = new Timer(5000, (t) {
@@ -499,7 +480,7 @@ class _WebSocketConnectionBase  {
   }
 
   _onWebSocketMessageEnd() {
-    if (_onMessage != null) {
+    if (_onMessage !== null) {
       if (_currentMessageType == _WebSocketMessageType.TEXT) {
         _onMessage(_decoder.decoded);
       } else {
@@ -520,19 +501,14 @@ class _WebSocketConnectionBase  {
 
   _onWebSocketClosed(int status, String reason) {
     _closeReceived = true;
-    if (_onClosed != null) _onClosed(status, reason);
+    if (_onClosed !== null) _onClosed(status, reason);
     if (_closeSent) {
       // Got close frame in response to close frame. Now close the socket.
-      if (_closeTimer != null) _closeTimer.cancel();
+      if (_closeTimer !== null) _closeTimer.cancel();
       _socket.close();
     } else {
       close(status);
     }
-  }
-
-  _onWebSocketError(e) {
-    _reportError(e);
-    _socket.close();
   }
 
   _sendFrame(int opcode, [List<int> data]) {
@@ -565,16 +541,8 @@ class _WebSocketConnectionBase  {
     }
     assert(index == headerSize);
     _socket.outputStream.write(header);
-    if (data != null) {
+    if (data !== null) {
       _socket.outputStream.write(data);
-    }
-  }
-
-  void _reportError(e) {
-    if (_onError != null) {
-      _onError(e);
-    } else {
-      throw e;
     }
   }
 
@@ -584,7 +552,6 @@ class _WebSocketConnectionBase  {
 
   Function _onMessage;
   Function _onClosed;
-  Function _onError;
 
   int _currentMessageType = _WebSocketMessageType.NONE;
   _StringDecoder _decoder;
@@ -627,7 +594,7 @@ class _WebSocketHandler implements WebSocketHandler {
     // Upgrade the connection and get the underlying socket.
     WebSocketConnection conn =
         new _WebSocketConnection(response.detachSocket());
-    if (_onOpen != null) _onOpen(conn);
+    if (_onOpen !== null) _onOpen(conn);
   }
 
   void set onOpen(callback(WebSocketConnection connection)) {
@@ -671,7 +638,11 @@ class _WebSocketClientConnection
                              [List<String> protocols]) {
     _conn.onRequest = _onHttpClientRequest;
     _conn.onResponse = _onHttpClientResponse;
-    _conn.onError = (e) => _reportError(e);
+    _conn.onError = (e) {
+      if (_onClosed !== null) {
+        _onClosed(1006, "$e");
+      }
+    };
 
     // Generate the nonce now as it is also used to set the hash code.
     _generateNonceAndHash();
@@ -690,7 +661,7 @@ class _WebSocketClientConnection
   }
 
   void _onHttpClientRequest(HttpClientRequest request) {
-    if (_onRequest != null) {
+    if (_onRequest !== null) {
       _onRequest(request);
     }
     // Setup the initial handshake.
@@ -704,7 +675,7 @@ class _WebSocketClientConnection
 
   void _onHttpClientResponse(HttpClientResponse response) {
     if (response.statusCode != HttpStatus.SWITCHING_PROTOCOLS) {
-      if (_onNoUpgrade != null) {
+      if (_onNoUpgrade !== null) {
         _onNoUpgrade(response);
       } else {
         _conn.detachSocket().socket.close();
@@ -722,7 +693,7 @@ class _WebSocketClientConnection
     // Connection upgrade successful.
     DetachedSocket detached = _conn.detachSocket();
     _socketConnected(detached.socket);
-    if (_onOpen != null) _onOpen();
+    if (_onOpen !== null) _onOpen();
     _startProcessing(detached.unparsedData);
   }
 
@@ -812,24 +783,24 @@ class _WebSocket implements WebSocket {
       client.shutdown();
       client = null;
       _readyState = WebSocket.OPEN;
-      if (_onopen != null) _onopen();
+      if (_onopen !== null) _onopen();
     };
     _wsconn.onMessage = (message) {
-      if (_onmessage != null) {
+      if (_onmessage !== null) {
         _onmessage(new _WebSocketMessageEvent(message));
       }
     };
     _wsconn.onClosed = (status, reason) {
       _readyState = WebSocket.CLOSED;
-      if (_onclose != null) {
+      if (_onclose !== null) {
         _onclose(new _WebSocketCloseEvent(true, status, reason));
       }
     };
     _wsconn.onNoUpgrade = (response) {
-      if (_onerror != null) _onerror("Failed web socket connection");
-    };
-    _wsconn.onError = (e) {
-      if (_onerror != null) _onerror(e);
+      if (_onclose !== null) {
+        _onclose(
+            new _WebSocketCloseEvent(true, 1006, "Connection not upgraded"));
+      }
     };
   }
 
@@ -840,9 +811,7 @@ class _WebSocket implements WebSocket {
     _onopen = callback;
   }
 
-  void set onerror(Function callback) {
-    _onerror = callback;
-  }
+  void set onerror(Function callback) {}
 
   void set onclose(Function callback) {
     _onclose = callback;
@@ -867,7 +836,6 @@ class _WebSocket implements WebSocket {
   WebSocketClientConnection _wsconn;
   int _readyState = WebSocket.CONNECTING;
   Function _onopen;
-  Function _onerror;
   Function _onclose;
   Function _onmessage;
 }
