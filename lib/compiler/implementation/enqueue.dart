@@ -75,8 +75,9 @@ class Enqueuer {
   bool get isResolutionQueue => compiler.enqueuer.resolution === this;
 
   TreeElements getCachedElements(Element element) {
+    // TODO(ngeoffray): Get rid of this check.
     if (element.enclosingElement.isClosure()) {
-      ClosureClassElement cls = element.enclosingElement;
+      closureMapping.ClosureClassElement cls = element.enclosingElement;
       element = cls.methodElement;
     }
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
