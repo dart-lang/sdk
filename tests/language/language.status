@@ -277,7 +277,8 @@ numbers_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
 # DartVM problem.
-closure_with_super_send_test: Fail
+closure_with_super_send_test: Fail # Issue 3197.
+closure_with_super_field_test: Fail # Issue 3197.
 constructor5_test: Fail
 constructor6_test: Fail
 fauxverride_test/none: Fail
