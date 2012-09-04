@@ -1329,6 +1329,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
+      if (Element.isInvalid(target) && !inInstanceContext) {
+        // TODO(karlklose): make this a runtime error.
+        error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
+      }
     }
 
     bool resolvedArguments = false;
@@ -1390,10 +1394,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element target = resolveSend(node);
     Element setter = target;
     Element getter = target;
+    String source = node.assignmentOperator.source.stringValue;
+    bool isComplex = source !== '=';
     if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       setter = field.setter;
       getter = field.getter;
+      if (Element.isInvalid(setter) && !inInstanceContext) {
+        // TODO(karlklose): make this a runtime error.
+        error(node.selector, MessageKind.CANNOT_RESOLVE_SETTER);
+      }
+      if (isComplex && Element.isInvalid(getter) && !inInstanceContext) {
+        // TODO(karlklose): make this a runtime error.
+        error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
+      }
     }
 
     visit(node.argumentsNode);
@@ -1403,8 +1417,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // unqualified.
 
     Selector selector = mapping.getSelector(node);
-    String source = node.assignmentOperator.source.stringValue;
-    bool isComplex = source !== '=';
     if (isComplex) {
       if (selector.isSetter()) {
         // TODO(kasperl): We're registering the getter selector for

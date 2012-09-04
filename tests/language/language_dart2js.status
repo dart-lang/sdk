@@ -84,7 +84,6 @@ generic_instanceof2_test: Fail # fails an instance of test at run time
 generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
-getter_no_setter_test/01: Crash # Internal error: NullPointerException : method: 'get:enclosingElement'
 implicit_scope_test: Fail # duplicate definition of a="bar"
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
@@ -115,7 +114,6 @@ pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
-setter_no_getter_call_test/01: Crash  # Issue 4361
 
 
 # External tests.

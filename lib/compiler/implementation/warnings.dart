@@ -232,6 +232,12 @@ class MessageKind {
   static const PARAMETER_NAME_EXPECTED = const MessageKind(
       "Error: parameter name expected.");
 
+  static const CANNOT_RESOLVE_GETTER = const MessageKind(
+      'Cannot resolve getter.');
+
+  static const CANNOT_RESOLVE_SETTER = const MessageKind(
+      'Cannot resolve setter.');
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
