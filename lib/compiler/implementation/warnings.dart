@@ -103,9 +103,15 @@ class MessageKind {
   static const NO_CATCH_NOR_FINALLY = const MessageKind(
       "expected 'catch' or 'finally'");
   static const EMPTY_CATCH_DECLARATION = const MessageKind(
-      'expected a variable in catch declaration');
+      'expected an identifier in catch declaration');
   static const EXTRA_CATCH_DECLARATION = const MessageKind(
-      'extra variable in catch declaration');
+      'extra parameter in catch declaration');
+  static const PARAMETER_WITH_TYPE_IN_CATCH = const MessageKind(
+      'cannot use type annotations in catch');
+  static const PARAMETER_WITH_MODIFIER_IN_CATCH = const MessageKind(
+      'cannot use modifiers in catch');
+  static const OPTIONAL_PARAMETER_IN_CATCH = const MessageKind(
+      'cannot use optional parameters in catch');
   static const UNBOUND_LABEL = const MessageKind(
       'cannot resolve label #{1}');
   static const NO_BREAK_TARGET = const MessageKind(

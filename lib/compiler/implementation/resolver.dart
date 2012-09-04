@@ -1846,7 +1846,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    Scope blockScope = new BlockScope(scope);
+    // Check that the catch has one or two formal parameters.
     if (node.formals.isEmpty()) {
       error(node, MessageKind.EMPTY_CATCH_DECLARATION);
     } else if (!node.formals.nodes.tail.isEmpty()
@@ -1855,6 +1855,30 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
       }
     }
+
+    // Check that the formals aren't optional and that they have no
+    // modifiers or type.
+    for (Link<Node> link = node.formals.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      // If the formal parameter is a node list, it means that it is a
+      // sequence of optional parameters.
+      NodeList nodeList = link.head.asNodeList();
+      if (nodeList !== null) {
+        error(nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
+      } else {
+        VariableDefinitions declaration = link.head;
+        for (Node modifier in declaration.modifiers.nodes) {
+          error(modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
+        }
+        TypeAnnotation type = declaration.type;
+        if (type !== null) {
+          error(type, MessageKind.PARAMETER_WITH_TYPE_IN_CATCH);
+        }
+      }
+    }
+
+    Scope blockScope = new BlockScope(scope);
     visitIn(node.type, blockScope);
     visitIn(node.formals, blockScope);
     visitIn(node.block, blockScope);
