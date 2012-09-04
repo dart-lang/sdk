@@ -27,7 +27,7 @@ const String DEFAULT_HELPERLIB = @'''
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} eqNull(a) {} eqq() {}
   ltB() {} leB() {} eqB() {} gtB() {} geB() {} eqNullB(a) {}
-  captureStackTrace(x) { return x; }
+  $throw(x) { return x; }
   iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }
   guard$num(x) { return x; }

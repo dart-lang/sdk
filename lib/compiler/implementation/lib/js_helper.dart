@@ -714,25 +714,28 @@ class MathNatives {
 }
 
 /**
- * Called by generated code to capture the stacktrace before throwing
- * an exception.
+ * Throws the given Dart object as an exception by wrapping it in a
+ * proper JavaScript error object and then throwing that. That gives
+ * us a reasonable stack trace on most JavaScript implementations. The
+ * code in [unwrapException] deals with getting the original Dart
+ * object out of the wrapper again.
  */
-captureStackTrace(ex) {
+$throw(ex) {
   if (ex === null) ex = const NullPointerException();
   var jsError = JS('Object', @'new Error()');
   JS('void', @'#.name = #', jsError, ex);
   JS('void', @'#.description = #', jsError, ex);
   JS('void', @'#.dartException = #', jsError, ex);
-  JS('void', @'''#.toString = #''', jsError,
+  JS('void', @'#.toString = #', jsError,
      DART_CLOSURE_TO_JS(toStringWrapper));
-  return jsError;
+  JS('void', @'throw #', jsError);
 }
 
 /**
  * This method is installed as JavaScript toString method on exception
- * objects in [captureStackTrace]. So JavaScript 'this' binds to an
- * instance of JavaScript Error to which we have added a property
- * 'dartException' which holds a Dart object.
+ * objects in [$throw]. So JavaScript 'this' binds to an instance of
+ * JavaScript Error to which we have added a property 'dartException'
+ * which holds a Dart object.
  */
 toStringWrapper() => JS('Object', @'this.dartException').toString();
 
@@ -749,8 +752,7 @@ throwRuntimeError(message) {
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
- * created by [captureStackTrace] or it may be a 'native' JS
- * exception.
+ * created by [$throw] or it may be a 'native' JS exception.
  *
  * Some native exceptions are mapped to new Dart instances, others are
  * returned unmodified.

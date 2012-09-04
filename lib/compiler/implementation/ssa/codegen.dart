@@ -1875,7 +1875,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.inputs[0]);
       pushStatement(new js.Throw(pop()), node);
     } else {
-      generateThrowWithHelper('captureStackTrace', node.inputs[0]);
+      generateThrowWithHelper(@'$throw', node.inputs[0]);
     }
   }
 
@@ -1934,7 +1934,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         new js.VariableUse(compiler.namer.isolateAccess(helper));
     js.Call value = new js.Call(jsHelper, visitArguments([null, argument]));
     attachLocation(value, argument);
-    pushStatement(new js.Throw(value));
+    pushExpressionAsStatement(value);
   }
 
   void visitSwitch(HSwitch node) {
