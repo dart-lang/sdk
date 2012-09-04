@@ -226,8 +226,7 @@ void compile(List<String> argv) {
       print(color(message));
     } else if (fatal || showWarnings) {
       SourceFile file = sourceFiles[uri.toString()];
-      print(file.getLocationMessage(color(message), begin, end, true,
-                                    color));
+      print(file.getLocationMessage(color(message), begin, end, true, color));
     }
     if (fatal && throwOnError) {
       isAborting = true;

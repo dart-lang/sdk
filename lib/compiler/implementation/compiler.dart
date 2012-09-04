@@ -826,6 +826,14 @@ class Compiler implements DiagnosticListener {
     }
     Token position = element.position();
     Uri uri = element.getCompilationUnit().script.uri;
+
+    // TODO(ager,johnniwinther): The patch support should be
+    // reworked to allow us to get rid of this.
+    if (element.isPatched) {
+      position = element.patch.position();
+      uri = element.patch.getCompilationUnit().script.uri;
+    }
+
     return (position === null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);

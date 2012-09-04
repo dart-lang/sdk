@@ -293,6 +293,7 @@ class Element implements Hashable {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
 
+  bool get isPatched => false;
 
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 }

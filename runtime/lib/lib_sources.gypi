@@ -13,5 +13,6 @@
     'error.dart',
     'error.h',
     'literal_factory.dart',
+    'object_patch.dart',
   ],
 }
