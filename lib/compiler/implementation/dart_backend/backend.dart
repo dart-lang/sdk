@@ -217,11 +217,8 @@ class DartBackend extends Backend {
     if (outputAst) {
       // TODO(antonm): Ideally XML should be a separate backend.
       // TODO(antonm): obey renames and minification, at least as an option.
-      StringBuffer sb = new StringBuffer();
-      sb.add('<Program>\n');
-      outputElement(element) {
-        sb.add(element.parseNode(compiler).toDebugString());
-      }
+      final unparser = new Unparser();
+      outputElement(element) { unparser.unparse(element.parseNode(compiler)); }
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
@@ -232,8 +229,7 @@ class DartBackend extends Backend {
           outputElement(topLevel);
         }
       }
-      sb.add('</Program>\n');
-      compiler.assembledCode = sb.toString();
+      compiler.assembledCode = '<Program>\n${unparser.result}</Program>\n';
       return;
     }
 
