@@ -17268,7 +17268,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  bool send(String data) native;
+  void send(data) native;
 }
 
 class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
@@ -36278,7 +36278,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName WebSocket.send */
-  bool send(String data);
+  void send(data);
 }
 
 interface WebSocketEvents extends Events {
@@ -37720,22 +37720,21 @@ class _Timer implements Timer {
   void cancel() { canceller(); }
 }
 
-_getTimerFactoryClosure() =>
-  (int milliSeconds, void callback(Timer timer), bool repeating) {
-    var maker;
-    var canceller;
-    if (repeating) {
-      maker = window.setInterval;
-      canceller = window.clearInterval;
-    } else {
-      maker = window.setTimeout;
-      canceller = window.clearTimeout;
-    }
-    Timer timer;
-    final int id = maker(() { callback(timer); }, milliSeconds);
-    timer = new _Timer(() { canceller(id); });
-    return timer;
-  };
+get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool repeating) {
+  var maker;
+  var canceller;
+  if (repeating) {
+    maker = window.setInterval;
+    canceller = window.clearInterval;
+  } else {
+    maker = window.setTimeout;
+    canceller = window.clearTimeout;
+  }
+  Timer timer;
+  final int id = maker(() { callback(timer); }, milliSeconds);
+  timer = new _Timer(() { canceller(id); });
+  return timer;
+};
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

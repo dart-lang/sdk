@@ -20629,7 +20629,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
-  bool send(String data) native "WebSocket_send_Callback";
+  void send(data) native "WebSocket_send_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39070,7 +39070,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName WebSocket.send */
-  bool send(String data);
+  void send(data);
 }
 
 interface WebSocketEvents extends Events {
@@ -40512,22 +40512,21 @@ class _Timer implements Timer {
   void cancel() { canceller(); }
 }
 
-_getTimerFactoryClosure() =>
-  (int milliSeconds, void callback(Timer timer), bool repeating) {
-    var maker;
-    var canceller;
-    if (repeating) {
-      maker = window.setInterval;
-      canceller = window.clearInterval;
-    } else {
-      maker = window.setTimeout;
-      canceller = window.clearTimeout;
-    }
-    Timer timer;
-    final int id = maker(() { callback(timer); }, milliSeconds);
-    timer = new _Timer(() { canceller(id); });
-    return timer;
-  };
+get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool repeating) {
+  var maker;
+  var canceller;
+  if (repeating) {
+    maker = window.setInterval;
+    canceller = window.clearInterval;
+  } else {
+    maker = window.setTimeout;
+    canceller = window.clearTimeout;
+  }
+  Timer timer;
+  final int id = maker(() { callback(timer); }, milliSeconds);
+  timer = new _Timer(() { canceller(id); });
+  return timer;
+};
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41772,11 +41771,10 @@ class _Utils {
   }
 
   static window() native "Utils_window";
+  static print(String message) native "Utils_print";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 }
-
-Utils_print(String message) native "Utils_print";
 
 class _NPObject extends NativeFieldWrapperClass1 {
   _NPObject();
@@ -41845,3 +41843,11 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
   int get length() => Maps.length(this);
   bool isEmpty() => Maps.isEmpty(this);
 }
+
+get _printClosure => (s) {
+  try {
+    window.console.log(s);
+  } on Dynamic catch(_) {
+    _Utils.print(s);
+  }
+};

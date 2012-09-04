@@ -11758,7 +11758,7 @@ class _WebSocketJs extends _EventTargetJs implements WebSocket native "*WebSocke
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  bool send(String data) native;
+  void send(data) native;
 }
 
 class _WheelEventJs extends _MouseEventJs implements WheelEvent native "*WheelEvent" {
@@ -24181,7 +24181,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  bool send(String data);
+  void send(data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25223,7 +25223,7 @@ class _AudioContextFactoryProvider {
 
 class _FormDataFactoryProvider {
 
-  factory FormData([FormElement form = null]) native '''
+  factory FormData([HTMLFormElement form = null]) native '''
     if (form == null) return new FormData();
     return new FormData(form);
   ''';

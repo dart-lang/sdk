@@ -302,3 +302,17 @@ module storage {
     [Custom] Dictionary item(in unsigned long index);
   };
 }
+
+module websockets {
+  [Supplemental]
+  interface WebSocket {
+    // Suppress the default since it has non-standard return type and add
+    // overrides.
+    [Suppressed] boolean send(in DOMString data) raises(DOMException);
+    [Custom] void send(DOMString data) raises(DOMException);
+    [Custom] void send(Blob data) raises(DOMException);
+    [Custom] void send(ArrayBuffer data) raises(DOMException);
+    [Custom] void send(ArrayBufferView data) raises(DOMException);
+  };
+}
+

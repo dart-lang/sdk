@@ -12089,7 +12089,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  bool send(String data);
+  void send(data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
