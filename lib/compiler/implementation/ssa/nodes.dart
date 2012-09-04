@@ -1400,11 +1400,11 @@ abstract class HFieldAccess extends HInstruction {
 }
 
 class HFieldGet extends HFieldAccess {
-  final bool isFinalOrConst;
+  final bool isAssignable;
 
-  HFieldGet(Element element, HInstruction receiver,
-            [this.isFinalOrConst = false])
-      : super(element, <HInstruction>[receiver]);
+  HFieldGet(Element element, HInstruction receiver)
+      : this.isAssignable = (element == null || element.isAssignable()),
+        super(element, <HInstruction>[receiver]);
 
   HInstruction get receiver => inputs[0];
 
@@ -1413,7 +1413,7 @@ class HFieldGet extends HFieldAccess {
   void prepareGvn(HTypeMap types) {
     setUseGvn();
     clearAllSideEffects();
-    if (!isFinalOrConst) setDependsOnSomething();
+    if (isAssignable) setDependsOnSomething();
   }
 
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;

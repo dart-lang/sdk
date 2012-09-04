@@ -267,7 +267,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitFieldGet(HFieldGet node) {
     String fieldName = node.element.name.slowToString();
-    return 'get ${temporaryId(node.receiver)}.$fieldName}';
+    return 'get ${temporaryId(node.receiver)}.$fieldName';
   }
 
   String visitFieldSet(HFieldSet node) {

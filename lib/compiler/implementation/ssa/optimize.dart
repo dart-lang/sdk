@@ -610,8 +610,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
           break;
       }
     }
-    return new HFieldGet(
-        field, node.inputs[0], isFinalOrConst: isFinalOrConst);
+    return new HFieldGet(field, node.inputs[0]);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
