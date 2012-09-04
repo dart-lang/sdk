@@ -69,7 +69,7 @@ class Legpad {
   void run() {
     String mainFile = getText(MAIN_ID);
     setText("input", readAll(mainFile));
-    Stopwatch stopwatch = new Stopwatch.start();
+    Stopwatch stopwatch = new Stopwatch()..start();
     runLeg();
     int elapsedMillis = stopwatch.elapsedInMs();
     if (output === null) {

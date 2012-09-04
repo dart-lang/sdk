@@ -187,7 +187,8 @@ class Compiler implements DiagnosticListener {
             bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
-        progress = new Stopwatch.start() {
+        progress = new Stopwatch() {
+    progress.start();
     namer = new Namer(this);
     constantHandler = new ConstantHandler(this);
     scanner = new ScannerTask(this);

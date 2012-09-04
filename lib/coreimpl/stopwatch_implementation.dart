@@ -15,9 +15,6 @@ class StopwatchImplementation implements Stopwatch {
   int _stop;
 
   StopwatchImplementation() : _start = null, _stop = null {}
-  StopwatchImplementation.start() : _start = null, _stop = null {
-    start();
-  }
 
   void start() {
     if (_start === null) {
