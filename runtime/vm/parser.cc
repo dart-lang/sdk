@@ -8928,10 +8928,6 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
   LocalVariable* saved_args_desc_var = LookupLocalScope(saved_args_desc_name);
   if (saved_args_desc_var == NULL) {
     ASSERT(owner_scope != NULL);
-    ASSERT(owner_function.raw() == current_function().raw());
-    // We currently generate code for 'owner_function', otherwise the variable
-    // would have been created when compiling the enclosing function of the
-    // currently being compiled local function.
     saved_args_desc_var =
         new LocalVariable(owner_function.token_pos(),
                           saved_args_desc_name,
@@ -8945,18 +8941,14 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     bool success = owner_scope->AddVariable(saved_args_desc_var);
     ASSERT(success);
     // Capture the saved argument descriptor variable if necessary.
-    if (current_function().raw() != innermost_function().raw()) {
-      LocalVariable* local = LookupLocalScope(saved_args_desc_name);
-      ASSERT(local == saved_args_desc_var);
-      ASSERT(local->is_captured());
-    }
-  } else {
-    // If we currently generate code for a local function of the owner function,
-    // the saved arguments descriptor variable must have been captured by the
-    // above lookup.
-    ASSERT((owner_function.raw() == current_function().raw()) ||
-           saved_args_desc_var->is_captured());
+    LocalVariable* local = LookupLocalScope(saved_args_desc_name);
+    ASSERT(local == saved_args_desc_var);
   }
+  // If we currently generate code for the local function of an enclosing owner
+  // function, the saved arguments descriptor variable must have been captured
+  // by the above lookup.
+  ASSERT((owner_function.raw() == innermost_function().raw()) ||
+         saved_args_desc_var->is_captured());
   const String& param_name = String::ZoneHandle(Symbols::New(*ident));
   return new ArgumentDefinitionTestNode(
       test_pos, param_index, param_name, saved_args_desc_var);

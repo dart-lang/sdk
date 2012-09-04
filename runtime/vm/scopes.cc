@@ -477,7 +477,9 @@ RawContextScope* LocalScope::PreserveOuterScope(int current_context_level)
 
 
 LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
-  LocalScope* outer_scope = new LocalScope(NULL, 0, 0);
+  // The function level of the outer scope is one less than the function level
+  // of the current function, which is 0.
+  LocalScope* outer_scope = new LocalScope(NULL, -1, 0);
   // Add all variables as aliases to the outer scope.
   for (int i = 0; i < context_scope.num_variables(); i++) {
     LocalVariable* variable =
