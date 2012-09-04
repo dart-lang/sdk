@@ -13,10 +13,8 @@ String emitCode(
 
   for (final node in topLevelNodes) {
     if (node is ClassNode) {
-      unparser.unparseClassWithBody(node, () {
-        // TODO(smok): Filter out default constructors here.
-        classMembers[node].forEach(unparser.unparse);
-      });
+      // TODO(smok): Filter out default constructors here.
+      unparser.unparseClassWithBody(node, classMembers[node]);
     } else {
       unparser.unparse(node);
     }

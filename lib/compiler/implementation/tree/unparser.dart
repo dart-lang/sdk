@@ -61,7 +61,7 @@ class Unparser implements Visitor {
     visit(node.expression);
   }
 
-  unparseClassWithBody(ClassNode node, void classBodyEmitter()) {
+  unparseClassWithBody(ClassNode node, Iterable<Node> members) {
     addToken(node.beginToken);
     if (node.beginToken.stringValue == 'abstract') {
       addToken(node.beginToken.next);
@@ -84,24 +84,14 @@ class Unparser implements Visitor {
       visit(node.defaultClause);
     }
     sb.add('{');
-    classBodyEmitter();
+    for (final member in members) {
+      visit(member);
+    }
     sb.add('}');
   }
 
   visitClassNode(ClassNode node) {
-    unparseClassWithBody(node, () {
-      NodeList body = node.body;
-      if (body !== null) {
-        sb.add('\n');
-        Link nodes = body.nodes;
-        if (!nodes.isEmpty()) {
-          sb.add('  ');
-          nodes.printOn(sb, '\n  ');
-          sb.add('\n');
-        }
-      }
-    });
-    sb.add('\n');
+    unparseClassWithBody(node, node.body.nodes);
   }
 
   visitConditional(Conditional node) {

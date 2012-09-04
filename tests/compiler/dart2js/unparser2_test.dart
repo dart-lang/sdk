@@ -7,10 +7,6 @@
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/leg.dart"); // only need DiagnosticListener & Script
 
-// This is the number of spaces to trim from the test code.
-// New tests should be indented this amount.
-const int BUILT_IN_TEST_INDENTATION = 6;
-
 main() {
   testClassDef();
   testClass1Field();
@@ -21,81 +17,31 @@ main() {
 }
 
 testClassDef() {
-  compareCode('''
-      class T{}
-      ''', '''
-      class T{
-      }
-      ''');
+  compareCode('class T{}');
 }
 
 testClass1Field() {
-  compareCode('''
-      class T{var x;}
-      ''', '''
-      class T{
-        var x;
-      }
-  ''');
+  compareCode('class T{var x;}');
 }
 
 testClass2Fields() {
-  compareCode('''
-      class T{var x; var y;}
-      ''', '''
-      class T{
-        var x;
-        var y;
-      }
-  ''');
+  compareCode('class T{var x;var y;}');
 }
 
 testClass1Field1Method() {
-  compareCode('''
-      class T{var x;m(){}}
-      ''', '''
-      class T{
-        var x;
-        m(){}
-      }
-  ''');
+  compareCode('class T{var x;m(){}}');
 }
 
 testClass1Field2Method() {
-  compareCode('''
-      class T{a(){}b(){}}
-      ''', '''
-      class T{
-        a(){}
-        b(){}
-      }
-  ''');
+  compareCode('class T{a(){}b(){}}');
 }
 
 testClassDefTypeParam() {
-  compareCode('''
-      class T<X>{}
-      ''', '''
-      class T<X>{
-      }
-      ''');
+  compareCode('class T<X>{}');
 }
 
-void compareCode(String original, String expected) {
-  String unparsed = doUnparse(cleanUpLiteral(original));
-  Expect.equals(cleanUpLiteral(expected), unparsed);
-}
-
-String cleanUpLiteral(String text) {
-  var lines = text.split('\n');
-  for (var j = 0; j < lines.length; j++) {
-    if (lines[j].length > BUILT_IN_TEST_INDENTATION) {
-      lines[j] = lines[j].substring(BUILT_IN_TEST_INDENTATION, lines[j].length);
-    } else {
-      lines[j] = '';
-    }
-  }
-  return Strings.join(lines, '\n');
+void compareCode(String code) {
+  Expect.equals(code, doUnparse(code));
 }
 
 String doUnparse(String source) {
