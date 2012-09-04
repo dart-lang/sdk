@@ -392,6 +392,7 @@ class Assembler : public ValueObject {
   void xorq(Register dst, Register src);
   void xorq(Register dst, const Address& address);
   void xorq(const Address& dst, Register src);
+  void xorq(Register dst, const Immediate& imm);
 
   void addl(Register dst, Register src);
   void addl(const Address& address, const Immediate& imm);

@@ -345,6 +345,7 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
   __ andl(ECX, EAX);
   __ movl(EAX, Immediate(1));
   __ orl(ECX, EAX);
+  __ xorl(ECX, Immediate(0));
   __ movl(EAX, ECX);
   __ ret();
 }

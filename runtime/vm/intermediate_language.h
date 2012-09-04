@@ -19,6 +19,7 @@ class BitVector;
 class BlockEntryInstr;
 class BufferFormatter;
 class ComparisonComp;
+class ConstantComp;
 class Computation;
 class ControlInstruction;
 class Definition;
@@ -862,6 +863,10 @@ class Definition : public Instruction {
 
   // Insert this definition after 'prev'.
   void InsertAfter(Instruction* prev);
+
+  // If this definition is a bind of a constant return it.
+  // Otherwise return NULL.
+  ConstantComp* AsConstant();
 
  private:
   intptr_t temp_index_;

@@ -409,6 +409,7 @@ class Assembler : public ValueObject {
   void orl(Register dst, const Immediate& imm);
   void orl(Register dst, Register src);
 
+  void xorl(Register dst, const Immediate& imm);
   void xorl(Register dst, Register src);
 
   void addl(Register dst, Register src);

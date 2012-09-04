@@ -219,6 +219,12 @@ void Definition::InsertAfter(Instruction* prev) {
 }
 
 
+ConstantComp* Definition::AsConstant() {
+  BindInstr* bind = AsBind();
+  return (bind != NULL) ? bind->computation()->AsConstant() : NULL;
+}
+
+
 void ForwardInstructionIterator::RemoveCurrentFromGraph() {
   current_ = current_->RemoveFromGraph(true);  // Set current_ to previous.
 }

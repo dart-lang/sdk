@@ -762,6 +762,12 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
       continue;
     }
 
+    ConstantComp* constant = def->AsConstant();
+    if (constant != NULL) {
+      locations[i] = Location::Constant(constant->value());
+      continue;
+    }
+
     const intptr_t vreg = def->ssa_temp_index();
     LiveRange* range = GetLiveRange(vreg);
     range->AddUseInterval(block_start_pos, use_pos);
@@ -776,10 +782,19 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
 // temporaries and output.
 void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                                                Instruction* current) {
+  LocationSummary* locs = current->locs();
+
+  Definition* def = current->AsDefinition();
+  if ((def != NULL) &&
+      (def->AsConstant() != NULL) &&
+      (GetLiveRange(def->ssa_temp_index())->first_use() == NULL)) {
+    // Drop definitions of constants that have no uses.
+    locs->set_out(Location::NoLocation());
+    return;
+  }
+
   const intptr_t pos = current->lifetime_position();
   ASSERT(IsInstructionStartPosition(pos));
-
-  LocationSummary* locs = current->locs();
 
   // Number of input locations and number of input operands have to agree.
   ASSERT(locs->input_count() == current->InputCount());
@@ -824,7 +839,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       BlockLocation(*in_ref, pos - 1, pos + 1);
       range->AddUseInterval(block->start_pos(), pos - 1);
       range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
-    } else {
+    } else if (in_ref->IsUnallocated()) {
       // Normal unallocated input. Expected shape of
       // live ranges:
       //
@@ -834,6 +849,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       ASSERT(in_ref->IsUnallocated());
       range->AddUseInterval(block->start_pos(), pos + 1);
       range->AddUse(pos + 1, in_ref);
+    } else {
+      ASSERT(in_ref->IsConstant());
     }
   }
 
@@ -900,7 +917,6 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     safepoints_.Add(current);
   }
 
-  Definition* def = current->AsDefinition();
   if (def == NULL) {
     ASSERT(locs->out().IsInvalid());
     return;

@@ -165,8 +165,11 @@ LocationSummary* ConstantComp::MakeLocationSummary() const {
 
 
 void ConstantComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out().reg();
-  __ LoadObject(result, value());
+  // Register allocator drops constant definitions that have no uses.
+  if (!locs()->out().IsInvalid()) {
+    Register result = locs()->out().reg();
+    __ LoadObject(result, value());
+  }
 }
 
 
@@ -1432,6 +1435,20 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
+
+  ConstantComp* right_constant = right()->definition()->AsConstant();
+  if ((right_constant != NULL) &&
+      (op_kind() != Token::kTRUNCDIV) &&
+      (op_kind() != Token::kSHL)) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::Constant(right_constant->value()));
+    summary->set_out(Location::SameAsFirstInput());
+    return summary;
+  }
+
   if (op_kind() == Token::kTRUNCDIV) {
     const intptr_t kNumTemps = 3;
     LocationSummary* summary =
@@ -1477,7 +1494,6 @@ LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
 
 void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
   Register result = locs()->out().reg();
   ASSERT(left == result);
   Label* deopt = NULL;
@@ -1492,6 +1508,73 @@ void BinarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                       kDeoptBinarySmiOp);
   }
 
+  if (locs()->in(1).IsConstant()) {
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(constant.IsSmi());
+    const int32_t imm =
+        reinterpret_cast<int32_t>(constant.raw());
+    switch (op_kind()) {
+      case Token::kADD:
+        __ addl(left, Immediate(imm));
+        __ j(OVERFLOW, deopt);
+        break;
+      case Token::kSUB: {
+        __ subl(left, Immediate(imm));
+        __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kMUL: {
+        // Keep left value tagged and untag right value.
+        const intptr_t value = Smi::Cast(constant).Value();
+        __ imull(left, Immediate(value));
+        __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kBIT_AND: {
+        // No overflow check.
+        __ andl(left, Immediate(imm));
+        break;
+      }
+      case Token::kBIT_OR: {
+        // No overflow check.
+        __ orl(left, Immediate(imm));
+        break;
+      }
+      case Token::kBIT_XOR: {
+        // No overflow check.
+        __ xorl(left, Immediate(imm));
+        break;
+      }
+      case Token::kSHR: {
+        // sarl operation masks the count to 5 bits.
+        const intptr_t kCountLimit = 0x1F;
+        intptr_t value = Smi::Cast(constant).Value();
+
+        if (value == 0) {
+          // TODO(vegorov): should be handled outside.
+          break;
+        } else if (value < 0) {
+          // TODO(vegorov): should be handled outside.
+          __ jmp(deopt);
+          break;
+        }
+
+        value = value + kSmiTagSize;
+        if (value >= kCountLimit) value = kCountLimit;
+
+        __ sarl(left, Immediate(value));
+        __ SmiTag(left);
+        break;
+      }
+
+      default:
+        UNREACHABLE();
+        break;
+    }
+    return;
+  }
+
+  Register right = locs()->in(1).reg();
   switch (op_kind()) {
     case Token::kADD: {
       __ addl(left, right);
