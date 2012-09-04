@@ -24,11 +24,6 @@ class Unparser implements Visitor {
   }
   Unparser.withRenamer(this.rename) : sb = new StringBuffer();
 
-  // TODO(antonm): will go away soon.
-  void addString(String s) {
-    sb.add(s);
-  }
-
   void add(SourceString string) {
     string.printOn(sb);
   }
@@ -466,6 +461,11 @@ class Unparser implements Visitor {
       sb.add('default:');
     }
     visit(node.statements);
+  }
+
+  unparseImportTag(String uri, [String prefix]) {
+    final suffix = prefix === null ? '' : ',prefix:"$prefix"';
+    sb.add('#import("$uri"$suffix);');
   }
 
   visitScriptTag(ScriptTag node) {

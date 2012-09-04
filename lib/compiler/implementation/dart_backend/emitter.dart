@@ -22,7 +22,7 @@ String emitCode(
   }
 
   imports.forEach((libraryElement, prefix) {
-    unparser.addString('#import("${libraryElement.uri}",prefix:"$prefix");');
+    unparser.unparseImportTag('${libraryElement.uri}', prefix);
   });
 
   for (final element in topLevelElements) {
