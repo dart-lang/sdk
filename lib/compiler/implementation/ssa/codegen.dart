@@ -1715,6 +1715,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         world.registerStaticUse(function.element);
         push(new js.VariableUse(
             compiler.namer.isolateAccess(function.element)));
+      } else if (constant.isSentinel()) {
+        // TODO(floitsch): get rid of the code buffer.
+        CodeBuffer buffer = new CodeBuffer();
+        handler.writeConstant(buffer, constant);
+        push(new js.VariableUse(buffer.toString()));
       } else {
         compiler.internalError(
             "The compiler does not know how generate code for "

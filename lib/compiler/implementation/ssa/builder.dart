@@ -812,7 +812,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   /**
    * Variables stored in the current activation. These variables are
    * being updated in try/catch blocks, and should be
-   * accessed indirectly through HFieldGet and HFieldSet.
+   * accessed indirectly through [HLocalGet] and [HLocalSet].
    */
   Map<Element, HLocalValue> activationVariables;
 
@@ -1226,6 +1226,52 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return closeFunction();
   }
 
+  void addParameterCheckInstruction(Element element) {
+    // This is the code we emit for a parameter that is being checked
+    // on whether it was given at value at the call site:
+    //
+    // foo([a = 42) {
+    //   if (?a) print('parameter passed $a');
+    // }
+    //
+    // foo([a = 42]) {
+    //   var t1 = a === sentinel;
+    //   if (t1) a = 42;
+    //   if (!t1) print('parameter passed ' + a);
+    // }
+
+    // Fetch the original default value of [element];
+    ConstantHandler handler = compiler.constantHandler;
+    Constant constant = handler.compileVariable(element);
+    HConstant defaultValue = constant == null
+        ? graph.addConstantNull()
+        : graph.addConstant(constant);
+
+    // Emit the equality check with the sentinel.
+    HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
+    Element equalsHelper = interceptors.getTripleEqualsInterceptor();
+    HInstruction target = new HStatic(equalsHelper);
+    add(target);
+    HInstruction operand = parameters[element];
+    HInstruction check = new HIdentity(target, sentinel, operand);
+    add(check);
+
+    // If the check succeeds, we must update the parameter with the
+    // default value.
+    handleIf(element.parseNode(compiler),
+             () => stack.add(check),
+             () => localsHandler.updateLocal(element, defaultValue),
+             null);
+
+    // Create the instruction that parameter checks will use.
+    check = new HNot(check);
+    add(check);
+
+    ClosureClassMap closureData = localsHandler.closureData;
+    Element checkResultElement = closureData.parametersWithSentinel[element];
+    localsHandler.updateLocal(checkResultElement, check);
+  }
+
   void openFunction(FunctionElement functionElement,
                     FunctionExpression node) {
     HBasicBlock block = graph.addNewBlock();
@@ -1236,11 +1282,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     open(block);
 
+    FunctionSignature params = functionElement.computeSignature(compiler);
+    params.forEachParameter((Element element) {
+      if (elements.isParameterChecked(element)) {
+        addParameterCheckInstruction(element);
+      }
+    });
+
     // Put the type checks in the first successor of the entry,
     // because that is where the type guards will also be inserted.
     // This way we ensure that a type guard will dominate the type
     // check.
-    FunctionSignature params = functionElement.computeSignature(compiler);
     params.forEachParameter((Element element) {
       HInstruction newParameter = potentiallyCheckType(
           localsHandler.directLocals[element], element);
@@ -1778,10 +1830,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitUnary(Send node, Operator op) {
-    String value = op.source.stringValue;
-    if (value === '?') {
-      // TODO(ahe): Implement argument definition test.
-      stack.add(graph.addConstantBool(true));
+    if (node.isParameterCheck) {
+      Element element = elements[node.receiver];
+      Node function = element.enclosingElement.parseNode(compiler);
+      ClosureClassMap parameterClosureData =
+          compiler.closureToClassMapper.getMappingForNestedFunction(function);
+      Element fieldCheck =
+          parameterClosureData.parametersWithSentinel[element];
+      stack.add(localsHandler.readLocal(fieldCheck));
       return;
     }
     assert(node.argumentsNode is Prefix);
@@ -1793,6 +1849,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     HInvokeUnary result;
+    String value = op.source.stringValue;
     switch (value) {
       case "-": result = new HNegate(target, operand); break;
       case "~": result = new HBitNot(target, operand); break;
@@ -2165,8 +2222,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return pop();
     }
 
-    HInstruction compileConstant(Element constantElement) {
-      Constant constant = compiler.compileVariable(constantElement);
+    HInstruction compileConstant(Element parameter) {
+      Constant constant;
+      TreeElements calleeElements =
+          compiler.enqueuer.resolution.getCachedElements(element);
+      if (calleeElements.isParameterChecked(parameter)) {
+        constant = SentinelConstant.SENTINEL;
+      } else {
+        constant = compiler.compileVariable(parameter);
+      }
       return graph.addConstant(constant);
     }
 
@@ -3669,7 +3733,11 @@ class InlineWeeder extends AbstractVisitor {
     tooDifficult = true;
   }
 
-  void visitSend(Node node) {
+  void visitSend(Send node) {
+    if (node.isParameterCheck) {
+      tooDifficult = true;
+      return;
+    }
     node.visitChildren(this);
   }
 

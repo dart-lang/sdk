@@ -75,6 +75,10 @@ class Enqueuer {
   bool get isResolutionQueue => compiler.enqueuer.resolution === this;
 
   TreeElements getCachedElements(Element element) {
+    if (element.enclosingElement.isClosure()) {
+      ClosureClassElement cls = element.enclosingElement;
+      element = cls.methodElement;
+    }
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
     return compiler.enqueuer.resolution.resolvedElements[owner];
   }

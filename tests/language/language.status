@@ -31,6 +31,7 @@ pseudo_kw_illegal_test/08: Fail  # Issue 356
 pseudo_kw_illegal_test/10: Fail  # Issue 356
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 final_field_initialization_order_test: Fail # Issue 4839
+argument_definition2_test: Fail # Issue 4888
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail          # (Discussion ongoing)

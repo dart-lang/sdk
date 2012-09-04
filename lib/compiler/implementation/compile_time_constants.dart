@@ -21,6 +21,7 @@ class Constant implements Hashable {
   bool isPrimitive() => false;
   /** Returns true if the constant is a list, a map or a constructed object. */
   bool isObject() => false;
+  bool isSentinel() => false;
 
   bool isNaN() => false;
 
@@ -32,6 +33,27 @@ class Constant implements Hashable {
   abstract void _writeCanonicalizedJsCode(CodeBuffer buffer,
                                           ConstantHandler handler);
   abstract List<Constant> getDependencies();
+}
+
+class SentinelConstant extends Constant {
+  const SentinelConstant();
+  static final SENTINEL = const SentinelConstant();
+
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
+    handler.compiler.internalError(
+        "The parameter sentinel constant does not need specific JS code");
+  }
+
+  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
+    buffer.add(handler.compiler.namer.CURRENT_ISOLATE);
+  }
+
+  List<Constant> getDependencies() => const <Constant>[];
+
+  // Just use a randome value.
+  int hashCode() => 9264297841582447;
+
+  bool isSentinel() => true;
 }
 
 class FunctionConstant extends Constant {

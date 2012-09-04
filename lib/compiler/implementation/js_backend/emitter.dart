@@ -9,9 +9,17 @@
 class ClosureInvocationElement extends FunctionElement {
   ClosureInvocationElement(SourceString name,
                            FunctionElement other)
-      : super.from(name, other, other.enclosingElement);
+      : super.from(name, other, other.enclosingElement),
+        methodElement = other;
 
   isInstanceMember() => true;
+
+  Element getOutermostEnclosingMemberOrTopLevel() => methodElement;
+
+  /**
+   * The [member] this invocation refers to.
+   */
+  Element methodElement;
 }
 
 /**
@@ -331,6 +339,9 @@ function(collectedClasses) {
 
     int count = 0;
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
+    TreeElements elements = 
+        compiler.enqueuer.resolution.getCachedElements(member);
+
     parameters.forEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
       if (count < positionalArgumentCount) {
@@ -344,6 +355,11 @@ function(collectedClasses) {
           // one in the real method (which is in Dart source order).
           argumentsBuffer[count] = jsName;
           parametersBuffer[selector.positionalArgumentCount + index] = jsName;
+        // Note that [elements] may be null for a synthetized [member].
+        } else if (elements != null && elements.isParameterChecked(element)) {
+          CodeBuffer argumentBuffer = new CodeBuffer();
+          handler.writeConstant(argumentBuffer, SentinelConstant.SENTINEL);
+          argumentsBuffer[count] = argumentBuffer.toString();
         } else {
           Constant value = handler.initialVariableValues[element];
           if (value == null) {

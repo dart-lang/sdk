@@ -6,17 +6,20 @@ interface TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
   DartType getType(TypeAnnotation annotation);
+  bool isParameterChecked(Element element);
 }
 
 class TreeElementMapping implements TreeElements {
-  Map<Node, Element> map;
-  Map<Node, Selector> selectors;
-  Map<TypeAnnotation, DartType> types;
+  final Map<Node, Element> map;
+  final Map<Node, Selector> selectors;
+  final Map<TypeAnnotation, DartType> types;
+  final Set<Element> checkedParameters;
 
   TreeElementMapping()
-    : map = new LinkedHashMap<Node, Element>(),
-      selectors = new LinkedHashMap<Node, Selector>(),
-      types = new LinkedHashMap<TypeAnnotation, DartType>();
+      : map = new LinkedHashMap<Node, Element>(),
+        selectors = new LinkedHashMap<Node, Selector>(),
+        types = new LinkedHashMap<TypeAnnotation, DartType>(),
+        checkedParameters = new Set<Element>();
 
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
@@ -33,6 +36,10 @@ class TreeElementMapping implements TreeElements {
   }
 
   Selector getSelector(Node node) => selectors[node];
+
+  bool isParameterChecked(Element element) {
+    return checkedParameters.contains(element);
+  }
 }
 
 class ResolverTask extends CompilerTask {
@@ -1347,8 +1354,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         if (parameter === null || parameter.kind !== ElementKind.PARAMETER) {
           error(node.receiver, MessageKind.PARAMETER_NAME_EXPECTED);
         } else {
-          warning(node, MessageKind.GENERIC,
-                  ['argument definition test operator is not implemented.']);
+          mapping.checkedParameters.add(parameter);
         }
       }
     }

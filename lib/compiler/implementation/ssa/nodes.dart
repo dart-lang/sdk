@@ -163,6 +163,9 @@ class HGraph {
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
     if (constant.isFunction()) return HType.UNKNOWN;
+    // Give a primitive type to the sentinel to avoid Dart semantics
+    // for equality check.
+    if (constant.isSentinel()) return HType.STRING;
     ObjectConstant objectConstant = constant;
     return new HBoundedType.exact(objectConstant.type);
   }

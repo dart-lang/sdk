@@ -282,6 +282,8 @@ class Send extends Expression {
       isOperator && selector.asOperator().source.stringValue === '&&';
   bool get isLogicalOr =>
       isOperator && selector.asOperator().source.stringValue === '||';
+  bool get isParameterCheck =>
+      isOperator && selector.asOperator().source.stringValue === '?';
 
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();

@@ -19,7 +19,7 @@ class ClosureTask extends CompilerTask {
   String get name => "Closure Simplifier";
 
   ClosureClassMap computeClosureToClassMapping(FunctionExpression node,
-                                                     TreeElements elements) {
+                                               TreeElements elements) {
     return measure(() {
       ClosureClassMap cached = closureMappingCache[node];
       if (cached !== null) return cached;
@@ -141,6 +141,10 @@ class ClosureClassMap {
 
   final Set<Element> usedVariablesInTry;
 
+  // A map from the parameter element to the variable element that
+  // holds the sentinel check.
+  final Map<Element, Element> parametersWithSentinel;
+
   ClosureClassMap(this.closureElement,
               this.closureClassElement,
               this.callElement,
@@ -148,7 +152,8 @@ class ClosureClassMap {
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>(),
-        this.usedVariablesInTry = new Set<Element>();
+        this.usedVariablesInTry = new Set<Element>(),
+        this.parametersWithSentinel = new Map<Element, Element>();
 
   bool isClosure() => closureElement !== null;
 }
@@ -312,6 +317,22 @@ class ClosureTranslator extends AbstractVisitor {
       useLocal(closureData.thisElement);
     } else if (node.isSuperCall) {
       useLocal(closureData.thisElement);
+    } else if (node.isOperator
+               && node.argumentsNode is Prefix
+               && node.selector.source.stringValue == '?') {
+      Element parameter = elements[node.receiver];
+      FunctionElement enclosing = parameter.enclosingElement;
+      FunctionExpression function = enclosing.parseNode(compiler);
+      ClosureClassMap cached = closureMappingCache[function];
+      if (!cached.parametersWithSentinel.containsKey(parameter)) {
+        SourceString parameterName = parameter.name;
+        String name = '${parameterName.slowToString()}_check';
+        Element newElement = new Element(new SourceString(name),
+                                         ElementKind.VARIABLE,
+                                         enclosing);
+        useLocal(newElement);
+        cached.parametersWithSentinel[parameter] = newElement;
+      }
     }
     node.visitChildren(this);
   }
@@ -478,6 +499,7 @@ class ClosureTranslator extends AbstractVisitor {
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
     }
+    closureMappingCache[node] = closureData;
 
     inNewScope(node, () {
       // We have to declare the implicit 'this' parameter.
@@ -501,7 +523,6 @@ class ClosureTranslator extends AbstractVisitor {
       if (node.body !== null) node.body.accept(this);
     });
 
-    closureMappingCache[node] = closureData;
 
     ClosureClassMap savedClosureData = closureData;
     bool savedInsideClosure = insideClosure;
