@@ -137,6 +137,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
+  private static final String AS_KEYWORD = "as";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
@@ -165,6 +166,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
+    AS_KEYWORD,
     ASSERT_KEYWORD,
     DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
@@ -2770,6 +2772,9 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartExpression parseLiteral() {
     beginLiteral();
+    if (PSEUDO_KEYWORDS_SET.contains(peek(0).getSyntax())) {
+      return done(parseIdentifier());
+    }
     switch (peek(0)) {
       case NULL_LITERAL: {
         consume(Token.NULL_LITERAL);
