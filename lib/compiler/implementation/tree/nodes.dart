@@ -305,6 +305,22 @@ class Send extends Expression {
     assert(receiver === null);
     return new Send(newReceiver, selector, argumentsNode);
   }
+
+  /**
+   * Returns the type annotation of a connstructor call in an object
+   * instantiation.
+   */
+  TypeAnnotation getTypeAnnotation() {
+    if (selector is TypeAnnotation) {
+      return selector;
+    } else if (selector is Send) {
+      Send selectorSend = selector;
+      if (selectorSend.receiver is TypeAnnotation) {
+        return selectorSend.receiver;
+      }
+    }
+    return null;
+  }
 }
 
 class Postfix extends NodeList {

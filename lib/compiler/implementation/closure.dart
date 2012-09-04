@@ -324,6 +324,31 @@ class ClosureTranslator extends AbstractVisitor {
     super.visitSendSet(node);
   }
 
+  visitNewExpression(NewExpression node) {
+    bool hasTypeVariable(DartType type) {
+      if (type is TypeVariableType) {
+        return true;
+      } else if (type is InterfaceType) {
+        InterfaceType ifcType = type;
+        for (DartType argument in ifcType.arguments) {
+          if (hasTypeVariable(argument)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    TypeAnnotation annotation = node.send.getTypeAnnotation();
+    DartType type = elements.getType(annotation);
+    if (hasTypeVariable(type)) {
+      // Factories do not use [this] to get the type variables.
+      if (closureData.thisElement !== null) {
+        useLocal(closureData.thisElement);
+      }
+    }
+    node.visitChildren(this);
+  }
+
   // If variables that are declared in the [node] scope are captured and need
   // to be boxed create a box-element and update the [capturingScopes] in the
   // current [closureData].

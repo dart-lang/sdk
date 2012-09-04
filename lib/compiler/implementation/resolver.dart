@@ -1547,19 +1547,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return null;
   }
 
-  TypeAnnotation getTypeAnnotationFromSend(Send send) {
-    if (send.selector.asTypeAnnotation() !== null) {
-      return send.selector;
-    } else if (send.selector.asSend() !== null) {
-      Send selector = send.selector;
-      if (selector.receiver.asTypeAnnotation() !== null) {
-        return selector.receiver;
-      }
-    } else {
-      compiler.internalError("malformed send in new expression");
-    }
-  }
-
   /**
    * Try to resolve the constructor that is referred to by [node].
    * Note: this function may return an ErroneousFunctionElement instead of
@@ -1571,7 +1558,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         new ConstructorResolver(compiler, this, node.isConst());
     FunctionElement constructor = node.accept(visitor);
     // Try to resolve the type that the new-expression constructs.
-    TypeAnnotation annotation = getTypeAnnotationFromSend(node.send);
+    TypeAnnotation annotation = node.send.getTypeAnnotation();
     if (Element.isInvalid(constructor)) {
       // Resolve the type arguments. We cannot create a type and check the
       // number of type arguments for this annotation, because we do not know

@@ -328,7 +328,6 @@ class LocalsHandler {
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
             node, builder.elements);
-
     FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
@@ -2528,8 +2527,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.cancel('Unimplemented non-matching static call', node: node);
     }
 
-    TypeAnnotation annotation = getTypeAnnotationFromSend(node);
-    elements.getType(annotation).arguments.forEach((DartType argument) {
+    TypeAnnotation annotation = node.getTypeAnnotation();
+    if (annotation == null) {
+      compiler.internalError("malformed send in new expression");
+    }
+    InterfaceType type = elements.getType(annotation);
+    type.arguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument, node));
     });
 
@@ -2587,20 +2590,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // TODO(antonm): migrate rest of SsaBuilder to internalError.
   internalError(String reason, [Node node]) {
     compiler.internalError(reason, node: node);
-  }
-
-  // TODO(karlklose): share with resolver.
-  TypeAnnotation getTypeAnnotationFromSend(Send send) {
-    if (send.selector is TypeAnnotation) {
-      return send.selector;
-    } else if (send.selector is Send) {
-      Send selector = send.selector;
-      if (selector.receiver is TypeAnnotation) {
-        return selector.receiver;
-      }
-    } else {
-      compiler.internalError("malformed send in new expression");
-    }
   }
 
   void generateRuntimeError(Node node, String message) {
