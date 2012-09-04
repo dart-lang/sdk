@@ -16,9 +16,20 @@
 #include "bin/file.h"
 #include "platform/globals.h"
 
+#define CHECK_RESULT(result)                                                   \
+  if (Dart_IsError(result)) {                                                  \
+    fprintf(stderr, "Error: %s", Dart_GetError(result));                       \
+    Dart_ExitScope();                                                          \
+    Dart_ShutdownIsolate();                                                    \
+    exit(255);                                                                 \
+  }                                                                            \
+
+
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
 static const char* snapshot_filename = NULL;
+static bool script_snapshot = false;
+static const char* package_root = NULL;
 
 
 // Global state which contains a pointer to the script name for which
@@ -49,9 +60,15 @@ static const char* ProcessOption(const char* option, const char* name) {
 
 
 static bool ProcessSnapshotOption(const char* option) {
-  const char* kSnapshotOption = "--snapshot=";
-  const char* name = ProcessOption(option, kSnapshotOption);
+  const char* name = ProcessOption(option, "--snapshot=");
   if (name != NULL) {
+    script_snapshot = false;
+    snapshot_filename = name;
+    return true;
+  }
+  name = ProcessOption(option, "--script_snapshot=");
+  if (name != NULL) {
+    script_snapshot = true;
     snapshot_filename = name;
     return true;
   }
@@ -59,9 +76,21 @@ static bool ProcessSnapshotOption(const char* option) {
 }
 
 
+static bool ProcessPackageRootOption(const char* option) {
+  const char* name = ProcessOption(option, "--package_root=");
+  if (name != NULL) {
+    package_root = name;
+    return true;
+  }
+  return false;
+}
+
+
 static bool ProcessURLmappingOption(const char* option) {
-  const char* kURLmappingOption = "--url_mapping=";
-  const char* mapping = ProcessOption(option, kURLmappingOption);
+  const char* mapping = ProcessOption(option, "--url_mapping=");
+  if (mapping == NULL) {
+    mapping = ProcessOption(option, "--url-mapping=");
+  }
   if (mapping != NULL) {
     url_mapping->AddArgument(mapping);
     return true;
@@ -84,7 +113,9 @@ static int ParseArguments(int argc,
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-    if (ProcessSnapshotOption(argv[i]) || ProcessURLmappingOption(argv[i])) {
+    if (ProcessSnapshotOption(argv[i]) ||
+        ProcessURLmappingOption(argv[i]) ||
+        ProcessPackageRootOption(argv[i])) {
       i += 1;
       continue;
     }
@@ -156,47 +187,6 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
 }
 
 
-static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
-                                            Dart_Handle library,
-                                            Dart_Handle url) {
-  if (!Dart_IsLibrary(library)) {
-    return Dart_Error("not a library");
-  }
-  if (!Dart_IsString8(url)) {
-    return Dart_Error("url is not a string");
-  }
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  // We only support canonicalization of "dart:".
-  if (DartUtils::IsDartSchemeURL(url_string)) {
-    if (tag == kCanonicalizeUrl) {
-      return url;
-    }
-    ASSERT(tag == kImportTag);
-    // Handle imports of other built-in libraries present in the SDK.
-    Builtin::BuiltinLibraryId id;
-    if (DartUtils::IsDartCryptoLibURL(url_string)) {
-      id = Builtin::kCryptoLibrary;
-    } else if (DartUtils::IsDartIOLibURL(url_string)) {
-      id = Builtin::kIOLibrary;
-    } else if (DartUtils::IsDartJsonLibURL(url_string)) {
-      id = Builtin::kJsonLibrary;
-    } else if (DartUtils::IsDartUriLibURL(url_string)) {
-      id = Builtin::kUriLibrary;
-    } else if (DartUtils::IsDartUtfLibURL(url_string)) {
-      id = Builtin::kUtfLibrary;
-    } else {
-      return Dart_Error("Do not know how to load '%s'", url_string);
-    }
-    return Builtin::LoadLibrary(id);
-  }
-  return Dart_Error("unexpected tag encountered %d", tag);
-}
-
-
 static Dart_Handle LoadGenericSnapshotCreationScript(
     Builtin::BuiltinLibraryId id) {
   Dart_Handle source = Builtin::Source(id);
@@ -233,6 +223,56 @@ static void VerifyLoaded(Dart_Handle library) {
 }
 
 
+static void CreateAndWriteSnapshot(bool script_snapshot) {
+  Dart_Handle result;
+  uint8_t* buffer = NULL;
+  intptr_t size = 0;
+
+  // First create a snapshot.
+  if (script_snapshot) {
+    // Script snapshot specified so create a script snapshot.
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
+  } else {
+    // Create a full snapshot.
+    result = Dart_CreateSnapshot(&buffer, &size);
+  }
+  CHECK_RESULT(result);
+
+  // Now write the snapshot out to specified file and exit.
+  WriteSnapshotFile(buffer, size);
+  Dart_ExitScope();
+
+  // Shutdown the isolate.
+  Dart_ShutdownIsolate();
+}
+
+
+static void SetupForGenericSnapshotCreation() {
+  // Set up the library tag handler for this isolate.
+  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  if (Dart_IsError(result)) {
+    fprintf(stderr, "%s", Dart_GetError(result));
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(255);
+  }
+  // This is a generic dart snapshot which needs builtin library setup.
+  Dart_Handle library =
+      LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
+  VerifyLoaded(library);
+}
+
+
 int main(int argc, char** argv) {
   CommandLineOptions vm_options(argc);
 
@@ -254,6 +294,8 @@ int main(int argc, char** argv) {
     return 255;
   }
 
+  DartUtils::SetOriginalWorkingDirectory();
+
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
@@ -264,7 +306,7 @@ int main(int argc, char** argv) {
   char* error;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error);
   if (isolate == NULL) {
-    fprintf(stderr, "%s", error);
+    fprintf(stderr, "Error: %s", error);
     free(error);
     exit(255);
   }
@@ -276,58 +318,74 @@ int main(int argc, char** argv) {
   ASSERT(snapshot_filename != NULL);
   // Load up the script before a snapshot is created.
   if (app_script_name != NULL) {
-    // Set up the library tag handler for this isolate.
-    result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
-    if (Dart_IsError(result)) {
-      fprintf(stderr, "%s", Dart_GetError(result));
+    if (!script_snapshot) {
+      // This is the case of a custom embedder (e.g: dartium) trying to
+      // create a full snapshot. Set up the library tag handler for this case
+      // in such a manner that it will use the URL mapping specified on the
+      // command line to load the libraries.
+      result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
+      CHECK_RESULT(result);
+      // Load the specified script.
+      library = LoadSnapshotCreationScript(app_script_name);
+      VerifyLoaded(library);
+      CreateAndWriteSnapshot(false);
+    } else {
+      // This is the case where we want to create a script snapshot of
+      // the specified script. There will be no URL mapping specified for
+      // this case, use the generic library tag handler.
+
+      // First setup and create a generic full snapshot.
+      SetupForGenericSnapshotCreation();
+      uint8_t* buffer = NULL;
+      intptr_t size = 0;
+      result = Dart_CreateSnapshot(&buffer, &size);
+      CHECK_RESULT(result);
+
+      // Save the snapshot buffer as we are about to shutdown the isolate.
+      uint8_t* snapshot_buffer = reinterpret_cast<uint8_t*>(malloc(size));
+      ASSERT(snapshot_buffer != NULL);
+      memmove(snapshot_buffer, buffer, size);
+
+      // Shutdown the isolate.
       Dart_ExitScope();
       Dart_ShutdownIsolate();
-      exit(255);
+
+      // Now load the specified script and create a script snapshot.
+      Dart_Isolate isolate = Dart_CreateIsolate(NULL,
+                                                NULL,
+                                                snapshot_buffer,
+                                                NULL,
+                                                &error);
+      free(snapshot_buffer);
+      if (isolate == NULL) {
+        fprintf(stderr, "%s", error);
+        free(error);
+        exit(255);
+      }
+      Dart_EnterScope();
+
+      // Setup generic library tag handler.
+      result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+      CHECK_RESULT(result);
+
+      // Get handle to builtin library.
+      Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+      CHECK_RESULT(builtin_lib);
+
+      // Prepare for script loading by setting up the 'print' and 'timer'
+      // closures and setting up 'package root' for URI resolution.
+      result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+      CHECK_RESULT(result);
+
+      // Load specified script.
+      library = DartUtils::LoadScript(app_script_name, true, builtin_lib);
+
+      // Now create and write snapshot of script.
+      CreateAndWriteSnapshot(true);
     }
-    // Load the specified script.
-    library = LoadSnapshotCreationScript(app_script_name);
-    VerifyLoaded(library);
   } else {
-    // Set up the library tag handler for this isolate.
-    result = Dart_SetLibraryTagHandler(BuiltinLibraryTagHandler);
-    if (Dart_IsError(result)) {
-      fprintf(stderr, "%s", Dart_GetError(result));
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      exit(255);
-    }
-    // This is a generic dart snapshot which needs builtin library setup.
-    Dart_Handle library =
-        LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
-    VerifyLoaded(library);
-    library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
-    VerifyLoaded(library);
-    library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
-    VerifyLoaded(library);
-    library = LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
-    VerifyLoaded(library);
-    library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
-    VerifyLoaded(library);
-    library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
-    VerifyLoaded(library);
+    SetupForGenericSnapshotCreation();
+    CreateAndWriteSnapshot(false);
   }
-
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
-  // First create the snapshot.
-  result = Dart_CreateSnapshot(&buffer, &size);
-  if (Dart_IsError(result)) {
-    const char* err_msg = Dart_GetError(result);
-    fprintf(stderr, "Error while creating snapshot: %s\n", err_msg);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(255);
-  }
-  // Now write the snapshot out to specified file and exit.
-  WriteSnapshotFile(buffer, size);
-  Dart_ExitScope();
-
-  // Shutdown the isolate.
-  Dart_ShutdownIsolate();
   return 0;
 }

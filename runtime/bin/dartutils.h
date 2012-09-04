@@ -90,11 +90,20 @@ class DartUtils {
                                      Dart_Handle library,
                                      const char* url_str);
   static Dart_Handle ReadStringFromFile(const char* filename);
+  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                       Dart_Handle library,
+                                       Dart_Handle url);
+  static Dart_Handle LoadScript(const char* script_uri,
+                                bool resolve_script,
+                                Dart_Handle builtin_lib);
   static Dart_Handle LoadSource(CommandLineOptions* url_mapping,
                                 Dart_Handle library,
                                 Dart_Handle url,
                                 Dart_LibraryTag tag,
                                 const char* filename);
+  static Dart_Handle PrepareForScriptLoading(const char* package_root,
+                                             Dart_Handle builtin_lib);
+
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
 
@@ -102,6 +111,11 @@ class DartUtils {
   static Dart_Handle NewDartOSError();
   // Create a new Dart OSError object with the provided OS error.
   static Dart_Handle NewDartOSError(OSError* os_error);
+
+  static void SetOriginalWorkingDirectory();
+
+  // Global state that stores the original working directory..
+  static const char* original_working_directory;
 
   static const char* kDartScheme;
   static const char* kDartExtensionScheme;
