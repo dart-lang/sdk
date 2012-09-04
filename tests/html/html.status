@@ -138,7 +138,6 @@ svg_3_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
-typed_arrays_dataview_test: Fail  # DataView not implemented until Firefox 15.0
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
 #   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
 # Note this test now passes for the wrong reasons. It used to be that the only
@@ -151,6 +150,11 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
+
+[ $runtime == ff && $system == linux ]
+# DataView not implemented until Firefox 15.0. Currently only the
+# windows bot is running FF 15 - see issue 4896.
+typed_arrays_dataview_test: Fail
 
 [ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
