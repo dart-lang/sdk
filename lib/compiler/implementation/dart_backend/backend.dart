@@ -33,7 +33,7 @@ class AggregatedTreeElements extends TreeElementMapping {
         result : getFirstNotNullResult((e) => e.getType(annotation));
   }
 
-  getFirstNotNullResult(f(Element element)) {
+  getFirstNotNullResult(f(TreeElements element)) {
     for (final element in treeElements) {
       final result = f(element);
       if (result !== null) return result;
@@ -176,7 +176,7 @@ class DartBackend extends Backend {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
             list, () => new VariableListAst(parse(list)));
-        elementAst.add(element, treeElements);
+        (elementAst as VariableListAst).add(element, treeElements);
         element = list;
       }
 
