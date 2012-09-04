@@ -3,33 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 String emitCode(
-      Compiler compiler,
       Unparser unparser,
       Map<LibraryElement, String> imports,
-      Collection<Element> topLevelElements,
-      Map<ClassElement, Collection<Element>> classMembers) {
-  void outputElement(Element element) {
-    unparser.unparse(element.parseNode(compiler));
-  }
-
-  void outputClass(ClassElement classElement, Collection<Element> members) {
-    unparser.unparseClassWithBody(classElement.parseNode(compiler), () {
-      members.forEach((element) {
-        // TODO(smok): Filter out default constructors here.
-        outputElement(element);
-      });
-    });
-  }
-
+      Collection<Node> topLevelNodes,
+      Map<ClassNode, Collection<Node>> classMembers) {
   imports.forEach((libraryElement, prefix) {
     unparser.unparseImportTag('${libraryElement.uri}', prefix);
   });
 
-  for (final element in topLevelElements) {
-    if (element is ClassElement) {
-      outputClass(element, classMembers[element]);
+  for (final node in topLevelNodes) {
+    if (node is ClassNode) {
+      unparser.unparseClassWithBody(node, () {
+        // TODO(smok): Filter out default constructors here.
+        classMembers[node].forEach(unparser.unparse);
+      });
     } else {
-      outputElement(element);
+      unparser.unparse(node);
     }
   }
 }

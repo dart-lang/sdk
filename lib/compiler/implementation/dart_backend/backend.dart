@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ElementAst {
+  final Node ast;
   final TreeElements treeElements;
 
-  ElementAst(this.treeElements);
-  ElementAst.forClassLike() : this.treeElements = new TreeElementMapping();
+  ElementAst(this.ast, this.treeElements);
+  ElementAst.forClassLike(this.ast)
+      : this.treeElements = new TreeElementMapping();
 }
 
 class AggregatedTreeElements extends TreeElementMapping {
@@ -42,7 +44,7 @@ class AggregatedTreeElements extends TreeElementMapping {
 }
 
 class VariableListAst extends ElementAst {
-  VariableListAst() : super(new AggregatedTreeElements());
+  VariableListAst(ast) : super(ast, new AggregatedTreeElements());
 
   add(VariableElement element, TreeElements treeElements) {
     AggregatedTreeElements e = this.treeElements;
@@ -128,6 +130,8 @@ class DartBackend extends Backend {
 
     final elementAsts = new Map<Element, ElementAst>();
 
+    parse(element) => element.parseNode(compiler);
+
     Set<Element> topLevelElements = new Set<Element>();
     Map<ClassElement, Set<Element>> classMembers =
         new Map<ClassElement, Set<Element>>();
@@ -149,13 +153,15 @@ class DartBackend extends Backend {
       processElement(element, elementAst);
     }
     addClass(classElement) {
-      addTopLevel(classElement, new ElementAst.forClassLike());
+      addTopLevel(classElement,
+                  new ElementAst.forClassLike(parse(classElement)));
       classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
       if (!shouldOutput(element)) return;
-      addTopLevel(element, new ElementAst.forClassLike());
+      addTopLevel(element,
+                  new ElementAst.forClassLike(parse(element)));
     };
     newClassElementCallback = (ClassElement classElement) {
       if (!shouldOutput(classElement)) return;
@@ -165,10 +171,11 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst(treeElements);
+      var elementAst = new ElementAst(parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
-        elementAst = elementAsts.putIfAbsent(list, () => new VariableListAst());
+        elementAst = elementAsts.putIfAbsent(
+            list, () => new VariableListAst(parse(list)));
         elementAst.add(element, treeElements);
         element = list;
       }
@@ -218,7 +225,7 @@ class DartBackend extends Backend {
       // TODO(antonm): Ideally XML should be a separate backend.
       // TODO(antonm): obey renames and minification, at least as an option.
       final unparser = new Unparser();
-      outputElement(element) { unparser.unparse(element.parseNode(compiler)); }
+      outputElement(element) { unparser.unparse(parse(element)); }
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
@@ -233,8 +240,21 @@ class DartBackend extends Backend {
       return;
     }
 
+    final topLevelNodes = <Node>[];
+    final memberNodes = new Map<ClassNode, List<Node>>();
+    for (final element in sortedTopLevels) {
+      topLevelNodes.add(elementAsts[element].ast);
+      if (element is ClassElement) {
+        final members = <Node>[];
+        for (final member in sortedClassMembers[element]) {
+          members.add(elementAsts[member].ast);
+        }
+        memberNodes[elementAsts[element].ast] = members;
+      }
+    }
+
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
-    emitCode(compiler, unparser, imports, sortedTopLevels, sortedClassMembers);
+    emitCode(unparser, imports, topLevelNodes, memberNodes);
     compiler.assembledCode = unparser.result;
   }
 
