@@ -9336,8 +9336,18 @@ void Parser::SkipBinaryExpr() {
   while (((min_prec <= Token::Precedence(CurrentToken())) &&
       (Token::Precedence(CurrentToken()) <= max_prec)) ||
       IsLiteral("as")) {
+    Token::Kind last_token = IsLiteral("as") ? Token::kAS : CurrentToken();
     ConsumeToken();
-    SkipUnaryExpr();
+    if (last_token == Token::kIS) {
+      if (CurrentToken() == Token::kNOT) {
+        ConsumeToken();
+      }
+      SkipType(false);
+    } else if (last_token == Token::kAS) {
+      SkipType(false);
+    } else {
+      SkipUnaryExpr();
+    }
   }
 }
 
