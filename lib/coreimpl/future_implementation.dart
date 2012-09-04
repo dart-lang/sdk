@@ -171,20 +171,23 @@ class FutureImpl<T> implements Future<T> {
 
   Future transform(Function transformation) {
     final completer = new Completer();
+
     handleException((e) {
-      completer.completeException(e, this.stackTrace);
+      completer.completeException(e, stackTrace);
       return true;
     });
+
     then((v) {
       var transformed = null;
       try {
         transformed = transformation(v);
-      } catch (ex, stackTrace) {
-        completer.completeException(ex, stackTrace);
+      } catch (e, stackTrace) {
+        completer.completeException(e, stackTrace);
         return;
       }
       completer.complete(transformed);
     });
+
     return completer.future;
   }
 
@@ -208,6 +211,23 @@ class FutureImpl<T> implements Future<T> {
       });
       future.then((b) => completer.complete(b));
     });
+    return completer.future;
+  }
+
+  Future transformException(transformation(Object exception)) {
+    final completer = new Completer();
+
+    handleException((ex) {
+      try {
+        completer.complete(transformation(ex));
+      } catch (innerException, stackTrace) {
+        completer.completeException(innerException, stackTrace);
+      }
+      return true;
+    });
+
+    then(completer.complete);
+
     return completer.future;
   }
 }

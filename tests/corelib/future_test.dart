@@ -497,6 +497,53 @@ testChainSecondFutureFails() {
   Expect.equals(error, chainedFuture.exception);
 }
 
+// Tests for Future.transformException
+
+testTransformExceptionCompletesNormally() {
+  final completer = new Completer<String>();
+  var called = false;
+
+  final transformedFuture = completer.future.transformException((ex) {
+    Expect.fail("should not get here");
+  });
+
+  completer.complete("value");
+  Expect.isTrue(transformedFuture.isComplete);
+  Expect.equals("value", transformedFuture.value);
+}
+
+testTransformExceptionThrows() {
+  final completer = new Completer<String>();
+  var called = false;
+
+  final transformedFuture = completer.future.transformException((ex) {
+    Expect.equals("original error", ex);
+    called = true;
+    throw "transformed error";
+  });
+
+  completer.completeException("original error");
+  Expect.isTrue(called);
+  Expect.isTrue(transformedFuture.isComplete);
+  Expect.equals("transformed error", transformedFuture.exception);
+}
+
+testTransformExceptionReturns() {
+  final completer = new Completer<String>();
+  var called = false;
+
+  final transformedFuture = completer.future.transformException((ex) {
+    Expect.equals("original error", ex);
+    called = true;
+    return "transformed value";
+  });
+
+  completer.completeException("original error");
+  Expect.isTrue(called);
+  Expect.isTrue(transformedFuture.isComplete);
+  Expect.equals("transformed value", transformedFuture.value);
+}
+
 main() {
   testImmediate();
   testNeverComplete();
@@ -533,4 +580,7 @@ main() {
   testChainFirstFutureFails();
   testChainTransformerFails();
   testChainSecondFutureFails();
+  testTransformExceptionCompletesNormally();
+  testTransformExceptionThrows();
+  testTransformExceptionReturns();
 }
