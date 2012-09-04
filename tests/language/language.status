@@ -199,6 +199,7 @@ interface_negative_test: Fail
 abstract_factory_constructor_test/00: Fail
 interface_test/00: Fail
 argument_definition_test/*: Skip # Not implemented.
+argument_definition2_test: Skip # Not implemented. Fails in minified tests.
 call_constructor_on_unresolvable_class_test/01: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/02: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/03: Fail # generates 'new Unresolved()' which fails on the VM
