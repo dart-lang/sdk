@@ -436,6 +436,7 @@ class Primitives {
 
   static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
                                  milliseconds, isUtc) {
+    final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
     checkInt(day);
@@ -453,7 +454,11 @@ class Primitives {
       value = JS('num', @'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
-    if (value.isNaN()) throw new IllegalArgumentException();
+    if (value.isNaN() ||
+        value < -MAX_MILLISECONDS_SINCE_EPOCH ||
+        value > MAX_MILLISECONDS_SINCE_EPOCH) {
+      throw new IllegalArgumentException();
+    }
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
   }
