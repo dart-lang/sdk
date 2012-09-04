@@ -1934,7 +1934,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         new js.VariableUse(compiler.namer.isolateAccess(helper));
     js.Call value = new js.Call(jsHelper, visitArguments([null, argument]));
     attachLocation(value, argument);
-    pushExpressionAsStatement(value);
+    // BUG(4906): Using throw here adds to the size of the generated code
+    // but it has the advantage of explicitly telling the JS engine that
+    // this code path will terminate abruptly. Needs more work.
+    pushStatement(new js.Throw(value));
   }
 
   void visitSwitch(HSwitch node) {
