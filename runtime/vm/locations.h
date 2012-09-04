@@ -12,6 +12,7 @@
 namespace dart {
 
 class BufferFormatter;
+class Value;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -228,6 +229,10 @@ class Location : public ValueObject {
     // Decode stack index manually to preserve sign.
     return payload() - kStackIndexBias;
   }
+
+  // Constants.
+  static Location RegisterOrConstant(Value* value);
+  static Location FixedRegisterOrConstant(Value* value, Register reg);
 
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;

@@ -1435,20 +1435,6 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-
-  ConstantComp* right_constant = right()->definition()->AsConstant();
-  if ((right_constant != NULL) &&
-      (op_kind() != Token::kTRUNCDIV) &&
-      (op_kind() != Token::kSHL)) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::Constant(right_constant->value()));
-    summary->set_out(Location::SameAsFirstInput());
-    return summary;
-  }
-
   if (op_kind() == Token::kTRUNCDIV) {
     const intptr_t kNumTemps = 3;
     LocationSummary* summary =
@@ -1466,7 +1452,7 @@ LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RegisterLocation(ECX));
+    summary->set_in(1, Location::FixedRegisterOrConstant(right(), ECX));
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
@@ -1485,7 +1471,7 @@ LocationSummary* BinarySmiOpComp::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterOrConstant(right()));
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   }
@@ -2225,32 +2211,43 @@ void CheckSmiComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckArrayBoundComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2,
-                               Location::NoLocation(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RegisterOrConstant(index()));
+  return locs;
 }
 
 
 void CheckArrayBoundComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register receiver = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
 
   const DeoptReasonId deopt_reason =
       (array_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         deopt_reason);
-  switch (array_type()) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
-      break;
-    case kGrowableObjectArrayCid:
-      __ cmpl(index,
-              FieldAddress(receiver, GrowableObjectArray::length_offset()));
-      break;
+  ASSERT(array_type() == kArrayCid ||
+         array_type() == kImmutableArrayCid ||
+         array_type() == kGrowableObjectArrayCid);
+  intptr_t length_offset = (array_type() == kGrowableObjectArrayCid)
+      ? GrowableObjectArray::length_offset()
+      : Array::length_offset();
+
+  if (locs()->in(1).IsConstant()) {
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(constant.IsSmi());
+    const int32_t imm =
+        reinterpret_cast<int32_t>(constant.raw());
+    __ cmpl(FieldAddress(receiver, length_offset), Immediate(imm));
+    __ j(BELOW_EQUAL, deopt);
+  } else {
+    Register index = locs()->in(1).reg();
+    __ cmpl(index, FieldAddress(receiver, length_offset));
+    __ j(ABOVE_EQUAL, deopt);
   }
-  __ j(ABOVE_EQUAL, deopt);
 }
 
 

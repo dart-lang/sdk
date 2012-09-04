@@ -45,6 +45,22 @@ LocationSummary* LocationSummary::Make(
 }
 
 
+Location Location::RegisterOrConstant(Value* value) {
+  ConstantComp* constant = value->definition()->AsConstant();
+  return (constant != NULL)
+      ? Location::Constant(constant->value())
+      : Location::RequiresRegister();
+}
+
+
+Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
+  ConstantComp* constant = value->definition()->AsConstant();
+  return (constant != NULL)
+      ? Location::Constant(constant->value())
+      : Location::RegisterLocation(reg);
+}
+
+
 const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
