@@ -2331,8 +2331,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (method->has_const && !(method->IsConstructor() || method->IsFactory())) {
     ErrorMsg(method->name_pos, "'const' not allowed for methods");
   }
-  if (method->IsConstructor() && method->has_static) {
-    ErrorMsg(method->name_pos, "constructor cannot be 'static'");
+  if (method->IsFactoryOrConstructor() && method->has_abstract) {
+    ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
   if (method->IsConstructor() && method->has_const) {
     Class& cls = Class::ZoneHandle(library_.LookupClass(members->class_name()));
@@ -2789,6 +2789,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.type = &Type::ZoneHandle(Type::DynamicType());
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
+    if (member.has_static) {
+      ErrorMsg("factory method cannot be explicitly marked static");
+    }
     member.has_factory = true;
     member.has_static = true;
     // The result type depends on the name of the factory method.
@@ -2849,6 +2852,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
                                                 TypeArguments::Handle(),
                                                 factory_name.ident_pos));
     } else {
+      if (member.has_static) {
+        ErrorMsg("constructor cannot be static");
+      }
       member.name_pos = TokenPos();
       member.name = CurrentLiteral();
       ConsumeToken();
