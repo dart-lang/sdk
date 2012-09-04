@@ -149,10 +149,10 @@ resource_test: Skip # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
 throw7_negative_test: Fail     # Issue 3654
-try_catch_syntax_test/09: Fail # BUG(4905)
-try_catch_syntax_test/10: Fail # BUG(4905)
-try_catch_syntax_test/11: Fail # BUG(4905)
-try_catch_syntax_test/12: Fail # BUG(4905)
+# try_catch_syntax_test/09: Fail # BUG(4905)
+# try_catch_syntax_test/10: Fail # BUG(4905)
+# try_catch_syntax_test/11: Fail # BUG(4905)
+# try_catch_syntax_test/12: Fail # BUG(4905)
 type_variable_bounds_test/00: Fail # issue 3079
 type_variable_bounds_test/07: Fail # language change 1031
 type_variable_static_context_negative_test: Fail # language change 1031

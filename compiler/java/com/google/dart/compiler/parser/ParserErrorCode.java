@@ -31,8 +31,8 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
       "Default values cannot be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
-  DEPRECATED_CATCH(ErrorSeverity.WARNING, "This style of catch clause has been deprecated and will "
-      + "soon be disallowed. Please use 'on' <type> 'catch' '(' <identifier> (',' <identifier>)? ')' form."),
+  DEPRECATED_CATCH("This style of catch clause has been deprecated. Please use the 'on' <type> " +
+      "'catch' '(' <identifier> (',' <identifier>)? ')' form."),
   DEPRECATED_GETTER(ErrorSeverity.WARNING, "The presence of parentheses afer the name of the getter "
       + "has been deprecated and will soon be disallowed. Please remove the parentheses."),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
