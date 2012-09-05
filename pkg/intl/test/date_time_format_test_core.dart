@@ -175,8 +175,8 @@ testRoundTripParsing(String localeName, Date date) {
 runDateTests() {
   test('Multiple patterns', () {
     var date = new Date.now();
-    var multiple1 = new DateFormat.yMd().jms();
-    var multiple2 = new DateFormat("yMd").jms();
+    var multiple1 = new DateFormat.yMd().add_jms();
+    var multiple2 = new DateFormat("yMd").add_jms();
     var separate1 = new DateFormat.yMd();
     var separate2 = new DateFormat.jms();
     var separateFormat = "${separate1.format(date)} ${separate2.format(date)}";

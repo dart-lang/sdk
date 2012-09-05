@@ -72,7 +72,7 @@ class Intl {
    * Return the locale for this instance. If none was set, the locale will
    * be the default.
    */
-  String get locale() => _locale;
+  String get locale => _locale;
 
   /**
    * Return true if the locale exists, or if it is null. The null case

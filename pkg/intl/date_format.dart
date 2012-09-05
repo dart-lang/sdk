@@ -251,7 +251,7 @@ class DateFormat {
   /**
    * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.
    */
-  String get locale() => _locale;
+  String get locale => _locale;
 
   /**
    * Returns a list of all locales for which we have date formatting
@@ -260,60 +260,10 @@ class DateFormat {
   static List<String> allLocalesWithSymbols() => dateTimeSymbols.getKeys();
 
   /**
-   * Constructors for a set of predefined formats for which
-   * internationalized forms are known. These can be specified
-   * either as ICU constants, or as skeletons.
+   * Constructors for a set of predefined "skeletons" for which the
+   * internationalized forms are known. These can also be chained
+   * together using the "add_" instance methods below.
    */
-  DateFormat.DAY([locale]) : this(DAY, locale);
-  DateFormat.ABBR_WEEKDAY([locale]) : this(ABBR_WEEKDAY, locale);
-  DateFormat.WEEKDAY([locale]) : this(WEEKDAY, locale);
-  DateFormat.ABBR_STANDALONE_MONTH([locale]) :
-      this(ABBR_STANDALONE_MONTH, locale);
-  DateFormat.STANDALONE_MONTH([locale]) : this(STANDALONE_MONTH, locale);
-  DateFormat.NUM_MONTH([locale]) : this(NUM_MONTH, locale);
-  DateFormat.NUM_MONTH_DAY([locale]) : this(NUM_MONTH_DAY, locale);
-  DateFormat.NUM_MONTH_WEEKDAY_DAY([locale]) :
-      this(NUM_MONTH_WEEKDAY_DAY, locale);
-  DateFormat.ABBR_MONTH([locale]) : this(ABBR_MONTH, locale);
-  DateFormat.ABBR_MONTH_DAY([locale]) : this(ABBR_MONTH_DAY, locale);
-  DateFormat.ABBR_MONTH_WEEKDAY_DAY([locale]) :
-      this(ABBR_MONTH_WEEKDAY_DAY, locale);
-  DateFormat.MONTH([locale]) : this(MONTH, locale);
-  DateFormat.MONTH_DAY([locale]) : this(MONTH_DAY, locale);
-  DateFormat.MONTH_WEEKDAY_DAY([locale]) : this(MONTH_WEEKDAY_DAY, locale);
-  DateFormat.ABBR_QUARTER([locale]) : this(ABBR_QUARTER, locale);
-  DateFormat.QUARTER([locale]) : this(QUARTER, locale);
-  DateFormat.YEAR([locale]) : this(YEAR, locale);
-  DateFormat.YEAR_NUM_MONTH([locale]) : this(YEAR_NUM_MONTH, locale);
-  DateFormat.YEAR_NUM_MONTH_DAY([locale]) : this(YEAR_NUM_MONTH_DAY, locale);
-  DateFormat.YEAR_NUM_MONTH_WEEKDAY_DAY([locale]) :
-      this(YEAR_NUM_MONTH_WEEKDAY_DAY, locale);
-  DateFormat.YEAR_ABBR_MONTH([locale]) : this(YEAR_ABBR_MONTH, locale);
-  DateFormat.YEAR_ABBR_MONTH_DAY([locale]) : this(YEAR_ABBR_MONTH_DAY, locale);
-  DateFormat.YEAR_ABBR_MONTH_WEEKDAY_DAY([locale]) :
-      this(YEAR_ABBR_MONTH_WEEKDAY_DAY, locale);
-  DateFormat.YEAR_MONTH([locale]) : this(YEAR_MONTH, locale);
-  DateFormat.YEAR_MONTH_DAY([locale]) : this(YEAR_MONTH_DAY, locale);
-  DateFormat.YEAR_MONTH_WEEKDAY_DAY([locale]) :
-      this(YEAR_MONTH_WEEKDAY_DAY, locale);
-  DateFormat.YEAR_ABBR_QUARTER([locale]) : this(YEAR_ABBR_QUARTER, locale);
-  DateFormat.YEAR_QUARTER([locale]) : this(YEAR_QUARTER, locale);
-  DateFormat.HOUR24([locale]) : this(HOUR24, locale);
-  DateFormat.HOUR24_MINUTE([locale]) : this(HOUR24_MINUTE, locale);
-  DateFormat.HOUR24_MINUTE_SECOND([locale]) :
-      this(HOUR24_MINUTE_SECOND, locale);
-  DateFormat.HOUR([locale]) : this(HOUR, locale);
-  DateFormat.HOUR_MINUTE([locale]) : this(HOUR_MINUTE, locale);
-  DateFormat.HOUR_MINUTE_SECOND([locale]) : this(HOUR_MINUTE_SECOND, locale);
-  DateFormat.HOUR_MINUTE_GENERIC_TZ([locale]) :
-      this(HOUR_MINUTE_GENERIC_TZ, locale);
-  DateFormat.HOUR_MINUTE_TZ([locale]) : this(HOUR_MINUTE_TZ, locale);
-  DateFormat.HOUR_GENERIC_TZ([locale]) : this(HOUR_GENERIC_TZ, locale);
-  DateFormat.HOUR_TZ([locale]) : this(HOUR_TZ, locale);
-  DateFormat.MINUTE([locale]) : this(MINUTE, locale);
-  DateFormat.MINUTE_SECOND([locale]) : this(MINUTE_SECOND, locale);
-  DateFormat.SECOND([locale]) : this(SECOND, locale);
-
   DateFormat.d([locale]) : this("d", locale);
   DateFormat.E([locale]) : this("E", locale);
   DateFormat.EEEE([locale]) : this("EEEE", locale);
@@ -360,50 +310,50 @@ class DateFormat {
    * Methods for appending a particular skeleton to the format, or setting
    * it as the only format if none was previously set. These are primarily
    * useful for creating compound formats. For example
-   *       new DateFormat.yMd().hms();
+   *       new DateFormat.yMd().add_hms();
    * would create a date format that prints both the date and the time.
    */
-  DateFormat d() => addPattern("d");
-  DateFormat E() => addPattern("E");
-  DateFormat EEEE() => addPattern("EEEE");
-  DateFormat LLL() => addPattern("LLL");
-  DateFormat LLLL() => addPattern("LLLL");
-  DateFormat M() => addPattern("M");
-  DateFormat Md() => addPattern("Md");
-  DateFormat MEd() => addPattern("MEd");
-  DateFormat MMM() => addPattern("MMM");
-  DateFormat MMMd() => addPattern("MMMd");
-  DateFormat MMMEd() => addPattern("MMMEd");
-  DateFormat MMMM() => addPattern("MMMM");
-  DateFormat MMMMd() => addPattern("MMMMd");
-  DateFormat MMMMEEEEd() => addPattern("MMMMEEEEd");
-  DateFormat QQQ() => addPattern("QQQ");
-  DateFormat QQQQ() => addPattern("QQQQ");
-  DateFormat y() => addPattern("y");
-  DateFormat yM() => addPattern("yM");
-  DateFormat yMd() => addPattern("yMd");
-  DateFormat yMEd() => addPattern("yMEd");
-  DateFormat yMMM() => addPattern("yMMM");
-  DateFormat yMMMd() => addPattern("yMMMd");
-  DateFormat yMMMEd() => addPattern("yMMMEd");
-  DateFormat yMMMM() => addPattern("yMMMM");
-  DateFormat yMMMMd() => addPattern("yMMMMd");
-  DateFormat yMMMMEEEEd() => addPattern("yMMMMEEEEd");
-  DateFormat yQQQ() => addPattern("yQQQ");
-  DateFormat yQQQQ() => addPattern("yQQQQ");
-  DateFormat H() => addPattern("H");
-  DateFormat Hm() => addPattern("Hm");
-  DateFormat Hms() => addPattern("Hms");
-  DateFormat j() => addPattern("j");
-  DateFormat jm() => addPattern("jm");
-  DateFormat jms() => addPattern("jms");
-  DateFormat jmv() => addPattern("jmv");
-  DateFormat jmz() => addPattern("jmz");
-  DateFormat jv() => addPattern("jv");
-  DateFormat jz() => addPattern("jz");
-  DateFormat m() => addPattern("m");
-  DateFormat ms() => addPattern("ms");
-  DateFormat s() => addPattern("s");
+  DateFormat add_d() => addPattern("d");
+  DateFormat add_E() => addPattern("E");
+  DateFormat add_EEEE() => addPattern("EEEE");
+  DateFormat add_LLL() => addPattern("LLL");
+  DateFormat add_LLLL() => addPattern("LLLL");
+  DateFormat add_M() => addPattern("M");
+  DateFormat add_Md() => addPattern("Md");
+  DateFormat add_MEd() => addPattern("MEd");
+  DateFormat add_MMM() => addPattern("MMM");
+  DateFormat add_MMMd() => addPattern("MMMd");
+  DateFormat add_MMMEd() => addPattern("MMMEd");
+  DateFormat add_MMMM() => addPattern("MMMM");
+  DateFormat add_MMMMd() => addPattern("MMMMd");
+  DateFormat add_MMMMEEEEd() => addPattern("MMMMEEEEd");
+  DateFormat add_QQQ() => addPattern("QQQ");
+  DateFormat add_QQQQ() => addPattern("QQQQ");
+  DateFormat add_y() => addPattern("y");
+  DateFormat add_yM() => addPattern("yM");
+  DateFormat add_yMd() => addPattern("yMd");
+  DateFormat add_yMEd() => addPattern("yMEd");
+  DateFormat add_yMMM() => addPattern("yMMM");
+  DateFormat add_yMMMd() => addPattern("yMMMd");
+  DateFormat add_yMMMEd() => addPattern("yMMMEd");
+  DateFormat add_yMMMM() => addPattern("yMMMM");
+  DateFormat add_yMMMMd() => addPattern("yMMMMd");
+  DateFormat add_yMMMMEEEEd() => addPattern("yMMMMEEEEd");
+  DateFormat add_yQQQ() => addPattern("yQQQ");
+  DateFormat add_yQQQQ() => addPattern("yQQQQ");
+  DateFormat add_H() => addPattern("H");
+  DateFormat add_Hm() => addPattern("Hm");
+  DateFormat add_Hms() => addPattern("Hms");
+  DateFormat add_j() => addPattern("j");
+  DateFormat add_jm() => addPattern("jm");
+  DateFormat add_jms() => addPattern("jms");
+  DateFormat add_jmv() => addPattern("jmv");
+  DateFormat add_jmz() => addPattern("jmz");
+  DateFormat add_jv() => addPattern("jv");
+  DateFormat add_jz() => addPattern("jz");
+  DateFormat add_m() => addPattern("m");
+  DateFormat add_ms() => addPattern("ms");
+  DateFormat add_s() => addPattern("s");
 
   /**
    * ICU constants for format names, resolving to the corresponding skeletons.
@@ -470,7 +420,7 @@ class DateFormat {
   /**
    * Getter for [_formatFieldsPrivate] that lazily initializes it.
    */
-  get _formatFields() {
+  get _formatFields {
     if (_formatFieldsPrivate == null) {
       _formatFieldsPrivate = parsePattern(_pattern);
     }
@@ -530,10 +480,10 @@ class DateFormat {
   }
 
   /** Return the pattern that we use to format dates.*/
-  get pattern() => _pattern;
+  get pattern => _pattern;
 
   /** Return the skeletons for our current locale. */
-  Map get _availableSkeletons() {
+  Map get _availableSkeletons {
     return dateTimePatterns[locale];
   }
 
@@ -558,7 +508,7 @@ class DateFormat {
   }
 
   // TODO(alanknight): This can be a variable once that's permitted.
-  static List get _fieldConstructors() => [
+  static List get _fieldConstructors => [
       (pattern, parent) => new _DateFormatQuotedField(pattern, parent),
       (pattern, parent) => new _DateFormatPatternField(pattern, parent),
       (pattern, parent) => new _DateFormatLiteralField(pattern, parent)];
