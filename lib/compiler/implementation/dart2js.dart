@@ -65,6 +65,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 }
 
 void compile(List<String> argv) {
+  bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = getCurrentDirectory();
   bool throwOnError = false;
   bool showWarnings = true;
@@ -165,11 +166,12 @@ void compile(List<String> argv) {
     try {
       source = readAll(uriPathToNative(uri.path));
     } on FileIOException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
+      throw 'Error: Cannot read "${relativize(cwd, uri, isWindows)}" '
+            '(${ex.osError}).';
     }
     dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri), source);
+      new SourceFile(relativize(cwd, uri, isWindows), source);
     return new Future.immediate(source);
   }
 
@@ -251,10 +253,10 @@ void compile(List<String> argv) {
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
-       'in ${relativize(cwd, out)}');
+       'in ${relativize(cwd, out, isWindows)}');
   if (!explicitOut) {
     String input = uriPathToNative(arguments[0]);
-    String output = relativize(cwd, out);
+    String output = relativize(cwd, out, isWindows);
     print('Dart file $input compiled to JavaScript: $output');
   }
 }

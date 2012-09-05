@@ -282,6 +282,7 @@ class LibraryTypeCheckerTask extends TypeCheckerTask {
 //------------------------------------------------------------------------------
 
 class Dart2JsCompilation implements Compilation {
+  bool isWindows = (Platform.operatingSystem == 'windows');
   api.Compiler _compiler;
   Uri cwd;
   bool isAborting = false;
@@ -295,10 +296,11 @@ class Dart2JsCompilation implements Compilation {
     try {
       source = readAll(uriPathToNative(uri.path));
     } on FileIOException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
+      throw 'Error: Cannot read "${relativize(cwd, uri, isWindows)}" '
+            '(${ex.osError}).';
     }
     sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri), source);
+      new SourceFile(relativize(cwd, uri, isWindows), source);
     return new Future.immediate(source);
   }
 

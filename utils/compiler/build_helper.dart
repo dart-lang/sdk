@@ -79,8 +79,9 @@ writeScript(Uri uri, List<String> scripts) {
 List<String> buildScript(String name,
                          Uri dartUri, Uri dartVmLocation,
                          String entrypoint, String options) {
+  bool isWindows = (Platform.operatingSystem == 'windows');
   Uri uri = dartUri.resolve(entrypoint);
-  String path = relativize(dartVmLocation, uri);
+  String path = relativize(dartVmLocation, uri, isWindows);
   String pathWin = path.replaceAll("/", "\\");
 
   print('dartUri = $dartUri');
