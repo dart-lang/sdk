@@ -138,7 +138,6 @@ class FlowGraphCompiler : public ValueObject {
                         intptr_t token_pos,
                         LocationSummary* locs);
 
-  void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
   void EmitTestAndCall(const ICData& ic_data,
                        Register class_id_reg,
                        intptr_t arg_count,
@@ -213,6 +212,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateDeferredCode();
 
   void EmitInstructionPrologue(Instruction* instr);
+  void EmitInstructionEpilogue(Instruction* instr);
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
