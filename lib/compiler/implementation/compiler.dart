@@ -721,11 +721,6 @@ class Compiler implements DiagnosticListener {
     backend.codegen(work);
   }
 
-  void registerInstantiatedClass(ClassElement cls) {
-    enqueuer.resolution.registerInstantiatedClass(cls);
-    enqueuer.codegen.registerInstantiatedClass(cls);
-  }
-
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
     return resolver.resolveTypeAnnotation(element, annotation);
   }

@@ -169,26 +169,12 @@ class Enqueuer {
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] !== null) return;
     if (!member.isInstanceMember()) return;
-
-    if (member.kind === ElementKind.FIELD) {
-      universe.instantiatedClassInstanceFields.add(member.name);
-      if (compiler.enableTypeAssertions) {
-        DartType type = member.computeType(compiler);
-        registerIsCheck(type.element);
-        SourceString helper = compiler.backend.getCheckedModeHelper(type);
-        if (helper != null) {
-          Element helperElement = compiler.findHelper(helper);
-          registerStaticUse(helperElement);
-        }
-      }
-      return;
-    }
+    if (member.isField()) return;
 
     String memberName = member.name.slowToString();
     Link<Element> members = instanceMembersByName.putIfAbsent(
         memberName, () => const EmptyLink<Element>());
     instanceMembersByName[memberName] = members.prepend(member);
-
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
@@ -207,7 +193,6 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
-      universe.instantiatedClassInstanceFields.add(member.name);
       if (universe.hasInvokedGetter(member, compiler)) {
         return addToWorkList(member);
       }
@@ -240,6 +225,22 @@ class Enqueuer {
         }
         if (isResolutionQueue) {
           compiler.resolver.checkMembers(cls);
+        }
+       
+        if (compiler.enableTypeAssertions) {
+          // We need to register is checks and helpers for checking
+          // assignments to fields.
+          // TODO(ngeoffray): This should really move to the backend. 
+          cls.localMembers.forEach((Element member) {
+            if (!member.isInstanceMember() && !member.isField()) return;
+            DartType type = member.computeType(compiler);
+            registerIsCheck(type.element);
+            SourceString helper = compiler.backend.getCheckedModeHelper(type);
+            if (helper != null) {
+              Element helperElement = compiler.findHelper(helper);
+              registerStaticUse(helperElement);
+            }
+          });
         }
       }
     });

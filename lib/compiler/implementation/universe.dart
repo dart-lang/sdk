@@ -6,7 +6,6 @@ class Universe {
   Map<Element, CodeBuffer> generatedCode;
   Map<Element, CodeBuffer> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
-  final Set<SourceString> instantiatedClassInstanceFields;
   final Set<FunctionElement> staticFunctionsNeedingGetter;
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
@@ -20,7 +19,6 @@ class Universe {
   Universe() : generatedCode = new Map<Element, CodeBuffer>(),
                generatedBailoutCode = new Map<Element, CodeBuffer>(),
                instantiatedClasses = new Set<ClassElement>(),
-               instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),

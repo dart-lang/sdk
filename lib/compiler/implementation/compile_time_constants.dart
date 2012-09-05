@@ -51,7 +51,7 @@ class SentinelConstant extends Constant {
   List<Constant> getDependencies() => const <Constant>[];
 
   // Just use a randome value.
-  int hashCode() => 9264297841582447;
+  int hashCode() => 926429784158;
 
   bool isSentinel() => true;
 }
@@ -83,7 +83,7 @@ class FunctionConstant extends Constant {
     buffer.add(handler.compiler.namer.isolatePropertiesAccess(element));
   }
 
-  int hashCode() => element.hashCode();
+  int hashCode() => (17 * element.hashCode()) & 0x7fffffff;
 }
 
 class PrimitiveConstant extends Constant {
@@ -917,7 +917,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
     DartType type = new InterfaceType(classElement);
-    compiler.registerInstantiatedClass(classElement);
+    compiler.enqueuer.codegen.registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
     compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
@@ -1148,7 +1148,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
-    compiler.registerInstantiatedClass(classElement);
+    compiler.enqueuer.codegen.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
     DartType type = classElement.computeType(compiler);
     Constant constant = new ConstructedConstant(type, jsNewArguments);
