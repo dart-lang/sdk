@@ -17,6 +17,9 @@ request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not impl
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
+websql_test: Skip # Issue 4941: stderr contains a backtrace.
+
 [ $compiler == dart2js && $runtime == drt && $system == windows]
 audiocontext_test: Fail # Issue 4517
 audioelement_test: Fail # Issue 4517
