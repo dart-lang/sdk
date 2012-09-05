@@ -52,7 +52,7 @@ class GitSource extends Source {
       return exists(revisionCachePath);
     }).chain((exists) {
       if (exists) return new Future.immediate(null);
-      return _clone(_repoCachePath(id), revisionCachePath);
+      return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
     }).chain((_) {
       var ref = _getEffectiveRef(id);
       if (ref == 'HEAD') return new Future.immediate(null);
@@ -122,9 +122,9 @@ class GitSource extends Source {
   Future _ensureRepoCache(PackageId id) {
     var path = _repoCachePath(id);
     return exists(path).chain((exists) {
-      if (!exists) return _clone(_getUrl(id), path);
+      if (!exists) return _clone(_getUrl(id), path, mirror: true);
 
-      return runProcess("git", ["pull", "--force"], workingDir: path)
+      return runProcess("git", ["fetch"], workingDir: path)
           .transform((result) {
         if (!result.success) throw 'Git failed.';
         return null;
@@ -155,9 +155,15 @@ class GitSource extends Source {
 
   /**
    * Clones the repo at the URI [from] to the path [to] on the local filesystem.
+   *
+   * If [mirror] is true, create a bare, mirrored clone. This doesn't check out
+   * the working tree, but instead makes the repository a local mirror of the
+   * remote repository. See the manpage for `git clone` for more information.
    */
-  Future _clone(String from, String to) {
-    return runProcess("git", ["clone", from, to]).transform((result) {
+  Future _clone(String from, String to, [bool mirror=false]) {
+    var args = ["clone", from, to];
+    if (mirror) args.insertRange(1, 1, "--mirror");
+    return runProcess("git", args).transform((result) {
       if (!result.success) throw 'Git failed.';
       return null;
     });
