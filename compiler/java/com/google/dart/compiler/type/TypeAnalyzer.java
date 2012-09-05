@@ -1602,13 +1602,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitForInStatement(DartForInStatement node) {
       Type variableType;
-      VariableElement variableElement;
+      VariableElement variableElement = null;
       if (node.introducesVariable()) {
         variableType = typeOf(node.getVariableStatement());
         variableElement = node.getVariableStatement().getVariables().get(0).getElement();
       } else {
         variableType = typeOf(node.getIdentifier());
-        variableElement = (VariableElement) node.getIdentifier().getElement();
+        // in most cases variable, but sometimes field
+        NodeElement identifierElement = node.getIdentifier().getElement();
+        if (identifierElement instanceof VariableElement) {
+          variableElement = (VariableElement) identifierElement;
+        }
       }
       // prepare Iterable type
       DartExpression iterableExpression = node.getIterable();
@@ -1639,7 +1643,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // visit body with inferred variable type
       VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
       try {
-        if (elementType != null) {
+        if (variableElement != null && elementType != null) {
           variableRestorer.setType(variableElement, elementType);
         }
         BlockTypeContext blockTypeContext = new BlockTypeContext();

@@ -4279,6 +4279,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4900
+   */
+  public void test_forInLoop_fieldAsVariable() throws Exception {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "var v;",
+          "get l => v;",
+          "set l(x) {v = x;}",
+          "main() {",
+          "  for (l in [1, 2, 3]) {",
+          "    process(l);",
+          "  }",
+          "}",
+          "process(x) {}",
+          "");
+      assertErrors(result.getErrors());
+  }
+
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
     assertTrue(index != -1);
