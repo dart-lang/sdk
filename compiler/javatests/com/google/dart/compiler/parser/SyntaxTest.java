@@ -584,7 +584,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  operator() { }",
             "}",
             "class F {",
-            "  operator negate () { }",
+            "  operator - () { }",
             "  operator + (arg) { }",
             "  operator [] (arg) { }",
             "  operator []= (arg, arg){ }",
@@ -627,7 +627,7 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("operator", ((DartIdentifier)E_operator.getName()).getName());
     DartClass F = (DartClass)unit.getTopLevelNodes().get(5);
     DartMethodDefinition F_negate = (DartMethodDefinition)F.getMembers().get(0);
-    assertEquals("negate", ((DartIdentifier)F_negate.getName()).getName());
+    assertEquals("-", ((DartIdentifier)F_negate.getName()).getName());
     DartMethodDefinition F_plus = (DartMethodDefinition)F.getMembers().get(1);
     assertEquals("+", ((DartIdentifier)F_plus.getName()).getName());
     DartMethodDefinition F_access = (DartMethodDefinition)F.getMembers().get(2);

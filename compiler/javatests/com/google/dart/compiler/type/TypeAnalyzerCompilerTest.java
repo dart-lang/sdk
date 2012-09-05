@@ -84,7 +84,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4785
    */
-  public void test_labelForBlockInSWitchCase() throws Exception {
+  public void test_labelForBlockInSwitchCase() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -359,7 +359,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class C {",
         "  const C();",
-        "  operator equals(other) => false;",
+        "  operator ==(other) => false;",
         "}",
         "const C CONST = const C();",
         "foo(var v) {",
@@ -3115,7 +3115,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * It is a static warning if the return type of the user-declared operator negate is explicitly
+   * It is a static warning if the return type of the user-declared "operator -" is explicitly
    * declared and not a numerical type.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3224
@@ -3124,19 +3124,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  num operator negate() {}",
+        "  num operator -() {}",
         "}",
         "class B {",
-        "  int operator negate() {}",
+        "  int operator -() {}",
         "}",
         "class C {",
-        "  double operator negate() {}",
+        "  double operator -() {}",
         "}",
         "class D {",
-        "  String operator negate() {}",
+        "  String operator -() {}",
         "}",
         "class E {",
-        "  Object operator negate() {}",
+        "  Object operator -() {}",
         "}",
         "");
     assertErrors(
@@ -3146,24 +3146,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * It is a static warning if the return type of the user-declared operator equals is explicitly
+   * It is a static warning if the return type of the user-declared operator == is explicitly
    * declared and not bool.
    */
   public void test_equalsOperator_type() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  bool operator equals(other) {}",
+        "  bool operator ==(other) {}",
         "}",
         "class B {",
-        "  String operator equals(other) {}",
+        "  String operator ==(other) {}",
         "}",
         "class C {",
-        "  Object operator equals(other) {}",
+        "  Object operator ==(other) {}",
         "}",
         "");
     assertErrors(
         libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, 6, 19, 2),
         errEx(TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE, 6, 3, 6),
         errEx(TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE, 9, 3, 6));
   }
@@ -3175,7 +3176,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class C {",
-            "  operator equals(other) => false;",
+            "  operator ==(other) => false;",
             "}",
             "main() {",
             "  new C() == new C();",
@@ -3624,12 +3625,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 5, 11, 6));
   }
 
+  /**
+   * Test for "operator []=".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4881
+   */
   public void test_assignArrayElement() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class C {" +
         "  get method() { }",
-        "  operator [](arg) {}",
+        "  operator []=(k, v) {}",
         "}",
         "main () {",
         "  new C()[0] = 1;",

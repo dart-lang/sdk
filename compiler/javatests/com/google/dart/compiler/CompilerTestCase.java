@@ -24,7 +24,6 @@ import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
-import com.google.dart.compiler.util.apache.StringUtils;
 
 import junit.framework.TestCase;
 

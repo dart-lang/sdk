@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
@@ -172,6 +173,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type expected;
     private MethodElement currentMethod;
     private InterfaceType currentClass;
+    private final InterfaceType objectType;
     private final InterfaceType boolType;
     private final InterfaceType numType;
     private final InterfaceType intType;
@@ -241,6 +243,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.stringType = typeProvider.getStringType();
       this.defaultLiteralMapType = typeProvider.getMapType(stringType, dynamicType);
       this.voidType = typeProvider.getVoidType();
+      this.objectType = typeProvider.getObjectType();
       this.boolType = typeProvider.getBoolType();
       this.numType = typeProvider.getNumType();
       this.intType = typeProvider.getIntType();
@@ -339,7 +342,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private String methodNameForUnaryOperator(DartNode diagnosticNode, Token operator) {
       if (operator == Token.SUB) {
-        return "operator negate";
+        return "operator -";
       } else if (operator == Token.BIT_NOT) {
         return "operator ~";
       }
@@ -347,9 +350,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private String methodNameForBinaryOperator(Token operator) {
-      if (operator == Token.EQ) {
-        return "operator equals";
-      }
       return "operator " + operator.getSyntax();
     }
 
@@ -389,6 +389,23 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         // done
         return returnType;
+      } else {
+        return dynamicType;
+      }
+    }
+    
+    private Type analyzeTernaryOperator(DartNode node, Type lhsType, Token operator,
+        DartNode diagnosticNode, DartExpression arg1, DartExpression arg2) {
+      String methodName = methodNameForBinaryOperator(operator);
+      HasSourceInfo problemTarget = getOperatorHasSourceInfo(node);
+      Member member = lookupMember(lhsType, methodName, problemTarget);
+      if (member != null) {
+        Element element = member.getElement();
+        node.setElement(element);
+        FunctionType methodType = getMethodType(lhsType, member, methodName, diagnosticNode);
+        checkDeprecated(problemTarget, element);
+        return checkInvocation(ImmutableList.of(arg1, arg2), diagnosticNode, methodName,
+            methodType, null);
       } else {
         return dynamicType;
       }
@@ -1298,9 +1315,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitArrayAccess(DartArrayAccess node) {
       Type target = typeOf(node.getTarget());
-      return analyzeBinaryOperator(node, target, Token.INDEX, node, node.getKey());
+      DartExpression argKey = node.getKey();
+      // t[k] = v
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression binaryExpression = (DartBinaryExpression) node.getParent();
+        if (binaryExpression.getArg1() == node
+            && binaryExpression.getOperator().isAssignmentOperator()) {
+          DartExpression argValue = binaryExpression.getArg2();
+          analyzeTernaryOperator(node, target, Token.ASSIGN_INDEX, node, argKey, argValue);
+          binaryExpression.setElement(node.getElement());
+          return argValue.getType();
+        }
+      }
+      // print( t[k] )
+      return analyzeBinaryOperator(node, target, Token.INDEX, node, argKey);
     }
-
+    
     /**
      * Asserts that given {@link DartExpression} is valid for using in "assert" statement.
      */
@@ -1969,8 +1999,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
       }
-      // operator "equals" should return "bool"
-      if (modifiers.isOperator() && methodElement.getName().equals("equals")
+      // operator == should return "bool"
+      if (modifiers.isOperator() && methodElement.getName().equals("==")
           && returnTypeNode != null) {
         Type returnType = node.getElement().getFunctionType().getReturnType();
         if (!Objects.equal(returnType, boolType)) {
@@ -1979,8 +2009,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
       // operator "negate" should return numeric type
-      if (modifiers.isOperator() && methodElement.getName().equals("negate")
-          && returnTypeNode != null) {
+      if (modifiers.isOperator() && methodElement.getName().equals("-")
+          && methodElement.getParameters().isEmpty() && returnTypeNode != null) {
         Type returnType = node.getElement().getFunctionType().getReturnType();
         if (!types.isSubtype(returnType, numType)) {
           typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
@@ -2346,9 +2376,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           // compatibility of "switch expression" and "case expression" types
           checkAssignable(caseExpr, switchType, caseType);
           // should not have "operator =="
-          {
+          if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, doubleType)
+              && !Objects.equal(caseType, stringType)) {
             Member operator = lookupMember(caseType, methodNameForBinaryOperator(Token.EQ), null);
-            if (operator != null) {
+            if (operator != null && !Objects.equal(operator.getHolder(), objectType)) {
               onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_TYPE_SHOULD_NOT_HAVE_EQUALS, caseType);
             }
           }

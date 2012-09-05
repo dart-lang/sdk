@@ -60,23 +60,6 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     return element.getType();
   }
 
-  private static InterfaceType getType(String[] names, Scope scope, DartCompilerListener listener) {
-    ClassElement element = null;
-    for (String name : names) {
-      element = (ClassElement) scope.findElement(scope.getLibrary(), name);
-      if (element != null)
-        break;
-    }
-    if (element == null) {
-      DartCompilationError error =
-          new DartCompilationError(null, Location.NONE,
-              ResolverErrorCode.CANNOT_RESOLVE_SDK_TYPE, names[0]);
-      listener.onError(error);
-      return Types.newDynamicType();
-    }
-    return element.getType();
-  }
-
   @Override
   public InterfaceType getIntType() {
     return intType;
