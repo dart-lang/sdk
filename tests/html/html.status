@@ -151,11 +151,6 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
 
-[ $runtime == ff && $system == linux ]
-# DataView not implemented until Firefox 15.0. Currently only the
-# windows bot is running FF 15 - see issue 4896.
-typed_arrays_dataview_test: Fail
-
 [ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
 
@@ -199,8 +194,6 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
-localstorage_test: Fail
-mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
 [ $compiler == dart2js && $runtime == chrome ]
 cssstyledeclaration_test: Fail # Issue 4777
