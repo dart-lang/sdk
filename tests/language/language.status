@@ -63,9 +63,9 @@ getter_no_setter2_test/01: Fail # Issue 4898
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
 final_syntax_test/none: Fail # Issue 3558
-lazy_final_test: Fail # Issue 3558
-lazy_final2_test: Fail # Issue 3558
-lazy_final3_test: Fail # Issue 3558
+lazy_static_test: Fail # Issue 3558
+lazy_static2_test: Fail # Issue 3558
+lazy_static3_test: Fail # Issue 3558
 
 
 # DartC specific tests that should not be run by the VM
@@ -124,6 +124,10 @@ setter_no_getter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
+final_syntax_test/none: Fail # Issue 3476
+lazy_static_test: Fail # Issue 3476
+lazy_static2_test: Fail # Issue 3476
+lazy_static3_test: Fail # Issue 3476
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650
@@ -243,8 +247,8 @@ const_syntax_test/03: Fail, OK
 const_syntax_test/04: Fail, OK
 final_syntax_test/03: Fail, OK
 final_syntax_test/04: Fail, OK
-lazy_final_test: Fail, OK # Issue 3558
-lazy_final2_test: Fail, OK # Issue 3558
+lazy_static_test: Fail, OK # Issue 3558
+lazy_static2_test: Fail, OK # Issue 3558
 # Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.

@@ -85,7 +85,7 @@ generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
 implicit_scope_test: Fail # duplicate definition of a="bar"
-lazy_final2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
+lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T

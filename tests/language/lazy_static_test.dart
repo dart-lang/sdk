@@ -19,7 +19,7 @@ var count = 0;
 sideEffect() => count++;
 
 final t = sideEffect();
-final t2 = sideEffect();
+var t2 = sideEffect();
 
 class A {
   static final a = toto();

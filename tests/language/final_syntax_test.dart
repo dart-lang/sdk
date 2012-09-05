@@ -39,7 +39,7 @@ final int F3;             /// 04: continued
 
 class Point {
   final x, y;
-  final Point(this.x, this.y);
+  const Point(this.x, this.y);
   operator +(int other) => x;
 }
 
