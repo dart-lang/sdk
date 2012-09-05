@@ -53,6 +53,7 @@ public enum TypeErrorCode implements ErrorCode {
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
   NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\"", true),
+  NO_SUCH_TYPE_CONST(ErrorSeverity.ERROR, "no such type \"%s\" in constant constructor", true),
   NOT_A_FUNCTION_TYPE("\"%s\" is not a function type"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_MEMBER_OF_INFERRED(ErrorSeverity.INFO, "\"%s\" is not a member of %s"),
