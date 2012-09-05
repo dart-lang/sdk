@@ -39,13 +39,12 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   // dom/dom_frog.dart is a placeholder for dartium DOM.
   "dom_deprecated": const LibraryInfo(
       "dom/dom_dart2js.dart",
-      category : "Internal",
       implementation: true,
       dart2jsPath: "dom/dart2js/dom_dart2js.dart",
       documented: false),
 
   "html": const LibraryInfo(
-      "html/dartium/html_dartium.dart",
+      "html/html_dartium.dart",
       category: "Client",
       dart2jsPath: "html/dart2js/html_dart2js.dart"),
 
@@ -71,7 +70,7 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       platforms: VM_PLATFORM),
 
   "nativewrappers": const LibraryInfo(
-      "html/dartium/nativewrappers.dart",
+      "html/nativewrappers.dart",
       category: "Client",
       implementation: true,
       documented: false,
