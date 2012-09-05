@@ -2,19 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Bad {
-  int foo;
-  static int bar
-      = foo /// 01: compile-time error
-      ;
-  static const int toto =
-      bar /// 02: compile-time error
-      -3;
-}
-
-void use(x) {}
+final x = (t) => t + 1;
 
 main() {
-  use(Bad.bar);
-  use(Bad.toto);
+  Expect.equals(499, x(498));
+  Expect.equals(42, x(41));
 }

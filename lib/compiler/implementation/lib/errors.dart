@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(4910): Shouldn't this file be in the coreimpl and not the core
+// library?
+
 class TypeErrorImplementation implements TypeError {
   final String msg;
   const TypeErrorImplementation(String this.msg);

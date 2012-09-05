@@ -52,6 +52,10 @@ class SsaOptimizerTask extends CompilerTask {
   }
 
   bool trySpeculativeOptimizations(WorkItem work, HGraph graph) {
+    if (work.element.isField()) {
+      // Lazy initializers may not have bailout methods.
+      return false;
+    }
     JavaScriptItemCompilationContext context = work.compilationContext;
     HTypeMap types = context.types;
     return measure(() {

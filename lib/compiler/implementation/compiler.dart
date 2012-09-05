@@ -718,11 +718,7 @@ class Compiler implements DiagnosticListener {
       }
       progress.reset();
     }
-    if (work.element.kind.category == ElementCategory.VARIABLE) {
-      constantHandler.compileWorkItem(work);
-    } else {
-      backend.codegen(work);
-    }
+    backend.codegen(work);
   }
 
   void registerInstantiatedClass(ClassElement cls) {
@@ -754,6 +750,21 @@ class Compiler implements DiagnosticListener {
                                    FunctionSignature signature) {
     return withCurrentElement(element,
         () => resolver.computeFunctionType(element, signature));
+  }
+
+  bool isLazilyInitialized(VariableElement element) {
+    Constant initialValue = compileVariable(element);
+    return initialValue === null;
+  }
+
+  /**
+   * Compiles compile-time constants. Never returns [:null:].
+   * If the initial value is not a compile-time constants reports an error.
+   */
+  Constant compileConstant(VariableElement element) {
+    return withCurrentElement(element, () {
+      return constantHandler.compileConstant(element);
+    });
   }
 
   Constant compileVariable(VariableElement element) {

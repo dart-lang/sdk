@@ -1194,3 +1194,11 @@ interface JavaScriptIndexingBehavior {
 void throwNoSuchMethod(obj, name, arguments) {
   throw new NoSuchMethodException(obj, name, arguments);
 }
+
+/**
+ * Called by generated code when a static field's initializer references the
+ * field that is currently being initialized.
+ */
+void throwCyclicInit(String staticName) {
+  throw new RuntimeError("Cyclic initialization for static $staticName");
+}

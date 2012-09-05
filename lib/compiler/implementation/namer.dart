@@ -273,6 +273,12 @@ class Namer {
     }
   }
 
+  String getLazyInitializerName(Element element) {
+    // TODO(floitsch): mangle while not conflicting with other statics.
+    assert(Elements.isStaticOrTopLevelField(element));
+    return "get\$${getName(element)}";
+  }
+
   String isolatePropertiesAccess(Element element) {
     return "$ISOLATE.$ISOLATE_PROPERTIES.${getName(element)}";
   }
@@ -287,6 +293,10 @@ class Namer {
 
   String isolateBailoutAccess(Element element) {
     return '${isolateAccess(element)}\$bailout';
+  }
+
+  String isolateLazyInitializerAccess(Element element) {
+    return "$CURRENT_ISOLATE.${getLazyInitializerName(element)}";
   }
 
   String operatorIs(Element element) {

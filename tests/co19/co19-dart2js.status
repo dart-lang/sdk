@@ -156,6 +156,7 @@ Language/07_Classes/7_Static_Variables_A01_t05: Fail, OK
 Language/07_Classes/7_Static_Variables_A02_t01: Fail, OK
 Language/07_Classes/7_Static_Variables_A03_t02: Fail, OK
 Language/07_Classes/7_Static_Variables_A03_t03: Fail, OK
+Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail, OK
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A03_t01: Fail, OK
 Language/07_Classes/9_Superinterfaces_A06_t01: Fail, OK
 Language/08_Interfaces/1_Methods_A02_t01: Fail, OK
@@ -305,6 +306,7 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t01: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A05_t06: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail, OK
 Language/11_Statements/01_Blocks_A01_t02: Fail, OK
 Language/11_Statements/03_Variable_Declaration_A01_t01: Fail, OK
 Language/11_Statements/03_Variable_Declaration_A01_t02: Fail, OK
@@ -607,6 +609,8 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK
 # Tests that used to fail before deprecating the old try-catch syntax.
 # The original issue that used to cause the test to fail is put in an
 # end-of-line comment. See co19 issue 184.
+Language/10_Expressions/01_Constants_A16_t01: Pass, OK # co19 issue 174.
+Language/10_Expressions/01_Constants_A16_t02: Pass, OK # co19 issue 174.
 Language/03_Overview/2_Privacy_A01_t02: Pass, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/05_Variables/05_Variables_A01_t12: Pass, OK # Missing check for 'const var ...'
 Language/05_Variables/05_Variables_A01_t13: Pass, OK # Missing check for 'const final ...'
@@ -675,15 +679,9 @@ Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail # Compile-time error: 
 Language/03_Overview/1_Scoping_A02_t05: Fail # Compile-time error: error: C is not a type
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Compile-time error: error: cannot resolve foo
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # Compile-time error: error: cannot resolve type Undeclared
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Compile-time error: error: not a compile-time constant
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Compile-time error: error: not a compile-time constant
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A14_t01: Fail # Parser error: Field 'as' conflict with pseudo-keyword.
-Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Compile-time error: error: not a compile-time constant
-Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Compile-time error: error: not a compile-time constant
-Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant

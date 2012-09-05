@@ -47,7 +47,6 @@ assertion_test: Fail
 getter_declaration_negative_test: Fail # This will be fixed when dart2js reject old getter syntax.
 
 function_type_this_parameter_test: Crash # Issue 4417.
-compile_time_constant_test/02: Fail, OK # By inlining the use-function we don't compile the static variable.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
@@ -86,6 +85,7 @@ generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
 implicit_scope_test: Fail # duplicate definition of a="bar"
+lazy_final2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
@@ -169,9 +169,6 @@ const_constructor_syntax_test/04: Fail # Negative language test.
 const_field_negative_test: Fail # Negative language test.
 const_init4_negative_test: Fail # Negative language test.
 const_init_negative_test: Fail # Negative language test.
-const_syntax_test/01: Fail # Negative language test.
-const_syntax_test/02: Fail # Negative language test.
-const_syntax_test/03: Fail # Negative language test.
 const_syntax_test/04: Fail # Negative language test.
 constructor2_negative_test: Fail # Negative language test.
 constructor_negative_test: Pass # For the wrong reason.
@@ -246,6 +243,13 @@ throw7_negative_test: Fail # Negative language test.
 disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
 
+final_syntax_test/01: Fail # Missing error for uninitialized final field.
+final_syntax_test/02: Fail # Missing error for uninitialized final field.
+final_syntax_test/03: Fail # Missing error for uninitialized final field.
+final_syntax_test/04: Fail # Missing error for uninitialized final field.
+const_syntax_test/01: Fail # Missing error for uninitialized final field.
+const_syntax_test/02: Fail # Missing error for uninitialized final field.
+const_syntax_test/03: Fail # Missing error for uninitialized final field.
 div_by_zero_test: Fail, OK # Leg only has doubles.
 bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
 # The following test will start to fail again once dart2js implements the

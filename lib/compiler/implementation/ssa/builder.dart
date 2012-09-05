@@ -155,7 +155,7 @@ class SsaBuilderTask extends CompilerTask {
 
   HGraph build(WorkItem work) {
     return measure(() {
-      FunctionElement element = work.element;
+      Element element = work.element;
       HInstruction.idCounter = 0;
       SsaBuilder builder = new SsaBuilder(this, work);
       HGraph graph;
@@ -167,28 +167,34 @@ class SsaBuilderTask extends CompilerTask {
                  kind === ElementKind.GETTER ||
                  kind === ElementKind.SETTER) {
         graph = builder.buildMethod(work.element);
+      } else if (kind === ElementKind.FIELD) {
+        graph = builder.buildLazyInitializer(work.element);
       }
       assert(graph.isValid());
-      bool inLoop = functionsCalledInLoop.contains(element);
-      if (!inLoop) {
-        Selector selector = selectorsCalledInLoop[element.name];
-        inLoop = selector !== null && selector.applies(element, compiler);
-      }
-      graph.calledInLoop = inLoop;
+      if (kind !== ElementKind.FIELD) {
+        bool inLoop = functionsCalledInLoop.contains(element);
+        if (!inLoop) {
+          Selector selector = selectorsCalledInLoop[element.name];
+          inLoop = selector !== null && selector.applies(element, compiler);
+        }
+        graph.calledInLoop = inLoop;
 
-      // If there is an estimate of the parameter types assume these types when
-      // compiling.
-      HTypeList parameterTypes =
-          backend.optimisticParameterTypes(
-              element);
-      if (!parameterTypes.allUnknown) {
-        FunctionSignature signature = element.computeSignature(compiler);
-        int i = 0;
-        signature.forEachParameter((Element param) {
-          builder.parameters[param].guaranteedType = parameterTypes[i++];
-        });
+        // If there is an estimate of the parameter types assume these types
+        // when compiling.
+        HTypeList parameterTypes =
+            backend.optimisticParameterTypes(
+                element);
+        if (!parameterTypes.allUnknown) {
+          FunctionElement functionElement = element;
+          FunctionSignature signature =
+              functionElement.computeSignature(compiler);
+          int i = 0;
+          signature.forEachParameter((Element param) {
+            builder.parameters[param].guaranteedType = parameterTypes[i++];
+          });
+        }
+        backend.registerParameterTypesOptimization(element, parameterTypes);
       }
-      backend.registerParameterTypesOptimization(element, parameterTypes);
 
       if (compiler.tracer.enabled) {
         String name;
@@ -196,7 +202,7 @@ class SsaBuilderTask extends CompilerTask {
           String className = element.getEnclosingClass().name.slowToString();
           String memberName = element.name.slowToString();
           name = "$className.$memberName";
-          if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+          if (element.isGenerativeConstructorBody()) {
             name = "$name (body)";
           }
         } else {
@@ -288,7 +294,7 @@ class LocalsHandler {
       scopeData.capturedVariableMapping.forEach((Element from, Element to) {
         // The [from] can only be a parameter for function-scopes and not
         // loop scopes.
-        if (from.kind == ElementKind.PARAMETER) {
+        if (from.isParameter()) {
           // Store the captured parameter in the box. Get the current value
           // before we put the redirection in place.
           HInstruction instruction = readLocal(from);
@@ -427,7 +433,7 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
+      assert(redirect.enclosingElement.isVariable());
       HInstruction box = readLocal(redirect.enclosingElement);
       HInstruction lookup = new HFieldGet(redirect, box);
       builder.add(lookup);
@@ -487,7 +493,7 @@ class LocalsHandler {
       // is captured will be boxed, but the box itself will be a local.
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
-      assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
+      assert(redirect.enclosingElement.isVariable());
       HInstruction box = readLocal(redirect.enclosingElement);
       builder.add(new HFieldSet(redirect, box, value));
     } else {
@@ -828,6 +834,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HBasicBlock lastOpenedBlock;
 
   LibraryElement get currentLibrary => work.element.getLibrary();
+  Element get currentElement => work.element;
   Compiler get compiler => builder.compiler;
   CodeEmitterTask get emitter => builder.emitter;
 
@@ -868,6 +875,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return closeFunction();
   }
 
+  HGraph buildLazyInitializer(VariableElement variable) {
+    HBasicBlock block = graph.addNewBlock();
+    open(graph.entry);
+    close(new HGoto()).addSuccessor(block);
+    open(block);
+    SendSet node = variable.parseNode(compiler);
+    Link<Node> link = node.arguments;
+    assert(!link.isEmpty() && link.tail.isEmpty());
+    visit(link.head);
+    close(new HReturn(pop())).addSuccessor(graph.exit);
+    graph.finalize();
+    return graph;
+  }
+
   /**
    * Returns the constructor body associated with the given constructor or
    * creates a new constructor body, if none can be found.
@@ -875,7 +896,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * Returns [:null:] if the constructor does not have a body.
    */
   ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
-    assert(constructor.kind === ElementKind.GENERATIVE_CONSTRUCTOR);
+    assert(constructor.isGenerativeConstructor());
     if (constructor is SynthesizedConstructorElement) return null;
     FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate
@@ -890,7 +911,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
          !backendMembers.isEmpty();
          backendMembers = backendMembers.tail) {
       Element backendMember = backendMembers.head;
-      if (backendMember.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      if (backendMember.isGenerativeConstructorBody()) {
         ConstructorBodyElement body = backendMember;
         if (body.constructor == constructor) {
           bodyElement = backendMember;
@@ -906,7 +927,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
     }
-    assert(bodyElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY);
+    assert(bodyElement.isGenerativeConstructorBody());
     return bodyElement;
   }
 
@@ -955,7 +976,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   bool tryInlineMethod(Element element,
                        Selector selector,
                        Link<Node> arguments) {
-    if (element.kind != ElementKind.FUNCTION) return false;
+    // TODO(floitsch): we should be able to inline inside lazy initializers.
+    if (!currentElement.isFunction()) return false;
+    // TODO(floitsch): we should be able to inline getters, setters and
+    // constructor bodies.
+    if (!element.isFunction()) return false;
     // TODO(floitsch): find a cleaner way to know if the element is a function
     // containing nodes.
     // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
@@ -1776,7 +1801,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     for (Element member in closureClassElement.backendMembers) {
       // The backendMembers also contains the call method(s). We are only
       // interested in the fields.
-      if (member.kind == ElementKind.FIELD) {
+      if (member.isField()) {
         Element capturedLocal = nestedClosureData.capturedFieldMapping[member];
         assert(capturedLocal != null);
         capturedVariables.add(localsHandler.readLocal(capturedLocal));
@@ -1991,13 +2016,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateGetter(Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
-      if (element.kind == ElementKind.FIELD && !element.isAssignable()) {
-        // A static const. Get its constant value and inline it.
-        Constant value = compiler.constantHandler.compileVariable(element);
+      Constant value;
+      if (element.isField() && !element.isAssignable()) {
+        // A static final or const. Get its constant value and inline it if
+        // the value can be compiled eagerly.
+        value = compiler.compileVariable(element);
+      }
+      if (value != null) {
         stack.add(graph.addConstant(value));
+      } else if (element.isField() && compiler.isLazilyInitialized(element)) {
+        push(new HLazyStatic(element));
       } else {
         push(new HStatic(element));
-        if (element.kind == ElementKind.GETTER) {
+        if (element.isGetter()) {
           push(new HInvokeStatic(<HInstruction>[pop()]));
         }
       }
@@ -2037,7 +2068,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateSetter(SendSet send, Element element, HInstruction value) {
     if (Elements.isStaticOrTopLevelField(element)) {
-      if (element.kind == ElementKind.SETTER) {
+      if (element.isSetter()) {
         HStatic target = new HStatic(element);
         add(target);
         add(new HInvokeStatic(<HInstruction>[target, value]));
@@ -2138,7 +2169,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
         typeInfo = pop();
       }
-      if (type.element.kind === ElementKind.TYPE_VARIABLE) {
+      if (type.element.isTypeVariable()) {
         // TODO(karlklose): We emulate the behavior of the old frog
         // compiler and answer true to any is check involving a type variable
         // -- both is T and is !T -- until we have a proper implementation of
@@ -2229,7 +2260,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (calleeElements.isParameterChecked(parameter)) {
         constant = SentinelConstant.SENTINEL;
       } else {
-        constant = compiler.compileVariable(parameter);
+        constant = compiler.compileConstant(parameter);
       }
       return graph.addConstant(constant);
     }
@@ -2505,8 +2536,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     var inputs = <HInstruction>[target, context];
     if (node.isPropertyAccess) {
       push(new HInvokeSuper(inputs));
-    } else if (element.kind == ElementKind.FUNCTION ||
-               element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+    } else if (element.isFunction() || element.isGenerativeConstructor()) {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     element, inputs);
       if (!succeeded) {
@@ -2612,15 +2642,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(graph.addConstantNull());
       return;
     }
-    compiler.ensure(element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR);
+    compiler.ensure(!element.isGenerativeConstructor());
+    if (element.isFunction()) {
+      if (tryInlineMethod(element, selector, node.arguments)) return;
 
-    if (tryInlineMethod(element, selector, node.arguments)) return;
-
-    HInstruction target = new HStatic(element);
-    add(target);
-    var inputs = <HInstruction>[];
-    inputs.add(target);
-    if (element.kind == ElementKind.FUNCTION) {
+      HInstruction target = new HStatic(element);
+      add(target);
+      var inputs = <HInstruction>[target];
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     element, inputs);
       if (!succeeded) {
@@ -2637,11 +2665,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (returnType != null) instruction.guaranteedType = returnType;
       pushWithPosition(instruction, node);
     } else {
-      if (element.kind == ElementKind.GETTER) {
-        target = new HInvokeStatic(inputs);
-        add(target);
-        inputs = <HInstruction>[target];
-      }
+      generateGetter(node, element);
+      List<HInstruction> inputs = <HInstruction>[pop()];
       addDynamicSendArgumentsToList(node, inputs);
       pushWithPosition(new HInvokeClosure(selector, inputs), node);
     }
@@ -3523,7 +3548,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             // TODO(aprelev@gmail.com): Once old catch syntax is removed
             // "if" condition above and this "else" branch should be deleted as
             // type of declared variable won't matter for the catch
-            // condition
+            // condition.
             DartType type = elements.getType(declaration.type);
             if (type == null) {
               compiler.cancel('Catch with unresolved type', node: catchBlock);

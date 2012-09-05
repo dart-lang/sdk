@@ -534,20 +534,28 @@ class ConstructedConstant extends ObjectConstant {
  * optional parameters.
  */
 class ConstantHandler extends CompilerTask {
-  // Contains the initial value of fields. Must contain all static and global
-  // initializations of used fields. May contain caches for instance fields.
+  /**
+   * Contains the initial value of fields. Must contain all static and global
+   * initializations of const fields. May contain eagerly compiled values for
+   * statics and instance fields.
+   */
   final Map<VariableElement, Constant> initialVariableValues;
 
-  // Map from compile-time constants to their JS name.
+  /** Map from compile-time constants to their JS name. */
   final Map<Constant, String> compiledConstants;
 
-  // The set of variable elements that are in the process of being computed.
+  /** The set of variable elements that are in the process of being computed. */
   final Set<VariableElement> pendingVariables;
+
+  /** Caches the statics where the initial value cannot be eagerly compiled. */
+  final Set<VariableElement> lazyStatics;
+
 
   ConstantHandler(Compiler compiler)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
         compiledConstants = new Map<Constant, String>(),
         pendingVariables = new Set<VariableElement>(),
+        lazyStatics = new Set<VariableElement>(),
         super(compiler);
   String get name => 'ConstantHandler';
 
@@ -561,44 +569,78 @@ class ConstantHandler extends CompilerTask {
 
   /**
    * Compiles the initial value of the given field and stores it in an internal
-   * map.
+   * map. Returns the initial value (a constant) if it can be computed
+   * statically. Returns [:null:] if the variable must be initialized lazily.
    *
    * [WorkItem] must contain a [VariableElement] refering to a global or
    * static field.
    */
-  void compileWorkItem(WorkItem work) {
-    measure(() {
+  Constant compileWorkItem(WorkItem work) {
+    return measure(() {
       assert(work.element.kind == ElementKind.FIELD
              || work.element.kind == ElementKind.PARAMETER
              || work.element.kind == ElementKind.FIELD_PARAMETER);
       VariableElement element = work.element;
       // Shortcut if it has already been compiled.
-      if (initialVariableValues.containsKey(element)) return;
-      compileVariableWithDefinitions(element, work.resolutionTree);
+      Constant result = initialVariableValues[element];
+      if (result != null) return result;
+      if (lazyStatics.contains(element)) return null;
+      result = compileVariableWithDefinitions(element, work.resolutionTree);
       assert(pendingVariables.isEmpty());
+      return result;
     });
   }
 
-  Constant compileVariable(VariableElement element) {
+  /**
+   * Returns a compile-time constant, or reports an error if the element is not
+   * a compile-time constant.
+   */
+  Constant compileConstant(VariableElement element) {
+    return compileVariable(element, isConst: true);
+  }
+
+  /**
+   * Returns the a compile-time constant if the variable could be compiled
+   * eagerly. Otherwise returns `null`.
+   */
+  Constant compileVariable(VariableElement element, [bool isConst = false]) {
     return measure(() {
       if (initialVariableValues.containsKey(element)) {
         Constant result = initialVariableValues[element];
         return result;
       }
       TreeElements definitions = compiler.analyzeElement(element);
-      Constant constant = compileVariableWithDefinitions(element, definitions);
+      Constant constant = compileVariableWithDefinitions(
+          element, definitions, isConst: isConst);
       return constant;
     });
   }
 
+  /**
+   * Returns the a compile-time constant if the variable could be compiled
+   * eagerly. If the variable needs to be initialized lazily returns `null`.
+   * If the variable is `const` but cannot be compiled eagerly reports an
+   * error.
+   */
   Constant compileVariableWithDefinitions(VariableElement element,
-                                          TreeElements definitions) {
+                                          TreeElements definitions,
+                                          [bool isConst = false]) {
     return measure(() {
+      // Initializers for parameters must be const.
+      isConst = isConst || element.modifiers.isConst()
+          || !Elements.isStaticOrTopLevel(element);
+      if (!isConst && lazyStatics.contains(element)) return null;
+
       Node node = element.parseNode(compiler);
       if (pendingVariables.contains(element)) {
-        MessageKind kind = MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS;
-        compiler.reportError(node,
-                             new CompileTimeConstantError(kind, const []));
+        if (isConst) {
+          MessageKind kind = MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS;
+          compiler.reportError(node,
+                               new CompileTimeConstantError(kind, const []));
+        } else {
+          lazyStatics.add(element);
+          return null;
+        }
       }
       pendingVariables.add(element);
 
@@ -609,19 +651,27 @@ class ConstantHandler extends CompilerTask {
         value = new NullConstant();
       } else {
         Node right = assignment.arguments.head;
-        value = compileNodeWithDefinitions(right, definitions);
+        value =
+            compileNodeWithDefinitions(right, definitions, isConst: isConst);
       }
-      initialVariableValues[element] = value;
+      if (value != null) {
+        initialVariableValues[element] = value;
+      } else {
+        assert(!isConst);
+        lazyStatics.add(element);
+      }
       pendingVariables.remove(element);
       return value;
     });
   }
 
-  Constant compileNodeWithDefinitions(Node node, TreeElements definitions) {
+  Constant compileNodeWithDefinitions(Node node,
+                                      TreeElements definitions,
+                                      [bool isConst]) {
     return measure(() {
       assert(node !== null);
       CompileTimeConstantEvaluator evaluator =
-          new CompileTimeConstantEvaluator(definitions, compiler);
+          new CompileTimeConstantEvaluator(definitions, compiler, isConst);
       return evaluator.evaluate(node);
     });
   }
@@ -664,6 +714,10 @@ class ConstantHandler extends CompilerTask {
           && !element.isInstanceMember()
           && element.modifiers.isFinal();
     });
+  }
+
+  List<VariableElement> getLazilyInitializedFieldsForEmission() {
+    return new List<VariableElement>.from(lazyStatics);
   }
 
   List<Constant> getConstantsForEmission() {
@@ -769,17 +823,28 @@ class ConstantHandler extends CompilerTask {
 }
 
 class CompileTimeConstantEvaluator extends AbstractVisitor {
+  bool isEvaluatingConstant;
   final TreeElements elements;
   final Compiler compiler;
 
-  CompileTimeConstantEvaluator(this.elements, this.compiler);
+  CompileTimeConstantEvaluator(this.elements, this.compiler, [bool isConst])
+      : this.isEvaluatingConstant = isConst;
 
   Constant evaluate(Node node) {
     return node.accept(this);
   }
 
-  visitNode(Node node) {
-    error(node);
+  Constant evaluateConstant(Node node) {
+    bool oldIsEvaluatingConstant = isEvaluatingConstant;
+    isEvaluatingConstant = true;
+    Constant result = node.accept(this);
+    isEvaluatingConstant = oldIsEvaluatingConstant;
+    assert(result != null);
+    return result;
+  }
+
+  Constant visitNode(Node node) {
+    return signalNotCompileTimeConstant(node);
   }
 
   Constant visitLiteralBool(LiteralBool node) {
@@ -795,12 +860,14 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralList(LiteralList node) {
-    if (!node.isConst()) error(node);
+    if (!node.isConst())  {
+      return signalNotCompileTimeConstant(node);
+    }
     List<Constant> arguments = <Constant>[];
     for (Link<Node> link = node.elements.nodes;
          !link.isEmpty();
          link = link.tail) {
-      arguments.add(evaluate(link.head));
+      arguments.add(evaluateConstant(link.head));
     }
     // TODO(floitsch): get type from somewhere.
     DartType type = null;
@@ -810,21 +877,24 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralMap(LiteralMap node) {
-    if (!node.isConst()) error(node);
+    if (!node.isConst()) {
+      signalNotCompileTimeConstant(node);
+      error(node);
+    }
     List<StringConstant> keys = <StringConstant>[];
     Map<StringConstant, Constant> map = new Map<StringConstant, Constant>();
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty();
          link = link.tail) {
       LiteralMapEntry entry = link.head;
-      Constant key = evaluate(entry.key);
+      Constant key = evaluateConstant(entry.key);
       if (!key.isString() || entry.key.asStringNode() === null) {
         MessageKind kind = MessageKind.KEY_NOT_A_STRING_LITERAL;
         compiler.reportError(entry.key, new ResolutionError(kind, const []));
       }
       StringConstant keyConstant = key;
       if (!map.containsKey(key)) keys.add(key);
-      map[key] = evaluate(entry.value);
+      map[key] = evaluateConstant(entry.value);
     }
     List<Constant> values = <Constant>[];
     Constant protoValue = null;
@@ -864,12 +934,14 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   Constant visitStringJuxtaposition(StringJuxtaposition node) {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
+    if (left == null || right == null) return null;
     return new StringConstant(new DartString.concat(left.value, right.value),
                               node);
   }
 
   Constant visitStringInterpolation(StringInterpolation node) {
     StringConstant initialString = evaluate(node.string);
+    if (initialString == null) return null;
     DartString accumulator = initialString.value;
     for (StringInterpolationPart part in node.parts) {
       Constant expression = evaluate(part.expression);
@@ -881,10 +953,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         PrimitiveConstant primitive = expression;
         expressionString = primitive.value;
       } else {
-        error(part.expression);
+        return signalNotCompileTimeConstant(part.expression);
       }
       accumulator = new DartString.concat(accumulator, expressionString);
       StringConstant partString = evaluate(part.string);
+      if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
     return new StringConstant(accumulator, node);
@@ -894,12 +967,18 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   Constant visitSend(Send send) {
     Element element = elements[send];
     if (Elements.isStaticOrTopLevelField(element)) {
-      if (element.modifiers === null ||
-          // TODO(johnniwinther): This should eventually be [isConst].
-          !element.modifiers.isFinalOrConst()) {
-        error(send);
+      Constant result;
+      if (element.modifiers !== null) {
+        if (element.modifiers.isConst()) {
+          result = compiler.compileConstant(element);
+        } else if (element.modifiers.isFinal()) {
+          // TODO(4516): remove support for final compile-time constants: if
+          // isCompilingConstant is true don't compile the variable.
+          result = compiler.compileVariable(element);
+        }
       }
-      return compiler.compileVariable(element);
+      if (result == null) return signalNotCompileTimeConstant(send);
+      return result;
     } else if (Elements.isStaticOrTopLevelFunction(element)
                && send.isPropertyAccess) {
       compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
@@ -909,6 +988,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     } else if (send.isPrefix) {
       assert(send.isOperator);
       Constant receiverConstant = evaluate(send.receiver);
+      if (receiverConstant == null) return null;
       Operator op = send.selector;
       Constant folded;
       switch (op.source.stringValue) {
@@ -925,12 +1005,13 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           compiler.internalError("Unexpected operator.", node: op);
           break;
       }
-      if (folded === null) error(send);
+      if (folded === null) return signalNotCompileTimeConstant(send);
       return folded;
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
       Constant left = evaluate(send.receiver);
       Constant right = evaluate(send.argumentsNode.nodes.head);
+      if (left == null || right == null) return null;
       Operator op = send.selector.asOperator();
       Constant folded = null;
       switch (op.source.stringValue) {
@@ -1017,14 +1098,14 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           }
           break;
       }
-      if (folded === null) error(send);
+      if (folded === null) return signalNotCompileTimeConstant(send);
       return folded;
     }
-    return super.visitSend(send);
+    return signalNotCompileTimeConstant(send);
   }
 
-  visitSendSet(SendSet node) {
-    error(node);
+  Constant visitSendSet(SendSet node) {
+    return signalNotCompileTimeConstant(node);
   }
 
   /** Returns the list of constants that are passed to the static function. */
@@ -1033,8 +1114,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
                                                 FunctionElement target) {
     List<Constant> compiledArguments = <Constant>[];
 
-    Function compileArgument = evaluate;
-    Function compileConstant = compiler.compileVariable;
+    Function compileArgument = evaluateConstant;
+    Function compileConstant = compiler.compileConstant;
     bool succeeded = selector.addArgumentsToList(arguments,
                                                  compiledArguments,
                                                  target,
@@ -1046,7 +1127,9 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitNewExpression(NewExpression node) {
-    if (!node.isConst()) error(node);
+    if (!node.isConst()) {
+      return signalNotCompileTimeConstant(node);
+    }
 
     Send send = node.send;
     FunctionElement constructor = elements[send];
@@ -1083,11 +1166,23 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
     compiler.reportError(node, new CompileTimeConstantError(kind, const []));
   }
+
+  Constant signalNotCompileTimeConstant(Node node) {
+    if (isEvaluatingConstant) {
+      error(node);
+    }
+    // Else we don't need to do anything. The final handler is only
+    // optimistically trying to compile constants. So it is normal that we
+    // sometimes see non-compile time constants.
+    // Simply return [:null:] which is used to propagate a failing
+    // compile-time compilation.
+    return null;
+  }
 }
 
 class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
   TryCompileTimeConstantEvaluator(TreeElements elements, Compiler compiler):
-      super(elements, compiler);
+      super(elements, compiler, isConst: true);
 
   error(Node node) {
     // Just fail without reporting it anywhere.
@@ -1106,7 +1201,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         this.definitions = new Map<Element, Constant>(),
         this.fieldValues = new Map<Element, Constant>(),
         super(compiler.resolver.resolveMethodElement(constructor),
-              compiler);
+              compiler,
+              isConst: true);
 
   Constant visitSend(Send send) {
     Element element = elements[send];
@@ -1232,7 +1328,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       Constant fieldValue = fieldValues[field];
       if (fieldValue === null) {
         // Use the default value.
-        fieldValue = compiler.compileVariable(field);
+        fieldValue = compiler.compileConstant(field);
       }
       jsNewArguments.add(fieldValue);
     });

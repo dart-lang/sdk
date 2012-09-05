@@ -327,6 +327,10 @@ class JavaScriptBackend extends Backend {
     argumentTypes = new ArgumentTypesRegistry(this);
   }
 
+  Element get cyclicThrowHelper() {
+    return compiler.findHelper(const SourceString("throwCyclicInit"));
+  }
+
   JavaScriptItemCompilationContext createItemCompilationContext() {
     return new JavaScriptItemCompilationContext();
   }
@@ -343,6 +347,19 @@ class JavaScriptBackend extends Backend {
   }
 
   void codegen(WorkItem work) {
+    if (work.element.kind.category == ElementCategory.VARIABLE) {
+      Constant initialValue = compiler.constantHandler.compileWorkItem(work);
+      if (initialValue !== null) {
+        return;
+      } else {
+        // If the constant-handler was not able to produce a result we have to
+        // go through the builder (below) to generate the lazy initializer for
+        // the static variable.
+        // We also need to register the use of the cyclic-error helper.
+        compiler.enqueuer.codegen.registerStaticUse(cyclicThrowHelper);
+      }
+    }
+
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     if (work.allowSpeculativeOptimization
@@ -352,10 +369,9 @@ class JavaScriptBackend extends Backend {
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph);
     }
-    CodeBuffer codeBuffer = generator.generateMethod(work, graph);
+    CodeBuffer codeBuffer = generator.generateCode(work, graph);
     compiler.codegenWorld.addGeneratedCode(work, codeBuffer);
-    invalidateAfterCodegen.forEach(
-      compiler.enqueuer.codegen.eagerRecompile);
+    invalidateAfterCodegen.forEach(compiler.enqueuer.codegen.eagerRecompile);
     invalidateAfterCodegen.clear();
   }
 

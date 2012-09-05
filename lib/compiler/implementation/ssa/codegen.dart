@@ -27,6 +27,28 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return js.prettyPrint(node, compiler, positionElement);
   }
 
+  CodeBuffer generateCode(WorkItem work, HGraph graph) {
+    if (work.element.isField()) {
+      return generateLazyInitializer(work, graph);
+    } else {
+      return generateMethod(work, graph);
+    }
+  }
+
+  CodeBuffer generateLazyInitializer(work, graph) {
+    return measure(() {
+      compiler.tracer.traceGraph("codegen", graph);
+      List<js.Parameter> parameters = <js.Parameter>[];
+      SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
+          backend, work, parameters, new Map<Element, String>());
+      codegen.visitGraph(graph);
+      js.Block body = codegen.body;
+      Element element = work.element;
+      js.Fun fun = new js.Fun(parameters, body);
+      return prettyPrint(fun, element);
+    });
+  }
+
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       JavaScriptItemCompilationContext context = work.compilationContext;
@@ -1972,6 +1994,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.VariableUse(compiler.namer.isolateAccess(node.element)));
   }
 
+  void visitLazyStatic(HLazyStatic node) {
+    Element element = node.element;
+    world.registerStaticUse(element);
+    String lazyGetter = compiler.namer.isolateLazyInitializerAccess(element);
+    js.VariableUse target = new js.VariableUse(lazyGetter);
+    js.Call call = new js.Call(target, <js.Expression>[]);
+    push(call, node);
+  }
+
   void visitStaticStore(HStaticStore node) {
     world.registerStaticUse(node.element);
     js.VariableUse variableUse =
@@ -2446,6 +2477,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       String bailoutName = namer.getBailoutName(element);
       bailoutTarget = new js.PropertyAccess.field(new js.This(), bailoutName);
     } else {
+      assert(!element.isField());
       bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(element));
     }
     js.Call call = new js.Call(bailoutTarget, arguments);

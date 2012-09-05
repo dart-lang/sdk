@@ -37,6 +37,7 @@ interface HVisitor<R> {
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
   R visitIs(HIs node);
+  R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLiteralList(HLiteralList node);
@@ -298,6 +299,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitJump(HJump node) => visitControlFlow(node);
+  visitLazyStatic(HLazyStatic node) => visitStatic(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
@@ -2307,6 +2309,24 @@ class HStatic extends HInstruction {
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
   bool isCodeMotionInvariant() => !element.isAssignable();
+}
+
+/** An [HLazyStatic] is a static that is initialized lazily at first read. */
+class HLazyStatic extends HStatic {
+  HLazyStatic(Element element) : super(element);
+
+  void prepareGvn(HTypeMap types) {
+    // TODO(4931): The first access has side-effects, but we afterwards we
+    // should be able to GVN.
+    setAllSideEffects();
+  }
+
+  toString() => 'lazy static ${element.name}';
+  accept(HVisitor visitor) => visitor.visitLazyStatic(this);
+
+  int typeCode() => 30;
+  // TODO(4931): can we do better here?
+  bool isCodeMotionInvariant() => false;
 }
 
 class HStaticStore extends HInstruction {
