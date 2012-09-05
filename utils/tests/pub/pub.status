@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Pub only runs on the VM, so just rule out all compilers.
-[ $compiler == frog || $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
+[ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
 pub_test: Skip
 pub_install_test: Skip
 pub_install_git_test: Skip
@@ -46,8 +46,8 @@ pub_update_test: Skip
 pub_update_git_test: Skip
 pub_update_hosted_test: Skip
 
-[ $compiler == frog ]
-yaml_test: Fail # Issue 3215
+[ $compiler == dart2js && $checked && $browser ]
+yaml_test: Fail
 
 [ $runtime == opera ]
 *: Skip
