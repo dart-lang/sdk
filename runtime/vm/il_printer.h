@@ -46,6 +46,7 @@ class FlowGraphPrinter : public ValueObject {
   // another block and that block is not next in reverse postorder.
   void PrintBlocks();
   void PrintInstruction(Instruction* instr);
+  static void PrintComputation(Computation* comp);
   static void PrintTypeCheck(const ParsedFunction& parsed_function,
                              intptr_t token_pos,
                              Value* value,

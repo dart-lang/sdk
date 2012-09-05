@@ -46,7 +46,7 @@ LocationSummary* LocationSummary::Make(
 
 
 Location Location::RegisterOrConstant(Value* value) {
-  ConstantInstr* constant = value->definition()->AsConstant();
+  ConstantComp* constant = value->definition()->AsConstant();
   return (constant != NULL)
       ? Location::Constant(constant->value())
       : Location::RequiresRegister();
@@ -54,7 +54,7 @@ Location Location::RegisterOrConstant(Value* value) {
 
 
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
-  ConstantInstr* constant = value->definition()->AsConstant();
+  ConstantComp* constant = value->definition()->AsConstant();
   return (constant != NULL)
       ? Location::Constant(constant->value())
       : Location::RegisterLocation(reg);

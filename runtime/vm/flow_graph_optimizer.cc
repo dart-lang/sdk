@@ -31,19 +31,19 @@ void FlowGraphOptimizer::OptimizeComputations() {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      Definition* defn = it.Current()->AsDefinition();
-      if (defn != NULL) {
-        Definition* result = defn->Canonicalize();
-        if (result != defn) {
+      BindInstr* instr = it.Current()->AsBind();
+      if (instr != NULL) {
+        Definition* result = instr->computation()->TryReplace(instr);
+        if (result != instr) {
           if (result != NULL) {
-            defn->ReplaceUsesWith(result);
+            instr->ReplaceUsesWith(result);
             if (FLAG_trace_optimization) {
               OS::Print("Replacing v%d with v%d\n",
-                        defn->ssa_temp_index(),
+                        instr->ssa_temp_index(),
                         result->ssa_temp_index());
             }
           } else if (FLAG_trace_optimization) {
-              OS::Print("Removing v%d.\n", defn->ssa_temp_index());
+              OS::Print("Removing v%d.\n", instr->ssa_temp_index());
           }
           it.RemoveCurrentFromGraph();
         }
@@ -53,17 +53,17 @@ void FlowGraphOptimizer::OptimizeComputations() {
 }
 
 
-static Definition* CreateConversion(Representation from,
-                                    Representation to,
-                                    Definition* def,
-                                    Instruction* deopt_target) {
+static Computation* CreateConversion(Representation from,
+                                     Representation to,
+                                     Definition* def,
+                                     Instruction* deopt_target) {
   if ((from == kUnboxedDouble) && (to == kTagged)) {
-    return new BoxDoubleInstr(new Value(def), NULL);
+    return new BoxDoubleComp(new Value(def), NULL);
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    return new UnboxDoubleInstr(new Value(def), deopt_id);
+    return new UnboxDoubleComp(new Value(def), deopt_id);
   } else {
     UNREACHABLE();
     return NULL;
@@ -96,14 +96,15 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
       deopt_target = instr;
     }
 
-    Definition* converted =
-        CreateConversion(from_rep, to_rep, def, deopt_target);
-    InsertBefore(instr, converted, use->instruction()->env(),
-                 Definition::kValue);
+    BindInstr* converted = InsertBefore(
+      instr,
+      CreateConversion(from_rep, to_rep, def, deopt_target),
+      use->instruction()->env(),
+      Definition::kValue);
+
     use->set_definition(converted);
   }
 }
-
 
 void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of type Double.
@@ -263,10 +264,10 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
 }
 
 
-static void RemovePushArguments(InstanceCallInstr* call) {
+static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->ArgumentAt(i);
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = comp->ArgumentAt(i);
     push->ReplaceUsesWith(push->value()->definition());
     push->RemoveFromGraph();
   }
@@ -289,10 +290,10 @@ static bool HasOneTarget(const ICData& ic_data) {
 }
 
 
-static intptr_t ReceiverClassId(InstanceCallInstr* call) {
-  if (!call->HasICData()) return kIllegalCid;
+static intptr_t ReceiverClassId(InstanceCallComp* comp) {
+  if (!comp->HasICData()) return kIllegalCid;
 
-  const ICData& ic_data = *call->ic_data();
+  const ICData& ic_data = *comp->ic_data();
 
   if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
   // TODO(vegorov): Add multiple receiver type support.
@@ -306,22 +307,24 @@ static intptr_t ReceiverClassId(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
+void FlowGraphOptimizer::AddCheckClass(BindInstr* instr,
+                                       InstanceCallComp* comp,
                                        Value* value) {
   // Type propagation has not run yet, we cannot eliminate the check.
   const ICData& unary_checks =
-      ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
-  CheckClassInstr* check = new CheckClassInstr(value, call, unary_checks);
-  InsertBefore(call, check, call->env(), Definition::kEffect);
+      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+  CheckClassComp* check = new CheckClassComp(value, comp, unary_checks);
+  InsertBefore(instr, check, instr->env(), Definition::kEffect);
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
+bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
+                                               InstanceCallComp* comp,
                                                Token::Kind op_kind) {
   // TODO(fschneider): Optimize []= operator in checked mode as well.
   if (op_kind == Token::kASSIGN_INDEX && FLAG_enable_type_checks) return false;
 
-  const intptr_t class_id = ReceiverClassId(call);
+  const intptr_t class_id = ReceiverClassId(comp);
   switch (class_id) {
     case kImmutableArrayCid:
       // Stores are only specialized for Array and GrowableObjectArray,
@@ -330,32 +333,32 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
       // Fall through.
     case kArrayCid:
     case kGrowableObjectArrayCid: {
-      Value* array = call->ArgumentAt(0)->value();
-      Value* index = call->ArgumentAt(1)->value();
+      Value* array = comp->ArgumentAt(0)->value();
+      Value* index = comp->ArgumentAt(1)->value();
       // Insert class check and index smi checks and attach a copy of the
       // original environment because the operation can still deoptimize.
-      AddCheckClass(call, array->Copy());
-      InsertBefore(call,
-                   new CheckSmiInstr(index->Copy(), call->deopt_id()),
-                   call->env(),
+      AddCheckClass(instr, comp, array->Copy());
+      InsertBefore(instr,
+                   new CheckSmiComp(index->Copy(), comp->deopt_id()),
+                   instr->env(),
                    Definition::kEffect);
       // Insert array bounds check.
-      InsertBefore(call,
-                   new CheckArrayBoundInstr(array->Copy(),
-                                            index->Copy(),
-                                            class_id,
-                                            call),
-                   call->env(),
+      InsertBefore(instr,
+                   new CheckArrayBoundComp(array->Copy(),
+                                           index->Copy(),
+                                           class_id,
+                                           comp),
+                   instr->env(),
                    Definition::kEffect);
-      Definition* array_op = NULL;
+      Computation* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedInstr(array, index, class_id);
+        array_op = new LoadIndexedComp(array, index, class_id);
       } else {
-        Value* value = call->ArgumentAt(2)->value();
-        array_op = new StoreIndexedInstr(array, index, value, class_id);
+        Value* value = comp->ArgumentAt(2)->value();
+        array_op = new StoreIndexedComp(array, index, value, class_id);
       }
-      call->ReplaceWith(array_op, current_iterator());
-      RemovePushArguments(call);
+      instr->set_computation(array_op);
+      RemovePushArguments(comp);
       return true;
     }
     default:
@@ -364,35 +367,40 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
 }
 
 
-void FlowGraphOptimizer::InsertBefore(Instruction* instr,
-                                      Definition* defn,
-                                      Environment* env,
-                                      Definition::UseKind use_kind) {
-  if (env != NULL) env->CopyTo(defn);
+BindInstr* FlowGraphOptimizer::InsertBefore(Instruction* instr,
+                                            Computation* comp,
+                                            Environment* env,
+                                            BindInstr::UseKind use_kind) {
+  BindInstr* bind = new BindInstr(use_kind, comp);
+  if (env != NULL) env->CopyTo(bind);
   if (use_kind == Definition::kValue) {
-    defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
-  defn->InsertBefore(instr);
+  bind->InsertBefore(instr);
+  return bind;
 }
 
 
-void FlowGraphOptimizer::InsertAfter(Instruction* instr,
-                                     Definition* defn,
-                                     Environment* env,
-                                     Definition::UseKind use_kind) {
-  if (env != NULL) env->CopyTo(defn);
+BindInstr* FlowGraphOptimizer::InsertAfter(Instruction* instr,
+                                           Computation* comp,
+                                           Environment* env,
+                                           BindInstr::UseKind use_kind) {
+  BindInstr* bind = new BindInstr(use_kind, comp);
+  if (env != NULL) env->CopyTo(bind);
   if (use_kind == Definition::kValue) {
-    defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    bind->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
-  defn->InsertAfter(instr);
+  bind->InsertAfter(instr);
+  return bind;
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
+bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
+                                                InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
   intptr_t operands_type = kIllegalCid;
-  ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
@@ -439,82 +447,87 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       UNREACHABLE();
   };
 
-  ASSERT(call->ArgumentCount() == 2);
+  ASSERT(comp->ArgumentCount() == 2);
   if (operands_type == kDoubleCid) {
-    Value* left = call->ArgumentAt(0)->value();
-    Value* right = call->ArgumentAt(1)->value();
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
 
     // Check that either left or right are not a smi.  Result or a
     // binary operation with two smis is a smi not a double.
-    InsertBefore(call,
-                 new CheckEitherNonSmiInstr(left->Copy(),
-                                            right->Copy(),
-                                            call),
-                 call->env(),
+    InsertBefore(instr,
+                 new CheckEitherNonSmiComp(left->Copy(),
+                                           right->Copy(),
+                                           comp),
+                 instr->env(),
                  Definition::kEffect);
 
-    UnboxedDoubleBinaryOpInstr* double_bin_op =
-        new UnboxedDoubleBinaryOpInstr(op_kind,
-                                       left->Copy(),
-                                       right->Copy(),
-                                       call);
-    call->ReplaceWith(double_bin_op, current_iterator());
-    RemovePushArguments(call);
+    UnboxedDoubleBinaryOpComp* double_bin_op =
+        new UnboxedDoubleBinaryOpComp(op_kind,
+                                      left->Copy(),
+                                      right->Copy(),
+                                      comp);
+    instr->set_computation(double_bin_op);
+
+    RemovePushArguments(comp);
   } else if (operands_type == kMintCid) {
-    Value* left = call->ArgumentAt(0)->value();
-    Value* right = call->ArgumentAt(1)->value();
-    BinaryMintOpInstr* bin_op = new BinaryMintOpInstr(op_kind,
-                                                      call,
-                                                      left,
-                                                      right);
-    call->ReplaceWith(bin_op, current_iterator());
-    RemovePushArguments(call);
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
+    BinaryMintOpComp* bin_op = new BinaryMintOpComp(op_kind,
+                                                    comp,
+                                                    left,
+                                                    right);
+    instr->set_computation(bin_op);
+    RemovePushArguments(comp);
   } else {
     ASSERT(operands_type == kSmiCid);
-    Value* left = call->ArgumentAt(0)->value();
-    Value* right = call->ArgumentAt(1)->value();
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
     // Insert two smi checks and attach a copy of the original
     // environment because the smi operation can still deoptimize.
-    InsertBefore(call,
-                 new CheckSmiInstr(left->Copy(), call->deopt_id()),
-                 call->env(),
+    InsertBefore(instr,
+                 new CheckSmiComp(left->Copy(), comp->deopt_id()),
+                 instr->env(),
                  Definition::kEffect);
-    InsertBefore(call,
-                 new CheckSmiInstr(right->Copy(), call->deopt_id()),
-                 call->env(),
+    InsertBefore(instr,
+                 new CheckSmiComp(right->Copy(), comp->deopt_id()),
+                 instr->env(),
                  Definition::kEffect);
-    BinarySmiOpInstr* bin_op = new BinarySmiOpInstr(op_kind, call, left, right);
-    call->ReplaceWith(bin_op, current_iterator());
-    RemovePushArguments(call);
+    BinarySmiOpComp* bin_op = new BinarySmiOpComp(op_kind,
+                                                  comp,
+                                                  left,
+                                                  right);
+    instr->set_computation(bin_op);
+    RemovePushArguments(comp);
   }
   return true;
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
+bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
+                                               InstanceCallComp* comp,
                                                Token::Kind op_kind) {
-  if (call->ic_data()->NumberOfChecks() != 1) {
+  if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
     return false;
   }
-  ASSERT(call->ArgumentCount() == 1);
-  Definition* unary_op = NULL;
-  if (HasOneSmi(*call->ic_data())) {
-    Value* value = call->ArgumentAt(0)->value();
-    InsertBefore(call,
-                 new CheckSmiInstr(value->Copy(), call->deopt_id()),
-                 call->env(),
+  ASSERT(comp->ArgumentCount() == 1);
+  Computation* unary_op = NULL;
+  if (HasOneSmi(*comp->ic_data())) {
+    Value* value = comp->ArgumentAt(0)->value();
+    InsertBefore(instr,
+                 new CheckSmiComp(value->Copy(), comp->deopt_id()),
+                 instr->env(),
                  Definition::kEffect);
-    unary_op = new UnarySmiOpInstr(op_kind,
-                                   (op_kind == Token::kNEGATE) ? call : NULL,
-                                   value);
-  } else if (HasOneDouble(*call->ic_data()) && (op_kind == Token::kNEGATE)) {
-    unary_op = new NumberNegateInstr(call, call->ArgumentAt(0)->value());
+    unary_op = new UnarySmiOpComp(op_kind,
+                                  (op_kind == Token::kNEGATE) ? comp : NULL,
+                                  value);
+  } else if (HasOneDouble(*comp->ic_data()) && (op_kind == Token::kNEGATE)) {
+    unary_op = new NumberNegateComp(comp, comp->ArgumentAt(0)->value());
   }
   if (unary_op == NULL) return false;
 
-  call->ReplaceWith(unary_op, current_iterator());
-  RemovePushArguments(call);
+  instr->set_computation(unary_op);
+  RemovePushArguments(comp);
   return true;
 }
 
@@ -535,9 +548,10 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 
 
 // Only unique implicit instance getters can be currently handled.
-bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
-  ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
+bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
+                                                 InstanceCallComp* comp) {
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     return false;
@@ -554,18 +568,18 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     }
     // Inline implicit instance getter.
     const String& field_name =
-        String::Handle(Field::NameFromGetter(call->function_name()));
+        String::Handle(Field::NameFromGetter(comp->function_name()));
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
 
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
     // Detach environment from the original instruction because it can't
     // deoptimize.
-    call->set_env(NULL);
-    LoadInstanceFieldInstr* load =
-        new LoadInstanceFieldInstr(field, call->ArgumentAt(0)->value());
-    call->ReplaceWith(load, current_iterator());
-    RemovePushArguments(call);
+    instr->set_env(NULL);
+    LoadInstanceFieldComp* load =
+        new LoadInstanceFieldComp(field, comp->ArgumentAt(0)->value());
+    instr->set_computation(load);
+    RemovePushArguments(comp);
     return true;
   }
 
@@ -594,15 +608,15 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
         UNREACHABLE();
     }
     // Check receiver class.
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
 
-    LoadVMFieldInstr* load = new LoadVMFieldInstr(
-        call->ArgumentAt(0)->value(),
+    LoadVMFieldComp* load = new LoadVMFieldComp(
+        comp->ArgumentAt(0)->value(),
         length_offset,
         Type::ZoneHandle(Type::SmiType()));
     load->set_result_cid(kSmiCid);
-    call->ReplaceWith(load, current_iterator());
-    RemovePushArguments(call);
+    instr->set_computation(load);
+    RemovePushArguments(comp);
     return true;
   }
 
@@ -612,15 +626,15 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       return false;
     }
     // Check receiver class.
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
 
-    LoadVMFieldInstr* load = new LoadVMFieldInstr(
-        call->ArgumentAt(0)->value(),
+    LoadVMFieldComp* load = new LoadVMFieldComp(
+        comp->ArgumentAt(0)->value(),
         String::length_offset(),
         Type::ZoneHandle(Type::SmiType()));
     load->set_result_cid(kSmiCid);
-    call->ReplaceWith(load, current_iterator());
-    RemovePushArguments(call);
+    instr->set_computation(load);
+    RemovePushArguments(comp);
     return true;
   }
   return false;
@@ -628,9 +642,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 
 
 // Inline only simple, frequently called core library methods.
-bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
-  ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
+bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
+                                                 InstanceCallComp* comp) {
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
   if ((ic_data.NumberOfChecks() == 0) || !HasOneTarget(ic_data)) {
     // No type feedback collected.
     return false;
@@ -643,16 +658,16 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if ((recognized_kind == MethodRecognizer::kDoubleToDouble) &&
       (class_ids[0] == kDoubleCid)) {
-    DoubleToDoubleInstr* d2d_instr =
-        new DoubleToDoubleInstr(call->ArgumentAt(0)->value(), call);
-    call->ReplaceWith(d2d_instr, current_iterator());
-    RemovePushArguments(call);
+    DoubleToDoubleComp* d2d_comp =
+        new DoubleToDoubleComp(comp->ArgumentAt(0)->value(), comp);
+    instr->set_computation(d2d_comp);
+    RemovePushArguments(comp);
     return true;
   }
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (class_ids[0] == kSmiCid)) {
-    SmiToDoubleInstr* s2d_instr = new SmiToDoubleInstr(call);
-    call->ReplaceWith(s2d_instr, current_iterator());
+    SmiToDoubleComp* s2d_comp = new SmiToDoubleComp(comp);
+    instr->set_computation(s2d_comp);
     // Pushed arguments are not removed because SmiToDouble is implemented
     // as a call.
     return true;
@@ -661,49 +676,51 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (instr->HasICData() && (instr->ic_data()->NumberOfChecks() > 0)) {
-    const Token::Kind op_kind = instr->token_kind();
+void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
+                                           BindInstr* instr) {
+  if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
+    const Token::Kind op_kind = comp->token_kind();
     if (Token::IsIndexOperator(op_kind) &&
-        TryReplaceWithArrayOp(instr, op_kind)) {
+        TryReplaceWithArrayOp(instr, comp, op_kind)) {
       return;
     }
     if (Token::IsBinaryToken(op_kind) &&
-        TryReplaceWithBinaryOp(instr, op_kind)) {
+        TryReplaceWithBinaryOp(instr, comp, op_kind)) {
       return;
     }
     if (Token::IsUnaryToken(op_kind) &&
-        TryReplaceWithUnaryOp(instr, op_kind)) {
+        TryReplaceWithUnaryOp(instr, comp, op_kind)) {
       return;
     }
-    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
+    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, comp)) {
       return;
     }
-    if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
+    if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr, comp)) {
       return;
     }
-    if (TryInlineInstanceMethod(instr)) {
+    if (TryInlineInstanceMethod(instr, comp)) {
       return;
     }
     const intptr_t kMaxChecks = 4;
-    if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
+    if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
       const ICData& unary_checks =
-          ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
+          ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
       bool call_with_checks;
-      // TODO(srdjan): Add check class instr for mixed smi/non-smi.
+      // TODO(srdjan): Add check class comp for mixed smi/non-smi.
       if (HasOneTarget(unary_checks) &&
           (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
         // Type propagation has not run yet, we cannot eliminate the check.
-        AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+        AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
         // Call can still deoptimize, do not detach environment from instr.
         call_with_checks = false;
       } else {
         call_with_checks = true;
       }
-      PolymorphicInstanceCallInstr* call =
-          new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                           call_with_checks);
-      instr->ReplaceWith(call, current_iterator());
+      PolymorphicInstanceCallComp* call =
+          new PolymorphicInstanceCallComp(comp,
+                                          unary_checks,
+                                          call_with_checks);
+      instr->set_computation(call);
     }
   }
   // An instance call without ICData should continue calling via IC calls
@@ -711,23 +728,25 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 }
 
 
-void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* instr) {
+void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp,
+                                         BindInstr* instr) {
   MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(instr->function());
+      MethodRecognizer::RecognizeKind(comp->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    instr->set_recognized(MethodRecognizer::kMathSqrt);
+    comp->set_recognized(MethodRecognizer::kMathSqrt);
   }
 }
 
 
-bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
+bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
+                                                 InstanceCallComp* comp) {
   if (FLAG_enable_type_checks) {
     // TODO(srdjan): Add assignable check node if --enable_type_checks.
     return false;
   }
 
-  ASSERT(instr->HasICData());
-  const ICData& ic_data = *instr->ic_data();
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     return false;
@@ -746,20 +765,20 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   }
   // Inline implicit instance setter.
   const String& field_name =
-      String::Handle(Field::NameFromSetter(instr->function_name()));
+      String::Handle(Field::NameFromSetter(comp->function_name()));
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+  AddCheckClass(instr, comp, comp->ArgumentAt(0)->value()->Copy());
   // Detach environment from the original instruction because it can't
   // deoptimize.
   instr->set_env(NULL);
-  StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
+  StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
-      instr->ArgumentAt(0)->value(),
-      instr->ArgumentAt(1)->value());
-  instr->ReplaceWith(store, current_iterator());
-  RemovePushArguments(instr);
+      comp->ArgumentAt(0)->value(),
+      comp->ArgumentAt(1)->value());
+  instr->set_computation(store);
+  RemovePushArguments(comp);
   return true;
 }
 
@@ -767,7 +786,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 // TODO(fschneider): Once we get rid of the distinction between Instruction
 // and computation, this helper can go away.
 static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
-                               RelationalOpInstr* comp,
+                               RelationalOpComp* comp,
                                Instruction* instr) {
   if (!comp->HasICData()) return;
 
@@ -780,12 +799,12 @@ static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
   if (HasOnlyTwoSmi(ic_data)) {
     optimizer->InsertBefore(
         instr,
-        new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
+        new CheckSmiComp(comp->left()->Copy(), comp->deopt_id()),
         instr->env(),
         Definition::kEffect);
     optimizer->InsertBefore(
         instr,
-        new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
+        new CheckSmiComp(comp->right()->Copy(), comp->deopt_id()),
         instr->env(),
         Definition::kEffect);
     comp->set_operands_class_id(kSmiCid);
@@ -796,8 +815,9 @@ static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
   }
 }
 
-void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
-  HandleRelationalOp(this, instr, instr);
+void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
+                                           BindInstr* instr) {
+  HandleRelationalOp(this, comp, instr);
 }
 
 
@@ -805,17 +825,16 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
 // and computation, this helper can go away.
 template <typename T>
 static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
-                                  EqualityCompareInstr* comp,
-                                  T instr,
-                                  ForwardInstructionIterator* iterator) {
+                                  EqualityCompareComp* comp,
+                                  T instr) {
   // If one of the inputs is null, no ICdata will be collected.
   if (comp->left()->BindsToConstantNull() ||
       comp->right()->BindsToConstantNull()) {
     Token::Kind strict_kind = (comp->kind() == Token::kEQ) ?
         Token::kEQ_STRICT : Token::kNE_STRICT;
-    StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(strict_kind, comp->left(), comp->right());
-    instr->ReplaceWith(strict_comp, iterator);
+    StrictCompareComp* strict_comp =
+        new StrictCompareComp(strict_kind, comp->left(), comp->right());
+    instr->set_computation(strict_comp);
     return;
   }
   if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) return;
@@ -828,12 +847,12 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     if ((class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
       optimizer->InsertBefore(
           instr,
-          new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
+          new CheckSmiComp(comp->left()->Copy(), comp->deopt_id()),
           instr->env(),
           Definition::kEffect);
       optimizer->InsertBefore(
           instr,
-          new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
+          new CheckSmiComp(comp->right()->Copy(), comp->deopt_id()),
           instr->env(),
           Definition::kEffect);
       comp->set_receiver_class_id(kSmiCid);
@@ -848,18 +867,23 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
 }
 
 
-void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareInstr* instr) {
-  HandleEqualityCompare(this, instr, instr, current_iterator());
+void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
+                                              BindInstr* instr) {
+  HandleEqualityCompare(this, comp, instr);
+}
+
+
+void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
+  instr->computation()->Accept(this, instr);
 }
 
 
 void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
-  ComparisonInstr* comparison = instr->comparison();
+  ComparisonComp* comparison = instr->computation();
   if (comparison->IsRelationalOp()) {
     HandleRelationalOp(this, comparison->AsRelationalOp(), instr);
   } else if (comparison->IsEqualityCompare()) {
-    HandleEqualityCompare(this, comparison->AsEqualityCompare(), instr,
-                          current_iterator());
+    HandleEqualityCompare(this, comparison->AsEqualityCompare(), instr);
   } else {
     ASSERT(comparison->IsStrictCompare());
     // Nothing to do.
@@ -867,50 +891,19 @@ void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
 }
 
 
-void FlowGraphTypePropagator::VisitBlocks() {
-  ASSERT(current_iterator_ == NULL);
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
-    entry->Accept(this);
-    ForwardInstructionIterator it(entry);
-    current_iterator_ = &it;
-    for (; !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      // No need to propagate the input types of the instruction, as long as
-      // PhiInstr's are handled as part of JoinEntryInstr.
-
-      // Visit the instruction and possibly eliminate type checks.
-      current->Accept(this);
-      // The instruction may have been removed from the graph.
-      Definition* defn = current->AsDefinition();
-      if ((defn != NULL) && (defn->previous() != NULL)) {
-        // Cache the propagated computation type.
-        AbstractType& type = AbstractType::Handle(defn->CompileType());
-        still_changing_ = defn->SetPropagatedType(type) || still_changing_;
-
-        // Propagate class ids.
-        const intptr_t cid = defn->ResultCid();
-        still_changing_ = defn->SetPropagatedCid(cid) || still_changing_;
-      }
-    }
-    current_iterator_ = NULL;
-  }
-}
-
-
-void FlowGraphTypePropagator::VisitAssertAssignable(
-    AssertAssignableInstr* instr) {
+void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
+                                                    BindInstr* instr) {
   if (FLAG_eliminate_type_checks &&
-      !instr->is_eliminated() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(instr->dst_type())) {
+      !comp->is_eliminated() &&
+      comp->value()->CompileTypeIsMoreSpecificThan(comp->dst_type())) {
     // TODO(regis): Remove is_eliminated_ field and support.
-    instr->eliminate();
+    comp->eliminate();
 
-    Value* use = instr->value();
+    Value* use = comp->value();
     ASSERT(use != NULL);
     Definition* result = use->definition();
     ASSERT(result != NULL);
-    // Replace uses and remove the current instruction via the iterator.
+    // Replace uses and remove the current instructions via the iterator.
     instr->ReplaceUsesWith(result);
     ASSERT(current_iterator()->Current() == instr);
     current_iterator()->RemoveCurrentFromGraph();
@@ -922,17 +915,18 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
 
     if (FLAG_trace_type_check_elimination) {
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
-                                       instr->token_pos(),
-                                       instr->value(),
-                                       instr->dst_type(),
-                                       instr->dst_name(),
-                                       instr->is_eliminated());
+                                       comp->token_pos(),
+                                       comp->value(),
+                                       comp->dst_type(),
+                                       comp->dst_name(),
+                                       comp->is_eliminated());
     }
   }
 }
 
 
-void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
+void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
+                                                 BindInstr* instr) {
   // TODO(regis): Propagate NullType as well and revise the comment and code
   // below to also eliminate the test for non-null and non-constant value.
 
@@ -940,18 +934,18 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
   // a constant time constant. Indeed, a variable of the proper compile time
   // type (bool) may still hold null at run time and therefore fail the test.
   if (FLAG_eliminate_type_checks &&
-      !instr->is_eliminated() &&
-      instr->value()->BindsToConstant() &&
-      !instr->value()->BindsToConstantNull() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(
+      !comp->is_eliminated() &&
+      comp->value()->BindsToConstant() &&
+      !comp->value()->BindsToConstantNull() &&
+      comp->value()->CompileTypeIsMoreSpecificThan(
           Type::Handle(Type::BoolType()))) {
     // TODO(regis): Remove is_eliminated_ field and support.
-    instr->eliminate();
+    comp->eliminate();
 
-    Value* use = instr->value();
+    Value* use = comp->value();
     Definition* result = use->definition();
     ASSERT(result != NULL);
-    // Replace uses and remove the current instruction via the iterator.
+    // Replace uses and remove the current instructions via the iterator.
     instr->ReplaceUsesWith(result);
     ASSERT(current_iterator()->Current() == instr);
     current_iterator()->RemoveCurrentFromGraph();
@@ -964,17 +958,18 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
     if (FLAG_trace_type_check_elimination) {
       const String& name = String::Handle(Symbols::New("boolean expression"));
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
-                                       instr->token_pos(),
-                                       instr->value(),
+                                       comp->token_pos(),
+                                       comp->value(),
                                        Type::Handle(Type::BoolType()),
                                        name,
-                                       instr->is_eliminated());
+                                       comp->is_eliminated());
     }
   }
 }
 
 
-void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
+void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfComp* comp,
+                                              BindInstr* instr) {
   // TODO(regis): Propagate NullType as well and revise the comment and code
   // below to also eliminate the test for non-null and non-constant value.
 
@@ -984,13 +979,13 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   // We do not bother checking for Object destination type, since the graph
   // builder did already.
   if (FLAG_eliminate_type_checks &&
-      instr->value()->BindsToConstant() &&
-      !instr->value()->BindsToConstantNull() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(instr->type())) {
-    Value* use = instr->value();
+      comp->value()->BindsToConstant() &&
+      !comp->value()->BindsToConstantNull() &&
+      comp->value()->CompileTypeIsMoreSpecificThan(comp->type())) {
+    Value* use = comp->value();
     Definition* result = use->definition();
     ASSERT(result != NULL);
-    // Replace uses and remove the current instruction via the iterator.
+    // Replace uses and remove the current instructions via the iterator.
     instr->ReplaceUsesWith(result);
     ASSERT(current_iterator()->Current() == instr);
     current_iterator()->RemoveCurrentFromGraph();
@@ -1003,9 +998,9 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     if (FLAG_trace_type_check_elimination) {
       const String& name = String::Handle(Symbols::New("InstanceOf"));
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
-                                       instr->token_pos(),
-                                       instr->value(),
-                                       instr->type(),
+                                       comp->token_pos(),
+                                       comp->value(),
+                                       comp->type(),
                                        name,
                                        /* eliminated = */ true);
     }
@@ -1044,6 +1039,31 @@ void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join_entry) {
 // TODO(srdjan): Investigate if the propagated cid should be more specific.
 void FlowGraphTypePropagator::VisitPushArgument(PushArgumentInstr* push) {
   if (!push->has_propagated_cid()) push->SetPropagatedCid(kDynamicCid);
+}
+
+
+void FlowGraphTypePropagator::VisitBind(BindInstr* bind) {
+  // No need to propagate the input types of the bound computation, as long as
+  // PhiInstr's are handled as part of JoinEntryInstr.
+  // Visit computation and possibly eliminate type check.
+  bind->computation()->Accept(this, bind);
+  // The current bind may have been removed from the graph.
+  if (current_iterator()->Current() == bind) {
+    // Current bind was not removed.
+    // Cache propagated computation type.
+    AbstractType& computation_type =
+        AbstractType::Handle(bind->computation()->CompileType());
+    bool changed = bind->SetPropagatedType(computation_type);
+    if (changed) {
+      still_changing_ = true;
+    }
+    // Propagate class ids.
+    const intptr_t cid = bind->computation()->ResultCid();
+    changed = bind->SetPropagatedCid(cid);
+    if (changed) {
+      still_changing_ = true;
+    }
+  }
 }
 
 
@@ -1145,28 +1165,28 @@ void FlowGraphAnalyzer::Analyze() {
 
 void DominatorBasedCSE::Optimize(BlockEntryInstr* graph_entry) {
   ASSERT(graph_entry->IsGraphEntry());
-  DirectChainedHashMap<Definition*> map;
+  DirectChainedHashMap<BindInstr*> map;
   OptimizeRecursive(graph_entry, &map);
 }
 
 
 void DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* block,
-    DirectChainedHashMap<Definition*>* map) {
+    DirectChainedHashMap<BindInstr*>* map) {
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    Definition* defn = it.Current()->AsDefinition();
-    if ((defn == NULL) || defn->HasSideEffect()) continue;
-    Definition* result = map->Lookup(defn);
+    BindInstr* instr = it.Current()->AsBind();
+    if (instr == NULL || instr->computation()->HasSideEffect()) continue;
+    BindInstr* result = map->Lookup(instr);
     if (result == NULL) {
-      map->Insert(defn);
+      map->Insert(instr);
       continue;
     }
     // Replace current with lookup result.
-    defn->ReplaceUsesWith(result);
+    instr->ReplaceUsesWith(result);
     it.RemoveCurrentFromGraph();
     if (FLAG_trace_optimization) {
       OS::Print("Replacing v%d with v%d\n",
-                defn->ssa_temp_index(),
+                instr->ssa_temp_index(),
                 result->ssa_temp_index());
     }
   }
@@ -1176,7 +1196,7 @@ void DominatorBasedCSE::OptimizeRecursive(
   for (intptr_t i = 0; i < num_children; ++i) {
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
-      DirectChainedHashMap<Definition*> child_map(*map);  // Copy map.
+      DirectChainedHashMap<BindInstr*> child_map(*map);  // Copy map.
       OptimizeRecursive(child, &child_map);
     } else {
       OptimizeRecursive(child, map);  // Reuse map for the last child.

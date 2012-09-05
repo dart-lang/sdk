@@ -11,10 +11,11 @@ TEST_CASE(InstructionTests) {
   TargetEntryInstr* target_instr =
       new TargetEntryInstr(CatchClauseNode::kInvalidTryIndex);
   EXPECT(target_instr->IsBlockEntry());
-  EXPECT(!target_instr->IsDefinition());
-  CurrentContextInstr* context = new CurrentContextInstr();
-  EXPECT(context->IsDefinition());
-  EXPECT(!context->IsBlockEntry());
+  EXPECT(!target_instr->IsBind());
+  BindInstr* bind_instr =
+      new BindInstr(Definition::kEffect, new CurrentContextComp());
+  EXPECT(bind_instr->IsBind());
+  EXPECT(!bind_instr->IsBlockEntry());
 }
 
 
@@ -30,11 +31,11 @@ TEST_CASE(OptimizationTests) {
   Value* use2 = new Value(def2);
   EXPECT(!use2->Equals(use1a));
 
-  ConstantInstr* c1 = new ConstantInstr(Bool::ZoneHandle(Bool::True()));
-  ConstantInstr* c2 = new ConstantInstr(Bool::ZoneHandle(Bool::True()));
+  ConstantComp* c1 = new ConstantComp(Bool::ZoneHandle(Bool::True()));
+  ConstantComp* c2 = new ConstantComp(Bool::ZoneHandle(Bool::True()));
   EXPECT(c1->Equals(c2));
-  ConstantInstr* c3 = new ConstantInstr(Object::ZoneHandle());
-  ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());
+  ConstantComp* c3 = new ConstantComp(Object::ZoneHandle());
+  ConstantComp* c4 = new ConstantComp(Object::ZoneHandle());
   EXPECT(c3->Equals(c4));
   EXPECT(!c3->Equals(c1));
 }

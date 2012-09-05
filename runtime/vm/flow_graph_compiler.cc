@@ -172,7 +172,6 @@ void FlowGraphCompiler::VisitBlocks() {
         EmitInstructionPrologue(instr);
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
-        EmitInstructionEpilogue(instr);
       }
     }
   }

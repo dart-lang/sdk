@@ -28,35 +28,44 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SelectRepresentations();
 
-  virtual void VisitStaticCall(StaticCallInstr* instr);
-  virtual void VisitInstanceCall(InstanceCallInstr* instr);
-  virtual void VisitRelationalOp(RelationalOpInstr* instr);
-  virtual void VisitEqualityCompare(EqualityCompareInstr* instr);
+  virtual void VisitStaticCall(StaticCallComp* comp, BindInstr* instr);
+  virtual void VisitInstanceCall(InstanceCallComp* comp, BindInstr* instr);
+  virtual void VisitRelationalOp(RelationalOpComp* comp, BindInstr* instr);
+  virtual void VisitEqualityCompare(EqualityCompareComp* comp,
+                                    BindInstr* instr);
+  virtual void VisitBind(BindInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
 
   // TODO(fschneider): Once we get rid of the distinction between Instruction
   // and computation, this can be made private again.
-  void InsertBefore(Instruction* instr,
-                    Definition* defn,
-                    Environment* env,
-                    Definition::UseKind use_kind);
+  BindInstr* InsertBefore(Instruction* instr,
+                          Computation* comp,
+                          Environment* env,
+                          BindInstr::UseKind use_kind);
 
  private:
-  bool TryReplaceWithArrayOp(InstanceCallInstr* call, Token::Kind op_kind);
-  bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
-  bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool TryReplaceWithArrayOp(BindInstr* instr,
+                             InstanceCallComp* comp,
+                             Token::Kind op_kind);
+  bool TryReplaceWithBinaryOp(BindInstr* instr,
+                              InstanceCallComp* comp,
+                              Token::Kind op_kind);
+  bool TryReplaceWithUnaryOp(BindInstr* instr,
+                             InstanceCallComp* comp,
+                             Token::Kind op_kind);
 
-  bool TryInlineInstanceGetter(InstanceCallInstr* call);
-  bool TryInlineInstanceSetter(InstanceCallInstr* call);
+  bool TryInlineInstanceGetter(BindInstr* instr,
+                               InstanceCallComp* comp);
+  bool TryInlineInstanceSetter(BindInstr* instr, InstanceCallComp* comp);
 
-  bool TryInlineInstanceMethod(InstanceCallInstr* call);
+  bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
 
-  void AddCheckClass(InstanceCallInstr* call, Value* value);
+  void AddCheckClass(BindInstr* instr, InstanceCallComp* comp, Value* value);
 
-  void InsertAfter(Instruction* instr,
-                   Definition* defn,
-                   Environment* env,
-                   Definition::UseKind use_kind);
+  BindInstr* InsertAfter(Instruction* instr,
+                         Computation* comp,
+                         Environment* env,
+                         BindInstr::UseKind use_kind);
 
   void InsertConversionsFor(Definition* def);
 
@@ -101,19 +110,19 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
   void PropagateTypes();
 
- private:
-  virtual void VisitBlocks();
-
-  virtual void VisitAssertAssignable(AssertAssignableInstr* instr);
-  virtual void VisitAssertBoolean(AssertBooleanInstr* instr);
-  virtual void VisitInstanceOf(InstanceOfInstr* instr);
+  virtual void VisitAssertAssignable(AssertAssignableComp* comp,
+                                     BindInstr* instr);
+  virtual void VisitAssertBoolean(AssertBooleanComp* comp, BindInstr* instr);
+  virtual void VisitInstanceOf(InstanceOfComp* comp, BindInstr* instr);
 
   virtual void VisitGraphEntry(GraphEntryInstr* graph_entry);
   virtual void VisitJoinEntry(JoinEntryInstr* join_entry);
+  virtual void VisitBind(BindInstr* bind);
   virtual void VisitPhi(PhiInstr* phi);
   virtual void VisitParameter(ParameterInstr* param);
   virtual void VisitPushArgument(PushArgumentInstr* bind);
 
+ private:
   const ParsedFunction& parsed_function_;
   bool still_changing_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
@@ -129,7 +138,7 @@ class DominatorBasedCSE : public AllStatic {
  private:
   static void OptimizeRecursive(
       BlockEntryInstr* entry,
-      DirectChainedHashMap<Definition*>* map);
+      DirectChainedHashMap<BindInstr*>* map);
 };
 
 

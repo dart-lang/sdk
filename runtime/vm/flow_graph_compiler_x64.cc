@@ -610,15 +610,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
-void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) return;
-  Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->is_used()) {
-    __ pushq(defn->locs()->out().reg());
-  }
-}
-
-
 void FlowGraphCompiler::CopyParameters() {
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();

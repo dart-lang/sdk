@@ -28,9 +28,8 @@ class CallSiteInliner : public FlowGraphVisitor {
 
   void TryInlining(const Function& function,
                    GrowableArray<Value*>* arguments,
-                   StaticCallInstr* call) {
-    // TODO(zerny): Generalize to all calls.
-
+                   StaticCallComp* comp,  // TODO(zerny): Generalize to calls.
+                   BindInstr* instr) {
     // Abort if the callee has named parameters.
     if (function.num_optional_parameters() > 0) {
       if (FLAG_trace_inlining) {
@@ -98,7 +97,7 @@ class CallSiteInliner : public FlowGraphVisitor {
       // TODO(zerny): If effort is less than threshold then inline recursively.
 
       // Plug result in the caller graph.
-      caller_graph_->InlineCall(call, callee_graph);
+      caller_graph_->InlineCall(instr, comp, callee_graph);
       next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
       // Replace all the formal parameters with the actuals.
@@ -131,13 +130,17 @@ class CallSiteInliner : public FlowGraphVisitor {
     }
   }
 
-  void VisitStaticCall(StaticCallInstr* instr) {
+  void VisitBind(BindInstr* instr) {
+    instr->computation()->Accept(this, instr);
+  }
+
+  void VisitStaticCall(StaticCallComp* comp, BindInstr* instr) {
     if (FLAG_trace_inlining) OS::Print("Static call\n");
-    GrowableArray<Value*> arguments(instr->ArgumentCount());
-    for (int i = 0; i < instr->ArgumentCount(); ++i) {
-      arguments.Add(instr->ArgumentAt(i)->value());
+    GrowableArray<Value*> arguments(comp->ArgumentCount());
+    for (int i = 0; i < comp->ArgumentCount(); ++i) {
+      arguments.Add(comp->ArgumentAt(i)->value());
     }
-    TryInlining(instr->function(), &arguments, instr);
+    TryInlining(comp->function(), &arguments, comp, instr);
   }
 
   bool preformed_inlining() const { return inlined_; }

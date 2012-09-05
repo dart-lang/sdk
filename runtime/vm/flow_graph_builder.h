@@ -126,10 +126,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   // Append a graph fragment to this graph.  Assumes this graph is open.
   void Append(const EffectGraphVisitor& other_fragment);
-  // Append a definition that can have uses.  Assumes this graph is open.
-  Value* Bind(Definition* definition);
+  // Append a computation with one use.  Assumes this graph is open.
+  Value* Bind(Computation* computation);
   // Append a computation with no uses.  Assumes this graph is open.
-  void Do(Definition* definition);
+  void Do(Computation* computation);
   // Append a single (non-Definition, non-Entry) instruction.  Assumes this
   // graph is open.
   void AddInstruction(Instruction* instruction);
@@ -161,8 +161,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   }
 
  protected:
-  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
-  Definition* BuildLoadLocal(const LocalVariable& local);
+  Computation* BuildStoreLocal(const LocalVariable& local, Value* value);
+  Computation* BuildLoadLocal(const LocalVariable& local);
 
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
@@ -195,10 +195,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                         Value* instantiator);
 
   // Perform a type check on the given value.
-  AssertAssignableInstr* BuildAssertAssignable(intptr_t token_pos,
-                                               Value* value,
-                                               const AbstractType& dst_type,
-                                               const String& dst_name);
+  AssertAssignableComp* BuildAssertAssignable(intptr_t token_pos,
+                                              Value* value,
+                                              const AbstractType& dst_type,
+                                              const String& dst_name);
 
   // Perform a type check on the given value and return it.
   Value* BuildAssignableValue(intptr_t token_pos,
@@ -211,8 +211,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
     kResultNeeded
   };
 
-  Definition* BuildStoreIndexedValues(StoreIndexedNode* node,
-                                      bool result_is_needed);
+  Computation* BuildStoreIndexedValues(StoreIndexedNode* node,
+                                       bool result_is_needed);
 
   void BuildInstanceSetterArguments(
       InstanceSetterNode* node,
@@ -245,15 +245,15 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
 
-  ClosureCallInstr* BuildClosureCall(ClosureCallNode* node);
+  ClosureCallComp* BuildClosureCall(ClosureCallNode* node);
 
   Value* BuildNullValue();
 
  private:
-  // Specify a definition of the final result.  Adds the definition to
+  // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.
-  virtual void ReturnDefinition(Definition* definition) {
-    Do(definition);
+  virtual void ReturnComputation(Computation* computation) {
+    Do(computation);
   }
 
   // Returns true if the run-time type check can be eliminated.
@@ -308,11 +308,11 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // Helper to set the output state to return a Value.
   virtual void ReturnValue(Value* value) { value_ = value; }
 
-  // Specify a definition of the final result.  Adds the definition to
-  // the graph and returns a use of it (i.e., set the visitor's output
+  // Specify a computation as the final result.  Adds a Bind instruction to
+  // the graph and returns its temporary value (i.e., set the output
   // parameters).
-  virtual void ReturnDefinition(Definition* definition) {
-    ReturnValue(Bind(definition));
+  virtual void ReturnComputation(Computation* computation) {
+    ReturnValue(Bind(computation));
   }
 
   virtual void BuildTypeTest(ComparisonNode* node);
@@ -363,12 +363,12 @@ class TestGraphVisitor : public ValueGraphVisitor {
   // Closes the fragment and sets the output parameters.
   virtual void ReturnValue(Value* value);
 
-  // Either merges the definition into a BranchInstr (Comparison, BooleanNegate)
-  // or adds the definition to the graph and returns a use of its value.
-  virtual void ReturnDefinition(Definition* definition);
+  // Either merges the computation into BranchInstr (Comparison, BooleanNegate)
+  // or adds a Bind instruction to the graph and returns its temporary value.
+  virtual void ReturnComputation(Computation* computation);
 
-  void MergeBranchWithComparison(ComparisonInstr* comp);
-  void MergeBranchWithNegate(BooleanNegateInstr* comp);
+  void MergeBranchWithComparison(ComparisonComp* comp);
+  void MergeBranchWithNegate(BooleanNegateComp* comp);
 
   // Output parameters.
   TargetEntryInstr** true_successor_address_;

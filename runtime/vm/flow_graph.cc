@@ -552,16 +552,18 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       // Update expression stack.
       ASSERT(env->length() > variable_count());
 
-      Definition* reaching_defn = env->Last();
+      Definition* input_defn = env->Last();
       env->RemoveLast();
 
-      Definition* input_defn = v->definition();
-      if (input_defn->IsLoadLocal() || input_defn->IsStoreLocal()) {
+      BindInstr* as_bind = v->definition()->AsBind();
+      if ((as_bind != NULL) &&
+          (as_bind->computation()->IsLoadLocal() ||
+           as_bind->computation()->IsStoreLocal())) {
         // Remove the load/store from the graph.
-        input_defn->RemoveFromGraph();
+        as_bind->RemoveFromGraph();
         // Assert we are not referencing nulls in the initial environment.
-        ASSERT(reaching_defn->ssa_temp_index() != -1);
-        current->SetInputAt(i, new Value(reaching_defn));
+        ASSERT(input_defn->ssa_temp_index() != -1);
+        current->SetInputAt(i, new Value(input_defn));
       }
     }
 
@@ -573,10 +575,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // 2b. Handle LoadLocal and StoreLocal.
     // For each LoadLocal: Remove it from the graph.
     // For each StoreLocal: Remove it from the graph and update the environment.
-    Definition* definition = current->AsDefinition();
-    if (definition != NULL) {
-      LoadLocalInstr* load = definition->AsLoadLocal();
-      StoreLocalInstr* store = definition->AsStoreLocal();
+    BindInstr* bind = current->AsBind();
+    if (bind != NULL) {
+      LoadLocalComp* load = bind->computation()->AsLoadLocal();
+      StoreLocalComp* store = bind->computation()->AsStoreLocal();
       if ((load != NULL) || (store != NULL)) {
         intptr_t index;
         if (store != NULL) {
@@ -586,7 +588,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
-          ASSERT(definition->is_used());
+          ASSERT(bind->is_used());
           index = load->local().BitIndexIn(non_copied_parameter_count_);
 
           PhiInstr* phi = (*env)[index]->AsPhi();
@@ -596,7 +598,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           }
         }
         // Update expression stack or remove from graph.
-        if (definition->is_used()) {
+        if (bind->is_used()) {
           env->Add((*env)[index]);
           // We remove load/store instructions when we find their use in 2a.
         } else {
@@ -604,10 +606,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         }
       } else {
         // Not a load or store.
-        if (definition->is_used()) {
+        if (bind->is_used()) {
           // Assign fresh SSA temporary and update expression stack.
-          definition->set_ssa_temp_index(alloc_ssa_temp_index());
-          env->Add(definition);
+          bind->set_ssa_temp_index(alloc_ssa_temp_index());
+          env->Add(bind);
         }
       }
     }
@@ -699,7 +701,9 @@ static void Link(Instruction* prev, Instruction* next) {
 //
 // After inlining the caller graph will correctly have adjusted the pre/post
 // orders, the dominator tree and the use lists.
-void FlowGraph::InlineCall(StaticCallInstr* call, FlowGraph* callee_graph) {
+void FlowGraph::InlineCall(BindInstr* caller_instr,
+                           StaticCallComp* caller_comp,
+                           FlowGraph* callee_graph) {
   ASSERT(callee_graph->exits() != NULL);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_virtual_register_number() >
@@ -720,9 +724,9 @@ void FlowGraph::InlineCall(StaticCallInstr* call, FlowGraph* callee_graph) {
     // TODO(zerny): Support one exit graph containing control flow.
     ASSERT(callee_entry == GetBlockEntry(exit));
     // For just one exit, replace the uses and remove the call from the graph.
-    call->ReplaceUsesWith(exit->value()->definition());
-    Link(call->previous(), callee_entry->next());
-    Link(exit->previous(), call->next());
+    caller_instr->ReplaceUsesWith(exit->value()->definition());
+    Link(caller_instr->previous(), callee_entry->next());
+    Link(exit->previous(), caller_instr->next());
   } else {
     // TODO(zerny): Support multiple exits.
     UNREACHABLE();
@@ -732,8 +736,8 @@ void FlowGraph::InlineCall(StaticCallInstr* call, FlowGraph* callee_graph) {
   // TODO(zerny): Update dominator tree.
 
   // Remove original arguments to the call.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->ArgumentAt(i);
+  for (intptr_t i = 0; i < caller_comp->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = caller_comp->ArgumentAt(i);
     push->ReplaceUsesWith(push->value()->definition());
     push->RemoveFromGraph();
   }

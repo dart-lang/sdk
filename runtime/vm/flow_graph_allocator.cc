@@ -86,7 +86,7 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
 // Remove environments from the instructions which can't deoptimize.
 // Replace dead phis uses with null values in environments.
 void FlowGraphAllocator::EliminateEnvironmentUses() {
-  ConstantInstr* constant_null =
+  Definition* constant_null =
       postorder_.Last()->AsGraphEntry()->constant_null();
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* block = block_order_[i];
@@ -563,12 +563,14 @@ void FlowGraphAllocator::BuildLiveRanges() {
   }
 
   // Process global constants.
-  ConstantInstr* null_defn = graph_entry->constant_null();
+  BindInstr* null_defn = graph_entry->constant_null()->AsBind();
   LiveRange* range = GetLiveRange(null_defn->ssa_temp_index());
   range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
   range->DefineAt(graph_entry->start_pos());
-  range->set_assigned_location(Location::Constant(null_defn->value()));
-  range->set_spill_slot(Location::Constant(null_defn->value()));
+  range->set_assigned_location(
+      Location::Constant(null_defn->computation()->AsConstant()->value()));
+  range->set_spill_slot(
+      Location::Constant(null_defn->computation()->AsConstant()->value()));
   range->finger()->Initialize(range);
   UsePosition* use =
       range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
@@ -760,7 +762,7 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
       continue;
     }
 
-    ConstantInstr* constant = def->AsConstant();
+    ConstantComp* constant = def->AsConstant();
     if (constant != NULL) {
       locations[i] = Location::Constant(constant->value());
       continue;

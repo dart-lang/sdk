@@ -212,7 +212,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateDeferredCode();
 
   void EmitInstructionPrologue(Instruction* instr);
-  void EmitInstructionEpilogue(Instruction* instr);
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);

@@ -75,6 +75,14 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
 }
 
 
+void FlowGraphPrinter::PrintComputation(Computation* comp) {
+  char str[1000];
+  BufferFormatter f(str, sizeof(str));
+  comp->PrintTo(&f);
+  OS::Print("%s", str);
+}
+
+
 void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       intptr_t token_pos,
                                       Value* value,
@@ -122,7 +130,7 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 }
 
 
-void Definition::PrintTo(BufferFormatter* f) const {
+void Computation::PrintTo(BufferFormatter* f) const {
   // Do not access 'deopt_id()' as it asserts that the computation can
   // deoptimize.
   f->Print("%s:%d(", DebugName(), deopt_id_);
@@ -131,16 +139,11 @@ void Definition::PrintTo(BufferFormatter* f) const {
 }
 
 
-void Definition::PrintOperandsTo(BufferFormatter* f) const {
+void Computation::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
     if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
   }
-}
-
-
-void Definition::PrintToVisualizer(BufferFormatter* f) const {
-  PrintTo(f);
 }
 
 
@@ -153,12 +156,12 @@ void Value::PrintTo(BufferFormatter* f) const {
 }
 
 
-void ConstantInstr::PrintOperandsTo(BufferFormatter* f) const {
+void ConstantComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("#%s", value().ToCString());
 }
 
 
-void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
+void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'%s",
            String::Handle(dst_type().Name()).ToCString(),
@@ -173,13 +176,13 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
+void AssertBooleanComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print("%s", is_eliminated() ? " eliminated" : "");
 }
 
 
-void ArgumentDefinitionTestInstr::PrintOperandsTo(BufferFormatter* f) const {
+void ArgumentDefinitionTestComp::PrintOperandsTo(BufferFormatter* f) const {
   saved_arguments_descriptor()->PrintTo(f);
   f->Print(", ?%s @%d",
            formal_parameter_name().ToCString(),
@@ -187,7 +190,7 @@ void ArgumentDefinitionTestInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
@@ -195,7 +198,7 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
@@ -207,7 +210,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void PolymorphicInstanceCallInstr::PrintTo(BufferFormatter* f) const {
+void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
   f->Print("%s(", DebugName());
   instance_call()->PrintOperandsTo(f);
   f->Print(") ");
@@ -215,7 +218,7 @@ void PolymorphicInstanceCallInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
-void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
+void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -223,7 +226,7 @@ void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
+void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s ", Token::Str(kind()));
   right()->PrintTo(f);
@@ -233,7 +236,7 @@ void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+void StaticCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s ", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
@@ -242,30 +245,30 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
+void LoadLocalComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s lvl:%d", local().name().ToCString(), context_level());
 }
 
 
-void StoreLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
+void StoreLocalComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", local().name().ToCString());
   value()->PrintTo(f);
   f->Print(", lvl: %d", context_level());
 }
 
 
-void NativeCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+void NativeCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", native_name().ToCString());
 }
 
 
-void LoadInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void LoadInstanceFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", String::Handle(field().name()).ToCString());
   instance()->PrintTo(f);
 }
 
 
-void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void StoreInstanceFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", String::Handle(field().name()).ToCString());
   instance()->PrintTo(f);
   f->Print(", ");
@@ -273,18 +276,18 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void LoadStaticFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(field().name()).ToCString());
 }
 
 
-void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void StoreStaticFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", String::Handle(field().name()).ToCString());
   value()->PrintTo(f);
 }
 
 
-void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
+void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
@@ -298,7 +301,7 @@ void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -309,7 +312,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
+void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
@@ -318,7 +321,7 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void AllocateObjectWithBoundsCheckInstr::PrintOperandsTo(
+void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
     BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
@@ -328,7 +331,7 @@ void AllocateObjectWithBoundsCheckInstr::PrintOperandsTo(
 }
 
 
-void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
+void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < ArgumentCount(); ++i) {
     if (i != 0) f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
@@ -338,7 +341,7 @@ void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
+void CreateClosureComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
@@ -347,27 +350,27 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void LoadVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void LoadVMFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %d", offset_in_bytes());
 }
 
 
-void StoreVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void StoreVMFieldComp::PrintOperandsTo(BufferFormatter* f) const {
   dest()->PrintTo(f);
   f->Print(", %d, ", offset_in_bytes());
   value()->PrintTo(f);
 }
 
 
-void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
+void InstantiateTypeArgumentsComp::PrintOperandsTo(BufferFormatter* f) const {
   const String& type_args = String::Handle(type_arguments().Name());
   f->Print("%s, ", type_args.ToCString());
   instantiator()->PrintTo(f);
 }
 
 
-void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
+void ExtractConstructorTypeArgumentsComp::PrintOperandsTo(
     BufferFormatter* f) const {
   const String& type_args = String::Handle(type_arguments().Name());
   f->Print("%s, ", type_args.ToCString());
@@ -375,19 +378,19 @@ void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
 }
 
 
-void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
+void AllocateContextComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%d", num_context_variables());
 }
 
 
-void CatchEntryInstr::PrintOperandsTo(BufferFormatter* f) const {
+void CatchEntryComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, %s",
            exception_var().name().ToCString(),
            stacktrace_var().name().ToCString());
 }
 
 
-void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+void BinarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -395,7 +398,7 @@ void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+void BinaryMintOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -403,7 +406,7 @@ void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void UnboxedDoubleBinaryOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+void UnboxedDoubleBinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -411,13 +414,13 @@ void UnboxedDoubleBinaryOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
 }
 
 
-void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
+void CheckClassComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   PrintICData(f, unary_checks());
 }
@@ -503,6 +506,19 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void BindInstr::PrintTo(BufferFormatter* f) const {
+  if (!is_used()) {
+    f->Print("    ");
+  } else if (HasSSATemp()) {
+    f->Print("    v%d <- ", ssa_temp_index());
+  } else {
+    f->Print("    t%d <- ", temp_index());
+  }
+  computation()->PrintTo(f);
+  PrintPropagatedType(f, *this);
+}
+
+
 void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   value()->PrintTo(f);
@@ -538,7 +554,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   f->Print("if ");
-  comparison()->PrintTo(f);
+  computation()->PrintTo(f);
 
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
@@ -733,6 +749,18 @@ void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
+void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
+  if (!is_used()) {
+    f->Print("_ ");
+  } else if (HasSSATemp()) {
+    f->Print("v%d ", ssa_temp_index());
+  } else {
+    f->Print("t%d ", temp_index());
+  }
+  computation()->PrintTo(f);
+}
+
+
 void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   value()->PrintTo(f);
@@ -763,7 +791,7 @@ void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
 void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
-  comparison()->PrintTo(f);
+  computation()->PrintTo(f);
   f->Print(" goto (B%d, B%d)",
             true_successor()->block_id(),
             false_successor()->block_id());
