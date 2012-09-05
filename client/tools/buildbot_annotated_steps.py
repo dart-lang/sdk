@@ -108,11 +108,11 @@ def ProcessTools(mode, name, version):
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
   local_env = os.environ
-  if 'linux' in name:
-    javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
-    local_env['JAVA_HOME'] = javahome
-    local_env['PATH'] = (os.path.join(javahome, 'bin') +
-                         os.pathsep + local_env['PATH'])
+  #if 'linux' in name:
+  #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
+  #  local_env['JAVA_HOME'] = javahome
+  # local_env['PATH'] = (os.path.join(javahome, 'bin') +
+  #                       os.pathsep + local_env['PATH'])
 
   return subprocess.call(cmds, env=local_env)
 
