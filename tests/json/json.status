@@ -14,15 +14,12 @@
 [ $runtime == vm ]
 *: Skip
 
-[ $compiler == frog && $runtime == d8 ]
-*: Skip
-
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
 *: Skip
 
-[ $compiler == frog && $runtime == none ]
-*: Skip
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2js && $checked && $browser ]
+json_test: Fail

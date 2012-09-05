@@ -20,3 +20,6 @@ crypto/sha256_test: Fail
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
+
+[ $compiler == dart2js && $checked && $browser ]
+crypto/base64_test: Fail
