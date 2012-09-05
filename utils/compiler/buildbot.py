@@ -339,7 +339,12 @@ def main():
   status = TestCompiler(runtime, mode, system, option, test_flags,
                         is_buildbot)
 
-  if status == 0:
+  if (status == 0
+      and (system == 'linux' or runtime != 'chrome')
+      and runtime != 'opera'
+      and runtime != 'ff'
+      and runtime != 'ie'
+      and runtime != 'safari'):
     status = TestCompiler(runtime, mode, system, option,
                           test_flags + ['--checked'], is_buildbot)
 
