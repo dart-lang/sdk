@@ -10,6 +10,39 @@
 #import('../../../pkg/unittest/unittest.dart');
 
 main() {
+  test('fails gracefully if the url does not resolve', () {
+    dir(appPath, [
+      pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "foo": {
+            "hosted": {
+              "name": "foo",
+              "url": "http://pub.invalid"
+            }
+          }
+         }
+      })
+    ]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        error: const RegExp('Could not resolve URL "http://pub.invalid".'));
+
+    run();
+  });
+
+  test('fails gracefully if the package does not exist', () {
+    servePackages([]);
+
+    appDir([dependency("foo", "1.2.3")]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        error: const RegExp('Could not find package "foo" on '
+                            'http://localhost:'));
+
+    run();
+  });
+
   test("updates one locked pub server package's dependencies if it's "
       "necessary", () {
     servePackages([

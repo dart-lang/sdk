@@ -128,7 +128,7 @@ Future<File> writeTextFile(file, String contents) {
  * Asynchronously deletes [file], which can be a [String] or a [File]. Returns a
  * [Future] that completes when the deletion is done.
  */
-Future<Directory> deleteFile(file) {
+Future<File> deleteFile(file) {
   return new File(_getPath(file)).delete();
 }
 
@@ -310,6 +310,59 @@ InputStream httpGet(uri) {
 }
 
 /**
+ * Opens an input stream for a HTTP GET request to [uri], which may be a
+ * [String] or [Uri]. Completes with the result of the request as a String.
+ */
+Future<String> httpGetString(uri) {
+  // TODO(rnystrom): This code is very similar to httpGet() and
+  // consumeInputStream() (but this one propagates errors). Merge them when
+  // #3657 is fixed.
+  uri = _getUri(uri);
+
+  var completer = new Completer<String>();
+  var client = new HttpClient();
+  var connection = client.getUrl(uri);
+
+  connection.onError = (e) {
+    // Show a friendly error if the URL couldn't be resolved.
+    if (e is SocketIOException && e.osError.errorCode == 8) {
+      e = 'Could not resolve URL "${uri.origin}".';
+    }
+
+    client.shutdown();
+    completer.completeException(e);
+  };
+
+  connection.onResponse = (response) {
+    if (response.statusCode >= 400) {
+      client.shutdown();
+      completer.completeException(
+          new HttpException(response.statusCode, response.reasonPhrase));
+      return;
+    }
+
+    var resultStream = new ListInputStream();
+    var buffer = <int>[];
+
+    response.inputStream.onClosed = () {
+      client.shutdown();
+      completer.complete(new String.fromCharCodes(buffer));
+    };
+
+    response.inputStream.onData = () {
+      buffer.addAll(response.inputStream.read());
+    };
+
+    response.inputStream.onError = (e) {
+      client.shutdown();
+      completer.completeException(e);
+    };
+  };
+
+  return completer.future;
+}
+
+/**
  * Takes all input from [source] and writes it to [sink].
  *
  * [onClosed] is called when [source] is closed.
@@ -449,6 +502,16 @@ Future<bool> extractTarGz(InputStream stream, destination) {
   process.onExit = completer.complete;
   process.onError = completer.completeException;
   return completer.future.transform((exitCode) => exitCode == 0);
+}
+
+/**
+ * Exception thrown when an HTTP operation fails.
+ */
+class HttpException implements Exception {
+  final int statusCode;
+  final String reason;
+
+  const HttpException(this.statusCode, this.reason);
 }
 
 /**

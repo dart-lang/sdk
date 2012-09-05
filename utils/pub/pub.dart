@@ -184,8 +184,6 @@ class PubCommand {
     handleError(error, trace) {
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
-      // TODO(rnystrom): Add --trace flag so stack traces can be enabled for
-      // debugging.
       var message = error.toString();
 
       // TODO(rnystrom): The default exception implementation class puts

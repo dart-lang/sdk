@@ -549,7 +549,7 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
   var iterator = scheduled.iterator();
 
-  Future runNextEvent([_]) {
+  Future runNextEvent(_) {
     if (_abortScheduled || !iterator.hasNext()) {
       _abortScheduled = false;
       scheduled.clear();
@@ -560,11 +560,11 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
     if (future != null) {
       return future.chain(runNextEvent);
     } else {
-      return runNextEvent();
+      return runNextEvent(null);
     }
   }
 
-  return runNextEvent();
+  return runNextEvent(null);
 }
 
 /**
