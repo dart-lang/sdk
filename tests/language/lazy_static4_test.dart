@@ -9,8 +9,8 @@ final t = bar(499);
 final u = bar(41) + 1;
 final v = bar("some string");
 
-foo(x) => x; // The return type will always be integer.
-bar(x) => x; // The return type varies and can be integer or String.
+foo(x) => x; // The return type will always be int.
+bar(x) => x; // The return type varies and can be int or String.
 
 main() {
   Expect.equals(499, x);
