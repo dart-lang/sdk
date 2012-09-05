@@ -31,8 +31,9 @@ class ReturnInfo {
     }
   }
 
-  addCompiledFunction(FunctionElement function) =>
-      compiledFunctions.add(function);
+  // Note that lazy initializers are treated like functions (but are not
+  // of type [FunctionElement].
+  addCompiledFunction(Element function) => compiledFunctions.add(function);
 }
 
 class HTypeList {
@@ -552,7 +553,7 @@ class JavaScriptBackend extends Backend {
    * function [callee] has not yet been compiled the returned type is [null].
    */
   HType optimisticReturnTypesWithRecompilationOnTypeChange(
-      FunctionElement caller, FunctionElement callee) {
+      Element caller, FunctionElement callee) {
     returnInfo.putIfAbsent(callee, () => new ReturnInfo.unknownType());
     ReturnInfo info = returnInfo[callee];
     if (info.returnType != HType.UNKNOWN && caller != null) {
