@@ -111,7 +111,7 @@ def ProcessTools(mode, name, version):
   #if 'linux' in name:
   #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
   #  local_env['JAVA_HOME'] = javahome
-  # local_env['PATH'] = (os.path.join(javahome, 'bin') +
+  #  local_env['PATH'] = (os.path.join(javahome, 'bin') +
   #                       os.pathsep + local_env['PATH'])
 
   return subprocess.call(cmds, env=local_env)
@@ -174,6 +174,7 @@ def main():
   (name, version) = GetBuildInfo()
   if name.startswith('dart-editor'):
     # TODO (danrubel) Fix dart-editor builds so that we can call FixJavaHome() before the build
+    FixJavaHome()
     status = ProcessTools('release', name, version)
   else:
     # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
