@@ -1,22 +1,20 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /**
- * Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
- * for details. All rights reserved. Use of this source code is governed by a
- * BSD-style license that can be found in the LICENSE file.
+ * Tests the DateFormat library in dart. This file contains core tests that
+ * are run regardless of where the locale data is found, so it doesn't expect to
+ * be run on its own, but rather to be imported and run from another test file.
  */
 
-#library('date_time_format_test');
+#library('date_time_format_tests');
 
-#import('../intl.dart');
 #import('../date_format.dart');
 #import('../../../pkg/unittest/unittest.dart');
-#import('../date_time_patterns.dart');
-#import('../date_symbol_data.dart');
-
-#source('date_time_format_test_data.dart');
-
-/**
- * Tests the DateFormat library in dart.
- */
+#import('date_time_format_test_data.dart');
+#import('../intl.dart');
+#import('../lib/date_format_internal.dart');
 
 var formatsToTest = const [
   DateFormat.DAY,
@@ -171,7 +169,10 @@ testRoundTripParsing(String localeName, Date date) {
   }
 }
 
-main() {
+// TODO(alanknight): Run specific tests for the en_ISO locale which isn't
+// included in CLDR, and check that our patterns for it are correct (they
+// very likely aren't).
+runDateTests() {
   test('Multiple patterns', () {
     var date = new Date.now();
     var multiple1 = new DateFormat.yMd().jms();
@@ -209,7 +210,7 @@ main() {
   test('Test round-trip parsing of dates', () {
     var hours = [0, 1, 11, 12, 13, 23];
     var months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    var locales = dateTimePatterns.getKeys();
+    var locales = DateFormat.allLocalesWithSymbols();
     for (var locale in locales) {
       for (var month in months) {
         var aDate = new Date(2012, month, 27, 13, 58, 59, 012, false);
@@ -223,17 +224,16 @@ main() {
   });
 
   test('Patterns and symbols have the same coverage',() {
-    var patterns = ["en_ISO"];
-    patterns.addAll(dateTimePatterns.getKeys());
+    var patterns = new List.from(dateTimePatterns.getKeys());
     var compare = (a, b) => a.compareTo(b);
     patterns.sort(compare);
-    var symbols = dateTimeSymbols.getKeys() as List;
+    var symbols = DateFormat.allLocalesWithSymbols();
     // Workaround for a dartj2 issue that treats the keys as immutable
     symbols = new List.from(symbols);
     symbols.sort(compare);
-    expect(patterns.length, equals(symbols.length));
     for (var i = 0; i < patterns.length; i++)
       expect(patterns[i], equals(symbols[i]));
+    expect(patterns.length, equals(symbols.length));
   });
 
   test('Test malformed locales', () {

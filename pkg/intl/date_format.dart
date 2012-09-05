@@ -157,11 +157,10 @@
 #library('date_format');
 
 #import('dart:math');
-
 #import('intl.dart');
-#import('date_time_patterns.dart');
 #import('date_symbols.dart');
-#import('date_symbol_data.dart');
+#import('lib/intl_helpers.dart');
+#import('lib/date_format_internal.dart');
 
 #source('lib/date_format_field.dart');
 #source('lib/date_format_helpers.dart');
@@ -253,6 +252,12 @@ class DateFormat {
    * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.
    */
   String get locale() => _locale;
+
+  /**
+   * Returns a list of all locales for which we have date formatting
+   * information.
+   */
+  static List<String> allLocalesWithSymbols() => dateTimeSymbols.getKeys();
 
   /**
    * Constructors for a set of predefined formats for which

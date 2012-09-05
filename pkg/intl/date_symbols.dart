@@ -13,18 +13,18 @@
  * make use of this data.
  */
 class DateSymbols {
-  final String NAME;
-  final List<String> ERAS, ERANAMES, NARROWMONTHS, STANDALONENARROWMONTHS,
+  String NAME;
+  List<String> ERAS, ERANAMES, NARROWMONTHS, STANDALONENARROWMONTHS,
       MONTHS, STANDALONEMONTHS, SHORTMONTHS, STANDALONESHORTMONTHS, WEEKDAYS,
       STANDALONEWEEKDAYS, SHORTWEEKDAYS, STANDALONESHORTWEEKDAYS,
       NARROWWEEKDAYS, STANDALONENARROWWEEKDAYS, SHORTQUARTERS,
       QUARTERS, AMPMS, DATEFORMATS, TIMEFORMATS;
-  final Map<String, String> AVAILABLEFORMATS;
-  final int FIRSTDAYOFWEEK;
-  final List<int> WEEKENDRANGE;
-  final int FIRSTWEEKCUTOFFDAY;
+  Map<String, String> AVAILABLEFORMATS;
+  int FIRSTDAYOFWEEK;
+  List<int> WEEKENDRANGE;
+  int FIRSTWEEKCUTOFFDAY;
 
-  const DateSymbols([this.NAME,
+  DateSymbols([this.NAME,
                      this.ERAS,
                      this.ERANAMES,
                      this.NARROWMONTHS,
@@ -42,12 +42,74 @@ class DateSymbols {
                      this.SHORTQUARTERS,
                      this.QUARTERS,
                      this.AMPMS,
+                     // TODO(alanknight): These formats are taken from Closure,
+                     // where there's only a fixed set of available formats.
+                     // Here we have the patterns separately. These should
+                     // either be used, or removed.
                      this.DATEFORMATS,
                      this.TIMEFORMATS,
                      this.AVAILABLEFORMATS,
                      this.FIRSTDAYOFWEEK,
                      this.WEEKENDRANGE,
                      this.FIRSTWEEKCUTOFFDAY]);
+
+  // TODO(alanknight): Replace this with use of a more general serialization
+  // facility once one is available. Issue 4926.
+  DateSymbols.deserializeFromMap(Map map) {
+    NAME = map["NAME"];
+    ERAS = map["ERAS"];
+    ERANAMES = map["ERANAMES"];
+    NARROWMONTHS = map["NARROWMONTHS"];
+    STANDALONENARROWMONTHS = map["STANDALONENARROWMONTHS"];
+    MONTHS = map["MONTHS"];
+    STANDALONEMONTHS = map["STANDALONEMONTHS"];
+    SHORTMONTHS = map["SHORTMONTHS"];
+    STANDALONESHORTMONTHS = map["STANDALONESHORTMONTHS"];
+    WEEKDAYS = map["WEEKDAYS"];
+    STANDALONEWEEKDAYS = map["STANDALONEWEEKDAYS"];
+    SHORTWEEKDAYS = map["SHORTWEEKDAYS"];
+    STANDALONESHORTWEEKDAYS = map["STANDALONESHORTWEEKDAYS"];
+    NARROWWEEKDAYS = map["NARROWWEEKDAYS"];
+    STANDALONENARROWWEEKDAYS = map["STANDALONENARROWWEEKDAYS"];
+    SHORTQUARTERS = map["SHORTQUARTERS"];
+    QUARTERS = map["QUARTERS"];
+    AMPMS = map["AMPMS"];
+    DATEFORMATS = map["DATEFORMATS"];
+    TIMEFORMATS = map["TIMEFORMATS"];
+    AVAILABLEFORMATS = map["AVAILABLEFORMATS"];
+    FIRSTDAYOFWEEK = map["FIRSTDAYOFWEEK"];
+    WEEKENDRANGE = map["WEEKENDRANGE"];
+    FIRSTWEEKCUTOFFDAY = map["FIRSTWEEKCUTOFFDAY"];
+  }
+
+  Map serializeToMap() {
+    var map = new Map();
+    map["NAME"] = NAME;
+    map["ERAS"] = ERAS;
+    map["ERANAMES"] = ERANAMES;
+    map["NARROWMONTHS"] = NARROWMONTHS;
+    map["STANDALONENARROWMONTHS"] = STANDALONENARROWMONTHS;
+    map["MONTHS"] = MONTHS;
+    map["STANDALONEMONTHS"] = STANDALONEMONTHS;
+    map["SHORTMONTHS"] = SHORTMONTHS;
+    map["STANDALONESHORTMONTHS"] = STANDALONESHORTMONTHS;
+    map["WEEKDAYS"] = WEEKDAYS;
+    map["STANDALONEWEEKDAYS"] = STANDALONEWEEKDAYS;
+    map["SHORTWEEKDAYS"] = SHORTWEEKDAYS;
+    map["STANDALONESHORTWEEKDAYS"] = STANDALONESHORTWEEKDAYS;
+    map["NARROWWEEKDAYS"] = NARROWWEEKDAYS;
+    map["STANDALONENARROWWEEKDAYS"] = STANDALONENARROWWEEKDAYS;
+    map["SHORTQUARTERS"] = SHORTQUARTERS;
+    map["QUARTERS"] = QUARTERS;
+    map["AMPMS"] = AMPMS;
+    map["DATEFORMATS"] = DATEFORMATS;
+    map["TIMEFORMATS"] = TIMEFORMATS;
+    map["AVAILABLEFORMATS"] = AVAILABLEFORMATS;
+    map["FIRSTDAYOFWEEK"] = FIRSTDAYOFWEEK;
+    map["WEEKENDRANGE"] = WEEKENDRANGE;
+    map["FIRSTWEEKCUTOFFDAY"] = FIRSTWEEKCUTOFFDAY;
+    return map;
+  }
 
   toString() => NAME;
 }

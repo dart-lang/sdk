@@ -16,12 +16,32 @@
 
 #library("date_symbol_data");
 #import("date_symbols.dart");
+#import("date_format.dart");
+#import("lib/date_format_internal.dart");
+#import("date_time_patterns.dart");
 
-Map dateTimeSymbols = const {
+/**
+ * This should be called for at least one [locale] before any date
+ * formatting methods are called. It sets up the lookup for date
+ * symbols. Both the [locale] and [ignored] parameter are ignored, as
+ * the data for all locales is directly available.
+ */
+Future initializeDateFormatting(String locale, String ignored) {
+  initializeDateSymbols(dateTimeSymbolMap);
+  initializeDatePatterns(dateTimePatternMap);
+  return new Future.immediate(null);
+}
+
+/**
+ * Returns a Map from locale names to the DateSymbols instance for
+ * that locale. Internal use only. Call initializeDateFormatting
+ * instead.
+ */
+Map dateTimeSymbolMap() => {
   /**
    * Date/time formatting symbols for locale en_ISO.
    */
-  "en_ISO" : const DateSymbols(
+  "en_ISO" : new DateSymbols(
       NAME: 'en_ISO',
       ERAS: const ['BC', 'AD'],
       ERANAMES: const ['Before Christ', 'Anno Domini'],
@@ -63,7 +83,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale af.
    */
-  "af" : const DateSymbols(
+  "af" : new DateSymbols(
       NAME: "af",
       ERAS: const [ 'v.C.', 'n.C.'],
       ERANAMES: const [ 'voor Christus', 'na Christus'],
@@ -103,7 +123,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale am.
    */
-  "am" : const DateSymbols(
+  "am" : new DateSymbols(
       NAME: "am",
       ERAS: const [ 'ዓ/ዓ', 'ዓ/ም'],
       ERANAMES: const [ 'ዓመተ ዓለም', 'ዓመተ ምሕረት'],
@@ -150,7 +170,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ar.
    */
-  "ar" : const DateSymbols(
+  "ar" : new DateSymbols(
       NAME: "ar",
       ERAS: const [ 'ق.م', 'م'],
       ERANAMES: const [ 'قبل الميلاد', 'ميلادي'],
@@ -198,7 +218,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale bg.
    */
-  "bg" : const DateSymbols(
+  "bg" : new DateSymbols(
       NAME: "bg",
       ERAS: const [ 'пр. н. е.', 'от н. е.'],
       ERANAMES: const [ 'пр.Хр.', 'сл.Хр.'],
@@ -248,7 +268,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale bn.
    */
-  "bn" : const DateSymbols(
+  "bn" : new DateSymbols(
       NAME: "bn",
       ERAS: const [ 'খৃষ্টপূর্ব',
            'খৃষ্টাব্দ'],
@@ -319,7 +339,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ca.
    */
-  "ca" : const DateSymbols(
+  "ca" : new DateSymbols(
       NAME: "ca",
       ERAS: const [ 'aC', 'dC'],
       ERANAMES: const [ 'abans de Crist', 'després de Crist'],
@@ -360,7 +380,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale cs.
    */
-  "cs" : const DateSymbols(
+  "cs" : new DateSymbols(
       NAME: "cs",
       ERAS: const [ 'př. n. l.', 'n. l.'],
       ERANAMES: const [ 'př. n. l.', 'n. l.'],
@@ -400,7 +420,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale da.
    */
-  "da" : const DateSymbols(
+  "da" : new DateSymbols(
       NAME: "da",
       ERAS: const [ 'f.Kr.', 'e.Kr.'],
       ERANAMES: const [ 'f.Kr.', 'e.Kr.'],
@@ -438,7 +458,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale de.
    */
-  "de" : const DateSymbols(
+  "de" : new DateSymbols(
       NAME: "de",
       ERAS: const [ 'v. Chr.', 'n. Chr.'],
       ERANAMES: const [ 'v. Chr.', 'n. Chr.'],
@@ -476,7 +496,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale de_AT.
    */
-  "de_AT" : const DateSymbols(
+  "de_AT" : new DateSymbols(
       NAME: "de_AT",
       ERAS: const [ 'v. Chr.', 'n. Chr.'],
       ERANAMES: const [ 'v. Chr.', 'n. Chr.'],
@@ -517,7 +537,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale de_CH.
    */
-  "de_CH" : const DateSymbols(
+  "de_CH" : new DateSymbols(
       NAME: "de_CH",
       ERAS: const [ 'v. Chr.', 'n. Chr.'],
       ERANAMES: const [ 'v. Chr.', 'n. Chr.'],
@@ -555,7 +575,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale el.
    */
-  "el" : const DateSymbols(
+  "el" : new DateSymbols(
       NAME: "el",
       ERAS: const [ 'π.Χ.', 'μ.Χ.'],
       ERANAMES: const [ 'π.Χ.', 'μ.Χ.'],
@@ -604,7 +624,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en.
    */
-  "en" : const DateSymbols(
+  "en" : new DateSymbols(
       NAME: "en",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -644,7 +664,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_AU.
    */
-  "en_AU" : const DateSymbols(
+  "en_AU" : new DateSymbols(
       NAME: "en_AU",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -684,7 +704,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_GB.
    */
-  "en_GB" : const DateSymbols(
+  "en_GB" : new DateSymbols(
       NAME: "en_GB",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -723,7 +743,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_IE.
    */
-  "en_IE" : const DateSymbols(
+  "en_IE" : new DateSymbols(
       NAME: "en_IE",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -763,7 +783,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_IN.
    */
-  "en_IN" : const DateSymbols(
+  "en_IN" : new DateSymbols(
       NAME: "en_IN",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -802,7 +822,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_SG.
    */
-  "en_SG" : const DateSymbols(
+  "en_SG" : new DateSymbols(
       NAME: "en_SG",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -845,7 +865,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_US.
    */
-  "en_US" : const DateSymbols(
+  "en_US" : new DateSymbols(
       NAME: "en_US",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -885,7 +905,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale en_ZA.
    */
-  "en_ZA" : const DateSymbols(
+  "en_ZA" : new DateSymbols(
       NAME: "en_ZA",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'Before Christ', 'Anno Domini'],
@@ -925,7 +945,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale es.
    */
-  "es" : const DateSymbols(
+  "es" : new DateSymbols(
       NAME: "es",
       ERAS: const [ 'a.C.', 'd.C.'],
       ERANAMES: const [ 'antes de Cristo', 'anno Dómini'],
@@ -965,7 +985,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale es_419.
    */
-  "es_419" : const DateSymbols(
+  "es_419" : new DateSymbols(
       NAME: "es_419",
       ERAS: const [ 'a.C.', 'd.C.'],
       ERANAMES: const [ 'antes de Cristo', 'anno Dómini'],
@@ -1005,7 +1025,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale et.
    */
-  "et" : const DateSymbols(
+  "et" : new DateSymbols(
       NAME: "et",
       ERAS: const [ 'e.m.a.', 'm.a.j.'],
       ERANAMES: const [ 'enne meie aega', 'meie aja järgi'],
@@ -1042,7 +1062,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale eu.
    */
-  "eu" : const DateSymbols(
+  "eu" : new DateSymbols(
       NAME: "eu",
       ERAS: const [ 'K.a.', 'K.o.'],
       ERANAMES: const [ 'K.a.', 'K.o.'],
@@ -1082,7 +1102,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale fa.
    */
-  "fa" : const DateSymbols(
+  "fa" : new DateSymbols(
       NAME: "fa",
       ERAS: const [ 'ق.م.', 'م.'],
       ERANAMES: const [ 'قبل از میلاد', 'میلادی'],
@@ -1128,7 +1148,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale fi.
    */
-  "fi" : const DateSymbols(
+  "fi" : new DateSymbols(
       NAME: "fi",
       ERAS: const [ 'eKr.', 'jKr.'],
       ERANAMES: const [ 'ennen Kristuksen syntymää',
@@ -1171,7 +1191,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale fil.
    */
-  "fil" : const DateSymbols(
+  "fil" : new DateSymbols(
       NAME: "fil",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'BC', 'AD'],
@@ -1210,7 +1230,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale fr.
    */
-  "fr" : const DateSymbols(
+  "fr" : new DateSymbols(
       NAME: "fr",
       ERAS: const [ 'av. J.-C.', 'ap. J.-C.'],
       ERANAMES: const [ 'avant Jésus-Christ', 'après Jésus-Christ'],
@@ -1249,7 +1269,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale fr_CA.
    */
-  "fr_CA" : const DateSymbols(
+  "fr_CA" : new DateSymbols(
       NAME: "fr_CA",
       ERAS: const [ 'av. J.-C.', 'ap. J.-C.'],
       ERANAMES: const [ 'avant Jésus-Christ', 'après Jésus-Christ'],
@@ -1290,7 +1310,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale gl.
    */
-  "gl" : const DateSymbols(
+  "gl" : new DateSymbols(
       NAME: "gl",
       ERAS: const [ 'a.C.', 'd.C.'],
       ERANAMES: const [ 'antes de Cristo', 'despois de Cristo'],
@@ -1329,7 +1349,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale gsw.
    */
-  "gsw" : const DateSymbols(
+  "gsw" : new DateSymbols(
       NAME: "gsw",
       ERAS: const [ 'v. Chr.', 'n. Chr.'],
       ERANAMES: const [ 'v. Chr.', 'n. Chr.'],
@@ -1368,7 +1388,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale gu.
    */
-  "gu" : const DateSymbols(
+  "gu" : new DateSymbols(
       NAME: "gu",
       ERAS: const [ 'ઈલુના જન્મ પહેસાં',
            'ઇસવીસન'],
@@ -1430,7 +1450,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale he.
    */
-  "he" : const DateSymbols(
+  "he" : new DateSymbols(
       NAME: "he",
       ERAS: const [ 'לפנה״ס', 'לסה״נ'],
       ERANAMES: const [ 'לפני הספירה', 'לספירה'],
@@ -1478,7 +1498,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale hi.
    */
-  "hi" : const DateSymbols(
+  "hi" : new DateSymbols(
       NAME: "hi",
       ERAS: const [ 'ईसापूर्व', 'सन'],
       ERANAMES: const [ 'ईसापूर्व', 'सन'],
@@ -1541,7 +1561,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale hr.
    */
-  "hr" : const DateSymbols(
+  "hr" : new DateSymbols(
       NAME: "hr",
       ERAS: const [ 'p. n. e.', 'A. D.'],
       ERANAMES: const [ 'Prije Krista', 'Poslije Krista'],
@@ -1580,7 +1600,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale hu.
    */
-  "hu" : const DateSymbols(
+  "hu" : new DateSymbols(
       NAME: "hu",
       ERAS: const [ 'i. e.', 'i. sz.'],
       ERANAMES: const [ 'időszámításunk előtt',
@@ -1620,7 +1640,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale id.
    */
-  "id" : const DateSymbols(
+  "id" : new DateSymbols(
       NAME: "id",
       ERAS: const [ 'SM', 'M'],
       ERANAMES: const [ 'SM', 'M'],
@@ -1659,7 +1679,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale in.
    */
-  "in" : const DateSymbols(
+  "in" : new DateSymbols(
       NAME: "in",
       ERAS: const [ 'SM', 'M'],
       ERANAMES: const [ 'SM', 'M'],
@@ -1698,7 +1718,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale is.
    */
-  "is" : const DateSymbols(
+  "is" : new DateSymbols(
       NAME: "is",
       ERAS: const [ 'fyrir Krist', 'eftir Krist'],
       ERANAMES: const [ 'fyrir Krist', 'eftir Krist'],
@@ -1739,7 +1759,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale it.
    */
-  "it" : const DateSymbols(
+  "it" : new DateSymbols(
       NAME: "it",
       ERAS: const [ 'aC', 'dC'],
       ERANAMES: const [ 'a.C.', 'd.C'],
@@ -1779,7 +1799,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale iw.
    */
-  "iw" : const DateSymbols(
+  "iw" : new DateSymbols(
       NAME: "iw",
       ERAS: const [ 'לפנה״ס', 'לסה״נ'],
       ERANAMES: const [ 'לפני הספירה', 'לספירה'],
@@ -1827,9 +1847,9 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ja.
    */
-  "ja" : const DateSymbols(
+  "ja" : new DateSymbols(
       NAME: "ja",
-      ERAS: const [ '紀元前', '西暦'],
+      ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ '紀元前', '西暦'],
       NARROWMONTHS: const [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
            '11', '12'],
@@ -1867,7 +1887,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale kn.
    */
-  "kn" : const DateSymbols(
+  "kn" : new DateSymbols(
       NAME: "kn",
       ERAS: const [ 'ಕ್ರಿ.ಪೂ', 'ಜಾಹೀ'],
       ERANAMES: const [ 'ಈಸಪೂವ೯.', 'ಕ್ರಿಸ್ತ ಶಕ'],
@@ -1927,7 +1947,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ko.
    */
-  "ko" : const DateSymbols(
+  "ko" : new DateSymbols(
       NAME: "ko",
       ERAS: const [ '기원전', '서기'],
       ERANAMES: const [ '서력기원전', '서력기원'],
@@ -1967,7 +1987,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ln.
    */
-  "ln" : const DateSymbols(
+  "ln" : new DateSymbols(
       NAME: "ln",
       ERAS: const [ 'libóso ya', 'nsima ya Y'],
       ERANAMES: const [ 'Yambo ya Yézu Krís', 'Nsima ya Yézu Krís'],
@@ -2013,7 +2033,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale lt.
    */
-  "lt" : const DateSymbols(
+  "lt" : new DateSymbols(
       NAME: "lt",
       ERAS: const [ 'pr. Kr.', 'po Kr.'],
       ERANAMES: const [ 'prieš Kristų', 'po Kristaus'],
@@ -2053,7 +2073,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale lv.
    */
-  "lv" : const DateSymbols(
+  "lv" : new DateSymbols(
       NAME: "lv",
       ERAS: const [ 'p.m.ē.', 'm.ē.'],
       ERANAMES: const [ 'pirms mūsu ēras', 'mūsu ērā'],
@@ -2093,7 +2113,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ml.
    */
-  "ml" : const DateSymbols(
+  "ml" : new DateSymbols(
       NAME: "ml",
       ERAS: const [ 'ക്രി.മൂ', 'ക്രി.പി.'],
       ERANAMES: const [
@@ -2160,7 +2180,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale mr.
    */
-  "mr" : const DateSymbols(
+  "mr" : new DateSymbols(
       NAME: "mr",
       ERAS: const [ 'ईसापूर्व', 'सन'],
       ERANAMES: const [ 'ईसवीसनपूर्व',
@@ -2222,7 +2242,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ms.
    */
-  "ms" : const DateSymbols(
+  "ms" : new DateSymbols(
       NAME: "ms",
       ERAS: const [ 'S.M.', 'TM'],
       ERANAMES: const [ 'S.M.', 'TM'],
@@ -2261,7 +2281,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale mt.
    */
-  "mt" : const DateSymbols(
+  "mt" : new DateSymbols(
       NAME: "mt",
       ERAS: const [ 'QK', 'WK'],
       ERANAMES: const [ 'Qabel Kristu', 'Wara Kristu'],
@@ -2300,7 +2320,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale nl.
    */
-  "nl" : const DateSymbols(
+  "nl" : new DateSymbols(
       NAME: "nl",
       ERAS: const [ 'v. Chr.', 'n. Chr.'],
       ERANAMES: const [ 'Voor Christus', 'na Christus'],
@@ -2338,7 +2358,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale no.
    */
-  "no" : const DateSymbols(
+  "no" : new DateSymbols(
       NAME: "no",
       ERAS: const [ 'f.Kr.', 'e.Kr.'],
       ERANAMES: const [ 'f.Kr.', 'e.Kr.'],
@@ -2378,7 +2398,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale or.
    */
-  "or" : const DateSymbols(
+  "or" : new DateSymbols(
       NAME: "or",
       ERAS: const [ 'BCE', 'CE'],
       ERANAMES: const [ 'BCE', 'CE'],
@@ -2439,7 +2459,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale pl.
    */
-  "pl" : const DateSymbols(
+  "pl" : new DateSymbols(
       NAME: "pl",
       ERAS: const [ 'p.n.e.', 'n.e.'],
       ERANAMES: const [ 'p.n.e.', 'n.e.'],
@@ -2480,7 +2500,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale pt.
    */
-  "pt" : const DateSymbols(
+  "pt" : new DateSymbols(
       NAME: "pt",
       ERAS: const [ 'a.C.', 'd.C.'],
       ERANAMES: const [ 'Antes de Cristo', 'Ano do Senhor'],
@@ -2524,7 +2544,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale pt_BR.
    */
-  "pt_BR" : const DateSymbols(
+  "pt_BR" : new DateSymbols(
       NAME: "pt_BR",
       ERAS: const [ 'a.C.', 'd.C.'],
       ERANAMES: const [ 'Antes de Cristo', 'Ano do Senhor'],
@@ -2565,7 +2585,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale pt_PT.
    */
-  "pt_PT" : const DateSymbols(
+  "pt_PT" : new DateSymbols(
       NAME: "pt_PT",
       ERAS: const [ 'a.C.', 'd.C.'],
       ERANAMES: const [ 'Antes de Cristo', 'Ano do Senhor'],
@@ -2605,7 +2625,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ro.
    */
-  "ro" : const DateSymbols(
+  "ro" : new DateSymbols(
       NAME: "ro",
       ERAS: const [ 'î.Hr.', 'd.Hr.'],
       ERANAMES: const [ 'înainte de Hristos', 'după Hristos'],
@@ -2645,7 +2665,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ru.
    */
-  "ru" : const DateSymbols(
+  "ru" : new DateSymbols(
       NAME: "ru",
       ERAS: const [ 'до н.э.', 'н.э.'],
       ERANAMES: const [ 'до н.э.', 'н.э.'],
@@ -2694,7 +2714,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale sk.
    */
-  "sk" : const DateSymbols(
+  "sk" : new DateSymbols(
       NAME: "sk",
       ERAS: const [ 'pred n.l.', 'n.l.'],
       ERANAMES: const [ 'pred n.l.', 'n.l.'],
@@ -2734,7 +2754,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale sl.
    */
-  "sl" : const DateSymbols(
+  "sl" : new DateSymbols(
       NAME: "sl",
       ERAS: const [ 'pr. n. št.', 'po Kr.'],
       ERANAMES: const [ 'pred našim štetjem', 'naše štetje'],
@@ -2774,7 +2794,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale sq.
    */
-  "sq" : const DateSymbols(
+  "sq" : new DateSymbols(
       NAME: "sq",
       ERAS: const [ 'p.e.r.', 'n.e.r.'],
       ERANAMES: const [ 'p.e.r.', 'n.e.r.'],
@@ -2813,7 +2833,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale sr.
    */
-  "sr" : const DateSymbols(
+  "sr" : new DateSymbols(
       NAME: "sr",
       ERAS: const [ 'п. н. е.', 'н. е.'],
       ERANAMES: const [ 'Пре нове ере', 'Нове ере'],
@@ -2861,7 +2881,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale sv.
    */
-  "sv" : const DateSymbols(
+  "sv" : new DateSymbols(
       NAME: "sv",
       ERAS: const [ 'f.Kr.', 'e.Kr.'],
       ERANAMES: const [ 'före Kristus', 'efter Kristus'],
@@ -2902,7 +2922,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale sw.
    */
-  "sw" : const DateSymbols(
+  "sw" : new DateSymbols(
       NAME: "sw",
       ERAS: const [ 'KK', 'BK'],
       ERANAMES: const [ 'Kabla ya Kristo', 'Baada ya Kristo'],
@@ -2941,7 +2961,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ta.
    */
-  "ta" : const DateSymbols(
+  "ta" : new DateSymbols(
       NAME: "ta",
       ERAS: const [ 'கி.மு.', 'கி.பி.'],
       ERANAMES: const [
@@ -3001,7 +3021,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale te.
    */
-  "te" : const DateSymbols(
+  "te" : new DateSymbols(
       NAME: "te",
       ERAS: const [ 'ఈసాపూర్వ.', 'సన్.'],
       ERANAMES: const [ 'ఈసాపూర్వ.', 'సన్.'],
@@ -3059,7 +3079,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale th.
    */
-  "th" : const DateSymbols(
+  "th" : new DateSymbols(
       NAME: "th",
       ERAS: const [ 'ปีก่อน ค.ศ.', 'ค.ศ.'],
       ERANAMES: const [
@@ -3122,7 +3142,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale tl.
    */
-  "tl" : const DateSymbols(
+  "tl" : new DateSymbols(
       NAME: "tl",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'BC', 'AD'],
@@ -3161,7 +3181,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale tr.
    */
-  "tr" : const DateSymbols(
+  "tr" : new DateSymbols(
       NAME: "tr",
       ERAS: const [ 'MÖ', 'MS'],
       ERANAMES: const [ 'Milattan Önce', 'Milattan Sonra'],
@@ -3199,7 +3219,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale uk.
    */
-  "uk" : const DateSymbols(
+  "uk" : new DateSymbols(
       NAME: "uk",
       ERAS: const [ 'до н.е.', 'н.е.'],
       ERANAMES: const [ 'до нашої ери', 'нашої ери'],
@@ -3248,7 +3268,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale ur.
    */
-  "ur" : const DateSymbols(
+  "ur" : new DateSymbols(
       NAME: "ur",
       ERAS: const [ 'ق م', 'عيسوی سن'],
       ERANAMES: const [ 'قبل مسيح', 'عيسوی سن'],
@@ -3294,7 +3314,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale vi.
    */
-  "vi" : const DateSymbols(
+  "vi" : new DateSymbols(
       NAME: "vi",
       ERAS: const [ 'tr. CN', 'sau CN'],
       ERANAMES: const [ 'tr. CN', 'sau CN'],
@@ -3338,7 +3358,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale zh.
    */
-  "zh" : const DateSymbols(
+  "zh" : new DateSymbols(
       NAME: "zh",
       ERAS: const [ '公元前', '公元'],
       ERANAMES: const [ '公元前', '公元'],
@@ -3383,7 +3403,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale zh_CN.
    */
-  "zh_CN" : const DateSymbols(
+  "zh_CN" : new DateSymbols(
       NAME: "zh_CN",
       ERAS: const [ '公元前', '公元'],
       ERANAMES: const [ '公元前', '公元'],
@@ -3425,7 +3445,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale zh_HK.
    */
-  "zh_HK" : const DateSymbols(
+  "zh_HK" : new DateSymbols(
       NAME: "zh_HK",
       ERAS: const [ '西元前', '西元'],
       ERANAMES: const [ '西元前', '西元'],
@@ -3466,7 +3486,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale zh_TW.
    */
-  "zh_TW" : const DateSymbols(
+  "zh_TW" : new DateSymbols(
       NAME: "zh_TW",
       ERAS: const [ '西元前', '西元'],
       ERANAMES: const [ '西元前', '西元'],
@@ -3507,7 +3527,7 @@ Map dateTimeSymbols = const {
   /**
    * Date/time formatting symbols for locale zu.
    */
-  "zu" : const DateSymbols(
+  "zu" : new DateSymbols(
       NAME: "zu",
       ERAS: const [ 'BC', 'AD'],
       ERANAMES: const [ 'BC', 'AD'],
