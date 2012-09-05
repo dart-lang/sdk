@@ -10,14 +10,13 @@
 
 namespace dart {
 
-class BindInstr;
 class BlockEntryInstr;
-class StaticCallComp;
 class Definition;
 class FlowGraphBuilder;
 class GraphEntryInstr;
 class PhiInstr;
 class ReturnInstr;
+class StaticCallInstr;
 
 // Class to incapsulate the construction and manipulation of the flow graph.
 class FlowGraph: public ZoneAllocated {
@@ -72,9 +71,7 @@ class FlowGraph: public ZoneAllocated {
   void ComputeSSA(intptr_t next_virtual_register_number = 0);
   void ComputeUseLists();
 
-  void InlineCall(BindInstr* caller_instr,
-                  StaticCallComp* caller_comp,
-                  FlowGraph* callee_graph);
+  void InlineCall(StaticCallInstr* call, FlowGraph* callee_graph);
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
