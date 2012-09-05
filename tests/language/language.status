@@ -243,12 +243,10 @@ pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
-const_syntax_test/03: Fail, OK
-const_syntax_test/04: Fail, OK
-final_syntax_test/03: Fail, OK
-final_syntax_test/04: Fail, OK
+final_syntax_test/none: Fail, OK # Issue 3558
 lazy_static_test: Fail, OK # Issue 3558
 lazy_static2_test: Fail, OK # Issue 3558
+lazy_static3_test: Fail, OK # Issue 3558
 # Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
