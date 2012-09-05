@@ -79,7 +79,6 @@ void maybeEnableNative(Compiler compiler,
   String libraryName = uri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
-      || libraryName == 'dart:dom_deprecated'
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.canUseNative = true;

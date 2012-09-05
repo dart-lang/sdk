@@ -448,6 +448,7 @@ class Apidoc extends doc.Dartdoc {
    * scraped from MDN.
    */
   includeMdnTypeComment(TypeMirror type) {
+    var typeString = '';
     if (type.library.simpleName == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
@@ -459,13 +460,13 @@ class Apidoc extends doc.Dartdoc {
       // Use the corresponding DOM type when searching MDN.
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
-      type = domTypes.iterator().next();
-    } else if (type.library.simpleName != DOM_LIBRARY_NAME) {
+      typeString = domTypes.iterator().next();
+    } else {
       // Not a DOM type.
       return null;
     }
 
-    final mdnType = mdn[type.simpleName];
+    final mdnType = mdn[typeString];
     if (mdnType == null) return null;
     if (mdnType['skipped'] != null) return null;
 
@@ -480,8 +481,9 @@ class Apidoc extends doc.Dartdoc {
    */
   includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
+    var memberString = '';
     if (library.simpleName == HTML_LIBRARY_NAME) {
-      // If it's an HTML type, try to map it to a base DOM type so we can find
+      // If it's an HTML type, try to map it to a DOM type name so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName];
 
@@ -491,8 +493,8 @@ class Apidoc extends doc.Dartdoc {
       // Use the corresponding DOM member when searching MDN.
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
-      member = domMembers.iterator().next();
-    } else if (library.simpleName != DOM_LIBRARY_NAME) {
+      memberString = domMembers.iterator().next();
+    } else {
       // Not a DOM type.
       return null;
     }
@@ -500,14 +502,18 @@ class Apidoc extends doc.Dartdoc {
     // Ignore top-level functions.
     if (member.isTopLevel) return null;
 
-    final mdnType = mdn[member.surroundingDeclaration.simpleName];
-    if (mdnType == null) return null;
-    var nameToFind = member.simpleName;
     var mdnMember = null;
-    for (final candidateMember in mdnType['members']) {
-      if (candidateMember['name'] == nameToFind) {
-        mdnMember = candidateMember;
-        break;
+    var mdnType =  null;
+    var pieces = memberString.split('.');
+    if (pieces.length == 2) {
+      mdnType = mdn[pieces[0]];
+      if (mdnType == null) return null;
+      var nameToFind = pieces[1];
+      for (final candidateMember in mdnType['members']) {
+        if (candidateMember['name'] == nameToFind) {
+          mdnMember = candidateMember;
+          break;
+        }
       }
     }
 
