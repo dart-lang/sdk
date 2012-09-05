@@ -10,10 +10,10 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.FunctionType;
@@ -154,6 +154,9 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
     String targetName;
     if(node.getName() instanceof DartIdentifier) {
       targetName = ((DartIdentifier) node.getName()).getName();
+      if (targetName.equals("-") && node.getFunction().getParameters().size() == 1) {
+        targetName += "binary";
+      }
     } else {
       // Visit the unknown node to generate a string for our use.
       targetName = node.toSource();

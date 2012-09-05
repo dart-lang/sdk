@@ -350,6 +350,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private String methodNameForBinaryOperator(Token operator) {
+      if (operator.getSyntax().equals("-")) {
+        return "operator -binary";
+      }
       return "operator " + operator.getSyntax();
     }
 
@@ -2472,7 +2475,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           InterfaceType itype = types.getInterfaceType(type);
           String operatorMethodName = methodNameForUnaryOperator(node, operator);
+          if (operator == Token.DEC) {
+            operatorMethodName = "operator -binary";
+          }
           Member member = itype.lookupMember(operatorMethodName);
+          // TODO(scheglov) remove after library migration from "operator negate()" to "operator -()"
+          if (member == null && operator == Token.SUB) {
+            operatorMethodName = "operator negate";
+            member = itype.lookupMember(operatorMethodName);
+          }
           if (member == null) {
             HasSourceInfo errorTarget = getOperatorHasSourceInfo(node);
             return typeError(errorTarget, TypeErrorCode.CANNOT_BE_RESOLVED,
