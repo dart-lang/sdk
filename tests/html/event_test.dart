@@ -140,6 +140,12 @@ main() {
     Expect.equals(MutationEvent.MODIFICATION, ev.attrChange);
   });
 
+  test('DOMMutationEvent', () {
+    var div = new DivElement();
+    div.on['DOMSubtreeModified'].add(expectAsync1((DOMMutationEvent e) {}));
+    div.nodes.add(new SpanElement());
+  });
+
   // Issue 1005.
   // eventTest('OverflowEvent',
   //     () => new OverflowEvent(OverflowEvent.BOTH, true, true),
