@@ -40,7 +40,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),
   CANNOT_RESOLVE_METHOD("cannot resolve method '%s'"),
-  CANNOT_RESOLVE_METHOD_IN_CLASS("cannot resolve method '%s' in class '%s'"),
+  CANNOT_RESOLVE_METHOD_IN_CLASS(ErrorSeverity.WARNING, "cannot resolve method '%s' in class '%s'"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
   // TODO(zundel): To exercise this requires simulating a corrupted SDK?
