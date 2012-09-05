@@ -2556,12 +2556,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
     if (argument.element.isTypeVariable()) {
-      if (work.element.isFactoryConstructor()
-          || work.element.isGenerativeConstructor()) {
+      Element member = work.element;
+      if (member.enclosingElement.isClosure()) {
+        member = (member.enclosingElement as ClosureClassElement).methodElement;
+        member = member.getOutermostEnclosingMemberOrTopLevel();
+      }
+      if (member.isFactoryConstructor()) {
         // The type variable is stored in a parameter of the
         // factory.
         return localsHandler.readLocal(argument.element);
-      } else if (work.element.isInstanceMember()) {
+      } else if (member.isInstanceMember()
+                 || member.isGenerativeConstructor()) {
         // The type variable is stored in [this].
         pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
                           localsHandler.readThis());

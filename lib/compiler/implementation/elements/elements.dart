@@ -648,9 +648,7 @@ class VariableElement extends Element {
 
   DartType get type => variables.type;
 
-  bool isInstanceMember() {
-    return isMember() && !modifiers.isStatic();
-  }
+  bool isInstanceMember() => variables.isInstanceMember();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
@@ -756,6 +754,19 @@ class VariableListElement extends Element {
       result = new VariableListElement.node(cachedNode, kind, enclosing);
     } else {
       result = new VariableListElement(kind, modifiers, enclosing);
+    }
+    return result;
+  }
+
+  bool isInstanceMember() {
+    return isMember() && !modifiers.isStatic();
+  }
+
+  Scope buildScope() {
+    Scope result = new VariableScope(enclosingElement.buildScope(), this);
+    if (enclosingElement.isClass()) {
+      ClassScope clsScope = result.parent;
+      clsScope.inStaticContext = !isInstanceMember();
     }
     return result;
   }
@@ -983,6 +994,15 @@ class FunctionElement extends Element {
         name, cachedNode, kind, modifiers, enclosing, functionSignature);
     result.defaultImplementation = defaultImplementation;
     result.type = type;
+    return result;
+  }
+
+  Scope buildScope() {
+    Scope result = new MethodScope(enclosingElement.buildScope(), this);
+    if (enclosingElement.isClass()) {
+      ClassScope clsScope = result.parent;
+      clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
+    }
     return result;
   }
 }

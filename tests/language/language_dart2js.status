@@ -37,8 +37,12 @@ closure_type_test: Fail # does not detect type error in checked mode.
 function_type_test: Fail # does not detect type error in checked mode.
 function_malformed_result_type_test: Fail # does not detect type error in checked mode.
 void_type_test: Fail # does not detect type error in checked mode.
-
 arithmetic_test: Fail
+
+type_parameter_test/01: Fail # Issue 4932
+type_parameter_test/02: Fail # Issue 4932
+type_parameter_test/03: Fail # Issue 4932
+type_parameter_test/04: Fail # Issue 4932
 
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail

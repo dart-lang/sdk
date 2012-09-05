@@ -179,7 +179,9 @@ class ClosureTranslator extends AbstractVisitor {
   // non-mutated variables.
   Set<Element> mutatedVariables;
 
+  FunctionElement outermostFunctionElement;
   FunctionElement currentFunctionElement;
+
   // The closureData of the currentFunctionElement.
   ClosureClassMap closureData;
 
@@ -250,16 +252,15 @@ class ClosureTranslator extends AbstractVisitor {
   }
 
   void useLocal(Element element) {
-    // TODO(floitsch): replace this with a general solution.
-    Element functionElement = currentFunctionElement;
-    if (functionElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      ConstructorBodyElement body = functionElement;
-      functionElement = body.constructor;
-    }
     // If the element is not declared in the current function and the element
     // is not the closure itself we need to mark the element as free variable.
-    if (element.enclosingElement != functionElement &&
-        element != functionElement) {
+    // Note that the check on [insideClosure] is not just an
+    // optimization: factories have type parameters as function
+    // parameters, and type parameters are declared in the class, not
+    // the factory.
+    if (insideClosure &&
+        element.enclosingElement != currentFunctionElement &&
+        element != currentFunctionElement) {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
@@ -346,6 +347,9 @@ class ClosureTranslator extends AbstractVisitor {
   }
 
   visitNewExpression(NewExpression node) {
+    TypeAnnotation annotation = node.send.getTypeAnnotation();
+    DartType type = elements.getType(annotation);
+
     bool hasTypeVariable(DartType type) {
       if (type is TypeVariableType) {
         return true;
@@ -359,14 +363,25 @@ class ClosureTranslator extends AbstractVisitor {
       }
       return false;
     }
-    TypeAnnotation annotation = node.send.getTypeAnnotation();
-    DartType type = elements.getType(annotation);
-    if (hasTypeVariable(type)) {
-      // Factories do not use [this] to get the type variables.
-      if (closureData.thisElement !== null) {
-        useLocal(closureData.thisElement);
+
+    void analyzeTypeVariables(DartType type) {
+      if (type is TypeVariableType) {
+        useLocal(type.element);
+      } else if (type is InterfaceType) {
+        InterfaceType ifcType = type;
+        for (DartType argument in ifcType.arguments) {
+          analyzeTypeVariables(argument);
+        }
       }
     }
+
+    if (outermostFunctionElement.isInstanceMember() 
+        || outermostFunctionElement.isGenerativeConstructor()) {
+      if (hasTypeVariable(type)) useLocal(closureData.thisElement);
+    } else if (outermostFunctionElement.isFactoryConstructor()) {
+      analyzeTypeVariables(type);
+    }
+
     node.visitChildren(this);
   }
 
@@ -464,38 +479,26 @@ class ClosureTranslator extends AbstractVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     Element element = elements[node];
-    if (element.kind === ElementKind.PARAMETER) {
+    if (element.isParameter()) {
       // TODO(ahe): This is a hack. This method should *not* call
       // visitChildren.
       return node.name.accept(this);
     }
-    bool isClosure = (closureData !== null);
-
-    if (isClosure) closures.add(node);
 
     bool oldInsideClosure = insideClosure;
     FunctionElement oldFunctionElement = currentFunctionElement;
     ClosureClassMap oldClosureData = closureData;
 
-    insideClosure = isClosure;
-    currentFunctionElement = elements[node];
+    insideClosure = outermostFunctionElement != null;
+    currentFunctionElement = element;
     if (insideClosure) {
+      closures.add(node);
       closureData = globalizeClosure(node, element);
     } else {
+      outermostFunctionElement = element;
       Element thisElement = null;
-      // TODO(floitsch): we should not need to look for generative constructors.
-      // At the moment we store only one ClosureData for both the factory and
-      // the body.
-      if (element.isInstanceMember() ||
-          element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-        // TODO(floitsch): currently all variables are considered to be
-        // declared in the GENERATIVE_CONSTRUCTOR. Including the 'this'.
-        Element thisEnclosingElement = element;
-        if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-          ConstructorBodyElement body = element;
-          thisEnclosingElement = body.constructor;
-        }
-        thisElement = new ThisElement(thisEnclosingElement);
+      if (element.isInstanceMember() || element.isGenerativeConstructor()) {
+        thisElement = new ThisElement(element);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
     }
@@ -512,6 +515,15 @@ class ClosureTranslator extends AbstractVisitor {
       // It will simply not be used.
       if (insideClosure) {
         declareLocal(element);
+      }
+      
+      if (currentFunctionElement.isFactoryConstructor()) {
+        // Declare the type parameters in the scope. Generative
+        // constructors just use 'this'.
+        ClassElement cls = currentFunctionElement.enclosingElement;
+        cls.typeVariables.forEach((TypeVariableType typeVariable) {
+          declareLocal(typeVariable.element);
+        });
       }
 
       // TODO(ahe): This is problematic. The backend should not repeat

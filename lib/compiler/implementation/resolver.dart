@@ -971,7 +971,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                               null,
       this.statementScope = new StatementScope(),
       typeResolver = new TypeResolver(compiler),
-      scope = element.buildEnclosingScope(),
+      scope = element.buildScope(),
       super(compiler) {
   }
 
@@ -1068,7 +1068,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
-    scope = new MethodScope(scope, function);
+    // If [function] is the [enclosingElement], the [scope] has
+    // already been set in the constructor of [ResolverVisitor].
+    if (function != enclosingElement) scope = new MethodScope(scope, function);
+
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
@@ -2560,6 +2563,18 @@ class Scope {
   abstract Element lookup(SourceString name);
 }
 
+class VariableScope extends Scope {
+  VariableScope(parent, element) : super(parent, element);
+
+  Element add(Element newElement) {
+    throw "Cannot add element to VariableScope";
+  }
+
+  Element lookup(SourceString name) => parent.lookup(name);
+
+  String toString() => '$element > $parent';
+}
+
 /**
  * [TypeDeclarationScope] defines the outer scope of a type declaration in
  * which the declared type variables and the entities in the enclosing scope are
@@ -2577,13 +2592,6 @@ class TypeDeclarationScope extends Scope {
 
   Element add(Element newElement) {
     throw "Cannot add element to TypeDeclarationScope";
-  }
-
-  /**
-   * Looks up [name] within the type variables declared in [element].
-   */
-  Element lookupTypeVariable(SourceString name) {
-    return null;
   }
 
   Element lookup(SourceString name) {
@@ -2641,6 +2649,8 @@ class BlockScope extends MethodScope {
  * scope and inherited members are available, in the given order.
  */
 class ClassScope extends TypeDeclarationScope {
+  bool inStaticContext = false;
+
   ClassScope(Scope parentScope, ClassElement element)
       : super(parentScope, element);
 
@@ -2648,7 +2658,14 @@ class ClassScope extends TypeDeclarationScope {
     ClassElement cls = element;
     Element result = cls.lookupLocalMember(name);
     if (result !== null) return result;
-    result = super.lookup(name);
+    if (!inStaticContext) {
+      // If not in a static context, we can lookup in the
+      // TypeDeclaration scope, which contains the type variables of
+      // the class.
+      result = super.lookup(name);
+    } else {
+      result = parent.lookup(name);
+    }
     if (result != null) return result;
     return cls.lookupSuperMember(name);
   }
