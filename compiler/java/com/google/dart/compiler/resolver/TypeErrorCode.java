@@ -43,6 +43,7 @@ public enum TypeErrorCode implements ErrorCode {
   INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS(
       "instantiation of class %s with the inherited abstract members: %s"),
   INTERFACE_HAS_NO_METHOD_NAMED("\"%s\" has no method named \"%s\""),
+  INTERFACE_HAS_NO_METHOD_NAMED_INFERRED(ErrorSeverity.INFO, "\"%s\" has no method named \"%s\""),
   INTERNAL_ERROR("internal error: %s", true),
   IS_STATIC_FIELD_IN("\"%s\" is a static field in \"%s\""),
   IS_STATIC_METHOD_IN("\"%s\" is a static method in \"%s\""),
@@ -54,7 +55,9 @@ public enum TypeErrorCode implements ErrorCode {
   NO_SUCH_TYPE("no such type \"%s\"", true),
   NOT_A_FUNCTION_TYPE("\"%s\" is not a function type"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
+  NOT_A_MEMBER_OF_INFERRED(ErrorSeverity.INFO, "\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
+  NOT_A_METHOD_IN_INFERRED(ErrorSeverity.INFO, "\"%s\" is not a method in %s"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_EQUALS_BOOL_RETURN_TYPE("operator 'equals' should return bool type"),
   OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE("operator '[]=' must have a return type of 'void'"),
@@ -72,6 +75,7 @@ public enum TypeErrorCode implements ErrorCode {
       "Type alias cannot reference itself directly of via other typedefs"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
+  TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED(ErrorSeverity.INFO, "'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");

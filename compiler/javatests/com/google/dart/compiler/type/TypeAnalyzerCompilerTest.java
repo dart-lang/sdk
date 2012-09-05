@@ -1896,8 +1896,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "");
       assertErrors(
           result.getErrors(),
-          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
-          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 9, 5, 1),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED, 10, 5, 1));
     }
   }
 
@@ -1962,7 +1962,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "");
       assertErrors(
           result.getErrors(),
-          errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 7, 1));
+          errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED, 7, 7, 1));
     }
   }
 

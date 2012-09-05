@@ -630,8 +630,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Member member = itype.lookupMember(methodName);
       if (member == null && problemTarget != null) {
         if (typeChecksForInferredTypes || !receiver.isInferred()) {
-          typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
-              methodName);
+          ErrorCode code = receiver.isInferred()
+              ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
+              : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
+          typeError(problemTarget, code, receiver, methodName);
         }
         return null;
       }
@@ -944,7 +946,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       // do check and report error
       if (!types.isAssignable(t, s)) {
-        typeError(node, TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+        TypeErrorCode errorCode = t.isInferred() || s.isInferred()
+            ? TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED
+            : TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE;
+        typeError(node, errorCode, s, t);
         return false;
       }
       // OK
@@ -1015,7 +1020,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         default:
           if (typeChecksForInferredTypes || !receiver.isInferred()) {
-            typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
+            TypeErrorCode errorCode = receiver.isInferred()
+                ? TypeErrorCode.NOT_A_METHOD_IN_INFERRED : TypeErrorCode.NOT_A_METHOD_IN;
+            typeError(diagnosticNode, errorCode, name, receiver);
           }
           return dynamicType;
       }
@@ -2237,7 +2244,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
         if (typeChecksForInferredTypes || !receiver.isInferred()) {
-          typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
+          TypeErrorCode errorCode = receiver.isInferred() ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED
+              : TypeErrorCode.NOT_A_MEMBER_OF;
+          typeError(node.getName(), errorCode, name, cls);
         }
         return dynamicType;
       }
