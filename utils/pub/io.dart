@@ -325,7 +325,8 @@ Future<String> httpGetString(uri) {
 
   connection.onError = (e) {
     // Show a friendly error if the URL couldn't be resolved.
-    if (e is SocketIOException && e.osError.errorCode == 8) {
+    if (e is SocketIOException &&
+        (e.osError.errorCode == 8 || e.osError.errorCode == -2)) {
       e = 'Could not resolve URL "${uri.origin}".';
     }
 
