@@ -2017,6 +2017,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
+  /**
+   * We should infer types only if variable declared without type.
+   */
+  public void test_typesPropagation_dontChangeDeclaredType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {}",
+        "main() {",
+        "  B v = new B();",
+        "  var v1 = v;",
+        "  v = new A();",
+        "  var v2 = v;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v1", "B");
+    assertInferredElementTypeString(testUnit, "v2", "B");
+  }
+
   public void test_typesPropagation_multiAssign() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",

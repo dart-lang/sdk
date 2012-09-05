@@ -198,9 +198,24 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
       void setType(VariableElement element, Type newType) {
-        rememberOldType(element, element.getType());
-        newTypes.put(element, newType);
-        Elements.setType(element, newType);
+        if (canSetType(element)) {
+          rememberOldType(element, element.getType());
+          newTypes.put(element, newType);
+          Elements.setType(element, newType);
+        }
+      }
+      boolean canSetType(VariableElement element) {
+        Type type = element.getType();
+        // no type declared, no assignment yet
+        if (TypeKind.of(type) == TypeKind.DYNAMIC) {
+          return true;
+        }
+        // was assignment, inferred
+        if (type != null && type.isInferred()) {
+          return true;
+        }
+        // was declared with type, keep it
+        return false;
       }
       Map<VariableElement, Type> getNewTypesAndRestoreOld() {
         for (Entry<VariableElement, Type> entry : oldTypes.entrySet()) {
@@ -262,8 +277,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void onError(SourceInfo errorTarget, ErrorCode errorCode, Object... arguments) {
-      Source source = errorTarget.getSource();
       if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
+        Source source = errorTarget.getSource();
         if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
           return;
         }
