@@ -8,7 +8,7 @@
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
-assert_with_type_test_or_cast_test.dart: Fail # Issue 4929
+assert_with_type_test_or_cast_test: Fail # Issue 4929
 assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
