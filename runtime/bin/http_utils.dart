@@ -94,9 +94,9 @@ class _HttpUtils {
 
   // Format as RFC 1123 date.
   static String formatDate(Date date) {
-    List wkday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    List month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const List wkday = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const List month = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     Date d = date.toUtc();
     StringBuffer sb = new StringBuffer();
@@ -119,16 +119,19 @@ class _HttpUtils {
 
   static Date parseDate(String date) {
     final int SP = 32;
-    List wkdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    List weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday",
-                     "Friday", "Saturday", "Sunday"];
-    List months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    List wkdaysLowerCase = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-    List weekdaysLowerCase = ["monday", "tuesday", "wednesday", "thursday",
-                              "friday", "saturday", "sunday"];
-    List monthsLowerCase = ["jan", "feb", "mar", "apr", "may", "jun",
-                            "jul", "aug", "sep", "oct", "nov", "dec"];
+    const List wkdays = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const List weekdays = const ["Monday", "Tuesday", "Wednesday", "Thursday",
+                           "Friday", "Saturday", "Sunday"];
+    const List months = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const List wkdaysLowerCase =
+        const ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+    const List weekdaysLowerCase = const ["monday", "tuesday", "wednesday",
+                                          "thursday", "friday", "saturday",
+                                          "sunday"];
+    const List monthsLowerCase = const ["jan", "feb", "mar", "apr", "may",
+                                        "jun", "jul", "aug", "sep", "oct",
+                                        "nov", "dec"];
 
     final int formatRfc1123 = 0;
     final int formatRfc850 = 1;
@@ -244,8 +247,9 @@ class _HttpUtils {
   }
 
   static Date parseCookieDate(String date) {
-    List monthsLowerCase = ["jan", "feb", "mar", "apr", "may", "jun",
-                            "jul", "aug", "sep", "oct", "nov", "dec"];
+    const List monthsLowerCase = const ["jan", "feb", "mar", "apr", "may",
+                                        "jun", "jul", "aug", "sep", "oct",
+                                        "nov", "dec"];
 
     int position = 0;
 
@@ -326,7 +330,9 @@ class _HttpUtils {
     }
 
     if (timeStr === null || dayOfMonthStr === null ||
-        monthStr === null || yearStr === null) error();
+        monthStr === null || yearStr === null) {
+      error();
+    }
 
     int year = toInt(yearStr);
     if (year >= 70 && year <= 99) year += 1900;
