@@ -180,24 +180,26 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstantInt(int i) {
-    return addConstant(new IntConstant(i));
+  HConstant addConstantInt(int i, ConstantSystem constantSystem) {
+    return addConstant(constantSystem.createInt(i));
   }
 
-  HConstant addConstantDouble(double d) {
-    return addConstant(new DoubleConstant(d));
+  HConstant addConstantDouble(double d, ConstantSystem constantSystem) {
+    return addConstant(constantSystem.createDouble(d));
   }
 
-  HConstant addConstantString(DartString str, Node node) {
-    return addConstant(new StringConstant(str, node));
+  HConstant addConstantString(DartString str,
+                              Node diagnosticNode,
+                              ConstantSystem constantSystem) {
+    return addConstant(constantSystem.createString(str, diagnosticNode));
   }
 
-  HConstant addConstantBool(bool value) {
-    return addConstant(new BoolConstant(value));
+  HConstant addConstantBool(bool value, ConstantSystem constantSystem) {
+    return addConstant(constantSystem.createBool(value));
   }
 
-  HConstant addConstantNull() {
-    return addConstant(new NullConstant());
+  HConstant addConstantNull(ConstantSystem constantSystem) {
+    return addConstant(constantSystem.createNull());
   }
 
   void finalize() {
@@ -1518,7 +1520,7 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get left => inputs[1];
   HInstruction get right => inputs[2];
 
-  abstract BinaryOperation get operation;
+  abstract BinaryOperation operation(ConstantSystem constantSystem);
   abstract isBuiltin(HTypeMap types);
 }
 
@@ -1579,7 +1581,7 @@ class HBinaryArithmetic extends HInvokeBinary {
   }
 
   // TODO(1603): The class should be marked as abstract.
-  abstract BinaryOperation get operation;
+  abstract BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -1587,7 +1589,8 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  AddOperation get operation => const AddOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.add;
   int typeCode() => HInstruction.ADD_TYPECODE;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
@@ -1610,7 +1613,8 @@ class HDivide extends HBinaryArithmetic {
     return super.computeDesiredTypeForNonTargetInput(input, types);
   }
 
-  DivideOperation get operation => const DivideOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.divide;
   int typeCode() => HInstruction.DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1621,7 +1625,8 @@ class HModulo extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitModulo(this);
 
-  ModuloOperation get operation => const ModuloOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.modulo;
   int typeCode() => HInstruction.MODULO_TYPECODE;
   bool typeEquals(other) => other is HModulo;
   bool dataEquals(HInstruction other) => true;
@@ -1632,7 +1637,8 @@ class HMultiply extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
-  MultiplyOperation get operation => const MultiplyOperation();
+  BinaryOperation operation(ConstantSystem operations)
+      => operations.multiply;
   int typeCode() => HInstruction.MULTIPLY_TYPECODE;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
@@ -1643,7 +1649,8 @@ class HSubtract extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
-  SubtractOperation get operation => const SubtractOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.subtract;
   int typeCode() => HInstruction.SUBTRACT_TYPECODE;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
@@ -1677,8 +1684,8 @@ class HTruncatingDivide extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  TruncatingDivideOperation get operation
-      => const TruncatingDivideOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.truncatingDivide;
   int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1734,7 +1741,8 @@ class HShiftLeft extends HBinaryBitOp {
     return count >= 0 && count <= 31;
   }
 
-  ShiftLeftOperation get operation => const ShiftLeftOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.shiftLeft;
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
@@ -1748,7 +1756,8 @@ class HShiftRight extends HBinaryBitOp {
   // Shift right cannot be mapped to the native operator easily.
   bool isBuiltin(HTypeMap types) => false;
 
-  ShiftRightOperation get operation => const ShiftRightOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.shiftRight;
   int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
@@ -1759,7 +1768,8 @@ class HBitOr extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  BitOrOperation get operation => const BitOrOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.bitOr;
   int typeCode() => HInstruction.BIT_OR_TYPECODE;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
@@ -1770,7 +1780,8 @@ class HBitAnd extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  BitAndOperation get operation => const BitAndOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.bitAnd;
   int typeCode() => HInstruction.BIT_AND_TYPECODE;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
@@ -1781,7 +1792,8 @@ class HBitXor extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  BitXorOperation get operation => const BitXorOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.bitXor;
   int typeCode() => HInstruction.BIT_XOR_TYPECODE;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
@@ -1826,14 +1838,15 @@ class HInvokeUnary extends HInvokeStatic {
 
   HType computeLikelyType(HTypeMap types) => HType.NUMBER;
 
-  abstract UnaryOperation get operation;
+  abstract UnaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HNegate extends HInvokeUnary {
   HNegate(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  NegateOperation get operation => const NegateOperation();
+  UnaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.negate;
   int typeCode() => HInstruction.NEGATE_TYPECODE;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
@@ -1861,7 +1874,8 @@ class HBitNot extends HInvokeUnary {
     return HType.UNKNOWN;
   }
 
-  BitNotOperation get operation => const BitNotOperation();
+  UnaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
@@ -2161,7 +2175,7 @@ class HRelational extends HInvokeBinary {
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
   // TODO(1603): the class should be marked as abstract.
-  abstract BinaryOperation get operation;
+  abstract BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HEquals extends HRelational {
@@ -2208,7 +2222,8 @@ class HEquals extends HRelational {
     return HType.UNKNOWN;
   }
 
-  EqualsOperation get operation => const EqualsOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.equal;
   int typeCode() => HInstruction.EQUALS_TYPECODE;
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
@@ -2228,7 +2243,8 @@ class HIdentity extends HRelational {
   HType computeDesiredTypeForInput(HInstruction input, HTypeMap types)
       => HType.UNKNOWN;
 
-  IdentityOperation get operation => const IdentityOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.identity;
   int typeCode() => HInstruction.IDENTITY_TYPECODE;
   bool typeEquals(other) => other is HIdentity;
   bool dataEquals(HInstruction other) => true;
@@ -2239,7 +2255,8 @@ class HGreater extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
-  GreaterOperation get operation => const GreaterOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.greater;
   int typeCode() => HInstruction.GREATER_TYPECODE;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
@@ -2250,7 +2267,8 @@ class HGreaterEqual extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
-  GreaterEqualOperation get operation => const GreaterEqualOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.greaterEqual;
   int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
@@ -2261,7 +2279,8 @@ class HLess extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
-  LessOperation get operation => const LessOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.less;
   int typeCode() => HInstruction.LESS_TYPECODE;
   bool typeEquals(other) => other is HLess;
   bool dataEquals(HInstruction other) => true;
@@ -2272,7 +2291,8 @@ class HLessEqual extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
-  LessEqualOperation get operation => const LessEqualOperation();
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.lessEqual;
   int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;

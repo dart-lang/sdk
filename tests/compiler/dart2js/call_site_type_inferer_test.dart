@@ -47,7 +47,7 @@ const String TEST_4 = @"""
   class A {
     x(p) => x(p - 1);
   }
-  main() { new A().x(1.0); }
+  main() { new A().x(1.5); }
 """;
 
 const String TEST_5 = @"""
@@ -56,7 +56,7 @@ const String TEST_5 = @"""
   }
   main() {
     new A().x(1);
-    new A().x(1.0);
+    new A().x(1.5);
   }
 """;
 
@@ -65,7 +65,7 @@ const String TEST_6 = @"""
     x(p) => p;
   }
   main() {
-    new A().x(1.0);
+    new A().x(1.5);
     new A().x(1);
   }
 """;

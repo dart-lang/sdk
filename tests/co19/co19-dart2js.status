@@ -746,6 +746,12 @@ LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedO
 LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Runtime error: Expect.throws() fails.
 
+LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Expects negative result from bit-operation.
+LibTest/core/int/operator_XOR_A01_t01: Fail, OK # Requires bigints.
+LibTest/core/int/operator_AND_A01_t01: Fail, OK # Requires bigints.
+LibTest/core/int/operator_right_shift_A01_t01: Fail, OK # Expects negative result from bit-operation.
+LibTest/core/int/operator_OR_A01_t01: Fail, OK # Requires bigints.
+LibTest/core/int/operator_remainder_A01_t01: Fail, OK # Requires bigints.
 
 # These test cases use the deprecated Isolate API and should be updated to
 # use spawnFunction: issue ...
@@ -936,10 +942,6 @@ LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # Co19 Issue 114.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # Co19 Issue 113.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects negative result from bit-operation.
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A01_t07: Fail, OK # Expects negative result from bit-operation.
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A01_t08: Fail, OK # Expects negative result from bit-operation.
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A01_t09: Fail, OK # Expects negative result from bit-operation.
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A01_t11: Fail, OK # Expects negative result from bit-operation.
 Language/13_Types/4_Interface_Types_A12_t10: Fail, OK # Type test assuming int != double.
 
 

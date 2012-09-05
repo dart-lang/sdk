@@ -8,7 +8,6 @@ dartdoc_test: Fail # http://dartbug.com/4540
 *: Skip
 
 [ $compiler == dart2js ]
-utf8_test: Fail # compiler cancelled: Unhandled non-BMP character: U+10412
 dummy_compiler_test: Slow, Pass
 
 [ $compiler == none && $runtime == drt ]

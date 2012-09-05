@@ -41,6 +41,18 @@ class A {
   }
 }
 
+
+test4(bool passed, [a]) {
+  if (passed) {
+    Expect.equals(54, a);
+    Expect.isTrue(?a);
+  } else {
+    Expect.equals(null, a);
+    Expect.isFalse(?a);
+  }
+  Expect.isTrue(?passed);
+}
+
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 main() {
@@ -62,4 +74,7 @@ main() {
   closure = things[inscrutable(2)];
   closure(true, 54);
   closure(false);
+
+  test4(true, 54);
+  test4(false);
 }

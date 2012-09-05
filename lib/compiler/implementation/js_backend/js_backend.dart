@@ -17,6 +17,7 @@
 #import('../util/util.dart');
 
 #source('backend.dart');
+#source('constant_system_javascript.dart');
 #source('emitter.dart');
 #source('function_set.dart');
 #source('native_emitter.dart');

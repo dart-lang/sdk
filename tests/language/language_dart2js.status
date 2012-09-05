@@ -48,10 +48,13 @@ type_parameter_test/04: Fail # Issue 4932
 assertion_test: Fail
 
 [ $compiler == dart2js ]
+positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
+
 getter_declaration_negative_test: Fail # This will be fixed when dart2js reject old getter syntax.
 
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
+canonical_const_test: Fail # We don't take the generic type into account yet.
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
@@ -64,7 +67,6 @@ const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
-comparison_test: Fail # Issue 4551
 constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
@@ -114,7 +116,6 @@ named_parameters4_test: Fail # Unimplemented non-matching static call
 named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
 named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.
-operator6_test: Fail # Constant folding of bit-operations does not agree with runtime behavior. Issue 2887.
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
@@ -254,12 +255,15 @@ final_syntax_test/04: Fail # Missing error for uninitialized final field.
 const_syntax_test/01: Fail # Missing error for uninitialized final field.
 const_syntax_test/02: Fail # Missing error for uninitialized final field.
 const_syntax_test/03: Fail # Missing error for uninitialized final field.
-div_by_zero_test: Fail, OK # Leg only has doubles.
+
+canonical_const2_test: Fail, OK # Dart2js only has doubles.
+div_by_zero_test: Fail, OK # Dart2js only has doubles.
+
 bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
 # The following test will start to fail again once dart2js implements the
 # runtime semantics for numbers.
 # Should be: Fail, OK # Expects negative results of bit-operations.
-optimization_test: Pass
+optimization_test: Fail, OK # Expects negative results of bit-operations.
 
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
 reg_exp3_test: Fail, OK # Expects exception from const constructor.

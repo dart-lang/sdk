@@ -2,15 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Operation {
-  final SourceString name;
-  bool isUserDefinable();
-}
-
-interface UnaryOperation extends Operation {
-  /** Returns [:null:] if it was unable to fold the operation. */
-  Constant fold(Constant constant);
-}
+const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 
 class BitNotOperation implements UnaryOperation {
   final SourceString name = const SourceString('~');
@@ -19,7 +11,7 @@ class BitNotOperation implements UnaryOperation {
   Constant fold(Constant constant) {
     if (constant.isInt()) {
       IntConstant intConstant = constant;
-      return new IntConstant(~intConstant.value);
+      return DART_CONSTANT_SYSTEM.createInt(~intConstant.value);
     }
     return null;
   }
@@ -32,11 +24,11 @@ class NegateOperation implements UnaryOperation {
   Constant fold(Constant constant) {
     if (constant.isInt()) {
       IntConstant intConstant = constant;
-      return new IntConstant(-intConstant.value);
+      return DART_CONSTANT_SYSTEM.createInt(-intConstant.value);
     }
     if (constant.isDouble()) {
       DoubleConstant doubleConstant = constant;
-      return new DoubleConstant(-doubleConstant.value);
+      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.value);
     }
     return null;
   }
@@ -49,30 +41,25 @@ class NotOperation implements UnaryOperation {
   Constant fold(Constant constant) {
     if (constant.isBool()) {
       BoolConstant boolConstant = constant;
-      return boolConstant.negate();
+      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.value);
     }
     return null;
   }
 }
 
-interface BinaryOperation extends Operation {
-  /** Returns [:null:] if it was unable to fold the operation. */
-  Constant fold(Constant left, Constant right);
-}
-
 /**
  * Operations that only work if both arguments are integers.
  */
-class BinaryIntOperation implements BinaryOperation {
+class BinaryBitOperation implements BinaryOperation {
   bool isUserDefinable() => true;
-  const BinaryIntOperation();
+  const BinaryBitOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isInt() && right.isInt()) {
       IntConstant leftInt = left;
       IntConstant rightInt = right;
       int resultValue = foldInts(leftInt.value, rightInt.value);
       if (resultValue === null) return null;
-      return new IntConstant(resultValue);
+      return DART_CONSTANT_SYSTEM.createInt(resultValue);
     }
     return null;
   }
@@ -80,25 +67,25 @@ class BinaryIntOperation implements BinaryOperation {
   abstract int foldInts(int left, int right);
 }
 
-class BitOrOperation extends BinaryIntOperation {
+class BitOrOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('|');
   const BitOrOperation();
   int foldInts(int left, int right)  => left | right;
 }
 
-class BitAndOperation extends BinaryIntOperation {
+class BitAndOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('&');
   const BitAndOperation();
   int foldInts(int left, int right) => left & right;
 }
 
-class BitXorOperation extends BinaryIntOperation {
+class BitXorOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('^');
   const BitXorOperation();
   int foldInts(int left, int right) => left ^ right;
 }
 
-class ShiftLeftOperation extends BinaryIntOperation {
+class ShiftLeftOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('<<');
   const ShiftLeftOperation();
   int foldInts(int left, int right) {
@@ -109,7 +96,7 @@ class ShiftLeftOperation extends BinaryIntOperation {
   }
 }
 
-class ShiftRightOperation extends BinaryIntOperation {
+class ShiftRightOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('>>');
   const ShiftRightOperation();
   int foldInts(int left, int right) {
@@ -126,7 +113,7 @@ class BinaryBoolOperation implements BinaryOperation {
       BoolConstant leftBool = left;
       BoolConstant rightBool = right;
       bool resultValue = foldBools(leftBool.value, rightBool.value);
-      return new BoolConstant(resultValue);
+      return DART_CONSTANT_SYSTEM.createBool(resultValue);
     }
     return null;
   }
@@ -134,15 +121,15 @@ class BinaryBoolOperation implements BinaryOperation {
   abstract bool foldBools(bool left, bool right);
 }
 
-class BooleanAnd extends BinaryBoolOperation {
+class BooleanAndOperation extends BinaryBoolOperation {
   final SourceString name = const SourceString('&&');
-  const BooleanAnd();
+  const BooleanAndOperation();
   bool foldBools(bool left, bool right) => left && right;
 }
 
-class BooleanOr extends BinaryBoolOperation {
+class BooleanOrOperation extends BinaryBoolOperation {
   final SourceString name = const SourceString('||');
-  const BooleanOr();
+  const BooleanOrOperation();
   bool foldBools(bool left, bool right) => left || right;
 }
 
@@ -163,9 +150,9 @@ class ArithmeticNumOperation implements BinaryOperation {
       if (foldedValue === null) return null;
       if (left.isInt() && right.isInt() && !isDivide()) {
         assert(foldedValue is int);
-        return new IntConstant(foldedValue);
+        return DART_CONSTANT_SYSTEM.createInt(foldedValue);
       } else {
-        return new DoubleConstant(foldedValue);
+        return DART_CONSTANT_SYSTEM.createDouble(foldedValue);
       }
     }
     return null;
@@ -223,11 +210,13 @@ class AddOperation implements BinaryOperation {
     if (left.isInt() && right.isInt()) {
       IntConstant leftInt = left;
       IntConstant rightInt = right;
-      return new IntConstant(leftInt.value + rightInt.value);
+      int result = leftInt.value + rightInt.value;
+      return DART_CONSTANT_SYSTEM.createInt(result);
     } else if (left.isNum() && right.isNum()) {
       NumConstant leftNum = left;
       NumConstant rightNum = right;
-      return new DoubleConstant(leftNum.value + rightNum.value);
+      double result = leftNum.value + rightNum.value;
+      return DART_CONSTANT_SYSTEM.createDouble(result);
     } else {
       return null;
     }
@@ -243,7 +232,7 @@ class RelationalNumOperation implements BinaryOperation {
       NumConstant rightNum = right;
       bool foldedValue = foldNums(leftNum.value, rightNum.value);
       assert(foldedValue != null);
-      return new BoolConstant(foldedValue);
+      return DART_CONSTANT_SYSTEM.createBool(foldedValue);
     }
   }
 
@@ -284,14 +273,15 @@ class EqualsOperation implements BinaryOperation {
       // and 1 == 1.0.
       NumConstant leftNum = left;
       NumConstant rightNum = right;
-      return new BoolConstant(leftNum.value == rightNum.value);
+      bool result = leftNum.value == rightNum.value;
+      return DART_CONSTANT_SYSTEM.createBool(result);
     }
     if (left.isConstructedObject()) {
       // Unless we know that the user-defined object does not implement the
       // equality operator we cannot fold here.
       return null;
     }
-    return new BoolConstant(left == right);
+    return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
 }
 
@@ -299,11 +289,57 @@ class IdentityOperation implements BinaryOperation {
   final SourceString name = const SourceString('===');
   bool isUserDefinable() => false;
   const IdentityOperation();
-  Constant fold(Constant left, Constant right) {
+  BoolConstant fold(Constant left, Constant right) {
     // In order to preserve runtime semantics which says that NaN !== NaN don't
     // constant fold NaN === NaN. Otherwise the output depends on inlined
     // variables and other optimizations.
     if (left.isNaN() && right.isNaN()) return null;
-    return new BoolConstant(left == right);
+    return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
+}
+
+/**
+ * A constant system implementing the Dart semantics. This system relies on
+ * the underlying runtime-system. That is, if dart2js is run in an environment
+ * that doesn't correctly implement Dart's semantics this constant system will
+ * not return the correct values.
+ */
+class DartConstantSystem implements ConstantSystem {
+  const add = const AddOperation();
+  const bitAnd = const BitAndOperation();
+  const bitNot = const BitNotOperation();
+  const bitOr = const BitOrOperation();
+  const bitXor = const BitXorOperation();
+  const booleanAnd = const BooleanAndOperation();
+  const booleanOr = const BooleanOrOperation();
+  const divide = const DivideOperation();
+  const equal = const EqualsOperation();
+  const greaterEqual = const GreaterEqualOperation();
+  const greater = const GreaterOperation();
+  const identity = const IdentityOperation();
+  const lessEqual = const LessEqualOperation();
+  const less = const LessOperation();
+  const modulo = const ModuloOperation();
+  const multiply = const MultiplyOperation();
+  const negate = const NegateOperation();
+  const not = const NotOperation();
+  const shiftLeft = const ShiftLeftOperation();
+  const shiftRight = const ShiftRightOperation();
+  const subtract = const SubtractOperation();
+  const truncatingDivide = const TruncatingDivideOperation();
+
+  const DartConstantSystem();
+
+  IntConstant createInt(int i) => new IntConstant(i);
+  DoubleConstant createDouble(double d) => new DoubleConstant(d);
+  StringConstant createString(DartString string, Node diagnosticNode)
+      => new StringConstant(string, diagnosticNode);
+  BoolConstant createBool(bool value) => new BoolConstant(value);
+  NullConstant createNull() => new NullConstant();
+
+  bool isInt(Constant constant) => constant.isInt();
+  bool isDouble(Constant constant) => constant.isDouble();
+  bool isString(Constant constant) => constant.isString();
+  bool isBool(Constant constant) => constant.isBool();
+  bool isNull(Constant constant) => constant.isNull();
 }

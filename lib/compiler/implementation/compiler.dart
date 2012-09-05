@@ -53,8 +53,11 @@ class WorkItem {
 
 class Backend {
   final Compiler compiler;
+  final ConstantSystem constantSystem;
 
-  Backend(this.compiler);
+  Backend(this.compiler,
+          [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
+      : this.constantSystem = constantSystem;
 
   void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
     lib.forEachExport((Element e) {
@@ -182,7 +185,7 @@ class Compiler implements DiagnosticListener {
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
             this.enableMinification = false,
-            bool emitJavascript = true,
+            bool emitJavaScript = true,
             bool generateSourceMap = true,
             bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
@@ -190,7 +193,6 @@ class Compiler implements DiagnosticListener {
         progress = new Stopwatch() {
     progress.start();
     namer = new Namer(this);
-    constantHandler = new ConstantHandler(this);
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
@@ -200,9 +202,10 @@ class Compiler implements DiagnosticListener {
     closureToClassMapper = new closureMapping.ClosureTask(this);
     checker = new TypeCheckerTask(this);
     typesTask = new ti.TypesTask(this);
-    backend = emitJavascript ?
+    backend = emitJavaScript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
         new dart_backend.DartBackend(this, cutDeclarationTypes);
+    constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
              checker, typesTask, constantHandler, enqueuer];

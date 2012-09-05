@@ -321,7 +321,7 @@ class JavaScriptBackend extends Backend {
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
-        super(compiler) {
+        super(compiler, constantSystem: JAVA_SCRIPT_CONSTANT_SYSTEM) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);

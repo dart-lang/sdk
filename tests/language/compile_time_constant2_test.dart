@@ -4,13 +4,14 @@
 
 const x = 19;
 const y = 3;
+const z = -5;
 const g1 = x + y;
 const g2 = x * y;
 const g3 = x / y;
 const g4 = x ~/ y;
 const g5 = x << y;
 const g6 = x >> y;
-const g7 = ~x;
+const g7 = ~z;
 const g8 = -x;
 const g9 = x < y;
 const g10 = x <= y;
@@ -35,7 +36,7 @@ main() {
   Expect.equals(6, g4);
   Expect.equals(152, g5);
   Expect.equals(2, g6);
-  Expect.equals(-20, g7);
+  Expect.equals(4, g7);
   Expect.equals(-19, g8);
   Expect.equals(false, g9);
   Expect.equals(false, g10);
@@ -50,6 +51,6 @@ main() {
   Expect.equals(19, g19);
   Expect.equals(3, g20);
   Expect.equals(16, g21);
-  Expect.equals(200, g22);
+  Expect.equals(224, g22);
   Expect.equals(1, g23);
 }

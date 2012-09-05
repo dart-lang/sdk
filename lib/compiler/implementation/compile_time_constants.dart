@@ -24,6 +24,7 @@ class Constant implements Hashable {
   bool isSentinel() => false;
 
   bool isNaN() => false;
+  bool isMinusZero() => false;
 
   abstract void _writeJsCode(CodeBuffer buffer, ConstantHandler handler);
   /**
@@ -193,6 +194,8 @@ class DoubleConstant extends NumConstant {
   const DoubleConstant._internal(this.value);
   bool isDouble() => true;
   bool isNaN() => value.isNaN();
+  // We need to check for the negative sign since -0.0 == 0.0.
+  bool isMinusZero() => value == 0.0 && value.isNegative();
 
   void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     if (value.isNaN()) {
@@ -229,11 +232,6 @@ class BoolConstant extends PrimitiveConstant {
   }
   const BoolConstant._internal();
   bool isBool() => true;
-
-  BoolConstant unaryFold(String op) {
-    if (op == "!") return new BoolConstant(!value);
-    return null;
-  }
 
   abstract BoolConstant negate();
 }
@@ -534,6 +532,8 @@ class ConstructedConstant extends ObjectConstant {
  * optional parameters.
  */
 class ConstantHandler extends CompilerTask {
+  final ConstantSystem constantSystem;
+
   /**
    * Contains the initial value of fields. Must contain all static and global
    * initializations of const fields. May contain eagerly compiled values for
@@ -551,7 +551,7 @@ class ConstantHandler extends CompilerTask {
   final Set<VariableElement> lazyStatics;
 
 
-  ConstantHandler(Compiler compiler)
+  ConstantHandler(Compiler compiler, this.constantSystem)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
         compiledConstants = new Map<Constant, String>(),
         pendingVariables = new Set<VariableElement>(),
@@ -670,8 +670,8 @@ class ConstantHandler extends CompilerTask {
                                       [bool isConst]) {
     return measure(() {
       assert(node !== null);
-      CompileTimeConstantEvaluator evaluator =
-          new CompileTimeConstantEvaluator(definitions, compiler, isConst);
+      CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
+          constantSystem, definitions, compiler, isConst);
       return evaluator.evaluate(node);
     });
   }
@@ -682,7 +682,9 @@ class ConstantHandler extends CompilerTask {
       assert(node !== null);
       try {
         TryCompileTimeConstantEvaluator evaluator =
-            new TryCompileTimeConstantEvaluator(definitions, compiler);
+            new TryCompileTimeConstantEvaluator(constantSystem,
+                                                definitions,
+                                                compiler);
         return evaluator.evaluate(node);
       } on CompileTimeConstantError catch (exn) {
         return null;
@@ -824,10 +826,14 @@ class ConstantHandler extends CompilerTask {
 
 class CompileTimeConstantEvaluator extends AbstractVisitor {
   bool isEvaluatingConstant;
+  final ConstantSystem constantSystem;
   final TreeElements elements;
   final Compiler compiler;
 
-  CompileTimeConstantEvaluator(this.elements, this.compiler, [bool isConst])
+  CompileTimeConstantEvaluator(this.constantSystem,
+                               this.elements,
+                               this.compiler,
+                               [bool isConst])
       : this.isEvaluatingConstant = isConst;
 
   Constant evaluate(Node node) {
@@ -848,15 +854,15 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralBool(LiteralBool node) {
-    return new BoolConstant(node.value);
+    return constantSystem.createBool(node.value);
   }
 
   Constant visitLiteralDouble(LiteralDouble node) {
-    return new DoubleConstant(node.value);
+    return constantSystem.createDouble(node.value);
   }
 
   Constant visitLiteralInt(LiteralInt node) {
-    return new IntConstant(node.value);
+    return constantSystem.createInt(node.value);
   }
 
   Constant visitLiteralList(LiteralList node) {
@@ -924,19 +930,19 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralNull(LiteralNull node) {
-    return new NullConstant();
+    return constantSystem.createNull();
   }
 
   Constant visitLiteralString(LiteralString node) {
-    return new StringConstant(node.dartString, node);
+    return constantSystem.createString(node.dartString, node);
   }
 
   Constant visitStringJuxtaposition(StringJuxtaposition node) {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
-    return new StringConstant(new DartString.concat(left.value, right.value),
-                              node);
+    return constantSystem.createString(
+        new DartString.concat(left.value, right.value), node);
   }
 
   Constant visitStringInterpolation(StringInterpolation node) {
@@ -960,7 +966,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
-    return new StringConstant(accumulator, node);
+    return constantSystem.createString(accumulator, node);
   }
 
   // TODO(floitsch): provide better error-messages.
@@ -993,13 +999,13 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       Constant folded;
       switch (op.source.stringValue) {
         case "!":
-          folded = const NotOperation().fold(receiverConstant);
+          folded = constantSystem.not.fold(receiverConstant);
           break;
         case "-":
-          folded = const NegateOperation().fold(receiverConstant);
+          folded = constantSystem.negate.fold(receiverConstant);
           break;
         case "~":
-          folded = const BitNotOperation().fold(receiverConstant);
+          folded = constantSystem.bitNot.fold(receiverConstant);
           break;
         default:
           compiler.internalError("Unexpected operator.", node: op);
@@ -1016,69 +1022,69 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       Constant folded = null;
       switch (op.source.stringValue) {
         case "+":
-          folded = const AddOperation().fold(left, right);
+          folded = constantSystem.add.fold(left, right);
           break;
         case "-":
-          folded = const SubtractOperation().fold(left, right);
+          folded = constantSystem.subtract.fold(left, right);
           break;
         case "*":
-          folded = const MultiplyOperation().fold(left, right);
+          folded = constantSystem.multiply.fold(left, right);
           break;
         case "/":
-          folded = const DivideOperation().fold(left, right);
+          folded = constantSystem.divide.fold(left, right);
           break;
         case "%":
-          folded = const ModuloOperation().fold(left, right);
+          folded = constantSystem.modulo.fold(left, right);
           break;
         case "~/":
-          folded = const TruncatingDivideOperation().fold(left, right);
+          folded = constantSystem.truncatingDivide.fold(left, right);
           break;
         case "|":
-          folded = const BitOrOperation().fold(left, right);
+          folded = constantSystem.bitOr.fold(left, right);
           break;
         case "&":
-          folded = const BitAndOperation().fold(left, right);
+          folded = constantSystem.bitAnd.fold(left, right);
           break;
         case "^":
-          folded = const BitXorOperation().fold(left, right);
+          folded = constantSystem.bitXor.fold(left, right);
           break;
         case "||":
-          folded = const BooleanOr().fold(left, right);
+          folded = constantSystem.booleanOr.fold(left, right);
           break;
         case "&&":
-          folded = const BooleanAnd().fold(left, right);
+          folded = constantSystem.booleanAnd.fold(left, right);
           break;
         case "<<":
-          folded = const ShiftLeftOperation().fold(left, right);
+          folded = constantSystem.shiftLeft.fold(left, right);
           break;
         case ">>":
-          folded = const ShiftRightOperation().fold(left, right);
+          folded = constantSystem.shiftRight.fold(left, right);
           break;
         case "<":
-          folded = const LessOperation().fold(left, right);
+          folded = constantSystem.less.fold(left, right);
           break;
         case "<=":
-          folded = const LessEqualOperation().fold(left, right);
+          folded = constantSystem.lessEqual.fold(left, right);
           break;
         case ">":
-          folded = const GreaterOperation().fold(left, right);
+          folded = constantSystem.greater.fold(left, right);
           break;
         case ">=":
-          folded = const GreaterEqualOperation().fold(left, right);
+          folded = constantSystem.greaterEqual.fold(left, right);
           break;
         case "==":
           if (left.isPrimitive() && right.isPrimitive()) {
-            folded = const EqualsOperation().fold(left, right);
+            folded = constantSystem.equal.fold(left, right);
           }
           break;
         case "===":
           if (left.isPrimitive() && right.isPrimitive()) {
-            folded = const IdentityOperation().fold(left, right);
+            folded = constantSystem.identity.fold(left, right);
           }
           break;
         case "!=":
           if (left.isPrimitive() && right.isPrimitive()) {
-            BoolConstant areEquals = const EqualsOperation().fold(left, right);
+            BoolConstant areEquals = constantSystem.equal.fold(left, right);
             if (areEquals === null) {
               folded = null;
             } else {
@@ -1089,7 +1095,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         case "!==":
           if (left.isPrimitive() && right.isPrimitive()) {
             BoolConstant areIdentical =
-                const IdentityOperation().fold(left, right);
+                constantSystem.identity.fold(left, right);
             if (areIdentical === null) {
               folded = null;
             } else {
@@ -1144,7 +1150,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     List<Constant> arguments =
         evaluateArgumentsToConstructor(selector, send.arguments, constructor);
     ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(constructor, compiler);
+        new ConstructorEvaluator(constructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
@@ -1181,8 +1187,10 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 }
 
 class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
-  TryCompileTimeConstantEvaluator(TreeElements elements, Compiler compiler):
-      super(elements, compiler, isConst: true);
+  TryCompileTimeConstantEvaluator(ConstantSystem constantSystem,
+                                  TreeElements elements,
+                                  Compiler compiler)
+      : super(constantSystem, elements, compiler, isConst: true);
 
   error(Node node) {
     // Just fail without reporting it anywhere.
@@ -1196,11 +1204,14 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final Map<Element, Constant> definitions;
   final Map<Element, Constant> fieldValues;
 
-  ConstructorEvaluator(FunctionElement constructor, Compiler compiler)
+  ConstructorEvaluator(FunctionElement constructor,
+                       ConstantSystem constantSystem,
+                       Compiler compiler)
       : this.constructor = constructor,
         this.definitions = new Map<Element, Constant>(),
         this.fieldValues = new Map<Element, Constant>(),
-        super(compiler.resolver.resolveMethodElement(constructor),
+        super(constantSystem,
+              compiler.resolver.resolveMethodElement(constructor),
               compiler,
               isConst: true);
 
@@ -1241,8 +1252,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     List<Constant> compiledArguments =
         evaluateArgumentsToConstructor(selector, arguments, targetConstructor);
 
-    ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(targetConstructor, compiler);
+    ConstructorEvaluator evaluator = new ConstructorEvaluator(
+        targetConstructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
     evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
