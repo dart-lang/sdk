@@ -37,7 +37,7 @@ class Builtin {
 
   static Dart_Handle Source(BuiltinLibraryId id);
   static void SetupLibrary(Dart_Handle library, BuiltinLibraryId id);
-  static Dart_Handle LoadLibrary(BuiltinLibraryId id);
+  static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);
   static void ImportLibrary(Dart_Handle library, BuiltinLibraryId id);
   static void PrintString(FILE* out, Dart_Handle object);
   static void SetupIOLibrary(Dart_Handle io_lib);

@@ -279,7 +279,8 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       return url;
     }
     // Resolve the url within the context of the library's URL.
-    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
       return library_url;
@@ -310,10 +311,11 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
-    return Builtin::LoadLibrary(id);
+    return Builtin::LoadAndCheckLibrary(id);
   } else {
     // Get the file path out of the url.
-    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     Dart_Handle file_path = FilePathFromUri(url, builtin_lib);
     if (Dart_IsError(file_path)) {
       return file_path;
@@ -411,7 +413,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                      Dart_NewString("_printClosure"), print);
 
   // Setup the IO library.
-  Dart_Handle io_lib = Builtin::LoadLibrary(Builtin::kIOLibrary);
+  Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
   Builtin::SetupIOLibrary(io_lib);
 
   // Set up package root if specified.

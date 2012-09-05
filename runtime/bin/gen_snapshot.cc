@@ -196,7 +196,7 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
   Dart_Handle lib;
   // Load the builtin library to make it available in the snapshot
   // for importing.
-  lib = Builtin::LoadLibrary(id);
+  lib = Builtin::LoadAndCheckLibrary(id);
   if (!Dart_IsError(lib)) {
     Builtin::SetupLibrary(lib, id);
   }
@@ -369,7 +369,8 @@ int main(int argc, char** argv) {
       CHECK_RESULT(result);
 
       // Get handle to builtin library.
-      Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+      Dart_Handle builtin_lib =
+          Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
       CHECK_RESULT(builtin_lib);
 
       // Prepare for script loading by setting up the 'print' and 'timer'

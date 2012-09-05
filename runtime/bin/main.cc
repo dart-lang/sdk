@@ -384,9 +384,10 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
 
   if (snapshot_buffer != NULL) {
     // Setup the native resolver as the snapshot does not carry it.
-    Builtin::SetupLibrary(Builtin::LoadLibrary(Builtin::kBuiltinLibrary),
-                          Builtin::kBuiltinLibrary);
-    Builtin::SetupLibrary(Builtin::LoadLibrary(Builtin::kIOLibrary),
+    Builtin::SetupLibrary(
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary),
+        Builtin::kBuiltinLibrary);
+    Builtin::SetupLibrary(Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary),
                           Builtin::kIOLibrary);
   }
 
@@ -417,7 +418,8 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     }
     // Prepare for script loading by setting up the 'print' and 'timer'
     // closures and setting up 'package root' for URI resolution.
-    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
 
     snapshot_file->ReadFully(buffer, len);
@@ -428,9 +430,10 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     use_script_snapshot = false;  // No further usage of script snapshots.
   } else {
     // Prepare builtin and its dependent libraries for use to resolve URIs.
-    Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
+    Dart_Handle uri_lib = Builtin::LoadAndCheckLibrary(Builtin::kUriLibrary);
     CHECK_RESULT(uri_lib);
-    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     CHECK_RESULT(builtin_lib);
 
     // Prepare for script loading by setting up the 'print' and 'timer'
