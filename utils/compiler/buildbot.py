@@ -340,7 +340,7 @@ def main():
                         is_buildbot)
 
   if (status == 0
-      and (system == 'linux' or runtime != 'chrome')
+      and runtime != 'chrome'
       and runtime != 'opera'
       and runtime != 'ff'
       and runtime != 'ie'
