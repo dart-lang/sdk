@@ -339,7 +339,7 @@ function(collectedClasses) {
 
     int count = 0;
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
-    TreeElements elements = 
+    TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
     parameters.forEachParameter((Element element) {
@@ -451,7 +451,7 @@ function(collectedClasses) {
   }
 
   String generateCheckedSetter(Element member, String fieldName) {
-    Type type = member.computeType(compiler);
+    DartType type = member.computeType(compiler);
     if (type.element.isTypeVariable()
         || type.element == compiler.dynamicClass
         || type.element == compiler.objectClass) {

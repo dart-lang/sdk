@@ -861,7 +861,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             use(condition.conditionExpression);
             js.Expression ifTest = new js.Prefix("!", pop());
             js.Break jsBreak = new js.Break(null);
-            pushStatement(new js.If.then(ifTest, jsBreak));
+            pushStatement(new js.If.noElse(ifTest, jsBreak));
           }
           if (info.updates !== null) {
             wrapLoopBodyForContinue(info);
@@ -1910,7 +1910,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       generateThrowWithHelper('ioore', node.index);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
-      pushStatement(new js.If.then(underOver, thenBody), node);
+      pushStatement(new js.If.noElse(underOver, thenBody), node);
     } else {
       generateThrowWithHelper('ioore', node.index);
     }
@@ -1926,7 +1926,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       generateThrowWithHelper('iae', node.value);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
-      pushStatement(new js.If.then(test, thenBody), node);
+      pushStatement(new js.If.noElse(test, thenBody), node);
     } else {
       generateThrowWithHelper('iae', node.value);
     }
@@ -2367,7 +2367,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         generateThrowWithHelper('iae', node.checkedInput);
         currentContainer = oldContainer;
         body = unwrapStatement(body);
-        pushStatement(new js.If.then(test, body), node);
+        pushStatement(new js.If.noElse(test, body), node);
         return;
       }
 
@@ -2459,21 +2459,23 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     if (node.isInteger(types)) {
       // if (input is !int) bailout
       checkInt(input, '!==');
-      pushStatement(new js.If.then(pop(), bailout(node, 'Not an integer')),
-                    node);
+      js.Statement then = bailout(node, 'Not an integer');
+      pushStatement(new js.If.noElse(pop(), then), node);
     } else if (node.isNumber(types)) {
       // if (input is !num) bailout
       checkNum(input, '!==');
-      pushStatement(new js.If.then(pop(), bailout(node, 'Not a number')), node);
+      js.Statement then = bailout(node, 'Not a number');
+      pushStatement(new js.If.noElse(pop(), then), node);
     } else if (node.isBoolean(types)) {
       // if (input is !bool) bailout
       checkBool(input, '!==');
-      pushStatement(new js.If.then(pop(), bailout(node, 'Not a boolean')),
-                    node);
+      js.Statement then = bailout(node, 'Not a boolean');
+      pushStatement(new js.If.noElse(pop(), then), node);
     } else if (node.isString(types)) {
       // if (input is !string) bailout
       checkString(input, '!==');
-      pushStatement(new js.If.then(pop(), bailout(node, 'Not a string')), node);
+      js.Statement then = bailout(node, 'Not a string');
+      pushStatement(new js.If.noElse(pop(), then), node);
     } else if (node.isExtendableArray(types)) {
       // if (input is !Object || input is !Array || input.isFixed) bailout
       checkObject(input, '!==');
@@ -2481,11 +2483,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
       checkFixedArray(input);
-      js.Expression test = new js.Binary('||', objectTest, arrayTest);
+      js.Binary test = new js.Binary('||', objectTest, arrayTest);
       test = new js.Binary('||', test, pop());
-      pushStatement(new js.If.then(test,
-                                   bailout(node, 'Not an extendable array')),
-                    node);
+      js.Statement then = bailout(node, 'Not an extendable array');
+      pushStatement(new js.If.noElse(test, then), node);
     } else if (node.isMutableArray(types)) {
       // if (input is !Object
       //     || ((input is !Array || input.isImmutable)
@@ -2498,9 +2499,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
       checkType(input, indexingBehavior, negative: true);
       js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
-      pushStatement(new js.If.then(new js.Binary('||', objectTest, notIndexing),
-                                   bailout(node, 'Not a mutable array')),
-                    node);
+      js.Binary test = new js.Binary('||', objectTest, notIndexing);
+      js.Statement then = bailout(node, 'Not a mutable array');
+      pushStatement(new js.If.noElse(test, then), node);
     } else if (node.isReadableArray(types)) {
       // if (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior)) bailout
@@ -2510,9 +2511,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Expression arrayTest = pop();
       checkType(input, indexingBehavior, negative: true);
       js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
-      pushStatement(new js.If.then(new js.Binary('||', objectTest, notIndexing),
-                                   bailout(node, 'Not an array')),
-                    node);
+      js.Binary test = new js.Binary('||', objectTest, notIndexing);
+      js.Statement then = bailout(node, 'Not an array');
+      pushStatement(new js.If.noElse(test, then), node);
     } else if (node.isIndexablePrimitive(types)) {
       // if (input is !String
       //     && (input is !Object
@@ -2527,11 +2528,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
       js.Binary notObjectOrIndexingTest =
           new js.Binary('||', objectTest, notIndexingTest);
-      js.Binary condition =
+      js.Binary test =
           new js.Binary('&&', stringTest, notObjectOrIndexingTest);
-      pushStatement(new js.If.then(condition,
-                                   bailout(node, 'Not a string or array')),
-                    node);
+      js.Statement then = bailout(node, 'Not a string or array');
+      pushStatement(new js.If.noElse(test, then), node);
     } else {
       compiler.internalError('Unexpected type guard', instruction: input);
     }
@@ -2559,7 +2559,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void handleLoopCondition(HLoopBranch node) {
     use(node.inputs[0]);
-    pushStatement(new js.If.then(pop(), new js.Break(null)), node);
+    pushStatement(new js.If.noElse(pop(), new js.Break(null)), node);
   }
 
 
@@ -2815,9 +2815,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void handleLoopCondition(HLoopBranch node) {
     use(node.inputs[0]);
-    pushStatement(new js.If.then(new js.Prefix('!', pop()),
-                                 new js.Break(currentLabel())),
-                  node);
+    js.Expression test = new js.Prefix('!', pop());
+    js.Statement then = new js.Break(currentLabel());
+    pushStatement(new js.If.noElse(test, then), node);
   }
 
   void generateIf(HIf node, HIfBlockInformation info) {

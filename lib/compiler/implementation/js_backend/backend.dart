@@ -39,7 +39,7 @@ class HTypeList {
   final List<HType> types;
 
   HTypeList(int length) : types = new List<HType>(length);
-  const HTypeList.allUnknown() : types = null;
+  const HTypeList.withAllUnknown() : types = null;
 
   factory HTypeList.fromInvocation(HInvoke node, HTypeMap types) {
     bool allUnknown = true;
@@ -58,7 +58,7 @@ class HTypeList {
     return result;
   }
 
-  static const HTypeList ALL_UNKNOWN = const HTypeList.allUnknown();
+  static const HTypeList ALL_UNKNOWN = const HTypeList.withAllUnknown();
 
   bool get allUnknown => types === null;
   int get length => types.length;
