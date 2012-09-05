@@ -183,7 +183,7 @@ class ArgumentTypesRegistry {
     Universe resolverWorld = compiler.resolverWorld;
     if (element != null &&
         (resolverWorld.hasFieldGetter(element, compiler) ||
-            resolverWorld.hasInvokedGetter(element, compiler))) {
+         resolverWorld.hasInvokedGetter(element, compiler))) {
       return;
     }
 

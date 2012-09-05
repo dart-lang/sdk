@@ -163,9 +163,7 @@ class HGraph {
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
     if (constant.isFunction()) return HType.UNKNOWN;
-    // Give a primitive type to the sentinel to avoid Dart semantics
-    // for equality check.
-    if (constant.isSentinel()) return HType.STRING;
+    if (constant.isSentinel()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
     return new HBoundedType.exact(objectConstant.type);
   }
@@ -1970,6 +1968,7 @@ class HConstant extends HInstruction {
   bool isConstantMap() => constant.isMap();
   bool isConstantFalse() => constant.isFalse();
   bool isConstantTrue() => constant.isTrue();
+  bool isConstantSentinel() => constant.isSentinel();
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;

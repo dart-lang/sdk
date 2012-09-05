@@ -2895,6 +2895,8 @@ String singleIdentityComparison(HInstruction left,
                                 HTypeMap propagatedTypes) {
   // Returns the single identity comparison (== or ===) or null if a more
   // complex expression is required.
+  if ((left.isConstant() && left.isConstantSentinel()) ||
+      (right.isConstant() && right.isConstantSentinel())) return '===';
   HType leftType = propagatedTypes[left];
   HType rightType = propagatedTypes[right];
   if (leftType.canBeNull() && rightType.canBeNull()) {
