@@ -74,6 +74,32 @@ module html {
   };
 
   [Supplemental]
+  interface HTMLMediaElement {
+    // Adding media events.
+    attribute EventListener oncanplay;
+    attribute EventListener oncanplaythrough;
+    attribute EventListener ondurationchange;
+    attribute EventListener onemptied;
+    attribute EventListener onended;
+    attribute EventListener onloadeddata;
+    attribute EventListener onloadedmetadata;
+    attribute EventListener onloadstart;
+    attribute EventListener onpause;
+    attribute EventListener onplay;
+    attribute EventListener onplaying;
+    attribute EventListener onprogress;
+    attribute EventListener onratechange;
+    attribute EventListener onseeked;
+    attribute EventListener onseeking;
+    attribute EventListener onshow;
+    attribute EventListener onstalled;
+    attribute EventListener onsuspend;
+    attribute EventListener ontimeupdate;
+    attribute EventListener onvolumechange;
+    attribute EventListener onwaiting;
+  };
+
+  [Supplemental]
   interface WebGLContextEvent {
     [Suppressed] void initEvent([Optional] in DOMString eventTypeArg,
                                 [Optional] in boolean canBubbleArg,
