@@ -338,7 +338,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         // Parsing was successful, add node.
         if (node != null) {
-          node.setMetadata(metadata);
+          setMetadata(node, metadata);
           unit.getTopLevelNodes().add(node);
           // Only "class" can be top-level abstract element.
           if (isTopLevelAbstract && !isParsingClass) {
@@ -359,6 +359,31 @@ public class DartParser extends CompletionHooksParserBase {
       return done(unit);
     } catch (StringInterpolationParseError exception) {
       throw new InternalCompilerException("Failed to parse " + source.getUri(), exception);
+    }
+  }
+
+  /**
+   * Set the metadata associated with the given node to the given annotations.
+   * 
+   * @param node the node with which the metadata is to be associated
+   * @param metadata the metadata to be associated with the node
+   */
+  private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> metadata) {
+    node.setMetadata(metadata);
+    if (node instanceof DartDeclaration<?>) {
+      for (DartAnnotation annotation : metadata) {
+        DartExpression nameNode = annotation.getName();
+        if (nameNode instanceof DartIdentifier) {
+          String name = ((DartIdentifier) nameNode).getName();
+          if (name.equals("deprecated")) {
+            DartDeclaration<?> declaration = (DartDeclaration<?>) node;
+            declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
+          } else if (name.equals("override")) {
+            DartDeclaration<?> declaration = (DartDeclaration<?>) node;
+            declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
+          }
+        }
+      }
     }
   }
 
@@ -487,22 +512,22 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
       }
-      libraryDirective.setMetadata(metadata);
+      setMetadata(libraryDirective, metadata);
       unit.getDirectives().add(libraryDirective);
     }
     while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
       DartImportDirective importDirective = parseImportDirective();
-      importDirective.setMetadata(metadata);
+      setMetadata(importDirective, metadata);
       unit.getDirectives().add(importDirective);
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {
         DartPartOfDirective partOfDirective = parsePartOfDirective();
-        partOfDirective.setMetadata(metadata);
+        setMetadata(partOfDirective, metadata);
         unit.getDirectives().add(partOfDirective);
       } else {
         DartSourceDirective partDirective = parsePartDirective();
-        partDirective.setMetadata(metadata);
+        setMetadata(partDirective, metadata);
         unit.getDirectives().add(partDirective);
       }
     }
@@ -519,20 +544,20 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
       }
-      libraryDirective.setMetadata(metadata);
+      setMetadata(libraryDirective, metadata);
       unit.getDirectives().add(libraryDirective);
       done(libraryDirective);
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
       DartImportDirective importDirective = parseObsoleteImportDirective();
-      importDirective.setMetadata(metadata);
+      setMetadata(importDirective, metadata);
       unit.getDirectives().add(done(importDirective));
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
       DartSourceDirective sourceDirective = parseSourceDirective();
-      sourceDirective.setMetadata(metadata);
+      setMetadata(sourceDirective, metadata);
       unit.getDirectives().add(done(sourceDirective));
     }
     while (peek(0) == Token.RESOURCE) {
@@ -541,7 +566,7 @@ public class DartParser extends CompletionHooksParserBase {
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
       DartNativeDirective nativeDirective = parseNativeDirective();
-      nativeDirective.setMetadata(metadata);
+      setMetadata(nativeDirective, metadata);
       unit.getDirectives().add(done(nativeDirective));
     }
   }
@@ -932,7 +957,7 @@ public class DartParser extends CompletionHooksParserBase {
         List<DartAnnotation> metadata = parseMetadata();
         DartNodeWithMetadata member = parseFieldOrMethod(true);
         if (member != null) {
-          member.setMetadata(metadata);
+          setMetadata(member, metadata);
           members.add(member);
         }
         // Recover at a semicolon
@@ -1918,11 +1943,11 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(name, ParserErrorCode.EXTERNAL_ONLY_METHOD);
       }
       DartField field = done(new DartField(name, modifiers, null, value));
-      field.setMetadata(fieldMetadata);
+      setMetadata(field, fieldMetadata);
       fields.add(field);
     } while (optional(Token.COMMA));
     DartFieldDefinition definition = new DartFieldDefinition(type, fields);
-    definition.setMetadata(metadata);
+    setMetadata(definition, metadata);
     return done(definition);
   }
 
@@ -2129,7 +2154,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     DartParameter parameter = new DartParameter(paramName, type, functionParams, defaultExpr, modifiers);
-    parameter.setMetadata(metadata);
+    setMetadata(parameter, metadata);
     return done(parameter);
   }
 
@@ -3831,7 +3856,7 @@ public class DartParser extends CompletionHooksParserBase {
         value = parseExpression();
       }
       DartVariable variable = done(new DartVariable(name, value));
-      variable.setMetadata(metadata);
+      setMetadata(variable, metadata);
       idents.add(variable);
     } while (optional(Token.COMMA));
 
@@ -3926,7 +3951,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (!metadata.isEmpty() && statement instanceof DartVariableStatement) {
       DartVariableStatement variableStatement = (DartVariableStatement) statement;
       if (!variableStatement.getVariables().isEmpty()) {
-        variableStatement.getVariables().get(0).setMetadata(metadata);
+        setMetadata(variableStatement.getVariables().get(0), metadata);
       }
     }
     for (int i = labels.size() - 1; i >= 0; i--) {
@@ -4725,7 +4750,7 @@ public class DartParser extends CompletionHooksParserBase {
       reportError(name, ParserErrorCode.EXPECTED_VAR_FINAL_OR_TYPE);
     }
     DartParameter parameter = done(new DartParameter(name, type, null, null, modifiers));
-    parameter.setMetadata(metadata);
+    setMetadata(parameter, metadata);
     return parameter;
   }
 
@@ -4785,7 +4810,7 @@ public class DartParser extends CompletionHooksParserBase {
           List<DartAnnotation> metadata = parseMetadata();
           DartIdentifier exceptionName = parseIdentifier();
           exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
-          exception.setMetadata(metadata);
+          setMetadata(exception, metadata);
           if (optional(Token.COMMA)) {
             beginCatchParameter();
             DartIdentifier stackName = parseIdentifier();
@@ -4799,7 +4824,7 @@ public class DartParser extends CompletionHooksParserBase {
           beginIdentifier();
           DartIdentifier exceptionName = done(new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis())));
           exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
-          exception.setMetadata(metadata);
+          setMetadata(exception, metadata);
         }
         DartBlock block = parseBlock();
         catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
@@ -4813,7 +4838,7 @@ public class DartParser extends CompletionHooksParserBase {
           List<DartAnnotation> metadata = parseMetadata();
           DartIdentifier exceptionName = parseIdentifier();
           exception = done(new DartParameter(exceptionName, null , null, null, Modifiers.NONE));
-          exception.setMetadata(metadata);
+          setMetadata(exception, metadata);
         } else {
           // Old-style parameter
           reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
@@ -4826,7 +4851,7 @@ public class DartParser extends CompletionHooksParserBase {
             List<DartAnnotation> metadata = parseMetadata();
             DartIdentifier stackName = parseIdentifier();
             stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
-            stackTrace.setMetadata(metadata);
+            setMetadata(stackTrace, metadata);
           } else {
             // Old-style parameter
             reportError(position(), ParserErrorCode.DEPRECATED_CATCH);
