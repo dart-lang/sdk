@@ -165,6 +165,11 @@ def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
   os.chdir(DART_PATH)
 
   if system.startswith('win') and runtime == 'ie':
+    # TODO(ahe): This pre-dates the shard feature and should be
+    # removed. If we want to have a fast and a slow bot, that should
+    # be accomplished by having several shards distributed on multiple
+    # virtual builders.
+
     # We don't do proper sharding on the IE bots, since the runtime is
     # long for both. We have a "fast bot" and a "slow bot" that run specific
     # tests instead.
@@ -234,6 +239,8 @@ def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
     extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
     TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
   else:
+    # TODO(ahe): See comment above regarding how to use sharding to
+    # accomplish the same.
     if bot_num == '1':
       TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
     else:
@@ -332,8 +339,7 @@ def main():
   status = TestCompiler(runtime, mode, system, option, test_flags,
                         is_buildbot)
 
-  # We only run checked mode tests when the host is not in checked mode.
-  if status == 0 and option != 'checked' and runtime == 'd8':
+  if status == 0:
     status = TestCompiler(runtime, mode, system, option,
                           test_flags + ['--checked'], is_buildbot)
 
