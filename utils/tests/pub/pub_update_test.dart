@@ -15,7 +15,8 @@ main() {
       dir(appPath, []).scheduleCreate();
 
       schedulePub(args: ['update'],
-          error: const RegExp(@'^Could not find a file named "pubspec.yaml"'));
+          error: const RegExp(@'^Could not find a file named "pubspec.yaml"'),
+          exitCode: 1);
 
       run();
     });
@@ -27,7 +28,8 @@ main() {
 
       schedulePub(args: ['update'],
           error: const RegExp(@'^"pubspec.yaml" is missing the required "name" '
-              @'field \(e\.g\. "name: myapp"\)\.'));
+              @'field \(e\.g\. "name: myapp"\)\.'),
+          exitCode: 1);
 
       run();
     });

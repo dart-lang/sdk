@@ -26,7 +26,8 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        error: const RegExp('Could not resolve URL "http://pub.invalid".'));
+        error: const RegExp('Could not resolve URL "http://pub.invalid".'),
+        exitCode: 1);
 
     run();
   });
@@ -38,7 +39,8 @@ main() {
 
     schedulePub(args: ['update'],
         error: const RegExp('Could not find package "foo" on '
-                            'http://localhost:'));
+                            'http://localhost:'),
+        exitCode: 1);
 
     run();
   });

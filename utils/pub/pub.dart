@@ -196,7 +196,10 @@ class PubCommand {
       if (globalOptions['trace'] && trace != null) {
         printError(trace);
       }
-      return true;
+
+      // TODO(nweiz): Use the more semantic error codes in
+      // http://www.freebsd.org/cgi/man.cgi?query=sysexits
+      exit(1);
     }
 
     // TODO(rnystrom): Will eventually need better logic to walk up
@@ -216,6 +219,9 @@ class PubCommand {
       }
     });
     future.handleException((e) => handleError(e, future.stackTrace));
+    // Explicitly exit on success to ensure that any dangling dart:io handles
+    // don't cause the process to never terminate.
+    future.then((_) => exit(0));
   }
 
   /**

@@ -99,7 +99,8 @@ main() {
     schedulePub(args: ['install'],
         error: const RegExp(@'^FormatException: The name you specified for '
             @'your dependency, "weird-name", doesn' @"'" @'t match the name '
-            @'"foo" \(from "\.\./foo\.git"\)\.'));
+            @'"foo" \(from "\.\./foo\.git"\)\.'),
+        exitCode: 1);
 
     run();
   });
