@@ -22,46 +22,27 @@
 # ......dart_api.h
 # ......dart_debugger_api.h
 # ....lib/
-# ......builtin/
-# ........builtin_runtime.dart
-# ......io/
-# ........io_runtime.dart
-# ........runtime/
+# ......_internal/
 # ......compiler/
+# ......config/
 # ......core/
-# ........core_runtime.dart
-# ........runtime/
 # ......coreimpl/
-# ........coreimpl_runtime.dart
-# ........runtime/
-# ......dart2js/
-# ......isolate/
-# ........isolate_{dart2js, runtime}.dart
-# ........dart2js/
-# ......dom/
-# ........dom.dart
-# ......html/
-# ........html_dart2js.dart
-# ........html_dartium.dart
 # ......crypto/
-# ........crypto.dart
-# ........(implementation files)
+# ......html/
+# ......io/
+# ......isolate/
 # ......json/
-# ........json_frog.dart
-#.........json.dart
-# ........{frog}/
+# ......math/
 # ......mirrors/
-# ........mirrors.dart
 # ......uri/
-# ........uri.dart
 # ......utf/
 # ......web/
-# ........web.dart
 # ....pkg/
 # ......args/
 # ......dartdoc/
 # ......intl/
 # ......logging/
+# ......unittest/
 # ......(more will come here)
 # ....util/
 # ......analyzer/
@@ -121,27 +102,9 @@ def CopyShellScript(src_file, dest_dir):
 
 
 def CopyDart2Js(build_dir, sdk_root, revision):
-  '''
-  Install dart2js in SDK/lib/dart2js.
-
-  Currently, we copy too much stuff to this location, but the SDK's
-  layout matches the the layout of the part of the repository we're
-  dealing with here which frees us from rewriting files. The long term
-  plan is to align the layout of the repository and the SDK, at which
-  point we should be able to simplify Main below and share the dart
-  files between the various components to minimize SDK download size.
-  '''
-  dart2js_lib = os.path.join(sdk_root, 'lib', 'dart2js', 'lib')
-  copytree('lib', dart2js_lib, ignore=ignore_patterns('.svn'))
-  copytree(os.path.join('runtime', 'lib'),
-           os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
-           ignore=ignore_patterns('.svn'))
-  copytree(os.path.join('runtime', 'bin'),
-           os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'bin'),
-           ignore=ignore_patterns('.svn'))
   if revision:
-    ReplaceInFiles([os.path.join(dart2js_lib,
-                                 'compiler/implementation/compiler.dart')],
+    ReplaceInFiles([os.path.join(sdk_root, 'lib', 'compiler', 
+                                 'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
                      r"BUILD_ID = '%s'" % revision)])
   if utils.GuessOS() == 'win32':
@@ -149,7 +112,7 @@ def CopyDart2Js(build_dir, sdk_root, revision):
     Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
     ReplaceInFiles([dart2js],
                    [(r'%SCRIPTPATH%\.\.\\lib',
-                     r'%SCRIPTPATH%..\lib\dart2js\lib')])
+                     r'%SCRIPTPATH%..\lib')])
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc.bat')
     Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
   else:
@@ -157,7 +120,7 @@ def CopyDart2Js(build_dir, sdk_root, revision):
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
     ReplaceInFiles([dart2js],
                    [(r'\$BIN_DIR/\.\./\.\./lib',
-                     r'$BIN_DIR/../lib/dart2js/lib')])
+                     r'$BIN_DIR/../lib')])
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc')
     Copy(os.path.join(build_dir, 'dartdoc'), dartdoc)
 
@@ -254,39 +217,6 @@ def Main(argv):
   dest_file.close()
 
   #
-  # Create and populate lib/compiler.
-  #
-  compiler_src_dir = join(HOME, 'lib', 'compiler')
-  compiler_dest_dir = join(LIB, 'compiler')
-
-  copytree(compiler_src_dir, compiler_dest_dir, ignore=ignore_patterns('.svn'))
-
-  # Remap imports in lib/compiler/* .
-  for (dirpath, subdirs, filenames) in os.walk(compiler_dest_dir):
-    for filename in filenames:
-      if filename.endswith('.dart'):
-        filename = join(dirpath, filename)
-        file_contents = open(filename).read()
-        file = open(filename, 'w')
-        file_contents = re.sub(r"\.\./lib", "..", file_contents)
-        file.write(file_contents)
-        file.close()
-
-  #
-  # Create and populate lib/html.
-  #
-  html_src_dir = join(HOME, 'lib', 'html')
-  html_dest_dir = join(LIB, 'html')
-  os.makedirs(html_dest_dir)
-
-  copyfile(join(html_src_dir, 'dart2js', 'html_dart2js.dart'),
-           join(html_dest_dir, 'html_dart2js.dart'))
-  copyfile(join(html_src_dir, 'dartium', 'html_dartium.dart'),
-           join(html_dest_dir, 'html_dartium.dart'))
-  copyfile(join(html_src_dir, 'dartium', 'nativewrappers.dart'),
-           join(html_dest_dir, 'nativewrappers.dart'))
-
-  #
   # Create and populate lib/dom.
   #
   dom_src_dir = join(HOME, 'lib', 'dom')
@@ -300,15 +230,16 @@ def Main(argv):
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'core', 'coreimpl', 'crypto', 'isolate', 'json',
-                  'math', 'mirrors', 'uri', 'utf', 'web']:
-    src_dir = join(HOME, 'lib', library)
-    dest_dir = join(LIB, library)
-    os.makedirs(dest_dir)
+  for library in ['_internal', 'compiler', 'config', 'html', 'core', 'coreimpl',
+                  'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf',
+                  'web']:
+    copytree(join(HOME, 'lib', library), join(LIB, library),
+             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
-    for filename in os.listdir(src_dir):
-      if filename.endswith('.dart'):
-        copyfile(join(src_dir, filename), join(dest_dir, filename))
+  # TODO(dgrove): fix this really ugly hack
+  ReplaceInFiles(
+        [join(LIB, 'compiler', 'implementation', 'lib', 'io.dart')],
+      [('../../runtime/bin', '../io/runtime')])
 
   # Create and copy pkg.
   PKG = join(SDK_tmp, 'pkg')
@@ -318,25 +249,12 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, unittest}
   #
 
-  for library in ['args', 'intl', 'logging', 'unittest']:
-    src_dir = join(HOME, 'pkg', library)
-    dest_dir = join(PKG, library)
-    os.makedirs(dest_dir)
+  for library in ['args', 'dartdoc', 'intl', 'logging', 'unittest']:
+    copytree(join(HOME, 'pkg', library), join(PKG, library),
+             ignore=ignore_patterns('*.svn', 'doc', 'docs',
+                                    '*.py', '*.gypi', '*.sh'))
 
-    for filename in os.listdir(src_dir):
-      if filename.endswith('.dart'):
-        copyfile(join(src_dir, filename), join(dest_dir, filename))
-    if exists(join(src_dir, 'lib')):
-      copytree(join(src_dir, 'lib'), join(dest_dir, 'lib'),
-           ignore=ignore_patterns('.svn'))
-
-  # Create and populate pkg/dartdoc.
-  dartdoc_src_dir = join(HOME, 'pkg', 'dartdoc')
-  dartdoc_dest_dir = join(PKG, 'dartdoc')
-  copytree(dartdoc_src_dir, dartdoc_dest_dir,
-           ignore=ignore_patterns('.svn', 'docs'))
-
-  # Fixup dart2js dependencies.
+  # Fixup dartdoc
   ReplaceInFiles([
       join(PKG, 'dartdoc', 'dartdoc.dart'),
     ], [
@@ -370,18 +288,8 @@ def Main(argv):
         copyfile(src_file, dest_file)
 
   # Create and populate util/pub.
-  pub_src_dir = join(HOME, 'utils', 'pub')
-  pub_dst_dir = join(UTIL, 'pub')
-  copytree(pub_src_dir, pub_dst_dir,
+  copytree(join(HOME, 'utils', 'pub'), join(UTIL, 'pub'),
            ignore=ignore_patterns('.svn', 'sdk'))
-
-  # Copy import maps.
-  PLATFORMS = ['any', 'vm', 'dartium', 'dart2js' ]
-  os.makedirs(join(LIB, 'config'))
-  for platform in PLATFORMS:
-    import_src = join(HOME, 'lib', 'config', 'import_' + platform + '.config')
-    import_dst = join(LIB, 'config', 'import_' + platform + '.config')
-    copyfile(import_src, import_dst);
 
   revision = utils.GetSVNRevision()
 
