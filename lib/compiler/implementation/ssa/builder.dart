@@ -2073,9 +2073,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
-      add(new HInvokeInterceptor(selector, inputs));
+      addWithPosition(new HInvokeInterceptor(selector, inputs), send);
     } else {
-      add(new HInvokeDynamicSetter(selector, null, receiver, value));
+      addWithPosition(new HInvokeDynamicSetter(selector, null, receiver, value),
+                      send);
     }
     stack.add(value);
   }
@@ -2085,9 +2086,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isSetter()) {
         HStatic target = new HStatic(element);
         add(target);
-        add(new HInvokeStatic(<HInstruction>[target, value]));
+        addWithPosition(new HInvokeStatic(<HInstruction>[target, value]), send);
       } else {
-        add(new HStaticStore(element, value));
+        addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);
     } else if (element === null || Elements.isInstanceField(element)) {

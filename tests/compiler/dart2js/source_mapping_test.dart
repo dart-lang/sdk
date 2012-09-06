@@ -75,6 +75,11 @@ void staticSend(x) { if (x == null) return; print(x); }
 class NewSend { void dynamicSend(x) { print(x); } }
 ''';
 
+String SEND_SET_TEST = '''
+String global;
+void main() { @global = ''; print(new A().foo()); }
+class A { int x; foo() { @x = 3; } }''';
+
 String LOOP_TEST = '''
 void main() {
   @for (int i = 0; i < 100; ++i) { print(test(13)); @}
@@ -96,5 +101,6 @@ main() {
   testSourceMapLocations(UNARY_TEST);
   testSourceMapLocations(BINARY_TEST);
   testSourceMapLocations(SEND_TEST);
+  testSourceMapLocations(SEND_SET_TEST);
   testSourceMapLocations(LOOP_TEST);
 }

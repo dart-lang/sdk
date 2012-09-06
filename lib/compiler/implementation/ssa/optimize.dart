@@ -146,6 +146,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         if (replacement.sourceElement === null) {
           replacement.sourceElement = instruction.sourceElement;
         }
+        if (replacement.sourcePosition === null) {
+          replacement.sourcePosition = instruction.sourcePosition;
+        }
       }
       instruction = next;
     }

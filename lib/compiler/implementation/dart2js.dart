@@ -250,6 +250,9 @@ void compile(List<String> argv) {
   if (code === null) {
     fail('Error: Compilation failed.');
   }
+  String sourceMapFileName =
+      sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
+  code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
