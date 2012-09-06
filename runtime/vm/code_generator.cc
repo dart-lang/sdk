@@ -1588,7 +1588,7 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
                                       to_frame_size,
                                       Array::Handle(code.object_table()),
                                       num_args);
-  for (intptr_t to_index = 0; to_index < len; to_index++) {
+  for (intptr_t to_index = len - 1; to_index >= 0; to_index--) {
     deopt_instructions[to_index]->Execute(&deopt_context, to_index);
   }
   if (FLAG_trace_deopt) {
