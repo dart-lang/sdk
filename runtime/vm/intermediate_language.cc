@@ -421,7 +421,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
 
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
-  if ((iterator != NULL) && (other == iterator->Current())) {
+  if ((iterator != NULL) && (this == iterator->Current())) {
     iterator->ReplaceCurrentWith(other);
   } else {
     ReplaceUsesWith(other);
