@@ -14,6 +14,12 @@ class Configuration {
   TestCase currentTestCase = null;
 
   /**
+   * Subclasses can override this with something useful for diagnostics.
+   * Particularly useful in cases where we have parent/child configurations
+   * such as layout tests.
+   */
+  get name => 'Configuration';
+  /**
    * If true, then tests are started automatically (otherwise [runTests]
    * must be called explicitly after the tests are set up.
    */
@@ -54,16 +60,16 @@ class Configuration {
    * instead of print. Subclasses should not override this; they
    * should instead override logMessage which is passed the test case.
    */
-  void log(String message) {
+  void logMessage(String message) {
     if (currentTestCase == null || _currentTest >= _tests.length ||
         currentTestCase.id != _tests[_currentTest].id) {
       // Before or after tests run, or with a mismatch between what the
       // config and the test harness think is the current test. In this
       // case we pass null for the test case reference and let the config
       // decide what to do with this.
-      logMessage(null, message);
+      logTestCaseMessage(null, message);
     } else {
-      logMessage(currentTestCase, message);
+      logTestCaseMessage(currentTestCase, message);
     }
   }
 
@@ -71,7 +77,7 @@ class Configuration {
    * Handles the logging of messages by a test case. The default in
    * this base configuration is to call print();
    */
-  void logMessage(TestCase testCase, String message) {
+  void logTestCaseMessage(TestCase testCase, String message) {
     print(message);
   }
 

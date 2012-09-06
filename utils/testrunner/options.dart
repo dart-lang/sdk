@@ -23,6 +23,9 @@ ArgParser getOptionParser() {
   parser.addFlag('checked', defaultsTo: false,
       help: 'Run tests in checked mode.');
 
+  parser.addFlag('layout', defaultsTo: false,
+      help: 'Run layout tests.');
+
   parser.addOption('timeout', abbr: 't',
       help: 'Timeout in seconds', defaultsTo: '60');
 
@@ -35,7 +38,8 @@ ArgParser getOptionParser() {
         'file name or one of stdout, stderr, or none.');
 
   parser.addOption('list-format',
-      defaultsTo: '${Macros.testfile}${Macros.testGroup}${Macros.testDescription}',
+      defaultsTo:
+        '${Macros.testfile}${Macros.testGroup}${Macros.testDescription}',
       help: 'Format for test list result output.');
 
   parser.addOption('pass-format',
@@ -131,6 +135,10 @@ ArgParser getOptionParser() {
       help: 'Print test results immediately, instead of at the end of a test '
         'file. Note that in some async cases this may result in multiple '
         'messages for a single test.',
+      defaultsTo: false);
+
+  parser.addFlag('generate-renders',
+      help: 'Generate .render files for layout tests.',
       defaultsTo: false);
 
   parser.addOption('unittest',  help: '#import path for unit test library.');
@@ -236,6 +244,10 @@ bool isSane(ArgResults config) {
   if (config['include'].length > 0 &&
       config['exclude'].length > 0) {
     print('--include and --exclude are mutually exclusive.');
+    return false;
+  }
+  if (config['layout'] && config['runtime'] == 'vm') {
+    print('Layout tests must use --runtime values of "drt-dart" or "drt-js"');
     return false;
   }
   return true;

@@ -20,11 +20,17 @@ class DartWrapTask extends PipelineTask {
     // Get the destination file.
     var destFile = expandMacros(_tempDartFileTemplate, testfile);
 
+    var p = new Path(sourceName);
+    if (isLayoutRenderTest(sourceName) || config.generateRenders) {
+      makeLayoutTestWrapper(sourceName, destFile, p.filenameWithoutExtension);
+      exitHandler(0);
+      return;
+    }
+
     // Working buffer for the Dart wrapper.
     StringBuffer sbuf = new StringBuffer();
 
     // Add the common header stuff.
-    var p = new Path(sourceName);
     sbuf.add(directives(p.filenameWithoutExtension,
                         config.unittestPath,
                         sourceName));
@@ -98,6 +104,41 @@ class DartWrapTask extends PipelineTask {
   void cleanup(Path testfile, List stdout, List stderr,
                bool logging, bool keepFiles) {
     deleteFiles([_tempDartFileTemplate], testfile, logging, keepFiles, stdout);
+  }
+
+  void makeLayoutTestWrapper(String sourceName, String destFile,
+                             String libraryName) {
+    StringBuffer sbuf = new StringBuffer();
+    var cfg = config.unittestPath.
+        replaceAll('unittest.dart', 'html_layout_config.dart');
+    sbuf.add("""
+#library('$libraryName');
+#import('dart:math');
+#import('dart:isolate');
+#import('dart:html');
+#import('${config.unittestPath}', prefix:'unittest');
+#import('$cfg', prefix:'unittest');
+#import('$sourceName', prefix: 'test');
+""");
+    // Add the filter, if applicable.
+    if (config.filtering) {
+      if (config.includeFilter.length > 0) {
+        sbuf.add(filterTestFunction(config.includeFilter, 'true'));
+      } else {
+        sbuf.add(filterTestFunction(config.excludeFilter, 'false'));
+      }
+    }
+    sbuf.add("""
+main() {
+unittest.groupSep = '###';
+unittest.useHtmlLayoutConfiguration();
+unittest.group('', test.main);
+${config.filtering ? 'unittest.filterTests(filterTest);' : ''}
+if (window.location.search == '') unittest.runTests();
+}  
+""");
+    // Save the Dart file.
+    createFile(destFile, sbuf.toString());
   }
 
   String directives(String library, String unittest, String sourceName) {
@@ -441,4 +482,5 @@ runTests() {
   unittest.runTests();
 }
 """;
+
 }

@@ -100,3 +100,15 @@ void deleteFile(String fname) {
   var f = new File(fname);
   f.deleteSync();
 }
+
+/** Get the name of the layout render file for a test. */
+String layoutFileName(String testname) =>
+  testname.replaceAll(new RegExp('\.dart\$'), '.render');
+
+/** Check if a test is a layout render test. renders.
+ */
+bool isLayoutRenderTest(String testname) {
+  var layoutname = layoutFileName(testname);
+  var f = new File(layoutname);
+  return f.existsSync();
+}

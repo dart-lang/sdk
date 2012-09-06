@@ -34,6 +34,7 @@ class Configuration {
   final String outputStream;
   final String logStream;
   final String tempDir;
+  final bool generateRenders;
   String dart2jsPath;
   String drtPath;
   String dartPath;
@@ -65,7 +66,8 @@ class Configuration {
     maxTasks = parseInt(options['tasks']),
     outputStream = options['out'],
     logStream = options['log'],
-    tempDir = options['tempdir'] {
+    tempDir = options['tempdir'],
+    generateRenders = options['generate-renders'] {
     filtering = (includeFilter.length > 0 || excludeFilter.length > 0);
     var dartsdk = options['dartsdk'];
     var pathSep = Platform.pathSeparator;

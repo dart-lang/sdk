@@ -45,9 +45,6 @@ intl/test/intl_message_test: Fail
 intl/test/intl_test: Fail
 intl/test/number_format_test: Fail
 logging/test/logging_test: Fail
-unittest/test/matchers_test: Fail
-unittest/test/mock_test: Fail
-unittest/test/unittest_test: Fail
 args/test/args_test: Fail
 intl/test/bidi_format_test: Fail
 intl/test/bidi_utils_test: Fail
@@ -58,5 +55,7 @@ intl/test/number_format_test: Fail
 logging/test/logging_test: Fail
 unittest/test/matchers_test: Fail
 unittest/test/mock_test: Fail
-unittest/test/unittest_test: Fail
 yaml_test: Fail
+
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+unittest/test/unittest_test: Fail

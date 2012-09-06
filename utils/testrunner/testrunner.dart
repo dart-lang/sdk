@@ -48,13 +48,49 @@
  *       otherwise.
  *
  *   drt-js - run Dart compiled to Javascript in DumpRenderTree.
+ *
+ * testrunner supports simple DOM render tests. These use expected values
+ * for the text render output from DumpRenderTree. When running a test in DRT
+ * testrunner will see if there is a file with a .render extension in the
+ * same directory as the test file and with the same base file name. If so
+ * it will do additional checks of the rendered layout.
+ *
+ * Here is a simple example test:
+ *
+ *     #library('sample');
+ *     #import('dart:html');
+ *     #import('pkg:unittest/unittest.dart');
+ *
+ *     main() {
+ *       group('foo', () {
+ *         test('test 1', () {
+ *           document.body.nodes.add(new Element.html("<p>Test 1</p>"));
+ *         });
+ *         test('test 2', () {
+ *           document.body.nodes.add(new Element.html("<p>Test 2</p>"));
+ *         });
+ *      });
+ *    }
+ *
+ * And a sample matching .render file:
+ *
+ *     [foo test 1]
+ *     RenderBlock {P} at (0,0) size 284x20
+ *       RenderText {#text} at (0,0) size 38x19
+ *         text run at (0,0) width 38: "Test 1"
+ *     [foo test 2]
+ *     RenderBlock {P} at (0,0) size 284x20
+ *       RenderText {#text} at (0,0) size 38x19
+ *         text run at (0,0) width 38: "Test 2"
+ *
+ * Note that the render content is only the content inside the <body> element,
+ * not including the body element itself.
+ *
+ * Running testrunner with a `--generate-renders` flag will make it create
+ * .render files for you.
  */
 
- /* TODO(gram) - Layout tests. The plan here will be to look for a file
- * with a .layout extension that corresponds to the .dart file, that contains
- * multiple layouts, one for each test. Each test will be run in its own
- * instance of DRT and and the result compared with the expected layout.
- */
+// TODO - layout tests that use PNGs rather than DRT text render dumps.
 #library('testrunner');
 #import('dart:io');
 #import('dart:isolate');
@@ -160,7 +196,7 @@ List getPipelineTemplate(String runtime, bool checkedMode, bool keepTests) {
     var CSSFile =
         '${Macros.directory}$pathSep${Macros.filenameNoExtension}.css';
     pipeline.add(new HtmlWrapTask(Macros.fullFilePath,
-                   HTMLFile, tempHTMLFile, CSSFile, tempCSSFile));
+        HTMLFile, tempHTMLFile, CSSFile, tempCSSFile));
   }
 
   // Add the execution step.
@@ -171,7 +207,7 @@ List getPipelineTemplate(String runtime, bool checkedMode, bool keepTests) {
       pipeline.add(new DartTask(tempDartFile));
     }
   } else {
-    pipeline.add(new DrtTask(tempHTMLFile));
+    pipeline.add(new DrtTask(Macros.fullFilePath, tempHTMLFile));
   }
   return pipeline;
 }
