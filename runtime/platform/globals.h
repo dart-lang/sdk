@@ -123,8 +123,24 @@
 #define PRIdPTR DART_PRINTF_PTR_PREFIX "d"
 #endif
 
+#if !defined(PRIuPTR)
+#define PRIuPTR DART_PRINTF_PTR_PREFIX "u"
+#endif
+
 #if !defined(PRIxPTR)
 #define PRIxPTR DART_PRINTF_PTR_PREFIX "x"
+#endif
+
+#if !defined(PRId64)
+#define PRId64 I64d
+#endif
+
+#if !defined(PRIu64)
+#define PRIu64 I64u
+#endif
+
+#if !defined(PRIx64)
+#define PRIx64 I64x
 #endif
 
 #endif  // defined(TARGET_OS_WINDOWS)
