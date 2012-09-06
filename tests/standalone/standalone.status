@@ -22,12 +22,12 @@ io/test_runner_test: Pass, Fail  # Issue 1947
 
 [ $runtime == vm && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
+# This is expected as MacOS by default runs with a very low number
+# of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
 [ $runtime == vm && $system == windows ]
-io/http_shutdown_test: Skip  # Currently times out on windows
 io/file_system_links_test: Skip  # No links on Windows.
-io/http_connection_header_test: Pass, Fail  # Issue 2959
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser

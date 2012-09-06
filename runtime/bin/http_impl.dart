@@ -1350,11 +1350,13 @@ class _HttpConnection extends _HttpConnectionBase {
 
     // If currently not processing any request just close the socket.
     if (_httpParser.isIdle) {
-      _destroy();
-      if (onClosed != null && e == null) {
-        // Don't call onClosed if onError has been called.
-        onClosed();
-      }
+      _socket.outputStream.onClosed = () {
+        _destroy();
+        if (onClosed != null && e == null) {
+          // Don't call onClosed if onError has been called.
+          onClosed();
+        }
+      };
       return;
     }
 
@@ -1403,7 +1405,9 @@ class _HttpConnection extends _HttpConnectionBase {
     // If the connection is closing then close the output stream to
     // fully close the socket.
     if (_closing) {
-      _socket.close();
+      _socket.outputStream.onClosed = () {
+        _socket.close();
+      };
     }
     _response = null;
   }
