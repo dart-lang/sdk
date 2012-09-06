@@ -21,10 +21,11 @@ const List<String> CO19_STATUS_FILES = const <String>[
     'tests/co19/co19-runtime.status'];
 
 void onSectionsRead(String statusFile, List sections) {
-  print('Read sections');
   for (var section in sections) {
     for (var rule in section.testRules) {
-      String path = 'tests/co19/src/${rule.name}.dart';
+      String name = rule.name;
+      if (name == '*') continue;
+      String path = 'tests/co19/src/$name.dart';
       File file = new File(path);
       if (!file.existsSync()) {
         print('$statusFile: $path: no such file');
