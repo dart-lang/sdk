@@ -239,6 +239,12 @@ class Apidoc extends doc.Dartdoc {
 
   static const disqusShortname = 'dartapidocs';
 
+  // A set of type names (TypeMirror.simpleName values) to ignore while
+  // looking up information from MDN data.  TODO(eub, jacobr): fix up the MDN
+  // import scripts so they run correctly and generate data that doesn't have
+  // any entries that need to be ignored.
+  static Set<String> _mdnTypeNamesToSkip = null;
+
   /**
    * The URL to the page on MDN that content was pulled from for the current
    * type being documented. Will be `null` if the type doesn't use any MDN
@@ -251,6 +257,11 @@ class Apidoc extends doc.Dartdoc {
     this.outputDir = outputDir;
     this.mode = mode;
     this.generateAppCache = generateAppCache;
+
+    // Skip bad entries in the checked-in mdn/database.json:
+    //  * UnknownElement has a top-level Gecko DOM page in German.
+    if (_mdnTypeNamesToSkip == null)
+      _mdnTypeNamesToSkip = new Set.from(['UnknownElement']);
 
     mainTitle = 'Dart API Reference';
     mainUrl = 'http://dartlang.org';
@@ -448,6 +459,11 @@ class Apidoc extends doc.Dartdoc {
    * scraped from MDN.
    */
   includeMdnTypeComment(TypeMirror type) {
+    if (_mdnTypeNamesToSkip.contains(type.simpleName)) {
+      print('Skipping MDN type ${type.simpleName}');
+      return null;
+    }
+
     var typeString = '';
     if (type.library.simpleName == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
