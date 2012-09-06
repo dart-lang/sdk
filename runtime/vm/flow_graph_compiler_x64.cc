@@ -1233,7 +1233,12 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else {
     ASSERT(source.IsConstant());
     if (destination.IsRegister()) {
-      __ LoadObject(destination.reg(), source.constant());
+      const Object& constant = source.constant();
+      if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
+        __ xorq(destination.reg(), destination.reg());
+      } else {
+        __ LoadObject(destination.reg(), constant);
+      }
     } else {
       ASSERT(destination.IsStackSlot());
       StoreObject(ToStackSlotAddress(destination), source.constant());

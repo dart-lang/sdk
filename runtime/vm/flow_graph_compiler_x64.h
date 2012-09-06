@@ -208,6 +208,10 @@ class FlowGraphCompiler : public ValueObject {
   // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
   bool IsLeaf() const;
 
+  static Condition FlipCondition(Condition condition);
+
+  static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
+
  private:
   void GenerateDeferredCode();
 

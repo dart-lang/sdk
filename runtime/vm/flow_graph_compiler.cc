@@ -807,4 +807,46 @@ void ParallelMoveResolver::PerformMove(int index) {
 }
 
 
+Condition FlowGraphCompiler::FlipCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return EQUAL;
+    case NOT_EQUAL:     return NOT_EQUAL;
+    case LESS:          return GREATER;
+    case LESS_EQUAL:    return GREATER_EQUAL;
+    case GREATER:       return LESS;
+    case GREATER_EQUAL: return LESS_EQUAL;
+    case BELOW:         return ABOVE;
+    case BELOW_EQUAL:   return ABOVE_EQUAL;
+    case ABOVE:         return BELOW;
+    case ABOVE_EQUAL:   return BELOW_EQUAL;
+    default:
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
+bool FlowGraphCompiler::EvaluateCondition(Condition condition,
+                                          intptr_t left,
+                                          intptr_t right) {
+  const uintptr_t unsigned_left = static_cast<uintptr_t>(left);
+  const uintptr_t unsigned_right = static_cast<uintptr_t>(right);
+  switch (condition) {
+    case EQUAL:         return left == right;
+    case NOT_EQUAL:     return left != right;
+    case LESS:          return left < right;
+    case LESS_EQUAL:    return left <= right;
+    case GREATER:       return left > right;
+    case GREATER_EQUAL: return left >= right;
+    case BELOW:         return unsigned_left < unsigned_right;
+    case BELOW_EQUAL:   return unsigned_left <= unsigned_right;
+    case ABOVE:         return unsigned_left > unsigned_right;
+    case ABOVE_EQUAL:   return unsigned_left >= unsigned_right;
+    default:
+      UNIMPLEMENTED();
+      return false;
+  }
+}
+
+
 }  // namespace dart

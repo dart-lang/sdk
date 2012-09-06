@@ -279,8 +279,17 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if ((receiver_class_id() == kSmiCid) || is_checked_strict_equal) {
-    const intptr_t kNumTemps =  1;
+  if (receiver_class_id() == kSmiCid) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(1, Location::RegisterOrConstant(right()));
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if (is_checked_strict_equal) {
+    const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
@@ -561,15 +570,46 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+Immediate SmiConstantToImmediate(const Object& constant) {
+  ASSERT(constant.IsSmi());
+  return Immediate(reinterpret_cast<int64_t>(constant.raw()));
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
                                 BranchInstr* branch) {
-  Register left = locs.in(0).reg();
-  Register right = locs.in(1).reg();
+  Location left = locs.in(0);
+  Location right = locs.in(1);
 
   Condition true_condition = TokenKindToSmiCondition(kind);
-  __ cmpq(left, right);
+
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = FlowGraphCompiler::EvaluateCondition(
+        true_condition,
+        Smi::Cast(left.constant()).Value(),
+        Smi::Cast(right.constant()).Value());
+
+    if (branch != NULL) {
+      branch->EmitBranchOnValue(compiler, result);
+    } else {
+      __ LoadObject(locs.out().reg(), result ? compiler->bool_true()
+                                             : compiler->bool_false());
+    }
+
+    return;
+  }
+
+  if (left.IsConstant()) {
+    __ cmpq(right.reg(), SmiConstantToImmediate(left.constant()));
+    true_condition = FlowGraphCompiler::FlipCondition(true_condition);
+  } else if (right.IsConstant()) {
+    __ cmpq(left.reg(), SmiConstantToImmediate(right.constant()));
+  } else {
+    __ cmpq(left.reg(), right.reg());
+  }
 
   if (branch != NULL) {
     branch->EmitBranchOnCondition(compiler, true_condition);
@@ -699,8 +739,8 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
   if (operands_class_id() == kDoubleCid) {
-    const intptr_t kNumTemps = 0;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresXmmRegister());
@@ -708,16 +748,13 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     summary->set_out(Location::RequiresRegister());
     return summary;
   } else if (operands_class_id() == kSmiCid) {
-    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
+    summary->set_in(0, Location::RegisterOrConstant(left()));
+    summary->set_in(1, Location::RegisterOrConstant(right()));
     summary->set_out(Location::RequiresRegister());
-    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
-  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   // Pick arbitrary fixed input registers because this is a call.

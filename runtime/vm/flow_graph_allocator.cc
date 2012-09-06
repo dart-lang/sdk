@@ -655,6 +655,14 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
     Value* val = phi->InputAt(pred_idx);
     MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
+
+    ConstantInstr* constant = val->definition()->AsConstant();
+    if (constant != NULL) {
+      move->set_src(Location::Constant(constant->value()));
+      move_idx++;
+      continue;
+    }
+
     // Expected shape of live ranges:
     //
     //                 g  g'

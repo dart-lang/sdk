@@ -1363,6 +1363,8 @@ class ControlInstruction : public Instruction {
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
 
+  void EmitBranchOnValue(FlowGraphCompiler* compiler, bool result);
+
  private:
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;

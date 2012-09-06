@@ -1334,6 +1334,16 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
+void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
+                                           bool value) {
+  if (value && compiler->IsNextBlock(false_successor())) {
+    __ jmp(compiler->GetBlockLabel(true_successor()));
+  } else if (!value && compiler->IsNextBlock(true_successor())) {
+    __ jmp(compiler->GetBlockLabel(false_successor()));
+  }
+}
+
+
 void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                                Condition true_condition) {
   if (compiler->IsNextBlock(false_successor())) {
