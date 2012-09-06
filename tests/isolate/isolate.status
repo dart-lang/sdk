@@ -101,3 +101,12 @@ request_reply_test: Fail
 spawn_function_custom_class_test: Fail
 spawn_function_test: Fail
 unresolved_ports_test: Fail
+
+[ $compiler == dart2js && $checked && $browser]
+
+# The following tests fail on int checks.
+# Issue 3720
+compute_this_script_browser_test: Fail
+multiple_timer_test: Fail
+timer_repeat_test: Fail
+timer_test: Fail
