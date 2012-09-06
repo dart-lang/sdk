@@ -811,7 +811,7 @@ unwrapException(ex) {
         // Examples:
         //  x.foo is not a function
         //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
-        // Object doesn't support property or method 'foo' which sets the error 
+        // Object doesn't support property or method 'foo' which sets the error
         // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
@@ -947,6 +947,9 @@ interface Dynamic {
 
 /**
  * Represents the type of Null. The compiler treats this specially.
+ * TODO(lrn): Null should be defined in core. It's a class, like int.
+ * It just happens to act differently in assignability tests and,
+ * like int, can't be extended or implemented.
  */
 class Null {
   factory Null() {
@@ -1185,6 +1188,37 @@ listSuperNativeTypeCast(value, property) {
  * visible to anyone, and is only injected into special libraries.
  */
 interface JavaScriptIndexingBehavior {
+}
+
+// TODO(lrn): These exceptions should be implemented in core.
+// When they are, remove the 'Implementation' here.
+
+/** Thrown by type assertions that fail. */
+class TypeErrorImplementation implements TypeError {
+  final String msg;
+  const TypeErrorImplementation(String this.msg);
+  String toString() => msg;
+}
+
+/** Thrown by the 'as' operator if the cast isn't valid. */
+class CastExceptionImplementation implements CastException {
+  // TODO(lrn): Rename to CastError (and move implementation into core).
+  // TODO(lrn): Change actualType and expectedType to "Type" when reified
+  // types are available.
+  final Object actualType;
+  final Object expectedType;
+
+  CastExceptionImplementation(this.actualType, this.expectedType);
+
+  String toString() {
+    return "CastException: Casting value of type $actualType to"
+           " incompatible type $expectedType";
+  }
+}
+
+class FallThroughErrorImplementation implements FallThroughError {
+  const FallThroughErrorImplementation();
+  String toString() => "Switch case fall-through.";
 }
 
 /**

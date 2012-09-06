@@ -2,16 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class AssertionError {
+class Error {
+  const Error();
 }
 
-class TypeError extends AssertionError {
+class AssertionError implements Error {
 }
 
-class CastException extends TypeError {
+class TypeError implements AssertionError {
 }
 
-class FallThroughError {
+// TODO(lrn): Rename to CastError according to specification.
+class CastException implements Error {
+}
+
+class FallThroughError implements Error {
   const FallThroughError();
 }
 
