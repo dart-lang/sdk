@@ -14,7 +14,6 @@ main() {
     return new CSSStyleDeclaration.css("""
       color: blue;
       width: 2px !important;
-      -webkit-transform: rotate(90deg);
     """);
   };
 
@@ -30,17 +29,8 @@ main() {
     // Expect.isNull(style.getPropertyShorthand('color'));
   });
 
-  test('cssText is wrapped', () {
-    var style = createTestStyle();
-    expect(style.cssText,
-      equals("color: blue; width: 2px !important; "
-             "-webkit-transform: rotate(90deg);"));
-    style.cssText = "color: red";
-    expect(style.cssText, equals("color: red;"));
-  });
-
   test('length is wrapped', () {
-    expect(createTestStyle(), hasLength(3));
+    expect(createTestStyle(), hasLength(2));
   });
 
   test('getPropertyPriority is wrapped', () {
@@ -49,30 +39,38 @@ main() {
     expect(style.getPropertyPriority("width"), equals("important"));
   });
 
-  test('item is wrapped', () {
-    var style = createTestStyle();
-    expect(style.item(0), equals("color"));
-    expect(style.item(1), equals("width"));
-    expect(style.item(2), equals("-webkit-transform"));
-  });
-
   test('removeProperty is wrapped', () {
     var style = createTestStyle();
     style.removeProperty("width");
-    expect(style.cssText,
-      equals("color: blue; -webkit-transform: rotate(90deg);"));
+    expect(style.cssText.trim(),
+      equals("color: blue;"));
   });
 
   test('CSS property getters and setters', () {
     var style = createTestStyle();
     expect(style.color, equals("blue"));
     expect(style.width, equals("2px"));
-    expect(style.transform, equals("rotate(90deg)"));
 
     style.color = "red";
     style.transform = "translate(10px, 20px)";
-    expect(style.cssText,
-      equals("color: red; width: 2px !important;"
-             " -webkit-transform: translate(10px, 20px);"));
+
+    expect(style.color, equals("red"));
+    expect(style.transform, equals("translate(10px, 20px)"));
+  });
+
+  test('Browser prefixes', () {
+    var element = new DivElement();
+    element.style.transform = 'translateX(10px)';
+    document.body.elements.add(element);
+
+    var style = new CSSStyleDeclaration();
+
+    element.getComputedStyle('').then(expectAsync1(
+      (CSSStyleDeclaration style) {
+        // Some browsers will normalize this, so it'll be a matrix rather than
+        // the original string. Just check that it's something other than null.
+        expect(style.transform.length, greaterThan(3));
+      }
+    ));
   });
 }

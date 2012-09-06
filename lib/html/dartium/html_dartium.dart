@@ -836,10 +836,13 @@ String get _browserPrefix() {
   if (_cachedBrowserPrefix === null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
+    } else if (_Device.isIE) {
+      _cachedBrowserPrefix = '-ms-';
+    } else if (_Device.isOpera) {
+      _cachedBrowserPrefix = '-o-';
     } else {
       _cachedBrowserPrefix = '-webkit-';
     }
-    // TODO(jacobr): support IE 9.0 and Opera as well.
   }
   return _cachedBrowserPrefix;
 }
@@ -40916,6 +40919,16 @@ class _Device {
    * Returns the user agent.
    */
   static String get userAgent() => window.navigator.userAgent;
+
+  /**
+   * Determines if the current device is running Opera.
+   */
+  static bool get isOpera() => userAgent.contains("Opera", 0);
+
+  /**
+   * Determines if the current device is running Internet Explorer.
+   */
+  static bool get isIE() => !isOpera && userAgent.contains("MSIE", 0);
 
   /**
    * Determines if the current device is running Firefox.

@@ -8,10 +8,13 @@ String get _browserPrefix() {
   if (_cachedBrowserPrefix === null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
+    } else if (_Device.isIE) {
+      _cachedBrowserPrefix = '-ms-';
+    } else if (_Device.isOpera) {
+      _cachedBrowserPrefix = '-o-';
     } else {
       _cachedBrowserPrefix = '-webkit-';
     }
-    // TODO(jacobr): support IE 9.0 and Opera as well.
   }
   return _cachedBrowserPrefix;
 }

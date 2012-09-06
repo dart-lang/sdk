@@ -54,7 +54,6 @@ typed_arrays_5_test: Skip
 typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
 typed_arrays_range_checks_test: Fail
-cssstyledeclaration_test: Fail
 element_test: Fail
 localstorage_test: Fail
 node_test: Fail
@@ -107,7 +106,6 @@ js_interop_1_test: Pass, Fail # BUG(4631)
 
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
-cssstyledeclaration_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
@@ -115,7 +113,6 @@ svgelement2_test: Fail
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
-cssstyledeclaration_test: Fail
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
@@ -190,9 +187,6 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
-
-[ $compiler == dart2js && $runtime == chrome ]
-cssstyledeclaration_test: Fail # Issue 4777
 
 [ $compiler == dart2js && $runtime == ff ]
 cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'

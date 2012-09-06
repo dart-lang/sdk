@@ -14,6 +14,16 @@ class _Device {
   static String get userAgent() => window.navigator.userAgent;
 
   /**
+   * Determines if the current device is running Opera.
+   */
+  static bool get isOpera() => userAgent.contains("Opera", 0);
+
+  /**
+   * Determines if the current device is running Internet Explorer.
+   */
+  static bool get isIE() => !isOpera && userAgent.contains("MSIE", 0);
+
+  /**
    * Determines if the current device is running Firefox.
    */
   static bool get isFirefox() => userAgent.contains("Firefox", 0);
