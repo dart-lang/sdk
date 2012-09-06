@@ -559,7 +559,7 @@ int DisassemblerX64::PrintImmediate(uint8_t* data, OperandSize size) {
       value = 0;  // Initialize variables on all paths to satisfy the compiler.
       count = 0;
   }
-  AppendToBuffer("%#"Px"", value);
+  AppendToBuffer("%#"Px64"", value);
   return count;
 }
 
@@ -1755,7 +1755,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           default:
             UNREACHABLE();
         }
-        AppendToBuffer("test%c rax,%#"Px"",
+        AppendToBuffer("test%c rax,%#"Px64"",
                        operand_size_code(),
                        value);
         break;
