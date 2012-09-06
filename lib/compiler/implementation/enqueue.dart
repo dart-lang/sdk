@@ -234,7 +234,7 @@ class Enqueuer {
           cls.localMembers.forEach((Element member) {
             if (!member.isInstanceMember() && !member.isField()) return;
             DartType type = member.computeType(compiler);
-            registerIsCheck(type.element);
+            registerIsCheck(type);
             SourceString helper = compiler.backend.getCheckedModeHelper(type);
             if (helper != null) {
               Element helperElement = compiler.findHelper(helper);
@@ -349,9 +349,8 @@ class Enqueuer {
     });
   }
 
-  // TODO(ngeoffray): This should get a type.
-  void registerIsCheck(Element element) {
-    universe.isChecks.add(element);
+  void registerIsCheck(DartType type) {
+    universe.isChecks.add(type);
   }
 
   void forEach(f(WorkItem work)) {

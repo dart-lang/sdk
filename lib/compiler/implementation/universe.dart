@@ -12,8 +12,9 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedSetters;
   final Map<SourceString, Set<Selector>> fieldGetters;
   final Map<SourceString, Set<Selector>> fieldSetters;
-  // TODO(ngeoffray): This should be a Set<DartType>.
-  final Set<Element> isChecks;
+  final Set<DartType> isChecks;
+  // TODO(karlklose): move this data to RuntimeTypeInformation.
+  Set<Element> checkedClasses;
   final RuntimeTypeInformation rti;
 
   Universe() : generatedCode = new Map<Element, CodeBuffer>(),
@@ -25,8 +26,15 @@ class Universe {
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                fieldGetters = new Map<SourceString, Set<Selector>>(),
                fieldSetters = new Map<SourceString, Set<Selector>>(),
-               isChecks = new Set<Element>(),
+               isChecks = new Set<DartType>(),
                rti = new RuntimeTypeInformation();
+
+  // TODO(karlklose): add the set of instantiatedtypes as second argument.
+  void computeRequiredTypes(Set<DartType> isChecks) {
+    assert(checkedClasses == null);
+    checkedClasses = new Set<Element>();
+    isChecks.forEach((DartType t) => checkedClasses.add(t.element));
+  }
 
   void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
     generatedCode[work.element] = codeBuffer;

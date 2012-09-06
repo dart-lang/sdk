@@ -374,9 +374,6 @@ class Compiler implements DiagnosticListener {
     assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
-
-    //patchDartLibrary(coreLibrary, 'core');
-    //patchDartLibrary(coreImplLibrary, 'coreimpl');
   }
 
   void importCoreLibrary(LibraryElement library) {
@@ -578,6 +575,11 @@ class Compiler implements DiagnosticListener {
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     if (compilationFailed) return;
+
+    // TODO(karlklose): also take the instantiated types into account and move
+    // this computation to before codegen.
+    enqueuer.codegen.universe.computeRequiredTypes(
+        enqueuer.resolution.universe.isChecks);
 
     backend.assembleProgram();
 
