@@ -99,6 +99,10 @@ Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(vm-team): Please t
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 
 
+[ $runtime == vm && $checked ]
+Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(vm-team): Please triage this failure.
+
+
 [ $runtime == vm ]
 # These tests fail after the deprecation of the corelib
 # Math object in favor of the dart:math library.
