@@ -30,7 +30,6 @@ class Builtin {
     kCryptoLibrary,
     kIOLibrary,
     kUtfLibrary,
-    kWebLibrary,
 
     kInvalidLibrary,
   };

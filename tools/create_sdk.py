@@ -55,11 +55,10 @@
 # ......uri/
 # ........uri.dart
 # ......utf/
-# ......web/
-# ........web.dart
 # ....pkg/
 # ......args/
 # ......dartdoc/
+#.......htmlescape/
 # ......intl/
 # ......logging/
 # ......(more will come here)
@@ -300,8 +299,9 @@ def Main(argv):
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
+  # TODO: Take this data from lib/_internal/libraries.dart!
   for library in ['_internal', 'core', 'coreimpl', 'crypto', 'isolate', 'json',
-                  'math', 'mirrors', 'uri', 'utf', 'web']:
+                  'math', 'mirrors', 'uri', 'utf']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
@@ -318,7 +318,7 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, unittest}
   #
 
-  for library in ['args', 'intl', 'logging', 'unittest']:
+  for library in ['args', 'htmlescape', 'intl', 'logging', 'unittest']:
     src_dir = join(HOME, 'pkg', library)
     dest_dir = join(PKG, library)
     os.makedirs(dest_dir)

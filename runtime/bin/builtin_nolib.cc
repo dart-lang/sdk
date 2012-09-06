@@ -17,16 +17,14 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { DartUtils::kUriLibURL,     NULL,            false },
   { DartUtils::kCryptoLibURL,  NULL,            false },
   { DartUtils::kIOLibURL,      NULL,            true  },
-  { DartUtils::kUtfLibURL,     NULL,            false },
-  { DartUtils::kWebLibURL,     web_source_,     false }
+  { DartUtils::kUtfLibURL,     NULL,            false }
 };
 
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
-  ASSERT(id == kWebLibrary);
-  return Dart_NewString(builtin_libraries_[id].source_);
+  return Dart_NewApiError("Unreachable code in Builtin::Source (%d).", id);
 }
 
 

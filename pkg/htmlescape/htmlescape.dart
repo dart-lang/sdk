@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("dart:web");
-
-// Web related functions and data that are not specific to a single environment
-// (e.g., only in a browser or only on a server).
+/**
+ * This library contains functions to escape strings for safe inclusion
+ * in HTML source.
+ */
+#library("htmlescape");
 
 /**
  * Escapes HTML-special characters of [text] so that the result can be
