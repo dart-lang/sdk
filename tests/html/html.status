@@ -207,7 +207,7 @@ css_test: Pass, Fail # Issue #2823
 [ $compiler == dart2js && $runtime == ff && $system == windows]
 js_interop_2_test: Fail # Issue 4658.
 
-[ $compiler == dart2js && $checked ]
+[ $compiler == dart2js && $checked && $browser]
 typed_arrays_range_checks_test: Fail # Issue 3720
 events_test: Fail # Issue 3720
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'

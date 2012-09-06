@@ -6,6 +6,10 @@
 math/*: Skip
 mirrors/*: Skip
 
+[ $compiler == dart2js && $browser ]
+crypto/sha256_test: Slow, Pass
+crypto/sha1_test: Slow, Pass
+
 [ $compiler == dart2js && $checked ]
 # numbers typed 'int' are too big to fit in a JS int.
 crypto/hmac_md5_test: Fail
