@@ -1050,8 +1050,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4238
    */
-  //TODO(pquitslund): re-enable once dart:dom_deprecated goes away for real
-  public void Xtest_typesPropagation_html_query() throws Exception {
+  public void test_typesPropagation_html_query() throws Exception {
     appSource.setContent(
         APP,
         makeCode(
