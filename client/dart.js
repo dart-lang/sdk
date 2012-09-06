@@ -46,12 +46,13 @@ function ReceivePortSync() {
 }
 
 (function() {
-  // Serialize:
+  // Serialize the following types as follows:
   //  - primitives / null: unchanged
-  //  - lists: [ 'list', id, list of recursively serialized elements ]
-  //  - maps: [ 'map', id, map of keys and recursively serialized values ]
-  //  - functions: [ 'funcref', function-proxy-id, function-proxy-send-port ]
-  //  - objects: [ 'objref', object-proxy-id, object-proxy-send-port ]
+  //  - lists: [ 'list', internal id, list of recursively serialized elements ]
+  //  - maps: [ 'map', internal id, map of keys and recursively serialized values ]
+  //  - send ports: [ 'sendport', type, isolate id, port id ]
+  //
+  // Note, internal id's are for cycle detection.
   function serialize(message) {
     var visited = [];
     function checkedSerialization(obj, serializer) {
@@ -85,27 +86,6 @@ function ReceivePortSync() {
         return [ 'sendport', 'nativejs', message.receivePort.id ];
       } else if (message instanceof DartSendPortSync) {
         return [ 'sendport', 'dart', message.isolateId, message.portId ];
-      } else if (message instanceof Function) {
-        // In case we are reserializing a previously serialized
-        // function, use a cached value.
-        if (message._dart_serialized) return message._dart_serialized;
-        message._dart_serialized = [ 'funcref',
-                                     functionRefTable.makeRef(message),
-                                     doSerialize(functionRefTable.sendPort) ];
-        return message._dart_serialized;
-      } else if (message instanceof HTMLElement) {
-        var id = elementId(message);
-        // Verify that the element is connected to the document.
-        // Otherwise, we will not be able to find it on the other side.
-        getElement(id);
-        return [ 'element', id ];
-      } else if (message instanceof DartProxy) {
-        return [ 'objref', message._id, doSerialize(message._port) ];
-      } else if (message.__proto__ != {}.__proto__) {
-        // TODO(vsm): Is the above portable and what we want?
-        // Proxy non-map Objects.
-        return [ 'objref', jsRefTable.makeRef(message),
-                 doSerialize(jsRefTable.sendPort) ];
       } else {
         return checkedSerialization(message, function(id) {
           var keys = Object.getOwnPropertyNames(message);
@@ -135,9 +115,6 @@ function ReceivePortSync() {
       case 'map': return deserializeMap(message);
       case 'sendport': return deserializeSendPort(message);
       case 'list': return deserializeList(message);
-      case 'funcref': return deserializeFunction(message);
-      case 'objref': return deserializeProxy(message);
-      case 'element': return deserializeElement(message);
       default: throw 'unimplemented';
     }
   }
@@ -178,33 +155,6 @@ function ReceivePortSync() {
       result[i] = deserializeHelper(values[i]);
     }
     return result;
-  }
-
-  function deserializeFunction(message) {
-    var ref = message[1];
-    var sendPort = deserializeSendPort(message[2]);
-    // Number of arguments is not used as of now
-    // we cannot find it out for Dart function in pure Dart.
-    var result = _makeFunctionFromRef(ref, sendPort);
-    // Cache the serialized form in case we resend this.
-    result._dart_serialized = message;
-    return result;
-  }
-
-  function deserializeProxy(message) {
-    var id = message[1];
-    var port = deserializeSendPort(message[2]);
-    if (port instanceof LocalSendPortSync) {
-      return jsRefTable.map[id];
-    } else if (port instanceof DartSendPortSync) {
-      return new DartProxy(port, id);
-    }
-    throw 'Illegal proxy object: ' + message;
-  }
-
-  function deserializeElement(message) {
-    var id = message[1];
-    return getElement(id);
   }
 
   window.registerPort = function(name, port) {
@@ -289,137 +239,5 @@ function ReceivePortSync() {
     dispatchEvent(target, [source, serialized]);
     window.removeEventListener(source, listener, false);
     return deserialize(result);
-  }
-
-  // Proxy support
-
-  function RefTable(name) {
-    // TODO(vsm): Fix leaks, particularly in dart2js case.
-    this.name = name;
-    this.map = {};
-    this.id = 0;
-    this.initialized = false;
-    this.port = new ReceivePortSync();
-    this.sendPort = this.port.toSendPort();
-  }
-
-  RefTable.prototype.nextId = function () { return this.id++; }
-
-  RefTable.prototype.makeRef = function (obj) {
-    this.initializeOnce();
-    // TODO(vsm): Cache refs for each obj.
-    var ref = this.name + '-' + this.nextId();
-    this.map[ref] = obj;
-    return ref;
-  }
-
-  RefTable.prototype.initializeOnce = function () {
-    if (!this.initialized) {
-      this.initialize();
-    }
-    this.initialized = true;
-  }
-
-  // Overridable initialization on first use hook.
-  RefTable.prototype.initialize = function () {}
-
-  RefTable.prototype.get = function (ref) {
-    return this.map[ref];
-  }
-
-  function FunctionRefTable() {}
-
-  FunctionRefTable.prototype = new RefTable('func-ref');
-
-  FunctionRefTable.prototype.initialize = function () {
-    var map = this.map;
-    this.port.receive(function (message) {
-      var id = message[0];
-      var args = message[1];
-      var f = map[id];
-      // TODO(vsm): Should we capture this automatically?
-      return f.apply(null, args);
-    });
-  }
-
-  var functionRefTable = new FunctionRefTable();
-
-  function JSRefTable() {}
-
-  JSRefTable.prototype = new RefTable('js-ref');
-
-  JSRefTable.prototype.initialize = function () {
-    var map = this.map;
-    this.port.receive(function (message) {
-      // TODO(vsm): Support a mechanism to register a handler here.
-      var receiver = map[message[0]];
-      var method = message[1];
-      var args = message[2];
-      if (method.indexOf("get:") == 0) {
-        // Getter.
-        var field = method.substring(4);
-        if (field in receiver && args.length == 0) {
-          return [ 'return', receiver[field] ];
-        }
-      } else if (method.indexOf("set:") == 0) {
-        // Setter.
-        var field = method.substring(4);
-        if (field in receiver && args.length == 1) {
-          return [ 'return', receiver[field] = args[0] ];
-        }
-      } else {
-        var f = receiver[method];
-        if (f) {
-          try {
-            var result = f.apply(receiver, args);
-            return [ 'return', result ];
-          } catch (e) {
-            return [ 'exception', e ];
-          }
-        }
-      }
-      return [ 'none' ];
-    });
-  }
-
-  var jsRefTable = new JSRefTable();
-
-  function DartProxy(port, id) {
-    this._port = port;
-    this._id = id;
-  }
-
-  // Leaking implementation.
-  // TODO(vsm): provide proper, backend-specific implementation.
-  function _makeFunctionFromRef(ref, sendPort) {
-    // If the sendPort is local, just return the underlying function.
-    // Otherwise, create a new function that forwards to the remote
-    // port.
-    if (sendPort instanceof LocalSendPortSync) {
-      return functionRefTable.map[ref];
-    }
-    return function() {
-      return sendPort.callSync([ref, Array.prototype.slice.call(arguments)]);
-    };
-  }
-
-  var localNextElementId = 0;
-  var _DART_ID = 'data-dart_id';
-
-  function elementId(e) {
-    if (e.hasAttribute(_DART_ID)) return e.getAttribute(_DART_ID);
-    var id = (localNextElementId++).toString();
-    e.setAttribute(_DART_ID, id);
-    return id;
-  }
-
-  function getElement(id) {
-    var list = document.querySelectorAll('[' + _DART_ID + '="' + id + '"]');
-
-    if (list.length > 1) throw 'Non unique ID: ' + id;
-    if (list.length == 0) {
-      throw 'Element must be attached to the document: ' + id;
-    }
-    return list[0];
   }
 })();
