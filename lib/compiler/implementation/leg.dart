@@ -27,6 +27,7 @@
 #source('code_buffer.dart');
 #source('compile_time_constants.dart');
 #source('compiler.dart');
+#source('constants.dart');
 #source('constant_system.dart');
 #source('constant_system_dart.dart');
 #source('diagnostic_listener.dart');
