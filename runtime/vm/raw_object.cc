@@ -435,14 +435,17 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
 
-  // Also visit all the embedded pointers in the corresponding instructions.
   RawCode* obj = raw_obj->ptr();
   intptr_t length = obj->pointer_offsets_length_;
-  uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
-      Instructions::HeaderSize();
-  for (intptr_t i = 0; i < length; i++) {
-    int32_t offset = obj->data_[i];
-    visitor->VisitPointer(reinterpret_cast<RawObject**>(entry_point + offset));
+  if (obj->is_alive_ == 1) {
+    // Also visit all the embedded pointers in the corresponding instructions.
+    uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
+        Instructions::HeaderSize();
+    for (intptr_t i = 0; i < length; i++) {
+      int32_t offset = obj->data_[i];
+      visitor->VisitPointer(
+          reinterpret_cast<RawObject**>(entry_point + offset));
+    }
   }
   return Code::InstanceSize(length);
 }

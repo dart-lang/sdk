@@ -2534,6 +2534,12 @@ class Code : public Object {
   void set_is_optimized(bool value) const {
     raw_ptr()->is_optimized_ = value ? 1 : 0;
   }
+  bool is_alive() const {
+    return (raw_ptr()->is_alive_ == 1);
+  }
+  void set_is_alive(bool value) const {
+    raw_ptr()->is_alive_ = value ? 1 : 0;
+  }
 
   uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());

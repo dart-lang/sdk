@@ -7164,6 +7164,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_is_alive(true);
     result.set_comments(Comments::New(0));
   }
   return result.raw();
