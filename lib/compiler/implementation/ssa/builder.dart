@@ -1213,7 +1213,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeBackendMembers: true,
         includeSuperMembers: true,
         f: (ClassElement enclosingClass, Element member) {
-      constructorArguments.add(fieldValues[member]);
+      constructorArguments.add(
+          potentiallyCheckType(fieldValues[member], member));
     });
 
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
@@ -1355,33 +1356,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction potentiallyCheckType(HInstruction original,
                                     Element sourceElement) {
     if (!compiler.enableTypeAssertions) return original;
-    return convertType(original, sourceElement,
-                       HTypeConversion.CHECKED_MODE_CHECK);
-  }
-
-  HInstruction convertType(HInstruction original,
-                           Element sourceElement,
-                           int kind) {
-    DartType type = sourceElement.computeType(compiler);
-    if (type === null) return original;
-    if (type.element === compiler.dynamicClass) return original;
-    if (type.element === compiler.objectClass) return original;
-
-    // If the original can't be null, type conversion also can't produce null.
-    bool canBeNull = original.guaranteedType.canBeNull();
-    HType convertedType =
-        new HType.fromBoundedType(type, compiler, canBeNull);
-
-    // No need to convert if we know the instruction has
-    // [convertedType] as a bound.
-    if (original.guaranteedType == convertedType) {
-      return original;
-    }
-
-    HInstruction instruction =
-        new HTypeConversion(convertedType, original, kind);
-    add(instruction);
-    return instruction;
+    HInstruction other = original.convertType(
+        compiler, sourceElement, HTypeConversion.CHECKED_MODE_CHECK);
+    if (other != original) add(other);
+    return other;
   }
 
   HGraph closeFunction() {
@@ -2211,8 +2189,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Node argument = node.arguments.head;
       TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
       DartType type = elements.getType(typeAnnotation);
-      HInstruction converted = convertType(expression, type.element,
-                                           HTypeConversion.CAST_TYPE_CHECK);
+      HInstruction converted = expression.convertType(
+          compiler, type.element, HTypeConversion.CAST_TYPE_CHECK);
+      if (converted != expression) add(converted);
       stack.add(converted);
     } else {
       visit(node.receiver);

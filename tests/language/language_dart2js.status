@@ -11,9 +11,6 @@
 assert_with_type_test_or_cast_test: Fail # Issue 4929
 assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
-assign_static_type_test/03: Fail
-assign_static_type_test/04: Fail
-field_type_check_test/01: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail

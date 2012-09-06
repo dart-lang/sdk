@@ -1084,6 +1084,29 @@ class HInstruction implements Hashable {
     }
     return false;
   }
+
+
+  HInstruction convertType(Compiler compiler,
+                           Element sourceElement,
+                           int kind) {
+    DartType type = sourceElement.computeType(compiler);
+    if (type === null) return this;
+    if (type.element === compiler.dynamicClass) return this;
+    if (type.element === compiler.objectClass) return this;
+
+    // If the original can't be null, type conversion also can't produce null.
+    bool canBeNull = this.guaranteedType.canBeNull();
+    HType convertedType =
+        new HType.fromBoundedType(type, compiler, canBeNull);
+
+    // No need to convert if we know the instruction has
+    // [convertedType] as a bound.
+    if (this.guaranteedType == convertedType) {
+      return this;
+    }
+
+    return new HTypeConversion(convertedType, this, kind);
+  }
 }
 
 class HBoolify extends HInstruction {

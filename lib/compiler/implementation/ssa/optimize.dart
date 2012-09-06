@@ -627,7 +627,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field === null) return node;
-    return new HFieldSet(field, node.inputs[0], node.inputs[1]);
+    HInstruction value = node.inputs[1];
+    if (compiler.enableTypeAssertions) {
+      HInstruction other = value.convertType(
+          compiler, field, HTypeConversion.CHECKED_MODE_CHECK);
+      if (other != value) {
+        node.block.addBefore(node, other);
+        value = other;
+      }
+    }
+    return new HFieldSet(field, node.inputs[0], value);
   }
 
   HInstruction visitStringConcat(HStringConcat node) {

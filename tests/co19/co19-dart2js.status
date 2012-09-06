@@ -147,7 +147,6 @@ Language/12_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(ahe): Please tr
 Language/12_Libraries_and_Scripts/2_Imports_A06_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Libraries_and_Scripts/2_Imports_A07_t05: Fail # TODO(ahe): Please triage this failure.
 Language/12_Libraries_and_Scripts/2_Imports_A10_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Futures/wait_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/forEach_A01_t02: Fail # TODO(ahe): Please triage this failure.
 
@@ -874,6 +873,78 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/isUtc_A01_t01: Fail, OK
 
+[ $compiler == dart2js && $unchecked ]
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
+
+[ $compiler == dart2js && $checked ]
+
+# The following tests fail on int checks.
+# Issue 3720
+Language/07_Classes/4_Instance_Variables_A02_t06: Fail
+Language/10_Expressions/03_Numbers_A05_t01: Fail
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A04_t04: Fail
+Language/11_Statements/05_For/2_For_in_A01_t01: Fail
+LibTest/core/Date/Date.fromString_A01_t01: Fail
+LibTest/core/Date/Date.fromString_A01_t02: Fail
+LibTest/core/Date/Date.now_A01_t01: Fail
+LibTest/core/Date/Date.now_A01_t02: Fail
+LibTest/core/Date/Date.now_A01_t03: Fail
+LibTest/core/Date/Date_A01_t04: Fail
+LibTest/core/Date/Date_A01_t05: Fail
+LibTest/core/Date/add_A01_t01: Fail
+LibTest/core/Date/add_A02_t01: Fail
+LibTest/core/Date/add_A03_t01: Fail
+LibTest/core/Date/compareTo_A01_t01: Fail
+LibTest/core/Date/compareTo_A01_t02: Fail
+LibTest/core/Date/day_A01_t01: Fail
+LibTest/core/Date/difference_A01_t01: Fail
+LibTest/core/Date/hour_A01_t01: Fail
+LibTest/core/Date/millisecond_A01_t01: Fail
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail
+LibTest/core/Date/minute_A01_t01: Fail
+LibTest/core/Date/month_A01_t01: Fail
+LibTest/core/Date/operator_GE_A01_t01: Fail
+LibTest/core/Date/operator_GT_A01_t01: Fail
+LibTest/core/Date/operator_LE_A01_t01: Fail
+LibTest/core/Date/operator_LT_A01_t01: Fail
+LibTest/core/Date/operator_equality_A01_t01: Fail
+LibTest/core/Date/second_A01_t01: Fail
+LibTest/core/Date/subtract_A01_t01: Fail
+LibTest/core/Date/subtract_A02_t01: Fail
+LibTest/core/Date/subtract_A03_t01: Fail
+LibTest/core/Date/timeZoneName_A01_t01: Fail
+LibTest/core/Date/toLocal_A01_t01: Fail
+LibTest/core/Date/toString_A01_t01: Fail
+LibTest/core/Date/toUtc_A01_t01: Fail
+LibTest/core/Date/weekday_A01_t01: Fail
+LibTest/core/Duration/Duration_A01_t01: Fail
+LibTest/core/Duration/Duration_A02_t01: Fail
+LibTest/core/Duration/inDays_A01_t01: Fail
+LibTest/core/Duration/inHours_A01_t01: Fail
+LibTest/core/Duration/inMilliseconds_A01_t01: Fail
+LibTest/core/Duration/inMinutes_A01_t01: Fail
+LibTest/core/Duration/inSeconds_A01_t01: Fail
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail
+LibTest/core/Stopwatch/elapsed_A01_t01: Fail
+LibTest/core/Stopwatch/elapsed_A01_t02: Fail
+LibTest/core/Stopwatch/frequency_A01_t01: Fail
+LibTest/core/Stopwatch/start_A01_t01: Fail
+LibTest/core/Stopwatch/start_A01_t02: Fail
+LibTest/core/Stopwatch/start_A01_t03: Fail
+LibTest/core/Stopwatch/stop_A01_t01: Fail
+LibTest/core/double/operator_GE_A01_t02: Fail
+LibTest/core/double/operator_GT_A01_t02: Fail
+LibTest/core/double/operator_LE_A01_t02: Fail
+LibTest/core/double/operator_LT_A01_t02: Fail
+LibTest/core/double/operator_remainder_A01_t01: Fail
+LibTest/core/double/operator_remainder_A01_t02: Fail
+LibTest/core/double/operator_remainder_A01_t03: Fail
+LibTest/core/double/operator_remainder_A01_t04: Fail
+LibTest/core/double/operator_remainder_A01_t05: Fail
+
+
+LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 
 #
 # Issues with co19 test suite.
@@ -1155,11 +1226,6 @@ Language/14_Reference/1_Lexical_Rules_A02_t06: Fail # @compile-error
 
 
 [ $compiler == dart2dart ]
-*: Skip
-
-
-[ $compiler == dart2js && $checked ]
-# TODO(ngeoffray): Test checked mode.
 *: Skip
 
 
