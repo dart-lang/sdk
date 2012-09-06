@@ -11,32 +11,30 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Information about import - prefix and {@link LibraryUnit}.
+ * Information about export - {@link LibraryUnit} and show/hide names.
  */
-public class LibraryImport {
+public class LibraryExport {
   private final LibraryUnit library;
-  private final String prefix;
   private final Set<String> showNames;
   private final Set<String> hideNames;
 
-  public LibraryImport(LibraryUnit library, String prefix, List<ImportCombinator> combinators) {
+  public LibraryExport(LibraryUnit library, List<ImportCombinator> combinators) {
     this.library = library;
-    this.prefix = prefix;
     this.showNames = createCombinatorsSet(combinators, true);
     this.hideNames = createCombinatorsSet(combinators, false);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(prefix, library);
+    return Objects.hashCode(library);
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof LibraryImport) {
-      LibraryImport other = (LibraryImport) obj;
-      return Objects.equal(library, other.library) && Objects.equal(prefix, other.prefix)
-          && Objects.equal(showNames, other.showNames) && Objects.equal(hideNames, other.hideNames);
+    if (obj instanceof LibraryExport) {
+      LibraryExport other = (LibraryExport) obj;
+      return Objects.equal(library, other.library) && Objects.equal(showNames, other.showNames)
+          && Objects.equal(hideNames, other.hideNames);
     }
     return false;
   }
@@ -45,10 +43,6 @@ public class LibraryImport {
     return library;
   }
 
-  public String getPrefix() {
-    return prefix;
-  }
-  
   public boolean isVisible(String name) {
     if (hideNames.contains(name)) {
       return false;

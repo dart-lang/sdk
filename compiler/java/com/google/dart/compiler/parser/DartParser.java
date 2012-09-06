@@ -436,17 +436,24 @@ public class DartParser extends CompletionHooksParserBase {
       DartLibraryDirective libraryDirective = parseLibraryDirective();
       libUnit.setName(libraryDirective.getLibraryName());
     }
-    while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
-      DartImportDirective importDirective = parseImportDirective();
-      LibraryNode importPath;
-      if (importDirective.getPrefix() != null) {
-          importPath =
-              new LibraryNode(importDirective);
-      } else {
-        importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
+    while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
+      if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
+        DartImportDirective importDirective = parseImportDirective();
+        LibraryNode importPath;
+        if (importDirective.getPrefix() != null) {
+          importPath = new LibraryNode(importDirective);
+        } else {
+          importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
+        }
+        importPath.setSourceInfo(importDirective.getSourceInfo());
+        libUnit.addImportPath(importPath);
       }
-      importPath.setSourceInfo(importDirective.getSourceInfo());
-      libUnit.addImportPath(importPath);
+      if (peekPseudoKeyword(0, EXPORT_KEYWORD)) {
+        DartExportDirective exportDirective = parseExportDirective();
+        LibraryNode importPath = new LibraryNode(exportDirective);
+        importPath.setSourceInfo(exportDirective.getSourceInfo());
+        libUnit.addExportPath(importPath);
+      }
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {

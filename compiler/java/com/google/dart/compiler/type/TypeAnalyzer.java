@@ -40,6 +40,7 @@ import com.google.dart.compiler.ast.DartDefault;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartEmptyStatement;
+import com.google.dart.compiler.ast.DartExportDirective;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -2956,7 +2957,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitImportDirective(DartImportDirective node) {
-      //return typeAsVoid(node);
+      return voidType;
+    }
+    
+    @Override
+    public Type visitExportDirective(DartExportDirective node) {
       return voidType;
     }
 

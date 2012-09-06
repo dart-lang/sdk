@@ -428,7 +428,17 @@ public class DartCompiler {
         for (LibraryNode libNode : lib.getImportPaths()) {
           LibrarySource dep = getImportSource(libSrc, libNode);
           if (dep != null) {
-            lib.addImport(updateLibraries(dep), libNode);
+            LibraryUnit importedLib = updateLibraries(dep);
+            lib.addImport(importedLib, libNode);
+            if (libNode.isExported()) {
+              lib.addExport(importedLib, libNode);
+            }
+          }
+        }
+        for (LibraryNode libNode : lib.getExportPaths()) {
+          LibrarySource dep = getImportSource(libSrc, libNode);
+          if (dep != null) {
+            lib.addExport(updateLibraries(dep), libNode);
           }
         }
         return lib;
