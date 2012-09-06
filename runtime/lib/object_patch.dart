@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class ObjectImplementation {
-  /* patch */ static String toStringImpl(Object object)
-      native "Object_toString";
+patch class Object {
+  /* patch */ String toString() => _toString(this);
 
-  /* patch */ static void noSuchMethodImpl(Object object,
-                                           String functionName,
-                                           List args)
+  /* patch */ void noSuchMethod(String functionName, List args) {
+    _noSuchMethod(this, functionName, args);
+  }
+
+  static void _noSuchMethod(Object obj, String functionName, List args)
       native "Object_noSuchMethod";
+
+  static String _toString(Object obj) native "Object_toString";
 }

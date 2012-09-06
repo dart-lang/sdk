@@ -6,29 +6,35 @@ class Universe {
   Map<Element, CodeBuffer> generatedCode;
   Map<Element, CodeBuffer> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
-  final Set<SourceString> instantiatedClassInstanceFields;
   final Set<FunctionElement> staticFunctionsNeedingGetter;
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
   final Map<SourceString, Set<Selector>> fieldGetters;
   final Map<SourceString, Set<Selector>> fieldSetters;
-  // TODO(ngeoffray): This should be a Set<DartType>.
-  final Set<Element> isChecks;
+  final Set<DartType> isChecks;
+  // TODO(karlklose): move this data to RuntimeTypeInformation.
+  Set<Element> checkedClasses;
   final RuntimeTypeInformation rti;
 
   Universe() : generatedCode = new Map<Element, CodeBuffer>(),
                generatedBailoutCode = new Map<Element, CodeBuffer>(),
                instantiatedClasses = new Set<ClassElement>(),
-               instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                fieldGetters = new Map<SourceString, Set<Selector>>(),
                fieldSetters = new Map<SourceString, Set<Selector>>(),
-               isChecks = new Set<Element>(),
+               isChecks = new Set<DartType>(),
                rti = new RuntimeTypeInformation();
+
+  // TODO(karlklose): add the set of instantiatedtypes as second argument.
+  void computeRequiredTypes(Set<DartType> isChecks) {
+    assert(checkedClasses == null);
+    checkedClasses = new Set<Element>();
+    isChecks.forEach((DartType t) => checkedClasses.add(t.element));
+  }
 
   void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
     generatedCode[work.element] = codeBuffer;
@@ -143,11 +149,11 @@ class Selector implements Hashable {
       : this(SelectorKind.CALL, name, library, arity, named);
 
   Selector.callClosure(int arity, [List<SourceString> named = const []])
-      : this(SelectorKind.CALL, Namer.CLOSURE_INVOCATION_NAME, null,
+      : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
              arity, named);
 
   Selector.callClosureFrom(Selector selector)
-      : this(SelectorKind.CALL, Namer.CLOSURE_INVOCATION_NAME, null,
+      : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
              selector.argumentCount, selector.namedArguments);
 
   // TODO(kasperl): This belongs somewhere else.
@@ -322,7 +328,26 @@ class Selector implements Hashable {
     return orderedNamedArguments;
   }
 
-  toString() => 'Selector($kind, $name, $argumentCount)';
+  String namedArgumentsToString() {
+    if (namedArgumentCount > 0) {
+      StringBuffer result = new StringBuffer();
+      for (int i = 0; i < namedArgumentCount; i++) {
+        if (i != 0) result.add(', ');
+        result.add(namedArguments[i].slowToString());
+      }
+      return "[$result]";
+    }
+    return '';
+  }
+
+  String toString() {
+    String named = '';
+    String type = '';
+    if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
+    if (receiverType != null) type = ', type=$receiverType';
+    return 'Selector($kind, ${name.slowToString()}, '
+           'arity=$argumentCount$named$type)';
+  }
 }
 
 class TypedSelector extends Selector {
@@ -386,10 +411,5 @@ class TypedSelector extends Selector {
     }
 
     return false;
-  }
-
-  toString() {
-    return 'Selector($kind, "${name.slowToString()}", '
-           '$argumentCount, type=$receiverType)';
   }
 }

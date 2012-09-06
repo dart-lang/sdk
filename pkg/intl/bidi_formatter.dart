@@ -77,7 +77,7 @@ class BidiFormatter {
       contextDirection = TextDirection.UNKNOWN, _alwaysSpan = alwaysSpan;
 
   /** Is true if the known context direction for this formatter is RTL. */
-  bool get isRTL() => contextDirection == TextDirection.RTL;
+  bool get isRTL => contextDirection == TextDirection.RTL;
 
   /**
    * Formats a string of a given (or estimated, if not provided)

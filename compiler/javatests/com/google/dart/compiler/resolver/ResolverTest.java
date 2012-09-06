@@ -1365,6 +1365,15 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 14, 12));
   }
 
+  public void test_const_undefinedClass() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "main() {",
+        " const A();",
+        "}"),
+        errEx(TypeErrorCode.NO_SUCH_TYPE_CONST, 3, 8, 1));
+  }
+
   public void testNoGetterOrSetter() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

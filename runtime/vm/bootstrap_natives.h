@@ -98,6 +98,7 @@ namespace dart {
   V(AssertionError_throwNew, 2)                                                \
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
+  V(AbstractClassInstantiationError_throwNew, 2)                               \
   V(StaticResolutionException_throwNew, 1)                                     \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
@@ -200,7 +201,7 @@ class BootstrapNatives : public AllStatic {
  public:
   static Dart_NativeFunction Lookup(Dart_Handle name, int argument_count);
 
-#define DECLARE_BOOTSTRAP_NATIVE(name, ignored)         \
+#define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static void DN_##name(Dart_NativeArguments args);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)

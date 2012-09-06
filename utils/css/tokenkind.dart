@@ -6,141 +6,141 @@
 //              e.g., ASTERISK or they're CSS e.g., PSEUDO, COMBINATOR_*.
 class TokenKind {
   // Common shared tokens used in TokenizerBase.
-  static final int UNUSED = 0;                  // Unused place holder...
-  static final int END_OF_FILE = 1;             // TODO(terry): Must match base
-  static final int LPAREN = 2;                  // (
-  static final int RPAREN = 3;                  // )
-  static final int LBRACK = 4;                  // [
-  static final int RBRACK = 5;                  // ]
-  static final int LBRACE = 6;                  // {
-  static final int RBRACE = 7;                  // }
-  static final int DOT = 8;                     // .
-  static final int SEMICOLON = 9;               // ;
+  static const int UNUSED = 0;                  // Unused place holder...
+  static const int END_OF_FILE = 1;             // TODO(terry): Must match base
+  static const int LPAREN = 2;                  // (
+  static const int RPAREN = 3;                  // )
+  static const int LBRACK = 4;                  // [
+  static const int RBRACK = 5;                  // ]
+  static const int LBRACE = 6;                  // {
+  static const int RBRACE = 7;                  // }
+  static const int DOT = 8;                     // .
+  static const int SEMICOLON = 9;               // ;
 
   // Unique tokens for CSS.
-  static final int AT = 10;                     // @
-  static final int HASH = 11;                   // #
-  static final int PLUS = 12;                   // +
-  static final int GREATER = 13;                // >
-  static final int TILDE = 14;                  // ~
-  static final int ASTERISK = 15;               // *
-  static final int NAMESPACE = 16;              // |
-  static final int COLON = 17;                  // :
-  static final int PRIVATE_NAME = 18;           // _ prefix private class or id
-  static final int COMMA = 19;                  // ,
-  static final int SPACE = 20;
-  static final int TAB = 21;                    // /t
-  static final int NEWLINE = 22;                // /n
-  static final int RETURN = 23;                 // /r
-  static final int PERCENT = 24;                // %
-  static final int SINGLE_QUOTE = 25;           // '
-  static final int DOUBLE_QUOTE = 26;           // "
-  static final int SLASH = 27;                  // /
-  static final int EQUALS = 28;                 // =
-  static final int OR = 29;                     // |
-  static final int CARET = 30;                  // ^
-  static final int DOLLAR = 31;                 // $
-  static final int LESS = 32;                   // <
-  static final int BANG = 33;                   // !
-  static final int MINUS = 34;                  // -
+  static const int AT = 10;                     // @
+  static const int HASH = 11;                   // #
+  static const int PLUS = 12;                   // +
+  static const int GREATER = 13;                // >
+  static const int TILDE = 14;                  // ~
+  static const int ASTERISK = 15;               // *
+  static const int NAMESPACE = 16;              // |
+  static const int COLON = 17;                  // :
+  static const int PRIVATE_NAME = 18;           // _ prefix private class or id
+  static const int COMMA = 19;                  // ,
+  static const int SPACE = 20;
+  static const int TAB = 21;                    // /t
+  static const int NEWLINE = 22;                // /n
+  static const int RETURN = 23;                 // /r
+  static const int PERCENT = 24;                // %
+  static const int SINGLE_QUOTE = 25;           // '
+  static const int DOUBLE_QUOTE = 26;           // "
+  static const int SLASH = 27;                  // /
+  static const int EQUALS = 28;                 // =
+  static const int OR = 29;                     // |
+  static const int CARET = 30;                  // ^
+  static const int DOLLAR = 31;                 // $
+  static const int LESS = 32;                   // <
+  static const int BANG = 33;                   // !
+  static const int MINUS = 34;                  // -
 
   // WARNING: END_TOKENS must be 1 greater than the last token above (last
   //          character in our list).  Also add to kindToString function and the
   //          constructor for TokenKind.
 
-  static final int END_TOKENS = 35;             // Marker for last token in list
+  static const int END_TOKENS = 35;             // Marker for last token in list
 
   /** [TokenKind] representing integer tokens. */
-  static final int INTEGER = 60;                // TODO(terry): must match base
+  static const int INTEGER = 60;                // TODO(terry): must match base
 
   /** [TokenKind] representing hex integer tokens. */
-//  static final int HEX_INTEGER = 61;            // TODO(terry): must match base
+//  static const int HEX_INTEGER = 61;            // TODO(terry): must match base
 
   /** [TokenKind] representing double tokens. */
-  static final int DOUBLE = 62;                 // TODO(terry): must match base
+  static const int DOUBLE = 62;                 // TODO(terry): must match base
 
   /** [TokenKind] representing whitespace tokens. */
-  static final int WHITESPACE = 63;             // TODO(terry): must match base
+  static const int WHITESPACE = 63;             // TODO(terry): must match base
 
   /** [TokenKind] representing comment tokens. */
-  static final int COMMENT = 64;                // TODO(terry): must match base
+  static const int COMMENT = 64;                // TODO(terry): must match base
 
   /** [TokenKind] representing error tokens. */
-  static final int ERROR = 65;                  // TODO(terry): must match base
+  static const int ERROR = 65;                  // TODO(terry): must match base
 
   /** [TokenKind] representing incomplete string tokens. */
-  static final int INCOMPLETE_STRING = 66;      // TODO(terry): must match base
+  static const int INCOMPLETE_STRING = 66;      // TODO(terry): must match base
 
   /** [TokenKind] representing incomplete comment tokens. */
-  static final int INCOMPLETE_COMMENT = 67;     // TODO(terry): must match base
+  static const int INCOMPLETE_COMMENT = 67;     // TODO(terry): must match base
 
   // Synthesized Tokens (no character associated with TOKEN).
   // TODO(terry): Possible common names used by both Dart and CSS tokenizers.
-  static final int STRING = 500;
-  static final int STRING_PART = 501;
-  static final int NUMBER = 502;
-  static final int HEX_NUMBER = 503;
-  static final int HTML_COMMENT = 504;          // <!--
-  static final int IMPORTANT = 505;             // !important
-  static final int IDENTIFIER = 511;
+  static const int STRING = 500;
+  static const int STRING_PART = 501;
+  static const int NUMBER = 502;
+  static const int HEX_NUMBER = 503;
+  static const int HTML_COMMENT = 504;          // <!--
+  static const int IMPORTANT = 505;             // !important
+  static const int IDENTIFIER = 511;
 
   // Uniquely synthesized tokens for CSS.
-  static final int SELECTOR_EXPRESSION = 512;
-  static final int COMBINATOR_NONE = 513;
-  static final int COMBINATOR_DESCENDANT = 514; // Space combinator
-  static final int COMBINATOR_PLUS = 515;       // + combinator
-  static final int COMBINATOR_GREATER = 516;    // > combinator
-  static final int COMBINATOR_TILDE = 517;      // ~ combinator
+  static const int SELECTOR_EXPRESSION = 512;
+  static const int COMBINATOR_NONE = 513;
+  static const int COMBINATOR_DESCENDANT = 514; // Space combinator
+  static const int COMBINATOR_PLUS = 515;       // + combinator
+  static const int COMBINATOR_GREATER = 516;    // > combinator
+  static const int COMBINATOR_TILDE = 517;      // ~ combinator
 
-  static final int UNARY_OP_NONE = 518;         // No unary operator present.
+  static const int UNARY_OP_NONE = 518;         // No unary operator present.
   
   // Attribute match types:
-  static final int INCLUDES = 530;              // '~='
-  static final int DASH_MATCH = 531;            // '|='
-  static final int PREFIX_MATCH = 532;          // '^='
-  static final int SUFFIX_MATCH = 533;          // '$='
-  static final int SUBSTRING_MATCH = 534;       // '*='
-  static final int NO_MATCH = 535;              // No operator.
+  static const int INCLUDES = 530;              // '~='
+  static const int DASH_MATCH = 531;            // '|='
+  static const int PREFIX_MATCH = 532;          // '^='
+  static const int SUFFIX_MATCH = 533;          // '$='
+  static const int SUBSTRING_MATCH = 534;       // '*='
+  static const int NO_MATCH = 535;              // No operator.
 
   // Unit types:
-  static final int UNIT_EM = 600;
-  static final int UNIT_EX = 601;
-  static final int UNIT_LENGTH_PX = 602;
-  static final int UNIT_LENGTH_CM = 603;
-  static final int UNIT_LENGTH_MM = 604;
-  static final int UNIT_LENGTH_IN = 605;
-  static final int UNIT_LENGTH_PT = 606;
-  static final int UNIT_LENGTH_PC = 607;
-  static final int UNIT_ANGLE_DEG = 608;
-  static final int UNIT_ANGLE_RAD = 609;
-  static final int UNIT_ANGLE_GRAD = 610;
-  static final int UNIT_TIME_MS = 611;
-  static final int UNIT_TIME_S = 612;
-  static final int UNIT_FREQ_HZ = 613;
-  static final int UNIT_FREQ_KHZ = 614;
-  static final int UNIT_PERCENT = 615;
-  static final int UNIT_FRACTION = 616;
+  static const int UNIT_EM = 600;
+  static const int UNIT_EX = 601;
+  static const int UNIT_LENGTH_PX = 602;
+  static const int UNIT_LENGTH_CM = 603;
+  static const int UNIT_LENGTH_MM = 604;
+  static const int UNIT_LENGTH_IN = 605;
+  static const int UNIT_LENGTH_PT = 606;
+  static const int UNIT_LENGTH_PC = 607;
+  static const int UNIT_ANGLE_DEG = 608;
+  static const int UNIT_ANGLE_RAD = 609;
+  static const int UNIT_ANGLE_GRAD = 610;
+  static const int UNIT_TIME_MS = 611;
+  static const int UNIT_TIME_S = 612;
+  static const int UNIT_FREQ_HZ = 613;
+  static const int UNIT_FREQ_KHZ = 614;
+  static const int UNIT_PERCENT = 615;
+  static const int UNIT_FRACTION = 616;
 
   // Directives (@nnnn)
-  static final int DIRECTIVE_NONE = 650;
-  static final int DIRECTIVE_IMPORT = 651;
-  static final int DIRECTIVE_MEDIA = 652;
-  static final int DIRECTIVE_PAGE = 653;
-  static final int DIRECTIVE_INCLUDE = 654;
-  static final int DIRECTIVE_STYLET = 655;
-  static final int DIRECTIVE_KEYFRAMES = 656;
-  static final int DIRECTIVE_FONTFACE = 657;
+  static const int DIRECTIVE_NONE = 650;
+  static const int DIRECTIVE_IMPORT = 651;
+  static const int DIRECTIVE_MEDIA = 652;
+  static const int DIRECTIVE_PAGE = 653;
+  static const int DIRECTIVE_INCLUDE = 654;
+  static const int DIRECTIVE_STYLET = 655;
+  static const int DIRECTIVE_KEYFRAMES = 656;
+  static const int DIRECTIVE_FONTFACE = 657;
 
   // Simple selector type.
-  static final int CLASS_NAME = 700;            // .class
-  static final int ELEMENT_NAME = 701;          // tagName
-  static final int HASH_NAME = 702;             // #elementId
-  static final int ATTRIBUTE_NAME = 703;        // [attrib]
-  static final int PSEUDO_ELEMENT_NAME = 704;   // ::pseudoElement
-  static final int PSEUDO_CLASS_NAME = 705;     // :pseudoClass
-  static final int NEGATION = 706;              // NOT
+  static const int CLASS_NAME = 700;            // .class
+  static const int ELEMENT_NAME = 701;          // tagName
+  static const int HASH_NAME = 702;             // #elementId
+  static const int ATTRIBUTE_NAME = 703;        // [attrib]
+  static const int PSEUDO_ELEMENT_NAME = 704;   // ::pseudoElement
+  static const int PSEUDO_CLASS_NAME = 705;     // :pseudoClass
+  static const int NEGATION = 706;              // NOT
 
-  static final List<Map<int, String>> _DIRECTIVES = const [
+  static const List<Map<int, String>> _DIRECTIVES = const [
     const {'type': TokenKind.DIRECTIVE_IMPORT, 'value' : 'import'},
     const {'type': TokenKind.DIRECTIVE_MEDIA, 'value' : 'media'},
     const {'type': TokenKind.DIRECTIVE_PAGE, 'value' : 'page'},
@@ -150,7 +150,7 @@ class TokenKind {
     const {'type': TokenKind.DIRECTIVE_FONTFACE, 'value' : 'font-face'},
   ];
 
-  static final List<Map<int, String>> _UNITS = const [
+  static const List<Map<int, String>> _UNITS = const [
     const {'unit': TokenKind.UNIT_EM, 'value' : 'em'},
     const {'unit': TokenKind.UNIT_EX, 'value' : 'ex'},
     const {'unit': TokenKind.UNIT_LENGTH_PX, 'value' : 'px'},
@@ -170,11 +170,11 @@ class TokenKind {
   ];
 
   // Some more constants:
-  static final int ASCII_UPPER_A = 65;    // ASCII value for uppercase A
-  static final int ASCII_UPPER_Z = 90;    // ASCII value for uppercase Z
+  static const int ASCII_UPPER_A = 65;    // ASCII value for uppercase A
+  static const int ASCII_UPPER_Z = 90;    // ASCII value for uppercase Z
 
   // Extended color keywords:
-  static final List<Map<String, int>> _EXTENDED_COLOR_NAMES = const [
+  static const List<Map<String, int>> _EXTENDED_COLOR_NAMES = const [
     const {'name' : 'aliceblue', 'value' : 0xF08FF},
     const {'name' : 'antiquewhite', 'value' : 0xFAEBD7},
     const {'name' : 'aqua', 'value' : 0x00FFFF},
@@ -332,7 +332,7 @@ class TokenKind {
   //              for list of possible values.
 
   // List of valid CSS functions:
-  static final List<Map<String, Object>> _FUNCTIONS = const [
+  static const List<Map<String, Object>> _FUNCTIONS = const [
     const {'name' : 'counter', 'info' : const {'params' : 2, 'expr' : false}},
     const {'name' : 'attr', 'info' : const {'params' : 1, 'expr' : false}},
     const {'name' : 'calc', 'info' : const {'params' : 1, 'expr' : true}},

@@ -99,7 +99,7 @@ class Node implements Hashable {
   /**
    * Returns this node unparsed to Dart source string.
    */
-  toString() => unparse();
+  toString() => unparse(this);
 
   /**
    * Returns Xml-like tree representation of this node.
@@ -109,16 +109,6 @@ class Node implements Hashable {
   }
 
   String getObjectDescription() => super.toString();
-
-  String unparse() {
-    Unparser unparser = new Unparser();
-    try {
-      return unparser.unparse(this);
-    } catch (e, trace) {
-      print(trace);
-      return '<<unparse error: ${getObjectDescription()}: ${unparser.sb}>>';
-    }
-  }
 
   abstract Token getBeginToken();
 
@@ -292,6 +282,8 @@ class Send extends Expression {
       isOperator && selector.asOperator().source.stringValue === '&&';
   bool get isLogicalOr =>
       isOperator && selector.asOperator().source.stringValue === '||';
+  bool get isParameterCheck =>
+      isOperator && selector.asOperator().source.stringValue === '?';
 
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();
@@ -314,6 +306,22 @@ class Send extends Expression {
   Send copyWithReceiver(Node newReceiver) {
     assert(receiver === null);
     return new Send(newReceiver, selector, argumentsNode);
+  }
+
+  /**
+   * Returns the type annotation of a connstructor call in an object
+   * instantiation.
+   */
+  TypeAnnotation getTypeAnnotation() {
+    if (selector is TypeAnnotation) {
+      return selector;
+    } else if (selector is Send) {
+      Send selectorSend = selector;
+      if (selectorSend.receiver is TypeAnnotation) {
+        return selectorSend.receiver;
+      }
+    }
+    return null;
   }
 }
 

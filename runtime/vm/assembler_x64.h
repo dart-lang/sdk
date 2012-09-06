@@ -392,6 +392,7 @@ class Assembler : public ValueObject {
   void xorq(Register dst, Register src);
   void xorq(Register dst, const Address& address);
   void xorq(const Address& dst, Register src);
+  void xorq(Register dst, const Immediate& imm);
 
   void addl(Register dst, Register src);
   void addl(const Address& address, const Immediate& imm);
@@ -595,7 +596,7 @@ class Assembler : public ValueObject {
   void Align(int alignment, int offset);
   void Bind(Label* label);
 
-  void Comment(const char* format, ...);
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   const Code::Comments& GetCodeComments() const;
 
   int CodeSize() const { return buffer_.Size(); }

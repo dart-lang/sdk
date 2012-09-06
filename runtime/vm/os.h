@@ -62,8 +62,8 @@ class OS {
   static void Sleep(int64_t millis);
 
   // Print formatted output to stdout/stderr for debugging.
-  static void Print(const char* format, ...);
-  static void PrintErr(const char* format, ...);
+  static void Print(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
+  static void PrintErr(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static void VFPrint(FILE* stream, const char* format, va_list args);
   // Print formatted output info a buffer.
   //
@@ -81,7 +81,8 @@ class OS {
   // by glibc 2.1+ with one exception: the C99 standard allows a
   // negative return value.  We will terminate the vm rather than let
   // that occur.
-  static int SNPrint(char* str, size_t size, const char* format, ...);
+  static int SNPrint(char* str, size_t size, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
   static int VSNPrint(char* str, size_t size,
                       const char* format,
                       va_list args);

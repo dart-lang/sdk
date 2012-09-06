@@ -17,11 +17,14 @@
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 
-String compile(String code, [String entry = 'main']) {
-  MockCompiler compiler = new MockCompiler();
+String compile(String code, [String entry = 'main',
+                             bool enableTypeAssertions = false]) {
+  MockCompiler compiler =
+      new MockCompiler(enableTypeAssertions: enableTypeAssertions);
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;
+  compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   var context = new js.JavaScriptItemCompilationContext();
   leg.WorkItem work = new leg.WorkItem(element, null, context);

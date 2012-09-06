@@ -70,6 +70,11 @@ class LinkTail<T> implements EmptyLink<T> {
   bool isEmpty() => true;
 
   void forEach(void f(T element)) {}
+
+  bool equals(other) {
+    if (other is !Link<T>) return false;
+    return other.isEmpty();
+  }
 }
 
 class LinkEntry<T> implements Link<T> {
@@ -133,6 +138,19 @@ class LinkEntry<T> implements Link<T> {
     for (Link<T> link = this; !link.isEmpty(); link = link.tail) {
       f(link.head);
     }
+  }
+
+  bool equals(other) {
+    if (other is !Link<T>) return false;
+    Link<T> myElements = this;
+    while (!myElements.isEmpty() && !other.isEmpty()) {
+      if (myElements.head != other.head) {
+        return false;
+      }
+      myElements = myElements.tail;
+      other = other.tail;
+    }
+    return myElements.isEmpty() && other.isEmpty();
   }
 }
 

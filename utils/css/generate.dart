@@ -40,7 +40,7 @@ class Generate {
           //              and stylets with colliding names.
           buff.add('class ${production.dartClassName} {\n');
           buff.add('  // selector, properties<propertyName, value>\n');
-          buff.add('  static final selectors = const {\n');
+          buff.add('  static const selectors = const {\n');
 
           for (final ruleset in production.rulesets) {
             for (final selector in ruleset.selectorGroup.selectors) {
@@ -76,7 +76,7 @@ class Generate {
       '  // CSS class selectors:\n');
     for (final className in knownClasses) {
       String classAsDart = className.replaceAll('-', '_').toUpperCase();
-      classSelectors.add('  static final String ${classAsDart} = ' +
+      classSelectors.add('  static const String ${classAsDart} = ' +
           '\'${className}\';\n');
     }
     classSelectors.add('}\n');            // End of class selectors.

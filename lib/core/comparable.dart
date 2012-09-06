@@ -5,9 +5,5 @@
 // Dart core library.
 
 abstract class Comparable {
-  factory Comparable._uninstantiable() {
-    throw const UnsupportedOperationException(
-        "abstract class Comparable cannot be instantiated");
-  }
   abstract int compareTo(Comparable other);
 }

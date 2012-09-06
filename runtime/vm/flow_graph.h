@@ -10,14 +10,34 @@
 
 namespace dart {
 
-class BindInstr;
 class BlockEntryInstr;
-class StaticCallComp;
 class Definition;
 class FlowGraphBuilder;
 class GraphEntryInstr;
 class PhiInstr;
 class ReturnInstr;
+class StaticCallInstr;
+
+
+class BlockIterator : public ValueObject {
+ public:
+  explicit BlockIterator(const GrowableArray<BlockEntryInstr*>& block_order)
+      : block_order_(block_order), current_(0) { }
+
+  void Advance() {
+    ASSERT(!Done());
+    current_++;
+  }
+
+  bool Done() const { return current_ >= block_order_.length(); }
+
+  BlockEntryInstr* Current() const { return block_order_[current_]; }
+
+ private:
+  const GrowableArray<BlockEntryInstr*>& block_order_;
+  intptr_t current_;
+};
+
 
 // Class to incapsulate the construction and manipulation of the flow graph.
 class FlowGraph: public ZoneAllocated {
@@ -55,6 +75,14 @@ class FlowGraph: public ZoneAllocated {
     return reverse_postorder_;
   }
 
+  // Iterators.
+  BlockIterator reverse_postorder_iterator() const {
+    return BlockIterator(reverse_postorder());
+  }
+  BlockIterator postorder_iterator() const {
+    return BlockIterator(postorder());
+  }
+
   intptr_t max_virtual_register_number() const {
     return current_ssa_temp_index();
   }
@@ -72,9 +100,11 @@ class FlowGraph: public ZoneAllocated {
   void ComputeSSA(intptr_t next_virtual_register_number = 0);
   void ComputeUseLists();
 
-  void InlineCall(BindInstr* caller_instr,
-                  StaticCallComp* caller_comp,
-                  FlowGraph* callee_graph);
+  // Finds natural loops in the flow graph and attaches a list of loop
+  // body blocks for each loop header.
+  void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
+
+  void InlineCall(StaticCallInstr* call, FlowGraph* callee_graph);
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;

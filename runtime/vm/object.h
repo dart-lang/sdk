@@ -648,6 +648,11 @@ class Class : public Object {
   }
   void set_is_interface() const;
 
+  bool is_abstract() const {
+    return AbstractBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_abstract() const;
+
   bool is_finalized() const {
     return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kFinalized;
   }
@@ -716,11 +721,13 @@ class Class : public Object {
   enum {
     kConstBit = 1,
     kInterfaceBit = 2,
-    kStateTagBit = 3,
+    kAbstractBit = 3,
+    kStateTagBit = 4,
     kStateTagSize = 2,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class InterfaceBit : public BitField<bool, kInterfaceBit, 1> {};
+  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class StateBits : public BitField<RawClass::ClassState,
                                     kStateTagBit, kStateTagSize> {};  // NOLINT
 
@@ -2527,6 +2534,12 @@ class Code : public Object {
   void set_is_optimized(bool value) const {
     raw_ptr()->is_optimized_ = value ? 1 : 0;
   }
+  bool is_alive() const {
+    return (raw_ptr()->is_alive_ == 1);
+  }
+  void set_is_alive(bool value) const {
+    raw_ptr()->is_alive_ = value ? 1 : 0;
+  }
 
   uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -3533,7 +3546,8 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
-  static RawString* NewFormatted(const char* format, ...);
+  static RawString* NewFormatted(const char* format, ...)
+      PRINTF_ATTRIBUTE(1, 2);
 
  protected:
   bool HasHash() const {

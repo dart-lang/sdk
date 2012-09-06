@@ -78,6 +78,7 @@ abstract class HType {
   bool isExtendableArray() => false;
   bool isPrimitive() => false;
   bool isExact() => false;
+  bool isPrimitiveOrNull() => false;
 
   bool canBePrimitive() => false;
   bool canBeNull() => false;
@@ -150,6 +151,7 @@ abstract class HPrimitiveType extends HType {
   const HPrimitiveType();
   bool isPrimitive() => true;
   bool canBePrimitive() => true;
+  bool isPrimitiveOrNull() => true;
 }
 
 class HNullType extends HPrimitiveType {
@@ -184,6 +186,7 @@ abstract class HPrimitiveOrNullType extends HType {
   const HPrimitiveOrNullType();
   bool canBePrimitive() => true;
   bool canBeNull() => true;
+  bool isPrimitiveOrNull() => true;
 }
 
 class HBooleanOrNullType extends HPrimitiveOrNullType {
@@ -730,6 +733,8 @@ class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
 class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
   const HBoundedPotentialPrimitiveString(DartType type, bool canBeNull)
       : super(type, canBeNull);
+
+  bool isPrimitiveOrNull() => true;
 
   HType union(HType other) {
     if (other.isString()) return this;

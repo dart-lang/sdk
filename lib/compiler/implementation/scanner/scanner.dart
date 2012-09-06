@@ -653,6 +653,11 @@ class AbstractScanner<T extends SourceString> implements Scanner {
           (next === $$ && allowDollar)) {
         next = advance();
       } else if (next < 128) {
+        // Identifier ends here.
+        if (start == byteOffset) {
+          throw new MalformedInputException("expected identifier not found",
+                                            charOffset);
+        }
         if (isAscii) {
           appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {

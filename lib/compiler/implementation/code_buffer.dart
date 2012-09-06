@@ -6,6 +6,7 @@ class CodeBuffer implements StringBuffer {
   StringBuffer buffer;
   List<SourceLocation> sourceLocations;
   int lastBufferOffset = 0;
+  int mappedRangeCounter = 0;
 
   CodeBuffer()
       : buffer = new StringBuffer(),
@@ -25,6 +26,7 @@ class CodeBuffer implements StringBuffer {
     if (object is CodeBuffer) {
       return addBuffer(object);
     }
+    if (mappedRangeCounter == 0) setSourceLocation(null, null);
     buffer.add(object.toString());
     return this;
   }
@@ -65,6 +67,15 @@ class CodeBuffer implements StringBuffer {
 
   String toString() {
     return buffer.toString();
+  }
+
+  void beginMappedRange() {
+    ++mappedRangeCounter;
+  }
+
+  void endMappedRange() {
+    assert(mappedRangeCounter > 0);
+    --mappedRangeCounter;
   }
 
   void setSourceLocation(Element element, Token token) {

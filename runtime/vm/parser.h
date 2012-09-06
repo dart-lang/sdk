@@ -126,7 +126,7 @@ class Parser : public ValueObject {
   static void PrintMessage(const Script& script,
                            intptr_t token_pos,
                            const char* message_header,
-                           const char* format, ...);
+                           const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Build an error object containing a formatted error or warning message.
   // A null script means no source and a negative token_pos means no position.
@@ -253,20 +253,23 @@ class Parser : public ValueObject {
                             va_list args);
 
   // Reports error/warning message at location of current token.
-  void ErrorMsg(const char* msg, ...);
-  void Warning(const char* msg, ...);
+  void ErrorMsg(const char* msg, ...) PRINTF_ATTRIBUTE(2, 3);
+  void Warning(const char* msg, ...)  PRINTF_ATTRIBUTE(2, 3);
   void Unimplemented(const char* msg);
 
   // Reports error message at given location.
-  void ErrorMsg(intptr_t token_pos, const char* msg, ...);
-  void Warning(intptr_t token_pos, const char* msg, ...);
+  void ErrorMsg(intptr_t token_pos, const char* msg, ...)
+      PRINTF_ATTRIBUTE(3, 4);
+  void Warning(intptr_t token_pos, const char* msg, ...)
+      PRINTF_ATTRIBUTE(3, 4);
 
   // Reports an already formatted error message.
   void ErrorMsg(const Error& error);
 
   // Concatenates two error messages, the previous and the current one.
   void AppendErrorMsg(
-      const Error& prev_error, intptr_t token_pos, const char* format, ...);
+      const Error& prev_error, intptr_t token_pos, const char* format, ...)
+      PRINTF_ATTRIBUTE(4, 5);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   AstNode* RunStaticFieldInitializer(const Field& field);

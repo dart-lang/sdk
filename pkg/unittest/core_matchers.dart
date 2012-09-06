@@ -6,7 +6,7 @@
 /**
  * Returns a matcher that matches empty strings, maps or collections.
  */
-final Matcher isEmpty = const _Empty();
+const Matcher isEmpty = const _Empty();
 
 class _Empty extends BaseMatcher {
   const _Empty();
@@ -24,10 +24,10 @@ class _Empty extends BaseMatcher {
 }
 
 /** A matcher that matches any null value. */
-final Matcher isNull = const _IsNull();
+const Matcher isNull = const _IsNull();
 
 /** A matcher that matches any non-null value. */
-final Matcher isNotNull = const _IsNotNull();
+const Matcher isNotNull = const _IsNotNull();
 
 class _IsNull extends BaseMatcher {
   const _IsNull();
@@ -44,10 +44,10 @@ class _IsNotNull extends BaseMatcher {
 }
 
 /** A matcher that matches the Boolean value true. */
-final Matcher isTrue = const _IsTrue();
+const Matcher isTrue = const _IsTrue();
 
 /** A matcher that matches anything except the Boolean value true. */
-final Matcher isFalse = const _IsFalse();
+const Matcher isFalse = const _IsFalse();
 
 class _IsTrue extends BaseMatcher {
   const _IsTrue();
@@ -190,7 +190,7 @@ class _DeepMatcher extends BaseMatcher {
 }
 
 /** A matcher that matches any value. */
-final Matcher anything = const _IsAnything();
+const Matcher anything = const _IsAnything();
 
 class _IsAnything extends BaseMatcher {
   const _IsAnything();
@@ -238,7 +238,7 @@ class isInstanceOf<T> extends BaseMatcher {
  *     return immediately and execution will continue. Later, when the future
  *     completes, the actual expectation will run.
  */
-final Matcher throws = const _Throws();
+const Matcher throws = const _Throws();
 
 /**
  * This can be used to match two kinds of objects:
@@ -266,7 +266,7 @@ Matcher throwsA(matcher) => new _Throws(wrapMatcher(matcher));
  * Note that the function cannot take arguments; to handle this
  * a wrapper will have to be created.
  */
-final Matcher returnsNormally = const _ReturnsNormally();
+const Matcher returnsNormally = const _ReturnsNormally();
 
 class _Throws extends BaseMatcher {
   final Matcher _matcher;
@@ -401,10 +401,10 @@ class _ReturnsNormally extends BaseMatcher {
 }
 
 /** A matcher for FormatExceptions. */
-final isFormatException = const _FormatException();
+const isFormatException = const _FormatException();
 
 /** A matcher for functions that throw FormatException */
-final Matcher throwsFormatException =
+const Matcher throwsFormatException =
     const _Throws(isFormatException);
 
 class _FormatException extends _ExceptionMatcher {
@@ -413,10 +413,10 @@ class _FormatException extends _ExceptionMatcher {
 }
 
 /** A matcher for Exceptions. */
-final isException = const _Exception();
+const isException = const _Exception();
 
 /** A matcher for functions that throw Exception */
-final Matcher throwsException = const _Throws(isException);
+const Matcher throwsException = const _Throws(isException);
 
 class _Exception extends _ExceptionMatcher {
   const _Exception() : super("Exception");
@@ -424,10 +424,10 @@ class _Exception extends _ExceptionMatcher {
 }
 
 /** A matcher for IllegalArgumentExceptions. */
-final isIllegalArgumentException = const _IllegalArgumentException();
+const isIllegalArgumentException = const _IllegalArgumentException();
 
 /** A matcher for functions that throw IllegalArgumentException */
-final Matcher throwsIllegalArgumentException =
+const Matcher throwsIllegalArgumentException =
     const _Throws(isIllegalArgumentException);
 
 class _IllegalArgumentException extends _ExceptionMatcher {
@@ -436,10 +436,10 @@ class _IllegalArgumentException extends _ExceptionMatcher {
 }
 
 /** A matcher for IllegalJSRegExpExceptions. */
-final isIllegalJSRegExpException = const _IllegalJSRegExpException();
+const isIllegalJSRegExpException = const _IllegalJSRegExpException();
 
 /** A matcher for functions that throw IllegalJSRegExpException */
-final Matcher throwsIllegalJSRegExpException =
+const Matcher throwsIllegalJSRegExpException =
     const _Throws(isIllegalJSRegExpException);
 
 class _IllegalJSRegExpException extends _ExceptionMatcher {
@@ -448,10 +448,10 @@ class _IllegalJSRegExpException extends _ExceptionMatcher {
 }
 
 /** A matcher for IndexOutOfRangeExceptions. */
-final isIndexOutOfRangeException = const _IndexOutOfRangeException();
+const isIndexOutOfRangeException = const _IndexOutOfRangeException();
 
 /** A matcher for functions that throw IndexOutOfRangeException */
-final Matcher throwsIndexOutOfRangeException =
+const Matcher throwsIndexOutOfRangeException =
     const _Throws(isIndexOutOfRangeException);
 
 class _IndexOutOfRangeException extends _ExceptionMatcher {
@@ -460,10 +460,10 @@ class _IndexOutOfRangeException extends _ExceptionMatcher {
 }
 
 /** A matcher for NoSuchMethodExceptions. */
-final isNoSuchMethodException = const _NoSuchMethodException();
+const isNoSuchMethodException = const _NoSuchMethodException();
 
 /** A matcher for functions that throw NoSuchMethodException */
-final Matcher throwsNoSuchMethodException =
+const Matcher throwsNoSuchMethodException =
     const _Throws(isNoSuchMethodException);
 
 class _NoSuchMethodException extends _ExceptionMatcher {
@@ -472,10 +472,10 @@ class _NoSuchMethodException extends _ExceptionMatcher {
 }
 
 /** A matcher for NotImplementedExceptions. */
-final isNotImplementedException = const _NotImplementedException();
+const isNotImplementedException = const _NotImplementedException();
 
 /** A matcher for functions that throw Exception */
-final Matcher throwsNotImplementedException =
+const Matcher throwsNotImplementedException =
     const _Throws(isNotImplementedException);
 
 class _NotImplementedException extends _ExceptionMatcher {
@@ -484,10 +484,10 @@ class _NotImplementedException extends _ExceptionMatcher {
 }
 
 /** A matcher for NullPointerExceptions. */
-final isNullPointerException = const _NullPointerException();
+const isNullPointerException = const _NullPointerException();
 
 /** A matcher for functions that throw NotNullPointerException */
-final Matcher throwsNullPointerException =
+const Matcher throwsNullPointerException =
     const _Throws(isNullPointerException);
 
 class _NullPointerException extends _ExceptionMatcher {
@@ -496,10 +496,10 @@ class _NullPointerException extends _ExceptionMatcher {
 }
 
 /** A matcher for UnsupportedOperationExceptions. */
-final isUnsupportedOperationException = const _UnsupportedOperationException();
+const isUnsupportedOperationException = const _UnsupportedOperationException();
 
 /** A matcher for functions that throw UnsupportedOperationException */
-final Matcher throwsUnsupportedOperationException =
+const Matcher throwsUnsupportedOperationException =
     const _Throws(isUnsupportedOperationException);
 
 class _UnsupportedOperationException extends _ExceptionMatcher {

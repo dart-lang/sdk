@@ -24,8 +24,8 @@ main() {
 
     dir(cachePath, [
       dir('git', [
-        dir('cache', [gitPackageCacheDir('foo')]),
-        gitPackageCacheDir('foo')
+        dir('cache', [gitPackageRepoCacheDir('foo')]),
+        gitPackageRevisionCacheDir('foo')
       ])
     ]).scheduleValidate();
 
@@ -58,11 +58,11 @@ main() {
     dir(cachePath, [
       dir('git', [
         dir('cache', [
-          gitPackageCacheDir('foo'),
-          gitPackageCacheDir('bar')
+          gitPackageRepoCacheDir('foo'),
+          gitPackageRepoCacheDir('bar')
         ]),
-        gitPackageCacheDir('foo'),
-        gitPackageCacheDir('bar')
+        gitPackageRevisionCacheDir('foo'),
+        gitPackageRevisionCacheDir('bar')
       ])
     ]).scheduleValidate();
 
@@ -99,7 +99,8 @@ main() {
     schedulePub(args: ['install'],
         error: const RegExp(@'^FormatException: The name you specified for '
             @'your dependency, "weird-name", doesn' @"'" @'t match the name '
-            @'"foo" \(from "\.\./foo\.git"\)\.'));
+            @'"foo" \(from "\.\./foo\.git"\)\.'),
+        exitCode: 1);
 
     run();
   });
@@ -118,8 +119,8 @@ main() {
 
     dir(cachePath, [
       dir('git', [
-        dir('cache', [gitPackageCacheDir('foo')]),
-        gitPackageCacheDir('foo')
+        dir('cache', [gitPackageRepoCacheDir('foo')]),
+        gitPackageRevisionCacheDir('foo')
       ])
     ]).scheduleValidate();
 
@@ -144,9 +145,9 @@ main() {
     // git/cache directory but create a new git/ directory.
     dir(cachePath, [
       dir('git', [
-        dir('cache', [gitPackageCacheDir('foo', 2)]),
-        gitPackageCacheDir('foo'),
-        gitPackageCacheDir('foo', 2)
+        dir('cache', [gitPackageRepoCacheDir('foo')]),
+        gitPackageRevisionCacheDir('foo'),
+        gitPackageRevisionCacheDir('foo', 2)
       ])
     ]).scheduleValidate();
 
@@ -173,8 +174,8 @@ main() {
 
     dir(cachePath, [
       dir('git', [
-        dir('cache', [gitPackageCacheDir('foo')]),
-        gitPackageCacheDir('foo')
+        dir('cache', [gitPackageRepoCacheDir('foo')]),
+        gitPackageRevisionCacheDir('foo')
       ])
     ]).scheduleValidate();
 
@@ -209,6 +210,33 @@ main() {
     ]).scheduleCommit();
 
     appDir([{"git": {"url": "../foo.git", "ref": commit}}]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('checks out a package at a specific branch from Git', () {
+    ensureGit();
+
+    var repo = git('foo.git', [
+      file('foo.dart', 'main() => "foo 1";')
+    ]);
+    repo.scheduleCreate();
+    repo.scheduleGit(["branch", "old"]);
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 2";')
+    ]).scheduleCommit();
+
+    appDir([{"git": {"url": "../foo.git", "ref": "old"}}]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: const RegExp(@"Dependencies installed!$"));
@@ -352,8 +380,8 @@ main() {
 
       dir(cachePath, [
         dir('git', [
-          dir('cache', [gitPackageCacheDir('foo')]),
-          gitPackageCacheDir('foo')
+          dir('cache', [gitPackageRepoCacheDir('foo')]),
+          gitPackageRevisionCacheDir('foo')
         ])
       ]).scheduleValidate();
 

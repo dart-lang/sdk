@@ -142,21 +142,10 @@ class TestServer {
   void init() {
     // Setup request handlers.
     _requestHandlers = new Map();
-    _requestHandlers["/echo"] = (HttpRequest request, HttpResponse response) {
-      _echoHandler(request, response);
-    };
-    _requestHandlers["/0123456789"] =
-        (HttpRequest request, HttpResponse response) {
-          _zeroToTenHandler(request, response);
-        };
-    _requestHandlers["/reasonformoving"] =
-        (HttpRequest request, HttpResponse response) {
-          _reasonForMovingHandler(request, response);
-        };
-    _requestHandlers["/host"] =
-        (HttpRequest request, HttpResponse response) {
-          _hostHandler(request, response);
-        };
+    _requestHandlers["/echo"] = _echoHandler;
+    _requestHandlers["/0123456789"] = _zeroToTenHandler;
+    _requestHandlers["/reasonformoving"] = _reasonForMovingHandler;
+    _requestHandlers["/host"] = _hostHandler;
   }
 
   void dispatch(var message, SendPort replyTo) {
@@ -164,9 +153,7 @@ class TestServer {
       _server = new HttpServer();
       try {
         _server.listen("127.0.0.1", 0);
-        _server.defaultRequestHandler = (HttpRequest req, HttpResponse rsp) {
-          _requestReceivedHandler(req, rsp);
-        };
+        _server.defaultRequestHandler = _requestReceivedHandler;
         replyTo.send(new TestServerStatus.started(_server.port), null);
       } catch (e) {
         replyTo.send(new TestServerStatus.error(), null);
@@ -281,8 +268,14 @@ void test404() {
         httpClient.get("127.0.0.1", port, "/thisisnotfound");
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
-      httpClient.shutdown();
-      testServerMain.shutdown();
+      var body = new StringBuffer();
+      var stream = response.inputStream;
+      stream.onData = () => body.add(new String.fromCharCodes(stream.read()));
+      stream.onClosed = () {
+        Expect.equals("Page not found", body.toString());
+        httpClient.shutdown();
+        testServerMain.shutdown();
+      };
     };
   });
   testServerMain.start();
@@ -298,8 +291,12 @@ void testReasonPhrase() {
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
       Expect.equals("Don't come looking here any more", response.reasonPhrase);
-      httpClient.shutdown();
-      testServerMain.shutdown();
+      var stream = response.inputStream;
+      stream.onData = () => Expect.fail("No data expected");
+      stream.onClosed = () {
+        httpClient.shutdown();
+        testServerMain.shutdown();
+      };
     };
   });
   testServerMain.start();

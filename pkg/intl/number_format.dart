@@ -62,13 +62,13 @@ class NumberFormat {
   /**
    * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.
    */
-  String get locale() => _locale;
+  String get locale => _locale;
 
   /**
    * Return the symbols which are used in our locale. Cache them to avoid
    * repeated lookup.
    */
-  NumberSymbols get symbols() {
+  NumberSymbols get symbols {
     return _symbols;
   }
 
@@ -249,10 +249,10 @@ class NumberFormat {
   }
 
   /** Returns the code point for the character '0'. */
-  int get _zero() => '0'.charCodes()[0];
+  int get _zero => '0'.charCodes()[0];
 
   /** Returns the code point for the locale's zero digit. */
-  int get _localeZero() => symbols.ZERO_DIGIT.charCodeAt(0);
+  int get _localeZero => symbols.ZERO_DIGIT.charCodeAt(0);
 
   /**
    * Returns the prefix for [x] based on whether it's positive or negative.

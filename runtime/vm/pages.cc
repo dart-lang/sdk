@@ -438,7 +438,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
 
   if (FLAG_verbose_gc) {
     const intptr_t KB2 = KB / 2;
-    OS::PrintErr("Mark-Sweep[%d]: %lldus (%dK -> %dK, %dK)\n",
+    OS::PrintErr("Mark-Sweep[%d]: %"Pd64"us (%"Pd"K -> %"Pd"K, %"Pd"K)\n",
                  count_,
                  timer.TotalElapsedTime(),
                  (in_use_before + (KB2)) / KB,

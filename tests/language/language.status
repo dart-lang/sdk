@@ -24,7 +24,6 @@ call_nonexistent_constructor_test: Fail # Issue 3801
 gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
 field_override_test/01: Fail    # Issue 742: field shadowing now allowed
-field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 super_field_access_test: Fail    # Issue 742: field shadowing now allowed
 pseudo_kw_illegal_test/03: Fail  # Issue 356
 pseudo_kw_illegal_test/08: Fail  # Issue 356
@@ -46,6 +45,7 @@ call_operator_test: Fail
 constructor_redirect_test/01: Fail # Issue 2103.
 
 closure_with_super_send_test: Fail # Issue 3197.
+closure_with_super_field_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
 parameter_initializer6_negative_test: Fail # Issue 3502
 
@@ -55,8 +55,18 @@ bad_override_test/01: Fail # Issue 3859.
 bad_override_test/02: Fail # Issue 3859.
 
 setter_no_getter_call_test/01: Crash # Issue 4360
+setter_no_getter_test/01: Crash # Issue 4360
+
+getter_no_setter2_test/01: Fail # Issue 4898
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
+
+final_syntax_test/none: Fail # Issue 3558
+lazy_static_test: Fail # Issue 3558
+lazy_static2_test: Fail # Issue 3558
+lazy_static3_test: Fail # Issue 3558
+lazy_static4_test: Fail # Issue 3558
+
 
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
@@ -65,8 +75,20 @@ named_parameters_aggregated_test/05: Fail # Compile-time error reported instead 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
+[ $compiler == none && $checked ]
+type_parameter_test/01: Fail # Issue 4932
+type_parameter_test/02: Fail # Issue 4932
+type_parameter_test/03: Fail # Issue 4932
+type_parameter_test/04: Fail # Issue 4932
+
+[ $compiler == none && $unchecked ]
+field_override_test/02: Fail    # Issue 742: field shadowing now allowed
+
 [ $compiler == dartc ]
+
+get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
+interface_negative_test: Fail # instantiation of abstract class
 argument_definition_test/*: Skip # Not implemented.
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail  # Runtime only test, rewrite as multitest
@@ -75,14 +97,17 @@ call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
 char_escape_test: Pass # Issue 1654
 class_literal_test/01 : Fail # language change 3368
+class_literal_test/03 : Fail # language change 1031
 class_literal_test/04 : Fail # language change 1031
 class_literal_test/05 : Fail # language change 3368
 class_literal_test/06 : Fail # language change 3368
+class_literal_test/08 : Fail # language change 1031
 class_literal_test/09 : Fail # language change 1031
 class_literal_test/10 : Fail # language change 3368
 class_literal_test/11 : Fail # language change 3368
 class_literal_test/12 : Fail # language change 3368
 class_literal_test/13 : Fail # language change 3368
+class_literal_test/15 : Fail # language change 1031
 class_literal_test/16 : Fail # language change 1031
 class_literal_test/17 : Fail # language change 3368
 class_literal_test/18 : Fail # language change 3368
@@ -106,9 +131,16 @@ factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
+getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
+setter_no_getter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
+final_syntax_test/none: Fail # Issue 3476
+lazy_static_test: Fail # Issue 3476
+lazy_static2_test: Fail # Issue 3476
+lazy_static3_test: Fail # Issue 3476
+lazy_static4_test: Fail # Issue 3476
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650
@@ -136,7 +168,10 @@ resource_test: Skip # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
 throw7_negative_test: Fail     # Issue 3654
-
+# try_catch_syntax_test/09: Fail # BUG(4905)
+# try_catch_syntax_test/10: Fail # BUG(4905)
+# try_catch_syntax_test/11: Fail # BUG(4905)
+# try_catch_syntax_test/12: Fail # BUG(4905)
 type_variable_bounds_test/00: Fail # issue 3079
 type_variable_bounds_test/07: Fail # language change 1031
 type_variable_static_context_negative_test: Fail # language change 1031
@@ -183,7 +218,11 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+interface_negative_test: Fail
+abstract_factory_constructor_test/00: Fail
+interface_test/00: Fail
 argument_definition_test/*: Skip # Not implemented.
+argument_definition2_test: Skip # Not implemented. Fails in minified tests.
 call_constructor_on_unresolvable_class_test/01: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/02: Fail # generates 'new Unresolved()' which fails on the VM
 call_constructor_on_unresolvable_class_test/03: Fail # generates 'new Unresolved()' which fails on the VM
@@ -217,6 +256,11 @@ pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
+final_syntax_test/none: Fail, OK # Issue 3558
+lazy_static_test: Fail, OK # Issue 3558
+lazy_static2_test: Fail, OK # Issue 3558
+lazy_static3_test: Fail, OK # Issue 3558
+lazy_static4_test: Fail, OK # Issue 3558
 # Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
@@ -225,7 +269,6 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-empty_body_member_negative_test: Fail
 field2_negative_test: Fail
 field4_negative_test: Fail
 field5_negative_test: Fail
@@ -271,7 +314,8 @@ numbers_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
 # DartVM problem.
-closure_with_super_send_test: Fail
+closure_with_super_send_test: Fail # Issue 3197.
+closure_with_super_field_test: Fail # Issue 3197.
 constructor5_test: Fail
 constructor6_test: Fail
 fauxverride_test/none: Fail

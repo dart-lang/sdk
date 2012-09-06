@@ -1,3 +1,7 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #library("dart:core");
 #import('dart:math');
 #import("dart:coreimpl");
@@ -19,10 +23,9 @@
 #source("iterator.dart");
 #source("list.dart");
 #source("map.dart");
-#source("options.dart");
 #source("num.dart");
 #source("object.dart");
-// TODO: Add num.dart once the editor don't manually add it.
+#source("options.dart");
 #source("pattern.dart");
 #source("print.dart");
 #source("queue.dart");

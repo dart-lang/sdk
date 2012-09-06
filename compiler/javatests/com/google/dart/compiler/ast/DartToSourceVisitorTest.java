@@ -41,7 +41,7 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
        "  m() {\n" +
        "  }\n");
      testClassMemeber(
-       "  operator negate() {\n" +
+       "  operator -() {\n" +
        "  }\n");
      // get is mangled
      // testClassMemeber(

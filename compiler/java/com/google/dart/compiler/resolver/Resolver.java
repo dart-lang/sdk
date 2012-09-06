@@ -1495,16 +1495,17 @@ public class Resolver {
     }
 
     @Override
-    public Element visitNewExpression(DartNewExpression x) {
+    public Element visitNewExpression(final DartNewExpression x) {
       this.visit(x.getArguments());
 
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
         @Override
         public Element visitTypeNode(DartTypeNode type) {
+          TypeErrorCode errorCode = x.isConst() ? TypeErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
           return recordType(type, resolveType(type, inStaticContext(currentMethod),
                                               inFactoryContext(currentMethod),
-                                              TypeErrorCode.NO_SUCH_TYPE,
+                                              errorCode,
                                               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS));
         }
 

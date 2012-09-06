@@ -16,8 +16,7 @@ namespace dart {
 
 // Forward declarations.
 class FlowGraphCompiler;
-class DeoptimizationStub;
-
+class DeoptInfoBuilder;
 
 class ParallelMoveResolver : public ValueObject {
  public:
@@ -58,19 +57,12 @@ class ParallelMoveResolver : public ValueObject {
 };
 
 
-class DeoptimizationStub : public ZoneAllocated {
+// Used for describing a deoptimization point after call (lazy deoptimization).
+// For deoptimization before instruction use class CompilerDeoptInfoWithStub.
+class CompilerDeoptInfo : public ZoneAllocated {
  public:
-  DeoptimizationStub(intptr_t deopt_id,
-                     DeoptReasonId reason)
-      : deopt_id_(deopt_id),
-        reason_(reason),
-        deoptimization_env_(NULL),
-        entry_label_() {}
-
-  Label* entry_label() { return &entry_label_; }
-
-  // Implementation is in architecture specific file.
-  void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix);
+  CompilerDeoptInfo(intptr_t deopt_id, DeoptReasonId reason)
+      : deopt_id_(deopt_id), reason_(reason), deoptimization_env_(NULL) {}
 
   void set_deoptimization_env(Environment* env) {
     deoptimization_env_ = env;
@@ -78,13 +70,49 @@ class DeoptimizationStub : public ZoneAllocated {
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler);
 
+  // No code needs to be generated.
+  virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
+
+  // Builds deopt-after continuation point.
+  virtual void BuildReturnAddress(DeoptInfoBuilder* builder,
+                                  const Function& function,
+                                  intptr_t slot_ix);
+
+  intptr_t deopt_id() const { return deopt_id_; }
+  DeoptReasonId reason() const { return reason_; }
+  const Environment* deoptimization_env() const { return deoptimization_env_; }
+
  private:
   const intptr_t deopt_id_;
   const DeoptReasonId reason_;
   const Environment* deoptimization_env_;
+
+  DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
+};
+
+
+class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
+ public:
+  CompilerDeoptInfoWithStub(intptr_t deopt_id,
+                            DeoptReasonId reason)
+      : CompilerDeoptInfo(deopt_id, reason), entry_label_() {
+    ASSERT(reason != kDeoptAtCall);
+  }
+
+  Label* entry_label() { return &entry_label_; }
+
+  // Implementation is in architecture specific file.
+  virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix);
+
+  // Builds deopt-before continuation point.
+  virtual void BuildReturnAddress(DeoptInfoBuilder* builder,
+                                  const Function& function,
+                                  intptr_t slot_ix);
+
+ private:
   Label entry_label_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
+  DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfoWithStub);
 };
 
 

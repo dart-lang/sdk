@@ -31,10 +31,17 @@ testIllegalFinally() {
 
 testIllegalCatch() {
   try { } catch () { }              /// 07: compile-time error
-  try { } on MammaMia catch (e) { } /// 09: compile-time error
+  try { } on MammaMia catch (e) { } /// 08: compile-time error
+  try { } catch (var e) { }         /// 09: compile-time error
+  try { } catch (final e) { }       /// 10: compile-time error
+  try { } catch (int e) { }         /// 11: compile-time error
+  try { } catch (final int e) { }   /// 12: compile-time error
+  try { } catch ([e, s]) { }        /// 13: compile-time error
+  try { } catch (e, [s]) { }        /// 14: compile-time error
+  try { } catch (e, [s0, s1]) { }   /// 15: compile-time error
 }
 
 testIllegalRethrow() {
-  try { throw; } catch (e) { }             /// 10: compile-time error
-  try { } catch (e) { } finally { throw; } /// 11: compile-time error
+  try { throw; } catch (e) { }             /// 16: compile-time error
+  try { } catch (e) { } finally { throw; } /// 17: compile-time error
 }

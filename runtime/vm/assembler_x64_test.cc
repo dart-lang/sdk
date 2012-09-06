@@ -550,6 +550,7 @@ ASSEMBLER_TEST_GENERATE(Bitwise64, assembler) {
   __ movq(RAX, Immediate(1));
   __ pushq(RAX);
   __ orq(RCX, Address(RSP, 0));
+  __ xorq(RCX, Immediate(0));
   __ popq(RAX);
   __ movq(RAX, RCX);
   __ ret();

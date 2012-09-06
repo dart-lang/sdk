@@ -14,9 +14,9 @@ class CGBlock {
   int localIndex;             // Local variable index (e.g., e0, e1, etc.)
 
   // Block Types:
-  static final int CONSTRUCTOR = 0;
-  static final int EACH = 1;
-  static final int WITH = 2;
+  static const int CONSTRUCTOR = 0;
+  static const int EACH = 1;
+  static const int WITH = 2;
 
   CGBlock([this._indent = 4,
            this._blockType = CGBlock.CONSTRUCTOR,
@@ -247,7 +247,7 @@ class CGStatement {
 }
 
 class Codegen {
-  static final String SPACES = "                                              ";
+  static const String SPACES = "                                              ";
   static String spaces(int numSpaces) {
     return SPACES.substring(0, numSpaces);
   }
@@ -458,7 +458,7 @@ class Codegen {
     }
 
     buff.add("\n  // CSS for this template.\n");
-    buff.add("  static final String stylesheet = ");
+    buff.add("  static const String stylesheet = ");
 
     if (content.css != null) {
       buff.add("\'\'\'\n    ${content.css.toString()}\n");

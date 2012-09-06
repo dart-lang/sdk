@@ -409,6 +409,7 @@ class Assembler : public ValueObject {
   void orl(Register dst, const Immediate& imm);
   void orl(Register dst, Register src);
 
+  void xorl(Register dst, const Immediate& imm);
   void xorl(Register dst, Register src);
 
   void addl(Register dst, Register src);
@@ -579,7 +580,7 @@ class Assembler : public ValueObject {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
 
-  void Comment(const char* format, ...);
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);

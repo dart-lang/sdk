@@ -267,7 +267,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitFieldGet(HFieldGet node) {
     String fieldName = node.element.name.slowToString();
-    return 'get ${temporaryId(node.receiver)}.$fieldName}';
+    return 'get ${temporaryId(node.receiver)}.$fieldName';
   }
 
   String visitFieldSet(HFieldSet node) {
@@ -417,6 +417,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitStatic(HStatic node)
       => "Static ${node.element.name.slowToString()}";
+
+  String visitLazyStatic(HLazyStatic node)
+      => "LazyStatic ${node.element.name.slowToString()}";
+
   String visitStaticStore(HStaticStore node) {
     String lhs = node.element.name.slowToString();
     return "Static $lhs = ${temporaryId(node.inputs[0])}";

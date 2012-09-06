@@ -53,8 +53,11 @@ class WorkItem {
 
 class Backend {
   final Compiler compiler;
+  final ConstantSystem constantSystem;
 
-  Backend(this.compiler);
+  Backend(this.compiler,
+          [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
+      : this.constantSystem = constantSystem;
 
   void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
     lib.forEachExport((Element e) {
@@ -81,7 +84,6 @@ class Compiler implements DiagnosticListener {
   int nextFreeClassId = 0;
   World world;
   String assembledCode;
-  Namer namer;
   Types types;
 
   final bool enableMinification;
@@ -111,13 +113,6 @@ class Compiler implements DiagnosticListener {
   ClassElement nullClass;
   ClassElement listClass;
   Element assertMethod;
-
-  /**
-   * Interface used to determine if an object has the JavaScript
-   * indexing behavior. The interface is only visible to specific
-   * libraries.
-   */
-  ClassElement jsIndexingBehaviorInterface;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -182,14 +177,13 @@ class Compiler implements DiagnosticListener {
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
             this.enableMinification = false,
-            bool emitJavascript = true,
+            bool emitJavaScript = true,
             bool generateSourceMap = true,
             bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
-        progress = new Stopwatch.start() {
-    namer = new Namer(this);
-    constantHandler = new ConstantHandler(this);
+        progress = new Stopwatch() {
+    progress.start();
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
@@ -199,14 +193,19 @@ class Compiler implements DiagnosticListener {
     closureToClassMapper = new closureMapping.ClosureTask(this);
     checker = new TypeCheckerTask(this);
     typesTask = new ti.TypesTask(this);
-    backend = emitJavascript ?
+    backend = emitJavaScript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
         new dart_backend.DartBackend(this, cutDeclarationTypes);
+    constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
              checker, typesTask, constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
+
+  // TODO(floitsch): remove once the compile-time constant handler doesn't
+  // depend on it anymore.
+  js_backend.Namer get namer => (backend as js_backend.JavaScriptBackend).namer;
 
   Universe get resolverWorld => enqueuer.resolution.universe;
   Universe get codegenWorld => enqueuer.codegen.universe;
@@ -351,9 +350,6 @@ class Compiler implements DiagnosticListener {
     if (!coreLibValid) {
       cancel('core library does not contain required classes');
     }
-
-    jsIndexingBehaviorInterface =
-        findHelper(const SourceString('JavaScriptIndexingBehavior'));
   }
 
   void scanBuiltinLibraries() {
@@ -370,9 +366,6 @@ class Compiler implements DiagnosticListener {
     assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
-
-    //patchDartLibrary(coreLibrary, 'core');
-    //patchDartLibrary(coreImplLibrary, 'coreimpl');
   }
 
   void importCoreLibrary(LibraryElement library) {
@@ -515,6 +508,7 @@ class Compiler implements DiagnosticListener {
         const SourceString('DART_CLOSURE_TO_JS'), library), this);
   }
 
+  // TODO(karlklose,floitsch): move this to the javascript backend.
   /** Enable the 'JS' helper for a library if needed. */
   void maybeEnableJSHelper(library) {
     String libraryName = library.uri.toString();
@@ -524,6 +518,8 @@ class Compiler implements DiagnosticListener {
         || libraryName == 'dart:math'
         || libraryName == 'dart:html') {
       library.addToScope(findHelper(const SourceString('JS')), this);
+      Element jsIndexingBehaviorInterface =
+          findHelper(const SourceString('JavaScriptIndexingBehavior'));
       if (jsIndexingBehaviorInterface !== null) {
         library.addToScope(jsIndexingBehaviorInterface, this);
       }
@@ -574,6 +570,11 @@ class Compiler implements DiagnosticListener {
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     if (compilationFailed) return;
+
+    // TODO(karlklose): also take the instantiated types into account and move
+    // this computation to before codegen.
+    enqueuer.codegen.universe.computeRequiredTypes(
+        enqueuer.resolution.universe.isChecks);
 
     backend.assembleProgram();
 
@@ -717,16 +718,7 @@ class Compiler implements DiagnosticListener {
       }
       progress.reset();
     }
-    if (work.element.kind.category == ElementCategory.VARIABLE) {
-      constantHandler.compileWorkItem(work);
-    } else {
-      backend.codegen(work);
-    }
-  }
-
-  void registerInstantiatedClass(ClassElement cls) {
-    enqueuer.resolution.registerInstantiatedClass(cls);
-    enqueuer.codegen.registerInstantiatedClass(cls);
+    backend.codegen(work);
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
@@ -753,6 +745,21 @@ class Compiler implements DiagnosticListener {
                                    FunctionSignature signature) {
     return withCurrentElement(element,
         () => resolver.computeFunctionType(element, signature));
+  }
+
+  bool isLazilyInitialized(VariableElement element) {
+    Constant initialValue = compileVariable(element);
+    return initialValue === null;
+  }
+
+  /**
+   * Compiles compile-time constants. Never returns [:null:].
+   * If the initial value is not a compile-time constants reports an error.
+   */
+  Constant compileConstant(VariableElement element) {
+    return withCurrentElement(element, () {
+      return constantHandler.compileConstant(element);
+    });
   }
 
   Constant compileVariable(VariableElement element) {
@@ -826,6 +833,14 @@ class Compiler implements DiagnosticListener {
     }
     Token position = element.position();
     Uri uri = element.getCompilationUnit().script.uri;
+
+    // TODO(ager,johnniwinther): The patch support should be
+    // reworked to allow us to get rid of this.
+    if (element.isPatched) {
+      position = element.patch.position();
+      uri = element.patch.getCompilationUnit().script.uri;
+    }
+
     return (position === null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);

@@ -436,6 +436,7 @@ class Primitives {
 
   static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
                                  milliseconds, isUtc) {
+    final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
     checkInt(day);
@@ -453,7 +454,11 @@ class Primitives {
       value = JS('num', @'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
-    if (value.isNaN()) throw new IllegalArgumentException();
+    if (value.isNaN() ||
+        value < -MAX_MILLISECONDS_SINCE_EPOCH ||
+        value > MAX_MILLISECONDS_SINCE_EPOCH) {
+      throw new IllegalArgumentException();
+    }
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
   }
@@ -714,25 +719,28 @@ class MathNatives {
 }
 
 /**
- * Called by generated code to capture the stacktrace before throwing
- * an exception.
+ * Throws the given Dart object as an exception by wrapping it in a
+ * proper JavaScript error object and then throwing that. That gives
+ * us a reasonable stack trace on most JavaScript implementations. The
+ * code in [unwrapException] deals with getting the original Dart
+ * object out of the wrapper again.
  */
-captureStackTrace(ex) {
+$throw(ex) {
   if (ex === null) ex = const NullPointerException();
   var jsError = JS('Object', @'new Error()');
   JS('void', @'#.name = #', jsError, ex);
   JS('void', @'#.description = #', jsError, ex);
   JS('void', @'#.dartException = #', jsError, ex);
-  JS('void', @'''#.toString = #''', jsError,
+  JS('void', @'#.toString = #', jsError,
      DART_CLOSURE_TO_JS(toStringWrapper));
-  return jsError;
+  JS('void', @'throw #', jsError);
 }
 
 /**
  * This method is installed as JavaScript toString method on exception
- * objects in [captureStackTrace]. So JavaScript 'this' binds to an
- * instance of JavaScript Error to which we have added a property
- * 'dartException' which holds a Dart object.
+ * objects in [$throw]. So JavaScript 'this' binds to an instance of
+ * JavaScript Error to which we have added a property 'dartException'
+ * which holds a Dart object.
  */
 toStringWrapper() => JS('Object', @'this.dartException').toString();
 
@@ -749,8 +757,7 @@ throwRuntimeError(message) {
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
- * created by [captureStackTrace] or it may be a 'native' JS
- * exception.
+ * created by [$throw] or it may be a 'native' JS exception.
  *
  * Some native exceptions are mapped to new Dart instances, others are
  * returned unmodified.
@@ -804,7 +811,7 @@ unwrapException(ex) {
         // Examples:
         //  x.foo is not a function
         //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
-        // Object doesn't support property or method 'foo' which sets the error 
+        // Object doesn't support property or method 'foo' which sets the error
         // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
@@ -940,6 +947,9 @@ interface Dynamic {
 
 /**
  * Represents the type of Null. The compiler treats this specially.
+ * TODO(lrn): Null should be defined in core. It's a class, like int.
+ * It just happens to act differently in assignability tests and,
+ * like int, can't be extended or implemented.
  */
 class Null {
   factory Null() {
@@ -1180,10 +1190,49 @@ listSuperNativeTypeCast(value, property) {
 interface JavaScriptIndexingBehavior {
 }
 
+// TODO(lrn): These exceptions should be implemented in core.
+// When they are, remove the 'Implementation' here.
+
+/** Thrown by type assertions that fail. */
+class TypeErrorImplementation implements TypeError {
+  final String msg;
+  const TypeErrorImplementation(String this.msg);
+  String toString() => msg;
+}
+
+/** Thrown by the 'as' operator if the cast isn't valid. */
+class CastExceptionImplementation implements CastException {
+  // TODO(lrn): Rename to CastError (and move implementation into core).
+  // TODO(lrn): Change actualType and expectedType to "Type" when reified
+  // types are available.
+  final Object actualType;
+  final Object expectedType;
+
+  CastExceptionImplementation(this.actualType, this.expectedType);
+
+  String toString() {
+    return "CastException: Casting value of type $actualType to"
+           " incompatible type $expectedType";
+  }
+}
+
+class FallThroughErrorImplementation implements FallThroughError {
+  const FallThroughErrorImplementation();
+  String toString() => "Switch case fall-through.";
+}
+
 /**
  * Called by generated code when a method that must be statically
  * resolved cannot be found.
  */
 void throwNoSuchMethod(obj, name, arguments) {
   throw new NoSuchMethodException(obj, name, arguments);
+}
+
+/**
+ * Called by generated code when a static field's initializer references the
+ * field that is currently being initialized.
+ */
+void throwCyclicInit(String staticName) {
+  throw new RuntimeError("Cyclic initialization for static $staticName");
 }

@@ -947,6 +947,13 @@ void Assembler::xorq(const Address& dst, Register src) {
 }
 
 
+void Assembler::xorq(Register dst, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(dst, REX_W);
+  EmitComplex(6, Operand(dst), imm);
+}
+
+
 void Assembler::addl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);

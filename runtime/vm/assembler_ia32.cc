@@ -885,6 +885,12 @@ void Assembler::xorl(Register dst, Register src) {
 }
 
 
+void Assembler::xorl(Register dst, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitComplex(6, Operand(dst), imm);
+}
+
+
 void Assembler::addl(Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitComplex(0, Operand(reg), imm);

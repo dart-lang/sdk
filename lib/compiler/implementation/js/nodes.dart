@@ -194,7 +194,7 @@ class If extends Statement {
   final Node otherwise;
 
   If(this.condition, this.then, this.otherwise);
-  If.then(this.condition, this.then) : this.otherwise = new EmptyStatement();
+  If.noElse(this.condition, this.then) : this.otherwise = new EmptyStatement();
 
   bool get hasElse => otherwise is !EmptyStatement;
 

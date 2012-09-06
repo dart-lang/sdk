@@ -5,22 +5,24 @@
 // Returns null if no need to rename a node.
 typedef String Renamer(Node node);
 
+String unparse(Node node) {
+  Unparser unparser = new Unparser();
+  unparser.unparse(node);
+  return unparser.result;
+}
+
 class Unparser implements Visitor {
   Renamer rename;
-  StringBuffer sb;
+  final StringBuffer sb;
 
-  Unparser() {
+  String get result => sb.toString();
+
+  Unparser() : sb = new StringBuffer() {
     // TODO(smok): Move this to initializer once dart2js stops complaining
     // about closures in initializers.
     rename = (Node node) => null;
   }
-  Unparser.withRenamer(this.rename);
-
-  String unparse(Node node) {
-    sb = new StringBuffer();
-    visit(node);
-    return sb.toString();
-  }
+  Unparser.withRenamer(this.rename) : sb = new StringBuffer();
 
   void add(SourceString string) {
     string.printOn(sb);
@@ -33,6 +35,8 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
   }
+
+  unparse(Node node) { visit(node); }
 
   visit(Node node) {
     if (node === null) return;
@@ -57,34 +61,37 @@ class Unparser implements Visitor {
     visit(node.expression);
   }
 
-  visitClassNode(ClassNode node) {
+  unparseClassWithBody(ClassNode node, Iterable<Node> members) {
     addToken(node.beginToken);
+    if (node.beginToken.stringValue == 'abstract') {
+      addToken(node.beginToken.next);
+    }
     visit(node.name);
     if (node.typeParameters !== null) {
       visit(node.typeParameters);
     }
-    sb.add(' ');
     if (node.extendsKeyword !== null) {
+      sb.add(' ');
       addToken(node.extendsKeyword);
       visit(node.superclass);
-      sb.add(' ');
     }
-    visit(node.interfaces);
+    if (!node.interfaces.isEmpty()) {
+      sb.add(' ');
+      visit(node.interfaces);
+    }
     if (node.defaultClause !== null) {
+      sb.add(' default ');
       visit(node.defaultClause);
-      sb.add(' ');
     }
-    sb.add('{\n');
-    NodeList body = node.body;
-    if (body !== null) {
-      Link nodes = body.nodes;
-      if (!nodes.isEmpty()) {
-        sb.add('  ');
-        nodes.printOn(sb, '\n  ');
-        sb.add('\n');
-      }
+    sb.add('{');
+    for (final member in members) {
+      visit(member);
     }
-    sb.add('}\n');
+    sb.add('}');
+  }
+
+  visitClassNode(ClassNode node) {
+    unparseClassWithBody(node, node.body.nodes);
   }
 
   visitConditional(Conditional node) {
@@ -444,6 +451,11 @@ class Unparser implements Visitor {
       sb.add('default:');
     }
     visit(node.statements);
+  }
+
+  unparseImportTag(String uri, [String prefix]) {
+    final suffix = prefix === null ? '' : ',prefix:"$prefix"';
+    sb.add('#import("$uri"$suffix);');
   }
 
   visitScriptTag(ScriptTag node) {

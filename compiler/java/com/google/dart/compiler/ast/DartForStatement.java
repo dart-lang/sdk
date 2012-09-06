@@ -12,14 +12,20 @@ public class DartForStatement extends DartStatement {
   private DartStatement init;
   private DartExpression condition;
   private DartExpression increment;
+  private final int closeParenOffset;
   private DartStatement body;
 
   public DartForStatement(DartStatement init, DartExpression condition, DartExpression increment,
-      DartStatement body) {
+      int closeParenOffset, DartStatement body) {
     this.init = becomeParentOf(init);
     this.condition = becomeParentOf(condition);
     this.increment = becomeParentOf(increment);
+    this.closeParenOffset = closeParenOffset;
     this.body = becomeParentOf(body);
+  }
+
+  public int getCloseParenOffset() {
+    return closeParenOffset;
   }
 
   public DartStatement getBody() {

@@ -123,8 +123,20 @@ interface Future<T> default FutureImpl<T> {
     * chain, and any you add afterwards will not be invoked.
     */
    Future chain(Future transformation(T value));
-}
 
+  /**
+   * A future representing [transformation] applied to this future's exception.
+   * This can be used to "catch" an exception coming from `this` and translate
+   * it to a more appropriate result.
+   *
+   * If this future gets a value, it simply completes to that same value. If an
+   * exception occurs, then [transformation] will be called with the exception
+   * value. If [transformation] itself throws an exception, then the returned
+   * future completes with that exception. Otherwise, the future will complete
+   * with the value returned by [transformation].
+   */
+  Future transformException(transformation(Object exception));
+}
 
 /**
  * A [Completer] is used to produce [Future]s and supply their value when it

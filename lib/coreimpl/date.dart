@@ -59,7 +59,7 @@ class DateImplementation implements Date {
     }
   }
 
-  static final int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
+  static const int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
   DateImplementation.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch,
                                                 [this.isUtc = false]) {

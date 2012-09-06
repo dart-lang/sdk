@@ -15,7 +15,8 @@ main() {
       dir(appPath, []).scheduleCreate();
 
       schedulePub(args: ['install'],
-          error: const RegExp(@'^Could not find a file named "pubspec.yaml"'));
+          error: const RegExp(@'^Could not find a file named "pubspec.yaml"'),
+          exitCode: 1);
 
       run();
     });
@@ -27,12 +28,15 @@ main() {
 
       schedulePub(args: ['install'],
           error: const RegExp(@'^"pubspec.yaml" is missing the required "name" '
-              @'field \(e\.g\. "name: myapp"\)\.'));
+              @'field \(e\.g\. "name: myapp"\)\.'),
+          exitCode: 1);
 
       run();
     });
   });
 
+  // TODO(rnystrom): Re-enable this when #4820 is fixed.
+  /*
   test('creates a self-referential symlink', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
@@ -49,6 +53,7 @@ main() {
 
     run();
   });
+  */
 
   group('creates a packages directory in', () {
     test('"test/" and its subdirectories', () {
@@ -63,11 +68,17 @@ main() {
       dir(appPath, [
         dir("test", [
           dir("packages", [
-            dir("myapp", [appPubspec([])])            
+            // TODO(rnystrom): Re-enable this when #4820 is fixed.
+            /*
+            dir("myapp", [appPubspec([])])
+            */
           ]),
           dir("subtest", [
             dir("packages", [
-              dir("myapp", [appPubspec([])])            
+              // TODO(rnystrom): Re-enable this when #4820 is fixed.
+              /*
+              dir("myapp", [appPubspec([])])
+              */
             ])
           ])
         ])
@@ -88,11 +99,17 @@ main() {
       dir(appPath, [
         dir("example", [
           dir("packages", [
-            dir("myapp", [appPubspec([])])            
+            // TODO(rnystrom): Re-enable this when #4820 is fixed.
+            /*
+            dir("myapp", [appPubspec([])])
+            */
           ]),
           dir("subexample", [
             dir("packages", [
-              dir("myapp", [appPubspec([])])            
+              // TODO(rnystrom): Re-enable this when #4820 is fixed.
+              /*
+              dir("myapp", [appPubspec([])])
+              */
             ])
           ])
         ])
@@ -113,7 +130,10 @@ main() {
       dir(appPath, [
         dir("bin", [
           dir("packages", [
-            dir("myapp", [appPubspec([])])            
+            // TODO(rnystrom): Re-enable this when #4820 is fixed.
+            /*
+            dir("myapp", [appPubspec([])])
+            */
           ])
         ])
       ]).scheduleValidate();

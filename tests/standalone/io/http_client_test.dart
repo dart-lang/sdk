@@ -75,10 +75,8 @@ void testBadHostName() {
 }
 
 void main() {
-  // TODO(sgjesse): Making empty www.google.com requests seems to fail
-  //on buildbot.
-  //testGoogle();
-  //testGoogleUrl();
+  testGoogle();
+  testGoogleUrl();
   testInvalidUrl();
   testBadHostName();
 }

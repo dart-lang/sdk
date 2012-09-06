@@ -293,6 +293,7 @@ class Element implements Hashable {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
 
+  bool get isPatched => false;
 
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 }
@@ -647,9 +648,7 @@ class VariableElement extends Element {
 
   DartType get type => variables.type;
 
-  bool isInstanceMember() {
-    return isMember() && !modifiers.isStatic();
-  }
+  bool isInstanceMember() => variables.isInstanceMember();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
@@ -758,6 +757,19 @@ class VariableListElement extends Element {
     }
     return result;
   }
+
+  bool isInstanceMember() {
+    return isMember() && !modifiers.isStatic();
+  }
+
+  Scope buildScope() {
+    Scope result = new VariableScope(enclosingElement.buildScope(), this);
+    if (enclosingElement.isClass()) {
+      ClassScope clsScope = result.parent;
+      clsScope.inStaticContext = !isInstanceMember();
+    }
+    return result;
+  }
 }
 
 class ForeignElement extends Element {
@@ -844,17 +856,25 @@ class FunctionSignature {
                     this.optionalParameterCount,
                     this.returnType);
 
-  void forEachParameter(void function(Element parameter)) {
+  void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
          !link.isEmpty();
          link = link.tail) {
       function(link.head);
     }
+  }
+
+  void forEachOptionalParameter(void function(Element parameter)) {
     for (Link<Element> link = optionalParameters;
          !link.isEmpty();
          link = link.tail) {
       function(link.head);
     }
+  }
+
+  void forEachParameter(void function(Element parameter)) {
+    forEachRequiredParameter(function);
+    forEachOptionalParameter(function);
   }
 
   int get parameterCount => requiredParameterCount + optionalParameterCount;
@@ -982,6 +1002,15 @@ class FunctionElement extends Element {
         name, cachedNode, kind, modifiers, enclosing, functionSignature);
     result.defaultImplementation = defaultImplementation;
     result.type = type;
+    return result;
+  }
+
+  Scope buildScope() {
+    Scope result = new MethodScope(enclosingElement.buildScope(), this);
+    if (enclosingElement.isClass()) {
+      ClassScope clsScope = result.parent;
+      clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
+    }
     return result;
   }
 }
@@ -1509,6 +1538,8 @@ class Elements {
       str = 'or';
     } else if (selector == const SourceString('negate')) {
       // TODO(ahe): Remove this case: Legacy support for pre-0.11 spec.
+      return selector;
+    } else if (str === '?') {
       return selector;
     } else {
       throw new Exception('Unhandled selector: ${selector.slowToString()}');

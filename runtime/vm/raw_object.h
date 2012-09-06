@@ -762,8 +762,11 @@ class RawCode : public RawObject {
   }
 
   intptr_t pointer_offsets_length_;
-  // This cannot be boolean because of alignment issues on x64 architectures.
+  // These fields cannot be boolean because of alignment issues on x64
+  // architectures.
   intptr_t is_optimized_;
+  // If true, the embedded object pointers will be visited during GC.
+  intptr_t is_alive_;
 
   // Variable length data follows here.
   int32_t data_[0];

@@ -21,12 +21,12 @@
  * bidi_utils.dart directly.
  */
 class TextDirection {
-  static final LTR = const TextDirection._('LTR', 'ltr');
-  static final RTL = const TextDirection._('RTL', 'rtl');
+  static const LTR = const TextDirection._('LTR', 'ltr');
+  static const RTL = const TextDirection._('RTL', 'rtl');
   // If the directionality of the text cannot be determined and we are not using
   // the context direction (or if the context direction is unknown), then the
   // text falls back on the more common ltr direction.
-  static final UNKNOWN = const TextDirection._('UNKNOWN', 'ltr');
+  static const UNKNOWN = const TextDirection._('UNKNOWN', 'ltr');
 
   /** 
    * Textual representation of the directionality constant. One of 
@@ -49,19 +49,19 @@ class TextDirection {
 }
 
 /** Unicode "Left-To-Right Embedding" (LRE) character. */
-final LRE = '\u202A';
+const LRE = '\u202A';
 
 /** Unicode "Right-To-Left Embedding" (RLE) character. */
-final RLE = '\u202B';
+const RLE = '\u202B';
 
 /** Unicode "Pop Directional Formatting" (PDF) character. */
-final PDF = '\u202C';
+const PDF = '\u202C';
 
 /** Unicode "Left-To-Right Mark" (LRM) character. */
-final LRM = '\u200E';
+const LRM = '\u200E';
 
 /** Unicode "Right-To-Left Mark" (RLM) character. */
-final RLM = '\u200F';
+const RLM = '\u200F';
 
 /** Constant to define the threshold of RTL directionality. */
 num _RTL_DETECTION_THRESHOLD = 0.40;
@@ -71,10 +71,10 @@ num _RTL_DETECTION_THRESHOLD = 0.40;
  * These patterns are not completely correct according to the Unicode
  * standard. They are simplified for performance and small code size.
  */
-final String _LTR_CHARS =
+const String _LTR_CHARS =
     @'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0300-\u0590'
     @'\u0800-\u1FFF\u2C00-\uFB1C\uFDFE-\uFE6F\uFEFD-\uFFFF';
-final String _RTL_CHARS = @'\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC';
+const String _RTL_CHARS = @'\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC';
 
 /**
  * Returns the input [text] with spaces instead of HTML tags or HTML escapes,

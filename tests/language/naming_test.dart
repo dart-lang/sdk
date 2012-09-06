@@ -510,7 +510,13 @@ class Naming2Test {
 
   static void main(args) {
     var a = new Naming2Test();
-    Expect.throws(() => a.foo(2), (e) => e is ObjectNotClosureException);
+    Expect.throws(
+        () => a.foo(2),
+        // We check for both exceptions because the exact exception to
+        // throw is hard to compute on some browsers.
+        // Also, ObjectNotClosureException should probably implement
+        // NoSuchMethodException.
+        (e) => e is ObjectNotClosureException || e is NoSuchMethodException);
   }
 }
 

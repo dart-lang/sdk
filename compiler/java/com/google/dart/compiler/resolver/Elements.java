@@ -705,7 +705,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       LibrarySource library = dartSource.getLibrary();
       if (library != null) {
         String libraryName = library.getName();
-        return libraryName.startsWith("dart://") && libraryName.endsWith("/" + name);
+        return libraryName.endsWith("/core/" + name);
       }
     }
     return false;

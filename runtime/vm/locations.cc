@@ -45,6 +45,22 @@ LocationSummary* LocationSummary::Make(
 }
 
 
+Location Location::RegisterOrConstant(Value* value) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return (constant != NULL)
+      ? Location::Constant(constant->value())
+      : Location::RequiresRegister();
+}
+
+
+Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return (constant != NULL)
+      ? Location::Constant(constant->value())
+      : Location::RegisterLocation(reg);
+}
+
+
 const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
@@ -76,9 +92,9 @@ const char* Location::Name() const {
 
 void Location::PrintTo(BufferFormatter* f) const {
   if (kind() == kStackSlot) {
-    f->Print("S%+d", stack_index());
+    f->Print("S%+"Pd"", stack_index());
   } else if (kind() == kDoubleStackSlot) {
-    f->Print("DS%+d", stack_index());
+    f->Print("DS%+"Pd"", stack_index());
   } else {
     f->Print("%s", Name());
   }
@@ -87,7 +103,7 @@ void Location::PrintTo(BufferFormatter* f) const {
 
 void Location::Print() const {
   if (kind() == kStackSlot) {
-    OS::Print("S%+d", stack_index());
+    OS::Print("S%+"Pd"", stack_index());
   } else {
     OS::Print("%s", Name());
   }

@@ -18,8 +18,6 @@ constants() {
   Expect.equals(0x80000000, 1 << 31);
   Expect.equals(0xFFFFFFF0, 0xFFFFFFF << 4);
   Expect.equals(0x7FFFFFFF, 0xFFFFFFFF >> 1);
-  Expect.equals(0xFFFF0000, (-1 >> 16) & 0xFFFF0000);
-  Expect.equals(0xFFFFFFFF, (-1 >> 33) & 0xFFFFFFFF);
   Expect.equals(0xFFFFFFFC,
                 ((((((0xFFFFFFF << 4) // 0xFFFFFFF0
                                 >> 1) // 0x7FFFFFF8
@@ -62,8 +60,6 @@ interceptors() {
   Expect.equals(0x80000000, id(1) << id(31));
   Expect.equals(0xFFFFFFF0, id(0xFFFFFFF) << id(4));
   Expect.equals(0x7FFFFFFF, id(0xFFFFFFFF) >> id(1));
-  Expect.equals(0xFFFF0000, (id(-1) >> 16) & 0xFFFF0000);
-  Expect.equals(0xFFFFFFFF, (id(-1) >> 33) & 0xFFFFFFFF);
   Expect.equals(0xFFFFFFFC,
                 ((((((id(0xFFFFFFF) << 4) // 0xFFFFFFF0
                                     >> 1) // 0x7FFFFFF8
@@ -86,7 +82,6 @@ speculative() {
   var k = id(31);
   var l = id(4);
   var m = id(0xFFFFFFF);
-  var n = id(-1);
   for (int i = 0; i < 1; i++) {
     Expect.equals(0x80000000, a | b);
     Expect.equals(0x80000001, a | c);
@@ -103,8 +98,6 @@ speculative() {
     Expect.equals(0x80000000, c << k);
     Expect.equals(0xFFFFFFF0, m << l);
     Expect.equals(0x7FFFFFFF, f >> c);
-    Expect.equals(0xFFFF0000, (n >> 16) & 0xFFFF0000);
-    Expect.equals(0xFFFFFFFF, (n >> 33) & 0xFFFFFFFF);
     Expect.equals(0xFFFFFFFC,
                   ((((((m << 4) // 0xFFFFFFF0
                           >> 1) // 0x7FFFFFF8

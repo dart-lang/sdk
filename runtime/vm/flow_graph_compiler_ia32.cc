@@ -24,16 +24,16 @@ DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
 
 
-void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
-                                      intptr_t stub_ix) {
+void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
+                                             intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
-  if (reason_ == kDeoptAtCall) return;
+  ASSERT(reason() != kDeoptAtCall);
   Assembler* assem = compiler->assembler();
 #define __ assem->
-  __ Comment("Deopt stub for id %d", deopt_id_);
+  __ Comment("Deopt stub for id %"Pd"", deopt_id());
   __ Bind(entry_label());
 
-  ASSERT(deoptimization_env_ != NULL);
+  ASSERT(deoptimization_env() != NULL);
 
   if (compiler->IsLeaf()) {
     Label L;
@@ -51,8 +51,8 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
   const intptr_t deopt_info_index = stub_ix;
   compiler->pc_descriptors_list()->AddDeoptIndex(
       compiler->assembler()->CodeSize(),
-      deopt_id_,
-      reason_,
+      deopt_id(),
+      reason(),
       deopt_info_index);
 #undef __
 }
@@ -600,6 +600,15 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     AllocateRegistersLocally(instr);
+  }
+}
+
+
+void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
+  if (is_optimizing()) return;
+  Definition* defn = instr->AsDefinition();
+  if ((defn != NULL) && defn->is_used()) {
+    __ pushl(defn->locs()->out().reg());
   }
 }
 
@@ -1213,7 +1222,12 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else {
     ASSERT(source.IsConstant());
     if (destination.IsRegister()) {
-      __ LoadObject(destination.reg(), source.constant());
+      const Object& constant = source.constant();
+      if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
+        __ xorl(destination.reg(), destination.reg());
+      } else {
+        __ LoadObject(destination.reg(), constant);
+      }
     } else {
       ASSERT(destination.IsStackSlot());
       StoreObject(ToStackSlotAddress(destination), source.constant());

@@ -18,16 +18,17 @@ public class DartImportDirective extends DartDirective {
 
   private NodeList<ImportCombinator> combinators = new NodeList<ImportCombinator>(this);
 
+  // TODO(brianwilkerson) Remove this field once the obsolete format is no longer supported.
   private boolean exported;
 
   private DartStringLiteral oldPrefix;
 
-  public DartImportDirective(DartStringLiteral libraryUri, DartIdentifier prefix, List<ImportCombinator> combinators, boolean exported) {
+  public DartImportDirective(DartStringLiteral libraryUri, DartIdentifier prefix, List<ImportCombinator> combinators) {
     obsoleteFormat = false;
     this.libraryUri = becomeParentOf(libraryUri);
     this.prefix = becomeParentOf(prefix);
     this.combinators.addAll(combinators);
-    this.exported = exported;
+    this.exported = false;
   }
 
   public DartImportDirective(DartStringLiteral libraryUri, DartBooleanLiteral exported, List<ImportCombinator> combinators, DartStringLiteral prefix) {
@@ -43,6 +44,7 @@ public class DartImportDirective extends DartDirective {
   }
 
   public boolean isExported() {
+    // TODO(brianwilkerson) Remove this method once the obsolete format is no longer supported.
     return exported;
   }
 

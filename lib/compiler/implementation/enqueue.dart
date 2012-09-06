@@ -75,6 +75,11 @@ class Enqueuer {
   bool get isResolutionQueue => compiler.enqueuer.resolution === this;
 
   TreeElements getCachedElements(Element element) {
+    // TODO(ngeoffray): Get rid of this check.
+    if (element.enclosingElement.isClosure()) {
+      closureMapping.ClosureClassElement cls = element.enclosingElement;
+      element = cls.methodElement;
+    }
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
     return compiler.enqueuer.resolution.resolvedElements[owner];
   }
@@ -164,26 +169,12 @@ class Enqueuer {
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] !== null) return;
     if (!member.isInstanceMember()) return;
-
-    if (member.kind === ElementKind.FIELD) {
-      universe.instantiatedClassInstanceFields.add(member.name);
-      if (compiler.enableTypeAssertions) {
-        Type type = member.computeType(compiler);
-        registerIsCheck(type.element);
-        SourceString helper = compiler.backend.getCheckedModeHelper(type);
-        if (helper != null) {
-          Element helperElement = compiler.findHelper(helper);
-          registerStaticUse(helperElement);
-        }
-      }  
-      return;
-    }
+    if (member.isField()) return;
 
     String memberName = member.name.slowToString();
     Link<Element> members = instanceMembersByName.putIfAbsent(
         memberName, () => const EmptyLink<Element>());
     instanceMembersByName[memberName] = members.prepend(member);
-
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
@@ -202,7 +193,6 @@ class Enqueuer {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
-      universe.instantiatedClassInstanceFields.add(member.name);
       if (universe.hasInvokedGetter(member, compiler)) {
         return addToWorkList(member);
       }
@@ -235,6 +225,22 @@ class Enqueuer {
         }
         if (isResolutionQueue) {
           compiler.resolver.checkMembers(cls);
+        }
+       
+        if (compiler.enableTypeAssertions) {
+          // We need to register is checks and helpers for checking
+          // assignments to fields.
+          // TODO(ngeoffray): This should really move to the backend. 
+          cls.localMembers.forEach((Element member) {
+            if (!member.isInstanceMember() && !member.isField()) return;
+            DartType type = member.computeType(compiler);
+            registerIsCheck(type);
+            SourceString helper = compiler.backend.getCheckedModeHelper(type);
+            if (helper != null) {
+              Element helperElement = compiler.findHelper(helper);
+              registerStaticUse(helperElement);
+            }
+          });
         }
       }
     });
@@ -343,9 +349,8 @@ class Enqueuer {
     });
   }
 
-  // TODO(ngeoffray): This should get a type.
-  void registerIsCheck(Element element) {
-    universe.isChecks.add(element);
+  void registerIsCheck(DartType type) {
+    universe.isChecks.add(type);
   }
 
   void forEach(f(WorkItem work)) {

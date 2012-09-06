@@ -79,7 +79,6 @@ void maybeEnableNative(Compiler compiler,
   String libraryName = uri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
-      || libraryName == 'dart:dom_deprecated'
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.canUseNative = true;
@@ -195,7 +194,9 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
-    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
+    Constant arityConstant =
+        builder.constantSystem.createInt(type.computeArity());
+    HInstruction arity = builder.graph.addConstant(arityConstant);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
     Element helper = builder.interceptors.getClosureConverter();
@@ -298,7 +299,8 @@ void generateMethodWithPrototypeCheckForElement(Compiler compiler,
                                                 String code,
                                                 String parameters) {
   String methodName;
-  Namer namer = compiler.namer;
+  JavaScriptBackend backend = compiler.backend;
+  Namer namer = backend.namer;
   if (element.kind == ElementKind.FUNCTION) {
     FunctionSignature signature = element.computeSignature(compiler);
     methodName = namer.instanceMethodName(

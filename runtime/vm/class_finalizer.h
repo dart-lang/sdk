@@ -53,7 +53,8 @@ class ClassFinalizer : public AllStatic {
                                     const Class& cls,
                                     const Type& type,
                                     FinalizationKind finalization,
-                                    const char* format, ...);
+                                    const char* format, ...)
+       PRINTF_ATTRIBUTE(5, 6);
 
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
@@ -98,8 +99,8 @@ class ClassFinalizer : public AllStatic {
   static void ReportError(const Error& error);
   static void ReportError(const Script& script,
                           intptr_t token_index,
-                          const char* format, ...);
-  static void ReportError(const char* format, ...);
+                          const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
+  static void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 };
 
 }  // namespace dart

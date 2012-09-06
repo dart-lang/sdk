@@ -20,6 +20,6 @@ checkIt(f) {
 }
 
 main() {
-  checkIt(new Foo());
+  checkIt(new Foo());  /// 01: runtime error
   checkIt(new Bar());
 }

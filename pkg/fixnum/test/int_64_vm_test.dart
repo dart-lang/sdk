@@ -34,7 +34,7 @@ void main() {
   test.doTestBinary(new BinaryOp("remainder", (a, b) => a.remainder(b)));
 }
 
-final int DISCARD = 0;
+const int DISCARD = 0;
 
 int64 _randomInt64() {
   int i = 0;
@@ -97,8 +97,8 @@ class ShiftOp extends Op {
 }
 
 class int64VMTest {
-  static final int BASE_VALUES = 32;
-  static final int RANDOM_TESTS = 32;
+  static const int BASE_VALUES = 32;
+  static const int RANDOM_TESTS = 32;
   List<int64> TEST_VALUES;
   
   int64VMTest() {

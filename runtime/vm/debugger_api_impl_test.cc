@@ -65,7 +65,7 @@ static char const* BreakpointInfo(Dart_StackTrace trace) {
   res = Dart_ActivationFrameInfo(
             frame, &func_name, &url, &line_number, &library_id);
   EXPECT_VALID(res);
-  OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%d)",
+  OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%"Pd")",
               ToCString(func_name), ToCString(url), line_number);
   return info_str;
 }

@@ -29,7 +29,7 @@ class SubSub extends Super {
 
 main() {
   SubSub val1 = new SubSub();
-  val1.field = new B2(); /// 02: static type warning
+  val1.field = new B2(); /// 02: static type warning, dynamic type error
   Expect.equals(true, val1.field is B2); /// 02: continued
 
   Sub val2 = new Sub();

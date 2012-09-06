@@ -534,7 +534,7 @@ class _Cookie implements Cookie {
           value = parseAttributeValue();
         }
         if (name == "expires") {
-          expires = _HttpUtils.parseDate(value, strict: false);
+          expires = _HttpUtils.parseCookieDate(value);
         } else if (name == "max-age") {
           maxAge = parseInt(value);
         } else if (name == "domain") {
@@ -1350,11 +1350,13 @@ class _HttpConnection extends _HttpConnectionBase {
 
     // If currently not processing any request just close the socket.
     if (_httpParser.isIdle) {
-      _destroy();
-      if (onClosed != null && e == null) {
-        // Don't call onClosed if onError has been called.
-        onClosed();
-      }
+      _socket.outputStream.onClosed = () {
+        _destroy();
+        if (onClosed != null && e == null) {
+          // Don't call onClosed if onError has been called.
+          onClosed();
+        }
+      };
       return;
     }
 
@@ -1403,7 +1405,9 @@ class _HttpConnection extends _HttpConnectionBase {
     // If the connection is closing then close the output stream to
     // fully close the socket.
     if (_closing) {
-      _socket.close();
+      _socket.outputStream.onClosed = () {
+        _socket.close();
+      };
     }
     _response = null;
   }
@@ -1432,7 +1436,7 @@ class _HttpServer implements HttpServer {
   _HttpServer() : _connections = new Set<_HttpConnection>(),
                   _handlers = new List<_RequestHandlerRegistration>();
 
-  void listen(String host, int port, [int backlog = 5]) {
+  void listen(String host, int port, [int backlog = 128]) {
     listenOn(new ServerSocket(host, port, backlog));
     _closeServer = true;
   }

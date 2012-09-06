@@ -2,6 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class ElementAst {
+  final Node ast;
+  final TreeElements treeElements;
+
+  ElementAst(this.ast, this.treeElements);
+  ElementAst.forClassLike(this.ast)
+      : this.treeElements = new TreeElementMapping();
+}
+
+class AggregatedTreeElements extends TreeElementMapping {
+  final List<TreeElements> treeElements;
+
+  AggregatedTreeElements() : treeElements = <TreeElements>[];
+
+  Element operator[](Node node) {
+    final result = super[node];
+    return result !== null ? result : getFirstNotNullResult((e) => e[node]);
+  }
+
+  Selector getSelector(Send send) {
+    final result = super.getSelector(send);
+    return result !== null ?
+        result : getFirstNotNullResult((e) => e.getSelector(send));
+  }
+
+  DartType getType(TypeAnnotation annotation) {
+    final result = super.getType(annotation);
+    return result !== null ?
+        result : getFirstNotNullResult((e) => e.getType(annotation));
+  }
+
+  getFirstNotNullResult(f(TreeElements element)) {
+    for (final element in treeElements) {
+      final result = f(element);
+      if (result !== null) return result;
+    }
+
+    return null;
+  }
+}
+
+class VariableListAst extends ElementAst {
+  VariableListAst(ast) : super(ast, new AggregatedTreeElements());
+
+  add(VariableElement element, TreeElements treeElements) {
+    AggregatedTreeElements e = this.treeElements;
+    e[element.cachedNode] = element;
+    e.treeElements.add(treeElements);
+  }
+}
+
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final bool cutDeclarationTypes;
@@ -74,9 +125,12 @@ class DartBackend extends Backend {
       element.kind !== ElementKind.VOID &&
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
       !element.getLibrary().isPlatformLibrary &&
+      element is !SynthesizedConstructorElement &&
       element is !AbstractFieldElement;
 
-    final emptyTreeElements = new TreeElementMapping();
+    final elementAsts = new Map<Element, ElementAst>();
+
+    parse(element) => element.parseNode(compiler);
 
     Set<Element> topLevelElements = new Set<Element>();
     Map<ClassElement, Set<Element>> classMembers =
@@ -85,26 +139,29 @@ class DartBackend extends Backend {
     // Build all top level elements to emit and necessary class members.
     var newTypedefElementCallback, newClassElementCallback;
 
-    processElement(element, treeElements) {
+    processElement(element, elementAst) {
       new ReferencedElementCollector(
           compiler,
-          element, treeElements,
+          element, elementAst.treeElements,
           newTypedefElementCallback, newClassElementCallback).collect();
+      elementAsts[element] = elementAst;
     }
 
-    addTopLevel(element, treeElements) {
+    addTopLevel(element, elementAst) {
       if (topLevelElements.contains(element)) return;
       topLevelElements.add(element);
-      processElement(element, treeElements);
+      processElement(element, elementAst);
     }
     addClass(classElement) {
-      addTopLevel(classElement, emptyTreeElements);
+      addTopLevel(classElement,
+                  new ElementAst.forClassLike(parse(classElement)));
       classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
       if (!shouldOutput(element)) return;
-      addTopLevel(element, emptyTreeElements);
+      addTopLevel(element,
+                  new ElementAst.forClassLike(parse(element)));
     };
     newClassElementCallback = (ClassElement classElement) {
       if (!shouldOutput(classElement)) return;
@@ -114,6 +171,15 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
+      var elementAst = new ElementAst(parse(element), treeElements);
+      if (element.isField()) {
+        final list = (element as VariableElement).variables;
+        elementAst = elementAsts.putIfAbsent(
+            list, () => new VariableListAst(parse(list)));
+        (elementAst as VariableListAst).add(element, treeElements);
+        element = list;
+      }
+
       if (element.isMember()) {
         ClassElement enclosingClass = element.getEnclosingClass();
         assert(enclosingClass.isClass());
@@ -121,12 +187,12 @@ class DartBackend extends Backend {
         assert(shouldOutput(enclosingClass));
         addClass(enclosingClass);
         classMembers[enclosingClass].add(element);
-        processElement(element, treeElements);
+        processElement(element, elementAst);
       } else {
         if (!element.isTopLevel()) {
           compiler.cancel(reason: 'Cannot process $element', element: element);
         }
-        addTopLevel(element, treeElements);
+        addTopLevel(element, elementAst);
       }
     });
 
@@ -134,9 +200,7 @@ class DartBackend extends Backend {
     PlaceholderCollector collector =
         new PlaceholderCollector(compiler, fixedMemberNames);
     makePlaceholders(element) {
-      TreeElements treeElements = resolvedElements[element];
-      if (treeElements === null) treeElements = emptyTreeElements;
-      collector.collect(element, treeElements);
+      collector.collect(element, elementAsts[element].treeElements);
       if (element is ClassElement) {
         classMembers[element].forEach(makePlaceholders);
       }
@@ -160,11 +224,8 @@ class DartBackend extends Backend {
     if (outputAst) {
       // TODO(antonm): Ideally XML should be a separate backend.
       // TODO(antonm): obey renames and minification, at least as an option.
-      StringBuffer sb = new StringBuffer();
-      sb.add('<Program>\n');
-      outputElement(element) {
-        sb.add(element.parseNode(compiler).toDebugString());
-      }
+      final unparser = new Unparser();
+      outputElement(element) { unparser.unparse(parse(element)); }
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
@@ -175,14 +236,26 @@ class DartBackend extends Backend {
           outputElement(topLevel);
         }
       }
-      sb.add('</Program>\n');
-      compiler.assembledCode = sb.toString();
+      compiler.assembledCode = '<Program>\n${unparser.result}</Program>\n';
       return;
     }
 
+    final topLevelNodes = <Node>[];
+    final memberNodes = new Map<ClassNode, List<Node>>();
+    for (final element in sortedTopLevels) {
+      topLevelNodes.add(elementAsts[element].ast);
+      if (element is ClassElement) {
+        final members = <Node>[];
+        for (final member in sortedClassMembers[element]) {
+          members.add(elementAsts[member].ast);
+        }
+        memberNodes[elementAsts[element].ast] = members;
+      }
+    }
+
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
-    compiler.assembledCode = emitCode(
-        compiler, unparser, imports, sortedTopLevels, sortedClassMembers);
+    emitCode(unparser, imports, topLevelNodes, memberNodes);
+    compiler.assembledCode = unparser.result;
   }
 
   log(String message) => compiler.log('[DartBackend] $message');

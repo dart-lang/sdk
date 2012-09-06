@@ -424,7 +424,7 @@ void testShift() {
     Expect.equals(new int64.fromInt(-1), new int64.fromInt(-1) >> n);
   }
 
-  Expect.equals(new int64.fromInt(-1 << 5), new int64.fromInt(-1) << 5);
+  Expect.equals(new int64.fromInt(-32), new int64.fromInt(-1) << 5);
   Expect.equals(new int64.fromInt(-1), new int64.fromInt(-1) << 0);
   Expect.equals(-new int64.fromInts(0x40000000, 0x00000000),
     (new int64.fromInt(1) << 63) >> 1);

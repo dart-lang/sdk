@@ -261,34 +261,34 @@ class Level implements Comparable, Hashable {
   const Level(this.name, this.value);
 
   /** Special key to turn on logging for all levels ([value] = 0). */
-  static final Level ALL = const Level('ALL', 0);
+  static const Level ALL = const Level('ALL', 0);
 
   /** Special key to turn off all logging ([value] = 2000). */
-  static final Level OFF = const Level('OFF', 2000);
+  static const Level OFF = const Level('OFF', 2000);
 
   /** Key for highly detailed tracing ([value] = 300). */
-  static final Level FINEST = const Level('FINEST', 300);
+  static const Level FINEST = const Level('FINEST', 300);
 
   /** Key for fairly detailed tracing ([value] = 400). */
-  static final Level FINER = const Level('FINER', 400);
+  static const Level FINER = const Level('FINER', 400);
 
   /** Key for tracing information ([value] = 500). */
-  static final Level FINE = const Level('FINE', 500);
+  static const Level FINE = const Level('FINE', 500);
 
   /** Key for static configuration messages ([value] = 700). */
-  static final Level CONFIG = const Level('CONFIG', 700);
+  static const Level CONFIG = const Level('CONFIG', 700);
 
   /** Key for informational messages ([value] = 800). */
-  static final Level INFO = const Level('INFO', 800);
+  static const Level INFO = const Level('INFO', 800);
 
   /** Key for potential problems ([value] = 900). */
-  static final Level WARNING = const Level('WARNING', 900);
+  static const Level WARNING = const Level('WARNING', 900);
 
   /** Key for serious failures ([value] = 1000). */
-  static final Level SEVERE = const Level('SEVERE', 1000);
+  static const Level SEVERE = const Level('SEVERE', 1000);
 
   /** Key for extra debugging loudness ([value] = 1200). */
-  static final Level SHOUT = const Level('SHOUT', 1200);
+  static const Level SHOUT = const Level('SHOUT', 1200);
 
   bool operator ==(Level other) => other != null && value == other.value;
   bool operator <(Level other) => value < other.value;

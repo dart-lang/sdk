@@ -13,7 +13,7 @@
 class DualPivotQuicksort {
   // When a list has less then [:_INSERTION_SORT_THRESHOLD:] elements it will
   // be sorted by an insertion sort.
-  static final int _INSERTION_SORT_THRESHOLD = 32;
+  static const int _INSERTION_SORT_THRESHOLD = 32;
 
   /**
    * Sorts all elements of the given list [:a:] according to the given

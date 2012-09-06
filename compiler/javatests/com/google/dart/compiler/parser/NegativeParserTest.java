@@ -717,7 +717,7 @@ public class NegativeParserTest extends CompilerTestCase {
     DartParserRunner runner = parseExpectErrors(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  operator equals(other) => false;",
+        "  operator ==(other) => false;",
         "}",
         ""));
     DartClass clazz = (DartClass) runner.getDartUnit().getTopLevelNodes().get(0);

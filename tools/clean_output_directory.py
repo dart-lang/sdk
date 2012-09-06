@@ -21,7 +21,7 @@ def BuildOptions():
   result.add_option("--arch",
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm]',
-      default=utils.GuessArchitecture())
+      default='all')
   result.add_option("--os",
     help='Target OSs (comma-separated).',
     metavar='[all,host,android]',

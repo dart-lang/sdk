@@ -4,12 +4,9 @@
 
 package com.google.dart.compiler;
 
-import java.io.BufferedInputStream;
+import com.google.dart.compiler.SystemLibrariesReader.DartLibrary;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -19,31 +16,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * A Library manager that manages system libraries 
  */
 public class SystemLibraryManager  {
-
-  private static final String IMPORT_CONFIG = "import_%s.config";
   
   private HashMap<String, String> expansionMap;
   private Map<String, SystemLibrary> hostMap;
   private final File sdkLibPath;
   private final URI sdkLibPathUri;
-  private final String platformName;
   
   private Map<URI, URI> longToShortUriMap;
 
   private List<SystemLibrary> libraries;
 
-  public SystemLibraryManager(File sdkPath, String platformName) {
+  public SystemLibraryManager(File sdkPath) {
     this.sdkLibPath = new File(sdkPath, "lib").getAbsoluteFile();
     this.sdkLibPathUri = sdkLibPath.toURI();
-    this.platformName = platformName;
-    setLibraries(getDefaultLibraries());
-   
+    setLibraries(getDefaultLibraries());  
   }
   
   public URI expandRelativeDartUri(URI uri) throws AssertionError {
@@ -121,9 +112,7 @@ public class SystemLibraryManager  {
   
   
   /**
-   * Scan the directory returned by {@link #getLibrariesDir()} looking for libraries of the form
-   * libraries/<name>/<name>_<platform>.dart and libraries/<name>/<name>.dart where <platform> is
-   * the value initialized in the {@link SystemLibraryManager}.
+   * Load the libraries listed out in the libraries.dart files as read by the {@link SystemLibrariesReader}
    */
   protected SystemLibrary[] getDefaultLibraries() {
     libraries = new ArrayList<SystemLibrary>();
@@ -131,12 +120,18 @@ public class SystemLibraryManager  {
 
     // Cycle through the import.config, extracting explicit mappings and searching directories
     URI base = this.sdkLibPathUri;
-    Properties importConfig = getImportConfig();
+    
+    SystemLibrariesReader reader = new SystemLibrariesReader(sdkLibPath);
+    Map<String, DartLibrary> declaredLibraries = reader.getLibrariesMap();
+    
     HashSet<String> explicitShortNames = new HashSet<String>();
-    for (Entry<Object, Object> entry : importConfig.entrySet()) {
-      String shortName = ((String) entry.getKey()).trim();
-      String path = ((String) entry.getValue()).trim();
-
+    
+    for (Entry<String, DartLibrary> entry : declaredLibraries.entrySet()) {
+      if (entry.getValue().getCategory().equals("Internal")){
+        continue;
+      }
+      String shortName = entry.getKey().trim();
+      String path = entry.getValue().getPath();
       File file;
       try {
         file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
@@ -147,32 +142,6 @@ public class SystemLibraryManager  {
         throw new InternalCompilerException("Can't find system library dart:" + shortName
                                             + " at " + file);
       }
-
-      // If the shortName ends with ":" then search the associated directory for libraries
-
-      if (shortName.endsWith(":")) {
-        if (!file.isDirectory()) {
-          continue;
-        }
-        for (File child : file.listFiles()) {
-          String host = child.getName();
-          // Do not overwrite explicit shortName to dart file mappings
-          if (explicitShortNames.contains(shortName + host)) {
-            continue;
-          }
-          if (!child.isDirectory()) {
-            continue;
-          }
-          File dartFile = new File(child, child.getName() + ".dart");
-          if (!dartFile.isFile()) {
-            // addLib() will throw an exception. In this case, we are just scanning
-            // for libraries and don't want the error to be fatal.
-            continue;
-          }
-          addLib(shortName, host, host, child, dartFile.getName());
-        }
-      } else {
-        // Otherwise treat the entry as an explicit shortName to dart file mapping
         int index = shortName.indexOf(':');
         if (index == -1) {
           continue;
@@ -182,43 +151,10 @@ public class SystemLibraryManager  {
         String name = shortName.substring(index + 1);
         String host = file.getParentFile().getName();
         addLib(scheme, host, name, file.getParentFile(), file.getName());
-      }
+      
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
-
-  /**
-   * Read the import.config content and return it as a collection of key/value pairs
-   */
-  protected Properties getImportConfig() {
-    Properties importConfig = new Properties();
-    InputStream stream = getImportConfigStream();
-    try {
-      importConfig.load(stream);
-    } catch (IOException ignored) {
-    } finally {
-      try {
-        stream.close();
-      } catch (IOException ignored) {
-      }
-    }
-    return importConfig;
-  }
-
-  protected InputStream getImportConfigStream() {
-    File file = new File(new File(sdkLibPath, "config"),
-                         String.format(IMPORT_CONFIG, platformName));
-    if (!file.exists()) {
-      throw new InternalCompilerException("Failed to find " + file.toString()
-                                          + ".  Is dart-sdk path correct?");
-    }
-    try {
-      return new BufferedInputStream(new FileInputStream(file));
-    } catch (FileNotFoundException e) {
-      throw new InternalCompilerException("Failed to open " + file);
-    }
-  }
-  
   
   private boolean addLib(String scheme, String host, String name, File dir, String libFileName)
       throws AssertionError {

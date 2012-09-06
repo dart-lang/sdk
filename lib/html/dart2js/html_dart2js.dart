@@ -9323,13 +9323,55 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
   _MediaElementEventsImpl(_ptr) : super(_ptr);
 
+  EventListenerList get canPlay() => this['canplay'];
+
+  EventListenerList get canPlayThrough() => this['canplaythrough'];
+
+  EventListenerList get durationChange() => this['durationchange'];
+
+  EventListenerList get emptied() => this['emptied'];
+
+  EventListenerList get ended() => this['ended'];
+
   EventListenerList get keyAdded() => this['webkitkeyadded'];
 
   EventListenerList get keyError() => this['webkitkeyerror'];
 
   EventListenerList get keyMessage() => this['webkitkeymessage'];
 
+  EventListenerList get loadStart() => this['loadstart'];
+
+  EventListenerList get loadedData() => this['loadeddata'];
+
+  EventListenerList get loadedMetadata() => this['loadedmetadata'];
+
   EventListenerList get needKey() => this['webkitneedkey'];
+
+  EventListenerList get pause() => this['pause'];
+
+  EventListenerList get play() => this['play'];
+
+  EventListenerList get playing() => this['playing'];
+
+  EventListenerList get progress() => this['progress'];
+
+  EventListenerList get rateChange() => this['ratechange'];
+
+  EventListenerList get seeked() => this['seeked'];
+
+  EventListenerList get seeking() => this['seeking'];
+
+  EventListenerList get show() => this['show'];
+
+  EventListenerList get stalled() => this['stalled'];
+
+  EventListenerList get suspend() => this['suspend'];
+
+  EventListenerList get timeUpdate() => this['timeupdate'];
+
+  EventListenerList get volumeChange() => this['volumechange'];
+
+  EventListenerList get waiting() => this['waiting'];
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -17268,7 +17310,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  bool send(String data) native;
+  void send(data) native;
 }
 
 class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
@@ -27285,13 +27327,55 @@ interface MediaElement extends Element {
 
 interface MediaElementEvents extends ElementEvents {
 
+  EventListenerList get canPlay();
+
+  EventListenerList get canPlayThrough();
+
+  EventListenerList get durationChange();
+
+  EventListenerList get emptied();
+
+  EventListenerList get ended();
+
   EventListenerList get keyAdded();
 
   EventListenerList get keyError();
 
   EventListenerList get keyMessage();
 
+  EventListenerList get loadStart();
+
+  EventListenerList get loadedData();
+
+  EventListenerList get loadedMetadata();
+
   EventListenerList get needKey();
+
+  EventListenerList get pause();
+
+  EventListenerList get play();
+
+  EventListenerList get playing();
+
+  EventListenerList get progress();
+
+  EventListenerList get rateChange();
+
+  EventListenerList get seeked();
+
+  EventListenerList get seeking();
+
+  EventListenerList get show();
+
+  EventListenerList get stalled();
+
+  EventListenerList get suspend();
+
+  EventListenerList get timeUpdate();
+
+  EventListenerList get volumeChange();
+
+  EventListenerList get waiting();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36278,7 +36362,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName WebSocket.send */
-  bool send(String data);
+  void send(data);
 }
 
 interface WebSocketEvents extends Events {
@@ -37720,22 +37804,21 @@ class _Timer implements Timer {
   void cancel() { canceller(); }
 }
 
-_getTimerFactoryClosure() =>
-  (int milliSeconds, void callback(Timer timer), bool repeating) {
-    var maker;
-    var canceller;
-    if (repeating) {
-      maker = window.setInterval;
-      canceller = window.clearInterval;
-    } else {
-      maker = window.setTimeout;
-      canceller = window.clearTimeout;
-    }
-    Timer timer;
-    final int id = maker(() { callback(timer); }, milliSeconds);
-    timer = new _Timer(() { canceller(id); });
-    return timer;
-  };
+get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool repeating) {
+  var maker;
+  var canceller;
+  if (repeating) {
+    maker = window.setInterval;
+    canceller = window.clearInterval;
+  } else {
+    maker = window.setTimeout;
+    canceller = window.clearTimeout;
+  }
+  Timer timer;
+  final int id = maker(() { callback(timer); }, milliSeconds);
+  timer = new _Timer(() { canceller(id); });
+  return timer;
+};
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

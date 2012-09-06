@@ -65,6 +65,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 }
 
 void compile(List<String> argv) {
+  bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = getCurrentDirectory();
   bool throwOnError = false;
   bool showWarnings = true;
@@ -165,11 +166,12 @@ void compile(List<String> argv) {
     try {
       source = readAll(uriPathToNative(uri.path));
     } on FileIOException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
+      throw 'Error: Cannot read "${relativize(cwd, uri, isWindows)}" '
+            '(${ex.osError}).';
     }
     dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri), source);
+      new SourceFile(relativize(cwd, uri, isWindows), source);
     return new Future.immediate(source);
   }
 
@@ -226,8 +228,7 @@ void compile(List<String> argv) {
       print(color(message));
     } else if (fatal || showWarnings) {
       SourceFile file = sourceFiles[uri.toString()];
-      print(file.getLocationMessage(color(message), begin, end, true,
-                                    color));
+      print(file.getLocationMessage(color(message), begin, end, true, color));
     }
     if (fatal && throwOnError) {
       isAborting = true;
@@ -249,13 +250,16 @@ void compile(List<String> argv) {
   if (code === null) {
     fail('Error: Compilation failed.');
   }
+  String sourceMapFileName =
+      sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
+  code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
-       'in ${relativize(cwd, out)}');
+       'in ${relativize(cwd, out, isWindows)}');
   if (!explicitOut) {
     String input = uriPathToNative(arguments[0]);
-    String output = relativize(cwd, out);
+    String output = relativize(cwd, out, isWindows);
     print('Dart file $input compiled to JavaScript: $output');
   }
 }

@@ -19,7 +19,7 @@ class IntegerImplementation {
     return other.mulFromInteger(this);
   }
   num operator ~/(num other) {
-    if (other == 0) {
+    if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
     return other.truncDivFromInteger(this);

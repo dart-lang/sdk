@@ -18,7 +18,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
   /** No released version: i.e. "0.0.0". */
   static Version get none => new Version(0, 0, 0);
 
-  static final _PARSE_REGEX = const RegExp(
+  static const _PARSE_REGEX = const RegExp(
       @'^'                                        // Start at beginning.
       @'(\d+).(\d+).(\d+)'                        // Version number.
       @'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'  // Pre-release.

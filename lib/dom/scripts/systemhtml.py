@@ -118,6 +118,8 @@ _html_event_names = {
   'exit': 'exit',
   'focus': 'focus',
   'hashchange': 'hashChange',
+  'icecandidate': 'iceCandidate',
+  'icechange': 'iceChange',
   'input': 'input',
   'invalid': 'invalid',
   'keydown': 'keyDown',

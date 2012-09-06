@@ -27,7 +27,6 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, warn_legacy_catch, false, "Warning on legacy catch syntax");
 DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
 
@@ -51,7 +50,7 @@ class TraceParser : public ValueObject {
         intptr_t line, column;
         script.GetTokenLocation(token_pos, &line, &column);
         PrintIndent();
-        OS::Print("%s (line %d, col %d, token %d)\n",
+        OS::Print("%s (line %"Pd", col %"Pd", token %"Pd")\n",
                   msg, line, column, token_pos);
       }
       indent_++;
@@ -347,7 +346,7 @@ Token::Kind Parser::CurrentToken() {
   if (token_kind_ == Token::kILLEGAL) {
     token_kind_ = tokens_iterator_.CurrentTokenKind();
     if (token_kind_ == Token::kERROR) {
-      ErrorMsg(TokenPos(), CurrentLiteral()->ToCString());
+      ErrorMsg(TokenPos(), "%s", CurrentLiteral()->ToCString());
     }
   }
   CompilerStats::num_token_checks++;
@@ -525,6 +524,7 @@ class ClassDesc : public ValueObject {
       : clazz_(cls),
         class_name_(cls_name),
         is_interface_(is_interface),
+        is_abstract_(false),
         token_pos_(token_pos),
         functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
@@ -600,6 +600,14 @@ class ClassDesc : public ValueObject {
     return is_interface_;
   }
 
+  void set_is_abstract() {
+    is_abstract_ = true;
+  }
+
+  bool is_abstract() const {
+    return is_abstract_;
+  }
+
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
@@ -650,6 +658,7 @@ class ClassDesc : public ValueObject {
   const Class& clazz_;
   const String& class_name_;
   const bool is_interface_;
+  bool is_abstract_;
   intptr_t token_pos_;   // Token index of "class" keyword.
   GrowableObjectArray& functions_;
   GrowableObjectArray& fields_;
@@ -2322,8 +2331,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (method->has_const && !(method->IsConstructor() || method->IsFactory())) {
     ErrorMsg(method->name_pos, "'const' not allowed for methods");
   }
-  if (method->IsConstructor() && method->has_static) {
-    ErrorMsg(method->name_pos, "constructor cannot be 'static'");
+  if (method->IsFactoryOrConstructor() && method->has_abstract) {
+    ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
   if (method->IsConstructor() && method->has_const) {
     Class& cls = Class::ZoneHandle(library_.LookupClass(members->class_name()));
@@ -2501,29 +2510,42 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                "Constructor with redirection may not have a function body");
     }
     ParseNativeDeclaration();
-  } else if (CurrentToken() == Token::kSEMICOLON) {
-    if (members->is_interface() ||
-        method->has_abstract ||
-        method->has_external ||
-        (method->redirect_name != NULL) ||
-        method->IsConstructor()) {
-      ConsumeToken();
-    } else {
+  } else {
+    // We haven't found a method body. Issue error if one is required.
+    const bool must_have_body =
+        !members->is_interface() &&
+        method->has_static && !method->has_external;
+    if (must_have_body) {
       ErrorMsg(method->name_pos,
                "function body expected for method '%s'",
                method->name->ToCString());
     }
-  } else {
-    if (members->is_interface() ||
-        method->has_abstract ||
-        method->has_external ||
-        (method->redirect_name != NULL) ||
-        (method->IsConstructor() && method->has_const)) {
-      ExpectSemicolon();
+
+    if (CurrentToken() == Token::kSEMICOLON) {
+      ConsumeToken();
+      if (!members->is_interface() &&
+          !method->has_static &&
+          !method->has_external &&
+          !method->IsConstructor()) {
+          // Methods, getters and setters without a body are
+          // implicitly abstract.
+        method->has_abstract = true;
+      }
     } else {
-      ErrorMsg(method->name_pos,
-               "function body expected for method '%s'",
-               method->name->ToCString());
+      // Signature is not followed by semicolon or body. Issue an
+      // appropriate error.
+      const bool must_have_semicolon =
+          members->is_interface() ||
+          (method->redirect_name != NULL) ||
+          (method->IsConstructor() && method->has_const) ||
+          method->has_external;
+      if (must_have_semicolon) {
+        ExpectSemicolon();
+      } else {
+        ErrorMsg(method->name_pos,
+                 "function body or semicolon expected for method '%s'",
+                 method->name->ToCString());
+      }
     }
   }
 
@@ -2553,6 +2575,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   ASSERT(is_top_level_);
   AddFormalParamsToFunction(&method->params, func);
   members->AddFunction(func);
+  if (method->has_abstract) {
+    members->set_is_abstract();
+  }
 }
 
 
@@ -2719,7 +2744,7 @@ void Parser::CheckOperatorArity(const MemberDesc& member,
       (member.params.has_named_optional_parameters) ||
       (member.params.num_fixed_parameters != expected_num_parameters)) {
     // Subtract receiver when reporting number of expected arguments.
-    ErrorMsg(member.name_pos, "operator %s expects %d argument(s)",
+    ErrorMsg(member.name_pos, "operator %s expects %"Pd" argument(s)",
         member.name->ToCString(), (expected_num_parameters - 1));
   }
 }
@@ -2764,6 +2789,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.type = &Type::ZoneHandle(Type::DynamicType());
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
+    if (member.has_static) {
+      ErrorMsg("factory method cannot be explicitly marked static");
+    }
     member.has_factory = true;
     member.has_static = true;
     // The result type depends on the name of the factory method.
@@ -2824,6 +2852,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
                                                 TypeArguments::Handle(),
                                                 factory_name.ident_pos));
     } else {
+      if (member.has_static) {
+        ErrorMsg("constructor cannot be static");
+      }
       member.name_pos = TokenPos();
       member.name = CurrentLiteral();
       ConsumeToken();
@@ -2956,14 +2987,18 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 
 void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseClassDefinition");
-  const intptr_t class_pos = TokenPos();
   bool is_patch = false;
+  bool is_abstract = false;
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
     ConsumeToken();
     is_patch = true;
+  } else if (CurrentToken() == Token::kABSTRACT) {
+    is_abstract = true;
+    ConsumeToken();
   }
+  const intptr_t class_pos = TokenPos();
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectClassIdentifier("class name expected");
@@ -3050,6 +3085,10 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     ParseClassMemberDefinition(&members);
   }
   ExpectToken(Token::kRBRACE);
+
+  if (is_abstract || members.is_abstract()) {
+    cls.set_is_abstract();
+  }
 
   // Add an implicit constructor if no explicit constructor is present. No
   // implicit constructors are needed for patch classes.
@@ -4101,7 +4140,6 @@ void Parser::ParseTopLevel() {
       ParseInterfaceDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ConsumeToken();  // Consume and ignore 'abstract'.
       ParseClassDefinition(pending_classes);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
@@ -5726,22 +5764,18 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         if (CurrentToken() == Token::kCOMMA) {
           ConsumeToken();
           stack_trace_param.is_final = true;
-          // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+          // TODO(hausner): Make implicit type be StackTrace, not Dynamic.
           stack_trace_param.type =
               &AbstractType::ZoneHandle(Type::DynamicType());
           stack_trace_param.token_pos = TokenPos();
           stack_trace_param.var = ExpectIdentifier("identifier expected");
         }
       } else {
-        // TODO(hausner): Remove legacy syntax support.
-        if (FLAG_warn_legacy_catch) {
-          Warning("legacy catch syntax");
-        }
-        ParseCatchParameter(&exception_param);
-        if (CurrentToken() == Token::kCOMMA) {
-          ConsumeToken();
-          ParseCatchParameter(&stack_trace_param);
-        }
+        // TODO(hausner): Improve error message and maybe also the
+        // structure of the code. Maybe you can get away with simply
+        // expecting an identifier followed by a comma or a right
+        // parenthesis?
+        ErrorMsg("identifier expected here, not type, final, or var");
       }
     } else {
       // on T catch(e) { ...
@@ -6141,7 +6175,7 @@ void Parser::FormatMessage(const Script& script,
       script.GetTokenLocation(token_pos, &line, &column);
       msg_len += OS::SNPrint(message_buffer + msg_len,
                              message_buffer_size - msg_len,
-                             "'%s': %s: line %d pos %d: ",
+                             "'%s': %s: line %"Pd" pos %"Pd": ",
                              script_url.ToCString(),
                              message_header,
                              line,
@@ -6160,7 +6194,7 @@ void Parser::FormatMessage(const Script& script,
                                  message_buffer_size - msg_len,
                                  "\n%s\n%*s\n",
                                  script_line.ToCString(),
-                                 column,
+                                 static_cast<int>(column),
                                  "^");
         }
       }
@@ -6279,7 +6313,7 @@ void Parser::Warning(const char* format, ...) {
 
 
 void Parser::Unimplemented(const char* msg) {
-  ErrorMsg(TokenPos(), msg);
+  ErrorMsg(TokenPos(), "%s", msg);
 }
 
 
@@ -6308,11 +6342,11 @@ void Parser::UnexpectedToken() {
 
 String* Parser::ExpectClassIdentifier(const char* msg) {
   if (CurrentToken() != Token::kIDENT) {
-    ErrorMsg(msg);
+    ErrorMsg("%s", msg);
   }
   String* ident = CurrentLiteral();
   if (ident->Equals("Dynamic")) {
-    ErrorMsg(msg);
+    ErrorMsg("%s", msg);
   }
   ConsumeToken();
   return ident;
@@ -6322,7 +6356,7 @@ String* Parser::ExpectClassIdentifier(const char* msg) {
 // Check whether current token is an identifier or a built-in identifier.
 String* Parser::ExpectIdentifier(const char* msg) {
   if (!IsIdentifier()) {
-    ErrorMsg(msg);
+    ErrorMsg("%s", msg);
   }
   String* ident = CurrentLiteral();
   ConsumeToken();
@@ -6500,7 +6534,7 @@ void Parser::EnsureExpressionTemp() {
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%d", s, token_pos);
+  OS::SNPrint(name, 64, ":%s%"Pd, s, token_pos);
   LocalVariable* temp =
       new LocalVariable(token_pos,
                         String::ZoneHandle(Symbols::New(name)),
@@ -8545,8 +8579,8 @@ AstNode* Parser::ParseNewOperator() {
   if (type.IsDynamicType()) {
     ErrorMsg(type_pos, "Dynamic cannot be instantiated");
   }
-  Class& type_class = Class::Handle(type.type_class());
-  String& type_class_name = String::Handle(type_class.Name());
+  const Class& type_class = Class::Handle(type.type_class());
+  const String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
 
@@ -8651,6 +8685,21 @@ AstNode* Parser::ParseNewOperator() {
              String::Handle(constructor_class.Name()).ToCString(),
              external_constructor_name.ToCString());
   }
+
+  // It is ok to call a factory method of an abstract class, but it is
+  // a dynamic error to instantiate an abstract class.
+  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
+    ArgumentListNode* arguments = new ArgumentListNode(type_pos);
+    arguments->Add(new LiteralNode(
+        TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
+    arguments->Add(new LiteralNode(
+        TokenPos(), String::ZoneHandle(constructor_class_name.raw())));
+    const String& cls_name =
+        String::Handle(Symbols::AbstractClassInstantiationError());
+    const String& func_name = String::Handle(Symbols::ThrowNew());
+    return MakeStaticCall(cls_name, func_name, arguments);
+  }
+
   String& error_message = String::Handle();
   if (!constructor.AreValidArguments(arguments_length,
                                      arguments->names(),
@@ -8878,17 +8927,13 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     return new LiteralNode(test_pos, Bool::ZoneHandle(Bool::True()));
   }
   char name[64];
-  OS::SNPrint(name, 64, "%s_%d",
+  OS::SNPrint(name, 64, "%s_%"Pd"",
               Symbols::Name(Symbols::kSavedArgDescVarPrefix),
               owner_function.token_pos());
   const String& saved_args_desc_name = String::ZoneHandle(Symbols::New(name));
   LocalVariable* saved_args_desc_var = LookupLocalScope(saved_args_desc_name);
   if (saved_args_desc_var == NULL) {
     ASSERT(owner_scope != NULL);
-    ASSERT(owner_function.raw() == current_function().raw());
-    // We currently generate code for 'owner_function', otherwise the variable
-    // would have been created when compiling the enclosing function of the
-    // currently being compiled local function.
     saved_args_desc_var =
         new LocalVariable(owner_function.token_pos(),
                           saved_args_desc_name,
@@ -8902,18 +8947,14 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     bool success = owner_scope->AddVariable(saved_args_desc_var);
     ASSERT(success);
     // Capture the saved argument descriptor variable if necessary.
-    if (current_function().raw() != innermost_function().raw()) {
-      LocalVariable* local = LookupLocalScope(saved_args_desc_name);
-      ASSERT(local == saved_args_desc_var);
-      ASSERT(local->is_captured());
-    }
-  } else {
-    // If we currently generate code for a local function of the owner function,
-    // the saved arguments descriptor variable must have been captured by the
-    // above lookup.
-    ASSERT((owner_function.raw() == current_function().raw()) ||
-           saved_args_desc_var->is_captured());
+    LocalVariable* local = LookupLocalScope(saved_args_desc_name);
+    ASSERT(local == saved_args_desc_var);
   }
+  // If we currently generate code for the local function of an enclosing owner
+  // function, the saved arguments descriptor variable must have been captured
+  // by the above lookup.
+  ASSERT((owner_function.raw() == innermost_function().raw()) ||
+         saved_args_desc_var->is_captured());
   const String& param_name = String::ZoneHandle(Symbols::New(*ident));
   return new ArgumentDefinitionTestNode(
       test_pos, param_index, param_name, saved_args_desc_var);
@@ -9295,8 +9336,18 @@ void Parser::SkipBinaryExpr() {
   while (((min_prec <= Token::Precedence(CurrentToken())) &&
       (Token::Precedence(CurrentToken()) <= max_prec)) ||
       IsLiteral("as")) {
+    Token::Kind last_token = IsLiteral("as") ? Token::kAS : CurrentToken();
     ConsumeToken();
-    SkipUnaryExpr();
+    if (last_token == Token::kIS) {
+      if (CurrentToken() == Token::kNOT) {
+        ConsumeToken();
+      }
+      SkipType(false);
+    } else if (last_token == Token::kAS) {
+      SkipType(false);
+    } else {
+      SkipUnaryExpr();
+    }
   }
 }
 

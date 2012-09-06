@@ -87,7 +87,7 @@ public class PackageLibraryManager {
 
   public PackageLibraryManager(File sdkPath, String platformName) {
     if (SDK_LIBRARY_MANAGER == null){
-      SDK_LIBRARY_MANAGER = new SystemLibraryManager(sdkPath, platformName);
+      SDK_LIBRARY_MANAGER = new SystemLibraryManager(sdkPath);
     }
     setPackageRoots(DEFAULT_PACKAGE_ROOTS);
   }
@@ -162,9 +162,6 @@ public class PackageLibraryManager {
 
   /**
    * Given a package URI (package:foo/foo.dart), convert it into a file system URI.
-   * 
-   * @param relPath
-   * @return
    */
   public URI resolvePackageUri(String packageUriRef) {
     if (packageUriRef.startsWith(PACKAGE_SCHEME_SPEC)) {

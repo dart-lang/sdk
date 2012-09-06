@@ -21,7 +21,7 @@ class B  {
 }
 
 // TODO(sra): Add a case where the parameters have default values.  Wait until
-// dart:dom_deprecated / dart:html need non-null default values.
+// dart:html need non-null default values.
 
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }

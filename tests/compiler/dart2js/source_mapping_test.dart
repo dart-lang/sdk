@@ -9,12 +9,12 @@
 #import("mock_compiler.dart");
 #import('parser_helper.dart');
 
-List compileAll(SourceFile sourceFile) {
+CodeBuffer compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri.fromComponents(sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   compiler.runCompiler(uri);
-  return compiler.backend.emitter.sourceMapBuilder.entries;
+  return compiler.backend.emitter.mainBuffer;
 }
 
 void testSourceMapLocations(String codeWithMarkers) {
@@ -27,13 +27,15 @@ void testSourceMapLocations(String codeWithMarkers) {
   String code = codeWithMarkers.replaceAll('@', '');
 
   SourceFile sourceFile = new SourceFile('<test script>', code);
-  List entries = compileAll(sourceFile);
+  CodeBuffer buffer = compileAll(sourceFile);
+
   Set<int> locations = new Set<int>();
-  for (var entry in entries) {
-    if (entry.sourceFile == sourceFile) {
-      locations.add(entry.sourceOffset);
+  buffer.forEachSourceLocation((var element, var token, int offset) {
+    if (element != null &&
+        element.getCompilationUnit().script.file == sourceFile) {
+      locations.add(token.charOffset);
     }
-  }
+  });
 
   for (int i = 0; i < expectedLocations.length; ++i) {
     int expectedLocation = expectedLocations[i];
@@ -75,6 +77,11 @@ void staticSend(x) { if (x == null) return; print(x); }
 class NewSend { void dynamicSend(x) { print(x); } }
 ''';
 
+String SEND_SET_TEST = '''
+String global;
+void main() { @global = ''; print(new A().foo()); }
+class A { int x; foo() { @x = 3; } }''';
+
 String LOOP_TEST = '''
 void main() {
   @for (int i = 0; i < 100; ++i) { print(test(13)); @}
@@ -96,5 +103,6 @@ main() {
   testSourceMapLocations(UNARY_TEST);
   testSourceMapLocations(BINARY_TEST);
   testSourceMapLocations(SEND_TEST);
+  testSourceMapLocations(SEND_SET_TEST);
   testSourceMapLocations(LOOP_TEST);
 }

@@ -19,7 +19,6 @@
 #source('../../../../lib/coreimpl/linked_hash_map.dart');
 #source('../../../../lib/coreimpl/list.dart');
 #source('../../../../lib/coreimpl/maps.dart');
-#source('../../../../lib/coreimpl/object.dart');
 #source('../../../../lib/coreimpl/options.dart');
 #source('../../../../lib/coreimpl/print.dart');
 #source('../../../../lib/coreimpl/queue.dart');

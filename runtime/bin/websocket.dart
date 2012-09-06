@@ -54,12 +54,6 @@ interface WebSocketConnection extends Hashable {
   void set onClosed(void callback(int status, String reason));
 
   /**
-   * Sets the callback to be called when the web socket connection
-   * encountered an error.
-   */
-  void set onError(void callback(e));
-
-  /**
    * Sends a message. The [message] must be a [:String:] a
    * [:List<int>:] or [:null:].
    */
@@ -127,12 +121,6 @@ interface WebSocketClientConnection
    * the connection.
    */
   void set onNoUpgrade(void callback(HttpClientResponse response));
-
-  /**
-   * Sets the callback to be called when the web socket connection
-   * encountered an error.
-   */
-  void set onError(void callback(e));
 
   /**
    * Sends a message. The [message] must be a [:String:] or a

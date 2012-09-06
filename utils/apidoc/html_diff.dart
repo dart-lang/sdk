@@ -16,59 +16,42 @@
 #import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
 
 final HTML_LIBRARY_NAME = 'dart:html';
-final DOM_LIBRARY_NAME = 'dart:dom_deprecated';
 
 /**
  * A class for computing a many-to-many mapping between the types and
- * members in `dart:dom_deprecated` and `dart:html`. This mapping is
+ * members in `dart:html` and the MDN DOM types. This mapping is
  * based on two indicators:
  *
  *   1. Auto-detected wrappers. Most `dart:html` types correspond
- *      straightforwardly to a single `dart:dom_deprecated` type, and
+ *      straightforwardly to a single `@domName` type, and
  *      have the same name.  In addition, most `dart:html` methods
- *      just call a single `dart:dom_deprecated` method. This class
+ *      just call a single `@domName` method. This class
  *      detects these simple correspondences automatically.
  *
  *   2. Manual annotations. When it's not clear which
- *      `dart:dom_deprecated` items a given `dart:html` item
+ *      `@domName` items a given `dart:html` item
  *      corresponds to, the `dart:html` item can be annotated in the
  *      documentation comments using the `@domName` annotation.
  *
  * The `@domName` annotations for types and members are of the form
  * `@domName NAME(, NAME)*`, where the `NAME`s refer to the
- * `dart:dom_deprecated` types/members that correspond to the
+ * `@domName` types/members that correspond to the
  * annotated `dart:html` type/member. `NAME`s on member annotations
  * can refer to either fully-qualified member names (e.g.
  * `Document.createElement`) or unqualified member names
  * (e.g. `createElement`).  Unqualified member names are assumed to
- * refer to members of one of the corresponding `dart:dom_deprecated`
+ * refer to members of one of the corresponding `@domName`
  * types.
  */
 class HtmlDiff {
-  /** A map from `dart:dom_deprecated` members to corresponding
-   * `dart:html` members. */
-  final Map<MemberMirror, Set<MemberMirror>> domToHtml;
-
-  /** A map from `dart:html` members to corresponding
-   * `dart:dom_deprecated` members.
-   * TODO(johnniwinther): We use qualified names as keys, since mirrors
-   * (currently) are not equal between different mirror systems.
+  /** 
+   * A map from `dart:html` members to the corresponding fully qualified
+   * `@domName` member(s).
    */
-  final Map<String, Set<MemberMirror>> htmlToDom;
+  final Map<String, Set<String>> htmlToDom;
 
-  /** A map from `dart:dom_deprecated` types to corresponding
-   * `dart:html` types.
-   * TODO(johnniwinther): We use qualified names as keys, since mirrors
-   * (currently) are not equal between different mirror systems.
-   */
-  final Map<String, Set<InterfaceMirror>> domTypesToHtml;
-
-  /** A map from `dart:html` types to corresponding
-   * `dart:dom_deprecated` types.
-   * TODO(johnniwinther): We use qualified names as keys, since mirrors
-   * (currently) are not equal between different mirror systems.
-   */
-  final Map<String, Set<InterfaceMirror>> htmlTypesToDom;
+  /** A map from `dart:html` types to corresponding `@domName` types. */
+  final Map<String, Set<String>> htmlTypesToDom;
 
   final CommentMap comments;
 
@@ -85,22 +68,14 @@ class HtmlDiff {
    */
   static void initialize(Path libDir) {
     _compilation = new Compilation.library(
-        const <Path>[
-            const Path(DOM_LIBRARY_NAME),
-            const Path(HTML_LIBRARY_NAME)
-        ], libDir);
+        const <Path>[const Path(HTML_LIBRARY_NAME)], libDir);
     _mirrors = _compilation.mirrors;
-
-    // Find 'dart:dom_deprecated' by its library tag 'dom'.
-    dom = findMirror(_mirrors.libraries, DOM_LIBRARY_NAME);
   }
 
   HtmlDiff([bool printWarnings = false]) :
     _printWarnings = printWarnings,
-    domToHtml = new Map<MemberMirror, Set<MemberMirror>>(),
-    htmlToDom = new Map<String, Set<MemberMirror>>(),
-    domTypesToHtml = new Map<String, Set<InterfaceMirror>>(),
-    htmlTypesToDom = new Map<String, Set<InterfaceMirror>>(),
+    htmlToDom = new Map<String, Set<String>>(),
+    htmlTypesToDom = new Map<String, Set<String>>(),
     comments = new CommentMap();
 
   void warn(String s) {
@@ -110,10 +85,9 @@ class HtmlDiff {
   }
 
   /**
-   * Computes the `dart:dom_deprecated` to `dart:html` mapping, and
-   * places it in [domToHtml], [htmlToDom], [domTypesToHtml], and
-   * [htmlTypesToDom]. Before this is run, Frog should be initialized
-   * (via [parseOptions] and [initializeWorld]) and
+   * Computes the `@domName` to `dart:html` mapping, and
+   * places it in [htmlToDom] and [htmlTypesToDom]. Before this is run, dart2js
+   * should be initialized (via [parseOptions] and [initializeWorld]) and
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
@@ -128,9 +102,6 @@ class HtmlDiff {
 
       htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
           () => new Set()).addAll(domTypes);
-      domTypes.forEach((t) =>
-          domTypesToHtml.putIfAbsent(t.qualifiedName,
-            () => new Set()).add(htmlType));
 
       htmlType.declaredMembers.forEach(
           (_, m) => _addMemberDiff(m, domTypes));
@@ -138,12 +109,12 @@ class HtmlDiff {
   }
 
   /**
-   * Records the `dart:dom_deprecated` to `dart:html` mapping for
-   * [implMember] (from `dart:html`). [domTypes] are the
-   * `dart:dom_deprecated` [Type]s that correspond to [implMember]'s
-   * defining [Type].
+   * Records the `@domName` to `dart:html` mapping for
+   * [htmlMember] (from `dart:html`). [domTypes] are the
+   * `@domName` type values that correspond to [htmlMember]'s
+   * defining type.
    */
-  void _addMemberDiff(MemberMirror htmlMember, List<TypeMirror> domTypes) {
+  void _addMemberDiff(MemberMirror htmlMember, List<String> domTypes) {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty()) {
       warn('$HTML_LIBRARY_NAME member '
@@ -156,16 +127,14 @@ class HtmlDiff {
     if (!domMembers.isEmpty()) {
       htmlToDom[htmlMember.qualifiedName] = domMembers;
     }
-    domMembers.forEach((m) =>
-        domToHtml.putIfAbsent(m, () => new Set()).add(htmlMember));
   }
 
   /**
-   * Returns the `dart:dom_deprecated` [Type]s that correspond to
+   * Returns the `@domName` type values that correspond to
    * [htmlType] from `dart:html`. This can be the empty list if no
    * correspondence is found.
    */
-  List<InterfaceMirror> htmlToDomTypes(InterfaceMirror htmlType) {
+  List<String> htmlToDomTypes(InterfaceMirror htmlType) {
     if (htmlType.simpleName == null) return [];
     final tags = _getTags(comments.find(htmlType.location));
     if (tags.containsKey('domName')) {
@@ -173,30 +142,20 @@ class HtmlDiff {
       for (var s in tags['domName'].split(',')) {
         domNames.add(s.trim());
       }
-      if (domNames.length == 1 && domNames[0] == 'none') return [];
-      var domTypes = <InterfaceMirror>[];
-      for (var domName in domNames) {
-        final domType = findMirror(dom.types, domName);
-        if (domType == null) {
-          warn('no $DOM_LIBRARY_NAME type named $domName');
-        } else {
-          domTypes.add(domType);
-        }
-      }
-      return domTypes;
+      if (domNames.length == 1 && domNames[0] == 'none') return <String>[];
+      return domNames;
     }
-    return <InterfaceMirror>[];
+    return <String>[];
   }
 
   /**
-   * Returns the `dart:dom_deprecated` [Member]s that correspond to
+   * Returns the `@domName` member values that correspond to
    * [htmlMember] from `dart:html`. This can be the empty set if no
    * correspondence is found.  [domTypes] are the
-   * `dart:dom_deprecated` [Type]s that correspond to [implMember]'s
-   * defining [Type].
+   * `@domName` type values that correspond to [htmlMember]'s
+   * defining type.
    */
-  Set<MemberMirror> htmlToDomMembers(MemberMirror htmlMember,
-                                     List<InterfaceMirror> domTypes) {
+  Set<String> htmlToDomMembers(MemberMirror htmlMember, List<String> domTypes) {
     if (htmlMember.isPrivate) return new Set();
     final tags = _getTags(comments.find(htmlMember.location));
     if (tags.containsKey('domName')) {
@@ -214,7 +173,7 @@ class HtmlDiff {
           } else {
             final options = <String>[];
             for (var t in domTypes) {
-              options.add('${t.simpleName}.${name}');
+              options.add('$t.$name');
             }
             Strings.join(options, ' or ');
             warn('no member $options');
@@ -229,45 +188,29 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `dart:dom_deprecated` [Member]s that are indicated by
+   * Returns the `@domName` strings that are indicated by
    * [name]. [name] can be either an unqualified member name
    * (e.g. `createElement`), in which case it's treated as the name of
    * a member of one of [defaultTypes], or a fully-qualified member
-   * name (e.g. `Document.createElement`), in which case it's looked
-   * up in `dart:dom_deprecated` and [defaultTypes] is ignored.
+   * name (e.g. `Document.createElement`), in which case it's treated as a
+   * member of the @domName element (`Document` in this case).
    */
-  Set<MemberMirror> _membersFromName(String name,
-                                     List<InterfaceMirror> defaultTypes) {
+  Set<String> _membersFromName(String name, List<String> defaultTypes) {
     if (!name.contains('.', 0)) {
       if (defaultTypes.isEmpty()) {
-        warn('no default type for ${name}');
+        warn('no default type for $name');
         return new Set();
       }
-      final members = new Set<MemberMirror>();
-      defaultTypes.forEach((t) {
-        MemberMirror member = findMirror(t.declaredMembers, name);
-        if (member !== null) {
-          members.add(member);
-        }
-      });
+      final members = new Set<String>();
+      defaultTypes.forEach((t) { members.add('$t.$name'); });
       return members;
     }
 
-    final splitName = name.split('.');
-    if (splitName.length != 2) {
+    if (name.split('.').length != 2) {
       warn('invalid member name ${name}');
       return new Set();
     }
-
-    var typeName = splitName[0];
-
-    InterfaceMirror type = findMirror(dom.types, typeName);
-    if (type == null) return new Set();
-
-    MemberMirror member = findMirror(type.declaredMembers, splitName[1]);
-    if (member == null) return new Set();
-
-    return new Set.from([member]);
+    return new Set.from([name]);
   }
 
   /**

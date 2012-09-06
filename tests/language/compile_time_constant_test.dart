@@ -7,9 +7,9 @@ class Bad {
   static int bar
       = foo /// 01: compile-time error
       ;
-  static int toto
-      = bar /// 02: compile-time error
-      ;
+  static const int toto =
+      bar /// 02: compile-time error
+      -3;
 }
 
 void use(x) {}

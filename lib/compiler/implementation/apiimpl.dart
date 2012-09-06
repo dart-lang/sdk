@@ -30,7 +30,7 @@ class Compiler extends leg.Compiler {
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
-            emitJavascript: !hasOption(options, '--output-type=dart'),
+            emitJavaScript: !hasOption(options, '--output-type=dart'),
             cutDeclarationTypes: hasOption(options, '--cut-declaration-types'));
 
   static bool hasOption(List<String> options, String option) {
@@ -106,8 +106,7 @@ class Compiler extends leg.Compiler {
       reportError(node, 'library not found ${uri}');
       return null;
     }
-    if (uri.path == 'dom_deprecated' ||
-        uri.path == 'html' ||
+    if (uri.path == 'html' ||
         uri.path == 'io') {
       // TODO(ahe): Get rid of mockableLibraryUsed when test.dart
       // supports this use case better.

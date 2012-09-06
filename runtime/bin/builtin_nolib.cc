@@ -41,7 +41,7 @@ void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
 }
 
 
-Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
+Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
@@ -60,7 +60,7 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
 
 
 void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
-  Dart_Handle imported_library = LoadLibrary(id);
+  Dart_Handle imported_library = LoadAndCheckLibrary(id);
   // Import the library into current library.
   DART_CHECK_VALID(Dart_LibraryImportLibrary(library,
                                              imported_library,

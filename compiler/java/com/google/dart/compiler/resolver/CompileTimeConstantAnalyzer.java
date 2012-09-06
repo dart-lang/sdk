@@ -576,7 +576,9 @@ public class CompileTimeConstantAnalyzer {
           }
           break;
         case SUB:
-          if (checkNumber(x.getArg(), type)) {
+          if (intType.equals(type)) {
+            rememberInferredType(x, intType);
+          } else if (checkNumber(x.getArg(), type)) {
             rememberInferredType(x, numType);
           }
           break;

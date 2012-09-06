@@ -944,7 +944,7 @@ RawString* Scanner::AllocatePrivateKey(const Library& library) {
   }
   char private_key[32];
   OS::SNPrint(private_key, sizeof(private_key),
-              "%c%"PRIxPTR, kPrivateKeySeparator, key_value);
+              "%c%#"Px"", kPrivateKeySeparator, key_value);
   const String& result = String::Handle(String::New(private_key, Heap::kOld));
   return result.raw();
 }

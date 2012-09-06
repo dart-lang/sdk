@@ -37,6 +37,17 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
+  public void test_exportDirective_combinators() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "library lib;",
+        "export 'a.dart' show A, B hide C, D;"));
+  }
+
+  public void test_exportDirective_noCombinators() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "library lib;",
+        "export 'a.dart';"));
+  }
 
   public void test_getter() {
     parseUnit("getter.dart", Joiner.on("\n").join(
@@ -584,7 +595,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  operator() { }",
             "}",
             "class F {",
-            "  operator negate () { }",
+            "  operator - () { }",
             "  operator + (arg) { }",
             "  operator [] (arg) { }",
             "  operator []= (arg, arg){ }",
@@ -627,7 +638,7 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("operator", ((DartIdentifier)E_operator.getName()).getName());
     DartClass F = (DartClass)unit.getTopLevelNodes().get(5);
     DartMethodDefinition F_negate = (DartMethodDefinition)F.getMembers().get(0);
-    assertEquals("negate", ((DartIdentifier)F_negate.getName()).getName());
+    assertEquals("-", ((DartIdentifier)F_negate.getName()).getName());
     DartMethodDefinition F_plus = (DartMethodDefinition)F.getMembers().get(1);
     assertEquals("+", ((DartIdentifier)F_plus.getName()).getName());
     DartMethodDefinition F_access = (DartMethodDefinition)F.getMembers().get(2);
@@ -1062,6 +1073,33 @@ public class SyntaxTest extends AbstractParserTest {
 
   public void test_metadata_deprecated() {
     String code = makeCode(
+        "class A {",
+        "  m0() {}",
+        "  @deprecated",
+        "  m1() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    // A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
+      // m0()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
+        assertEquals("m0", method.getName().toSource());
+        assertEquals(false, method.getObsoleteMetadata().isDeprecated());
+      }
+      // m1()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
+        assertEquals("m1", method.getName().toSource());
+        assertEquals(true, method.getObsoleteMetadata().isDeprecated());
+      }
+    }
+  }
+
+  public void test_metadata_deprecated_obsolete() {
+    String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  m0() {}",
@@ -1089,6 +1127,63 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   public void test_metadata_override() {
+    String code = makeCode(
+        "class A {",
+        "  m0() {}",
+        "  @override",
+        "  m1() {}",
+        "  /** Leading DartDoc comment */",
+        "  @override",
+        "  m2() {}",
+        "  @override",
+        "  /** Trailing DartDoc comment */",
+        "  m3() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    // A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
+      // m0()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
+        assertEquals("m0", method.getName().toSource());
+        assertEquals(false, method.getObsoleteMetadata().isOverride());
+        assertNull(method.getDartDoc());
+      }
+      // m1()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
+        assertEquals("m1", method.getName().toSource());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
+        assertNull(method.getDartDoc());
+      }
+      // m2()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(2);
+        assertEquals("m2", method.getName().toSource());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
+        {
+          DartComment dartDoc = method.getDartDoc();
+          assertNotNull(dartDoc);
+          assertEquals("/** Leading DartDoc comment */", getNodeSource(code, dartDoc));
+        }
+      }
+      // m3()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(3);
+        assertEquals("m3", method.getName().toSource());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
+        {
+          DartComment dartDoc = method.getDartDoc();
+          assertNotNull(dartDoc);
+          assertEquals("/** Trailing DartDoc comment */", getNodeSource(code, dartDoc));
+        }
+      }
+    }
+  }
+
+  public void test_metadata_override_obsolete() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",

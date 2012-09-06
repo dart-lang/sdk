@@ -6,7 +6,7 @@ String renderToHtml(List<Node> nodes) => new HtmlRenderer().render(nodes);
 
 /// Translates a parsed AST to HTML.
 class HtmlRenderer implements NodeVisitor {
-  static final _BLOCK_TAGS = const RegExp(
+  static const _BLOCK_TAGS = const RegExp(
       'blockquote|h1|h2|h3|h4|h5|h6|hr|p|pre');
 
   StringBuffer buffer;

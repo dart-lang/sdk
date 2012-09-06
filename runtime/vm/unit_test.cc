@@ -68,7 +68,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (is_dart_scheme_url) {
       return url;
     }
-    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     DART_CHECK_VALID(builtin_lib);
     return DartUtils::CanonicalizeURL(NULL, library, url_chars);
   }
@@ -76,17 +77,17 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     ASSERT(tag == kImportTag);
     // Handle imports of other built-in libraries present in the SDK.
     if (DartUtils::IsDartIOLibURL(url_chars)) {
-      return Builtin::LoadLibrary(Builtin::kIOLibrary);
+      return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
     } else if (DartUtils::IsDartJsonLibURL(url_chars)) {
-      return Builtin::LoadLibrary(Builtin::kJsonLibrary);
+      return Builtin::LoadAndCheckLibrary(Builtin::kJsonLibrary);
     } else if (DartUtils::IsDartUriLibURL(url_chars)) {
-      return Builtin::LoadLibrary(Builtin::kUriLibrary);
+      return Builtin::LoadAndCheckLibrary(Builtin::kUriLibrary);
     } else if (DartUtils::IsDartUtfLibURL(url_chars)) {
-      return Builtin::LoadLibrary(Builtin::kUtfLibrary);
+      return Builtin::LoadAndCheckLibrary(Builtin::kUtfLibrary);
     } else if (DartUtils::IsDartCryptoLibURL(url_chars)) {
-      return Builtin::LoadLibrary(Builtin::kCryptoLibrary);
+      return Builtin::LoadAndCheckLibrary(Builtin::kCryptoLibrary);
     } else if (DartUtils::IsDartWebLibURL(url_chars)) {
-      return Builtin::LoadLibrary(Builtin::kWebLibrary);
+      return Builtin::LoadAndCheckLibrary(Builtin::kWebLibrary);
     } else {
       return Dart_Error("Do not know how to load '%s'", url_chars);
     }

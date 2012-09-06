@@ -8,9 +8,9 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SubSystem;
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -243,20 +243,13 @@ public class ResolutionContext implements ResolutionErrorListener {
                                                 errorCode,
                                                 wrongNumberErrorCode);
             case NONE:
+            default:
               if (errorCode.getSubSystem().equals(SubSystem.RESOLVER)) {
                 onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
                     identifier);
               } else {
                 onError(identifier, TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
                     identifier);
-              }
-              return typeProvider.getDynamicType();
-
-            default:
-              if (errorCode.getSubSystem().equals(SubSystem.RESOLVER)) {
-                onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
-              } else {
-                onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
               }
               return typeProvider.getDynamicType();
           }

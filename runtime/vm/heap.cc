@@ -74,7 +74,7 @@ uword Heap::AllocateOld(intptr_t size) {
     CollectAllGarbage();
     addr = old_space_->TryAllocate(size, PageSpace::kForceGrowth);
     if (addr == 0) {
-      OS::PrintErr("Exhausted heap space, trying to allocate %d bytes.\n",
+      OS::PrintErr("Exhausted heap space, trying to allocate %"Pd" bytes.\n",
                    size);
     }
   }
@@ -311,9 +311,9 @@ bool Heap::Verify() const {
 
 
 void Heap::PrintSizes() const {
-  OS::PrintErr("New space (%dk of %dk) "
-               "Old space (%dk of %dk) "
-               "Code space (%dk of %dk)\n",
+  OS::PrintErr("New space (%"Pd"k of %"Pd"k) "
+               "Old space (%"Pd"k of %"Pd"k) "
+               "Code space (%"Pd"k of %"Pd"k)\n",
                (new_space_->in_use() / KB), (new_space_->capacity() / KB),
                (old_space_->in_use() / KB), (old_space_->capacity() / KB),
                (code_space_->in_use() / KB), (code_space_->capacity() / KB));

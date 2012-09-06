@@ -13,10 +13,12 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-websql_test: Skip #4645 dartium does not support web SQL (and times out executing)
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
+websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
 [ $compiler == dart2js && $runtime == drt && $system == windows]
 audiocontext_test: Fail # Issue 4517
@@ -139,17 +141,9 @@ svg_3_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
-typed_arrays_dataview_test: Fail  # DataView not implemented until Firefox 15.0
-# document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
-#   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
-# Note this test now passes for the wrong reasons. It used to be that the only
-# forEach in this program was in NodeList. Due to dependencies from the unittest
-# framework, frog no longer resolves forEach statically, and instead it
-# dynamically binds forEach on a bunch of classes, including HTMLCollection.
-typing_test: Pass
 websql_test: Fail # FF does not support web SQL
 websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
-# Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
+# Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4"
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
 
@@ -196,8 +190,6 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
-localstorage_test: Fail
-mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
 [ $compiler == dart2js && $runtime == chrome ]
 cssstyledeclaration_test: Fail # Issue 4777
@@ -214,3 +206,8 @@ css_test: Pass, Fail # Issue #2823
 
 [ $compiler == dart2js && $runtime == ff && $system == windows]
 js_interop_2_test: Fail # Issue 4658.
+
+[ $compiler == dart2js && $checked && $browser]
+typed_arrays_range_checks_test: Fail # Issue 3720
+events_test: Fail # Issue 3720
+fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'

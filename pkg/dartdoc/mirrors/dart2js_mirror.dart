@@ -102,14 +102,14 @@ MethodMirror _convertElementMethodToMethodMirror(Dart2JsObjectMirror library,
 }
 
 class Dart2JsMethodKind {
-  static final Dart2JsMethodKind NORMAL = const Dart2JsMethodKind("normal");
-  static final Dart2JsMethodKind CONSTRUCTOR
+  static const Dart2JsMethodKind NORMAL = const Dart2JsMethodKind("normal");
+  static const Dart2JsMethodKind CONSTRUCTOR
       = const Dart2JsMethodKind("constructor");
-  static final Dart2JsMethodKind CONST = const Dart2JsMethodKind("const");
-  static final Dart2JsMethodKind FACTORY = const Dart2JsMethodKind("factory");
-  static final Dart2JsMethodKind GETTER = const Dart2JsMethodKind("getter");
-  static final Dart2JsMethodKind SETTER = const Dart2JsMethodKind("setter");
-  static final Dart2JsMethodKind OPERATOR = const Dart2JsMethodKind("operator");
+  static const Dart2JsMethodKind CONST = const Dart2JsMethodKind("const");
+  static const Dart2JsMethodKind FACTORY = const Dart2JsMethodKind("factory");
+  static const Dart2JsMethodKind GETTER = const Dart2JsMethodKind("getter");
+  static const Dart2JsMethodKind SETTER = const Dart2JsMethodKind("setter");
+  static const Dart2JsMethodKind OPERATOR = const Dart2JsMethodKind("operator");
 
   final String text;
 
@@ -282,6 +282,7 @@ class LibraryTypeCheckerTask extends TypeCheckerTask {
 //------------------------------------------------------------------------------
 
 class Dart2JsCompilation implements Compilation {
+  bool isWindows = (Platform.operatingSystem == 'windows');
   api.Compiler _compiler;
   Uri cwd;
   bool isAborting = false;
@@ -295,10 +296,11 @@ class Dart2JsCompilation implements Compilation {
     try {
       source = readAll(uriPathToNative(uri.path));
     } on FileIOException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, uri)}" (${ex.osError}).';
+      throw 'Error: Cannot read "${relativize(cwd, uri, isWindows)}" '
+            '(${ex.osError}).';
     }
     sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri), source);
+      new SourceFile(relativize(cwd, uri, isWindows), source);
     return new Future.immediate(source);
   }
 
@@ -610,7 +612,7 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
   String get defaultValue() {
     if (hasDefaultValue) {
       SendSet expression = _variableElement.cachedNode.asSendSet();
-      return expression.arguments.head.unparse();
+      return unparse(expression.arguments.head);
     }
     return null;
   }

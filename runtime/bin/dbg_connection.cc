@@ -457,7 +457,7 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
     intptr_t len = 0;
     Dart_Handle res = Dart_ListLength(object, &len);
     ASSERT_NOT_ERROR(res);
-    buf->Printf("\"kind\":\"list\",\"length\":%d,", len);
+    buf->Printf("\"kind\":\"list\",\"length\":%"Pd",", len);
   } else {
     buf->Printf("\"kind\":\"object\",");
   }
@@ -475,7 +475,7 @@ static void FormatValueObj(dart::TextBuffer* buf, Dart_Handle object) {
 static void FormatRemoteObj(dart::TextBuffer* buf, Dart_Handle object) {
   intptr_t obj_id = Dart_CacheObject(object);
   ASSERT(obj_id >= 0);
-  buf->Printf("{\"objectId\":%d,", obj_id);
+  buf->Printf("{\"objectId\":%"Pd",", obj_id);
   FormatValue(buf, object);
   buf->Printf("}");
 }
@@ -525,9 +525,9 @@ static const char* FormatClassProps(dart::TextBuffer* buf,
   RETURN_IF_ERROR(name);
   buf->Printf("{\"name\":\"%s\",", GetStringChars(name));
   if (super_id > 0) {
-    buf->Printf("\"superclassId\":%d,", super_id);
+    buf->Printf("\"superclassId\":%"Pd",", super_id);
   }
-  buf->Printf("\"libraryId\":%d,", library_id);
+  buf->Printf("\"libraryId\":%"Pd",", library_id);
   RETURN_IF_ERROR(static_fields);
   buf->Printf("\"fields\":");
   FormatNamedValueList(buf, static_fields);
@@ -591,7 +591,7 @@ static const char* FormatObjProps(dart::TextBuffer* buf,
   }
   Dart_Handle res = Dart_GetObjClassId(object, &class_id);
   RETURN_IF_ERROR(res);
-  buf->Printf("{\"classId\": %d,", class_id);
+  buf->Printf("{\"classId\": %"Pd",", class_id);
   buf->Printf("\"kind\":\"object\",\"fields\":");
   Dart_Handle fields = Dart_GetInstanceFields(object);
   RETURN_IF_ERROR(fields);
@@ -608,8 +608,8 @@ static const char* FormatListSlice(dart::TextBuffer* buf,
                                    intptr_t slice_length) {
   intptr_t end_index = index + slice_length;
   ASSERT(end_index <= list_length);
-  buf->Printf("{\"index\":%d,", index);
-  buf->Printf("\"length\":%d,", slice_length);
+  buf->Printf("{\"index\":%"Pd",", index);
+  buf->Printf("\"length\":%"Pd",", slice_length);
   buf->Printf("\"elements\":[");
   for (intptr_t i = index; i < end_index; i++) {
     Dart_Handle value = Dart_ListGetAt(list, i);
@@ -642,12 +642,12 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
     FormatEncodedString(msg, func_name);
-    msg->Printf(",\"libraryId\": %d,", library_id);
+    msg->Printf(",\"libraryId\": %"Pd",", library_id);
 
     ASSERT(Dart_IsString(script_url));
     msg->Printf("\"location\": { \"url\":");
     FormatEncodedString(msg, script_url);
-    msg->Printf(",\"lineNumber\":%d},", line_number);
+    msg->Printf(",\"lineNumber\":%"Pd"},", line_number);
 
     Dart_Handle locals = Dart_GetLocalVariables(frame);
     ASSERT_NOT_ERROR(locals);
@@ -691,7 +691,7 @@ void DebuggerConnectionHandler::HandleSetBpCmd(const char* json_msg) {
   Dart_Handle res = Dart_IntegerToUint64(bp_id, &bp_id_value);
   ASSERT_NOT_ERROR(res);
   dart::TextBuffer msg(64);
-  msg.Printf("{ \"id\": %d, \"result\": { \"breakpointId\": %d }}",
+  msg.Printf("{ \"id\": %d, \"result\": { \"breakpointId\": %"Pu64" }}",
              msg_id, bp_id_value);
   SendMsg(&msg);
 }
@@ -1022,9 +1022,9 @@ void DebuggerConnectionHandler::BptResolvedHandler(intptr_t bp_id,
   Dart_EnterScope();
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
-  msg.Printf("\"breakpointId\": %d, \"url\":", bp_id);
+  msg.Printf("\"breakpointId\": %"Pd", \"url\":", bp_id);
   FormatEncodedString(&msg, url);
-  msg.Printf(",\"line\": %d }}", line_number);
+  msg.Printf(",\"line\": %"Pd" }}", line_number);
   QueueMsg(&msg);
   Dart_ExitScope();
 }

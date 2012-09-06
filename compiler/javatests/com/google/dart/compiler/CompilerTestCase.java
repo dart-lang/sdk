@@ -24,7 +24,6 @@ import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
-import com.google.dart.compiler.util.apache.StringUtils;
 
 import junit.framework.TestCase;
 
@@ -445,9 +444,7 @@ public abstract class CompilerTestCase extends TestCase {
    * @return the source-like {@link String} for the given {@link Type}.
    */
   protected static String getTypeSource(Type actualType) {
-    String source = actualType.toString();
-    source = StringUtils.replace(source, "<dynamic>", "Dynamic");
-    return source;
+    return actualType.toString();
   }
 
   /**

@@ -62,6 +62,12 @@ class ServerSocket {
   static const intptr_t kTemporaryFailure = -2;
 
   static intptr_t Accept(intptr_t fd);
+
+  // Returns a positive integer if the call is successful. In case of failure
+  // it returns:
+  //
+  //   -1: system error (errno set)
+  //   -5: invalid bindAddress
   static intptr_t CreateBindListen(const char* bindAddress,
                                    intptr_t port,
                                    intptr_t backlog);

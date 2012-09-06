@@ -9,13 +9,13 @@ interface Stopwatch default StopwatchImplementation {
 
   /**
    * Creates a [Stopwatch] in stopped state with a zero elapsed count.
+   *
+   * The following example shows how to start a [Stopwatch]
+   * right after allocation.
+   *
+   *     Stopwatch stopwatch = new Stopwatch()..start();
    */
   Stopwatch();
-
-  /**
-   * Creates a [Stopwatch] in started state with a zero elapsed count.
-   */
-  Stopwatch.start();
 
   /**
    * Starts the [Stopwatch]. The [elapsed] count is increasing monotonically.

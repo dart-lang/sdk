@@ -4,7 +4,6 @@
 
 #library('hosted_source');
 
-#import('dart:io');
 #import('dart:json');
 #import('dart:uri');
 #import('io.dart');
@@ -35,9 +34,17 @@ class HostedSource extends Source {
   Future<List<Version>> getVersions(description) {
     var parsed = _parseDescription(description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
-    return consumeInputStream(httpGet(fullUrl)).transform((data) {
-      var doc = JSON.parse(new String.fromCharCodes(data));
+
+    return httpGetString(fullUrl).transform((body) {
+      var doc = JSON.parse(body);
       return doc['versions'].map((version) => new Version.parse(version));
+    }).transformException((ex) {
+      if (ex is HttpException && ex.statusCode == 404) {
+        throw 'Could not find package "${parsed.first}" on ${parsed.last}.';
+      }
+
+      // Otherwise re-throw the original exception.
+      throw ex;
     });
   }
 

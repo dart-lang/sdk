@@ -13,12 +13,12 @@
 
 testUnparse(String statement) {
   Node node = parseStatement(statement);
-  Expect.equals(statement, node.unparse());
+  Expect.equals(statement, unparse(node));
 }
 
 testUnparseMember(String member) {
   Node node = parseMember(member);
-  Expect.equals(member, node.unparse());
+  Expect.equals(member, unparse(node));
 }
 
 const coreLib = @'''

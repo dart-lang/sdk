@@ -116,6 +116,8 @@ class TestRule {
   SetExpression expression;
 
   TestRule(this.name, this.expression);
+
+  String toString() => 'TestRule($name, $expression)';
 }
 
 

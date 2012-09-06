@@ -533,7 +533,7 @@ class _HttpParser {
             index--;
             break;
 
-          case _state = _State.FAILURE:
+          case _State.FAILURE:
             // Should be unreachable.
             assert(false);
             break;
@@ -562,7 +562,7 @@ class _HttpParser {
     return index - offset;
   }
 
-  int connectionClosed() {
+  void connectionClosed() {
     if (_state < _State.FIRST_BODY_STATE) {
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
@@ -599,10 +599,8 @@ class _HttpParser {
     switch (_httpVersion) {
       case _HttpVersion.HTTP10:
         return "1.0";
-        break;
       case _HttpVersion.HTTP11:
         return "1.1";
-        break;
     }
     return null;
   }

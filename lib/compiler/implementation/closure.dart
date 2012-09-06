@@ -19,7 +19,7 @@ class ClosureTask extends CompilerTask {
   String get name => "Closure Simplifier";
 
   ClosureClassMap computeClosureToClassMapping(FunctionExpression node,
-                                                     TreeElements elements) {
+                                               TreeElements elements) {
     return measure(() {
       ClosureClassMap cached = closureMappingCache[node];
       if (cached !== null) return cached;
@@ -60,6 +60,7 @@ class ClosureFieldElement extends Element {
 class ClosureClassElement extends ClassElement {
   ClosureClassElement(SourceString name,
                       Compiler compiler,
+                      this.methodElement,
                       Element enclosingElement)
       : super(name,
               enclosingElement,
@@ -73,7 +74,13 @@ class ClosureClassElement extends ClassElement {
     interfaces = const EmptyLink<DartType>();
     allSupertypes = new Link<DartType>(supertype);
   }
+
   bool isClosure() => true;
+
+  /**
+   * The most outer method this closure is declared into.
+   */
+  Element methodElement;
 }
 
 class BoxElement extends Element {
@@ -134,6 +141,10 @@ class ClosureClassMap {
 
   final Set<Element> usedVariablesInTry;
 
+  // A map from the parameter element to the variable element that
+  // holds the sentinel check.
+  final Map<Element, Element> parametersWithSentinel;
+
   ClosureClassMap(this.closureElement,
               this.closureClassElement,
               this.callElement,
@@ -141,7 +152,8 @@ class ClosureClassMap {
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>(),
-        this.usedVariablesInTry = new Set<Element>();
+        this.usedVariablesInTry = new Set<Element>(),
+        this.parametersWithSentinel = new Map<Element, Element>();
 
   bool isClosure() => closureElement !== null;
 }
@@ -167,7 +179,9 @@ class ClosureTranslator extends AbstractVisitor {
   // non-mutated variables.
   Set<Element> mutatedVariables;
 
+  FunctionElement outermostFunctionElement;
   FunctionElement currentFunctionElement;
+
   // The closureData of the currentFunctionElement.
   ClosureClassMap closureData;
 
@@ -206,7 +220,8 @@ class ClosureTranslator extends AbstractVisitor {
         assert(updatedElement !== null);
         if (fromElement == updatedElement) {
           assert(freeVariableMapping[fromElement] == updatedElement);
-          assert(Elements.isLocal(updatedElement));
+          assert(Elements.isLocal(updatedElement)
+                 || updatedElement.isTypeVariable());
           // The variable has not been boxed.
           fieldCaptures.add(updatedElement);
         } else {
@@ -238,16 +253,15 @@ class ClosureTranslator extends AbstractVisitor {
   }
 
   void useLocal(Element element) {
-    // TODO(floitsch): replace this with a general solution.
-    Element functionElement = currentFunctionElement;
-    if (functionElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      ConstructorBodyElement body = functionElement;
-      functionElement = body.constructor;
-    }
     // If the element is not declared in the current function and the element
     // is not the closure itself we need to mark the element as free variable.
-    if (element.enclosingElement != functionElement &&
-        element != functionElement) {
+    // Note that the check on [insideClosure] is not just an
+    // optimization: factories have type parameters as function
+    // parameters, and type parameters are declared in the class, not
+    // the factory.
+    if (insideClosure &&
+        element.enclosingElement != currentFunctionElement &&
+        element != currentFunctionElement) {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
@@ -305,6 +319,22 @@ class ClosureTranslator extends AbstractVisitor {
       useLocal(closureData.thisElement);
     } else if (node.isSuperCall) {
       useLocal(closureData.thisElement);
+    } else if (node.isOperator
+               && node.argumentsNode is Prefix
+               && node.selector.source.stringValue == '?') {
+      Element parameter = elements[node.receiver];
+      FunctionElement enclosing = parameter.enclosingElement;
+      FunctionExpression function = enclosing.parseNode(compiler);
+      ClosureClassMap cached = closureMappingCache[function];
+      if (!cached.parametersWithSentinel.containsKey(parameter)) {
+        SourceString parameterName = parameter.name;
+        String name = '${parameterName.slowToString()}_check';
+        Element newElement = new Element(new SourceString(name),
+                                         ElementKind.VARIABLE,
+                                         enclosing);
+        useLocal(newElement);
+        cached.parametersWithSentinel[parameter] = newElement;
+      }
     }
     node.visitChildren(this);
   }
@@ -315,6 +345,45 @@ class ClosureTranslator extends AbstractVisitor {
       mutatedVariables.add(element);
     }
     super.visitSendSet(node);
+  }
+
+  visitNewExpression(NewExpression node) {
+    TypeAnnotation annotation = node.send.getTypeAnnotation();
+    DartType type = elements.getType(annotation);
+
+    bool hasTypeVariable(DartType type) {
+      if (type is TypeVariableType) {
+        return true;
+      } else if (type is InterfaceType) {
+        InterfaceType ifcType = type;
+        for (DartType argument in ifcType.arguments) {
+          if (hasTypeVariable(argument)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    void analyzeTypeVariables(DartType type) {
+      if (type is TypeVariableType) {
+        useLocal(type.element);
+      } else if (type is InterfaceType) {
+        InterfaceType ifcType = type;
+        for (DartType argument in ifcType.arguments) {
+          analyzeTypeVariables(argument);
+        }
+      }
+    }
+
+    if (outermostFunctionElement.isInstanceMember() 
+        || outermostFunctionElement.isGenerativeConstructor()) {
+      if (hasTypeVariable(type)) useLocal(closureData.thisElement);
+    } else if (outermostFunctionElement.isFactoryConstructor()) {
+      analyzeTypeVariables(type);
+    }
+
+    node.visitChildren(this);
   }
 
   // If variables that are declared in the [node] scope are captured and need
@@ -391,13 +460,44 @@ class ClosureTranslator extends AbstractVisitor {
     scopeData.boxedLoopVariables = result;
   }
 
+  /** Returns a non-unique name for the given closure element. */
+  String closureName(Element element) {
+    List<String> parts = <String>[];
+    SourceString ownName = element.name;
+    if (ownName == null || ownName.stringValue == "") {
+      parts.add("anon");
+    } else {
+      parts.add(ownName.slowToString());
+    }
+    for (Element enclosingElement = element.enclosingElement;
+         enclosingElement != null &&
+             (enclosingElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
+              || enclosingElement.kind === ElementKind.CLASS
+              || enclosingElement.kind === ElementKind.FUNCTION
+              || enclosingElement.kind === ElementKind.GETTER
+              || enclosingElement.kind === ElementKind.SETTER);
+         enclosingElement = enclosingElement.enclosingElement) {
+      SourceString surroundingName = enclosingElement.name;
+      if (surroundingName != null) {
+        String surroundingNameString = surroundingName.slowToString();
+        if (surroundingNameString != "") parts.add(surroundingNameString);
+      }
+    }
+    // Invert the parts.
+    for (int i = 0, j = parts.length - 1; i < j; i++, j--) {
+      var tmp = parts[i];
+      parts[i] = parts[j];
+      parts[j] = tmp;
+    }
+    return Strings.join(parts, "_");
+  }
+
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
-    SourceString closureName =
-        new SourceString(compiler.namer.closureName(element));
+    SourceString closureName = new SourceString(closureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
-        closureName, compiler, element.getCompilationUnit());
+        closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
-        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
+        new FunctionElement.from(Compiler.CALL_OPERATOR_NAME,
                                  element,
                                  globalizedElement);
     globalizedElement.backendMembers =
@@ -411,41 +511,30 @@ class ClosureTranslator extends AbstractVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     Element element = elements[node];
-    if (element.kind === ElementKind.PARAMETER) {
+    if (element.isParameter()) {
       // TODO(ahe): This is a hack. This method should *not* call
       // visitChildren.
       return node.name.accept(this);
     }
-    bool isClosure = (closureData !== null);
-
-    if (isClosure) closures.add(node);
 
     bool oldInsideClosure = insideClosure;
     FunctionElement oldFunctionElement = currentFunctionElement;
     ClosureClassMap oldClosureData = closureData;
 
-    insideClosure = isClosure;
-    currentFunctionElement = elements[node];
+    insideClosure = outermostFunctionElement != null;
+    currentFunctionElement = element;
     if (insideClosure) {
+      closures.add(node);
       closureData = globalizeClosure(node, element);
     } else {
+      outermostFunctionElement = element;
       Element thisElement = null;
-      // TODO(floitsch): we should not need to look for generative constructors.
-      // At the moment we store only one ClosureData for both the factory and
-      // the body.
-      if (element.isInstanceMember() ||
-          element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-        // TODO(floitsch): currently all variables are considered to be
-        // declared in the GENERATIVE_CONSTRUCTOR. Including the 'this'.
-        Element thisEnclosingElement = element;
-        if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-          ConstructorBodyElement body = element;
-          thisEnclosingElement = body.constructor;
-        }
-        thisElement = new ThisElement(thisEnclosingElement);
+      if (element.isInstanceMember() || element.isGenerativeConstructor()) {
+        thisElement = new ThisElement(element);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
     }
+    closureMappingCache[node] = closureData;
 
     inNewScope(node, () {
       // We have to declare the implicit 'this' parameter.
@@ -459,6 +548,15 @@ class ClosureTranslator extends AbstractVisitor {
       if (insideClosure) {
         declareLocal(element);
       }
+      
+      if (currentFunctionElement.isFactoryConstructor()) {
+        // Declare the type parameters in the scope. Generative
+        // constructors just use 'this'.
+        ClassElement cls = currentFunctionElement.enclosingElement;
+        cls.typeVariables.forEach((TypeVariableType typeVariable) {
+          declareLocal(typeVariable.element);
+        });
+      }
 
       // TODO(ahe): This is problematic. The backend should not repeat
       // the work of the resolver. It is the resolver's job to create
@@ -469,7 +567,6 @@ class ClosureTranslator extends AbstractVisitor {
       if (node.body !== null) node.body.accept(this);
     });
 
-    closureMappingCache[node] = closureData;
 
     ClosureClassMap savedClosureData = closureData;
     bool savedInsideClosure = insideClosure;

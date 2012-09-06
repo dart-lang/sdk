@@ -12,7 +12,6 @@
 namespace dart {
 
 class Code;
-class DeoptimizationStub;
 class FlowGraph;
 template <typename T> class GrowableArray;
 class ParsedFunction;
@@ -205,12 +204,19 @@ class FlowGraphCompiler : public ValueObject {
     return current_block_->try_index();
   }
 
- private:
-  friend class DeoptimizationStub;
+  // Returns true if the generated code does not call other Dart code or
+  // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
+  bool IsLeaf() const;
 
+  static Condition FlipCondition(Condition condition);
+
+  static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
+
+ private:
   void GenerateDeferredCode();
 
   void EmitInstructionPrologue(Instruction* instr);
+  void EmitInstructionEpilogue(Instruction* instr);
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
@@ -286,10 +292,6 @@ class FlowGraphCompiler : public ValueObject {
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);
 
-  // Returns true if the generated code does not call other Dart code or
-  // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
-  bool IsLeaf() const;
-
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
@@ -302,7 +304,7 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list_;
   StackmapTableBuilder* stackmap_table_builder_;
   GrowableArray<BlockInfo*> block_info_;
-  GrowableArray<DeoptimizationStub*> deopt_stubs_;
+  GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
   const GrowableObjectArray& object_table_;
   const bool is_optimizing_;

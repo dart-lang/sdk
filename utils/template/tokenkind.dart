@@ -6,202 +6,202 @@
 //              e.g., ASTERISK or they're CSS e.g., PSEUDO, COMBINATOR_*.
 class TokenKind {
   // Common shared tokens used in TokenizerBase.
-  static final int UNUSED = 0;                  // Unused place holder...
-  static final int END_OF_FILE = 1;
-  static final int LPAREN = 2;                  // (
-  static final int RPAREN = 3;                  // )
-  static final int LBRACK = 4;                  // [
-  static final int RBRACK = 5;                  // ]
-  static final int LBRACE = 6;                  // {
-  static final int RBRACE = 7;                  // }
-  static final int DOT = 8;                     // .
-  static final int SEMICOLON = 9;               // ;
-  static final int SPACE = 10;                  // space character
-  static final int TAB = 11;                    // \t
-  static final int NEWLINE = 12;                // \n
-  static final int RETURN = 13;                 // \r
-  static final int COMMA = 14;                  // ,
+  static const int UNUSED = 0;                  // Unused place holder...
+  static const int END_OF_FILE = 1;
+  static const int LPAREN = 2;                  // (
+  static const int RPAREN = 3;                  // )
+  static const int LBRACK = 4;                  // [
+  static const int RBRACK = 5;                  // ]
+  static const int LBRACE = 6;                  // {
+  static const int RBRACE = 7;                  // }
+  static const int DOT = 8;                     // .
+  static const int SEMICOLON = 9;               // ;
+  static const int SPACE = 10;                  // space character
+  static const int TAB = 11;                    // \t
+  static const int NEWLINE = 12;                // \n
+  static const int RETURN = 13;                 // \r
+  static const int COMMA = 14;                  // ,
 
   // Unique tokens.
-  static final int LESS_THAN = 15;              // <
-  static final int GREATER_THAN = 16;           // >
-  static final int SLASH = 17;                  // /
-  static final int DOLLAR = 18;                 // $
-  static final int HASH = 19;                   // #
-  static final int MINUS = 20;                  // -
-  static final int EQUAL = 21;                  // =
-  static final int DOUBLE_QUOTE = 22;           // "
-  static final int SINGLE_QUOTE = 23;           // '
-  static final int ASTERISK = 24;               // *
+  static const int LESS_THAN = 15;              // <
+  static const int GREATER_THAN = 16;           // >
+  static const int SLASH = 17;                  // /
+  static const int DOLLAR = 18;                 // $
+  static const int HASH = 19;                   // #
+  static const int MINUS = 20;                  // -
+  static const int EQUAL = 21;                  // =
+  static const int DOUBLE_QUOTE = 22;           // "
+  static const int SINGLE_QUOTE = 23;           // '
+  static const int ASTERISK = 24;               // *
 
   // WARNING: END_TOKENS must be 1 greater than the last token above (last
   //          character in our list).  Also add to kindToString function and the
   //          constructor for TokenKind.
 
-  static final int END_TOKENS = 25;             // Marker for last token in list
+  static const int END_TOKENS = 25;             // Marker for last token in list
 
   // Synthesized tokens:
 
-  static final int END_NO_SCOPE_TAG = 50;       // />
-  static final int START_EXPRESSION = 51;       // ${
-  static final int START_COMMAND = 52;          // ${#
-  static final int END_COMMAND = 53;            // ${/
-  static final int EACH_COMMAND = 53;           // ${#each list}
-  static final int WITH_COMMAND = 54;           // ${#with object}
-  static final int IF_COMMAND = 55;             // ${#if (expression)}
-  static final int ELSE_COMMAND = 56;           // ${#else}
+  static const int END_NO_SCOPE_TAG = 50;       // />
+  static const int START_EXPRESSION = 51;       // ${
+  static const int START_COMMAND = 52;          // ${#
+  static const int END_COMMAND = 53;            // ${/
+  static const int EACH_COMMAND = 53;           // ${#each list}
+  static const int WITH_COMMAND = 54;           // ${#with object}
+  static const int IF_COMMAND = 55;             // ${#if (expression)}
+  static const int ELSE_COMMAND = 56;           // ${#else}
 
   /** [TokenKind] representing integer tokens. */
-  static final int INTEGER = 60;                // TODO(terry): must match base
+  static const int INTEGER = 60;                // TODO(terry): must match base
 
   /** [TokenKind] representing hex integer tokens. */
-//  static final int HEX_INTEGER = 61;          // TODO(terry): must match base
+//  static const int HEX_INTEGER = 61;          // TODO(terry): must match base
 
   /** [TokenKind] representing double tokens. */
-  static final int DOUBLE = 62;                 // TODO(terry): must match base
+  static const int DOUBLE = 62;                 // TODO(terry): must match base
 
   /** [TokenKind] representing whitespace tokens. */
-  static final int WHITESPACE = 63;             // TODO(terry): must match base
+  static const int WHITESPACE = 63;             // TODO(terry): must match base
 
   /** [TokenKind] representing comment tokens. */
-  static final int COMMENT = 64;                // TODO(terry): must match base
+  static const int COMMENT = 64;                // TODO(terry): must match base
 
   /** [TokenKind] representing error tokens. */
-  static final int ERROR = 65;                  // TODO(terry): must match base
+  static const int ERROR = 65;                  // TODO(terry): must match base
 
   /** [TokenKind] representing incomplete string tokens. */
-  static final int INCOMPLETE_STRING = 66;      // TODO(terry): must match base
+  static const int INCOMPLETE_STRING = 66;      // TODO(terry): must match base
 
   /** [TokenKind] representing incomplete comment tokens. */
-  static final int INCOMPLETE_COMMENT = 67;     // TODO(terry): must match base
+  static const int INCOMPLETE_COMMENT = 67;     // TODO(terry): must match base
 
   // Synthesized Tokens (no character associated with TOKEN).
   // TODO(terry): Possible common names used by both Dart and CSS tokenizers.
-  static final int ATTR_VALUE = 500;
-  static final int NUMBER = 502;
-  static final int HEX_NUMBER = 503;
-  static final int HTML_COMMENT = 504;          // <!--
-  static final int IDENTIFIER = 511;
-  static final int STRING = 512;
-  static final int STRING_PART = 513;
+  static const int ATTR_VALUE = 500;
+  static const int NUMBER = 502;
+  static const int HEX_NUMBER = 503;
+  static const int HTML_COMMENT = 504;          // <!--
+  static const int IDENTIFIER = 511;
+  static const int STRING = 512;
+  static const int STRING_PART = 513;
 
-  static final int TEMPLATE_KEYWORD = 595;      // template keyword
+  static const int TEMPLATE_KEYWORD = 595;      // template keyword
 
   // Elements
   /* START_HTML_ELEMENT is first valid element tag name
    * END_HTML_ELEMENT is the last valid element tag name
    *
    */
-  static final int START_HTML_ELEMENT = 600;      // First valid tag name.
-  static final int A_ELEMENT = 600;
-  static final int ABBR_ELEMENT = 601;
-  static final int ACRONYM_ELEMENT = 602;
-  static final int ADDRESS_ELEMENT = 603;
-  static final int APPLET_ELEMENT = 604;
-  static final int AREA_ELEMENT = 605;
-  static final int B_ELEMENT = 606;
-  static final int BASE_ELEMENT = 607;
-  static final int BASEFONT_ELEMENT = 608;
-  static final int BDO_ELEMENT = 609;
-  static final int BIG_ELEMENT = 610;
-  static final int BLOCKQUOTE_ELEMENT = 611;
-  static final int BODY_ELEMENT = 612;
-  static final int BR_ELEMENT = 613;
-  static final int BUTTON_ELEMENT = 614;
-  static final int CAPTION_ELEMENT = 615;
-  static final int CENTER_ELEMENT = 616;
-  static final int CITE_ELEMENT = 617;
-  static final int CODE_ELEMENT = 618;
-  static final int COL_ELEMENT = 619;
-  static final int COLGROUP_ELEMENT = 620;
-  static final int DD_ELEMENT = 621;
-  static final int DEL_ELEMENT = 622;
-  static final int DFN_ELEMENT = 623;
-  static final int DIR_ELEMENT = 624;
-  static final int DIV_ELEMENT = 625;
-  static final int DL_ELEMENT = 626;
-  static final int DT_ELEMENT = 627;
-  static final int EM_ELEMENT = 628;
-  static final int FIELDSET_ELEMENT = 629;
-  static final int FONT_ELEMENT = 630;
-  static final int FORM_ELEMENT = 631;
-  static final int FRAME_ELEMENT = 632;
-  static final int FRAMESET_ELEMENT = 633;
-  static final int H1_ELEMENT = 634;
-  static final int H2_ELEMENT = 635;
-  static final int H3_ELEMENT = 636;
-  static final int H4_ELEMENT = 637;
-  static final int H5_ELEMENT = 638;
-  static final int H6_ELEMENT = 639;
-  static final int HEAD_ELEMENT = 640;
-  static final int HR_ELEMENT = 641;
-  static final int HTML_ELEMENT = 642;
-  static final int I_ELEMENT = 643;
-  static final int IFRAME_ELEMENT = 644;
-  static final int IMG_ELEMENT = 645;
-  static final int INPUT_ELEMENT = 646;
-  static final int INS_ELEMENT = 647;
-  static final int ISINDEX_ELEMENT = 648;
-  static final int KBD_ELEMENT = 649;
-  static final int LABEL_ELEMENT = 650;
-  static final int LEGEND_ELEMENT = 651;
-  static final int LI_ELEMENT = 652;
-  static final int LINK_ELEMENT = 653;
-  static final int MAP_ELEMENT = 654;
-  static final int MENU_ELEMENT = 645;
-  static final int META_ELEMENT = 656;
-  static final int NOFRAMES_ELEMENT = 657;
-  static final int NOSCRIPT_ELEMENT = 658;
-  static final int OBJECT_ELEMENT = 659;
-  static final int OL_ELEMENT = 660;
-  static final int OPTGROUP_ELEMENT = 661;
-  static final int OPTION_ELEMENT = 662;
-  static final int P_ELEMENT = 663;
-  static final int PARAM_ELEMENT = 664;
-  static final int PRE_ELEMENT = 665;
-  static final int Q_ELEMENT = 666;
-  static final int S_ELEMENT = 667;
-  static final int SAMP_ELEMENT = 668;
-  static final int SCRIPT_ELEMENT = 669;
-  static final int SELECT_ELEMENT = 670;
-  static final int SMALL_ELEMENT = 671;
-  static final int SPAN_ELEMENT = 672;
-  static final int STRIKE_ELEMENT = 673;
-  static final int STRONG_ELEMENT = 674;
-  static final int STYLE_ELEMENT = 675;
-  static final int SUB_ELEMENT = 676;
-  static final int SUP_ELEMENT = 677;
-  static final int TABLE_ELEMENT = 678;
-  static final int TBODY_ELEMENT = 679;
-  static final int TD_ELEMENT = 680;
-  static final int TEXTAREA_ELEMENT = 681;
-  static final int TFOOT_ELEMENT = 682;
-  static final int TH_ELEMENT = 683;
-  static final int THEAD_ELEMENT = 684;
-  static final int TITLE_ELEMENT = 685;
-  static final int TR_ELEMENT = 686;
-  static final int TT_ELEMENT = 687;
-  static final int U_ELEMENT = 688;
-  static final int UL_ELEMENT = 689;
-  static final int VAR_ELEMENT = 690;
-  static final int END_HTML_ELEMENT = VAR_ELEMENT;    // Last valid tag name.
+  static const int START_HTML_ELEMENT = 600;      // First valid tag name.
+  static const int A_ELEMENT = 600;
+  static const int ABBR_ELEMENT = 601;
+  static const int ACRONYM_ELEMENT = 602;
+  static const int ADDRESS_ELEMENT = 603;
+  static const int APPLET_ELEMENT = 604;
+  static const int AREA_ELEMENT = 605;
+  static const int B_ELEMENT = 606;
+  static const int BASE_ELEMENT = 607;
+  static const int BASEFONT_ELEMENT = 608;
+  static const int BDO_ELEMENT = 609;
+  static const int BIG_ELEMENT = 610;
+  static const int BLOCKQUOTE_ELEMENT = 611;
+  static const int BODY_ELEMENT = 612;
+  static const int BR_ELEMENT = 613;
+  static const int BUTTON_ELEMENT = 614;
+  static const int CAPTION_ELEMENT = 615;
+  static const int CENTER_ELEMENT = 616;
+  static const int CITE_ELEMENT = 617;
+  static const int CODE_ELEMENT = 618;
+  static const int COL_ELEMENT = 619;
+  static const int COLGROUP_ELEMENT = 620;
+  static const int DD_ELEMENT = 621;
+  static const int DEL_ELEMENT = 622;
+  static const int DFN_ELEMENT = 623;
+  static const int DIR_ELEMENT = 624;
+  static const int DIV_ELEMENT = 625;
+  static const int DL_ELEMENT = 626;
+  static const int DT_ELEMENT = 627;
+  static const int EM_ELEMENT = 628;
+  static const int FIELDSET_ELEMENT = 629;
+  static const int FONT_ELEMENT = 630;
+  static const int FORM_ELEMENT = 631;
+  static const int FRAME_ELEMENT = 632;
+  static const int FRAMESET_ELEMENT = 633;
+  static const int H1_ELEMENT = 634;
+  static const int H2_ELEMENT = 635;
+  static const int H3_ELEMENT = 636;
+  static const int H4_ELEMENT = 637;
+  static const int H5_ELEMENT = 638;
+  static const int H6_ELEMENT = 639;
+  static const int HEAD_ELEMENT = 640;
+  static const int HR_ELEMENT = 641;
+  static const int HTML_ELEMENT = 642;
+  static const int I_ELEMENT = 643;
+  static const int IFRAME_ELEMENT = 644;
+  static const int IMG_ELEMENT = 645;
+  static const int INPUT_ELEMENT = 646;
+  static const int INS_ELEMENT = 647;
+  static const int ISINDEX_ELEMENT = 648;
+  static const int KBD_ELEMENT = 649;
+  static const int LABEL_ELEMENT = 650;
+  static const int LEGEND_ELEMENT = 651;
+  static const int LI_ELEMENT = 652;
+  static const int LINK_ELEMENT = 653;
+  static const int MAP_ELEMENT = 654;
+  static const int MENU_ELEMENT = 645;
+  static const int META_ELEMENT = 656;
+  static const int NOFRAMES_ELEMENT = 657;
+  static const int NOSCRIPT_ELEMENT = 658;
+  static const int OBJECT_ELEMENT = 659;
+  static const int OL_ELEMENT = 660;
+  static const int OPTGROUP_ELEMENT = 661;
+  static const int OPTION_ELEMENT = 662;
+  static const int P_ELEMENT = 663;
+  static const int PARAM_ELEMENT = 664;
+  static const int PRE_ELEMENT = 665;
+  static const int Q_ELEMENT = 666;
+  static const int S_ELEMENT = 667;
+  static const int SAMP_ELEMENT = 668;
+  static const int SCRIPT_ELEMENT = 669;
+  static const int SELECT_ELEMENT = 670;
+  static const int SMALL_ELEMENT = 671;
+  static const int SPAN_ELEMENT = 672;
+  static const int STRIKE_ELEMENT = 673;
+  static const int STRONG_ELEMENT = 674;
+  static const int STYLE_ELEMENT = 675;
+  static const int SUB_ELEMENT = 676;
+  static const int SUP_ELEMENT = 677;
+  static const int TABLE_ELEMENT = 678;
+  static const int TBODY_ELEMENT = 679;
+  static const int TD_ELEMENT = 680;
+  static const int TEXTAREA_ELEMENT = 681;
+  static const int TFOOT_ELEMENT = 682;
+  static const int TH_ELEMENT = 683;
+  static const int THEAD_ELEMENT = 684;
+  static const int TITLE_ELEMENT = 685;
+  static const int TR_ELEMENT = 686;
+  static const int TT_ELEMENT = 687;
+  static const int U_ELEMENT = 688;
+  static const int UL_ELEMENT = 689;
+  static const int VAR_ELEMENT = 690;
+  static const int END_HTML_ELEMENT = VAR_ELEMENT;    // Last valid tag name.
 
   static bool validTagName(int tokId) {
     return tokId >= TokenKind.START_HTML_ELEMENT &&
       tokId <= TokenKind.END_HTML_ELEMENT;
   }
 
-  static final List<Map<int, String>> _KEYWORDS = const [
+  static const List<Map<int, String>> _KEYWORDS = const [
     const {'type': TokenKind.TEMPLATE_KEYWORD, 'value' : 'template'},
   ];
 
-  static final List<int> _NON_SCOPED_ELEMENTS = const [
+  static const List<int> _NON_SCOPED_ELEMENTS = const [
     BR_ELEMENT,
   ];
 
   // tag values starting with a minus sign implies tag can be unscoped e.g.,
   // <br> is valid without <br></br> or <br/>
-  static final List<Map<int, String>> _ELEMENTS = const [
+  static const List<Map<int, String>> _ELEMENTS = const [
     const {'type': TokenKind.A_ELEMENT, 'value' : 'a'},
     const {'type': TokenKind.ABBR_ELEMENT, 'value' : 'abbr'},
     const {'type': TokenKind.ACRONYM_ELEMENT, 'value' : 'acronym'},
@@ -296,8 +296,8 @@ class TokenKind {
   ];
 
   // Some more constants:
-  static final int ASCII_UPPER_A = 65;    // ASCII value for uppercase A
-  static final int ASCII_UPPER_Z = 90;    // ASCII value for uppercase Z
+  static const int ASCII_UPPER_A = 65;    // ASCII value for uppercase A
+  static const int ASCII_UPPER_Z = 90;    // ASCII value for uppercase Z
 
   List<int> tokens;
 

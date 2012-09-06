@@ -37,6 +37,5 @@ class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
 
 main() {
   // instantiate an abstract class
-  var o = new Bi(); /// static type warning
-  Expect.equals(1, o.foo());
+  var o = new Bi(); /// 00: static type warning, runtime error
 }

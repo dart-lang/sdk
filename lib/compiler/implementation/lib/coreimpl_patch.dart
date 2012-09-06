@@ -16,20 +16,6 @@ patch class PrintImplementation {
 }
 
 
-// Patch for Object implementation.
-// TODO(ager): Split out into object_patch.dart and allow #source
-// in patch files?
-patch class ObjectImplementation {
-  patch static String toStringImpl(Object object) {
-    return Primitives.objectToString(object);
-  }
-
-  patch static void noSuchMethodImpl(Object object, String name, List args) {
-    throw new NoSuchMethodException(object, name, args);
-  }
-}
-
-
 // Patch for String implementation.
 // TODO(ager): Split out into date_patch.dart and allow #source
 // in patch files?

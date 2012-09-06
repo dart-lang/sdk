@@ -1835,6 +1835,11 @@ void Class::set_is_interface() const {
   raw_ptr()->state_bits_ = InterfaceBit::update(true, bits);
 }
 
+void Class::set_is_abstract() const {
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = AbstractBit::update(true, bits);
+}
+
 
 void Class::set_is_const() const {
   uword bits = raw_ptr()->state_bits_;
@@ -3538,7 +3543,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TypeArguments::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in TypeArguments::New: invalid len %"Pd"\n", len);
   }
   TypeArguments& result = TypeArguments::Handle();
   {
@@ -3970,7 +3975,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       const intptr_t num_hidden_params = NumberOfImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%d passed, %s%d expected",
+                  "%"Pd" passed, %s%"Pd" expected",
                   num_arguments - num_hidden_params,
                   num_optional_parameters() > 0 ? "at most " : "",
                   NumberOfParameters() - num_hidden_params);
@@ -3987,7 +3992,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       const intptr_t num_hidden_params = NumberOfImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%d %spassed, %d expected",
+                  "%"Pd" %spassed, %"Pd" expected",
                   num_positional_args - num_hidden_params,
                   num_optional_parameters() > 0 ? "positional " : "",
                   num_fixed_parameters() - num_hidden_params);
@@ -4969,7 +4974,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   ASSERT(Object::token_stream_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TokenStream::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in TokenStream::New: invalid len %"Pd"\n", len);
   }
   TokenStream& result = TokenStream::Handle();
   {
@@ -6530,7 +6535,7 @@ RawInstructions* Instructions::New(intptr_t size) {
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Instructions::New: invalid size %ld\n", size);
+    FATAL1("Fatal error in Instructions::New: invalid size %"Pd"\n", size);
   }
   Instructions& result = Instructions::Handle();
   {
@@ -6633,8 +6638,8 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   if (num_descriptors < 0 || num_descriptors > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in PcDescriptors::New: invalid num_descriptors %ld\n",
-           num_descriptors);
+    FATAL1("Fatal error in PcDescriptors::New: "
+           "invalid num_descriptors %"Pd"\n", num_descriptors);
   }
   PcDescriptors& result = PcDescriptors::Handle();
   {
@@ -6671,7 +6676,8 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  OS::Print("%-*s\tkind    \ttid\ttok-ix\ttry/deopt-ix\n", addr_width, "pc");
+  OS::Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry/deopt-ix\n",
+            addr_width, "pc");
 }
 
 
@@ -6684,7 +6690,7 @@ const char* PcDescriptors::ToCString() const {
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
   const char* kFormat =
-      "0x%-*" PRIxPTR "\t%s\t%" PRIdPTR "\t%" PRIdPTR "\t%" PRIdPTR "\n";
+      "%#-*"Px"\t%s\t%"Pd"\t%"Pd"\t%"Pd"\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6722,7 +6728,6 @@ const char* PcDescriptors::ToCString() const {
 // Verify assumptions (in debug mode only).
 // - No two deopt descriptors have the same deoptimization id.
 // - No two ic-call descriptors have the same deoptimization id (type feedback).
-// - No two descriptors of same kind have the same PC.
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
 void PcDescriptors::Verify(bool check_ids) const {
@@ -6731,12 +6736,11 @@ void PcDescriptors::Verify(bool check_ids) const {
   // the check for too large number of descriptors.
   if (Length() > 3000) {
     if (FLAG_trace_compiler) {
-      OS::Print("Not checking pc decriptors, length %d\n", Length());
+      OS::Print("Not checking pc decriptors, length %"Pd"\n", Length());
     }
     return;
   }
   for (intptr_t i = 0; i < Length(); i++) {
-    uword pc = PC(i);
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
@@ -6751,7 +6755,6 @@ void PcDescriptors::Verify(bool check_ids) const {
         if (deopt_id != Isolate::kNoDeoptId) {
           ASSERT(DeoptId(k) != deopt_id);
         }
-        ASSERT(pc != PC(k));
       }
     }
   }
@@ -6802,7 +6805,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
       (payload_size >
            (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap))))) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Stackmap::New: invalid length %" PRIdPTR "\n",
+    FATAL1("Fatal error in Stackmap::New: invalid length %"Pd"\n",
            length);
   }
   {
@@ -6832,7 +6835,7 @@ const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
-    const char* kFormat = "0x%" PRIxPTR ": ";
+    const char* kFormat = "%#"Px": ";
     intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PC()) + 1;
     Isolate* isolate = Isolate::Current();
     // Guard against integer overflow in the computation of alloc_size.
@@ -6840,7 +6843,7 @@ const char* Stackmap::ToCString() const {
     // TODO(kmillikin): We could just truncate the string if someone
     // tries to print a 2 billion plus entry stackmap.
     if (Length() > (kIntptrMax - fixed_length)) {
-      FATAL1("Length() is unexpectedly large (%" PRIdPTR ")", Length());
+      FATAL1("Length() is unexpectedly large (%"Pd")", Length());
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
@@ -6892,7 +6895,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in LocalVarDescriptors::New: "
-           "invalid num_variables %ld\n", num_variables);
+           "invalid num_variables %"Pd"\n", num_variables);
   }
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
@@ -6952,7 +6955,8 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
   if (num_handlers < 0 || num_handlers > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExceptionHandlers::New: invalid num_handlers %ld\n",
+    FATAL1("Fatal error in ExceptionHandlers::New: "
+           "invalid num_handlers %"Pd"\n",
            num_handlers);
   }
   ExceptionHandlers& result = ExceptionHandlers::Handle();
@@ -6974,7 +6978,7 @@ const char* ExceptionHandlers::ToCString() const {
     return "No exception handlers\n";
   }
   // First compute the buffer size required.
-  const char* kFormat = "%" PRIdPTR " => 0x%" PRIxPTR "\n";
+  const char* kFormat = "%"Pd" => %#"Px"\n";
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
     len += OS::SNPrint(NULL, 0, kFormat, TryIndex(i), HandlerPC(i));
@@ -7072,7 +7076,7 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::Comments::New: invalid count %ld\n", count);
+    FATAL1("Fatal error in Code::Comments::New: invalid count %"Pd"\n", count);
   }
   if (count == 0) {
     comments = new Comments(Object::empty_array());
@@ -7148,7 +7152,7 @@ void Code::set_comments(const Code::Comments& comments) const {
 RawCode* Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %ld\n",
+    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %"Pd"\n",
            pointer_offsets_length);
   }
   ASSERT(Object::code_class() != Class::null());
@@ -7160,6 +7164,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_is_alive(true);
     result.set_comments(Comments::New(0));
   }
   return result.raw();
@@ -7180,7 +7185,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   assembler->FinalizeInstructions(region);
   Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
   if (perf_events_writer != NULL) {
-    const char* format = "%" PRIxPTR " %" PRIxPTR " %s\n";
+    const char* format = "%#"Px" %#"Px" %s\n";
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
     intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
@@ -7402,7 +7407,7 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
 
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Context::New: invalid num_variables %ld\n",
+    FATAL1("Fatal error in Context::New: invalid num_variables %"Pd"\n",
            num_variables);
   }
   Context& result = Context::Handle();
@@ -7428,7 +7433,7 @@ RawContextScope* ContextScope::New(intptr_t num_variables) {
   ASSERT(Object::context_scope_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ContextScope::New: invalid num_variables %ld\n",
+    FATAL1("Fatal error in ContextScope::New: invalid num_variables %"Pd"\n",
            num_variables);
   }
   intptr_t size = ContextScope::InstanceSize(num_variables);
@@ -8695,7 +8700,7 @@ int Bigint::CompareWith(const Integer& other) const {
 RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
   if (length < 0 || length > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Bigint::Allocate: invalid length %ld\n", length);
+    FATAL1("Fatal error in Bigint::Allocate: invalid length %"Pd"\n", length);
   }
   ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
   Bigint& result = Bigint::Handle();
@@ -9462,7 +9467,7 @@ RawOneByteString* OneByteString::New(intptr_t len,
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in OneByteString::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in OneByteString::New: invalid len %"Pd"\n", len);
   }
   OneByteString& result = OneByteString::Handle();
   {
@@ -9604,7 +9609,7 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
   ASSERT(Isolate::Current()->object_store()->two_byte_string_class());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TwoByteString::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in TwoByteString::New: invalid len %"Pd"\n", len);
   }
   TwoByteString& result = TwoByteString::Handle();
   {
@@ -9737,7 +9742,7 @@ RawFourByteString* FourByteString::New(intptr_t len,
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in FourByteString::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in FourByteString::New: invalid len %"Pd"\n", len);
   }
   FourByteString& result = FourByteString::Handle();
   {
@@ -9848,7 +9853,8 @@ RawExternalOneByteString* ExternalOneByteString::New(
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %"Pd"\n",
+           len);
   }
   ExternalOneByteString& result = ExternalOneByteString::Handle();
   ExternalStringData<uint8_t>* external_data =
@@ -9899,7 +9905,8 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %"Pd"\n",
+           len);
   }
   ExternalTwoByteString& result = ExternalTwoByteString::Handle();
   ExternalStringData<uint16_t>* external_data =
@@ -9940,7 +9947,7 @@ RawExternalFourByteString* ExternalFourByteString::New(
          external_four_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalFourByteString::New: invalid len %ld\n",
+    FATAL1("Fatal error in ExternalFourByteString::New: invalid len %"Pd"\n",
            len);
   }
   ExternalFourByteString& result = ExternalFourByteString::Handle();
@@ -10048,7 +10055,7 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
 RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
   if (len < 0 || len > Array::kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Array::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in Array::New: invalid len %"Pd"\n", len);
   }
   Array& result = Array::Handle();
   {
@@ -10345,7 +10352,8 @@ RawT* ByteArray::NewExternalImpl(const Class& cls,
                                  Heap::Space space) {
   if (len < 0 || len > HandleT::kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ByteArray::NewExternalImpl: invalid len %ld\n", len);
+    FATAL1("Fatal error in ByteArray::NewExternalImpl: invalid len %"Pd"\n",
+           len);
   }
   HandleT& result = HandleT::Handle();
   ExternalByteArrayData<ElementT>* external_data =
@@ -10387,7 +10395,7 @@ template<typename HandleT, typename RawT>
 RawT* ByteArray::NewImpl(const Class& cls, intptr_t len, Heap::Space space) {
   if (len < 0 || len > HandleT::kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %ld\n", len);
+    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %"Pd"\n", len);
   }
   HandleT& result = HandleT::Handle();
   {
@@ -10412,7 +10420,7 @@ RawT* ByteArray::NewImpl(const Class& cls,
                          Heap::Space space) {
   if (len < 0 || len > HandleT::kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %ld\n", len);
+    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %"Pd"\n", len);
   }
   HandleT& result = HandleT::Handle();
   {
@@ -11094,7 +11102,7 @@ RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in JSRegexp::New: invalid len %ld\n", len);
+    FATAL1("Fatal error in JSRegexp::New: invalid len %"Pd"\n", len);
   }
   JSRegExp& result = JSRegExp::Handle();
   {

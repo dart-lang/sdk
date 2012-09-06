@@ -11,7 +11,12 @@
 
 #library('date_time_patterns');
 
-Map dateTimePatterns = const {
+/**
+ * Returns a Map from locale names to another Map that goes from skeletons
+ * to the locale-specific formatting patterns. Internal use only. Call
+ * initializeDateFormatting instead.
+ */
+Map dateTimePatternMap() => const {
   /**
    * Extended set of localized date/time patterns for locale af.
    */
@@ -916,6 +921,56 @@ Map dateTimePatterns = const {
    * Extended set of localized date/time patterns for locale en_US.
    */
   'en_US' : const {
+    'd': 'd', // DAY
+    'E': 'EEE', // ABBR_WEEKDAY
+    'EEEE': 'EEEE', // WEEKDAY
+    'LLL': 'LLL', // ABBR_STANDALONE_MONTH
+    'LLLL': 'LLLL', // STANDALONE_MONTH
+    'M': 'L', // NUM_MONTH
+    'Md': 'M/d', // NUM_MONTH_DAY
+    'MEd': 'EEE, M/d', // NUM_MONTH_WEEKDAY_DAY
+    'MMM': 'LLL', // ABBR_MONTH
+    'MMMd': 'MMM d', // ABBR_MONTH_DAY
+    'MMMEd': 'EEE, MMM d', // ABBR_MONTH_WEEKDAY_DAY
+    'MMMM': 'LLLL', // MONTH
+    'MMMMd': 'MMMM d', // MONTH_DAY
+    'MMMMEEEEd': 'EEEE, MMMM d', // MONTH_WEEKDAY_DAY
+    'QQQ': 'QQQ', // ABBR_QUARTER
+    'QQQQ': 'QQQQ', // QUARTER
+    'y': 'y', // YEAR
+    'yM': 'M/y', // YEAR_NUM_MONTH
+    'yMd': 'M/d/y', // YEAR_NUM_MONTH_DAY
+    'yMEd': 'EEE, M/d/y', // YEAR_NUM_MONTH_WEEKDAY_DAY
+    'yMMM': 'MMM y', // YEAR_ABBR_MONTH
+    'yMMMd': 'MMM d, y', // YEAR_ABBR_MONTH_DAY
+    'yMMMEd': 'EEE, MMM d, y', // YEAR_ABBR_MONTH_WEEKDAY_DAY
+    'yMMMM': 'MMMM y', // YEAR_MONTH
+    'yMMMMd': 'MMMM d, y', // YEAR_MONTH_DAY
+    'yMMMMEEEEd': 'EEEE, MMMM d, y', // YEAR_MONTH_WEEKDAY_DAY
+    'yQQQ': 'QQQ y', // YEAR_ABBR_QUARTER
+    'yQQQQ': 'QQQQ y', // YEAR_QUARTER
+    'H': 'HH', // HOUR24
+    'Hm': 'HH:mm', // HOUR24_MINUTE
+    'Hms': 'HH:mm:ss', // HOUR24_MINUTE_SECOND
+    'j': 'h a', // HOUR
+    'jm': 'h:mm a', // HOUR_MINUTE
+    'jms': 'h:mm:ss a', // HOUR_MINUTE_SECOND
+    'jmv': 'h:mm a v', // HOUR_MINUTE_GENERIC_TZ
+    'jmz': 'h:mm a z', // HOUR_MINUTETZ
+    'jz': 'h a z', // HOURGENERIC_TZ
+    'm': 'm', // MINUTE
+    'ms': 'mm:ss', // MINUTE_SECOND
+    's': 's', // SECOND
+    'v': 'v', // ABBR_GENERIC_TZ
+    'z': 'z', // ABBR_SPECIFIC_TZ
+    'zzzz': 'zzzz', // SPECIFIC_TZ
+    'ZZZZ': 'ZZZZ'  // ABBR_UTC_TZ
+  },
+
+  /**
+   * Extended set of localized date/time patterns for locale en_ISO.
+   */
+  'en_ISO' : const {
     'd': 'd', // DAY
     'E': 'EEE', // ABBR_WEEKDAY
     'EEEE': 'EEEE', // WEEKDAY

@@ -30,10 +30,10 @@ class ExpressionTest {
   }
 
   testUnary() {
-    int x = 4, y = 2;
+    int x = 4, y = 2, z = -5;
     bool t = true, f = false;
     Expect.equals(-4, -x);
-    Expect.equals(-5, ~x);
+    Expect.equals(4, ~z);
     Expect.equals(f, !t);
   }
 

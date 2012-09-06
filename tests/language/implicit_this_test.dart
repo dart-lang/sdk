@@ -37,9 +37,9 @@ class SubConcrete extends Concrete {
 }
 
 void main() {
-  var x = new Abstract(); /// 02: static type warning
+  var x = new Abstract(); /// 02: runtime error
   var y = new SubAbstract1(); /// 01: continued
-  var z = new SubAbstract2(); /// 03: static type warning
+  var z = new SubAbstract2(); /// 03: runtime error
   var a = new SubSubAbstract2(); /// 04: continued
   Expect.equals(x, x); /// 02: continued
   Expect.equals('7', new Concrete().toString());

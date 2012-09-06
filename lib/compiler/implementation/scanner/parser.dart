@@ -1206,9 +1206,20 @@ class Parser {
                (kind === OPEN_CURLY_BRACKET_TOKEN) ||
                token.stringValue === '[]') {
       return parseLiteralListOrMap(token);
+    } else if (kind === QUESTION_TOKEN) {
+      return parseArgumentDefinitionTest(token);
     } else {
       return listener.expectedExpression(token);
     }
+  }
+
+  Token parseArgumentDefinitionTest(Token token) {
+    Token questionToken = token;
+    listener.beginArgumentDefinitionTest(questionToken);
+    assert(optional('?', token));
+    token = parseIdentifier(token.next);
+    listener.endArgumentDefinitionTest(questionToken, token);
+    return token;
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {

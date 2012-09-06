@@ -35,39 +35,39 @@ Matcher lessThanOrEqualTo(value) =>
 /**
  * A matcher which matches if the match argument is zero.
  */
-final Matcher isZero =
+const Matcher isZero =
   const _OrderingComparison(0, true, false, false, 'a value equal to');
 
 
 /**
  * A matcher which matches if the match argument is non-zero.
  */
-final Matcher isNonZero =
+const Matcher isNonZero =
   const _OrderingComparison(0, false, true, true, 'a value not equal to');
 
 /**
  * A matcher which matches if the match argument is positive.
  */
-final Matcher isPositive =
+const Matcher isPositive =
   const _OrderingComparison(0, false, false, true, 'a positive value', false);
 
 /**
  * A matcher which matches if the match argument is zero or negative.
  */
-final Matcher isNonPositive =
+const Matcher isNonPositive =
   const _OrderingComparison(0, true, true, false,
       'a non-positive value', false);
 
 /**
  * A matcher which matches if the match argument is negative.
  */
-final Matcher isNegative =
+const Matcher isNegative =
   const _OrderingComparison(0, false, true, false, 'a negative value', false);
 
 /**
  * A matcher which matches if the match argument is zero or positive.
  */
-final Matcher isNonNegative =
+const Matcher isNonNegative =
   const _OrderingComparison(0, true, false, true,
       'a non-negative value', false);
 

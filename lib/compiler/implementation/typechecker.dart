@@ -24,9 +24,9 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
-interface DartType {
-  SourceString get name();
-  Element get element();
+abstract class DartType implements Hashable {
+  abstract SourceString get name();
+  abstract Element get element();
 
   /**
    * Returns the unaliased type of this type.
@@ -38,7 +38,9 @@ interface DartType {
    * function type [: (B) -> A :] and the unaliased type of
    * [: Func<int,String> :] is the function type [: (String) -> int :].
    */
-  DartType unalias(Compiler compiler);
+  abstract DartType unalias(Compiler compiler);
+
+  abstract bool equals(other);
 }
 
 class TypeVariableType implements DartType {
@@ -49,6 +51,13 @@ class TypeVariableType implements DartType {
   SourceString get name => element.name;
 
   DartType unalias(Compiler compiler) => this;
+
+  int hashCode() => 17 * element.hashCode();
+
+  bool equals(other) {
+    if (other is !TypeVariableType) return false;
+    return other.element == element;
+  }
 
   String toString() => name.slowToString();
 }
@@ -75,6 +84,13 @@ class StatementType implements DartType {
 
   DartType unalias(Compiler compiler) => this;
 
+  int hashCode() => 17 * stringName.hashCode();
+
+  bool equals(other) {
+    if (other is !StatementType) return false;
+    return other.stringName == stringName;
+  }
+
   String toString() => stringName;
 }
 
@@ -84,6 +100,10 @@ class VoidType implements DartType {
   final VoidElement element;
 
   DartType unalias(Compiler compiler) => this;
+
+  int hashCode() => 1729;
+
+  bool equals(other) => other is VoidType;
 
   String toString() => name.slowToString();
 }
@@ -108,6 +128,22 @@ class InterfaceType implements DartType {
       sb.add('>');
     }
     return sb.toString();
+  }
+
+  int hashCode() {
+    int hash = element.hashCode();
+    for (Link<DartType> arguments = this.arguments;
+         !arguments.isEmpty();
+         arguments = arguments.tail) {
+      int argumentHash = arguments.head != null ? arguments.head.hashCode() : 0;
+      hash = 17 * hash + 3 * argumentHash;
+    }
+    return hash;
+  }
+
+  bool equals(other) {
+    if (other is !InterfaceType) return false;
+    return arguments == other.arguments;
   }
 }
 
@@ -144,6 +180,22 @@ class FunctionType implements DartType {
     returnType = other.returnType;
     parameterTypes = other.parameterTypes;
   }
+
+  int hashCode() {
+    int hash = 17 * element.hashCode() + 3 * returnType.hashCode();
+    for (Link<DartType> parameters = parameterTypes;
+         !parameters.isEmpty();
+        parameters = parameters.tail) {
+      hash = 17 * hash + 3 * parameters.head.hashCode();
+    }
+    return hash;
+  }
+
+  bool equals(other) {
+    if (other is !FunctionType) return false;
+    return returnType == other.returnType
+           && parameterTypes == other.parameterTypes;
+  }
 }
 
 class TypedefType implements DartType {
@@ -170,6 +222,13 @@ class TypedefType implements DartType {
       sb.add('>');
     }
     return sb.toString();
+  }
+
+  int hashCode() => 17 * element.hashCode();
+
+  bool equals(other) {
+    if (other is !TypedefType) return false;
+    return other.element == element;
   }
 }
 

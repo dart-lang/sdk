@@ -17,8 +17,10 @@
 #import('../util/util.dart');
 
 #source('backend.dart');
+#source('constant_system_javascript.dart');
 #source('emitter.dart');
 #source('function_set.dart');
+#source('namer.dart');
 #source('native_emitter.dart');
 #source('partial_type_tree.dart');
 #source('selector_map.dart');

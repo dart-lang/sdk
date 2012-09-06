@@ -8,13 +8,11 @@
 class Object {
   const Object();
 
-  String toString() => ObjectImplementation.toStringImpl(this);
+  bool operator ==(other) => this === other;
 
-  void noSuchMethod(String name, List args) {
-    ObjectImplementation.noSuchMethodImpl(this, name, args);
-  }
+  get dynamic => this;
 
-  operator ==(other) => this === other;
+  external String toString();
 
-  get dynamic() => this;
+  external void noSuchMethod(String name, List args);
 }

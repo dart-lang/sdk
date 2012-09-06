@@ -77,8 +77,9 @@ void runTest(String test, [List<HType> expectedTypes = null]) {
     test,
     'f',
     (backend, x) {
-      HTypeList types = backend.optimisticParameterTypes(x);
+      HTypeList types = backend.optimisticParameterTypes(x, null);
       if (expectedTypes != null) {
+        Expect.isFalse(types.allUnknown);
         Expect.listEquals(expectedTypes, types.types);
       } else {
         Expect.isTrue(types.allUnknown);

@@ -91,7 +91,7 @@ void ClassTable::Print() {
     cls = At(i);
     if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
       name = cls.Name();
-      OS::Print("%d: %s\n", i, name.ToCString());
+      OS::Print("%"Pd": %s\n", i, name.ToCString());
     }
   }
 }

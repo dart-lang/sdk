@@ -105,6 +105,38 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
 }
 
 
+// Allocate and throw a new AbstractClassInstantiationError.
+// Arg0: Token position of allocation statement.
+// Arg1: class name of the abstract class that cannot be instantiated.
+// Return value: none, throws an exception.
+DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
+  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, class_name, arguments->At(1));
+  intptr_t error_pos = smi_pos.Value();
+
+  // Allocate a new instance of type AbstractClassInstantiationError.
+  const Instance& error = Instance::Handle(Exceptions::NewInstance(
+      "AbstractClassInstantiationErrorImplementation"));
+  ASSERT(!error.IsNull());
+
+  // Initialize 'url', 'line' and 'className' fields.
+  DartFrameIterator iterator;
+  iterator.NextFrame();  // Skip native call.
+  const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
+  const Class& cls = Class::Handle(error.clazz());
+  Exceptions::SetField(error, cls, "url", String::Handle(script.url()));
+  intptr_t line, column;
+  script.GetTokenLocation(error_pos, &line, &column);
+  Exceptions::SetField(error, cls, "line", Smi::Handle(Smi::New(line)));
+  Exceptions::SetField(error, cls, "className", class_name);
+
+  // Throw AbstractClassInstantiationError instance.
+  Exceptions::Throw(error);
+  UNREACHABLE();
+  return Object::null();
+}
+
+
 // Allocate and throw StaticResolutionException.
 // Arg0: index of the static call that was not resolved at compile time.
 // Return value: none, throws an exception.

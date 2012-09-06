@@ -5,7 +5,7 @@
 // Dart test program for testing access to super from closure.
 
 class Super {
-  int superX = "super";
+  var superX = "super";
   get x => superX;
 }
 

@@ -18,7 +18,7 @@ class BufferFormatter : public ValueObject {
       size_(size) { }
 
   void VPrint(const char* format, va_list args);
-  void Print(const char* format, ...);
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
  private:
   intptr_t position_;
@@ -46,7 +46,7 @@ class FlowGraphPrinter : public ValueObject {
   // another block and that block is not next in reverse postorder.
   void PrintBlocks();
   void PrintInstruction(Instruction* instr);
-  static void PrintComputation(Computation* comp);
+  static void PrintOneInstruction(Instruction* instr, bool print_locations);
   static void PrintTypeCheck(const ParsedFunction& parsed_function,
                              intptr_t token_pos,
                              Value* value,
@@ -73,7 +73,7 @@ class FlowGraphVisualizer : public ValueObject {
  private:
   // Helpers for printing.
   void PrintInstruction(Instruction* instr);
-  void Print(const char* format, ...);
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;

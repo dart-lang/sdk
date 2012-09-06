@@ -33,7 +33,7 @@ class DynamicAssertionHelper {
   DynamicAssertionHelper(const char* file, int line, Kind kind)
       : file_(file), line_(line), kind_(kind) { }
 
-  void Fail(const char* format, ...);
+  void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
 #if defined(TESTING)
   template<typename E, typename A>
