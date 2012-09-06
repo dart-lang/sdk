@@ -4413,8 +4413,9 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
+    int closeParenOffset = ctx.getTokenLocation().getBegin();
     DartStatement body = parseLoopStatement();
-    return done(new DartWhileStatement(condition, body));
+    return done(new DartWhileStatement(condition, closeParenOffset, body));
   }
 
   /**
@@ -4520,9 +4521,10 @@ public class DartParser extends CompletionHooksParserBase {
 
       DartExpression iterable = parseExpression();
       expectCloseParen();
+      int closeParenOffset = ctx.getTokenLocation().getBegin();
 
       DartStatement body = parseLoopStatement();
-      return done(new DartForInStatement(setup, iterable, body));
+      return done(new DartForInStatement(setup, iterable, closeParenOffset, body));
 
     } else if (optional(Token.SEMICOLON)) {
 
@@ -4539,9 +4541,10 @@ public class DartParser extends CompletionHooksParserBase {
         next = parseExpressionList();
       }
       expectCloseParen();
+      int closeParenOffset = ctx.getTokenLocation().getBegin();
 
       DartStatement body = parseLoopStatement();
-      return done(new DartForStatement(setup, condition, next, body));
+      return done(new DartForStatement(setup, condition, next, closeParenOffset, body));
     } else {
       reportUnexpectedToken(position(), null, peek(0));
       return done(parseErrorStatement());
@@ -4562,7 +4565,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
-    int closeParentOffset = ctx.getTokenLocation().getBegin();
+    int closeParenOffset = ctx.getTokenLocation().getBegin();
     DartStatement yes = parseStatement();
     DartStatement no = null;
     int elseTokenOffset = 0;
@@ -4570,7 +4573,7 @@ public class DartParser extends CompletionHooksParserBase {
       elseTokenOffset = ctx.getTokenLocation().getBegin();
       no = parseStatement();
     }
-    return done(new DartIfStatement(condition, closeParentOffset, yes, elseTokenOffset, no));
+    return done(new DartIfStatement(condition, closeParenOffset, yes, elseTokenOffset, no));
   }
 
   /**

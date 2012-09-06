@@ -10,10 +10,12 @@ package com.google.dart.compiler.ast;
 public class DartWhileStatement extends DartStatement {
 
   private DartExpression condition;
+  private final int closeParenOffset;
   private DartStatement body;
 
-  public DartWhileStatement(DartExpression condition, DartStatement body) {
+  public DartWhileStatement(DartExpression condition, int closeParenOffset, DartStatement body) {
     this.condition = becomeParentOf(condition);
+    this.closeParenOffset = closeParenOffset;
     this.body = becomeParentOf(body);
   }
 
@@ -23,6 +25,10 @@ public class DartWhileStatement extends DartStatement {
 
   public DartExpression getCondition() {
     return condition;
+  }
+  
+  public int getCloseParenOffset() {
+    return closeParenOffset;
   }
 
   @Override

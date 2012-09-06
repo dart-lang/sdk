@@ -11,16 +11,23 @@ public class DartForInStatement extends DartStatement {
 
   private DartStatement setup;
   private DartExpression iterable;
+  private final int closeParenOffset;
   private DartStatement body;
 
   public DartForInStatement(DartStatement setup,
                             DartExpression iterable,
+                            int closeParenOffset,
                             DartStatement body) {
     this.setup = becomeParentOf(setup);
     this.iterable = becomeParentOf(iterable);
+    this.closeParenOffset = closeParenOffset;
     this.body = becomeParentOf(body);
   }
 
+  public int getCloseParenOffset() {
+    return closeParenOffset;
+  }
+  
   public DartStatement getBody() {
     return body;
   }
