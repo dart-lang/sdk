@@ -75,6 +75,12 @@ lazy_static4_test: Fail # Issue 3558
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
+[ $compiler == none && $checked ]
+type_parameter_test/01: Fail # Issue 4932
+type_parameter_test/02: Fail # Issue 4932
+type_parameter_test/03: Fail # Issue 4932
+type_parameter_test/04: Fail # Issue 4932
+
 [ $compiler == none && $unchecked ]
 field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 
