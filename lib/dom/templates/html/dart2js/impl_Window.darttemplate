@@ -129,5 +129,12 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }
 
+  String createObjectUrl(object) native '''
+    return (window.URL || window.webkitURL).createObjectURL(object)
+  ''';
+
+  void revokeObjectUrl(String objectUrl) native '''
+    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
+  ''';
 $!MEMBERS
 }
