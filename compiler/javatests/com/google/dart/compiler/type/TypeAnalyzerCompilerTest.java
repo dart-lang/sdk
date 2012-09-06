@@ -2276,6 +2276,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * There was bug that when we analyze assignment in initializer, we don't have context.
+   */
+  public void test_typesPropagation_multiAssign_assignmentOutsideFunction() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(p) {}",
+        "}",
+        "class B extends A {",
+        "  B(p) : super(p = 0) {}",
+        "}",
+        "");
+    // no exceptions
+  }
+
+  /**
    * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
    */
   public void test_typesPropagation_assign_newUnknownType() throws Exception {

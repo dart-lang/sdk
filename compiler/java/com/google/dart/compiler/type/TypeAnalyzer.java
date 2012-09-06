@@ -2524,6 +2524,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitUnit(DartUnit node) {
+      blockOldTypes.addFirst(new BlockTypeContext());
       return typeAsVoid(node);
     }
 
