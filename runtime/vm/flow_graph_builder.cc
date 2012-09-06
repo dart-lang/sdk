@@ -146,12 +146,10 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
 
   // 2. Connect the true and false bodies to the test and record their exits
   // (if any).
-  TargetEntryInstr* true_entry = new TargetEntryInstr(owner()->try_index());
-  *test_fragment.true_successor_address() = true_entry;
+  BlockEntryInstr* true_entry = test_fragment.CreateTrueSuccessor();
   Instruction* true_exit = AppendFragment(true_entry, true_fragment);
 
-  TargetEntryInstr* false_entry = new TargetEntryInstr(owner()->try_index());
-  *test_fragment.false_successor_address() = false_entry;
+  BlockEntryInstr* false_entry = test_fragment.CreateFalseSuccessor();
   Instruction* false_exit = AppendFragment(false_entry, false_fragment);
 
   // 3. Add a join or select one (or neither) of the arms as exit.
@@ -182,8 +180,7 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 
   // 1. Connect the body to the test if it is reachable, and if so record
   // its exit (if any).
-  TargetEntryInstr* body_entry = new TargetEntryInstr(owner()->try_index());
-  *test_fragment.true_successor_address() = body_entry;
+  BlockEntryInstr* body_entry = test_fragment.CreateTrueSuccessor();
   Instruction* body_exit = AppendFragment(body_entry, body_fragment);
 
   // 2. Connect the test to this graph, including the body if reachable and
@@ -199,8 +196,8 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 
   // 3. Set the exit to the graph to be the false successor of the test, a
   // fresh target node
-  exit_ = *test_fragment.false_successor_address() =
-      new TargetEntryInstr(owner()->try_index());
+
+  exit_ = test_fragment.CreateFalseSuccessor();
 }
 
 
@@ -266,6 +263,54 @@ void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
 }
 
 
+void TestGraphVisitor::ConnectBranchesTo(
+    const GrowableArray<TargetEntryInstr**>& branches,
+    JoinEntryInstr* join) const {
+  ASSERT(!branches.is_empty());
+  for (intptr_t i = 0; i < branches.length(); i++) {
+    TargetEntryInstr* target = new TargetEntryInstr(owner()->try_index());
+    *(branches[i]) = target;
+    target->Goto(join);
+  }
+}
+
+
+void TestGraphVisitor::IfTrueGoto(JoinEntryInstr* join) const {
+  ConnectBranchesTo(true_successor_addresses_, join);
+}
+
+
+void TestGraphVisitor::IfFalseGoto(JoinEntryInstr* join) const {
+  ConnectBranchesTo(false_successor_addresses_, join);
+}
+
+
+BlockEntryInstr* TestGraphVisitor::CreateSuccessorFor(
+    const GrowableArray<TargetEntryInstr**>& branches) const {
+  ASSERT(!branches.is_empty());
+
+  if (branches.length() == 1) {
+    TargetEntryInstr* target = new TargetEntryInstr(owner()->try_index());
+    *(branches[0]) = target;
+    return target;
+  }
+
+  JoinEntryInstr* join = new JoinEntryInstr(owner()->try_index());
+  ConnectBranchesTo(branches, join);
+  return join;
+}
+
+
+BlockEntryInstr* TestGraphVisitor::CreateTrueSuccessor() const {
+  return CreateSuccessorFor(true_successor_addresses_);
+}
+
+
+BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
+  return CreateSuccessorFor(false_successor_addresses_);
+}
+
+
 void TestGraphVisitor::ReturnValue(Value* value) {
   if (FLAG_enable_type_checks) {
     value = Bind(new AssertBooleanInstr(condition_token_pos(), value));
@@ -277,8 +322,9 @@ void TestGraphVisitor::ReturnValue(Value* value) {
   BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
-  true_successor_address_ = branch->true_successor_address();
-  false_successor_address_ = branch->false_successor_address();
+
+  true_successor_addresses_.Add(branch->true_successor_address());
+  false_successor_addresses_.Add(branch->false_successor_address());
 }
 
 
@@ -301,8 +347,8 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
   }
   AddInstruction(branch);
   CloseFragment();
-  true_successor_address_ = branch->true_successor_address();
-  false_successor_address_ = branch->false_successor_address();
+  true_successor_addresses_.Add(branch->true_successor_address());
+  false_successor_addresses_.Add(branch->false_successor_address());
 }
 
 
@@ -314,8 +360,8 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
       new StrictCompareInstr(Token::kNE_STRICT, neg->value(), constant_true));
   AddInstruction(branch);
   CloseFragment();
-  true_successor_address_ = branch->true_successor_address();
-  false_successor_address_ = branch->false_successor_address();
+  true_successor_addresses_.Add(branch->true_successor_address());
+  false_successor_addresses_.Add(branch->false_successor_address());
 }
 
 
@@ -333,6 +379,44 @@ void TestGraphVisitor::ReturnDefinition(Definition* definition) {
     }
   }
   ReturnValue(Bind(definition));
+}
+
+
+// Special handling for AND/OR.
+void TestGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
+  InlineBailout("TestGraphVisitor::VisitBinaryOpNode");
+
+  // Operators "&&" and "||" cannot be overloaded therefore do not call
+  // operator.
+  if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
+    TestGraphVisitor for_left(owner(),
+                              temp_index(),
+                              node->left()->token_pos());
+    node->left()->Visit(&for_left);
+
+    TestGraphVisitor for_right(owner(),
+                               temp_index(),
+                               node->right()->token_pos());
+    node->right()->Visit(&for_right);
+
+    Append(for_left);
+
+    if (node->kind() == Token::kAND) {
+      AppendFragment(for_left.CreateTrueSuccessor(), for_right);
+      true_successor_addresses_.AddArray(for_right.true_successor_addresses_);
+      false_successor_addresses_.AddArray(for_left.false_successor_addresses_);
+      false_successor_addresses_.AddArray(for_right.false_successor_addresses_);
+    } else {
+      ASSERT(node->kind() == Token::kOR);
+      AppendFragment(for_left.CreateFalseSuccessor(), for_right);
+      false_successor_addresses_.AddArray(for_right.false_successor_addresses_);
+      true_successor_addresses_.AddArray(for_left.true_successor_addresses_);
+      true_successor_addresses_.AddArray(for_right.true_successor_addresses_);
+    }
+    CloseFragment();
+    return;
+  }
+  ValueGraphVisitor::VisitBinaryOpNode(node);
 }
 
 
@@ -1024,7 +1108,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   }
 
   // Generate instructions for all case expressions.
-  TargetEntryInstr** previous_false_address = NULL;
+  TargetEntryInstr* next_target = NULL;
   for (intptr_t i = 0; i < len; i++) {
     AstNode* case_expr = node->case_expressions()->NodeAt(i);
     TestGraphVisitor for_case_expression(owner(),
@@ -1035,16 +1119,11 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
       // Append only the first one, everything else is connected from it.
       Append(for_case_expression);
     } else {
-      TargetEntryInstr* case_entry_target =
-          new TargetEntryInstr(owner()->try_index());
-      AppendFragment(case_entry_target, for_case_expression);
-      *previous_false_address = case_entry_target;
+      ASSERT(next_target != NULL);
+      AppendFragment(next_target, for_case_expression);
     }
-    TargetEntryInstr* true_target =
-        new TargetEntryInstr(owner()->try_index());
-    *for_case_expression.true_successor_address() = true_target;
-    true_target->Goto(statement_start);
-    previous_false_address = for_case_expression.false_successor_address();
+    for_case_expression.IfTrueGoto(statement_start);
+    next_target = for_case_expression.CreateFalseSuccessor()->AsTargetEntry();
   }
 
   // Once a test fragment has been added, this fragment is closed.
@@ -1054,21 +1133,19 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   // Handle last (or only) case: false goes to exit or to statement if this
   // node contains default.
   if (len > 0) {
-    TargetEntryInstr* false_target =
-        new TargetEntryInstr(owner()->try_index());
-    *previous_false_address = false_target;
+    ASSERT(next_target != NULL);
     if (node->contains_default()) {
       // True and false go to statement start.
-      false_target->Goto(statement_start);
+      next_target->Goto(statement_start);
       exit_instruction = statement_exit;
     } else {
       if (statement_exit != NULL) {
         JoinEntryInstr* join = new JoinEntryInstr(owner()->try_index());
         statement_exit->Goto(join);
-        false_target->Goto(join);
+        next_target->Goto(join);
         exit_instruction = join;
       } else {
-        exit_instruction = false_target;
+        exit_instruction = next_target;
       }
     }
   } else {
@@ -1160,17 +1237,12 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     }
   }
 
-  TargetEntryInstr* back_target_entry =
-      new TargetEntryInstr(owner()->try_index());
-  *for_test.true_successor_address() = back_target_entry;
-  back_target_entry->Goto(body_entry_join);
-  TargetEntryInstr* loop_exit_target =
-      new TargetEntryInstr(owner()->try_index());
-  *for_test.false_successor_address() = loop_exit_target;
+
+  for_test.IfTrueGoto(body_entry_join);
   if (node->label()->join_for_break() == NULL) {
-    exit_ = loop_exit_target;
+    exit_ = for_test.CreateFalseSuccessor();
   } else {
-    loop_exit_target->Goto(node->label()->join_for_break());
+    for_test.IfFalseGoto(node->label()->join_for_break());
     exit_ = node->label()->join_for_break();
   }
 }
@@ -1241,20 +1313,19 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
       exit_ = node->label()->join_for_break();
     }
   } else {
-    TargetEntryInstr* loop_exit = new TargetEntryInstr(owner()->try_index());
     TestGraphVisitor for_test(owner(),
                               temp_index(),
                               node->condition()->token_pos());
     node->condition()->Visit(&for_test);
     Append(for_test);
-    TargetEntryInstr* body_entry = new TargetEntryInstr(owner()->try_index());
+
+    BlockEntryInstr* body_entry = for_test.CreateTrueSuccessor();
     AppendFragment(body_entry, for_body);
-    *for_test.true_successor_address() = body_entry;
-    *for_test.false_successor_address() = loop_exit;
+
     if (node->label()->join_for_break() == NULL) {
-      exit_ = loop_exit;
+      exit_ = for_test.CreateFalseSuccessor();
     } else {
-      loop_exit->Goto(node->label()->join_for_break());
+      for_test.IfFalseGoto(node->label()->join_for_break());
       exit_ = node->label()->join_for_break();
     }
   }

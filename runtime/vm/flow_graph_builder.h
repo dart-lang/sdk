@@ -343,18 +343,17 @@ class TestGraphVisitor : public ValueGraphVisitor {
                    intptr_t temp_index,
                    intptr_t condition_token_pos)
       : ValueGraphVisitor(owner, temp_index),
-        true_successor_address_(NULL),
-        false_successor_address_(NULL),
+        true_successor_addresses_(1),
+        false_successor_addresses_(1),
         condition_token_pos_(condition_token_pos) { }
 
-  TargetEntryInstr** true_successor_address() const {
-    ASSERT(true_successor_address_ != NULL);
-    return true_successor_address_;
-  }
-  TargetEntryInstr** false_successor_address() const {
-    ASSERT(false_successor_address_ != NULL);
-    return false_successor_address_;
-  }
+  void IfFalseGoto(JoinEntryInstr* join) const;
+  void IfTrueGoto(JoinEntryInstr* join) const;
+
+  BlockEntryInstr* CreateTrueSuccessor() const;
+  BlockEntryInstr* CreateFalseSuccessor() const;
+
+  virtual void VisitBinaryOpNode(BinaryOpNode* node);
 
   intptr_t condition_token_pos() const { return condition_token_pos_; }
 
@@ -370,9 +369,16 @@ class TestGraphVisitor : public ValueGraphVisitor {
   void MergeBranchWithComparison(ComparisonInstr* comp);
   void MergeBranchWithNegate(BooleanNegateInstr* comp);
 
+  BlockEntryInstr* CreateSuccessorFor(
+    const GrowableArray<TargetEntryInstr**>& branches) const;
+
+  void ConnectBranchesTo(
+    const GrowableArray<TargetEntryInstr**>& branches,
+    JoinEntryInstr* join) const;
+
   // Output parameters.
-  TargetEntryInstr** true_successor_address_;
-  TargetEntryInstr** false_successor_address_;
+  GrowableArray<TargetEntryInstr**> true_successor_addresses_;
+  GrowableArray<TargetEntryInstr**> false_successor_addresses_;
 
   intptr_t condition_token_pos_;
 };
