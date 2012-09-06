@@ -49,6 +49,10 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
+  public R visitExportDirective(DartExportDirective node) {
+    return visitDirective(node);
+  }
+
   public R visitExpression(DartExpression node) {
     return visitNode(node);
   }

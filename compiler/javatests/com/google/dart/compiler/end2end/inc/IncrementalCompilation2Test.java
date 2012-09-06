@@ -953,7 +953,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertErrors(errors, errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 10));
   }
 
-  public void test_newLibrarySyntax_export() throws Exception {
+  public void xtest_newLibrarySyntax_export() throws Exception {
     appSource.setContent(
         "A.dart",
         makeCode(
@@ -968,7 +968,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "library test.B;",
-            "import 'A.dart' as libA hide TypeAC & export;",
+            "import 'A.dart' as libA hide TypeAC;",
+            "export 'A.dart';",
             "class TypeBA {}",
             "class TypeBB {}",
             "class TypeBC {}",

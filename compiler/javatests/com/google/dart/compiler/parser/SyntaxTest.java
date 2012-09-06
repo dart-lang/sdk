@@ -37,6 +37,17 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
+  public void test_exportDirective_combinators() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "library lib;",
+        "export 'a.dart' show A, B hide C, D;"));
+  }
+
+  public void test_exportDirective_noCombinators() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "library lib;",
+        "export 'a.dart';"));
+  }
 
   public void test_getter() {
     parseUnit("getter.dart", Joiner.on("\n").join(

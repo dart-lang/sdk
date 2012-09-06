@@ -33,6 +33,7 @@ import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartEmptyStatement;
+import com.google.dart.compiler.ast.DartExportDirective;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -515,10 +516,16 @@ public class DartParser extends CompletionHooksParserBase {
       setMetadata(libraryDirective, metadata);
       unit.getDirectives().add(libraryDirective);
     }
-    while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
-      DartImportDirective importDirective = parseImportDirective();
-      setMetadata(importDirective, metadata);
-      unit.getDirectives().add(importDirective);
+    while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
+      if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
+        DartImportDirective importDirective = parseImportDirective();
+        setMetadata(importDirective, metadata);
+        unit.getDirectives().add(importDirective);
+      } else {
+        DartExportDirective exportDirective = parseExportDirective();
+        setMetadata(exportDirective, metadata);
+        unit.getDirectives().add(exportDirective);
+      }
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {
@@ -601,6 +608,33 @@ public class DartParser extends CompletionHooksParserBase {
     return new DartLibraryDirective(libname);
   }
 
+  protected DartExportDirective parseExportDirective() {
+    beginExportDirective();
+    next(); // "export"
+    beginLiteral();
+    expect(Token.STRING);
+    DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+
+    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+    while (peekPseudoKeyword(0, HIDE_KEYWORD) || peekPseudoKeyword(0, SHOW_KEYWORD)) {
+      if (optionalPseudoKeyword(HIDE_KEYWORD)) {
+        List<DartIdentifier> hiddenNames = parseIdentifierList();
+        combinators.add(new ImportHideCombinator(hiddenNames));
+      } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
+        List<DartIdentifier> shownNames = parseIdentifierList();
+        combinators.add(new ImportShowCombinator(shownNames));
+      }
+    }
+
+    if (!optional(Token.SEMICOLON)) {
+      // If there is no semicolon, then we probably don't want to consume the next token. It might
+      // make sense to advance to the next valid token for a directive or top-level declaration, but
+      // our recovery mechanism isn't quite sophisticated enough for that.
+      reportUnexpectedToken(position(), Token.SEMICOLON, peek(0));
+    }
+    return done(new DartExportDirective(libUri, combinators));
+  }
+
   protected DartImportDirective parseImportDirective() {
     beginImportDirective();
     next(); // "import"
@@ -630,21 +664,13 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    boolean export = false;
-    if (optional(Token.BIT_AND)) {
-      if (optionalPseudoKeyword(EXPORT_KEYWORD)) {
-        export = true;
-      } else {
-        reportError(position(), ParserErrorCode.EXPECTED_EXPORT);
-      }
-    }
     if (!optional(Token.SEMICOLON)) {
       // If there is no semicolon, then we probably don't want to consume the next token. It might
       // make sense to advance to the next valid token for a directive or top-level declaration, but
       // our recovery mechanism isn't quite sophisticated enough for that.
       reportUnexpectedToken(position(), Token.SEMICOLON, peek(0));
     }
-    return done(new DartImportDirective(libUri, prefix, combinators, export));
+    return done(new DartImportDirective(libUri, prefix, combinators));
   }
 
   /**
