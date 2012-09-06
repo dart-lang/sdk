@@ -5,10 +5,6 @@
 // Dart core library.
 
 abstract class num implements Comparable, Hashable {
-  factory num._uninstantiable() {
-    throw const UnsupportedOperationException(
-        "abstract class num cannot be instantiated");
-  }
   // Arithmetic operations.
   abstract num operator +(num other);
   abstract num operator -(num other);
