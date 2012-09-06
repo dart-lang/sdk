@@ -139,8 +139,7 @@ def MakeNativeSpec(javascript_binding_name):
     return _dart2js_dom_custom_native_specs[javascript_binding_name]
   else:
     # Make the class 'hidden' so it is dynamically patched at runtime.  This
-    # is useful not only for browser compat, but to allow code that links
-    # against dart:dom_deprecated to load in a worker isolate.
+    # is useful for browser compat.
     return '*' + javascript_binding_name
 
 

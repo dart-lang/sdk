@@ -37,7 +37,7 @@ _webkit_renames = {
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
 
-def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
+def Generate(system_names, database_dir, use_database_cache,
              html_output_dir):
   current_dir = os.path.dirname(__file__)
   auxiliary_dir = os.path.join(current_dir, '..', 'src')
@@ -79,59 +79,30 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   emitters = multiemitter.MultiEmitter()
 
   for system_name in system_names:
-    if system_name in ['htmldart2js', 'htmldartium']:
-      renamer = HtmlRenamer(webkit_database)
-      type_registry = TypeRegistry(webkit_database, renamer)
-      if system_name == 'htmldart2js':
-        options = CreateGeneratorOptions(
-            ['html/dart2js', 'html/impl', 'html', ''],
-            {'DARTIUM': False, 'DART2JS': True},
-            type_registry, html_output_dir, renamer)
-        backend = HtmlDart2JSSystem(options)
-      else:
-        options = CreateGeneratorOptions(
-            ['dom/native', 'html/dartium', 'html/impl', ''],
-            {'DARTIUM': True, 'DART2JS': False},
-            type_registry, html_output_dir, renamer)
-        backend = NativeImplementationSystem(options, auxiliary_dir)
+    renamer = HtmlRenamer(webkit_database)
+    type_registry = TypeRegistry(webkit_database, renamer)
+    if system_name == 'htmldart2js':
       options = CreateGeneratorOptions(
-          ['html/interface', 'html/impl', 'html', ''], {},
+          ['html/dart2js', 'html/impl', 'html', ''],
+          {'DARTIUM': False, 'DART2JS': True},
           type_registry, html_output_dir, renamer)
-      html_system = HtmlInterfacesSystem(options, backend)
-      Generate(html_system)
+      backend = HtmlDart2JSSystem(options)
     else:
-      type_registry = TypeRegistry(webkit_database)
       options = CreateGeneratorOptions(
-          ['dom/interface', 'dom', ''], {}, type_registry, dom_output_dir)
-      interface_system = InterfacesSystem(options)
-      if system_name == 'dummy':
-        options = CreateGeneratorOptions(
-            ['dom/dummy', 'dom', ''], {}, type_registry, dom_output_dir)
-        implementation_system = dartgenerator.DummyImplementationSystem(
-            options)
-      elif system_name == 'dart2js':
-        options = CreateGeneratorOptions(
-            ['dom/dart2js', 'dom', ''], {}, type_registry, dom_output_dir)
-        implementation_system = Dart2JSSystem(options)
-      else:
-        raise Exception('Unsupported system_name %s' % system_name)
-
-      # Makes interface files available for listing in the library for the
-      # implementation system.
-      implementation_system._interface_system = interface_system
-      Generate(interface_system)
-      Generate(implementation_system)
+          ['dom/native', 'html/dartium', 'html/impl', ''],
+          {'DARTIUM': True, 'DART2JS': False},
+          type_registry, html_output_dir, renamer)
+      backend = NativeImplementationSystem(options, auxiliary_dir)
+    options = CreateGeneratorOptions(
+        ['html/interface', 'html/impl', 'html', ''], {},
+        type_registry, html_output_dir, renamer)
+    html_system = HtmlInterfacesSystem(options, backend)
+    Generate(html_system)
 
   _logger.info('Flush...')
   emitters.Flush()
 
 def GenerateSingleFile(systems):
-  if 'dart2js' in systems:
-    _logger.info('Copy dom_dart2js to dart2js/')
-    subprocess.call(['cd ../generated ; '
-                     '../../../tools/copy_dart.py ../dart2js dom_dart2js.dart'],
-                    shell=True)
-
   if 'htmldart2js' in systems:
     _logger.info('Copy html_dart2js to ../html/dart2js/')
     subprocess.call(['cd ../../html/generated ; '
@@ -144,21 +115,12 @@ def GenerateSingleFile(systems):
                      '../../../tools/copy_dart.py ../dartium html_dartium.dart'],
                     shell=True)
 
-  # Copy dummy DOM where dartc build expects it.
-  if 'dummy' in systems:
-    _logger.info('Copy dom_dummy to dom.dart')
-    subprocess.call(['cd ../generated ; '
-                     '../../../tools/copy_dart.py dummy dom_dummy.dart ;'
-                     'cp dummy/dom_dummy.dart ../dom.dart'],
-                    shell=True)
-
 def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='dart2js,dummy,htmldart2js,htmldartium',
-                    help='Systems to generate (dart2js, dummy, '
-                         'htmldart2js, htmldartium)')
+                    default='htmldart2js,htmldartium',
+                    help='Systems to generate (htmldart2js, htmldartium)')
   parser.add_option('--output-dir', dest='output_dir',
                     action='store', type='string',
                     default=None,
@@ -175,12 +137,10 @@ def main():
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
   systems = options.systems.split(',')
 
-  dom_output_dir = options.output_dir or os.path.join(current_dir,
-      '../generated')
   html_output_dir = options.output_dir or os.path.join(current_dir,
       '../../html/generated')
   Generate(systems, database_dir, options.use_database_cache,
-              dom_output_dir, html_output_dir)
+              html_output_dir)
   GenerateSingleFile(systems)
 
 if __name__ == '__main__':

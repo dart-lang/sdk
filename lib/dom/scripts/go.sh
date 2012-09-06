@@ -36,7 +36,7 @@ if [[ "$1" == "--cached" ]] ; then
   shift
 fi
 
-ALLSYSTEMS="dart2js,dummy,htmldart2js,htmldartium"
+ALLSYSTEMS="htmldart2js,htmldartium"
 SYSTEMS="$ALLSYSTEMS"
 
 if [[ "$1" != "" ]] ; then
