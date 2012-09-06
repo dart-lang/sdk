@@ -180,21 +180,31 @@ class SsaBuilderTask extends CompilerTask {
         }
         graph.calledInLoop = inLoop;
 
-        // If there is an estimate of the parameter types assume these types
-        // when compiling.
+        // If there is an estimate of the parameter types assume these types when
+        // compiling.
+        OptionalParameterTypes defaultValueTypes = null;
+        FunctionSignature signature = element.computeSignature(compiler);
+        if (signature.optionalParameterCount > 0) {
+          defaultValueTypes =
+              new OptionalParameterTypes(signature.optionalParameterCount);
+          int index = 0;
+          signature.forEachOptionalParameter((Element parameter) {
+            Constant defaultValue = compiler.compileVariable(parameter);
+            HType type = HGraph.mapConstantTypeToSsaType(defaultValue);
+            defaultValueTypes.update(index, parameter.name, type);
+            index++;
+          });
+        }
         HTypeList parameterTypes =
-            backend.optimisticParameterTypes(
-                element);
+            backend.optimisticParameterTypes(element, defaultValueTypes);
         if (!parameterTypes.allUnknown) {
-          FunctionElement functionElement = element;
-          FunctionSignature signature =
-              functionElement.computeSignature(compiler);
           int i = 0;
           signature.forEachParameter((Element param) {
             builder.parameters[param].guaranteedType = parameterTypes[i++];
           });
         }
-        backend.registerParameterTypesOptimization(element, parameterTypes);
+        backend.registerParameterTypesOptimization(
+            element, parameterTypes, defaultValueTypes);
       }
 
       if (compiler.tracer.enabled) {

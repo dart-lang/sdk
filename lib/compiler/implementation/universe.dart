@@ -320,7 +320,26 @@ class Selector implements Hashable {
     return orderedNamedArguments;
   }
 
-  toString() => 'Selector($kind, $name, $argumentCount)';
+  String namedArgumentsToString() {
+    if (namedArgumentCount > 0) {
+      StringBuffer result = new StringBuffer();
+      for (int i = 0; i < namedArgumentCount; i++) {
+        if (i != 0) result.add(', ');
+        result.add(namedArguments[i].slowToString());
+      }
+      return "[$result]";
+    }
+    return '';
+  }
+
+  String toString() {
+    String named = '';
+    String type = '';
+    if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
+    if (receiverType != null) type = ', type=$receiverType';
+    return 'Selector($kind, ${name.slowToString()}, '
+           'arity=$argumentCount$named$type)';
+  }
 }
 
 class TypedSelector extends Selector {
@@ -384,10 +403,5 @@ class TypedSelector extends Selector {
     }
 
     return false;
-  }
-
-  toString() {
-    return 'Selector($kind, "${name.slowToString()}", '
-           '$argumentCount, type=$receiverType)';
   }
 }

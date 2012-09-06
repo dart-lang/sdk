@@ -6,6 +6,7 @@
 
 #import("../../../lib/compiler/implementation/js_backend/js_backend.dart");
 #import("../../../lib/compiler/implementation/ssa/ssa.dart");
+#import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
 
 #import('compiler_helper.dart');
 #import('parser_helper.dart');
@@ -140,14 +141,65 @@ const String TEST_13 = @"""
   }
 """;
 
-void runTest(String test, [List<HType> expectedTypes = null]) {
+const String TEST_14 = @"""
+  class A {
+    x(p1, [p2 = "s"]) => 1;
+  }
+  main() {
+    new A().x(1);
+  }
+""";
+
+const String TEST_15 = @"""
+  class A {
+    x(p1, [p2 = true]) => 1;
+  }
+  f(p) => p.a("x");
+  main() {
+    new A().x("x");
+    new A().x("x", false);
+    f(null);
+  }
+""";
+
+const String TEST_16 = @"""
+  class A {
+    x(p1, [p2 = 1, p3 = "s"]) => 1;
+  }
+  main() {
+    new A().x(1);
+    new A().x(1, 2);
+    new A().x(1, 2, "x");
+    new A().x(1, p2: 2);
+    new A().x(1, p3: "x");
+    new A().x(1, p3: "x", p2: 2);
+    new A().x(1, p2: 2, p3: "x");
+  }
+""";
+
+const String TEST_17 = @"""
+  class A {
+    x(p1, [p2 = 1, p3 = "s"]) => 1;
+  }
+  main() {
+    new A().x(1, true, 1.1);
+    new A().x(1, false, 2.2);
+    new A().x(1, p3: 3.3, p2: true);
+    new A().x(1, p2: false, p3: 4.4);
+  }
+""";
+
+void runTest(String test,
+             [List<HType> expectedTypes,
+              OptionalParameterTypes defaultTypes]) {
   compileAndFind(
     test,
     'A',
     'x',
     (backend, x) {
-      HTypeList types = backend.optimisticParameterTypes(x);
+      HTypeList types = backend.optimisticParameterTypes(x, defaultTypes);
       if (expectedTypes != null) {
+        Expect.isFalse(types.allUnknown);
         Expect.listEquals(expectedTypes, types.types);
       } else {
         Expect.isTrue(types.allUnknown);
@@ -156,6 +208,8 @@ void runTest(String test, [List<HType> expectedTypes = null]) {
 }
 
 void test() {
+  OptionalParameterTypes defaultTypes;
+
   runTest(TEST_1, [HType.STRING]);
   runTest(TEST_2, [HType.INTEGER]);
   runTest(TEST_3, [HType.INTEGER]);
@@ -167,8 +221,30 @@ void test() {
   runTest(TEST_9, [HType.INTEGER, HType.INTEGER]);
   runTest(TEST_10);
   runTest(TEST_11);
-  runTest(TEST_12);
+
+  defaultTypes = new OptionalParameterTypes(1);
+  defaultTypes.update(0, const SourceString("p2"), HType.INTEGER);
+  runTest(TEST_12, [HType.STRING, HType.INTEGER], defaultTypes);
+
   runTest(TEST_13, [HType.NUMBER]);
+
+  defaultTypes = new OptionalParameterTypes(1);
+  defaultTypes.update(0, const SourceString("p2"), HType.STRING);
+  runTest(TEST_14, [HType.INTEGER, HType.STRING], defaultTypes);
+
+  defaultTypes = new OptionalParameterTypes(1);
+  defaultTypes.update(0, const SourceString("p2"), HType.BOOLEAN);
+  runTest(TEST_15, [HType.STRING, HType.BOOLEAN], defaultTypes);
+
+  defaultTypes = new OptionalParameterTypes(2);
+  defaultTypes.update(0, const SourceString("p2"), HType.INTEGER);
+  defaultTypes.update(1, const SourceString("p3"), HType.STRING);
+  runTest(TEST_16, [HType.INTEGER, HType.INTEGER, HType.STRING], defaultTypes);
+
+  defaultTypes = new OptionalParameterTypes(2);
+  defaultTypes.update(0, const SourceString("p2"), HType.INTEGER);
+  defaultTypes.update(1, const SourceString("p3"), HType.STRING);
+  runTest(TEST_17, [HType.INTEGER, HType.BOOLEAN, HType.DOUBLE], defaultTypes);
 }
 
 void main() {

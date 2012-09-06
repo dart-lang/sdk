@@ -845,17 +845,25 @@ class FunctionSignature {
                     this.optionalParameterCount,
                     this.returnType);
 
-  void forEachParameter(void function(Element parameter)) {
+  void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
          !link.isEmpty();
          link = link.tail) {
       function(link.head);
     }
+  }
+
+  void forEachOptionalParameter(void function(Element parameter)) {
     for (Link<Element> link = optionalParameters;
          !link.isEmpty();
          link = link.tail) {
       function(link.head);
     }
+  }
+
+  void forEachParameter(void function(Element parameter)) {
+    forEachRequiredParameter(function);
+    forEachOptionalParameter(function);
   }
 
   int get parameterCount => requiredParameterCount + optionalParameterCount;
