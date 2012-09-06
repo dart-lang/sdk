@@ -59,13 +59,19 @@ void FlowGraphPrinter::PrintBlocks() {
 
 
 void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
+  PrintOneInstruction(instr, print_locations_);
+}
+
+
+void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
+                                           bool print_locations) {
   char str[1000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
   if (FLAG_print_environments && (instr->env() != NULL)) {
     instr->env()->PrintTo(&f);
   }
-  if (print_locations_ && (instr->locs() != NULL)) {
+  if (print_locations && (instr->locs() != NULL)) {
     instr->locs()->PrintTo(&f);
   }
   if (instr->lifetime_position() != -1) {
@@ -125,7 +131,10 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 void Definition::PrintTo(BufferFormatter* f) const {
   // Do not access 'deopt_id()' as it asserts that the computation can
   // deoptimize.
-  f->Print("%s:%"Pd"(", DebugName(), deopt_id());
+  if (HasSSATemp()) {
+    f->Print("v%"Pd" <- ", ssa_temp_index());
+  }
+  f->Print("%s:%"Pd"(", DebugName(), deopt_id_);
   PrintOperandsTo(f);
   f->Print(")");
 }
@@ -471,7 +480,7 @@ static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    v%"Pd" <- phi(", ssa_temp_index());
+  f->Print("     v%"Pd" <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");
@@ -510,7 +519,7 @@ void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%"Pd" ", DebugName(), deopt_id());
+  f->Print("    %s ", DebugName());
   value()->PrintTo(f);
 }
 
@@ -740,7 +749,7 @@ void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%"Pd" ", DebugName(), deopt_id());
+  f->Print("_ %s ", DebugName());
   value()->PrintTo(f);
 }
 

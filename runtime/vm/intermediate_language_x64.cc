@@ -114,7 +114,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ nop(1);
   __ nop(1);
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 deopt_id(),
+                                 Isolate::kNoDeoptId,
                                  token_pos());
 }
 

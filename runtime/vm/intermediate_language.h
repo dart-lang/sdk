@@ -275,7 +275,10 @@ class Instruction : public ZoneAllocated {
 
   virtual Tag tag() const = 0;
 
-  intptr_t deopt_id() const { return deopt_id_; }
+  intptr_t deopt_id() const {
+    ASSERT(CanDeoptimize());
+    return deopt_id_;
+  }
 
   bool IsBlockEntry() { return (AsBlockEntry() != NULL); }
   virtual BlockEntryInstr* AsBlockEntry() { return NULL; }
@@ -2866,7 +2869,9 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    return deopt_id();
+    // Direct access since this instuction cannot deoptimize, and the deopt-id
+    // was inherited from another instuction that could deoptimize.
+    return deopt_id_;
   }
 
   DECLARE_INSTRUCTION(UnboxedDoubleBinaryOp)

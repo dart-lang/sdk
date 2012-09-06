@@ -106,7 +106,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // return pattern with a call to the debug stub.
   __ nop(1);
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 deopt_id(),
+                                 Isolate::kNoDeoptId,
                                  token_pos());
 }
 
