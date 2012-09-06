@@ -157,7 +157,13 @@ void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
 
 
 void AstPrinter::VisitComparisonNode(ComparisonNode* node) {
-  VisitGenericAstNode(node);
+  if (node->kind() == Token::kAS) {
+    OS::Print("(as ");
+    node->VisitChildren(this);
+    OS::Print(")");
+  } else {
+    VisitGenericAstNode(node);
+  }
 }
 
 
