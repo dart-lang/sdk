@@ -21,7 +21,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
   intptr_t len = length.Value();
   if (len < 0 || len > Array::kMaxElements) {
     const String& error = String::Handle(String::NewFormatted(
-        "length (%ld) must be in the range [0..%ld]",
+        "length (%"Pd") must be in the range [0..%"Pd"]",
         len, Array::kMaxElements));
     GrowableArray<const Object*> args;
     args.Add(&error);

@@ -198,7 +198,7 @@ void BaseZone::DumpZoneSizes() {
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
     size += s->size();
   }
-  OS::Print("Size in bytes allocated, Total = %d Large Segments = %d\n",
+  OS::Print("Size in bytes allocated, Total = %"Pd" Large Segments = %"Pd"\n",
             SizeInBytes(), size);
 }
 #endif

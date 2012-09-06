@@ -360,7 +360,7 @@ static void PrintTypeCheck(
   const Type& instance_type = Type::Handle(instance.GetType());
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
-    OS::Print("%s: '%s' %d %s '%s' %d (pc: 0x%x).\n",
+    OS::Print("%s: '%s' %"Pd" %s '%s' %"Pd" (pc: %#"Px").\n",
               message,
               String::Handle(instance_type.Name()).ToCString(),
               Class::Handle(instance_type.type_class()).id(),
@@ -372,7 +372,7 @@ static void PrintTypeCheck(
     // Instantiate type before printing.
     const AbstractType& instantiated_type =
         AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments));
-    OS::Print("%s: '%s' %s '%s' instantiated from '%s' (pc: 0x%x).\n",
+    OS::Print("%s: '%s' %s '%s' instantiated from '%s' (pc: %#"Px").\n",
               message,
               String::Handle(instance_type.Name()).ToCString(),
               (result.raw() == Bool::True()) ? "is" : "is !",
@@ -504,7 +504,7 @@ static void UpdateTypeTestCache(
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
       if (FLAG_trace_type_checks) {
-        OS::Print("%d ", i);
+        OS::Print("%"Pd" ", i);
         if (type_arguments_replaced) {
           PrintTypeCheck("Duplicate cache entry (canonical.)", instance, type,
               instantiator_type_arguments, result);
@@ -528,9 +528,9 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       test_type = type.InstantiateFrom(instantiator_type_arguments);
     }
-    OS::Print("  Updated test cache 0x%x ix:%d:\n"
-        "    [0x%x %s %d, 0x%x %s]\n"
-        "    [0x%x %s %d, 0x%x %s] %s\n",
+    OS::Print("  Updated test cache %p ix:%"Pd":\n"
+        "    [%p %s %"Pd", %p %s]\n"
+        "    [%p %s %"Pd", %p %s] %s\n",
         new_cache.raw(),
         len,
         instance_class.raw(),
@@ -760,7 +760,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(target != new_target);
   CodePatcher::PatchStaticCallAt(caller_frame->pc(), new_target);
   if (FLAG_trace_patching) {
-    OS::Print("PatchStaticCall: patching from 0x%x to '%s' 0x%x\n",
+    OS::Print("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
         new_target);
@@ -921,8 +921,8 @@ static RawFunction* InlineCacheMissHandler(
     ic_data.AddCheck(class_ids, target_function);
   }
   if (FLAG_trace_ic) {
-    OS::Print("InlineCacheMissHandler %d call at 0x%x' "
-              "adding <%s> id:%d -> <%s>\n",
+    OS::Print("InlineCacheMissHandler %d call at %#"Px"' "
+              "adding <%s> id:%"Pd" -> <%s>\n",
         args.length(),
         caller_frame->pc(),
         Class::Handle(receiver.clazz()).ToCString(),
@@ -1283,7 +1283,7 @@ static void PrintCaller(const char* msg) {
   ASSERT(top_frame != NULL);
   const Function& top_function = Function::Handle(
       top_frame->LookupDartFunction());
-  OS::Print("Failed: '%s' %s @ 0x%x\n",
+  OS::Print("Failed: '%s' %s @ %#"Px"\n",
       msg, top_function.ToFullyQualifiedCString(), top_frame->pc());
   StackFrame* caller_frame = iterator.NextFrame();
   if (caller_frame != NULL) {
@@ -1385,7 +1385,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
     ASSERT(target != new_entry_point);  // Why patch otherwise.
     CodePatcher::PatchStaticCallAt(frame->pc(), new_entry_point);
     if (FLAG_trace_patching) {
-      OS::Print("FixCallersTarget: patching from 0x%x to '%s' 0x%x\n",
+      OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
           frame->pc(),
           target_function.ToFullyQualifiedCString(),
           new_entry_point);
@@ -1536,7 +1536,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
     intptr_t deopt_id, deopt_reason, deopt_index;
     GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
                         &deopt_id, &deopt_reason, &deopt_index);
-    OS::Print("Deoptimizing (reason %d '%s') at pc 0x%x id %d '%s'\n",
+    OS::Print("Deoptimizing (reason %"Pd" '%s') at pc %#"Px" id %"Pd" '%s'\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
         caller_frame->pc(),
@@ -1593,7 +1593,7 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
   }
   if (FLAG_trace_deopt) {
     for (intptr_t i = 0; i < len; i++) {
-      OS::Print("*%d. [0x%0" PRIxPTR "] 0x%012" PRIxPTR " [%s]\n",
+      OS::Print("*%"Pd". [%p] %#014"Px" [%s]\n",
           i,
           &start[i],
           start[i],
@@ -1630,7 +1630,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   ASSERT(deopt_id != Isolate::kNoDeoptId);
   uword continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
   if (FLAG_trace_deopt) {
-    OS::Print("  -> continue at 0x%x\n", continue_at_pc);
+    OS::Print("  -> continue at %#"Px"\n", continue_at_pc);
     // TODO(srdjan): If we could allow GC, we could print the line where
     // deoptimization occured.
   }
@@ -1672,7 +1672,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     *slot = Double::New(current->value());
 
     if (FLAG_trace_deopt) {
-      OS::Print("materialing double at 0x%" PRIxPTR ": %g\n",
+      OS::Print("materialing double at %p: %g\n",
                 current->slot(),
                 current->value());
     }

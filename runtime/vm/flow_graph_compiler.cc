@@ -156,7 +156,7 @@ bool FlowGraphCompiler::CanOptimize() {
 
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order().length(); ++i) {
-    assembler()->Comment("B%d", i);
+    assembler()->Comment("B%"Pd"", i);
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
     set_current_block(entry);

@@ -307,7 +307,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
     }
     intptr_t line, column;
     script.GetTokenLocation(location, &line, &column);
-    OS::Print("'%s': Failed type check: line %d pos %d: ",
+    OS::Print("'%s': Failed type check: line %"Pd" pos %"Pd": ",
               String::Handle(script.url()).ToCString(), line, column);
     if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
       OS::Print("type '%s' is not a subtype of type '%s' of '%s'.\n",
@@ -315,9 +315,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
                 dst_type_name.ToCString(),
                 dst_name.ToCString());
     } else {
-      OS::Print("malformed type used.\n",
-                String::Handle(script.url()).ToCString(),
-                line, column);
+      OS::Print("malformed type used.\n");
     }
   }
   // Throw TypeError instance.

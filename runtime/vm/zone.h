@@ -152,7 +152,7 @@ class Zone : public StackResource {
   }
 
   // Make a zone-allocated string based on printf format and args.
-  char* PrintToString(const char* format, ...);
+  char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   VMHandles* handles() { return &handles_; }
 
@@ -180,7 +180,7 @@ inline uword BaseZone::AllocUnsafe(intptr_t size) {
 
   // Round up the requested size to fit the alignment.
   if (size > (kIntptrMax - kAlignment)) {
-    FATAL1("BaseZone::Alloc: 'size' is too large: size=%ld", size);
+    FATAL1("BaseZone::Alloc: 'size' is too large: size=%"Pd"", size);
   }
   size = Utils::RoundUp(size, kAlignment);
 
@@ -203,7 +203,7 @@ template <class ElementType>
 inline ElementType* BaseZone::Alloc(intptr_t len) {
   const intptr_t element_size = sizeof(ElementType);
   if (len > (kIntptrMax / element_size)) {
-    FATAL2("BaseZone::Alloc: 'len' is too large: len=%ld, element_size=%ld",
+    FATAL2("BaseZone::Alloc: 'len' is too large: len=%"Pd", element_size=%"Pd,
            len, element_size);
   }
   return reinterpret_cast<ElementType*>(AllocUnsafe(len * element_size));

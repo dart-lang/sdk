@@ -374,7 +374,7 @@ void Isolate::PrintInvokedFunctions() {
   }
   invoked_functions.Sort(MostUsedFunctionFirst);
   for (int i = 0; i < invoked_functions.length(); i++) {
-    OS::Print("%10d x %s\n",
+    OS::Print("%10"Pd" x %s\n",
         invoked_functions[i]->usage_counter(),
         invoked_functions[i]->ToFullyQualifiedCString());
   }
@@ -414,7 +414,7 @@ void Isolate::Shutdown() {
   if (FLAG_trace_isolates) {
     Zone zone(this);
     HandleScope handle_scope(this);
-    OS::Print("Number of symbols added = %d\n", Symbols::Size(this));
+    OS::Print("Number of symbols added = %"Pd"\n", Symbols::Size(this));
     OS::Print("[-] Stopping isolate:\n"
               "\tisolate:    %s\n", name());
   }

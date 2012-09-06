@@ -349,7 +349,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     pending = next;
   }
   if (FLAG_verbose_gc) {
-    OS::PrintErr("StoreBuffer: %d, %d (entries, dups)\n",
+    OS::PrintErr("StoreBuffer: %"Pd", %"Pd" (entries, dups)\n",
                  entries, duplicates);
   }
   StoreBufferBlock* block = isolate->store_buffer_block();
@@ -368,7 +368,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   }
   block->Reset();
   if (FLAG_verbose_gc) {
-    OS::PrintErr("StoreBufferBlock: %d, %d (entries, dups)\n",
+    OS::PrintErr("StoreBufferBlock: %"Pd", %"Pd" (entries, dups)\n",
                  entries, duplicates);
   }
   // Done iterating through the store buffers.
@@ -568,7 +568,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
   Epilogue(isolate, invoke_api_callbacks);
   timer.Stop();
   if (FLAG_verbose_gc) {
-    OS::PrintErr("Scavenge[%d]: %dus\n", count_, timer.TotalElapsedTime());
+    OS::PrintErr("Scavenge[%d]: %"Pd64"us\n",
+                 count_,
+                 timer.TotalElapsedTime());
   }
 
   if (FLAG_verify_after_gc) {

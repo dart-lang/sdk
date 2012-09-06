@@ -337,7 +337,7 @@ class X86Decoder : public ValueObject {
 
 void X86Decoder::PrintInt(int value) {
   char int_buffer[16];
-  OS::SNPrint(int_buffer, sizeof(int_buffer), "0x%x", value);
+  OS::SNPrint(int_buffer, sizeof(int_buffer), "%#x", value);
   Print(int_buffer);
 }
 
@@ -345,7 +345,7 @@ void X86Decoder::PrintInt(int value) {
 // Append the int value (printed in hex) to the output buffer.
 void X86Decoder::PrintHex(int value) {
   char hex_buffer[16];
-  OS::SNPrint(hex_buffer, sizeof(hex_buffer), "0x%x", value);
+  OS::SNPrint(hex_buffer, sizeof(hex_buffer), "%#x", value);
   Print(hex_buffer);
 }
 
@@ -418,7 +418,7 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 void X86Decoder::PrintAddress(uword addr) {
   NoGCScope no_gc;
   char addr_buffer[32];
-  OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%p", addr);
+  OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#"Px"", addr);
   Print(addr_buffer);
   // Try to print as heap object or stub name
   if (!Isolate::Current()->heap()->CodeContains(addr) &&
@@ -1580,7 +1580,7 @@ int X86Decoder::InstructionDecode(uword pc) {
         break;
 
       default:
-        OS::Print("Unknown case 0x%x\n", *data);
+        OS::Print("Unknown case %#x\n", *data);
         UNIMPLEMENTED();
     }
   }

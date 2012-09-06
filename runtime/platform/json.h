@@ -116,7 +116,7 @@ class TextBuffer : ValueObject {
   explicit TextBuffer(intptr_t buf_size);
   ~TextBuffer();
 
-  intptr_t Printf(const char* format, ...);
+  intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void AddChar(char ch);
   void AddUTF8(uint32_t ch);
   void AddEscapedChar(uint32_t ch);

@@ -50,7 +50,7 @@ class TraceParser : public ValueObject {
         intptr_t line, column;
         script.GetTokenLocation(token_pos, &line, &column);
         PrintIndent();
-        OS::Print("%s (line %d, col %d, token %d)\n",
+        OS::Print("%s (line %"Pd", col %"Pd", token %"Pd")\n",
                   msg, line, column, token_pos);
       }
       indent_++;
@@ -346,7 +346,7 @@ Token::Kind Parser::CurrentToken() {
   if (token_kind_ == Token::kILLEGAL) {
     token_kind_ = tokens_iterator_.CurrentTokenKind();
     if (token_kind_ == Token::kERROR) {
-      ErrorMsg(TokenPos(), CurrentLiteral()->ToCString());
+      ErrorMsg(TokenPos(), "%s", CurrentLiteral()->ToCString());
     }
   }
   CompilerStats::num_token_checks++;
@@ -2744,7 +2744,7 @@ void Parser::CheckOperatorArity(const MemberDesc& member,
       (member.params.has_named_optional_parameters) ||
       (member.params.num_fixed_parameters != expected_num_parameters)) {
     // Subtract receiver when reporting number of expected arguments.
-    ErrorMsg(member.name_pos, "operator %s expects %d argument(s)",
+    ErrorMsg(member.name_pos, "operator %s expects %"Pd" argument(s)",
         member.name->ToCString(), (expected_num_parameters - 1));
   }
 }
@@ -6175,7 +6175,7 @@ void Parser::FormatMessage(const Script& script,
       script.GetTokenLocation(token_pos, &line, &column);
       msg_len += OS::SNPrint(message_buffer + msg_len,
                              message_buffer_size - msg_len,
-                             "'%s': %s: line %d pos %d: ",
+                             "'%s': %s: line %"Pd" pos %"Pd": ",
                              script_url.ToCString(),
                              message_header,
                              line,
@@ -6194,7 +6194,7 @@ void Parser::FormatMessage(const Script& script,
                                  message_buffer_size - msg_len,
                                  "\n%s\n%*s\n",
                                  script_line.ToCString(),
-                                 column,
+                                 static_cast<int>(column),
                                  "^");
         }
       }
@@ -6313,7 +6313,7 @@ void Parser::Warning(const char* format, ...) {
 
 
 void Parser::Unimplemented(const char* msg) {
-  ErrorMsg(TokenPos(), msg);
+  ErrorMsg(TokenPos(), "%s", msg);
 }
 
 
@@ -6342,11 +6342,11 @@ void Parser::UnexpectedToken() {
 
 String* Parser::ExpectClassIdentifier(const char* msg) {
   if (CurrentToken() != Token::kIDENT) {
-    ErrorMsg(msg);
+    ErrorMsg("%s", msg);
   }
   String* ident = CurrentLiteral();
   if (ident->Equals("Dynamic")) {
-    ErrorMsg(msg);
+    ErrorMsg("%s", msg);
   }
   ConsumeToken();
   return ident;
@@ -6356,7 +6356,7 @@ String* Parser::ExpectClassIdentifier(const char* msg) {
 // Check whether current token is an identifier or a built-in identifier.
 String* Parser::ExpectIdentifier(const char* msg) {
   if (!IsIdentifier()) {
-    ErrorMsg(msg);
+    ErrorMsg("%s", msg);
   }
   String* ident = CurrentLiteral();
   ConsumeToken();
@@ -6534,7 +6534,7 @@ void Parser::EnsureExpressionTemp() {
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%d", s, token_pos);
+  OS::SNPrint(name, 64, ":%s%"Pd, s, token_pos);
   LocalVariable* temp =
       new LocalVariable(token_pos,
                         String::ZoneHandle(Symbols::New(name)),
@@ -8927,7 +8927,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     return new LiteralNode(test_pos, Bool::ZoneHandle(Bool::True()));
   }
   char name[64];
-  OS::SNPrint(name, 64, "%s_%d",
+  OS::SNPrint(name, 64, "%s_%"Pd"",
               Symbols::Name(Symbols::kSavedArgDescVarPrefix),
               owner_function.token_pos());
   const String& saved_args_desc_name = String::ZoneHandle(Symbols::New(name));

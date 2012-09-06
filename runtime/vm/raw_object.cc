@@ -27,15 +27,15 @@ void RawObject::Validate(Isolate* isolate) const {
   uword tags = ptr()->tags_;
   intptr_t reserved = ReservedBits::decode(tags);
   if (reserved != 0) {
-    FATAL1("Invalid tags field encountered %#lx\n", tags);
+    FATAL1("Invalid tags field encountered %#"Px"\n", tags);
   }
   intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate->class_table()->IsValidIndex(class_id)) {
-    FATAL1("Invalid class id encountered %d\n", class_id);
+    FATAL1("Invalid class id encountered %"Pd"\n", class_id);
   }
   intptr_t size = SizeTag::decode(tags);
   if (size != 0 && size != SizeFromClass()) {
-    FATAL1("Inconsistent class size encountered %d\n", size);
+    FATAL1("Inconsistent class size encountered %"Pd"\n", size);
   }
 }
 
@@ -288,7 +288,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         break;
       }
       default:
-        OS::Print("Class Id: %d\n", class_id);
+        OS::Print("Class Id: %"Pd"\n", class_id);
         UNREACHABLE();
         break;
     }

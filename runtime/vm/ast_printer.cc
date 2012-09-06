@@ -30,7 +30,7 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node_sequence) {
   // CodeGeneratorContext.
   ASSERT(node_sequence != NULL);
   for (int i = 0; i < node_sequence->length(); i++) {
-    OS::Print("scope 0x%x: ",
+    OS::Print("scope %p: ",
               node_sequence->scope());
     node_sequence->NodeAt(i)->Visit(this);
     OS::Print("\n");
@@ -50,7 +50,7 @@ void AstPrinter::VisitArgumentListNode(ArgumentListNode* arguments) {
 
 void AstPrinter::VisitArgumentDefinitionTestNode(
     ArgumentDefinitionTestNode* node) {
-  OS::Print("(%s ?%s @%d)",
+  OS::Print("(%s ?%s @%"Pd")",
             node->Name(),
             node->formal_parameter_name().ToCString(),
             node->formal_parameter_index());
@@ -244,7 +244,7 @@ void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
 
 
 void AstPrinter::VisitJumpNode(JumpNode* node) {
-  OS::Print("(%s %s in scope 0x%x)",
+  OS::Print("(%s %s in scope %p)",
             node->Name(),
             node->label()->name().ToCString(),
             node->label()->owner());
@@ -405,11 +405,13 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
     } else if (var->owner()->function_level() != 0) {
       OS::Print(" lev %d", var->owner()->function_level());
     }
-    OS::Print(" valid %d-%d)", var->token_pos(), scope->end_token_pos());
+    OS::Print(" valid %"Pd"-%"Pd")",
+              var->token_pos(),
+              scope->end_token_pos());
   }
   const LocalScope* child = scope->child();
   while (child != NULL) {
-    OS::Print("{scope 0x%x ", child);
+    OS::Print("{scope %p ", child);
     if (child->HasContextLevel()) {
       OS::Print("ctx %d numctxvar %d ",
                 child->context_level(),
@@ -433,7 +435,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   const LocalScope* scope = node_sequence->scope();
   ASSERT(scope != NULL);
   const char* function_name = function.ToFullyQualifiedCString();
-  OS::Print("Scope for function '%s' {scope 0x%x ", function_name, scope);
+  OS::Print("Scope for function '%s' {scope %p ", function_name, scope);
   if (scope->HasContextLevel()) {
     OS::Print("ctx %d numctxvar %d ",
               scope->context_level(),
@@ -465,7 +467,9 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
         OS::Print(" ctx %d", param->owner()->context_level());
       }
     }
-    OS::Print(" valid %d-%d)", param->token_pos(), scope->end_token_pos());
+    OS::Print(" valid %"Pd"-%"Pd")",
+              param->token_pos(),
+              scope->end_token_pos());
     pos++;
   }
   // Visit remaining non-parameter variables and children scopes.

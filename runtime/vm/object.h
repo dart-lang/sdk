@@ -3540,7 +3540,8 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
-  static RawString* NewFormatted(const char* format, ...);
+  static RawString* NewFormatted(const char* format, ...)
+      PRINTF_ATTRIBUTE(1, 2);
 
  protected:
   bool HasHash() const {

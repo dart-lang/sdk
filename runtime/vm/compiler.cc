@@ -109,14 +109,14 @@ static void InstallUnoptimizedCode(const Function& function) {
   // Patch entry of optimized code.
   CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
   if (FLAG_trace_compiler) {
-    OS::Print("--> patching entry 0x%x\n",
+    OS::Print("--> patching entry %#"Px"\n",
               Code::Handle(function.CurrentCode()).EntryPoint());
   }
   // Use previously compiled code.
   function.SetCode(Code::Handle(function.unoptimized_code()));
   CodePatcher::RestoreEntry(Code::Handle(function.unoptimized_code()));
   if (FLAG_trace_compiler) {
-    OS::Print("--> restoring entry at 0x%x\n",
+    OS::Print("--> restoring entry at %#"Px"\n",
               Code::Handle(function.unoptimized_code()).EntryPoint());
   }
 }
@@ -260,7 +260,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         function.SetCode(code);
         CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
         if (FLAG_trace_compiler) {
-          OS::Print("--> patching entry 0x%x\n",
+          OS::Print("--> patching entry %#"Px"\n",
                     Code::Handle(function.unoptimized_code()).EntryPoint());
         }
       } else {
@@ -310,7 +310,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
     Object& obj = Object::Handle();
     obj = *reinterpret_cast<RawObject**>(addr);
-    OS::Print(" %" PRIdPTR " : 0x%" PRIxPTR " '%s'\n",
+    OS::Print(" %d : %#"Px" '%s'\n",
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
   }
   OS::Print("}\n");
@@ -325,7 +325,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   if (deopt_info_array.Length() > 0) {
     OS::Print("DeoptInfo: {\n");
     for (intptr_t i = 0; i < deopt_info_array.Length(); i++) {
-      OS::Print("  %d: %s\n",
+      OS::Print("  %"Pd": %s\n",
           i, Object::Handle(deopt_info_array.At(i)).ToCString());
     }
     OS::Print("}\n");
@@ -335,7 +335,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   if (object_table.Length() > 0) {
     OS::Print("Object Table: {\n");
     for (intptr_t i = 0; i < object_table.Length(); i++) {
-      OS::Print("  %d: %s\n", i,
+      OS::Print("  %"Pd": %s\n", i,
           Object::Handle(object_table.At(i)).ToCString());
     }
     OS::Print("}\n");
@@ -364,20 +364,20 @@ static void DisassembleCode(const Function& function, bool optimized) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors.GetInfo(i, &var_info);
     if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
-      OS::Print("  saved CTX reg offset %" PRIdPTR "\n", var_info.index);
+      OS::Print("  saved CTX reg offset %"Pd"\n", var_info.index);
     } else {
       if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
-        OS::Print("  context level %" PRIdPTR " scope %d",
+        OS::Print("  context level %"Pd" scope %d",
                   var_info.index, var_info.scope_id);
       } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-        OS::Print("  stack var '%s' offset %" PRIdPTR,
+        OS::Print("  stack var '%s' offset %"Pd"",
                   var_name.ToCString(), var_info.index);
       } else {
         ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
-        OS::Print("  context var '%s' level %d offset %" PRIdPTR,
+        OS::Print("  context var '%s' level %d offset %"Pd"",
                   var_name.ToCString(), var_info.scope_id, var_info.index);
       }
-      OS::Print(" (valid %" PRIdPTR "-%" PRIdPTR ")\n",
+      OS::Print(" (valid %"Pd"-%"Pd")\n",
                 var_info.begin_pos, var_info.end_pos);
     }
   }
@@ -406,7 +406,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(time_compilation);
     ParsedFunction parsed_function(function);
     if (FLAG_trace_compiler) {
-      OS::Print("Compiling %sfunction: '%s' @ token %d\n",
+      OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos());
@@ -430,7 +430,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     ASSERT(success);
 
     if (FLAG_trace_compiler) {
-      OS::Print("--> '%s' entry: 0x%x\n",
+      OS::Print("--> '%s' entry: %#"Px"\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint());
     }

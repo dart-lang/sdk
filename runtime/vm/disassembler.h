@@ -47,7 +47,7 @@ class DisassembleToStdout : public DisassemblyFormatter {
                                   intptr_t human_size,
                                   uword pc);
 
-  virtual void Print(const char* format, ...);
+  virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
  private:
   DISALLOW_ALLOCATION()

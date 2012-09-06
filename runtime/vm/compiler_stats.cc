@@ -50,40 +50,40 @@ void CompilerStats::Print() {
     return;
   }
   OS::Print("==== Compiler Stats ====\n");
-  OS::Print("Number of tokens:   %ld\n", num_tokens_total);
-  OS::Print("  Literal tokens:   %ld\n", num_literal_tokens_total);
-  OS::Print("  Ident tokens:     %ld\n", num_ident_tokens_total);
-  OS::Print("Tokens consumed:    %ld  (%.2f times number of tokens)\n",
+  OS::Print("Number of tokens:   %"Pd"\n", num_tokens_total);
+  OS::Print("  Literal tokens:   %"Pd"\n", num_literal_tokens_total);
+  OS::Print("  Ident tokens:     %"Pd"\n", num_ident_tokens_total);
+  OS::Print("Tokens consumed:    %"Pd" (%.2f times number of tokens)\n",
             num_tokens_consumed,
             (1.0 * num_tokens_consumed) / num_tokens_total);
-  OS::Print("Tokens checked:     %ld  (%.2f times tokens consumed)\n",
+  OS::Print("Tokens checked:     %"Pd"  (%.2f times tokens consumed)\n",
             num_token_checks, (1.0 * num_token_checks) / num_tokens_consumed);
-  OS::Print("Token rewind:       %ld  (%ld%% of tokens checked)\n",
+  OS::Print("Token rewind:       %"Pd" (%"Pd"%% of tokens checked)\n",
             num_tokens_rewind, (100 * num_tokens_rewind) / num_token_checks);
-  OS::Print("Token lookahead:    %ld  (%ld%% of tokens checked)\n",
+  OS::Print("Token lookahead:    %"Pd" (%"Pd"%% of tokens checked)\n",
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
-  OS::Print("Source length:      %ld characters\n", src_length);
+  OS::Print("Source length:      %"Pd" characters\n", src_length);
   intptr_t scan_usecs = scanner_timer.TotalElapsedTime();
-  OS::Print("Scanner time:       %ld msecs\n",
+  OS::Print("Scanner time:       %"Pd" msecs\n",
             scan_usecs / 1000);
   intptr_t parse_usecs = parser_timer.TotalElapsedTime();
-  OS::Print("Parser time:        %ld msecs\n",
+  OS::Print("Parser time:        %"Pd" msecs\n",
             parse_usecs / 1000);
   intptr_t codegen_usecs = codegen_timer.TotalElapsedTime();
-  OS::Print("Code gen. time:     %ld msecs\n",
+  OS::Print("Code gen. time:     %"Pd" msecs\n",
             codegen_usecs / 1000);
   intptr_t graphbuilder_usecs = graphbuilder_timer.TotalElapsedTime();
-  OS::Print("  Graph builder time: %ld msecs\n", graphbuilder_usecs / 1000);
+  OS::Print("  Graph builder time: %"Pd" msecs\n", graphbuilder_usecs / 1000);
   intptr_t graphcompiler_usecs = graphcompiler_timer.TotalElapsedTime();
-  OS::Print("  Graph comp. time:   %ld msecs\n",  graphcompiler_usecs / 1000);
+  OS::Print("  Graph comp. time:   %"Pd" msecs\n", graphcompiler_usecs / 1000);
   intptr_t codefinalizer_usecs = codefinalizer_timer.TotalElapsedTime();
-  OS::Print("  Code final. time:   %ld msecs\n",  codefinalizer_usecs / 1000);
-  OS::Print("Compilation speed:  %ld tokens per msec\n",
+  OS::Print("  Code final. time:   %"Pd" msecs\n", codefinalizer_usecs / 1000);
+  OS::Print("Compilation speed:  %"Pd" tokens per msec\n",
             1000 * num_tokens_total / (parse_usecs + codegen_usecs));
-  OS::Print("Code size:          %ld KB\n",
+  OS::Print("Code size:          %"Pd" KB\n",
             code_allocated / 1024);
-  OS::Print("Code density:       %ld tokens per KB\n",
+  OS::Print("Code density:       %"Pd" tokens per KB\n",
             num_tokens_total * 1024 / code_allocated);
 }
 

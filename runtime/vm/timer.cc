@@ -26,7 +26,9 @@ TimerList::TimerList()
 
 #define TIMER_FIELD_REPORT(name, msg)                                          \
   if (name().enabled() && name().message() != NULL) {                          \
-    OS::Print("%s %ld micros.\n", name().message(), name().TotalElapsedTime());\
+    OS::Print("%s %"Pd64" micros.\n",                                          \
+              name().message(),                                                \
+              name().TotalElapsedTime());                                      \
   }
 void TimerList::ReportTimers() {
   TIMER_LIST(TIMER_FIELD_REPORT);

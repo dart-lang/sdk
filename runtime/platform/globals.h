@@ -130,6 +130,15 @@
 #endif  // defined(TARGET_OS_WINDOWS)
 
 
+// Short form printf format specifiers
+#define Pd PRIdPTR
+#define Pu PRIuPTR
+#define Px PRIxPTR
+#define Pd64 PRId64
+#define Pu64 PRIu64
+#define Px64 PRIx64
+
+
 // Suffixes for 64-bit integer literals.
 #ifdef _MSC_VER
 #define DART_INT64_C(x) x##I64
@@ -357,6 +366,23 @@ inline D bit_copy(const S& source) {
          __result = (int64_t) (expression);                                    \
        } while (__result == -1L && errno == EINTR);                            \
        __result; })
+#endif
+
+
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+//
+// Tell the compiler to do printf format string checking if the
+// compiler supports it; see the 'format' attribute in
+// <http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Attributes.html>.
+//
+// N.B.: As the GCC manual states, "[s]ince non-static C++ methods
+// have an implicit 'this' argument, the arguments of such methods
+// should be counted from two, not one."
+//
+#define PRINTF_ATTRIBUTE(string_index, first_to_check) \
+  __attribute__((__format__(__printf__, string_index, first_to_check)))
+#else
+#define PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
 #endif  // PLATFORM_GLOBALS_H_

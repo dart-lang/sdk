@@ -135,7 +135,7 @@ class Api : AllStatic {
   }
 
   // Generates a handle used to designate an error return.
-  static Dart_Handle NewError(const char* format, ...);
+  static Dart_Handle NewError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
   static Dart_Handle Null(Isolate* isolate);

@@ -146,7 +146,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     ASSERT(snapshot->kind() == Snapshot::kFull);
     if (FLAG_trace_isolates) {
-      OS::Print("Size of isolate snapshot = %ld\n", snapshot->length());
+      OS::Print("Size of isolate snapshot = %d\n", snapshot->length());
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
                           Snapshot::kFull, isolate);

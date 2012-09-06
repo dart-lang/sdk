@@ -596,7 +596,7 @@ class Assembler : public ValueObject {
   void Align(int alignment, int offset);
   void Bind(Label* label);
 
-  void Comment(const char* format, ...);
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   const Code::Comments& GetCodeComments() const;
 
   int CodeSize() const { return buffer_.Size(); }

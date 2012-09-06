@@ -18,7 +18,7 @@ class BufferFormatter : public ValueObject {
       size_(size) { }
 
   void VPrint(const char* format, va_list args);
-  void Print(const char* format, ...);
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
  private:
   intptr_t position_;
@@ -72,7 +72,7 @@ class FlowGraphVisualizer : public ValueObject {
  private:
   // Helpers for printing.
   void PrintInstruction(Instruction* instr);
-  void Print(const char* format, ...);
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;

@@ -51,7 +51,7 @@ void FlowGraphPrinter::PrintBlocks() {
     }
     if (current->next() != NULL) {
       ASSERT(current->next()->IsBlockEntry());
-      OS::Print(" goto %d", current->next()->AsBlockEntry()->block_id());
+      OS::Print(" goto %"Pd"", current->next()->AsBlockEntry()->block_id());
     }
     OS::Print("\n");
   }
@@ -69,7 +69,7 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
     instr->locs()->PrintTo(&f);
   }
   if (instr->lifetime_position() != -1) {
-    OS::Print("%3d: ", instr->lifetime_position());
+    OS::Print("%3"Pd": ", instr->lifetime_position());
   }
   OS::Print("%s", str);
 }
@@ -101,7 +101,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
 
 
 static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
-  f->Print(" IC[%d: ", ic_data.NumberOfChecks());
+  f->Print(" IC[%"Pd": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;
@@ -125,7 +125,7 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 void Definition::PrintTo(BufferFormatter* f) const {
   // Do not access 'deopt_id()' as it asserts that the computation can
   // deoptimize.
-  f->Print("%s:%d(", DebugName(), deopt_id_);
+  f->Print("%s:%"Pd"(", DebugName(), deopt_id());
   PrintOperandsTo(f);
   f->Print(")");
 }
@@ -146,9 +146,9 @@ void Definition::PrintToVisualizer(BufferFormatter* f) const {
 
 void Value::PrintTo(BufferFormatter* f) const {
   if (definition()->HasSSATemp()) {
-    f->Print("v%d", definition()->ssa_temp_index());
+    f->Print("v%"Pd"", definition()->ssa_temp_index());
   } else {
-    f->Print("t%d", definition()->temp_index());
+    f->Print("t%"Pd"", definition()->temp_index());
   }
 }
 
@@ -181,7 +181,7 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void ArgumentDefinitionTestInstr::PrintOperandsTo(BufferFormatter* f) const {
   saved_arguments_descriptor()->PrintTo(f);
-  f->Print(", ?%s @%d",
+  f->Print(", ?%s @%"Pd"",
            formal_parameter_name().ToCString(),
            formal_parameter_index());
 }
@@ -243,14 +243,14 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s lvl:%d", local().name().ToCString(), context_level());
+  f->Print("%s lvl:%"Pd"", local().name().ToCString(), context_level());
 }
 
 
 void StoreLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", local().name().ToCString());
   value()->PrintTo(f);
-  f->Print(", lvl: %d", context_level());
+  f->Print(", lvl: %"Pd"", context_level());
 }
 
 
@@ -349,13 +349,13 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void LoadVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %d", offset_in_bytes());
+  f->Print(", %"Pd"", offset_in_bytes());
 }
 
 
 void StoreVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   dest()->PrintTo(f);
-  f->Print(", %d, ", offset_in_bytes());
+  f->Print(", %"Pd", ", offset_in_bytes());
   value()->PrintTo(f);
 }
 
@@ -376,7 +376,7 @@ void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
 
 
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%d", num_context_variables());
+  f->Print("%"Pd"", num_context_variables());
 }
 
 
@@ -424,13 +424,13 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%2d: [graph]", block_id());
+  f->Print("%2"Pd": [graph]", block_id());
   if (start_env_ != NULL) {
     f->Print("\n{\n");
     const GrowableArray<Value*>& values = start_env_->values();
     for (intptr_t i = 0; i < values.length(); i++) {
       Definition* def = values[i]->definition();
-      f->Print("  ", i);
+      f->Print("  ");
       def->PrintTo(f);
       f->Print("\n");
     }
@@ -441,7 +441,7 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%2d: [join]", block_id());
+  f->Print("%2"Pd": [join]", block_id());
   if (phis_ != NULL) {
     for (intptr_t i = 0; i < phis_->length(); ++i) {
       if ((*phis_)[i] == NULL) continue;
@@ -471,7 +471,7 @@ static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    v%d <- phi(", ssa_temp_index());
+  f->Print("    v%"Pd" <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");
@@ -482,7 +482,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParameterInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    v%d <- parameter(%d)",
+  f->Print("    v%"Pd" <- parameter(%"Pd")",
            HasSSATemp() ? ssa_temp_index() : temp_index(),
            index());
   PrintPropagatedType(f, *this);
@@ -490,9 +490,9 @@ void ParameterInstr::PrintTo(BufferFormatter* f) const {
 
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%2d: [target", block_id());
+  f->Print("%2"Pd": [target", block_id());
   if (IsCatchEntry()) {
-    f->Print(" catch %d]", catch_try_index());
+    f->Print(" catch %"Pd"]", catch_try_index());
   } else {
     f->Print("]");
   }
@@ -510,7 +510,7 @@ void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), deopt_id());
+  f->Print("    %s:%"Pd" ", DebugName(), deopt_id());
   value()->PrintTo(f);
 }
 
@@ -531,7 +531,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
   } else {
     f->Print("    ");
   }
-  f->Print(" goto %d", successor()->block_id());
+  f->Print(" goto %"Pd"", successor()->block_id());
 }
 
 
@@ -540,7 +540,7 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("if ");
   comparison()->PrintTo(f);
 
-  f->Print(" goto (%d, %d)",
+  f->Print(" goto (%"Pd", %"Pd")",
             true_successor()->block_id(),
             false_successor()->block_id());
 }
@@ -560,7 +560,7 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
 void FlowGraphVisualizer::Print(const char* format, ...) {
   char str[1000];
   BufferFormatter f(str, sizeof(str));
-  f.Print("%*s", 2 * indent_, "");
+  f.Print("%*s", static_cast<int>(2 * indent_), "");
   va_list args;
   va_start(args, format);
   f.VPrint(format, args);
@@ -605,14 +605,14 @@ void FlowGraphVisualizer::PrintFunction() {
     for (intptr_t i = 0; i < block_order_.length(); ++i) {
       BEGIN("block");
       BlockEntryInstr* entry = block_order_[i];
-      Print("%s \"B%d\"\n", "name", entry->block_id());
+      Print("%s \"B%"Pd"\"\n", "name", entry->block_id());
       Print("%s %d\n", "from_bci", -1);  // Required field. Unused.
       Print("%s %d\n", "to_bci", -1);  // Required field. Unused.
 
       Print("predecessors");
       for (intptr_t j = 0; j < entry->PredecessorCount(); ++j) {
         BlockEntryInstr* pred = entry->PredecessorAt(j);
-        Print(" \"B%d\"", pred->block_id());
+        Print(" \"B%"Pd"\"", pred->block_id());
       }
       Print("\n");
 
@@ -620,7 +620,7 @@ void FlowGraphVisualizer::PrintFunction() {
       Instruction* last = entry->last_instruction();
       for (intptr_t j = 0; j < last->SuccessorCount(); ++j) {
         intptr_t next_id = last->SuccessorAt(j)->block_id();
-        Print(" \"B%d\"", next_id);
+        Print(" \"B%"Pd"\"", next_id);
       }
       Print("\n");
 
@@ -631,7 +631,7 @@ void FlowGraphVisualizer::PrintFunction() {
       Print("flags\n");
 
       if (entry->dominator() != NULL) {
-        Print("%s \"B%d\"\n", "dominator", entry->dominator()->block_id());
+        Print("%s \"B%"Pd"\"\n", "dominator", entry->dominator()->block_id());
       }
 
       // TODO(fschneider): Mark blocks with loop nesting level.
@@ -645,11 +645,11 @@ void FlowGraphVisualizer::PrintFunction() {
           intptr_t num_phis = (join != NULL && join->phi_count())
               ? join->phis()->length()
               : 0;
-          Print("%s %d\n", "size", num_phis);
+          Print("%s %"Pd"\n", "size", num_phis);
           for (intptr_t j = 0; j < num_phis; ++j) {
             PhiInstr* phi = (*join->phis())[j];
             if (phi != NULL) {
-              Print("%d ", j);  // Print variable index.
+              Print("%"Pd" ", j);  // Print variable index.
               char buffer[120];
               BufferFormatter formatter(buffer, sizeof(buffer));
               phi->PrintToVisualizer(&formatter);
@@ -676,7 +676,7 @@ void FlowGraphVisualizer::PrintFunction() {
         }
         if (current->next() != NULL) {
           ASSERT(current->next()->IsBlockEntry());
-          Print("0 0 _ Goto B%d <|@\n",
+          Print("0 0 _ Goto B%"Pd" <|@\n",
                 current->next()->AsBlockEntry()->block_id());
         }
         END("HIR");
@@ -707,7 +707,7 @@ void JoinEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("v%d [", ssa_temp_index());
+  f->Print("v%"Pd" [", ssa_temp_index());
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(" ");
     InputAt(i)->PrintTo(f);
@@ -719,14 +719,14 @@ void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
 void ParameterInstr::PrintToVisualizer(BufferFormatter* f) const {
   ASSERT(HasSSATemp());
   ASSERT(temp_index() == -1);
-  f->Print("v%d Parameter(%d)", ssa_temp_index(), index());
+  f->Print("v%"Pd" Parameter(%"Pd")", ssa_temp_index(), index());
 }
 
 
 void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ [target");
   if (IsCatchEntry()) {
-    f->Print(" catch %d]", catch_try_index());
+    f->Print(" catch %"Pd"]", catch_try_index());
   } else {
     f->Print("]");
   }
@@ -740,7 +740,7 @@ void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), deopt_id());
+  f->Print("_ %s:%"Pd" ", DebugName(), deopt_id());
   value()->PrintTo(f);
 }
 
@@ -756,7 +756,7 @@ void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ goto B%d", successor()->block_id());
+  f->Print("_ goto B%"Pd"", successor()->block_id());
 }
 
 
@@ -764,7 +764,7 @@ void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
   comparison()->PrintTo(f);
-  f->Print(" goto (B%d, B%d)",
+  f->Print(" goto (B%"Pd", B%"Pd")",
             true_successor()->block_id(),
             false_successor()->block_id());
 }

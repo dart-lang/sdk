@@ -55,9 +55,10 @@ class DeoptStackSlotInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kCopyStackSlot; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "s%d", stack_slot_index_);
+    const char* format = "s%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, stack_slot_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "s%d", stack_slot_index_);
+    OS::SNPrint(chars, len + 1, format, stack_slot_index_);
     return chars;
   }
 
@@ -87,9 +88,10 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kCopyDoubleStackSlot; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "ds%d", stack_slot_index_);
+    const char* format = "ds%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, stack_slot_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "ds%d", stack_slot_index_);
+    OS::SNPrint(chars, len + 1, format, stack_slot_index_);
     return chars;
   }
 
@@ -125,9 +127,10 @@ class DeoptRetAddrAfterInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kSetRetAfterAddress; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "ret aft oti:%d", object_table_index_);
+    const char* format = "ret aft oti:%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, object_table_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "ret aft oti:%d", object_table_index_);
+    OS::SNPrint(chars, len + 1, format, object_table_index_);
     return chars;
   }
 
@@ -165,9 +168,10 @@ class DeoptRetAddrBeforeInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kSetRetBeforeAddress; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "ret bef oti:%d", object_table_index_);
+    const char* format = "ret bef oti:%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, object_table_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "ret bef oti:%d", object_table_index_);
+    OS::SNPrint(chars, len + 1, format, object_table_index_);
     return chars;
   }
 
@@ -203,9 +207,10 @@ class DeoptConstantInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kCopyConstant; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "const oti:%d", object_table_index_);
+    const char* format = "const oti:%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, object_table_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "const oti:%d", object_table_index_);
+    OS::SNPrint(chars, len + 1, format, object_table_index_);
     return chars;
   }
 
@@ -291,9 +296,10 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   virtual DeoptInstr::Kind kind() const { return kSetPcMarker; }
 
   virtual const char* ToCString() const {
-    intptr_t len = OS::SNPrint(NULL, 0, "pcmark oti:%d", object_table_index_);
+    const char* format = "pcmark oti:%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, object_table_index_);
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, "pcmark oti:%d", object_table_index_);
+    OS::SNPrint(chars, len + 1, format, object_table_index_);
     return chars;
   }
 

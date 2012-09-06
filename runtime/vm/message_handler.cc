@@ -95,9 +95,9 @@ void MessageHandler::PostMessage(Message* message) {
     }
     OS::Print("[>] Posting message:\n"
               "\tsource:     %s\n"
-              "\treply_port: %lld\n"
+              "\treply_port: %"Pd64"\n"
               "\tdest:       %s\n"
-              "\tdest_port:  %lld\n",
+              "\tdest_port:  %"Pd64"\n",
               source_name, message->reply_port(), name(), message->dest_port());
   }
 
@@ -141,7 +141,7 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
     if (FLAG_trace_isolates) {
       OS::Print("[<] Handling message:\n"
                 "\thandler:    %s\n"
-                "\tport:       %lld\n",
+                "\tport:       %"Pd64"\n",
                 name(), message->dest_port());
     }
 
@@ -235,7 +235,7 @@ void MessageHandler::ClosePort(Dart_Port port) {
   if (FLAG_trace_isolates) {
     OS::Print("[-] Closing port:\n"
               "\thandler:    %s\n"
-              "\tport:       %d\n",
+              "\tport:       %"Pd64"\n",
               name(), port);
   }
   queue_->Flush(port);

@@ -162,7 +162,8 @@ void FreeList::Print() const {
     total_length += length;
     intptr_t size = length * i * kObjectAlignment;
     total_size += size;
-    OS::Print("%*d %*d %*d\n", 10, i * kObjectAlignment, 10, length, 10, size);
+    OS::Print("%*d %*"Pd" %*"Pd"\n",
+              10, i * kObjectAlignment, 10, length, 10, size);
   }
   OS::Print("--------------------------------\n");
   OS::Print("%*d %*d %*d\n", 10, total_index, 10, total_length, 10, total_size);

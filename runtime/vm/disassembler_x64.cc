@@ -373,7 +373,7 @@ class DisassemblerX64 : public ValueObject {
     return xmm_regs[reg];
   }
 
-  void AppendToBuffer(const char* format, ...);
+  void AppendToBuffer(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void AppendAddressToBuffer(uint8_t* addr);
 
   int PrintOperands(const char* mnem,
@@ -446,7 +446,7 @@ int DisassemblerX64::PrintRightOperandHelper(
     case 0:
       if ((rm & 7) == 5) {
         int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 1);
-        AppendToBuffer("[0x%x]", disp);
+        AppendToBuffer("[%#x]", disp);
         return 5;
       } else if ((rm & 7) == 4) {
         // Codes for SIB byte.
@@ -461,7 +461,7 @@ int DisassemblerX64::PrintRightOperandHelper(
         } else if (base == 5) {
           // base == rbp means no base register (when mod == 0).
           int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 2);
-          AppendToBuffer("[%s*%d+0x%x]",
+          AppendToBuffer("[%s*%d+%#x]",
                          NameOfCPURegister(index),
                          1 << scale, disp);
           return 6;
@@ -491,19 +491,19 @@ int DisassemblerX64::PrintRightOperandHelper(
                               : *reinterpret_cast<char*>(modrmp + 2);
         if (index == 4 && (base & 7) == 4 && scale == 0 /*times_1*/) {
           if (-disp > 0) {
-            AppendToBuffer("[%s-0x%x]", NameOfCPURegister(base), -disp);
+            AppendToBuffer("[%s-%#x]", NameOfCPURegister(base), -disp);
           } else {
-            AppendToBuffer("[%s+0x%x]", NameOfCPURegister(base), disp);
+            AppendToBuffer("[%s+%#x]", NameOfCPURegister(base), disp);
           }
         } else {
           if (-disp > 0) {
-            AppendToBuffer("[%s+%s*%d-0x%x]",
+            AppendToBuffer("[%s+%s*%d-%#x]",
                            NameOfCPURegister(base),
                            NameOfCPURegister(index),
                            1 << scale,
                            -disp);
           } else {
-            AppendToBuffer("[%s+%s*%d+0x%x]",
+            AppendToBuffer("[%s+%s*%d+%#x]",
                            NameOfCPURegister(base),
                            NameOfCPURegister(index),
                            1 << scale,
@@ -516,9 +516,9 @@ int DisassemblerX64::PrintRightOperandHelper(
         int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 1)
                               : *reinterpret_cast<char*>(modrmp + 1);
         if (-disp > 0) {
-        AppendToBuffer("[%s-0x%x]", NameOfCPURegister(rm), -disp);
+        AppendToBuffer("[%s-%#x]", NameOfCPURegister(rm), -disp);
         } else {
-        AppendToBuffer("[%s+0x%x]", NameOfCPURegister(rm), disp);
+        AppendToBuffer("[%s+%#x]", NameOfCPURegister(rm), disp);
         }
         return (mod == 2) ? 5 : 2;
       }
@@ -559,7 +559,7 @@ int DisassemblerX64::PrintImmediate(uint8_t* data, OperandSize size) {
       value = 0;  // Initialize variables on all paths to satisfy the compiler.
       count = 0;
   }
-  AppendToBuffer("%"PRIxPTR, value);
+  AppendToBuffer("%#"Px"", value);
   return count;
 }
 
@@ -797,7 +797,7 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
   NoGCScope no_gc;
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
-  AppendToBuffer("0x%0"PRIxPTR, addr);
+  AppendToBuffer("%#"Px"", addr);
   // Try to print as heap object or stub name
   if (!Isolate::Current()->heap()->CodeContains(addr) &&
       Isolate::Current()->heap()->Contains(addr - kHeapObjectTag)) {
@@ -811,7 +811,7 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
       while (i < len) {
         obj = arr.At(i);
         if (i > 0) AppendToBuffer(", ");
-        AppendToBuffer(ObjectToCStringNoGC(obj));
+        AppendToBuffer("%s", ObjectToCStringNoGC(obj));
         i++;
       }
       if (i < arr.Length()) AppendToBuffer(", ...");
@@ -1100,7 +1100,7 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
         // if (rex_w()) AppendToBuffer("REX.W ");
         AppendToBuffer("%s%c", idesc.mnem, operand_size_code());
       } else {
-        AppendToBuffer("%s", idesc.mnem, operand_size_code());
+        AppendToBuffer("%s%c", idesc.mnem, operand_size_code());
       }
       (*data)++;
       break;
@@ -1496,7 +1496,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
   if (!processed) {
     switch (*data) {
       case 0xC2:
-        AppendToBuffer("ret 0x%x", *reinterpret_cast<uint16_t*>(data + 1));
+        AppendToBuffer("ret %#x", *reinterpret_cast<uint16_t*>(data + 1));
         data += 3;
         break;
 
@@ -1506,7 +1506,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         get_modrm(*(data + 1), &mod, &regop, &rm);
         int32_t imm = *data == 0x6B ? *(data + 2)
             : *reinterpret_cast<int32_t*>(data + 2);
-        AppendToBuffer("imul%c %s,%s,0x%x",
+        AppendToBuffer("imul%c %s,%s,%#x",
                        operand_size_code(),
                        NameOfCPURegister(regop),
                        NameOfCPURegister(rm), imm);
@@ -1574,13 +1574,13 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           AppendToBuffer("movb ");
           data += PrintRightByteOperand(data);
           int32_t imm = *data;
-          AppendToBuffer(",0x%x", imm);
+          AppendToBuffer(",%#x", imm);
           data++;
         } else {
           AppendToBuffer("mov%c ", operand_size_code());
           data += PrintRightOperand(data);
           int32_t imm = *reinterpret_cast<int32_t*>(data);
-          AppendToBuffer(",0x%x", imm);
+          AppendToBuffer(",%#x", imm);
           data += 4;
         }
       }
@@ -1591,7 +1591,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         AppendToBuffer("cmpb ");
         data += PrintRightByteOperand(data);
         int32_t imm = *data;
-        AppendToBuffer(",0x%x", imm);
+        AppendToBuffer(",%#x", imm);
         data++;
       }
         break;
@@ -1680,12 +1680,12 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         break;
       }
       case 0x68:
-        AppendToBuffer("push 0x%x", *reinterpret_cast<int32_t*>(data + 1));
+        AppendToBuffer("push %#x", *reinterpret_cast<int32_t*>(data + 1));
         data += 5;
         break;
 
       case 0x6A:
-        AppendToBuffer("push 0x%x", *reinterpret_cast<int8_t*>(data + 1));
+        AppendToBuffer("push %#x", *reinterpret_cast<int8_t*>(data + 1));
         data += 2;
         break;
 
@@ -1733,7 +1733,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         break;
 
       case 0xA8:
-        AppendToBuffer("test al,0x%x", *reinterpret_cast<uint8_t*>(data + 1));
+        AppendToBuffer("test al,%#x", *reinterpret_cast<uint8_t*>(data + 1));
         data += 2;
         break;
 
@@ -1755,7 +1755,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           default:
             UNREACHABLE();
         }
-        AppendToBuffer("test%c rax,0x%0"PRIxPTR,
+        AppendToBuffer("test%c rax,%#"Px"",
                        operand_size_code(),
                        value);
         break;

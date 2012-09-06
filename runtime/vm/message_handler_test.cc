@@ -50,9 +50,13 @@ class TestMessageHandler : public MessageHandler {
     // For testing purposes, keep a string with a list of the ports
     // for all messages we receive.
     intptr_t len =
-        OS::SNPrint(NULL, 0, "%s %d", port_buffer_, message->dest_port()) + 1;
+        OS::SNPrint(NULL, 0, "%s %"Pd64"",
+                    port_buffer_,
+                    message->dest_port()) + 1;
     char* buffer = reinterpret_cast<char*>(malloc(len));
-    OS::SNPrint(buffer, len, "%s %d", port_buffer_, message->dest_port());
+    OS::SNPrint(buffer, len, "%s %"Pd64"",
+                port_buffer_,
+                message->dest_port());
     free(port_buffer_);
     port_buffer_ = buffer;
     delete message;

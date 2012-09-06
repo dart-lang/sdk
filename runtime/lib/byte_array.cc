@@ -21,7 +21,7 @@ static void RangeCheck(const ByteArray& array,
                        intptr_t num_bytes) {
   if (!Utils::RangeCheck(index, num_bytes, array.ByteLength())) {
     const String& error = String::Handle(String::NewFormatted(
-        "index (%ld) must be in the range [0..%ld)",
+        "index (%"Pd") must be in the range [0..%"Pd")",
         index, (array.ByteLength() / num_bytes)));
     GrowableArray<const Object*> args;
     args.Add(&error);
@@ -35,7 +35,7 @@ static void RangeCheck(const ByteArray& array,
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
     const String& error = String::Handle(String::NewFormatted(
-        "length (%ld) must be in the range [0..%ld]", len, max));
+        "length (%"Pd") must be in the range [0..%"Pd"]", len, max));
     GrowableArray<const Object*> args;
     args.Add(&error);
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
@@ -263,7 +263,7 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
   intptr_t dst_start_value = dst_start.Value();
   if (length_value < 0) {
     const String& error = String::Handle(String::NewFormatted(
-        "length (%ld) must be non-negative", length_value));
+        "length (%"Pd") must be non-negative", length_value));
     GrowableArray<const Object*> args;
     args.Add(&error);
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);

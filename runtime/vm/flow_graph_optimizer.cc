@@ -38,12 +38,12 @@ void FlowGraphOptimizer::OptimizeComputations() {
           if (result != NULL) {
             defn->ReplaceUsesWith(result);
             if (FLAG_trace_optimization) {
-              OS::Print("Replacing v%d with v%d\n",
+              OS::Print("Replacing v%"Pd" with v%"Pd"\n",
                         defn->ssa_temp_index(),
                         result->ssa_temp_index());
             }
           } else if (FLAG_trace_optimization) {
-              OS::Print("Removing v%d.\n", defn->ssa_temp_index());
+              OS::Print("Removing v%"Pd".\n", defn->ssa_temp_index());
           }
           it.RemoveCurrentFromGraph();
         }
@@ -917,7 +917,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
     ASSERT(current_iterator()->Current() == instr);
     current_iterator()->RemoveCurrentFromGraph();
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%d with v%d\n",
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
                 instr->ssa_temp_index(),
                 result->ssa_temp_index());
     }
@@ -958,7 +958,7 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
     ASSERT(current_iterator()->Current() == instr);
     current_iterator()->RemoveCurrentFromGraph();
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%d with v%d\n",
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
                 instr->ssa_temp_index(),
                 result->ssa_temp_index());
     }
@@ -997,7 +997,7 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     ASSERT(current_iterator()->Current() == instr);
     current_iterator()->RemoveCurrentFromGraph();
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%d with v%d\n",
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
                 instr->ssa_temp_index(),
                 result->ssa_temp_index());
     }
@@ -1167,7 +1167,7 @@ void DominatorBasedCSE::OptimizeRecursive(
     defn->ReplaceUsesWith(result);
     it.RemoveCurrentFromGraph();
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%d with v%d\n",
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
                 defn->ssa_temp_index(),
                 result->ssa_temp_index());
     }

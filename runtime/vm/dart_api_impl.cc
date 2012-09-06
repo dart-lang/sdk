@@ -73,7 +73,7 @@ const char* CanonicalFunction(const char* func) {
     intptr_t max = (max_elements);                                             \
     if (len < 0 || len > max) {                                                \
       return Api::NewError(                                                    \
-          "%s expects argument '%s' to be in the range [0..%ld].",             \
+          "%s expects argument '%s' to be in the range [0..%"Pd"].",           \
           CURRENT_FUNC, #length, max);                                         \
     }                                                                          \
   } while (0)
@@ -841,7 +841,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   }
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle(isolate));
@@ -865,7 +865,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   }
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());
@@ -1187,7 +1187,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   // Finalize all classes.
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
   if (obj.IsInstance()) {
     const Type& type = Type::Handle(isolate,
@@ -2480,7 +2480,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz) {
   // Finalize all classes.
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
 
   if (cls.HasFactoryClass() && cls.HasResolvedFactoryClass()) {
@@ -2521,7 +2521,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
   // Finalize all classes.
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
 
   const Array& interface_types = Array::Handle(isolate, cls.interfaces());
@@ -3060,7 +3060,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   }
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
 
   // Check for interfaces with default implementations.
@@ -3215,7 +3215,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // Finalize all classes.
     const char* msg = CheckIsolateState(isolate);
     if (msg != NULL) {
-      return Api::NewError(msg);
+      return Api::NewError("%s", msg);
     }
 
     const Class& cls = Class::Cast(obj);
@@ -3254,7 +3254,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     if (finalize_classes) {
       const char* msg = CheckIsolateState(isolate);
       if (msg != NULL) {
-        return Api::NewError(msg);
+        return Api::NewError("%s", msg);
       }
     }
 
@@ -3347,7 +3347,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // Finalize all classes.
     const char* msg = CheckIsolateState(isolate);
     if (msg != NULL) {
-      return Api::NewError(msg);
+      return Api::NewError("%s", msg);
     }
     // To access a static field we may need to use the Field or the
     // getter Function.
@@ -3904,7 +3904,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   Dart_Handle result;
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::NewError(msg);
+    return Api::NewError("%s", msg);
   }
   CompileAll(isolate, &result);
   return result;
@@ -4055,7 +4055,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     isolate->object_store()->set_builtin_library(library);
     const char* msg = CheckIsolateState(isolate);
     if (msg != NULL) {
-      return Api::NewError(msg);
+      return Api::NewError("%s", msg);
     }
   }
   return result;

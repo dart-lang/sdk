@@ -871,7 +871,8 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
 
     bpt = new CodeBreakpoint(func, best_fit_index);
     if (FLAG_verbose_debug) {
-      OS::Print("Setting breakpoint in function '%s' (%s:%d) (PC %p)\n",
+      OS::Print("Setting breakpoint in function '%s' "
+                "(%s:%"Pd") (PC %#"Px")\n",
                 String::Handle(func.name()).ToCString(),
                 String::Handle(bpt->SourceUrl()).ToCString(),
                 bpt->LineNumber(),
@@ -923,7 +924,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
   RegisterSourceBreakpoint(bpt);
   if (FLAG_verbose_debug && !target_function.HasCode()) {
     OS::Print("Registering breakpoint for "
-              "uncompiled function '%s' at line %d\n",
+              "uncompiled function '%s' at line %"Pd"\n",
               target_function.ToFullyQualifiedCString(),
               bpt->LineNumber());
   }
@@ -934,7 +935,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     SignalBpResolved(bpt);
   } else {
     if (FLAG_verbose_debug) {
-      OS::Print("Failed to set breakpoint at '%s' line %d\n",
+      OS::Print("Failed to set breakpoint at '%s' line %"Pd"\n",
                 String::Handle(bpt->SourceUrl()).ToCString(),
                 bpt->LineNumber());
     }
@@ -995,7 +996,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   if (first_token_idx < 0) {
     // Script does not contain the given line number.
     if (FLAG_verbose_debug) {
-      OS::Print("Script '%s' does not contain line number %d\n",
+      OS::Print("Script '%s' does not contain line number %"Pd"\n",
                 script_url.ToCString(), line_number);
     }
     return NULL;
@@ -1004,7 +1005,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
       Function::Handle(lib.LookupFunctionInScript(script, first_token_idx));
   if (func.IsNull()) {
     if (FLAG_verbose_debug) {
-      OS::Print("No executable code at line %d in '%s'\n",
+      OS::Print("No executable code at line %"Pd" in '%s'\n",
                 line_number, script_url.ToCString());
     }
     return NULL;
@@ -1239,13 +1240,13 @@ static void DefaultBreakpointHandler(SourceBreakpoint* bpt,
   Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < stack->Length(); i++) {
     ActivationFrame* frame = stack->ActivationFrameAt(i);
-    OS::Print("   %d. %s\n",
+    OS::Print("   %"Pd". %s\n",
               i + 1, frame->ToCString());
     intptr_t num_locals = frame->NumLocalVariables();
     for (intptr_t i = 0; i < num_locals; i++) {
       intptr_t token_pos, end_pos;
       frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
-      OS::Print("      var %s (pos %d) = %s\n",
+      OS::Print("      var %s (pos %"Pd") = %s\n",
                 var_name.ToCString(), token_pos, value.ToCString());
     }
   }
@@ -1289,7 +1290,7 @@ void Debugger::SignalBpReached() {
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit %s breakpoint at %s:%d (Address %p)\n",
+    OS::Print(">>> hit %s breakpoint at %s:%"Pd" (Address %#"Px")\n",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
               bpt->LineNumber(),

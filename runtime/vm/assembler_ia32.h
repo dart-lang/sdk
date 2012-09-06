@@ -580,7 +580,7 @@ class Assembler : public ValueObject {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
 
-  void Comment(const char* format, ...);
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);

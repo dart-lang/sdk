@@ -4112,7 +4112,7 @@ static void BuildFunctionDescription(TextBuffer* buffer, Dart_Handle func) {
   EXPECT_VALID(Dart_FunctionParameterCounts(func,
     &fixed_param_count, &opt_param_count));
 
-  buffer->Printf("%s %lld %lld",
+  buffer->Printf("%s %"Pd64" %"Pd64"",
     name_cstr,
     fixed_param_count,
     opt_param_count);
