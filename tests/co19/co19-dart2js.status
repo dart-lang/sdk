@@ -223,7 +223,6 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail, OK
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
-LibTest/core/BadNumberFormatException/*: Fail
 LibTest/core/double/toInt_A01_t03: Fail
 LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
@@ -239,9 +238,7 @@ LibTest/core/Clock/now_A01_t01: Fail, OK
 
 # Tests that fail because they use the legacy try-catch syntax.
 # See co19 issue 184.
-Language/03_Overview/1_Scoping_A02_t27: Fail, OK
 Language/03_Overview/1_Scoping_A02_t30: Fail, OK
-Language/03_Overview/1_Scoping_A02_t31: Fail, OK
 Language/03_Overview/2_Privacy_A01_t08: Fail, OK
 Language/03_Overview/2_Privacy_A01_t21: Fail, OK
 Language/06_Functions/06_Functions_A01_t04: Fail, OK
@@ -285,18 +282,7 @@ Language/08_Interfaces/1_Methods_A02_t02: Fail, OK
 Language/08_Interfaces/1_Methods_A02_t03: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A04_t03: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail, OK
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail, OK
-Language/08_Interfaces/4_Superinterfaces_A03_t02: Fail, OK
 Language/09_Generics/09_Generics_A03_t01: Fail, OK
 Language/09_Generics/09_Generics_A04_t05: Fail, OK
 Language/09_Generics/09_Generics_A04_t06: Fail, OK
@@ -329,15 +315,6 @@ Language/10_Expressions/07_Maps_A10_t05: Fail, OK
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail, OK
 Language/10_Expressions/08_Function_Expressions_A03_t03: Fail, OK
 Language/10_Expressions/08_Function_Expressions_A03_t04: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A03_t05: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A03_t06: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A03_t07: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A04_t02: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A04_t03: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A04_t04: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A04_t05: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A04_t06: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A04_t07: Fail, OK
 Language/10_Expressions/08_Function_Expressions_A05_t02: Fail, OK
 Language/10_Expressions/08_Function_Expressions_A05_t03: Fail, OK
 Language/10_Expressions/08_Function_Expressions_A05_t04: Fail, OK
@@ -448,7 +425,6 @@ Language/11_Statements/07_Do_A02_t03: Fail, OK
 Language/11_Statements/07_Do_A03_t01: Fail, OK
 Language/11_Statements/07_Do_A03_t02: Fail, OK
 Language/11_Statements/07_Do_A03_t03: Fail, OK
-Language/11_Statements/08_Switch_A01_t02: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
@@ -526,7 +502,6 @@ LibTest/core/Date/Date_A01_t02: Fail, OK
 LibTest/core/Date/Date.fromString_A02_t01: Fail, OK
 LibTest/core/Date/difference_A02_t01: Fail, OK
 LibTest/core/Date/subtract_A05_t01: Fail, OK
-LibTest/core/Date/value_A01_t01: Fail, OK
 LibTest/core/double/operator_addition_A02_t01: Fail, OK
 LibTest/core/double/operator_division_A02_t01: Fail, OK
 LibTest/core/double/operator_GE_A02_t01: Fail, OK
@@ -744,9 +719,7 @@ Language/08_Interfaces/1_Methods_A03_t02: Pass, OK # Bad test: assumes eager loa
 Language/08_Interfaces/1_Methods_A03_t03: Pass, OK # Bad test: assumes eager loading.
 Language/08_Interfaces/1_Methods_A03_t04: Pass, OK # Bad test: assumes eager loading.
 Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Pass, OK # Bad test: assumes eager loading.
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t08: Pass, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/08_Interfaces/Interfaces_A01_t04: Pass, OK # TODO(ahe): Is this a bad test or a bug in dart2js?
-Language/10_Expressions/01_Constants_A15_t24: Pass, OK # test will change: issue 2277
 Language/10_Expressions/01_Constants_A15_t48: Pass, OK # co19 issue 171
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Pass, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Pass, OK # Unresolvable constructors are not a compile-time error after 0.11.
@@ -805,7 +778,6 @@ Language/10_Expressions/20_Equality_A02_t03: Fail # Compile-time error: unexpect
 Language/10_Expressions/20_Equality_A02_t04: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t01: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t03: Fail # Compile-time error: unexpected token 'equals'
-LibTest/core/Futures/wait_A01_t02: Fail # Runtime error: 1
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Runtime error: Expect.fail('Method noSuchMethod() was not properly executed!')
 Language/10_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
 Language/09_Generics/09_Generics_A04_t04: Fail # Runtime error: Expect.isFalse(true, 'Using malformed type in a type test expression should result in a run-time error!') fails.
@@ -861,7 +833,6 @@ LibTest/core/int/operator_remainder_A01_t01: Fail, OK # Requires bigints.
 LibTest/isolate/Isolate/port_A01_t02: Fail, OK
 LibTest/isolate/Isolate/port_A01_t01: Fail, OK
 LibTest/isolate/Isolate/main_A01_t01: Fail, OK
-LibTest/isolate/Isolate/class_A01_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_A01_t01: Fail, OK
@@ -878,39 +849,8 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 
 # The following tests use the deprecated Date interface.
 # Issue co19 - 125
-LibTest/core/Date/Date_A02_t01: Fail, OK
-LibTest/core/Date/Date.now_A02_t01: Fail, OK
-LibTest/core/Date/add_A04_t01: Fail, OK
-LibTest/core/Date/value_A01_t02: Fail, OK
-LibTest/core/Date/value_A01_t03: Fail, OK
-LibTest/core/Date/value_A02_t01: Fail, OK
-LibTest/core/Date/isLocalTime_A01_t01: Fail, OK
 LibTest/core/Date/toString_A02_t01: Fail, OK
-LibTest/core/Date/Date.fromString_A01_t03: Fail, OK
-LibTest/core/Date/changeTimeZone_A01_t01: Fail, OK
-LibTest/core/Date/changeTimeZone_A02_t01: Fail, OK
-LibTest/core/Date/changeTimeZone_A03_t01: Fail, OK
-LibTest/core/Date/changeTimeZone_A04_t01: Fail, OK
-LibTest/core/Date/changeTimeZone_A05_t01: Fail, OK
 LibTest/core/Date/isUtc_A01_t01: Fail, OK
-LibTest/core/Date/timeZone_A01_t01: Fail, OK
-LibTest/core/Date/timeZone_A01_t02: Fail, OK
-LibTest/core/Date/timeZone_A01_t03: Fail, OK
-LibTest/core/Date/milliseconds_A01_t01: Fail, OK
-LibTest/core/Date/seconds_A01_t01: Fail, OK
-LibTest/core/Date/minutes_A01_t01: Fail, OK
-LibTest/core/Date/hours_A01_t01: Fail, OK
-LibTest/core/Date/subtract_A04_t01: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A01_t02: Fail, OK
-LibTest/core/Date/Date.fromEpoch_A01_t01: Fail, OK
-LibTest/core/Date/Date.withTimeZone_A01_t01: Fail, OK
-LibTest/core/Date/Date.withTimeZone_A01_t02: Fail, OK
-LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, OK
-
-LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, OK
-LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, OK
 
 
 [ $compiler == dart2js && $checked ]
@@ -1042,11 +982,9 @@ Language/13_Types/4_Interface_Types_A12_t10: Fail, OK # Type test assuming int !
 [ $compiler == dart2js ]
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # compiler cancelled: internal error: expected expected optional parameters
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # compiler cancelled: unexpected token 'call'
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # compiler cancelled: unexpected token 'call'
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # compiler cancelled: cannot find constructor A or ADef
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # compiler cancelled: internal error: super property store not implemented
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # compiler cancelled: no method named foo in class I
 Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
@@ -1118,7 +1056,6 @@ Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "
 
 [ $compiler == dart2js && $runtime == d8 ]
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
-Language/11_Statements/09_Try_A02_t02: Fail, OK # Expects to catch null if throwing null. We now throw NullPointerException which isn't caught.
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
@@ -1154,17 +1091,11 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 # The following tests are all negative tests that should be fixed.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A02_t10: Fail # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # @compile-error

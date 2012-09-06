@@ -92,10 +92,7 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
-Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
-Language/03_Overview/1_Scoping_A03_t04: Fail # co19 issue 143
-Language/03_Overview/1_Scoping_A03_t05: Fail # co19 issue 144
 Language/03_Overview/2_Privacy_A01_t02: Fail # language change 1031
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # language change 4288
@@ -121,11 +118,7 @@ Language/07_Classes/9_Superinterfaces_A04_t01: Fail # Issue 976
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
-Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail # co19 issue 132
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Skip # co19 issue 131
 Language/10_Expressions/01_Constants_A15_t16: Fail # issue 3553
-Language/10_Expressions/01_Constants_A15_t24: Fail # co19 issue 146
-Language/10_Expressions/01_Constants_A15_t31: Fail # co19 issue 147
 Language/10_Expressions/01_Constants_A15_t38: Fail # issue 3553
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 134
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
@@ -165,7 +158,6 @@ Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # language change 1031
 Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail # language change 1031
-Language/10_Expressions/15_Getter_Invocation_A07_t06: Fail # language change 1031
 Language/10_Expressions/16_Assignment_A04_t03: Fail # language change 1031
 Language/10_Expressions/16_Assignment_A04_t04: Fail # language change 1031
 Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
@@ -228,11 +220,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail # language change 
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
-Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # co19 issue 140
-Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # co19 issue 140
-Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # co19 issue 140
-Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
-Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
 Language/10_Expressions/29_Type_Test_A01_t02: Fail # language change 3368
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A06_t02: Fail # out of date - case can use any constant expression
@@ -257,36 +244,11 @@ LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise 
 
 
 # The following tests use the deprecated Date interface.
-LibTest/core/Date/Date_A02_t01: Fail, Pass
-LibTest/core/Date/Date.now_A02_t01: Fail, Pass
-LibTest/core/Date/add_A04_t01: Fail, Pass
-LibTest/core/Date/value_A01_t02: Fail, Pass
-LibTest/core/Date/value_A02_t01: Fail, Pass
-LibTest/core/Date/isLocalTime_A01_t01: Fail, Pass
 LibTest/core/Date/toString_A02_t01: Fail, Pass
-LibTest/core/Date/Date.fromString_A01_t03: Fail, Pass
-LibTest/core/Date/changeTimeZone_A01_t01: Fail, Pass
-LibTest/core/Date/changeTimeZone_A02_t01: Fail, Pass
-LibTest/core/Date/changeTimeZone_A03_t01: Fail, Pass
-LibTest/core/Date/changeTimeZone_A04_t01: Fail, Pass
-LibTest/core/Date/changeTimeZone_A05_t01: Fail, Pass
 LibTest/core/Date/isUtc_A01_t01: Fail, Pass
-LibTest/core/Date/timeZone_A01_t01: Fail, Pass
-LibTest/core/Date/timeZone_A01_t02: Fail, Pass
-LibTest/core/Date/timeZone_A01_t03: Fail, Pass
 LibTest/core/Date/difference_A01_t01: Fail, Pass
 LibTest/core/Date/difference_A01_t02: Fail, Pass
-LibTest/core/Date/subtract_A04_t01: Fail, Pass
-LibTest/core/Date/Date.fromEpoch_A03_t01: Fail, Pass
-LibTest/core/Date/Date.fromEpoch_A01_t03: Fail, Pass
-LibTest/core/Date/Date.fromEpoch_A01_t02: Fail, Pass
-LibTest/core/Date/Date.fromEpoch_A01_t01: Fail, Pass
-LibTest/core/Date/Date.withTimeZone_A01_t01: Fail, Pass
-LibTest/core/Date/Date.withTimeZone_A01_t02: Fail, Pass
-LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, Pass
 
-LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, Pass
-LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 
 
 # The following tests use the deprecated catch syntax
@@ -320,7 +282,6 @@ LibTest/core/Date/Date.fromString_A02_t01: Fail, Pass
 LibTest/core/Date/subtract_A05_t01: Fail, Pass
 LibTest/core/Date/compareTo_A02_t01: Fail, Pass
 LibTest/core/Date/Date_A01_t02: Fail, Pass
-LibTest/core/Date/value_A01_t01: Fail, Pass
 LibTest/core/Date/Date.fromString_A03_t01: Fail, Pass
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail, Pass
 LibTest/core/AssertionError/toString_A01_t01: Fail, Pass
@@ -546,18 +507,7 @@ Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail, Pass
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, Pass
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail, Pass
 Language/06_Functions/06_Functions_A01_t04: Fail, Pass
-Language/08_Interfaces/2_Getters_and_Setters_A04_t03: Fail, Pass
 Language/08_Interfaces/1_Methods_A02_t03: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail, Pass
-Language/08_Interfaces/4_Superinterfaces_A03_t02: Fail, Pass
 Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail, Pass
 Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail, Pass
 Language/08_Interfaces/1_Methods_A02_t02: Fail, Pass
@@ -573,10 +523,8 @@ Language/09_Generics/09_Generics_A04_t06: Fail, Pass
 Language/09_Generics/09_Generics_A04_t04: Fail, Pass
 Language/14_Reference/1_Lexical_Rules/2_Comments_A01_t05: Fail, Pass
 Language/14_Reference/1_Lexical_Rules/2_Comments_A01_t06: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A03_t07: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, Pass
 Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A04_t03: Fail, Pass
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, Pass
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A07_t01: Fail, Pass
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail, Pass
@@ -601,22 +549,18 @@ Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t01: Fail
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail, Pass
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail, Pass
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t02: Fail, Pass
-Language/10_Expressions/01_Constants_A15_t24: Fail, Pass
 Language/10_Expressions/17_Conditional_A01_t10: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail, Pass
 Language/10_Expressions/10_Instance_Creation_A02_t01: Fail, Pass
 Language/10_Expressions/15_Getter_Invocation_A03_t01: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A03_t05: Fail, Pass
 Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail, Pass
 Language/10_Expressions/15_Getter_Invocation_A03_t02: Fail, Pass
 Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail, Pass
-Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail, Pass
 Language/10_Expressions/10_Instance_Creation_A05_t01: Fail, Pass
 Language/10_Expressions/05_Strings_A18_t08: Fail, Pass
 Language/10_Expressions/08_Function_Expressions_A05_t02: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A07_t01: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A01_t03: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A04_t06: Fail, Pass
 Language/10_Expressions/06_Lists_A09_t05: Fail, Pass
 Language/10_Expressions/05_Strings_A18_t04: Fail, Pass
 Language/10_Expressions/22_Shift_A01_t09: Fail, Pass
@@ -643,7 +587,6 @@ Language/10_Expressions/09_This_A02_t01: Fail, Pass
 Language/10_Expressions/18_Logical_Boolean_Expressions_A04_t02: Fail, Pass
 Language/10_Expressions/23_Additive_Expressions_A01_t07: Fail, Pass
 Language/10_Expressions/17_Conditional_A04_t02: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A04_t05: Fail, Pass
 Language/10_Expressions/07_Maps_A10_t03: Fail, Pass
 Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail, Pass
 Language/10_Expressions/15_Getter_Invocation_A07_t01: Fail, Pass
@@ -657,7 +600,6 @@ Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail, Pass
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, Pass
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A01_t12: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A03_t06: Fail, Pass
 Language/10_Expressions/16_Assignment_A07_t01: Fail, Pass
 Language/10_Expressions/23_Additive_Expressions_A01_t09: Fail, Pass
 Language/10_Expressions/16_Assignment_A03_t01: Fail, Pass
@@ -705,9 +647,7 @@ Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail, Pass
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t03: Fail, Pass
 Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail, Pass
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t01: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A04_t04: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A04_t07: Fail, Pass
 Language/10_Expressions/22_Shift_A01_t15: Fail, Pass
 Language/10_Expressions/07_Maps_A05_t01: Fail, Pass
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail, Pass
@@ -728,7 +668,6 @@ Language/10_Expressions/08_Function_Expressions_A03_t03: Fail, Pass
 Language/10_Expressions/06_Lists_A09_t01: Fail, Pass
 Language/10_Expressions/17_Conditional_A02_t04: Fail, Pass
 Language/10_Expressions/16_Assignment_A02_t01: Fail, Pass
-Language/10_Expressions/08_Function_Expressions_A04_t02: Fail, Pass
 Language/10_Expressions/06_Lists_A06_t01: Fail, Pass
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t11: Fail, Pass
 Language/10_Expressions/26_Postfix_Expressions_A01_t04: Fail, Pass
@@ -740,7 +679,6 @@ Language/10_Expressions/17_Conditional_A01_t11: Fail, Pass
 Language/10_Expressions/05_Strings_A18_t06: Fail, Pass
 Language/10_Expressions/20_Equality_A02_t04: Fail, Pass
 Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail, Pass
-Language/10_Expressions/01_Constants_A15_t31: Fail, Pass
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail, Pass
 Language/10_Expressions/01_Constants_A16_t02: Fail, Pass
 Language/10_Expressions/17_Conditional_A02_t01: Fail, Pass
@@ -792,7 +730,6 @@ Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A08_
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail, Pass
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t03: Fail, Pass
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A04_t02: Fail, Pass
-Language/10_Expressions/15_Getter_Invocation_A07_t06: Fail, Pass
 Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail, Pass
 Language/10_Expressions/05_Strings_A18_t03: Fail, Pass
 Language/10_Expressions/05_Strings_A18_t07: Fail, Pass
@@ -909,7 +846,6 @@ Language/11_Statements/06_While_A03_t03: Fail, Pass
 Language/11_Statements/15_Assert_A05_t01: Fail, Pass
 Language/11_Statements/09_Try_A05_t07: Fail, Pass
 Language/11_Statements/09_Try_A02_t03: Fail, Pass
-Language/11_Statements/09_Try_A02_t02: Fail, Pass
 Language/11_Statements/03_Variable_Declaration_A01_t02: Fail, Pass
 Language/11_Statements/12_Break_A01_t02: Fail, Pass
 Language/11_Statements/06_While_A03_t02: Fail, Pass
@@ -930,7 +866,6 @@ Language/11_Statements/10_Return_A02_t01: Fail, Pass
 Language/11_Statements/15_Assert_A03_t03: Fail, Pass
 Language/11_Statements/15_Assert_A04_t01: Fail, Pass
 Language/11_Statements/09_Try_A02_t01: Fail, Pass
-Language/11_Statements/08_Switch_A01_t02: Fail, Pass
 Language/11_Statements/15_Assert_A04_t03: Fail, Pass
 Language/11_Statements/15_Assert_A05_t02: Fail, Pass
 Language/11_Statements/13_Continue_A03_t01: Fail, Pass
@@ -951,12 +886,9 @@ Language/03_Overview/1_Scoping_A02_t30: Fail, Pass
 Language/03_Overview/1_Scoping_A02_t05: Fail, Pass
 Language/03_Overview/1_Scoping_A02_t29: Fail, Pass
 Language/03_Overview/2_Privacy_A01_t07: Fail, Pass
-Language/03_Overview/1_Scoping_A02_t31: Fail, Pass
-Language/03_Overview/1_Scoping_A03_t04: Fail, Pass
 Language/03_Overview/2_Privacy_A01_t11: Fail, Pass
 Language/03_Overview/1_Scoping_A02_t28: Fail, Pass
 Language/03_Overview/2_Privacy_A01_t06: Fail, Pass
-Language/03_Overview/1_Scoping_A03_t05: Fail, Pass
 Language/03_Overview/2_Privacy_A01_t02: Fail, Pass
 Language/03_Overview/2_Privacy_A01_t18: Fail, Pass
 Language/03_Overview/2_Privacy_A01_t08: Fail, Pass
@@ -967,7 +899,6 @@ Language/03_Overview/2_Privacy_A01_t08: Fail, Pass
 LibTest/isolate/Isolate/port_A01_t02: Fail, OK
 LibTest/isolate/Isolate/port_A01_t01: Fail, OK
 LibTest/isolate/Isolate/main_A01_t01: Fail, OK
-LibTest/isolate/Isolate/class_A01_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
 LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
