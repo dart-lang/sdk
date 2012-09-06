@@ -44,7 +44,6 @@ class CodeEmitterTask extends CompilerTask {
   final Map<int, String> boundClosureCache;
 
   final bool generateSourceMap;
-  final SourceMapBuilder sourceMapBuilder;
 
   CodeEmitterTask(Compiler compiler, [bool generateSourceMap = false])
       : namer = compiler.namer,
@@ -52,7 +51,6 @@ class CodeEmitterTask extends CompilerTask {
         mainBuffer = new CodeBuffer(),
         boundClosureCache = new Map<int, String>(),
         generateSourceMap = generateSourceMap,
-        sourceMapBuilder = new SourceMapBuilder(),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
   }
@@ -592,7 +590,6 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       needsComma = true;
       buffer.add('\n');
       buffer.add(' $name: ');
-      addMappings(memberBuffer, buffer.length);
       buffer.add(memberBuffer);
     }
 
@@ -749,7 +746,6 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
                                    String functionNamer(Element element)) {
     String functionName = functionNamer(element);
     buffer.add('$isolateProperties.$functionName = ');
-    addMappings(functionBuffer, buffer.length);
     buffer.add(functionBuffer);
     buffer.add(';\n\n');
   }
@@ -956,7 +952,6 @@ $classesCollector.$mangledName = {'':
         buffer.add("', '");
         buffer.add(namer.getLazyInitializerName(element));
         buffer.add("', ");
-        addMappings(code, buffer.length);
         buffer.add(code);
         buffer.add(");\n");
       }
@@ -1278,7 +1273,7 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
 
       if (generateSourceMap) {
         SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
-        String sourceMap = sourceMapBuilder.build(compiledFile);
+        String sourceMap = buildSourceMap(mainBuffer, compiledFile);
         // TODO(podivilov): We should find a better way to return source maps to
         // compiler. Using diagnostic handler for that purpose is a temporary
         // hack.
@@ -1289,17 +1284,22 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
     return compiler.assembledCode;
   }
 
-  void addMappings(CodeBuffer buffer, int bufferOffset) {
+  String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {
+    SourceMapBuilder sourceMapBuilder = new SourceMapBuilder();
     buffer.forEachSourceLocation((Element element, Token token, int offset) {
+      if (element == null) {
+        sourceMapBuilder.addMapping(null, null, null, offset);
+        return;
+      }
       SourceFile sourceFile = element.getCompilationUnit().script.file;
       String sourceName = null;
       if (token.kind === IDENTIFIER_TOKEN) {
         sourceName = token.slowToString();
       }
-      int totalOffset = bufferOffset + offset;
       sourceMapBuilder.addMapping(
-          sourceFile, token.charOffset, sourceName, totalOffset);
+          sourceFile, token.charOffset, sourceName, offset);
     });
+    return sourceMapBuilder.build(compiledFile);
   }
 }
 

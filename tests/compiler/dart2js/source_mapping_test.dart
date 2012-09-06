@@ -9,12 +9,12 @@
 #import("mock_compiler.dart");
 #import('parser_helper.dart');
 
-List compileAll(SourceFile sourceFile) {
+CodeBuffer compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri.fromComponents(sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   compiler.runCompiler(uri);
-  return compiler.backend.emitter.sourceMapBuilder.entries;
+  return compiler.backend.emitter.mainBuffer;
 }
 
 void testSourceMapLocations(String codeWithMarkers) {
@@ -27,13 +27,15 @@ void testSourceMapLocations(String codeWithMarkers) {
   String code = codeWithMarkers.replaceAll('@', '');
 
   SourceFile sourceFile = new SourceFile('<test script>', code);
-  List entries = compileAll(sourceFile);
+  CodeBuffer buffer = compileAll(sourceFile);
+
   Set<int> locations = new Set<int>();
-  for (var entry in entries) {
-    if (entry.sourceFile == sourceFile) {
-      locations.add(entry.sourceOffset);
+  buffer.forEachSourceLocation((var element, var token, int offset) {
+    if (element != null &&
+        element.getCompilationUnit().script.file == sourceFile) {
+      locations.add(token.charOffset);
     }
-  }
+  });
 
   for (int i = 0; i < expectedLocations.length; ++i) {
     int expectedLocation = expectedLocations[i];

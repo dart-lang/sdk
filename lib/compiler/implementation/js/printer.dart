@@ -59,9 +59,11 @@ class Printer implements NodeVisitor {
   }
 
   visit(Node node) {
+    if (node.sourcePosition != null) outBuffer.beginMappedRange();
     recordSourcePosition(node.sourcePosition);
     node.accept(this);
     recordSourcePosition(node.endSourcePosition);
+    if (node.sourcePosition != null) outBuffer.endMappedRange();
   }
 
   visitCommaSeparated(List<Node> nodes, int hasRequiredType,

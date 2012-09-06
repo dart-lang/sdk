@@ -70,16 +70,19 @@ class SourceMapBuilder {
   }
 
   void writeEntry(_Entry entry, SourceFile targetFile, StringBuffer output) {
-    SourceFile sourceFile = entry.sourceFile;
-    if (sourceFile === null || entry.sourceOffset >= sourceFile.text.length) {
-      return;
-    }
-
     int targetLine = targetFile.getLine(entry.targetOffset);
     int targetColumn = targetFile.getColumn(targetLine, entry.targetOffset);
-    String sourceUrl = sourceFile.filename;
-    int sourceLine = sourceFile.getLine(entry.sourceOffset);
-    int sourceColumn = sourceFile.getColumn(sourceLine, entry.sourceOffset);
+    String sourceUrl;
+    int sourceLine;
+    int sourceColumn;
+    SourceFile sourceFile = entry.sourceFile;
+    // TODO(podivilov): make sure entries are always associated with the right
+    // source file.
+    if (sourceFile != null && entry.sourceOffset < sourceFile.text.length) {
+      sourceUrl = sourceFile.filename;
+      sourceLine = sourceFile.getLine(entry.sourceOffset);
+      sourceColumn = sourceFile.getColumn(sourceLine, entry.sourceOffset);
+    }
     String sourceName = entry.sourceName;
 
     if (targetLine > previousTargetLine) {
