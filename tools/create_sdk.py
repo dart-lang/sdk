@@ -24,7 +24,6 @@
 # ....lib/
 # ......_internal/
 # ......compiler/
-# ......config/
 # ......core/
 # ......coreimpl/
 # ......crypto/
@@ -220,7 +219,7 @@ def Main(argv):
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'compiler', 'config', 'html', 'core', 'coreimpl',
+  for library in ['_internal', 'compiler', html', 'core', 'coreimpl',
                   'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf',
                   'web']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
