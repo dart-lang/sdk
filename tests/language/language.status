@@ -86,6 +86,9 @@ field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 
 [ $compiler == dartc ]
 
+bad_constructor_test/04: Fail # Constructor name clashes with other member
+bad_constructor_test/05: Fail # Constructor name clashes with other member
+bad_constructor_test/06: Fail # Constructor name clashes with other member
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_negative_test: Fail # instantiation of abstract class
