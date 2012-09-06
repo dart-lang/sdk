@@ -299,7 +299,8 @@ void generateMethodWithPrototypeCheckForElement(Compiler compiler,
                                                 String code,
                                                 String parameters) {
   String methodName;
-  Namer namer = compiler.namer;
+  JavaScriptBackend backend = compiler.backend;
+  Namer namer = backend.namer;
   if (element.kind == ElementKind.FUNCTION) {
     FunctionSignature signature = element.computeSignature(compiler);
     methodName = namer.instanceMethodName(

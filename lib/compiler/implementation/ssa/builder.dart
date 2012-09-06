@@ -816,6 +816,7 @@ class JumpHandlerImpl implements JumpHandler {
 
 class SsaBuilder extends ResolvedVisitor implements Visitor {
   final SsaBuilderTask builder;
+  final JavaScriptBackend backend;
   final Interceptors interceptors;
   final WorkItem work;
   final ConstantSystem constantSystem;
@@ -852,6 +853,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   SsaBuilder(this.constantSystem, SsaBuilderTask builder, WorkItem work)
     : this.builder = builder,
+      this.backend = builder.backend,
       this.work = work,
       interceptors = builder.interceptors,
       methodInterceptionEnabled = true,
@@ -1252,7 +1254,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // TODO(ahe): The constructor name is statically resolved. See
       // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
       // way to do this?
-      SourceString name = new SourceString(compiler.namer.getName(body));
+      SourceString name = new SourceString(backend.namer.getName(body));
       // TODO(kasperl): This seems fishy. We shouldn't be inventing all
       // these selectors. Maybe the resolver can do more of the work
       // for us here?
@@ -2409,7 +2411,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           'More than one expression in JS_HAS_EQUALS()', node: node);
     }
     addGenericSendArgumentsToList(node.arguments, inputs);
-    String name = compiler.namer.instanceMethodName(
+    String name = backend.namer.instanceMethodName(
         currentLibrary, Elements.OPERATOR_EQUALS, 1);
     push(new HForeign(new DartString.literal('!!#.$name'),
                       const LiteralDartString('bool'),
@@ -2425,7 +2427,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!compiler.hasIsolateSupport()) {
       // If the isolate library is not used, we just generate code
       // to fetch the Leg's current isolate.
-      String name = compiler.namer.CURRENT_ISOLATE;
+      String name = backend.namer.CURRENT_ISOLATE;
       push(new HForeign(new DartString.literal(name),
                         const LiteralDartString('var'),
                         <HInstruction>[]));
@@ -2488,7 +2490,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
-    String invocationName = compiler.namer.closureInvocationName(
+    String invocationName = backend.namer.closureInvocationName(
         new Selector.callClosure(params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),

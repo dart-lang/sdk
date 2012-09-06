@@ -45,9 +45,9 @@ class CodeEmitterTask extends CompilerTask {
 
   final bool generateSourceMap;
 
-  CodeEmitterTask(Compiler compiler, [bool generateSourceMap = false])
-      : namer = compiler.namer,
-        boundClosureBuffer = new CodeBuffer(),
+  CodeEmitterTask(Compiler compiler, this.namer,
+                  [bool generateSourceMap = false])
+      : boundClosureBuffer = new CodeBuffer(),
         mainBuffer = new CodeBuffer(),
         boundClosureCache = new Map<int, String>(),
         generateSourceMap = generateSourceMap,
@@ -476,7 +476,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       defineInstanceMember(namer.getName(member), codeBuffer);
       codeBuffer = compiler.codegenWorld.generatedBailoutCode[member];
       if (codeBuffer !== null) {
-        defineInstanceMember(compiler.namer.getBailoutName(member), codeBuffer);
+        defineInstanceMember(namer.getBailoutName(member), codeBuffer);
       }
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
@@ -500,8 +500,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     } else {
       SourceString helper = compiler.backend.getCheckedModeHelper(type);
       Element helperElement = compiler.findHelper(helper);
-      String helperName = compiler.namer.isolateAccess(helperElement);
-      String additionalArgument = compiler.namer.operatorIs(type.element);
+      String helperName = namer.isolateAccess(helperElement);
+      String additionalArgument = namer.operatorIs(type.element);
       return " set\$$fieldName: function(v) { "
           "this.$fieldName = $helperName(v, '$additionalArgument'); }";
     }

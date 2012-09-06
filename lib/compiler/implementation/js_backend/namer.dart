@@ -61,38 +61,6 @@ class Namer {
     return 'c\$${target.nestingLevel}';
   }
 
-  /** Returns a non-unique name for the given closure element. */
-  String closureName(Element element) {
-    List<String> parts = <String>[];
-    SourceString ownName = element.name;
-    if (ownName == null || ownName.stringValue == "") {
-      parts.add("anon");
-    } else {
-      parts.add(ownName.slowToString());
-    }
-    for (Element enclosingElement = element.enclosingElement;
-         enclosingElement != null &&
-             (enclosingElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
-              || enclosingElement.kind === ElementKind.CLASS
-              || enclosingElement.kind === ElementKind.FUNCTION
-              || enclosingElement.kind === ElementKind.GETTER
-              || enclosingElement.kind === ElementKind.SETTER);
-         enclosingElement = enclosingElement.enclosingElement) {
-      SourceString surroundingName = enclosingElement.name;
-      if (surroundingName != null) {
-        String surroundingNameString = surroundingName.slowToString();
-        if (surroundingNameString != "") parts.add(surroundingNameString);
-      }
-    }
-    // Invert the parts.
-    for (int i = 0, j = parts.length - 1; i < j; i++, j--) {
-      var tmp = parts[i];
-      parts[i] = parts[j];
-      parts[j] = tmp;
-    }
-    return safeName(Strings.join(parts, "_"));
-  }
-
   String privateName(LibraryElement lib, SourceString name) {
     if (name.isPrivate()) {
       String nameString = name.slowToString();

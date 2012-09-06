@@ -444,13 +444,44 @@ class ClosureTranslator extends AbstractVisitor {
     scopeData.boxedLoopVariables = result;
   }
 
+  /** Returns a non-unique name for the given closure element. */
+  String closureName(Element element) {
+    List<String> parts = <String>[];
+    SourceString ownName = element.name;
+    if (ownName == null || ownName.stringValue == "") {
+      parts.add("anon");
+    } else {
+      parts.add(ownName.slowToString());
+    }
+    for (Element enclosingElement = element.enclosingElement;
+         enclosingElement != null &&
+             (enclosingElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
+              || enclosingElement.kind === ElementKind.CLASS
+              || enclosingElement.kind === ElementKind.FUNCTION
+              || enclosingElement.kind === ElementKind.GETTER
+              || enclosingElement.kind === ElementKind.SETTER);
+         enclosingElement = enclosingElement.enclosingElement) {
+      SourceString surroundingName = enclosingElement.name;
+      if (surroundingName != null) {
+        String surroundingNameString = surroundingName.slowToString();
+        if (surroundingNameString != "") parts.add(surroundingNameString);
+      }
+    }
+    // Invert the parts.
+    for (int i = 0, j = parts.length - 1; i < j; i++, j--) {
+      var tmp = parts[i];
+      parts[i] = parts[j];
+      parts[j] = tmp;
+    }
+    return Strings.join(parts, "_");
+  }
+
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
-    SourceString closureName =
-        new SourceString(compiler.namer.closureName(element));
+    SourceString closureName = new SourceString(closureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
         closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
-        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
+        new FunctionElement.from(Compiler.CALL_OPERATOR_NAME,
                                  element,
                                  globalizedElement);
     globalizedElement.backendMembers =

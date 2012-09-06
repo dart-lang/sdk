@@ -401,6 +401,8 @@ class JavaScriptBackend extends Backend {
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
 
+  final Namer namer;
+
   final Map<Element, Map<Element, HType>> fieldInitializers;
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, HType>> fieldSettersType;
@@ -415,13 +417,14 @@ class JavaScriptBackend extends Backend {
   }
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
-      : emitter = new CodeEmitterTask(compiler, generateSourceMap),
-        fieldInitializers = new Map<Element, Map<Element, HType>>(),
+      : fieldInitializers = new Map<Element, Map<Element, HType>>(),
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
+        namer = new Namer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         super(compiler, constantSystem: JAVA_SCRIPT_CONSTANT_SYSTEM) {
+    emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);

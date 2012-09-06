@@ -84,7 +84,6 @@ class Compiler implements DiagnosticListener {
   int nextFreeClassId = 0;
   World world;
   String assembledCode;
-  Namer namer;
   Types types;
 
   final bool enableMinification;
@@ -192,7 +191,6 @@ class Compiler implements DiagnosticListener {
         world = new World(),
         progress = new Stopwatch() {
     progress.start();
-    namer = new Namer(this);
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
@@ -211,6 +209,10 @@ class Compiler implements DiagnosticListener {
              checker, typesTask, constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
+
+  // TODO(floitsch): remove once the compile-time constant handler doesn't
+  // depend on it anymore.
+  js_backend.Namer get namer => (backend as js_backend.JavaScriptBackend).namer;
 
   Universe get resolverWorld => enqueuer.resolution.universe;
   Universe get codegenWorld => enqueuer.codegen.universe;

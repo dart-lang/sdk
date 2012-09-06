@@ -141,11 +141,11 @@ class Selector implements Hashable {
       : this(SelectorKind.CALL, name, library, arity, named);
 
   Selector.callClosure(int arity, [List<SourceString> named = const []])
-      : this(SelectorKind.CALL, Namer.CLOSURE_INVOCATION_NAME, null,
+      : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
              arity, named);
 
   Selector.callClosureFrom(Selector selector)
-      : this(SelectorKind.CALL, Namer.CLOSURE_INVOCATION_NAME, null,
+      : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
              selector.argumentCount, selector.namedArguments);
 
   // TODO(kasperl): This belongs somewhere else.
