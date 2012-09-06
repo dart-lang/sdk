@@ -217,16 +217,6 @@ def Main(argv):
   dest_file.close()
 
   #
-  # Create and populate lib/dom.
-  #
-  dom_src_dir = join(HOME, 'lib', 'dom')
-  dom_dest_dir = join(LIB, 'dom')
-  os.makedirs(dom_dest_dir)
-
-  copyfile(join(dom_src_dir, 'dart2js', 'dom_dart2js.dart'),
-           join(dom_dest_dir, 'dom_dart2js.dart'))
-
-  #
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
@@ -239,7 +229,7 @@ def Main(argv):
   # TODO(dgrove): fix this really ugly hack
   ReplaceInFiles(
         [join(LIB, 'compiler', 'implementation', 'lib', 'io.dart')],
-      [('../../runtime/bin', '../io/runtime')])
+        [('../../runtime/bin', '../io/runtime')])
 
   # Create and copy pkg.
   PKG = join(SDK_tmp, 'pkg')
