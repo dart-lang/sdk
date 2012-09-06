@@ -75,6 +75,9 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "utf": const LibraryInfo(
       "utf/utf.dart"),
 
+  "web": const LibraryInfo(
+      "web/web.dart"),
+
   "_js_helper": const LibraryInfo(
       "compiler/implementation/lib/js_helper.dart",
       category: "Internal",

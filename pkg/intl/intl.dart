@@ -8,7 +8,7 @@
  */
 #library('intl');
 
-#import('../../pkg/htmlescape/htmlescape.dart');
+#import('dart:web');
 
 #import('date_format.dart');
 #source('intl_message.dart');

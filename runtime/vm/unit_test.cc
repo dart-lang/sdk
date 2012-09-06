@@ -86,6 +86,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Builtin::LoadAndCheckLibrary(Builtin::kUtfLibrary);
     } else if (DartUtils::IsDartCryptoLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kCryptoLibrary);
+    } else if (DartUtils::IsDartWebLibURL(url_chars)) {
+      return Builtin::LoadAndCheckLibrary(Builtin::kWebLibrary);
     } else {
       return Dart_Error("Do not know how to load '%s'", url_chars);
     }
