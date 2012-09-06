@@ -75,6 +75,22 @@ class ReadStream : public ValueObject {
     return Read<intptr_t>(kEndUnsignedByteMarker);
   }
 
+  intptr_t Position() const { return current_ - buffer_; }
+
+  void SetPosition(intptr_t value) {
+    ASSERT((end_ - buffer_) > value);
+    current_ = buffer_ + value;
+  }
+
+  const uint8_t* AddressOfCurrentPosition() const {
+    return current_;
+  }
+
+  void Advance(intptr_t value) {
+    ASSERT((end_ - current_) > value);
+    current_ = current_ + value;
+  }
+
  private:
   template<typename T>
   T Read() {

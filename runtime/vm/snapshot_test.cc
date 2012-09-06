@@ -723,7 +723,11 @@ TEST_CASE(SerializeScript) {
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
   const TokenStream& serialized_tokens =
       TokenStream::Handle(serialized_script.tokens());
-  EXPECT_EQ(expected_tokens.Length(), serialized_tokens.Length());
+  const ExternalUint8Array& expected_data =
+      ExternalUint8Array::Handle(expected_tokens.GetStream());
+  const ExternalUint8Array& serialized_data =
+      ExternalUint8Array::Handle(serialized_tokens.GetStream());
+  EXPECT_EQ(expected_data.Length(), serialized_data.Length());
   TokenStream::Iterator expected_iterator(expected_tokens, 0);
   TokenStream::Iterator serialized_iterator(serialized_tokens, 0);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();

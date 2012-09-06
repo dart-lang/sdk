@@ -654,11 +654,12 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   token_stream.set_tags(tags);
 
-  // Read the stream of tokens into the TokenStream object.
-  {
+  // Read the stream of tokens into the TokenStream object for script
+  // snapshots as we made a copy of token stream.
+  if (kind == Snapshot::kScript) {
     NoGCScope no_gc;
-    reader->ReadBytes(reinterpret_cast<uint8_t*>(token_stream.EntryAddr(0)),
-                      len);
+    RawExternalUint8Array* stream = token_stream.GetStream();
+    reader->ReadBytes(stream->ptr()->external_data_->data(), len);
   }
 
   // Read in the literal/identifier token array.
@@ -687,9 +688,10 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the length field and the token stream.
-  intptr_t len = Smi::Value(ptr()->length_);
-  writer->Write<RawObject*>(ptr()->length_);
-  writer->WriteBytes(reinterpret_cast<uint8_t*>(ptr()->data_), len);
+  RawExternalUint8Array* stream = ptr()->stream_;
+  intptr_t len = Smi::Value(stream->ptr()->length_);
+  writer->Write<RawObject*>(stream->ptr()->length_);
+  writer->WriteBytes(stream->ptr()->external_data_->data(), len);
 
   // Write out the literal/identifier token array.
   writer->WriteObjectImpl(ptr()->token_objects_);

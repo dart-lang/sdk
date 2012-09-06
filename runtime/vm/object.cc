@@ -4788,8 +4788,19 @@ void TokenStream::SetTokenObjects(const Array& value) const {
 }
 
 
-void TokenStream::SetLength(intptr_t value) const {
-  raw_ptr()->length_ = Smi::New(value);
+RawExternalUint8Array* TokenStream::GetStream() const {
+  return raw_ptr()->stream_;
+}
+
+
+void TokenStream::SetStream(const ExternalUint8Array& value) const {
+  StorePointer(&raw_ptr()->stream_, value.raw());
+}
+
+
+void TokenStream::DataFinalizer(void *peer) {
+  ASSERT(peer != NULL);
+  ::free(peer);
 }
 
 
@@ -4805,8 +4816,9 @@ void TokenStream::SetPrivateKey(const String& value) const {
 
 RawString* TokenStream::GenerateSource() const {
   Iterator iterator(*this, 0);
+  const ExternalUint8Array& data = ExternalUint8Array::Handle(GetStream());
   const GrowableObjectArray& literals =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
+      GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
   const String& private_key = String::Handle(PrivateKey());
   intptr_t private_len = private_key.Length();
 
@@ -4970,21 +4982,31 @@ intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
 }
 
 
-RawTokenStream* TokenStream::New(intptr_t len) {
+RawTokenStream* TokenStream::New() {
   ASSERT(Object::token_stream_class() != Class::null());
+  TokenStream& result = TokenStream::Handle();
+  {
+    RawObject* raw = Object::Allocate(TokenStream::kClassId,
+                                      TokenStream::InstanceSize(),
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  return result.raw();
+}
+
+
+RawTokenStream* TokenStream::New(intptr_t len) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in TokenStream::New: invalid len %"Pd"\n", len);
   }
-  TokenStream& result = TokenStream::Handle();
-  {
-    RawObject* raw = Object::Allocate(TokenStream::kClassId,
-                                      TokenStream::InstanceSize(len),
-                                      Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-  }
+  uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
+  ASSERT(data != NULL);
+  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
+      ExternalUint8Array::New(data, len, data, DataFinalizer, Heap::kOld));
+  const TokenStream& result = TokenStream::Handle(TokenStream::New());
+  result.SetStream(stream);
   return result.raw();
 }
 
@@ -5004,7 +5026,6 @@ class CompressedTokenStreamData : public ValueObject {
     token_objects_.Add(empty_literal);
   }
   ~CompressedTokenStreamData() {
-    free(buffer_);
   }
 
   // Add an IDENT token into the stream and the token objects array.
@@ -5154,11 +5175,17 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   data.AddSimpleToken(Token::kEOS);  // End of stream.
 
   // Create and setup the token stream object.
-  const TokenStream& result = TokenStream::Handle(New(data.Length()));
+  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
+      ExternalUint8Array::New(data.GetStream(),
+                              data.Length(),
+                              data.GetStream(),
+                              DataFinalizer,
+                              Heap::kOld));
+  const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
   {
     NoGCScope no_gc;
-    memmove(result.EntryAddr(0), data.GetStream(), data.Length());
+    result.SetStream(stream);
     const Array& tokens = Array::Handle(Array::MakeArray(data.TokenObjects()));
     result.SetTokenObjects(tokens);
   }
@@ -5173,10 +5200,11 @@ const char* TokenStream::ToCString() const {
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
     : tokens_(tokens),
+      data_(ExternalUint8Array::Handle(tokens.GetStream())),
+      stream_(data_.ByteAddr(0), data_.Length()),
       token_objects_(Array::Handle(tokens.TokenObjects())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
-      stream_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1) {
   SetCurrentPosition(token_pos);
@@ -5189,7 +5217,7 @@ bool TokenStream::Iterator::IsValid() const {
 
 
 Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
-  intptr_t saved_position = stream_token_pos_;
+  intptr_t saved_position = stream_.Position();
   Token::Kind kind = Token::kILLEGAL;
   intptr_t value = -1;
   intptr_t count = 0;
@@ -5210,7 +5238,7 @@ Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
       kind = Token::kIDENT;
     }
   }
-  stream_token_pos_ = saved_position;
+  stream_.SetPosition(saved_position);
   return kind;
 }
 
@@ -5221,13 +5249,13 @@ intptr_t TokenStream::Iterator::CurrentPosition() const {
 
 
 void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
-  stream_token_pos_ = value;
+  stream_.SetPosition(value);
   Advance();
 }
 
 
 void TokenStream::Iterator::Advance() {
-  cur_token_pos_ = stream_token_pos_;
+  cur_token_pos_ = stream_.Position();
   intptr_t value = ReadToken();
   if (value < Token::kNumTokens) {
     cur_token_kind_ = static_cast<Token::Kind>(value);
@@ -5285,30 +5313,6 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
     const LiteralToken& literal_token = LiteralToken::Cast(obj);
     return literal_token.literal();
   }
-}
-
-
-intptr_t TokenStream::Iterator::ReadToken() {
-  uint8_t b = ReadByte();
-  if (b > kMaxUnsignedDataPerByte) {
-    return static_cast<intptr_t>(b) - kEndUnsignedByteMarker;
-  }
-  intptr_t value = 0;
-  uint8_t s = 0;
-  do {
-    value |= static_cast<intptr_t>(b) << s;
-    s += kDataBitsPerByte;
-    b = ReadByte();
-  } while (b <= kMaxUnsignedDataPerByte);
-  value |= ((static_cast<intptr_t>(b) - kEndUnsignedByteMarker) << s);
-  ASSERT((value >= 0) && (value <= kIntptrMax));
-  return value;
-}
-
-
-uint8_t TokenStream::Iterator::ReadByte() {
-  ASSERT(stream_token_pos_ < tokens_.Length());
-  return *(tokens_.EntryAddr(stream_token_pos_++));
 }
 
 

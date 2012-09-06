@@ -53,13 +53,6 @@ intptr_t RawObject::SizeFromClass() const {
 
   if (instance_size == 0) {
     switch (class_id) {
-      case kTokenStreamCid: {
-        const RawTokenStream* raw_tokens =
-            reinterpret_cast<const RawTokenStream*>(this);
-        intptr_t tokens_length = Smi::Value(raw_tokens->ptr()->length_);
-        instance_size = TokenStream::InstanceSize(tokens_length);
-        break;
-      }
       case kCodeCid: {
         const RawCode* raw_code = reinterpret_cast<const RawCode*>(this);
         intptr_t pointer_offsets_length =
@@ -404,9 +397,8 @@ intptr_t RawLiteralToken::VisitLiteralTokenPointers(
 
 intptr_t RawTokenStream::VisitTokenStreamPointers(
     RawTokenStream* raw_obj, ObjectPointerVisitor* visitor) {
-  intptr_t length = Smi::Value(raw_obj->ptr()->length_);
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return TokenStream::InstanceSize(length);
+  return TokenStream::InstanceSize();
 }
 
 

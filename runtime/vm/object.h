@@ -1822,10 +1822,11 @@ class LiteralToken : public Object {
 
 class TokenStream : public Object {
  public:
-  inline intptr_t Length() const;
-
   RawArray* TokenObjects() const;
   void SetTokenObjects(const Array& value) const;
+
+  RawExternalUint8Array* GetStream() const;
+  void SetStream(const ExternalUint8Array& stream) const;
 
   RawString* GenerateSource() const;
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
@@ -1835,13 +1836,7 @@ class TokenStream : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
-    return 0;
-  }
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawTokenStream) + (len * kBytesPerElement));
+    return RoundedAllocationSize(sizeof(RawTokenStream));
   }
 
   static RawTokenStream* New(intptr_t length);
@@ -1874,28 +1869,28 @@ class TokenStream : public Object {
    private:
     // Read token from the token stream (could be a simple token or an index
     // into the token objects array for IDENT or literal tokens).
-    intptr_t ReadToken();
-    uint8_t ReadByte();
+    intptr_t ReadToken() {
+      int64_t value = stream_.ReadUnsigned();
+      ASSERT((value >= 0) && (value <= kIntptrMax));
+      return value;
+    }
 
     const TokenStream& tokens_;
+    const ExternalUint8Array& data_;
+    ReadStream stream_;
     Array& token_objects_;
     Object& obj_;
     intptr_t cur_token_pos_;
-    intptr_t stream_token_pos_;
     Token::Kind cur_token_kind_;
     intptr_t cur_token_obj_index_;
   };
 
  private:
-  void SetLength(intptr_t value) const;
-
   RawString* PrivateKey() const;
   void SetPrivateKey(const String& value) const;
 
-  uint8_t* EntryAddr(intptr_t token_pos) const {
-    ASSERT((token_pos >=0) && (token_pos < Length()));
-    return &raw_ptr()->data_[token_pos];
-  }
+  static RawTokenStream* New();
+  static void DataFinalizer(void *peer);
 
   HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
@@ -4834,6 +4829,7 @@ class ExternalUint8Array : public ByteArray {
   HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array, ByteArray);
   friend class ByteArray;
   friend class Class;
+  friend class TokenStream;
 };
 
 
@@ -5531,11 +5527,6 @@ intptr_t Field::Offset() const {
 void Field::SetOffset(intptr_t value) const {
   ASSERT(!is_static());  // SetOffset is valid only for instance fields.
   raw_ptr()->value_ = Smi::New(value);
-}
-
-
-intptr_t TokenStream::Length() const {
-  return Smi::Value(raw_ptr()->length_);
 }
 
 

@@ -659,13 +659,11 @@ class RawTokenStream : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
   }
   RawString* private_key_;  // Key used for private identifiers.
-  RawSmi* length_;  // Length of token stream.
   RawArray* token_objects_;
+  RawExternalUint8Array* stream_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->token_objects_);
+    return reinterpret_cast<RawObject**>(&ptr()->stream_);
   }
-  // Variable length data follows here.
-  uint8_t data_[0];
 
   friend class SnapshotReader;
 };
@@ -1336,6 +1334,9 @@ class RawExternalUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array);
 
   ExternalByteArrayData<uint8_t>* external_data_;
+
+  friend class TokenStream;
+  friend class RawTokenStream;
 };
 
 
