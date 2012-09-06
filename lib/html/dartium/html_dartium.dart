@@ -39231,16 +39231,6 @@ interface Window extends EventTarget {
 
   IDBFactory get indexedDB();
 
-  /**
-   * Creates a new object URL for the specified object. The URL will be
-   * available until revokeObjectUrl is called.
-   * [object] can be a Blob, MediaStream or MediaSource.
-   */
-  String createObjectUrl(object);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectUrl(String objectUrl);
-
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
