@@ -12,6 +12,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_optimization);
+
 FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
                      GraphEntryInstr* graph_entry)
   : parent_(),
@@ -497,7 +499,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   // Initialize start environment.
   GrowableArray<Definition*> start_env(variable_count());
   for (intptr_t i = 0; i < parameter_count(); ++i) {
-    ParameterInstr* param = new ParameterInstr(i);
+    ParameterInstr* param = new ParameterInstr(i, graph_entry_);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
     start_env.Add(param);
   }
@@ -658,6 +660,62 @@ void FlowGraph::MarkLivePhis(GrowableArray<PhiInstr*>* live_phis) {
       if ((used_phi != NULL) && !used_phi->is_alive()) {
         used_phi->mark_alive();
         live_phis->Add(used_phi);
+      }
+    }
+  }
+}
+
+
+// Find the natural loop for the back edge m->n and attach loop information
+// to block n (loop header). The algorithm is described in "Advanced Compiler
+// Design & Implementation" (Muchnick) p192.
+static void FindLoop(BlockEntryInstr* m,
+                     BlockEntryInstr* n,
+                     intptr_t num_blocks) {
+  GrowableArray<BlockEntryInstr*> stack;
+  BitVector* loop = new BitVector(num_blocks);
+
+  loop->Add(n->preorder_number());
+  if (n != m) {
+    loop->Add(m->preorder_number());
+    stack.Add(m);
+  }
+
+  while (!stack.is_empty()) {
+    BlockEntryInstr* p = stack.Last();
+    stack.RemoveLast();
+    for (intptr_t i = 0; i < p->PredecessorCount(); ++i) {
+      BlockEntryInstr* q = p->PredecessorAt(i);
+      if (!loop->Contains(q->preorder_number())) {
+        loop->Add(q->preorder_number());
+        stack.Add(q);
+      }
+    }
+  }
+  n->set_loop_info(loop);
+  if (FLAG_trace_optimization) {
+    for (BitVector::Iterator it(loop); !it.Done(); it.Advance()) {
+      OS::Print("  B%"Pd"\n", it.Current());
+    }
+  }
+}
+
+
+void FlowGraph::ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers) {
+  ASSERT(loop_headers->is_empty());
+  for (BlockIterator it = postorder_iterator();
+       !it.Done();
+       it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      if (block->Dominates(pred)) {
+        if (FLAG_trace_optimization) {
+          OS::Print("Back edge B%"Pd" -> B%"Pd"\n", pred->block_id(),
+                    block->block_id());
+        }
+        FindLoop(pred, block, preorder_.length());
+        loop_headers->Add(block);
       }
     }
   }

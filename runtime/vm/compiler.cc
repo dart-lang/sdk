@@ -36,6 +36,7 @@ DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(bool, cse, true, "Do common subexpression elimination.");
+DEFINE_FLAG(bool, licm, true, "Do loop invariant code motion.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
@@ -212,6 +213,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         if (FLAG_cse) {
           flow_graph->ComputeUseLists();
           DominatorBasedCSE::Optimize(flow_graph->graph_entry());
+        }
+        if (FLAG_licm) {
+          LICM::Optimize(flow_graph);
         }
 
         // Perform register allocation on the SSA graph.

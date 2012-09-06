@@ -437,9 +437,9 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxedDoubleBinaryOpInstr;
   friend class CheckClassInstr;
   friend class CheckSmiInstr;
-  friend class CheckNonSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
+  friend class LICM;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -607,6 +607,8 @@ class BlockEntryInstr : public Instruction {
     dominated_blocks_.Add(block);
   }
 
+  bool Dominates(BlockEntryInstr* other) const;
+
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
@@ -647,6 +649,11 @@ class BlockEntryInstr : public Instruction {
 
   intptr_t try_index() const { return try_index_; }
 
+  BitVector* loop_info() const { return loop_info_; }
+  void set_loop_info(BitVector* loop_info) {
+    loop_info_ = loop_info;
+  }
+
  protected:
   explicit BlockEntryInstr(intptr_t try_index)
       : try_index_(try_index),
@@ -656,7 +663,8 @@ class BlockEntryInstr : public Instruction {
         dominator_(NULL),
         dominated_blocks_(1),
         last_instruction_(NULL),
-        parallel_move_(NULL) { }
+        parallel_move_(NULL),
+        loop_info_(NULL) { }
 
  private:
   const intptr_t try_index_;
@@ -675,6 +683,10 @@ class BlockEntryInstr : public Instruction {
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the start of the block.
   ParallelMoveInstr* parallel_move_;
+
+  // Bit vector containg loop blocks for a loop header indexed by block
+  // preorder number.
+  BitVector* loop_info_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -1006,6 +1018,9 @@ class Definition : public Instruction {
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
 
+  // Get the block entry for that instruction.
+  virtual BlockEntryInstr* GetBlock() const;
+
   // Printing support. These functions are sometimes overridden for custom
   // formatting. Otherwise, it prints in the format "opcode(op1, op2, op3)".
   virtual void PrintTo(BufferFormatter* f) const;
@@ -1039,6 +1054,8 @@ class PhiInstr : public Definition {
     }
   }
 
+  // Get the block entry for that instruction.
+  virtual BlockEntryInstr* GetBlock() const { return block(); }
   JoinEntryInstr* block() const { return block_; }
 
   virtual RawAbstractType* CompileType() const;
@@ -1100,11 +1117,15 @@ class PhiInstr : public Definition {
 
 class ParameterInstr : public Definition {
  public:
-  explicit ParameterInstr(intptr_t index) : index_(index) { }
+  explicit ParameterInstr(intptr_t index, GraphEntryInstr* block)
+      : index_(index), block_(block) { }
 
   DECLARE_INSTRUCTION(Parameter)
 
   intptr_t index() const { return index_; }
+
+  // Get the block entry for that instruction.
+  virtual BlockEntryInstr* GetBlock() const { return block_; }
 
   // Compile type of the passed-in parameter.
   virtual RawAbstractType* CompileType() const;
@@ -1138,6 +1159,7 @@ class ParameterInstr : public Definition {
 
  private:
   const intptr_t index_;
+  GraphEntryInstr* block_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };

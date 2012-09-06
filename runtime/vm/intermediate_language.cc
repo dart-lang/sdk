@@ -201,6 +201,16 @@ void Definition::InsertAfter(Instruction* prev) {
 }
 
 
+BlockEntryInstr* Definition::GetBlock() const {
+  // TODO(fschneider): Implement a faster way to get the block of an
+  // instruction.
+  ASSERT(previous() != NULL);
+  Instruction* result = previous();
+  while (!result->IsBlockEntry()) result = result->previous();
+  return result->AsBlockEntry();
+}
+
+
 void ForwardInstructionIterator::RemoveCurrentFromGraph() {
   current_ = current_->RemoveFromGraph(true);  // Set current_ to previous.
 }
@@ -584,6 +594,18 @@ void BlockEntryInstr::DiscoverBlocks(
   // 6. Assign postorder number and add the block entry to the list.
   set_postorder_number(postorder->length());
   postorder->Add(this);
+}
+
+
+bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
+  // TODO(fschneider): Make this faster by e.g. storing dominators for each
+  // block while computing the dominator tree.
+  ASSERT(other != NULL);
+  BlockEntryInstr* current = other;
+  while (current != NULL && current != this) {
+    current = current->dominator();
+  }
+  return current == this;
 }
 
 
@@ -1274,6 +1296,12 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Add deoptimization descriptor for deoptimizing instructions
+  // that may be inserted before this instruction.
+  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                 GetDeoptId(),
+                                 0);  // No token position.
+
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

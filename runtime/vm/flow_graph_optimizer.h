@@ -120,6 +120,13 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 };
 
 
+// Loop invariant code motion.
+class LICM : public AllStatic {
+ public:
+  static void Optimize(FlowGraph* flow_graph);
+};
+
+
 // A simple common subexpression elimination based
 // on the dominator tree.
 class DominatorBasedCSE : public AllStatic {

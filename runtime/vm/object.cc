@@ -6676,7 +6676,8 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  OS::Print("%-*s\tkind    \ttid\ttok-ix\ttry/deopt-ix\n", addr_width, "pc");
+  OS::Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry/deopt-ix\n",
+            addr_width, "pc");
 }
 
 
@@ -6727,7 +6728,6 @@ const char* PcDescriptors::ToCString() const {
 // Verify assumptions (in debug mode only).
 // - No two deopt descriptors have the same deoptimization id.
 // - No two ic-call descriptors have the same deoptimization id (type feedback).
-// - No two descriptors of same kind have the same PC.
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
 void PcDescriptors::Verify(bool check_ids) const {
@@ -6741,7 +6741,6 @@ void PcDescriptors::Verify(bool check_ids) const {
     return;
   }
   for (intptr_t i = 0; i < Length(); i++) {
-    uword pc = PC(i);
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
@@ -6756,7 +6755,6 @@ void PcDescriptors::Verify(bool check_ids) const {
         if (deopt_id != Isolate::kNoDeoptId) {
           ASSERT(DeoptId(k) != deopt_id);
         }
-        ASSERT(pc != PC(k));
       }
     }
   }

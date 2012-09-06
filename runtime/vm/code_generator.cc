@@ -1629,6 +1629,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
                       &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
   uword continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
+  ASSERT(continue_at_pc != 0);
   if (FLAG_trace_deopt) {
     OS::Print("  -> continue at %#"Px"\n", continue_at_pc);
     // TODO(srdjan): If we could allow GC, we could print the line where

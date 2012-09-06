@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_optimizer.h"
 
+#include "vm/bit_vector.h"
 #include "vm/cha.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/hash_map.h"
@@ -1139,6 +1140,73 @@ void FlowGraphAnalyzer::Analyze() {
       if ((locs != NULL) && locs->can_call()) {
         is_leaf_ = false;
         return;
+      }
+    }
+  }
+}
+
+
+static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
+  for (intptr_t j = 0; j < header->PredecessorCount(); ++j) {
+    BlockEntryInstr* candidate = header->PredecessorAt(j);
+    if (header->dominator() == candidate) {
+      return candidate;
+    }
+  }
+  return NULL;
+}
+
+
+void LICM::Optimize(FlowGraph* flow_graph) {
+  GrowableArray<BlockEntryInstr*> loop_headers;
+  flow_graph->ComputeLoops(&loop_headers);
+
+  for (intptr_t i = 0; i < loop_headers.length(); ++i) {
+    BlockEntryInstr* header = loop_headers[i];
+    // Skip loop that don't have a pre-header block.
+    BlockEntryInstr* pre_header = FindPreHeader(header);
+    if (pre_header == NULL) continue;
+
+    for (BitVector::Iterator loop_it(header->loop_info());
+         !loop_it.Done();
+         loop_it.Advance()) {
+      BlockEntryInstr* block = flow_graph->preorder()[loop_it.Current()];
+      for (ForwardInstructionIterator it(block);
+           !it.Done();
+           it.Advance()) {
+        Definition* current = it.Current()->AsDefinition();
+        if (current != NULL &&
+            !current->IsPushArgument() &&
+            !current->HasSideEffect()) {
+          bool inputs_loop_invariant = true;
+          for (int i = 0; i < current->InputCount(); ++i) {
+            Definition* input_def = current->InputAt(i)->definition();
+            if (!input_def->GetBlock()->Dominates(pre_header)) {
+              inputs_loop_invariant = false;
+              break;
+            }
+          }
+          if (inputs_loop_invariant) {
+            // TODO(fschneider): Avoid repeated deoptimization when
+            // speculatively hoisting checks.
+            if (FLAG_trace_optimization) {
+              OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
+                        current->DebugName(),
+                        current->deopt_id(),
+                        current->GetBlock()->block_id(),
+                        pre_header->block_id());
+            }
+            // Move the instruction out of the loop.
+            it.RemoveCurrentFromGraph();
+            GotoInstr* last = pre_header->last_instruction()->AsGoto();
+            current->InsertBefore(last);
+            // Attach the environment of the Goto instruction to the hoisted
+            // instruction and set the correct deopt_id.
+            ASSERT(last->env() != NULL);
+            last->env()->CopyTo(current);
+            current->deopt_id_ = last->GetDeoptId();
+          }
+        }
       }
     }
   }

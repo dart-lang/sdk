@@ -540,7 +540,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
   } else {
     f->Print("    ");
   }
-  f->Print(" goto %"Pd"", successor()->block_id());
+  f->Print(" goto:%"Pd" %"Pd"", GetDeoptId(), successor()->block_id());
 }
 
 
