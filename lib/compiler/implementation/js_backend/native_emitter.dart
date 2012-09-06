@@ -383,9 +383,9 @@ function(cls, fields, methods) {
   }
 
   void emitIsChecks(Map<String, String> objectProperties) {
-    for (Element element in compiler.codegenWorld.checkedClasses) {
-      if (!requiresNativeIsCheck(element)) continue;
-      String name = compiler.namer.operatorIs(element);
+    for (Element type in compiler.codegenWorld.isChecks) {
+      if (!requiresNativeIsCheck(type)) continue;
+      String name = compiler.namer.operatorIs(type);
       objectProperties[name] = 'function() { return false; }';
     }
   }

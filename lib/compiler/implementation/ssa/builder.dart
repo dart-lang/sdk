@@ -2711,7 +2711,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (element != null && element.isErroneous()) {
       ErroneousElement error = element;
       Message message = error.errorMessage;
-      if (message.kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+      if (message.kind === MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         Element helper =
             compiler.findHelper(const SourceString('throwNoSuchMethod'));
         DartString receiverLiteral = new DartString.literal('');
@@ -2732,7 +2732,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         HInstruction arguments = new HLiteralList(inputs);
         add(arguments);
         pushInvokeHelper3(helper, receiver, name, arguments);
-      } else if (message.kind == MessageKind.CANNOT_RESOLVE) {
+      } else if (message.kind === MessageKind.CANNOT_RESOLVE) {
         generateRuntimeError(node.send, message.message);
       } else {
         compiler.internalError('unexpected unresolved constructor call',

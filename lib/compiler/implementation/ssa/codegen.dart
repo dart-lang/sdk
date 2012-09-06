@@ -2216,19 +2216,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('==', pop(), new js.LiteralNull()));
   }
 
-  void checkFunction(HInstruction input, DartType type) {
+  void checkFunction(HInstruction input, Element element) {
     checkTypeOf(input, '===', 'function');
     js.Expression functionTest = pop();
     checkObject(input, '===');
     js.Expression objectTest = pop();
-    checkType(input, type);
+    checkType(input, element);
     push(new js.Binary('||',
                        functionTest,
                        new js.Binary('&&', objectTest, pop())));
   }
 
-  void checkType(HInstruction input, DartType type, [bool negative = false]) {
-    Element element = type.element;
+  void checkType(HInstruction input, Element element, [bool negative = false]) {
+    world.registerIsCheck(element);
     use(input);
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), compiler.namer.operatorIs(element));
@@ -2243,31 +2243,31 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void handleStringSupertypeCheck(HInstruction input, DartType type) {
+  void handleStringSupertypeCheck(HInstruction input, Element element) {
     // Make sure List and String don't share supertypes, otherwise we
     // would need to check for List too.
-    assert(type.element !== compiler.listClass
-           && !Elements.isListSupertype(type.element, compiler));
+    assert(element !== compiler.listClass
+           && !Elements.isListSupertype(element, compiler));
     checkString(input, '===');
     js.Expression stringTest = pop();
     checkObject(input, '===');
     js.Expression objectTest = pop();
-    checkType(input, type);
+    checkType(input, element);
     push(new js.Binary('||',
                        stringTest,
                        new js.Binary('&&', objectTest, pop())));
   }
 
-  void handleListOrSupertypeCheck(HInstruction input, DartType type) {
+  void handleListOrSupertypeCheck(HInstruction input, Element element) {
     // Make sure List and String don't share supertypes, otherwise we
     // would need to check for String too.
-    assert(type.element !== compiler.stringClass
-           && !Elements.isStringSupertype(type.element, compiler));
+    assert(element !== compiler.stringClass
+           && !Elements.isStringSupertype(element, compiler));
     checkObject(input, '===');
     js.Expression objectTest = pop();
     checkArray(input, '===');
     js.Expression arrayTest = pop();
-    checkType(input, type);
+    checkType(input, element);
     push(new js.Binary('&&',
                        objectTest,
                        new js.Binary('||', arrayTest, pop())));
@@ -2302,7 +2302,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkBool(input, '===');
       attachLocationToLast(node);
     } else if (element == compiler.functionClass) {
-      checkFunction(input, type);
+      checkFunction(input, element);
       attachLocationToLast(node);
     } else if (element == compiler.intClass) {
       checkNum(input, '===');
@@ -2310,19 +2310,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkInt(input, '===');
       push(new js.Binary('&&', numTest, pop()), node);
     } else if (Elements.isStringSupertype(element, compiler)) {
-      handleStringSupertypeCheck(input, type);
+      handleStringSupertypeCheck(input, element);
       attachLocationToLast(node);
     } else if (element === compiler.listClass
                || Elements.isListSupertype(element, compiler)) {
-      handleListOrSupertypeCheck(input, type);
+      handleListOrSupertypeCheck(input, element);
       attachLocationToLast(node);
     } else if (types[input].canBePrimitive() || types[input].canBeNull()) {
       checkObject(input, '===');
       js.Expression objectTest = pop();
-      checkType(input, type);
+      checkType(input, element);
       push(new js.Binary('&&', objectTest, pop()), node);
     } else {
-      checkType(input, type);
+      checkType(input, element);
       attachLocationToLast(node);
     }
     if (node.hasTypeInfo()) {
@@ -2382,7 +2382,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isChecked) {
       DartType type = node.type.computeType(compiler);
       Element element = type.element;
-      world.registerIsCheck(type);
+      world.registerIsCheck(element);
 
       if (node.isArgumentTypeCheck) {
         if (element == compiler.intClass) {
@@ -2487,8 +2487,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.guarded;
-    DartType indexingBehavior =
-        compiler.jsIndexingBehaviorInterface.computeType(compiler);
+    Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
     if (node.isInteger(types)) {
       // if (input is !int) bailout
       checkInt(input, '!==');

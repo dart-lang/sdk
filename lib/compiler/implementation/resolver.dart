@@ -952,7 +952,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
   final TypeResolver typeResolver;
   bool inInstanceContext;
-  bool inCheckContext;
   Scope scope;
   ClassElement currentClass;
   bool typeRequired = false;
@@ -967,12 +966,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // fields.
       inInstanceContext = (element.isInstanceMember() && !element.isField())
           || element.isGenerativeConstructor(),
-      this.currentClass = element.isMember() ? element.getEnclosingClass()
-                                             : null,
+      this.currentClass = element.isMember() ?
+                              element.getEnclosingClass() :
+                              null,
       this.statementScope = new StatementScope(),
       typeResolver = new TypeResolver(compiler),
       scope = element.buildEnclosingScope(),
-      inCheckContext = compiler.enableTypeAssertions,
       super(compiler) {
   }
 
@@ -996,14 +995,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       mapping[statement] = element;
     }
     return element;
-  }
-
-  doInCheckContext(action()) {
-    bool wasInCheckContext = inCheckContext;
-    inCheckContext = true;
-    var result = action();
-    inCheckContext = wasInCheckContext;
-    return result;
   }
 
   inStaticContext(action()) {
@@ -1046,12 +1037,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element visitTypeAnnotation(TypeAnnotation node) {
     DartType type = resolveTypeAnnotation(node);
-    if (type !== null) {
-      if (inCheckContext) {
-        compiler.enqueuer.resolution.registerIsCheck(type);
-      }
-      return type.element;
-    }
+    if (type !== null) return type.element;
     return null;
   }
 
@@ -1361,10 +1347,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (operatorString === 'is' || operatorString === 'as') {
         assert(node.arguments.tail.isEmpty());
-        DartType type = resolveTypeTest(node.arguments.head);
-        if (type != null) {
-          compiler.enqueuer.resolution.registerIsCheck(type);
-        }
+        resolveTypeTest(node.arguments.head);
         resolvedArguments = true;
       } else if (operatorString === '?') {
         Element parameter = mapping[node.receiver];
@@ -1625,13 +1608,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
-    DartType type = typeResolver.resolveTypeAnnotation(node, inScope: scope,
-                                                       onFailure: report,
-                                                       whenResolved: useType);
-    if (inCheckContext && type != null) {
-      compiler.enqueuer.resolution.registerIsCheck(type);
-    }
-    return type;
+    return typeResolver.resolveTypeAnnotation(node, inScope: scope,
+                                              onFailure: report,
+                                              whenResolved: useType);
   }
 
   visitModifiers(Modifiers node) {
@@ -1906,7 +1885,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
 
     Scope blockScope = new BlockScope(scope);
-    doInCheckContext(() => visitIn(node.type, blockScope)); 
+    visitIn(node.type, blockScope);
     visitIn(node.formals, blockScope);
     visitIn(node.block, blockScope);
   }

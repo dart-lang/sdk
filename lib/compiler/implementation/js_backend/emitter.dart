@@ -664,7 +664,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   void generateTypeTests(ClassElement cls,
                          void generateTypeTest(ClassElement element)) {
-    if (compiler.codegenWorld.checkedClasses.contains(cls)) {
+    if (compiler.codegenWorld.isChecks.contains(cls)) {
       generateTypeTest(cls);
     }
     generateInterfacesIsTests(cls, generateTypeTest, new Set<Element>());
@@ -676,7 +676,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     for (DartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       if (!alreadyGenerated.contains(element) &&
-          compiler.codegenWorld.checkedClasses.contains(element)) {
+          compiler.codegenWorld.isChecks.contains(element)) {
         alreadyGenerated.add(element);
         generateTypeTest(element);
       }
