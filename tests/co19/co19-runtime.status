@@ -89,11 +89,6 @@ LibTest/core/List/forEach_A01_t02: Fail # TODO(vm-team): Please triage this fail
 LibTest/core/double/operator_negate_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 
 
-[ $runtime == vm && $mode == debug ]
-Language/10_Expressions/30_Type_Cast_A01_t01: Crash # http://dartbug.com/4944
-Language/10_Expressions/Expressions_A01_t01: Crash # http://dartbug.com/4944
-
-
 [ $runtime == vm && $unchecked ]
 Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.

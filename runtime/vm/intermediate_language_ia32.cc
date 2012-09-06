@@ -88,6 +88,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // has its own return instruction. Method that have finally are currently
   // not optimized.
   if (!compiler->HasFinally()) {
+    __ Comment("Stack Check");
     Label done;
     __ movl(EDI, EBP);
     __ subl(EDI, ESP);

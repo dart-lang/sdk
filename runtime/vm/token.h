@@ -111,7 +111,7 @@ namespace dart {
   TOK(kISNOT, "", 10, kNoAttribute)                                            \
                                                                                \
   /* Internal token for (expr as Type) type cast operator */                   \
-  TOK(kAS, "", 10, kNoAttribute)                                               \
+  TOK(kAS, "AS", 10, kNoAttribute)                                             \
                                                                                \
   TOK(kINDEX, "[]", 0, kNoAttribute)                                           \
   TOK(kASSIGN_INDEX, "[]=", 0, kNoAttribute)                                   \
