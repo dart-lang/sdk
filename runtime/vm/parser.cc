@@ -22,6 +22,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, constructor_name_check, false,
+            "Named constructors may not clash with other members");
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -480,6 +482,7 @@ struct MemberDesc {
     name_pos = 0;
     name = NULL;
     redirect_name = NULL;
+    constructor_name = NULL;
     params.Clear();
     kind = RawFunction::kRegularFunction;
   }
@@ -509,7 +512,11 @@ struct MemberDesc {
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
-  String* redirect_name;  // For constructors: NULL or redirected constructor.
+  // For constructors: NULL or redirected constructor.
+  String* redirect_name;
+  // For constructors: NULL for unnamed constructor,
+  // identifier after classname for named constructors.
+  String* constructor_name;
   ParamList params;
   RawFunction::Kind kind;
 };
@@ -1869,7 +1876,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // Special case: implicit constructor.
     // The parser adds an implicit default constructor when a class
     // does not have any explicit constructor or factory (see
-    // Parser::CheckConstructors). The token position of this implicit
+    // Parser::AddImplicitConstructor). The token position of this implicit
     // constructor points to the 'class' keyword, which is followed
     // by the name of the class (which is also the constructor name).
     // There is no source text to parse. We just build the
@@ -2865,8 +2872,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor.
       ConsumeToken();
-      const String* name = ExpectIdentifier("identifier expected");
-      ctor_suffix = String::Concat(ctor_suffix, *name);
+      member.constructor_name = ExpectIdentifier("identifier expected");
+      ctor_suffix = String::Concat(ctor_suffix, *member.constructor_name);
     }
     *member.name = String::Concat(*member.name, ctor_suffix);
     // Ensure that names are symbols.
@@ -3095,7 +3102,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   if (!members.has_constructor() && !is_patch) {
     AddImplicitConstructor(&members);
   }
-  CheckConstructorCycles(&members);
+  CheckConstructors(&members);
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3153,12 +3160,24 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
 }
 
 
-// Check for cycles in constructor redirection.
-void Parser::CheckConstructorCycles(ClassDesc* class_desc) {
+// Check for cycles in constructor redirection. Also check whether a
+// named constructor collides with the name of another class member.
+void Parser::CheckConstructors(ClassDesc* class_desc) {
   // Check for cycles in constructor redirection.
   const GrowableArray<MemberDesc>& members = class_desc->members();
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
+
+    if (FLAG_constructor_name_check && member->constructor_name != NULL) {
+      if (class_desc->FunctionNameExists(
+          *member->constructor_name, member->kind)) {
+        ErrorMsg(member->name_pos,
+                 "Named constructor '%s' conflicts with method or field '%s'",
+                 member->name->ToCString(),
+                 member->constructor_name->ToCString());
+      }
+    }
+
     GrowableArray<MemberDesc*> ctors;
     while ((member != NULL) && (member->redirect_name != NULL)) {
       ASSERT(member->IsConstructor());

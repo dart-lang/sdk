@@ -40,7 +40,7 @@ class FunctionLiteralsTest {
     Expect.equals(10, b.n);
     Expect.equals(100, (b.f)(10));
 
-    b = new B.n(10);
+    b = new B.withZ(10);
     Expect.equals(10, b.n);
     Expect.equals(101, (b.f)(10));
 
@@ -68,7 +68,7 @@ class B {
   var f;
   int n;
   B(z) : f = ((x) => x * x) { n = z; }
-  B.n(z) : f = ((x) { return x * x + 1; }) { n = z; }
+  B.withZ(z) : f = ((x) { return x * x + 1; }) { n = z; }
 }
 
 main() {

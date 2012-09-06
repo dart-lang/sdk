@@ -319,7 +319,7 @@ class Parser : public ValueObject {
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
   void AddImplicitConstructor(ClassDesc* members);
-  void CheckConstructorCycles(ClassDesc* members);
+  void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(
       const Class& cls,
       LocalVariable* receiver,

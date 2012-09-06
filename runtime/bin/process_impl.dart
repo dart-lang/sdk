@@ -11,12 +11,6 @@ class _ProcessStartStatus {
 
 
 class _Process extends Process {
-  static Process start(String path,
-                                  List<String> arguments,
-                                  [ProcessOptions options]) {
-    return new _Process.start(path, arguments, options);
-  }
-
   static Future<ProcessResult> run(String path,
                                    List<String> arguments,
                                    [ProcessOptions options]) {

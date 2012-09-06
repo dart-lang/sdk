@@ -21,7 +21,7 @@ class Element implements Node {
     : children = null,
       attributes = <String, String>{};
 
-  Element.tag(this.tag)
+  Element.withTag(this.tag)
     : children = [],
       attributes = <String, String>{};
 
