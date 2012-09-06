@@ -32,6 +32,9 @@ public class SystemLibrariesReaderTest extends TestCase {
     Map<String, DartLibrary> librariesMap = reader.getLibrariesMap();
     assertTrue(!librariesMap.isEmpty());
     for (Entry<String, DartLibrary> entry : librariesMap.entrySet()) {
+      if (entry.getValue().getCategory().equals("Internal")){
+        continue;
+      }
       String path = entry.getValue().getPath();
       File file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
       if (!file.exists()) {
@@ -50,7 +53,8 @@ public class SystemLibrariesReaderTest extends TestCase {
     assertTrue(library != null);
     assertEquals("dart:coreimpl",library.getShortName());
     assertTrue(library.isImplementation());
-    assertEquals("Shared", library.getCategory());
+    assertEquals("Shared", library.getCategory());   
+    
   }
   
 }
