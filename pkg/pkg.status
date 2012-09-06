@@ -34,17 +34,3 @@ unittest/test/instance_test: Skip
 [ $compiler == dart2js && $checked ]
 fixnum/test/int_32_test: Fail # Issue 3720.
 fixnum/test/int_64_test: Fail # Issue 3720.
-
-[ $compiler == dart2js && $checked  && $browser ]
-args/test/args_test: Fail
-intl/test/bidi_format_test: Fail
-intl/test/bidi_utils_test: Fail
-intl/test/date_time_format_test: Fail
-intl/test/intl_message_test: Fail
-intl/test/intl_test: Fail
-intl/test/number_format_test: Fail
-logging/test/logging_test: Fail
-unittest/test/matchers_test: Fail
-unittest/test/mock_test: Fail
-unittest/test/unittest_test: Fail
-yaml_test: Fail

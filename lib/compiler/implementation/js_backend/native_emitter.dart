@@ -150,7 +150,8 @@ function(cls, fields, methods) {
     }
 
     CodeBuffer fieldBuffer = new CodeBuffer();
-    emitter.emitClassFields(classElement, fieldBuffer);
+    List<String> checkedSetters =
+        emitter.emitClassFields(classElement, fieldBuffer);
 
     CodeBuffer methodBuffer = new CodeBuffer();
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
@@ -161,6 +162,10 @@ function(cls, fields, methods) {
     nativeBuffer.add("$defineNativeClassName('$nativeName', [");
     nativeBuffer.add(fieldBuffer);
     nativeBuffer.add('], {');
+    if (!checkedSetters.isEmpty()) {
+      nativeBuffer.add('${Strings.join(checkedSetters, ",\n")}');
+      nativeBuffer.add(',\n');
+    }
     nativeBuffer.add(methodBuffer);
     nativeBuffer.add('\n});\n\n');
 
