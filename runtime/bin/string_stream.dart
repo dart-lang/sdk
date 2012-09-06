@@ -12,9 +12,12 @@ interface _StringDecoder {
   // Returns whether any decoded data is available.
   bool isEmpty();
 
+  // Returns the number of available decoded characters.
+  int available();
+
   // Get the number of line breaks present in the current decoded
   // data.
-  int lineBreaks();
+  int get lineBreaks;
 
   // Get the string data decoded since the last call to [decode] or
   // [decodeLine]. Returns null if no decoded data is available.
@@ -73,9 +76,7 @@ class _StringDecoderBase implements _StringDecoder {
     return buffer.length;
   }
 
-  bool isEmpty() {
-    return _result.isEmpty();
-  }
+  bool isEmpty() => _result.isEmpty();
 
   int get lineBreaks => _lineBreaks;
 

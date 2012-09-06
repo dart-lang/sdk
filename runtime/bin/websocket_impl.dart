@@ -112,7 +112,6 @@ class _WebSocketProtocolProcessor {
 
             default:
               throw new WebSocketException("Protocol error");
-              break;
             }
             _state = LEN_FIRST;
             break;
@@ -190,7 +189,6 @@ class _WebSocketProtocolProcessor {
               switch (_currentMessageType) {
                 case _WebSocketMessageType.NONE:
                   throw new WebSocketException("Protocol error");
-                  break;
 
                 case _WebSocketMessageType.TEXT:
                 case _WebSocketMessageType.BINARY:
@@ -205,8 +203,6 @@ class _WebSocketProtocolProcessor {
 
                 default:
                   throw new WebSocketException("Protocol error");
-                  break;
-
               }
             }
 

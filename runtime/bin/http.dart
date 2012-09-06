@@ -182,46 +182,46 @@ interface HttpHeaders default _HttpHeaders {
                                         WARNING];
 
   static const ENTITY_HEADERS = const [ALLOW,
-                                       CONTENT-ENCODING,
-                                       CONTENT-LANGUAGE,
-                                       CONTENT-LENGTH,
-                                       CONTENT-LOCATION,
-                                       CONTENT-MD5,
-                                       CONTENT-RANGE,
-                                       CONTENT-TYPE,
+                                       CONTENT_ENCODING,
+                                       CONTENT_LANGUAGE,
+                                       CONTENT_LENGTH,
+                                       CONTENT_LOCATION,
+                                       CONTENT_MD5,
+                                       CONTENT_RANGE,
+                                       CONTENT_TYPE,
                                        EXPIRES,
-                                       LAST-MODIFIED];
+                                       LAST_MODIFIED];
 
 
-  static const RESPONSE_HEADERS = const [ACCEPT-RANGES,
+  static const RESPONSE_HEADERS = const [ACCEPT_RANGES,
                                          AGE,
                                          ETAG,
                                          LOCATION,
-                                         PROXY-AUTHENTICATE,
-                                         RETRY-AFTER,
+                                         PROXY_AUTHENTICATE,
+                                         RETRY_AFTER,
                                          SERVER,
                                          VARY,
-                                         WWW-AUTHENTICATE];
+                                         WWW_AUTHENTICATE];
 
   static const REQUEST_HEADERS = const [ACCEPT,
-                                        ACCEPT-CHARSET,
-                                        ACCEPT-ENCODING,
-                                        ACCEPT-LANGUAGE,
+                                        ACCEPT_CHARSET,
+                                        ACCEPT_ENCODING,
+                                        ACCEPT_LANGUAGE,
                                         AUTHORIZATION,
                                         EXPECT,
                                         FROM,
                                         HOST,
-                                        IF-MATCH,
-                                        IF-MODIFIED-SINCE,
-                                        IF-NONE-MATCH,
-                                        IF-RANGE,
-                                        IF-UNMODIFIED-SINCE,
-                                        MAX-FORWARDS,
-                                        PROXY-AUTHORIZATION,
+                                        IF_MATCH,
+                                        IF_MODIFIED_SINCE,
+                                        IF_NONE_MATCH,
+                                        IF_RANGE,
+                                        IF_UNMODIFIED_SINCE,
+                                        MAX_FORWARDS,
+                                        PROXY_AUTHORIZATION,
                                         RANGE,
                                         REFERER,
                                         TE,
-                                        USER-AGENT];
+                                        USER_AGENT];
 
   /**
    * Returns the list of values for the header named [name]. If there

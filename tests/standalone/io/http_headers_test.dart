@@ -388,6 +388,13 @@ void testInvalidCookie() {
   Expect.throws(() => new _Cookie.fromSetCookieValue("xxx=yyy; expires=12 jan 2013"));
 }
 
+void testHeaderLists() {
+  HttpHeaders.GENERAL_HEADERS.forEach((x) => null);
+  HttpHeaders.ENTITY_HEADERS.forEach((x) => null);
+  HttpHeaders.RESPONSE_HEADERS.forEach((x) => null);
+  HttpHeaders.REQUEST_HEADERS.forEach((x) => null);
+}
+
 main() {
   testMultiValue();
   testDate();
@@ -400,4 +407,5 @@ main() {
   testContentTypeCache();
   testCookie();
   testInvalidCookie();
+  testHeaderLists();
 }
