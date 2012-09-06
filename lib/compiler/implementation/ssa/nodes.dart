@@ -1407,8 +1407,10 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(Element element, HInstruction receiver)
-      : this.isAssignable = (element == null || element.isAssignable()),
+  HFieldGet(Element element, HInstruction receiver, [bool isAssignable])
+      : this.isAssignable = (isAssignable !== null)
+            ? isAssignable
+            : element.isAssignable(),
         super(element, <HInstruction>[receiver]);
 
   HInstruction get receiver => inputs[0];
