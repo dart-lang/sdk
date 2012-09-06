@@ -24,6 +24,7 @@ String compile(String code, [String entry = 'main',
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;
+  compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   var context = new js.JavaScriptItemCompilationContext();
   leg.WorkItem work = new leg.WorkItem(element, null, context);

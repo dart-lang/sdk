@@ -403,6 +403,13 @@ class JavaScriptBackend extends Backend {
 
   final Namer namer;
 
+  /**
+   * Interface used to determine if an object has the JavaScript
+   * indexing behavior. The interface is only visible to specific
+   * libraries.
+   */
+  ClassElement jsIndexingBehaviorInterface;
+
   final Map<Element, Map<Element, HType>> fieldInitializers;
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, HType>> fieldSettersType;
@@ -442,6 +449,13 @@ class JavaScriptBackend extends Backend {
   void enqueueHelpers(Enqueuer world) {
     enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
     enqueueAllTopLevelFunctions(compiler.interceptorsLibrary, world);
+
+    jsIndexingBehaviorInterface =
+        compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
+    if (jsIndexingBehaviorInterface != null) {
+      world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler));
+    }
+
     for (var helper in [const SourceString('Closure'),
                         const SourceString('ConstantMap'),
                         const SourceString('ConstantProtoMap')]) {

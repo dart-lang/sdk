@@ -114,13 +114,6 @@ class Compiler implements DiagnosticListener {
   ClassElement listClass;
   Element assertMethod;
 
-  /**
-   * Interface used to determine if an object has the JavaScript
-   * indexing behavior. The interface is only visible to specific
-   * libraries.
-   */
-  ClassElement jsIndexingBehaviorInterface;
-
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
     Element old = currentElement;
@@ -357,9 +350,6 @@ class Compiler implements DiagnosticListener {
     if (!coreLibValid) {
       cancel('core library does not contain required classes');
     }
-
-    jsIndexingBehaviorInterface =
-        findHelper(const SourceString('JavaScriptIndexingBehavior'));
   }
 
   void scanBuiltinLibraries() {
@@ -376,9 +366,6 @@ class Compiler implements DiagnosticListener {
     assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
-
-    //patchDartLibrary(coreLibrary, 'core');
-    //patchDartLibrary(coreImplLibrary, 'coreimpl');
   }
 
   void importCoreLibrary(LibraryElement library) {
@@ -521,6 +508,7 @@ class Compiler implements DiagnosticListener {
         const SourceString('DART_CLOSURE_TO_JS'), library), this);
   }
 
+  // TODO(karlklose,floitsch): move this to the javascript backend.
   /** Enable the 'JS' helper for a library if needed. */
   void maybeEnableJSHelper(library) {
     String libraryName = library.uri.toString();
@@ -530,6 +518,8 @@ class Compiler implements DiagnosticListener {
         || libraryName == 'dart:math'
         || libraryName == 'dart:html') {
       library.addToScope(findHelper(const SourceString('JS')), this);
+      Element jsIndexingBehaviorInterface =
+          findHelper(const SourceString('JavaScriptIndexingBehavior'));
       if (jsIndexingBehaviorInterface !== null) {
         library.addToScope(jsIndexingBehaviorInterface, this);
       }
@@ -580,6 +570,11 @@ class Compiler implements DiagnosticListener {
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     if (compilationFailed) return;
+
+    // TODO(karlklose): also take the instantiated types into account and move
+    // this computation to before codegen.
+    enqueuer.codegen.universe.computeRequiredTypes(
+        enqueuer.resolution.universe.isChecks);
 
     backend.assembleProgram();
 
