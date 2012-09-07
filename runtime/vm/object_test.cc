@@ -2831,7 +2831,7 @@ TEST_CASE(StackTraceFormat) {
       "    (() => foo())();\n"
       "  }\n"
       "\n"
-      "  static get field() {\n"
+      "  static get field {\n"
       "    _bar();\n"
       "  }\n"
       "\n"

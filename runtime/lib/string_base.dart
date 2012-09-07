@@ -40,7 +40,7 @@ class StringBase {
 
   int charCodeAt(int index) native "String_charCodeAt";
 
-  int get length() native "String_getLength";
+  int get length native "String_getLength";
 
   bool isEmpty() {
     return this.length === 0;
