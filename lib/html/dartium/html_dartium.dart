@@ -71,7 +71,7 @@ _callPortSync(num id, var message) {
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
   _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -81,7 +81,7 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
 
-  _AbstractWorkerEventsImpl get on() =>
+  _AbstractWorkerEventsImpl get on =>
     new _AbstractWorkerEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_addEventListener_Callback";
@@ -107,7 +107,7 @@ class _ArrayBufferFactoryProvider {
 
 class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
 
-  int get byteLength() native "ArrayBuffer_byteLength_Getter";
+  int get byteLength native "ArrayBuffer_byteLength_Getter";
 
   ArrayBuffer slice(begin, [end = _null]) {
     if (end !== _null) {
@@ -129,11 +129,11 @@ class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
 
 class _ArrayBufferViewImpl extends NativeFieldWrapperClass1 implements ArrayBufferView {
 
-  ArrayBuffer get buffer() native "ArrayBufferView_buffer_Getter";
+  ArrayBuffer get buffer native "ArrayBufferView_buffer_Getter";
 
-  int get byteLength() native "ArrayBufferView_byteLength_Getter";
+  int get byteLength native "ArrayBufferView_byteLength_Getter";
 
-  int get byteOffset() native "ArrayBufferView_byteOffset_Getter";
+  int get byteOffset native "ArrayBufferView_byteOffset_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -144,15 +144,15 @@ class _ArrayBufferViewImpl extends NativeFieldWrapperClass1 implements ArrayBuff
 
 class _AttrImpl extends _NodeImpl implements Attr {
 
-  bool get isId() native "Attr_isId_Getter";
+  bool get isId native "Attr_isId_Getter";
 
-  String get name() native "Attr_name_Getter";
+  String get name native "Attr_name_Getter";
 
-  Element get ownerElement() native "Attr_ownerElement_Getter";
+  Element get ownerElement native "Attr_ownerElement_Getter";
 
-  bool get specified() native "Attr_specified_Getter";
+  bool get specified native "Attr_specified_Getter";
 
-  String get value() native "Attr_value_Getter";
+  String get value native "Attr_value_Getter";
 
   void set value(String) native "Attr_value_Setter";
 
@@ -165,17 +165,17 @@ class _AttrImpl extends _NodeImpl implements Attr {
 
 class _AudioBufferImpl extends NativeFieldWrapperClass1 implements AudioBuffer {
 
-  num get duration() native "AudioBuffer_duration_Getter";
+  num get duration native "AudioBuffer_duration_Getter";
 
-  num get gain() native "AudioBuffer_gain_Getter";
+  num get gain native "AudioBuffer_gain_Getter";
 
   void set gain(num) native "AudioBuffer_gain_Setter";
 
-  int get length() native "AudioBuffer_length_Getter";
+  int get length native "AudioBuffer_length_Getter";
 
-  int get numberOfChannels() native "AudioBuffer_numberOfChannels_Getter";
+  int get numberOfChannels native "AudioBuffer_numberOfChannels_Getter";
 
-  num get sampleRate() native "AudioBuffer_sampleRate_Getter";
+  num get sampleRate native "AudioBuffer_sampleRate_Getter";
 
   Float32Array getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
 
@@ -188,23 +188,23 @@ class _AudioBufferImpl extends NativeFieldWrapperClass1 implements AudioBuffer {
 
 class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBufferSourceNode {
 
-  AudioBuffer get buffer() native "AudioBufferSourceNode_buffer_Getter";
+  AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
 
   void set buffer(AudioBuffer) native "AudioBufferSourceNode_buffer_Setter";
 
-  AudioGain get gain() native "AudioBufferSourceNode_gain_Getter";
+  AudioGain get gain native "AudioBufferSourceNode_gain_Getter";
 
-  bool get loop() native "AudioBufferSourceNode_loop_Getter";
+  bool get loop native "AudioBufferSourceNode_loop_Getter";
 
   void set loop(bool) native "AudioBufferSourceNode_loop_Setter";
 
-  bool get looping() native "AudioBufferSourceNode_looping_Getter";
+  bool get looping native "AudioBufferSourceNode_looping_Getter";
 
   void set looping(bool) native "AudioBufferSourceNode_looping_Setter";
 
-  AudioParam get playbackRate() native "AudioBufferSourceNode_playbackRate_Getter";
+  AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
 
-  int get playbackState() native "AudioBufferSourceNode_playbackState_Getter";
+  int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
   void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
 
@@ -235,7 +235,7 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
   _AudioContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get complete() => this['complete'];
+  EventListenerList get complete => this['complete'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -245,18 +245,18 @@ class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents 
 
 class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
-  _AudioContextEventsImpl get on() =>
+  _AudioContextEventsImpl get on =>
     new _AudioContextEventsImpl(this);
 
-  int get activeSourceCount() native "AudioContext_activeSourceCount_Getter";
+  int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
 
-  num get currentTime() native "AudioContext_currentTime_Getter";
+  num get currentTime native "AudioContext_currentTime_Getter";
 
-  AudioDestinationNode get destination() native "AudioContext_destination_Getter";
+  AudioDestinationNode get destination native "AudioContext_destination_Getter";
 
-  AudioListener get listener() native "AudioContext_listener_Getter";
+  AudioListener get listener native "AudioContext_listener_Getter";
 
-  num get sampleRate() native "AudioContext_sampleRate_Getter";
+  num get sampleRate native "AudioContext_sampleRate_Getter";
 
   RealtimeAnalyserNode createAnalyser() native "AudioContext_createAnalyser_Callback";
 
@@ -358,7 +358,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode {
 
-  int get numberOfChannels() native "AudioDestinationNode_numberOfChannels_Getter";
+  int get numberOfChannels native "AudioDestinationNode_numberOfChannels_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -378,7 +378,7 @@ class _AudioGainImpl extends _AudioParamImpl implements AudioGain {
 
 class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode {
 
-  AudioGain get gain() native "AudioGainNode_gain_Getter";
+  AudioGain get gain native "AudioGainNode_gain_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -389,11 +389,11 @@ class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode {
 
 class _AudioListenerImpl extends NativeFieldWrapperClass1 implements AudioListener {
 
-  num get dopplerFactor() native "AudioListener_dopplerFactor_Getter";
+  num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
 
   void set dopplerFactor(num) native "AudioListener_dopplerFactor_Setter";
 
-  num get speedOfSound() native "AudioListener_speedOfSound_Getter";
+  num get speedOfSound native "AudioListener_speedOfSound_Getter";
 
   void set speedOfSound(num) native "AudioListener_speedOfSound_Setter";
 
@@ -412,11 +412,11 @@ class _AudioListenerImpl extends NativeFieldWrapperClass1 implements AudioListen
 
 class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
 
-  AudioContext get context() native "AudioNode_context_Getter";
+  AudioContext get context native "AudioNode_context_Getter";
 
-  int get numberOfInputs() native "AudioNode_numberOfInputs_Getter";
+  int get numberOfInputs native "AudioNode_numberOfInputs_Getter";
 
-  int get numberOfOutputs() native "AudioNode_numberOfOutputs_Getter";
+  int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
   void connect(destination, output, [input = _null]) {
     if ((destination is AudioNode || destination === null) && (output is int || output === null) && (input is int || input === null)) {
@@ -445,39 +445,39 @@ class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
 
 class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
 
-  AudioGain get coneGain() native "AudioPannerNode_coneGain_Getter";
+  AudioGain get coneGain native "AudioPannerNode_coneGain_Getter";
 
-  num get coneInnerAngle() native "AudioPannerNode_coneInnerAngle_Getter";
+  num get coneInnerAngle native "AudioPannerNode_coneInnerAngle_Getter";
 
   void set coneInnerAngle(num) native "AudioPannerNode_coneInnerAngle_Setter";
 
-  num get coneOuterAngle() native "AudioPannerNode_coneOuterAngle_Getter";
+  num get coneOuterAngle native "AudioPannerNode_coneOuterAngle_Getter";
 
   void set coneOuterAngle(num) native "AudioPannerNode_coneOuterAngle_Setter";
 
-  num get coneOuterGain() native "AudioPannerNode_coneOuterGain_Getter";
+  num get coneOuterGain native "AudioPannerNode_coneOuterGain_Getter";
 
   void set coneOuterGain(num) native "AudioPannerNode_coneOuterGain_Setter";
 
-  AudioGain get distanceGain() native "AudioPannerNode_distanceGain_Getter";
+  AudioGain get distanceGain native "AudioPannerNode_distanceGain_Getter";
 
-  int get distanceModel() native "AudioPannerNode_distanceModel_Getter";
+  int get distanceModel native "AudioPannerNode_distanceModel_Getter";
 
   void set distanceModel(int) native "AudioPannerNode_distanceModel_Setter";
 
-  num get maxDistance() native "AudioPannerNode_maxDistance_Getter";
+  num get maxDistance native "AudioPannerNode_maxDistance_Getter";
 
   void set maxDistance(num) native "AudioPannerNode_maxDistance_Setter";
 
-  int get panningModel() native "AudioPannerNode_panningModel_Getter";
+  int get panningModel native "AudioPannerNode_panningModel_Getter";
 
   void set panningModel(int) native "AudioPannerNode_panningModel_Setter";
 
-  num get refDistance() native "AudioPannerNode_refDistance_Getter";
+  num get refDistance native "AudioPannerNode_refDistance_Getter";
 
   void set refDistance(num) native "AudioPannerNode_refDistance_Setter";
 
-  num get rolloffFactor() native "AudioPannerNode_rolloffFactor_Getter";
+  num get rolloffFactor native "AudioPannerNode_rolloffFactor_Getter";
 
   void set rolloffFactor(num) native "AudioPannerNode_rolloffFactor_Setter";
 
@@ -496,17 +496,17 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
 
 class _AudioParamImpl extends NativeFieldWrapperClass1 implements AudioParam {
 
-  num get defaultValue() native "AudioParam_defaultValue_Getter";
+  num get defaultValue native "AudioParam_defaultValue_Getter";
 
-  num get maxValue() native "AudioParam_maxValue_Getter";
+  num get maxValue native "AudioParam_maxValue_Getter";
 
-  num get minValue() native "AudioParam_minValue_Getter";
+  num get minValue native "AudioParam_minValue_Getter";
 
-  String get name() native "AudioParam_name_Getter";
+  String get name native "AudioParam_name_Getter";
 
-  int get units() native "AudioParam_units_Getter";
+  int get units native "AudioParam_units_Getter";
 
-  num get value() native "AudioParam_value_Getter";
+  num get value native "AudioParam_value_Getter";
 
   void set value(num) native "AudioParam_value_Setter";
 
@@ -531,9 +531,9 @@ class _AudioParamImpl extends NativeFieldWrapperClass1 implements AudioParam {
 
 class _AudioProcessingEventImpl extends _EventImpl implements AudioProcessingEvent {
 
-  AudioBuffer get inputBuffer() native "AudioProcessingEvent_inputBuffer_Getter";
+  AudioBuffer get inputBuffer native "AudioProcessingEvent_inputBuffer_Getter";
 
-  AudioBuffer get outputBuffer() native "AudioProcessingEvent_outputBuffer_Getter";
+  AudioBuffer get outputBuffer native "AudioProcessingEvent_outputBuffer_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -553,20 +553,20 @@ class _AudioSourceNodeImpl extends _AudioNodeImpl implements AudioSourceNode {
 
 class _BarInfoImpl extends NativeFieldWrapperClass1 implements BarInfo {
 
-  bool get visible() native "BarInfo_visible_Getter";
+  bool get visible native "BarInfo_visible_Getter";
 
 }
 
 class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
   _BatteryManagerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get chargingChange() => this['chargingchange'];
+  EventListenerList get chargingChange => this['chargingchange'];
 
-  EventListenerList get chargingTimeChange() => this['chargingtimechange'];
+  EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
-  EventListenerList get dischargingTimeChange() => this['dischargingtimechange'];
+  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
-  EventListenerList get levelChange() => this['levelchange'];
+  EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -576,16 +576,16 @@ class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEve
 
 class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
-  _BatteryManagerEventsImpl get on() =>
+  _BatteryManagerEventsImpl get on =>
     new _BatteryManagerEventsImpl(this);
 
-  bool get charging() native "BatteryManager_charging_Getter";
+  bool get charging native "BatteryManager_charging_Getter";
 
-  num get chargingTime() native "BatteryManager_chargingTime_Getter";
+  num get chargingTime native "BatteryManager_chargingTime_Getter";
 
-  num get dischargingTime() native "BatteryManager_dischargingTime_Getter";
+  num get dischargingTime native "BatteryManager_dischargingTime_Getter";
 
-  num get level() native "BatteryManager_level_Getter";
+  num get level native "BatteryManager_level_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_addEventListener_Callback";
 
@@ -602,7 +602,7 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent {
 
-  String get url() native "BeforeLoadEvent_url_Getter";
+  String get url native "BeforeLoadEvent_url_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -613,13 +613,13 @@ class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent {
 
 class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode {
 
-  AudioParam get Q() native "BiquadFilterNode_Q_Getter";
+  AudioParam get Q native "BiquadFilterNode_Q_Getter";
 
-  AudioParam get frequency() native "BiquadFilterNode_frequency_Getter";
+  AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
 
-  AudioParam get gain() native "BiquadFilterNode_gain_Getter";
+  AudioParam get gain native "BiquadFilterNode_gain_Getter";
 
-  int get type() native "BiquadFilterNode_type_Getter";
+  int get type native "BiquadFilterNode_type_Getter";
 
   void set type(int) native "BiquadFilterNode_type_Setter";
 
@@ -642,9 +642,9 @@ class _BlobFactoryProvider {
 
 class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
 
-  int get size() native "Blob_size_Getter";
+  int get size native "Blob_size_Getter";
 
-  String get type() native "Blob_type_Getter";
+  String get type native "Blob_type_Getter";
 
   Blob slice([start = _null, end = _null, contentType = _null]) {
     if (contentType !== _null) {
@@ -706,7 +706,7 @@ class _CDATASectionImpl extends _TextImpl implements CDATASection {
 
 class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule {
 
-  String get encoding() native "CSSCharsetRule_encoding_Getter";
+  String get encoding native "CSSCharsetRule_encoding_Getter";
 
   void set encoding(String) native "CSSCharsetRule_encoding_Setter";
 
@@ -719,7 +719,7 @@ class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule {
 
 class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule {
 
-  CSSStyleDeclaration get style() native "CSSFontFaceRule_style_Getter";
+  CSSStyleDeclaration get style native "CSSFontFaceRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -730,11 +730,11 @@ class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule {
 
 class _CSSImportRuleImpl extends _CSSRuleImpl implements CSSImportRule {
 
-  String get href() native "CSSImportRule_href_Getter";
+  String get href native "CSSImportRule_href_Getter";
 
-  MediaList get media() native "CSSImportRule_media_Getter";
+  MediaList get media native "CSSImportRule_media_Getter";
 
-  CSSStyleSheet get styleSheet() native "CSSImportRule_styleSheet_Getter";
+  CSSStyleSheet get styleSheet native "CSSImportRule_styleSheet_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -745,9 +745,9 @@ class _CSSImportRuleImpl extends _CSSRuleImpl implements CSSImportRule {
 
 class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule {
 
-  CSSRuleList get cssRules() native "CSSMediaRule_cssRules_Getter";
+  CSSRuleList get cssRules native "CSSMediaRule_cssRules_Getter";
 
-  MediaList get media() native "CSSMediaRule_media_Getter";
+  MediaList get media native "CSSMediaRule_media_Getter";
 
   void deleteRule(int index) native "CSSMediaRule_deleteRule_Callback";
 
@@ -762,11 +762,11 @@ class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule {
 
 class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule {
 
-  String get selectorText() native "CSSPageRule_selectorText_Getter";
+  String get selectorText native "CSSPageRule_selectorText_Getter";
 
   void set selectorText(String) native "CSSPageRule_selectorText_Setter";
 
-  CSSStyleDeclaration get style() native "CSSPageRule_style_Getter";
+  CSSStyleDeclaration get style native "CSSPageRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -777,7 +777,7 @@ class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule {
 
 class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue {
 
-  int get primitiveType() native "CSSPrimitiveValue_primitiveType_Getter";
+  int get primitiveType native "CSSPrimitiveValue_primitiveType_Getter";
 
   Counter getCounterValue() native "CSSPrimitiveValue_getCounterValue_Callback";
 
@@ -802,15 +802,15 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
 
 class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 
-  String get cssText() native "CSSRule_cssText_Getter";
+  String get cssText native "CSSRule_cssText_Getter";
 
   void set cssText(String) native "CSSRule_cssText_Setter";
 
-  CSSRule get parentRule() native "CSSRule_parentRule_Getter";
+  CSSRule get parentRule native "CSSRule_parentRule_Getter";
 
-  CSSStyleSheet get parentStyleSheet() native "CSSRule_parentStyleSheet_Getter";
+  CSSStyleSheet get parentStyleSheet native "CSSRule_parentStyleSheet_Getter";
 
-  int get type() native "CSSRule_type_Getter";
+  int get type native "CSSRule_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -821,7 +821,7 @@ class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 
 class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
 
-  int get length() native "CSSRuleList_length_Getter";
+  int get length native "CSSRuleList_length_Getter";
 
   CSSRule item(int index) native "CSSRuleList_item_Callback";
 
@@ -832,7 +832,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
 
 String _cachedBrowserPrefix;
 
-String get _browserPrefix() {
+String get _browserPrefix {
   if (_cachedBrowserPrefix === null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
@@ -850,13 +850,13 @@ String get _browserPrefix() {
 class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSStyleDeclaration {
 
 
-  String get cssText() native "CSSStyleDeclaration_cssText_Getter";
+  String get cssText native "CSSStyleDeclaration_cssText_Getter";
 
   void set cssText(String) native "CSSStyleDeclaration_cssText_Setter";
 
-  int get length() native "CSSStyleDeclaration_length_Getter";
+  int get length native "CSSStyleDeclaration_length_Getter";
 
-  CSSRule get parentRule() native "CSSStyleDeclaration_parentRule_Getter";
+  CSSRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
   CSSValue getPropertyCSSValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
@@ -877,7 +877,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   // TODO(jacobr): generate this list of properties using the existing script.
     /** Gets the value of "animation" */
-  String get animation() =>
+  String get animation =>
     getPropertyValue('${_browserPrefix}animation');
 
   /** Sets the value of "animation" */
@@ -886,7 +886,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-delay" */
-  String get animationDelay() =>
+  String get animationDelay =>
     getPropertyValue('${_browserPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
@@ -895,7 +895,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-direction" */
-  String get animationDirection() =>
+  String get animationDirection =>
     getPropertyValue('${_browserPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
@@ -904,7 +904,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-duration" */
-  String get animationDuration() =>
+  String get animationDuration =>
     getPropertyValue('${_browserPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
@@ -913,7 +913,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-fill-mode" */
-  String get animationFillMode() =>
+  String get animationFillMode =>
     getPropertyValue('${_browserPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
@@ -922,7 +922,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-iteration-count" */
-  String get animationIterationCount() =>
+  String get animationIterationCount =>
     getPropertyValue('${_browserPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
@@ -931,7 +931,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-name" */
-  String get animationName() =>
+  String get animationName =>
     getPropertyValue('${_browserPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
@@ -940,7 +940,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-play-state" */
-  String get animationPlayState() =>
+  String get animationPlayState =>
     getPropertyValue('${_browserPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
@@ -949,7 +949,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "animation-timing-function" */
-  String get animationTimingFunction() =>
+  String get animationTimingFunction =>
     getPropertyValue('${_browserPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
@@ -958,7 +958,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "appearance" */
-  String get appearance() =>
+  String get appearance =>
     getPropertyValue('${_browserPrefix}appearance');
 
   /** Sets the value of "appearance" */
@@ -967,7 +967,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "backface-visibility" */
-  String get backfaceVisibility() =>
+  String get backfaceVisibility =>
     getPropertyValue('${_browserPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
@@ -976,7 +976,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background" */
-  String get background() =>
+  String get background =>
     getPropertyValue('background');
 
   /** Sets the value of "background" */
@@ -985,7 +985,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-attachment" */
-  String get backgroundAttachment() =>
+  String get backgroundAttachment =>
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
@@ -994,7 +994,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-clip" */
-  String get backgroundClip() =>
+  String get backgroundClip =>
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
@@ -1003,7 +1003,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-color" */
-  String get backgroundColor() =>
+  String get backgroundColor =>
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
@@ -1012,7 +1012,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-composite" */
-  String get backgroundComposite() =>
+  String get backgroundComposite =>
     getPropertyValue('${_browserPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
@@ -1021,7 +1021,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-image" */
-  String get backgroundImage() =>
+  String get backgroundImage =>
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
@@ -1030,7 +1030,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-origin" */
-  String get backgroundOrigin() =>
+  String get backgroundOrigin =>
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
@@ -1039,7 +1039,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-position" */
-  String get backgroundPosition() =>
+  String get backgroundPosition =>
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
@@ -1048,7 +1048,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-position-x" */
-  String get backgroundPositionX() =>
+  String get backgroundPositionX =>
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
@@ -1057,7 +1057,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-position-y" */
-  String get backgroundPositionY() =>
+  String get backgroundPositionY =>
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
@@ -1066,7 +1066,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-repeat" */
-  String get backgroundRepeat() =>
+  String get backgroundRepeat =>
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
@@ -1075,7 +1075,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-repeat-x" */
-  String get backgroundRepeatX() =>
+  String get backgroundRepeatX =>
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
@@ -1084,7 +1084,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-repeat-y" */
-  String get backgroundRepeatY() =>
+  String get backgroundRepeatY =>
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
@@ -1093,7 +1093,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "background-size" */
-  String get backgroundSize() =>
+  String get backgroundSize =>
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
@@ -1102,7 +1102,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border" */
-  String get border() =>
+  String get border =>
     getPropertyValue('border');
 
   /** Sets the value of "border" */
@@ -1111,7 +1111,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-after" */
-  String get borderAfter() =>
+  String get borderAfter =>
     getPropertyValue('${_browserPrefix}border-after');
 
   /** Sets the value of "border-after" */
@@ -1120,7 +1120,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-after-color" */
-  String get borderAfterColor() =>
+  String get borderAfterColor =>
     getPropertyValue('${_browserPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
@@ -1129,7 +1129,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-after-style" */
-  String get borderAfterStyle() =>
+  String get borderAfterStyle =>
     getPropertyValue('${_browserPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
@@ -1138,7 +1138,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-after-width" */
-  String get borderAfterWidth() =>
+  String get borderAfterWidth =>
     getPropertyValue('${_browserPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
@@ -1147,7 +1147,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-before" */
-  String get borderBefore() =>
+  String get borderBefore =>
     getPropertyValue('${_browserPrefix}border-before');
 
   /** Sets the value of "border-before" */
@@ -1156,7 +1156,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-before-color" */
-  String get borderBeforeColor() =>
+  String get borderBeforeColor =>
     getPropertyValue('${_browserPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
@@ -1165,7 +1165,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-before-style" */
-  String get borderBeforeStyle() =>
+  String get borderBeforeStyle =>
     getPropertyValue('${_browserPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
@@ -1174,7 +1174,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-before-width" */
-  String get borderBeforeWidth() =>
+  String get borderBeforeWidth =>
     getPropertyValue('${_browserPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
@@ -1183,7 +1183,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-bottom" */
-  String get borderBottom() =>
+  String get borderBottom =>
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
@@ -1192,7 +1192,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-bottom-color" */
-  String get borderBottomColor() =>
+  String get borderBottomColor =>
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
@@ -1201,7 +1201,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-bottom-left-radius" */
-  String get borderBottomLeftRadius() =>
+  String get borderBottomLeftRadius =>
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
@@ -1210,7 +1210,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-bottom-right-radius" */
-  String get borderBottomRightRadius() =>
+  String get borderBottomRightRadius =>
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
@@ -1219,7 +1219,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-bottom-style" */
-  String get borderBottomStyle() =>
+  String get borderBottomStyle =>
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
@@ -1228,7 +1228,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-bottom-width" */
-  String get borderBottomWidth() =>
+  String get borderBottomWidth =>
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
@@ -1237,7 +1237,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-collapse" */
-  String get borderCollapse() =>
+  String get borderCollapse =>
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
@@ -1246,7 +1246,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-color" */
-  String get borderColor() =>
+  String get borderColor =>
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
@@ -1255,7 +1255,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-end" */
-  String get borderEnd() =>
+  String get borderEnd =>
     getPropertyValue('${_browserPrefix}border-end');
 
   /** Sets the value of "border-end" */
@@ -1264,7 +1264,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-end-color" */
-  String get borderEndColor() =>
+  String get borderEndColor =>
     getPropertyValue('${_browserPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
@@ -1273,7 +1273,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-end-style" */
-  String get borderEndStyle() =>
+  String get borderEndStyle =>
     getPropertyValue('${_browserPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
@@ -1282,7 +1282,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-end-width" */
-  String get borderEndWidth() =>
+  String get borderEndWidth =>
     getPropertyValue('${_browserPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
@@ -1291,7 +1291,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-fit" */
-  String get borderFit() =>
+  String get borderFit =>
     getPropertyValue('${_browserPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
@@ -1300,7 +1300,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-horizontal-spacing" */
-  String get borderHorizontalSpacing() =>
+  String get borderHorizontalSpacing =>
     getPropertyValue('${_browserPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
@@ -1309,7 +1309,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-image" */
-  String get borderImage() =>
+  String get borderImage =>
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
@@ -1318,7 +1318,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-image-outset" */
-  String get borderImageOutset() =>
+  String get borderImageOutset =>
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
@@ -1327,7 +1327,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-image-repeat" */
-  String get borderImageRepeat() =>
+  String get borderImageRepeat =>
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
@@ -1336,7 +1336,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-image-slice" */
-  String get borderImageSlice() =>
+  String get borderImageSlice =>
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
@@ -1345,7 +1345,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-image-source" */
-  String get borderImageSource() =>
+  String get borderImageSource =>
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
@@ -1354,7 +1354,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-image-width" */
-  String get borderImageWidth() =>
+  String get borderImageWidth =>
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
@@ -1363,7 +1363,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-left" */
-  String get borderLeft() =>
+  String get borderLeft =>
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
@@ -1372,7 +1372,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-left-color" */
-  String get borderLeftColor() =>
+  String get borderLeftColor =>
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
@@ -1381,7 +1381,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-left-style" */
-  String get borderLeftStyle() =>
+  String get borderLeftStyle =>
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
@@ -1390,7 +1390,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-left-width" */
-  String get borderLeftWidth() =>
+  String get borderLeftWidth =>
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
@@ -1399,7 +1399,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-radius" */
-  String get borderRadius() =>
+  String get borderRadius =>
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
@@ -1408,7 +1408,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-right" */
-  String get borderRight() =>
+  String get borderRight =>
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
@@ -1417,7 +1417,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-right-color" */
-  String get borderRightColor() =>
+  String get borderRightColor =>
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
@@ -1426,7 +1426,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-right-style" */
-  String get borderRightStyle() =>
+  String get borderRightStyle =>
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
@@ -1435,7 +1435,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-right-width" */
-  String get borderRightWidth() =>
+  String get borderRightWidth =>
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
@@ -1444,7 +1444,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-spacing" */
-  String get borderSpacing() =>
+  String get borderSpacing =>
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
@@ -1453,7 +1453,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-start" */
-  String get borderStart() =>
+  String get borderStart =>
     getPropertyValue('${_browserPrefix}border-start');
 
   /** Sets the value of "border-start" */
@@ -1462,7 +1462,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-start-color" */
-  String get borderStartColor() =>
+  String get borderStartColor =>
     getPropertyValue('${_browserPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
@@ -1471,7 +1471,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-start-style" */
-  String get borderStartStyle() =>
+  String get borderStartStyle =>
     getPropertyValue('${_browserPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
@@ -1480,7 +1480,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-start-width" */
-  String get borderStartWidth() =>
+  String get borderStartWidth =>
     getPropertyValue('${_browserPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
@@ -1489,7 +1489,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-style" */
-  String get borderStyle() =>
+  String get borderStyle =>
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
@@ -1498,7 +1498,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-top" */
-  String get borderTop() =>
+  String get borderTop =>
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
@@ -1507,7 +1507,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-top-color" */
-  String get borderTopColor() =>
+  String get borderTopColor =>
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
@@ -1516,7 +1516,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-top-left-radius" */
-  String get borderTopLeftRadius() =>
+  String get borderTopLeftRadius =>
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
@@ -1525,7 +1525,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-top-right-radius" */
-  String get borderTopRightRadius() =>
+  String get borderTopRightRadius =>
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
@@ -1534,7 +1534,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-top-style" */
-  String get borderTopStyle() =>
+  String get borderTopStyle =>
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
@@ -1543,7 +1543,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-top-width" */
-  String get borderTopWidth() =>
+  String get borderTopWidth =>
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
@@ -1552,7 +1552,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-vertical-spacing" */
-  String get borderVerticalSpacing() =>
+  String get borderVerticalSpacing =>
     getPropertyValue('${_browserPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
@@ -1561,7 +1561,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "border-width" */
-  String get borderWidth() =>
+  String get borderWidth =>
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
@@ -1570,7 +1570,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "bottom" */
-  String get bottom() =>
+  String get bottom =>
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
@@ -1579,7 +1579,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-align" */
-  String get boxAlign() =>
+  String get boxAlign =>
     getPropertyValue('${_browserPrefix}box-align');
 
   /** Sets the value of "box-align" */
@@ -1588,7 +1588,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-direction" */
-  String get boxDirection() =>
+  String get boxDirection =>
     getPropertyValue('${_browserPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
@@ -1597,7 +1597,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-flex" */
-  String get boxFlex() =>
+  String get boxFlex =>
     getPropertyValue('${_browserPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
@@ -1606,7 +1606,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-flex-group" */
-  String get boxFlexGroup() =>
+  String get boxFlexGroup =>
     getPropertyValue('${_browserPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
@@ -1615,7 +1615,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-lines" */
-  String get boxLines() =>
+  String get boxLines =>
     getPropertyValue('${_browserPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
@@ -1624,7 +1624,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-ordinal-group" */
-  String get boxOrdinalGroup() =>
+  String get boxOrdinalGroup =>
     getPropertyValue('${_browserPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
@@ -1633,7 +1633,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-orient" */
-  String get boxOrient() =>
+  String get boxOrient =>
     getPropertyValue('${_browserPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
@@ -1642,7 +1642,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-pack" */
-  String get boxPack() =>
+  String get boxPack =>
     getPropertyValue('${_browserPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
@@ -1651,7 +1651,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-reflect" */
-  String get boxReflect() =>
+  String get boxReflect =>
     getPropertyValue('${_browserPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
@@ -1660,7 +1660,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-shadow" */
-  String get boxShadow() =>
+  String get boxShadow =>
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
@@ -1669,7 +1669,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing() =>
+  String get boxSizing =>
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
@@ -1678,7 +1678,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "caption-side" */
-  String get captionSide() =>
+  String get captionSide =>
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
@@ -1687,7 +1687,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "clear" */
-  String get clear() =>
+  String get clear =>
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
@@ -1696,7 +1696,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "clip" */
-  String get clip() =>
+  String get clip =>
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
@@ -1705,7 +1705,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "color" */
-  String get color() =>
+  String get color =>
     getPropertyValue('color');
 
   /** Sets the value of "color" */
@@ -1714,7 +1714,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "color-correction" */
-  String get colorCorrection() =>
+  String get colorCorrection =>
     getPropertyValue('${_browserPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
@@ -1723,7 +1723,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-break-after" */
-  String get columnBreakAfter() =>
+  String get columnBreakAfter =>
     getPropertyValue('${_browserPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
@@ -1732,7 +1732,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-break-before" */
-  String get columnBreakBefore() =>
+  String get columnBreakBefore =>
     getPropertyValue('${_browserPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
@@ -1741,7 +1741,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-break-inside" */
-  String get columnBreakInside() =>
+  String get columnBreakInside =>
     getPropertyValue('${_browserPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
@@ -1750,7 +1750,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-count" */
-  String get columnCount() =>
+  String get columnCount =>
     getPropertyValue('${_browserPrefix}column-count');
 
   /** Sets the value of "column-count" */
@@ -1759,7 +1759,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-gap" */
-  String get columnGap() =>
+  String get columnGap =>
     getPropertyValue('${_browserPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
@@ -1768,7 +1768,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-rule" */
-  String get columnRule() =>
+  String get columnRule =>
     getPropertyValue('${_browserPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
@@ -1777,7 +1777,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-rule-color" */
-  String get columnRuleColor() =>
+  String get columnRuleColor =>
     getPropertyValue('${_browserPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
@@ -1786,7 +1786,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-rule-style" */
-  String get columnRuleStyle() =>
+  String get columnRuleStyle =>
     getPropertyValue('${_browserPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
@@ -1795,7 +1795,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-rule-width" */
-  String get columnRuleWidth() =>
+  String get columnRuleWidth =>
     getPropertyValue('${_browserPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
@@ -1804,7 +1804,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-span" */
-  String get columnSpan() =>
+  String get columnSpan =>
     getPropertyValue('${_browserPrefix}column-span');
 
   /** Sets the value of "column-span" */
@@ -1813,7 +1813,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "column-width" */
-  String get columnWidth() =>
+  String get columnWidth =>
     getPropertyValue('${_browserPrefix}column-width');
 
   /** Sets the value of "column-width" */
@@ -1822,7 +1822,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "columns" */
-  String get columns() =>
+  String get columns =>
     getPropertyValue('${_browserPrefix}columns');
 
   /** Sets the value of "columns" */
@@ -1831,7 +1831,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "content" */
-  String get content() =>
+  String get content =>
     getPropertyValue('content');
 
   /** Sets the value of "content" */
@@ -1840,7 +1840,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "counter-increment" */
-  String get counterIncrement() =>
+  String get counterIncrement =>
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
@@ -1849,7 +1849,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "counter-reset" */
-  String get counterReset() =>
+  String get counterReset =>
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
@@ -1858,7 +1858,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "cursor" */
-  String get cursor() =>
+  String get cursor =>
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
@@ -1867,7 +1867,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "direction" */
-  String get direction() =>
+  String get direction =>
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
@@ -1876,7 +1876,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "display" */
-  String get display() =>
+  String get display =>
     getPropertyValue('display');
 
   /** Sets the value of "display" */
@@ -1885,7 +1885,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "empty-cells" */
-  String get emptyCells() =>
+  String get emptyCells =>
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
@@ -1894,7 +1894,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "filter" */
-  String get filter() =>
+  String get filter =>
     getPropertyValue('${_browserPrefix}filter');
 
   /** Sets the value of "filter" */
@@ -1903,7 +1903,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "flex-align" */
-  String get flexAlign() =>
+  String get flexAlign =>
     getPropertyValue('${_browserPrefix}flex-align');
 
   /** Sets the value of "flex-align" */
@@ -1912,7 +1912,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "flex-flow" */
-  String get flexFlow() =>
+  String get flexFlow =>
     getPropertyValue('${_browserPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
@@ -1921,7 +1921,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "flex-order" */
-  String get flexOrder() =>
+  String get flexOrder =>
     getPropertyValue('${_browserPrefix}flex-order');
 
   /** Sets the value of "flex-order" */
@@ -1930,7 +1930,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "flex-pack" */
-  String get flexPack() =>
+  String get flexPack =>
     getPropertyValue('${_browserPrefix}flex-pack');
 
   /** Sets the value of "flex-pack" */
@@ -1939,7 +1939,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "float" */
-  String get float() =>
+  String get float =>
     getPropertyValue('float');
 
   /** Sets the value of "float" */
@@ -1948,7 +1948,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "flow-from" */
-  String get flowFrom() =>
+  String get flowFrom =>
     getPropertyValue('${_browserPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
@@ -1957,7 +1957,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "flow-into" */
-  String get flowInto() =>
+  String get flowInto =>
     getPropertyValue('${_browserPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
@@ -1966,7 +1966,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font" */
-  String get font() =>
+  String get font =>
     getPropertyValue('font');
 
   /** Sets the value of "font" */
@@ -1975,7 +1975,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-family" */
-  String get fontFamily() =>
+  String get fontFamily =>
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
@@ -1984,7 +1984,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-feature-settings" */
-  String get fontFeatureSettings() =>
+  String get fontFeatureSettings =>
     getPropertyValue('${_browserPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
@@ -1993,7 +1993,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-size" */
-  String get fontSize() =>
+  String get fontSize =>
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
@@ -2002,7 +2002,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-size-delta" */
-  String get fontSizeDelta() =>
+  String get fontSizeDelta =>
     getPropertyValue('${_browserPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
@@ -2011,7 +2011,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-smoothing" */
-  String get fontSmoothing() =>
+  String get fontSmoothing =>
     getPropertyValue('${_browserPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
@@ -2020,7 +2020,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-stretch" */
-  String get fontStretch() =>
+  String get fontStretch =>
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
@@ -2029,7 +2029,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-style" */
-  String get fontStyle() =>
+  String get fontStyle =>
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
@@ -2038,7 +2038,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-variant" */
-  String get fontVariant() =>
+  String get fontVariant =>
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
@@ -2047,7 +2047,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "font-weight" */
-  String get fontWeight() =>
+  String get fontWeight =>
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
@@ -2056,7 +2056,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "height" */
-  String get height() =>
+  String get height =>
     getPropertyValue('height');
 
   /** Sets the value of "height" */
@@ -2065,7 +2065,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "highlight" */
-  String get highlight() =>
+  String get highlight =>
     getPropertyValue('${_browserPrefix}highlight');
 
   /** Sets the value of "highlight" */
@@ -2074,7 +2074,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "hyphenate-character" */
-  String get hyphenateCharacter() =>
+  String get hyphenateCharacter =>
     getPropertyValue('${_browserPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
@@ -2083,7 +2083,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "hyphenate-limit-after" */
-  String get hyphenateLimitAfter() =>
+  String get hyphenateLimitAfter =>
     getPropertyValue('${_browserPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
@@ -2092,7 +2092,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "hyphenate-limit-before" */
-  String get hyphenateLimitBefore() =>
+  String get hyphenateLimitBefore =>
     getPropertyValue('${_browserPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
@@ -2101,7 +2101,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "hyphenate-limit-lines" */
-  String get hyphenateLimitLines() =>
+  String get hyphenateLimitLines =>
     getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
@@ -2110,7 +2110,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "hyphens" */
-  String get hyphens() =>
+  String get hyphens =>
     getPropertyValue('${_browserPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
@@ -2119,7 +2119,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "image-rendering" */
-  String get imageRendering() =>
+  String get imageRendering =>
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
@@ -2128,7 +2128,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "left" */
-  String get left() =>
+  String get left =>
     getPropertyValue('left');
 
   /** Sets the value of "left" */
@@ -2137,7 +2137,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "letter-spacing" */
-  String get letterSpacing() =>
+  String get letterSpacing =>
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
@@ -2146,7 +2146,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "line-box-contain" */
-  String get lineBoxContain() =>
+  String get lineBoxContain =>
     getPropertyValue('${_browserPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
@@ -2155,7 +2155,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "line-break" */
-  String get lineBreak() =>
+  String get lineBreak =>
     getPropertyValue('${_browserPrefix}line-break');
 
   /** Sets the value of "line-break" */
@@ -2164,7 +2164,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "line-clamp" */
-  String get lineClamp() =>
+  String get lineClamp =>
     getPropertyValue('${_browserPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
@@ -2173,7 +2173,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "line-height" */
-  String get lineHeight() =>
+  String get lineHeight =>
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
@@ -2182,7 +2182,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "list-style" */
-  String get listStyle() =>
+  String get listStyle =>
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
@@ -2191,7 +2191,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "list-style-image" */
-  String get listStyleImage() =>
+  String get listStyleImage =>
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
@@ -2200,7 +2200,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "list-style-position" */
-  String get listStylePosition() =>
+  String get listStylePosition =>
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
@@ -2209,7 +2209,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "list-style-type" */
-  String get listStyleType() =>
+  String get listStyleType =>
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
@@ -2218,7 +2218,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "locale" */
-  String get locale() =>
+  String get locale =>
     getPropertyValue('${_browserPrefix}locale');
 
   /** Sets the value of "locale" */
@@ -2227,7 +2227,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "logical-height" */
-  String get logicalHeight() =>
+  String get logicalHeight =>
     getPropertyValue('${_browserPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
@@ -2236,7 +2236,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "logical-width" */
-  String get logicalWidth() =>
+  String get logicalWidth =>
     getPropertyValue('${_browserPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
@@ -2245,7 +2245,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin" */
-  String get margin() =>
+  String get margin =>
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
@@ -2254,7 +2254,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-after" */
-  String get marginAfter() =>
+  String get marginAfter =>
     getPropertyValue('${_browserPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
@@ -2263,7 +2263,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-after-collapse" */
-  String get marginAfterCollapse() =>
+  String get marginAfterCollapse =>
     getPropertyValue('${_browserPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
@@ -2272,7 +2272,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-before" */
-  String get marginBefore() =>
+  String get marginBefore =>
     getPropertyValue('${_browserPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
@@ -2281,7 +2281,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-before-collapse" */
-  String get marginBeforeCollapse() =>
+  String get marginBeforeCollapse =>
     getPropertyValue('${_browserPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
@@ -2290,7 +2290,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-bottom" */
-  String get marginBottom() =>
+  String get marginBottom =>
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
@@ -2299,7 +2299,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-bottom-collapse" */
-  String get marginBottomCollapse() =>
+  String get marginBottomCollapse =>
     getPropertyValue('${_browserPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
@@ -2308,7 +2308,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-collapse" */
-  String get marginCollapse() =>
+  String get marginCollapse =>
     getPropertyValue('${_browserPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
@@ -2317,7 +2317,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-end" */
-  String get marginEnd() =>
+  String get marginEnd =>
     getPropertyValue('${_browserPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
@@ -2326,7 +2326,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-left" */
-  String get marginLeft() =>
+  String get marginLeft =>
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
@@ -2335,7 +2335,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-right" */
-  String get marginRight() =>
+  String get marginRight =>
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
@@ -2344,7 +2344,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-start" */
-  String get marginStart() =>
+  String get marginStart =>
     getPropertyValue('${_browserPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
@@ -2353,7 +2353,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-top" */
-  String get marginTop() =>
+  String get marginTop =>
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
@@ -2362,7 +2362,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "margin-top-collapse" */
-  String get marginTopCollapse() =>
+  String get marginTopCollapse =>
     getPropertyValue('${_browserPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
@@ -2371,7 +2371,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "marquee" */
-  String get marquee() =>
+  String get marquee =>
     getPropertyValue('${_browserPrefix}marquee');
 
   /** Sets the value of "marquee" */
@@ -2380,7 +2380,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "marquee-direction" */
-  String get marqueeDirection() =>
+  String get marqueeDirection =>
     getPropertyValue('${_browserPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
@@ -2389,7 +2389,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "marquee-increment" */
-  String get marqueeIncrement() =>
+  String get marqueeIncrement =>
     getPropertyValue('${_browserPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
@@ -2398,7 +2398,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "marquee-repetition" */
-  String get marqueeRepetition() =>
+  String get marqueeRepetition =>
     getPropertyValue('${_browserPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
@@ -2407,7 +2407,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "marquee-speed" */
-  String get marqueeSpeed() =>
+  String get marqueeSpeed =>
     getPropertyValue('${_browserPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
@@ -2416,7 +2416,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "marquee-style" */
-  String get marqueeStyle() =>
+  String get marqueeStyle =>
     getPropertyValue('${_browserPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
@@ -2425,7 +2425,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask" */
-  String get mask() =>
+  String get mask =>
     getPropertyValue('${_browserPrefix}mask');
 
   /** Sets the value of "mask" */
@@ -2434,7 +2434,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-attachment" */
-  String get maskAttachment() =>
+  String get maskAttachment =>
     getPropertyValue('${_browserPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
@@ -2443,7 +2443,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-box-image" */
-  String get maskBoxImage() =>
+  String get maskBoxImage =>
     getPropertyValue('${_browserPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
@@ -2452,7 +2452,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-box-image-outset" */
-  String get maskBoxImageOutset() =>
+  String get maskBoxImageOutset =>
     getPropertyValue('${_browserPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
@@ -2461,7 +2461,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-box-image-repeat" */
-  String get maskBoxImageRepeat() =>
+  String get maskBoxImageRepeat =>
     getPropertyValue('${_browserPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
@@ -2470,7 +2470,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-box-image-slice" */
-  String get maskBoxImageSlice() =>
+  String get maskBoxImageSlice =>
     getPropertyValue('${_browserPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
@@ -2479,7 +2479,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-box-image-source" */
-  String get maskBoxImageSource() =>
+  String get maskBoxImageSource =>
     getPropertyValue('${_browserPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
@@ -2488,7 +2488,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-box-image-width" */
-  String get maskBoxImageWidth() =>
+  String get maskBoxImageWidth =>
     getPropertyValue('${_browserPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
@@ -2497,7 +2497,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-clip" */
-  String get maskClip() =>
+  String get maskClip =>
     getPropertyValue('${_browserPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
@@ -2506,7 +2506,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-composite" */
-  String get maskComposite() =>
+  String get maskComposite =>
     getPropertyValue('${_browserPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
@@ -2515,7 +2515,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-image" */
-  String get maskImage() =>
+  String get maskImage =>
     getPropertyValue('${_browserPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
@@ -2524,7 +2524,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-origin" */
-  String get maskOrigin() =>
+  String get maskOrigin =>
     getPropertyValue('${_browserPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
@@ -2533,7 +2533,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-position" */
-  String get maskPosition() =>
+  String get maskPosition =>
     getPropertyValue('${_browserPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
@@ -2542,7 +2542,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-position-x" */
-  String get maskPositionX() =>
+  String get maskPositionX =>
     getPropertyValue('${_browserPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
@@ -2551,7 +2551,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-position-y" */
-  String get maskPositionY() =>
+  String get maskPositionY =>
     getPropertyValue('${_browserPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
@@ -2560,7 +2560,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-repeat" */
-  String get maskRepeat() =>
+  String get maskRepeat =>
     getPropertyValue('${_browserPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
@@ -2569,7 +2569,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-repeat-x" */
-  String get maskRepeatX() =>
+  String get maskRepeatX =>
     getPropertyValue('${_browserPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
@@ -2578,7 +2578,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-repeat-y" */
-  String get maskRepeatY() =>
+  String get maskRepeatY =>
     getPropertyValue('${_browserPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
@@ -2587,7 +2587,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "mask-size" */
-  String get maskSize() =>
+  String get maskSize =>
     getPropertyValue('${_browserPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
@@ -2596,7 +2596,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "match-nearest-mail-blockquote-color" */
-  String get matchNearestMailBlockquoteColor() =>
+  String get matchNearestMailBlockquoteColor =>
     getPropertyValue('${_browserPrefix}match-nearest-mail-blockquote-color');
 
   /** Sets the value of "match-nearest-mail-blockquote-color" */
@@ -2605,7 +2605,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "max-height" */
-  String get maxHeight() =>
+  String get maxHeight =>
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
@@ -2614,7 +2614,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "max-logical-height" */
-  String get maxLogicalHeight() =>
+  String get maxLogicalHeight =>
     getPropertyValue('${_browserPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
@@ -2623,7 +2623,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "max-logical-width" */
-  String get maxLogicalWidth() =>
+  String get maxLogicalWidth =>
     getPropertyValue('${_browserPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
@@ -2632,7 +2632,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "max-width" */
-  String get maxWidth() =>
+  String get maxWidth =>
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
@@ -2641,7 +2641,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "min-height" */
-  String get minHeight() =>
+  String get minHeight =>
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
@@ -2650,7 +2650,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "min-logical-height" */
-  String get minLogicalHeight() =>
+  String get minLogicalHeight =>
     getPropertyValue('${_browserPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
@@ -2659,7 +2659,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "min-logical-width" */
-  String get minLogicalWidth() =>
+  String get minLogicalWidth =>
     getPropertyValue('${_browserPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
@@ -2668,7 +2668,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "min-width" */
-  String get minWidth() =>
+  String get minWidth =>
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
@@ -2677,7 +2677,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "nbsp-mode" */
-  String get nbspMode() =>
+  String get nbspMode =>
     getPropertyValue('${_browserPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
@@ -2686,7 +2686,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "opacity" */
-  String get opacity() =>
+  String get opacity =>
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
@@ -2695,7 +2695,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "orphans" */
-  String get orphans() =>
+  String get orphans =>
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
@@ -2704,7 +2704,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "outline" */
-  String get outline() =>
+  String get outline =>
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
@@ -2713,7 +2713,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "outline-color" */
-  String get outlineColor() =>
+  String get outlineColor =>
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
@@ -2722,7 +2722,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "outline-offset" */
-  String get outlineOffset() =>
+  String get outlineOffset =>
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
@@ -2731,7 +2731,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "outline-style" */
-  String get outlineStyle() =>
+  String get outlineStyle =>
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
@@ -2740,7 +2740,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "outline-width" */
-  String get outlineWidth() =>
+  String get outlineWidth =>
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
@@ -2749,7 +2749,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "overflow" */
-  String get overflow() =>
+  String get overflow =>
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
@@ -2758,7 +2758,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "overflow-x" */
-  String get overflowX() =>
+  String get overflowX =>
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
@@ -2767,7 +2767,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "overflow-y" */
-  String get overflowY() =>
+  String get overflowY =>
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
@@ -2776,7 +2776,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding" */
-  String get padding() =>
+  String get padding =>
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
@@ -2785,7 +2785,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-after" */
-  String get paddingAfter() =>
+  String get paddingAfter =>
     getPropertyValue('${_browserPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
@@ -2794,7 +2794,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-before" */
-  String get paddingBefore() =>
+  String get paddingBefore =>
     getPropertyValue('${_browserPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
@@ -2803,7 +2803,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-bottom" */
-  String get paddingBottom() =>
+  String get paddingBottom =>
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
@@ -2812,7 +2812,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-end" */
-  String get paddingEnd() =>
+  String get paddingEnd =>
     getPropertyValue('${_browserPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
@@ -2821,7 +2821,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-left" */
-  String get paddingLeft() =>
+  String get paddingLeft =>
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
@@ -2830,7 +2830,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-right" */
-  String get paddingRight() =>
+  String get paddingRight =>
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
@@ -2839,7 +2839,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-start" */
-  String get paddingStart() =>
+  String get paddingStart =>
     getPropertyValue('${_browserPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
@@ -2848,7 +2848,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "padding-top" */
-  String get paddingTop() =>
+  String get paddingTop =>
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
@@ -2857,7 +2857,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "page" */
-  String get page() =>
+  String get page =>
     getPropertyValue('page');
 
   /** Sets the value of "page" */
@@ -2866,7 +2866,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "page-break-after" */
-  String get pageBreakAfter() =>
+  String get pageBreakAfter =>
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
@@ -2875,7 +2875,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "page-break-before" */
-  String get pageBreakBefore() =>
+  String get pageBreakBefore =>
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
@@ -2884,7 +2884,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "page-break-inside" */
-  String get pageBreakInside() =>
+  String get pageBreakInside =>
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
@@ -2893,7 +2893,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "perspective" */
-  String get perspective() =>
+  String get perspective =>
     getPropertyValue('${_browserPrefix}perspective');
 
   /** Sets the value of "perspective" */
@@ -2902,7 +2902,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "perspective-origin" */
-  String get perspectiveOrigin() =>
+  String get perspectiveOrigin =>
     getPropertyValue('${_browserPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
@@ -2911,7 +2911,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "perspective-origin-x" */
-  String get perspectiveOriginX() =>
+  String get perspectiveOriginX =>
     getPropertyValue('${_browserPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
@@ -2920,7 +2920,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "perspective-origin-y" */
-  String get perspectiveOriginY() =>
+  String get perspectiveOriginY =>
     getPropertyValue('${_browserPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
@@ -2929,7 +2929,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "pointer-events" */
-  String get pointerEvents() =>
+  String get pointerEvents =>
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
@@ -2938,7 +2938,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "position" */
-  String get position() =>
+  String get position =>
     getPropertyValue('position');
 
   /** Sets the value of "position" */
@@ -2947,7 +2947,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "quotes" */
-  String get quotes() =>
+  String get quotes =>
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
@@ -2956,7 +2956,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "region-break-after" */
-  String get regionBreakAfter() =>
+  String get regionBreakAfter =>
     getPropertyValue('${_browserPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
@@ -2965,7 +2965,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "region-break-before" */
-  String get regionBreakBefore() =>
+  String get regionBreakBefore =>
     getPropertyValue('${_browserPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
@@ -2974,7 +2974,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "region-break-inside" */
-  String get regionBreakInside() =>
+  String get regionBreakInside =>
     getPropertyValue('${_browserPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
@@ -2983,7 +2983,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "region-overflow" */
-  String get regionOverflow() =>
+  String get regionOverflow =>
     getPropertyValue('${_browserPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
@@ -2992,7 +2992,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "resize" */
-  String get resize() =>
+  String get resize =>
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
@@ -3001,7 +3001,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "right" */
-  String get right() =>
+  String get right =>
     getPropertyValue('right');
 
   /** Sets the value of "right" */
@@ -3010,7 +3010,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "rtl-ordering" */
-  String get rtlOrdering() =>
+  String get rtlOrdering =>
     getPropertyValue('${_browserPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
@@ -3019,7 +3019,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "size" */
-  String get size() =>
+  String get size =>
     getPropertyValue('size');
 
   /** Sets the value of "size" */
@@ -3028,7 +3028,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "speak" */
-  String get speak() =>
+  String get speak =>
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
@@ -3037,7 +3037,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "src" */
-  String get src() =>
+  String get src =>
     getPropertyValue('src');
 
   /** Sets the value of "src" */
@@ -3046,7 +3046,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "table-layout" */
-  String get tableLayout() =>
+  String get tableLayout =>
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
@@ -3055,7 +3055,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "tap-highlight-color" */
-  String get tapHighlightColor() =>
+  String get tapHighlightColor =>
     getPropertyValue('${_browserPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
@@ -3064,7 +3064,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-align" */
-  String get textAlign() =>
+  String get textAlign =>
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
@@ -3073,7 +3073,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-combine" */
-  String get textCombine() =>
+  String get textCombine =>
     getPropertyValue('${_browserPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
@@ -3082,7 +3082,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-decoration" */
-  String get textDecoration() =>
+  String get textDecoration =>
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
@@ -3091,7 +3091,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-decorations-in-effect" */
-  String get textDecorationsInEffect() =>
+  String get textDecorationsInEffect =>
     getPropertyValue('${_browserPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
@@ -3100,7 +3100,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-emphasis" */
-  String get textEmphasis() =>
+  String get textEmphasis =>
     getPropertyValue('${_browserPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
@@ -3109,7 +3109,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-emphasis-color" */
-  String get textEmphasisColor() =>
+  String get textEmphasisColor =>
     getPropertyValue('${_browserPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
@@ -3118,7 +3118,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-emphasis-position" */
-  String get textEmphasisPosition() =>
+  String get textEmphasisPosition =>
     getPropertyValue('${_browserPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
@@ -3127,7 +3127,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-emphasis-style" */
-  String get textEmphasisStyle() =>
+  String get textEmphasisStyle =>
     getPropertyValue('${_browserPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
@@ -3136,7 +3136,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-fill-color" */
-  String get textFillColor() =>
+  String get textFillColor =>
     getPropertyValue('${_browserPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
@@ -3145,7 +3145,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-indent" */
-  String get textIndent() =>
+  String get textIndent =>
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
@@ -3154,7 +3154,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-line-through" */
-  String get textLineThrough() =>
+  String get textLineThrough =>
     getPropertyValue('text-line-through');
 
   /** Sets the value of "text-line-through" */
@@ -3163,7 +3163,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-line-through-color" */
-  String get textLineThroughColor() =>
+  String get textLineThroughColor =>
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
@@ -3172,7 +3172,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-line-through-mode" */
-  String get textLineThroughMode() =>
+  String get textLineThroughMode =>
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
@@ -3181,7 +3181,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-line-through-style" */
-  String get textLineThroughStyle() =>
+  String get textLineThroughStyle =>
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
@@ -3190,7 +3190,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-line-through-width" */
-  String get textLineThroughWidth() =>
+  String get textLineThroughWidth =>
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
@@ -3199,7 +3199,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-orientation" */
-  String get textOrientation() =>
+  String get textOrientation =>
     getPropertyValue('${_browserPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
@@ -3208,7 +3208,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-overflow" */
-  String get textOverflow() =>
+  String get textOverflow =>
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
@@ -3217,7 +3217,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-overline" */
-  String get textOverline() =>
+  String get textOverline =>
     getPropertyValue('text-overline');
 
   /** Sets the value of "text-overline" */
@@ -3226,7 +3226,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-overline-color" */
-  String get textOverlineColor() =>
+  String get textOverlineColor =>
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
@@ -3235,7 +3235,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-overline-mode" */
-  String get textOverlineMode() =>
+  String get textOverlineMode =>
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
@@ -3244,7 +3244,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-overline-style" */
-  String get textOverlineStyle() =>
+  String get textOverlineStyle =>
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
@@ -3253,7 +3253,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-overline-width" */
-  String get textOverlineWidth() =>
+  String get textOverlineWidth =>
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
@@ -3262,7 +3262,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-rendering" */
-  String get textRendering() =>
+  String get textRendering =>
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
@@ -3271,7 +3271,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-security" */
-  String get textSecurity() =>
+  String get textSecurity =>
     getPropertyValue('${_browserPrefix}text-security');
 
   /** Sets the value of "text-security" */
@@ -3280,7 +3280,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-shadow" */
-  String get textShadow() =>
+  String get textShadow =>
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
@@ -3289,7 +3289,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-size-adjust" */
-  String get textSizeAdjust() =>
+  String get textSizeAdjust =>
     getPropertyValue('${_browserPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
@@ -3298,7 +3298,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-stroke" */
-  String get textStroke() =>
+  String get textStroke =>
     getPropertyValue('${_browserPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
@@ -3307,7 +3307,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-stroke-color" */
-  String get textStrokeColor() =>
+  String get textStrokeColor =>
     getPropertyValue('${_browserPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
@@ -3316,7 +3316,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-stroke-width" */
-  String get textStrokeWidth() =>
+  String get textStrokeWidth =>
     getPropertyValue('${_browserPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
@@ -3325,7 +3325,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-transform" */
-  String get textTransform() =>
+  String get textTransform =>
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
@@ -3334,7 +3334,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-underline" */
-  String get textUnderline() =>
+  String get textUnderline =>
     getPropertyValue('text-underline');
 
   /** Sets the value of "text-underline" */
@@ -3343,7 +3343,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-underline-color" */
-  String get textUnderlineColor() =>
+  String get textUnderlineColor =>
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
@@ -3352,7 +3352,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-underline-mode" */
-  String get textUnderlineMode() =>
+  String get textUnderlineMode =>
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
@@ -3361,7 +3361,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-underline-style" */
-  String get textUnderlineStyle() =>
+  String get textUnderlineStyle =>
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
@@ -3370,7 +3370,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "text-underline-width" */
-  String get textUnderlineWidth() =>
+  String get textUnderlineWidth =>
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
@@ -3379,7 +3379,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "top" */
-  String get top() =>
+  String get top =>
     getPropertyValue('top');
 
   /** Sets the value of "top" */
@@ -3388,7 +3388,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transform" */
-  String get transform() =>
+  String get transform =>
     getPropertyValue('${_browserPrefix}transform');
 
   /** Sets the value of "transform" */
@@ -3397,7 +3397,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transform-origin" */
-  String get transformOrigin() =>
+  String get transformOrigin =>
     getPropertyValue('${_browserPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
@@ -3406,7 +3406,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transform-origin-x" */
-  String get transformOriginX() =>
+  String get transformOriginX =>
     getPropertyValue('${_browserPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
@@ -3415,7 +3415,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transform-origin-y" */
-  String get transformOriginY() =>
+  String get transformOriginY =>
     getPropertyValue('${_browserPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
@@ -3424,7 +3424,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transform-origin-z" */
-  String get transformOriginZ() =>
+  String get transformOriginZ =>
     getPropertyValue('${_browserPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
@@ -3433,7 +3433,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transform-style" */
-  String get transformStyle() =>
+  String get transformStyle =>
     getPropertyValue('${_browserPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
@@ -3442,7 +3442,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transition" */
-  String get transition() =>
+  String get transition =>
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
@@ -3451,7 +3451,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transition-delay" */
-  String get transitionDelay() =>
+  String get transitionDelay =>
     getPropertyValue('${_browserPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
@@ -3460,7 +3460,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transition-duration" */
-  String get transitionDuration() =>
+  String get transitionDuration =>
     getPropertyValue('${_browserPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
@@ -3469,7 +3469,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transition-property" */
-  String get transitionProperty() =>
+  String get transitionProperty =>
     getPropertyValue('${_browserPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
@@ -3478,7 +3478,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "transition-timing-function" */
-  String get transitionTimingFunction() =>
+  String get transitionTimingFunction =>
     getPropertyValue('${_browserPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
@@ -3487,7 +3487,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "unicode-bidi" */
-  String get unicodeBidi() =>
+  String get unicodeBidi =>
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
@@ -3496,7 +3496,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "unicode-range" */
-  String get unicodeRange() =>
+  String get unicodeRange =>
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
@@ -3505,7 +3505,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "user-drag" */
-  String get userDrag() =>
+  String get userDrag =>
     getPropertyValue('${_browserPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
@@ -3514,7 +3514,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "user-modify" */
-  String get userModify() =>
+  String get userModify =>
     getPropertyValue('${_browserPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
@@ -3523,7 +3523,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "user-select" */
-  String get userSelect() =>
+  String get userSelect =>
     getPropertyValue('${_browserPrefix}user-select');
 
   /** Sets the value of "user-select" */
@@ -3532,7 +3532,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "vertical-align" */
-  String get verticalAlign() =>
+  String get verticalAlign =>
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
@@ -3541,7 +3541,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "visibility" */
-  String get visibility() =>
+  String get visibility =>
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
@@ -3550,7 +3550,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "white-space" */
-  String get whiteSpace() =>
+  String get whiteSpace =>
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
@@ -3559,7 +3559,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "widows" */
-  String get widows() =>
+  String get widows =>
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
@@ -3568,7 +3568,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "width" */
-  String get width() =>
+  String get width =>
     getPropertyValue('width');
 
   /** Sets the value of "width" */
@@ -3577,7 +3577,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "word-break" */
-  String get wordBreak() =>
+  String get wordBreak =>
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
@@ -3586,7 +3586,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "word-spacing" */
-  String get wordSpacing() =>
+  String get wordSpacing =>
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
@@ -3595,7 +3595,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "word-wrap" */
-  String get wordWrap() =>
+  String get wordWrap =>
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
@@ -3604,7 +3604,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "wrap-shape" */
-  String get wrapShape() =>
+  String get wrapShape =>
     getPropertyValue('${_browserPrefix}wrap-shape');
 
   /** Sets the value of "wrap-shape" */
@@ -3613,7 +3613,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "writing-mode" */
-  String get writingMode() =>
+  String get writingMode =>
     getPropertyValue('${_browserPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
@@ -3622,7 +3622,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "z-index" */
-  String get zIndex() =>
+  String get zIndex =>
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
@@ -3631,7 +3631,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   }
 
   /** Gets the value of "zoom" */
-  String get zoom() =>
+  String get zoom =>
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
@@ -3647,11 +3647,11 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
 class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule {
 
-  String get selectorText() native "CSSStyleRule_selectorText_Getter";
+  String get selectorText native "CSSStyleRule_selectorText_Getter";
 
   void set selectorText(String) native "CSSStyleRule_selectorText_Setter";
 
-  CSSStyleDeclaration get style() native "CSSStyleRule_style_Getter";
+  CSSStyleDeclaration get style native "CSSStyleRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3662,11 +3662,11 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule {
 
 class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 
-  CSSRuleList get cssRules() native "CSSStyleSheet_cssRules_Getter";
+  CSSRuleList get cssRules native "CSSStyleSheet_cssRules_Getter";
 
-  CSSRule get ownerRule() native "CSSStyleSheet_ownerRule_Getter";
+  CSSRule get ownerRule native "CSSStyleSheet_ownerRule_Getter";
 
-  CSSRuleList get rules() native "CSSStyleSheet_rules_Getter";
+  CSSRuleList get rules native "CSSStyleSheet_rules_Getter";
 
   int addRule(selector, style, [index = _null]) {
     if (index !== _null) {
@@ -3703,11 +3703,11 @@ class _CSSUnknownRuleImpl extends _CSSRuleImpl implements CSSUnknownRule {
 
 class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 
-  String get cssText() native "CSSValue_cssText_Getter";
+  String get cssText native "CSSValue_cssText_Getter";
 
   void set cssText(String) native "CSSValue_cssText_Setter";
 
-  int get cssValueType() native "CSSValue_cssValueType_Getter";
+  int get cssValueType native "CSSValue_cssValueType_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3718,7 +3718,7 @@ class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 
 class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
 
-  int get length() native "CSSValueList_length_Getter";
+  int get length native "CSSValueList_length_Getter";
 
   CSSValue item(int index) native "CSSValueList_item_Callback";
 
@@ -3751,77 +3751,77 @@ class _CanvasPatternImpl extends NativeFieldWrapperClass1 implements CanvasPatte
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D {
 
-  Dynamic get fillStyle() native "CanvasRenderingContext2D_fillStyle_Getter";
+  Dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
 
   void set fillStyle(Dynamic) native "CanvasRenderingContext2D_fillStyle_Setter";
 
-  String get font() native "CanvasRenderingContext2D_font_Getter";
+  String get font native "CanvasRenderingContext2D_font_Getter";
 
   void set font(String) native "CanvasRenderingContext2D_font_Setter";
 
-  num get globalAlpha() native "CanvasRenderingContext2D_globalAlpha_Getter";
+  num get globalAlpha native "CanvasRenderingContext2D_globalAlpha_Getter";
 
   void set globalAlpha(num) native "CanvasRenderingContext2D_globalAlpha_Setter";
 
-  String get globalCompositeOperation() native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
+  String get globalCompositeOperation native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
 
   void set globalCompositeOperation(String) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
 
-  String get lineCap() native "CanvasRenderingContext2D_lineCap_Getter";
+  String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
 
   void set lineCap(String) native "CanvasRenderingContext2D_lineCap_Setter";
 
-  String get lineJoin() native "CanvasRenderingContext2D_lineJoin_Getter";
+  String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
 
   void set lineJoin(String) native "CanvasRenderingContext2D_lineJoin_Setter";
 
-  num get lineWidth() native "CanvasRenderingContext2D_lineWidth_Getter";
+  num get lineWidth native "CanvasRenderingContext2D_lineWidth_Getter";
 
   void set lineWidth(num) native "CanvasRenderingContext2D_lineWidth_Setter";
 
-  num get miterLimit() native "CanvasRenderingContext2D_miterLimit_Getter";
+  num get miterLimit native "CanvasRenderingContext2D_miterLimit_Getter";
 
   void set miterLimit(num) native "CanvasRenderingContext2D_miterLimit_Setter";
 
-  num get shadowBlur() native "CanvasRenderingContext2D_shadowBlur_Getter";
+  num get shadowBlur native "CanvasRenderingContext2D_shadowBlur_Getter";
 
   void set shadowBlur(num) native "CanvasRenderingContext2D_shadowBlur_Setter";
 
-  String get shadowColor() native "CanvasRenderingContext2D_shadowColor_Getter";
+  String get shadowColor native "CanvasRenderingContext2D_shadowColor_Getter";
 
   void set shadowColor(String) native "CanvasRenderingContext2D_shadowColor_Setter";
 
-  num get shadowOffsetX() native "CanvasRenderingContext2D_shadowOffsetX_Getter";
+  num get shadowOffsetX native "CanvasRenderingContext2D_shadowOffsetX_Getter";
 
   void set shadowOffsetX(num) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
 
-  num get shadowOffsetY() native "CanvasRenderingContext2D_shadowOffsetY_Getter";
+  num get shadowOffsetY native "CanvasRenderingContext2D_shadowOffsetY_Getter";
 
   void set shadowOffsetY(num) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
 
-  Dynamic get strokeStyle() native "CanvasRenderingContext2D_strokeStyle_Getter";
+  Dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
 
   void set strokeStyle(Dynamic) native "CanvasRenderingContext2D_strokeStyle_Setter";
 
-  String get textAlign() native "CanvasRenderingContext2D_textAlign_Getter";
+  String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
 
   void set textAlign(String) native "CanvasRenderingContext2D_textAlign_Setter";
 
-  String get textBaseline() native "CanvasRenderingContext2D_textBaseline_Getter";
+  String get textBaseline native "CanvasRenderingContext2D_textBaseline_Getter";
 
   void set textBaseline(String) native "CanvasRenderingContext2D_textBaseline_Setter";
 
-  num get webkitBackingStorePixelRatio() native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
+  num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
-  bool get webkitImageSmoothingEnabled() native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
+  bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
 
   void set webkitImageSmoothingEnabled(bool) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
 
-  List get webkitLineDash() native "CanvasRenderingContext2D_webkitLineDash_Getter";
+  List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
 
   void set webkitLineDash(List) native "CanvasRenderingContext2D_webkitLineDash_Setter";
 
-  num get webkitLineDashOffset() native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
+  num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
 
   void set webkitLineDashOffset(num) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
 
@@ -4242,7 +4242,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
 class _CanvasRenderingContextImpl extends NativeFieldWrapperClass1 implements CanvasRenderingContext {
 
-  CanvasElement get canvas() native "CanvasRenderingContext_canvas_Getter";
+  CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4253,11 +4253,11 @@ class _CanvasRenderingContextImpl extends NativeFieldWrapperClass1 implements Ca
 
 class _CharacterDataImpl extends _NodeImpl implements CharacterData {
 
-  String get data() native "CharacterData_data_Getter";
+  String get data native "CharacterData_data_Getter";
 
   void set data(String) native "CharacterData_data_Setter";
 
-  int get length() native "CharacterData_length_Getter";
+  int get length native "CharacterData_length_Getter";
 
   void appendData(String data) native "CharacterData_appendData_Callback";
 
@@ -4278,17 +4278,17 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData {
 
 class _ClientRectImpl extends NativeFieldWrapperClass1 implements ClientRect {
 
-  num get bottom() native "ClientRect_bottom_Getter";
+  num get bottom native "ClientRect_bottom_Getter";
 
-  num get height() native "ClientRect_height_Getter";
+  num get height native "ClientRect_height_Getter";
 
-  num get left() native "ClientRect_left_Getter";
+  num get left native "ClientRect_left_Getter";
 
-  num get right() native "ClientRect_right_Getter";
+  num get right native "ClientRect_right_Getter";
 
-  num get top() native "ClientRect_top_Getter";
+  num get top native "ClientRect_top_Getter";
 
-  num get width() native "ClientRect_width_Getter";
+  num get width native "ClientRect_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4299,7 +4299,7 @@ class _ClientRectImpl extends NativeFieldWrapperClass1 implements ClientRect {
 
 class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRectList {
 
-  int get length() native "ClientRectList_length_Getter";
+  int get length native "ClientRectList_length_Getter";
 
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
@@ -4312,19 +4312,19 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRect
 
 class _ClipboardImpl extends NativeFieldWrapperClass1 implements Clipboard {
 
-  String get dropEffect() native "Clipboard_dropEffect_Getter";
+  String get dropEffect native "Clipboard_dropEffect_Getter";
 
   void set dropEffect(String) native "Clipboard_dropEffect_Setter";
 
-  String get effectAllowed() native "Clipboard_effectAllowed_Getter";
+  String get effectAllowed native "Clipboard_effectAllowed_Getter";
 
   void set effectAllowed(String) native "Clipboard_effectAllowed_Setter";
 
-  FileList get files() native "Clipboard_files_Getter";
+  FileList get files native "Clipboard_files_Getter";
 
-  DataTransferItemList get items() native "Clipboard_items_Getter";
+  DataTransferItemList get items native "Clipboard_items_Getter";
 
-  List get types() native "Clipboard_types_Getter";
+  List get types native "Clipboard_types_Getter";
 
   void clearData([String type]) native "Clipboard_clearData_Callback";
 
@@ -4343,11 +4343,11 @@ class _ClipboardImpl extends NativeFieldWrapperClass1 implements Clipboard {
 
 class _CloseEventImpl extends _EventImpl implements CloseEvent {
 
-  int get code() native "CloseEvent_code_Getter";
+  int get code native "CloseEvent_code_Getter";
 
-  String get reason() native "CloseEvent_reason_Getter";
+  String get reason native "CloseEvent_reason_Getter";
 
-  bool get wasClean() native "CloseEvent_wasClean_Getter";
+  bool get wasClean native "CloseEvent_wasClean_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4367,7 +4367,7 @@ class _CommentImpl extends _CharacterDataImpl implements Comment {
 
 class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent {
 
-  String get data() native "CompositionEvent_data_Getter";
+  String get data native "CompositionEvent_data_Getter";
 
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
@@ -4380,9 +4380,9 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent {
 
 class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
-  MemoryInfo get memory() native "Console_memory_Getter";
+  MemoryInfo get memory native "Console_memory_Getter";
 
-  List<ScriptProfile> get profiles() native "Console_profiles_Getter";
+  List<ScriptProfile> get profiles native "Console_profiles_Getter";
 
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
@@ -4431,11 +4431,11 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
 class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode {
 
-  AudioBuffer get buffer() native "ConvolverNode_buffer_Getter";
+  AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
 
   void set buffer(AudioBuffer) native "ConvolverNode_buffer_Setter";
 
-  bool get normalize() native "ConvolverNode_normalize_Getter";
+  bool get normalize native "ConvolverNode_normalize_Getter";
 
   void set normalize(bool) native "ConvolverNode_normalize_Setter";
 
@@ -4448,19 +4448,19 @@ class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode {
 
 class _CoordinatesImpl extends NativeFieldWrapperClass1 implements Coordinates {
 
-  num get accuracy() native "Coordinates_accuracy_Getter";
+  num get accuracy native "Coordinates_accuracy_Getter";
 
-  num get altitude() native "Coordinates_altitude_Getter";
+  num get altitude native "Coordinates_altitude_Getter";
 
-  num get altitudeAccuracy() native "Coordinates_altitudeAccuracy_Getter";
+  num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
 
-  num get heading() native "Coordinates_heading_Getter";
+  num get heading native "Coordinates_heading_Getter";
 
-  num get latitude() native "Coordinates_latitude_Getter";
+  num get latitude native "Coordinates_latitude_Getter";
 
-  num get longitude() native "Coordinates_longitude_Getter";
+  num get longitude native "Coordinates_longitude_Getter";
 
-  num get speed() native "Coordinates_speed_Getter";
+  num get speed native "Coordinates_speed_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4471,11 +4471,11 @@ class _CoordinatesImpl extends NativeFieldWrapperClass1 implements Coordinates {
 
 class _CounterImpl extends NativeFieldWrapperClass1 implements Counter {
 
-  String get identifier() native "Counter_identifier_Getter";
+  String get identifier native "Counter_identifier_Getter";
 
-  String get listStyle() native "Counter_listStyle_Getter";
+  String get listStyle native "Counter_listStyle_Getter";
 
-  String get separator() native "Counter_separator_Getter";
+  String get separator native "Counter_separator_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4497,7 +4497,7 @@ class _CryptoImpl extends NativeFieldWrapperClass1 implements Crypto {
 
 class _CustomEventImpl extends _EventImpl implements CustomEvent {
 
-  Object get detail() native "CustomEvent_detail_Getter";
+  Object get detail native "CustomEvent_detail_Getter";
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
 
@@ -4506,21 +4506,21 @@ class _CustomEventImpl extends _EventImpl implements CustomEvent {
 class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
   _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get cached() => this['cached'];
+  EventListenerList get cached => this['cached'];
 
-  EventListenerList get checking() => this['checking'];
+  EventListenerList get checking => this['checking'];
 
-  EventListenerList get downloading() => this['downloading'];
+  EventListenerList get downloading => this['downloading'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get noUpdate() => this['noupdate'];
+  EventListenerList get noUpdate => this['noupdate'];
 
-  EventListenerList get obsolete() => this['obsolete'];
+  EventListenerList get obsolete => this['obsolete'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get updateReady() => this['updateready'];
+  EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4530,10 +4530,10 @@ class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicati
 
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache {
 
-  _DOMApplicationCacheEventsImpl get on() =>
+  _DOMApplicationCacheEventsImpl get on =>
     new _DOMApplicationCacheEventsImpl(this);
 
-  int get status() native "DOMApplicationCache_status_Getter";
+  int get status native "DOMApplicationCache_status_Getter";
 
   void abort() native "DOMApplicationCache_abort_Callback";
 
@@ -4556,7 +4556,7 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
 class _DOMErrorImpl extends NativeFieldWrapperClass1 implements DOMError {
 
-  String get name() native "DOMError_name_Getter";
+  String get name native "DOMError_name_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4567,11 +4567,11 @@ class _DOMErrorImpl extends NativeFieldWrapperClass1 implements DOMError {
 
 class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
 
-  int get code() native "DOMException_code_Getter";
+  int get code native "DOMException_code_Getter";
 
-  String get message() native "DOMException_message_Getter";
+  String get message native "DOMException_message_Getter";
 
-  String get name() native "DOMException_name_Getter";
+  String get name native "DOMException_name_Getter";
 
   String toString() native "DOMException_toString_Callback";
 
@@ -4584,9 +4584,9 @@ class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException
 
 class _DOMFileSystemImpl extends NativeFieldWrapperClass1 implements DOMFileSystem {
 
-  String get name() native "DOMFileSystem_name_Getter";
+  String get name native "DOMFileSystem_name_Getter";
 
-  DirectoryEntry get root() native "DOMFileSystem_root_Getter";
+  DirectoryEntry get root native "DOMFileSystem_root_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4597,9 +4597,9 @@ class _DOMFileSystemImpl extends NativeFieldWrapperClass1 implements DOMFileSyst
 
 class _DOMFileSystemSyncImpl extends NativeFieldWrapperClass1 implements DOMFileSystemSync {
 
-  String get name() native "DOMFileSystemSync_name_Getter";
+  String get name native "DOMFileSystemSync_name_Getter";
 
-  DirectoryEntrySync get root() native "DOMFileSystemSync_root_Getter";
+  DirectoryEntrySync get root native "DOMFileSystemSync_root_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4648,7 +4648,7 @@ class _DOMImplementationImpl extends NativeFieldWrapperClass1 implements DOMImpl
 
 class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeTypeArray {
 
-  int get length() native "DOMMimeTypeArray_length_Getter";
+  int get length native "DOMMimeTypeArray_length_Getter";
 
   DOMMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
 
@@ -4663,13 +4663,13 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
 
 class _DOMMimeTypeImpl extends NativeFieldWrapperClass1 implements DOMMimeType {
 
-  String get description() native "DOMMimeType_description_Getter";
+  String get description native "DOMMimeType_description_Getter";
 
-  DOMPlugin get enabledPlugin() native "DOMMimeType_enabledPlugin_Getter";
+  DOMPlugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
 
-  String get suffixes() native "DOMMimeType_suffixes_Getter";
+  String get suffixes native "DOMMimeType_suffixes_Getter";
 
-  String get type() native "DOMMimeType_type_Getter";
+  String get type native "DOMMimeType_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4699,7 +4699,7 @@ class _DOMParserImpl extends NativeFieldWrapperClass1 implements DOMParser {
 
 class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginArray {
 
-  int get length() native "DOMPluginArray_length_Getter";
+  int get length native "DOMPluginArray_length_Getter";
 
   DOMPlugin item(int index) native "DOMPluginArray_item_Callback";
 
@@ -4716,13 +4716,13 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
 
 class _DOMPluginImpl extends NativeFieldWrapperClass1 implements DOMPlugin {
 
-  String get description() native "DOMPlugin_description_Getter";
+  String get description native "DOMPlugin_description_Getter";
 
-  String get filename() native "DOMPlugin_filename_Getter";
+  String get filename native "DOMPlugin_filename_Getter";
 
-  int get length() native "DOMPlugin_length_Getter";
+  int get length native "DOMPlugin_length_Getter";
 
-  String get name() native "DOMPlugin_name_Getter";
+  String get name native "DOMPlugin_name_Getter";
 
   DOMMimeType item(int index) native "DOMPlugin_item_Callback";
 
@@ -4737,27 +4737,27 @@ class _DOMPluginImpl extends NativeFieldWrapperClass1 implements DOMPlugin {
 
 class _DOMSelectionImpl extends NativeFieldWrapperClass1 implements DOMSelection {
 
-  Node get anchorNode() native "DOMSelection_anchorNode_Getter";
+  Node get anchorNode native "DOMSelection_anchorNode_Getter";
 
-  int get anchorOffset() native "DOMSelection_anchorOffset_Getter";
+  int get anchorOffset native "DOMSelection_anchorOffset_Getter";
 
-  Node get baseNode() native "DOMSelection_baseNode_Getter";
+  Node get baseNode native "DOMSelection_baseNode_Getter";
 
-  int get baseOffset() native "DOMSelection_baseOffset_Getter";
+  int get baseOffset native "DOMSelection_baseOffset_Getter";
 
-  Node get extentNode() native "DOMSelection_extentNode_Getter";
+  Node get extentNode native "DOMSelection_extentNode_Getter";
 
-  int get extentOffset() native "DOMSelection_extentOffset_Getter";
+  int get extentOffset native "DOMSelection_extentOffset_Getter";
 
-  Node get focusNode() native "DOMSelection_focusNode_Getter";
+  Node get focusNode native "DOMSelection_focusNode_Getter";
 
-  int get focusOffset() native "DOMSelection_focusOffset_Getter";
+  int get focusOffset native "DOMSelection_focusOffset_Getter";
 
-  bool get isCollapsed() native "DOMSelection_isCollapsed_Getter";
+  bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
 
-  int get rangeCount() native "DOMSelection_rangeCount_Getter";
+  int get rangeCount native "DOMSelection_rangeCount_Getter";
 
-  String get type() native "DOMSelection_type_Getter";
+  String get type native "DOMSelection_type_Getter";
 
   void addRange(Range range) native "DOMSelection_addRange_Callback";
 
@@ -4798,7 +4798,7 @@ class _DOMSelectionImpl extends NativeFieldWrapperClass1 implements DOMSelection
 
 class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettableTokenList {
 
-  String get value() native "DOMSettableTokenList_value_Getter";
+  String get value native "DOMSettableTokenList_value_Getter";
 
   void set value(String) native "DOMSettableTokenList_value_Setter";
 
@@ -4811,7 +4811,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
 class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringList {
 
-  int get length() native "DOMStringList_length_Getter";
+  int get length native "DOMStringList_length_Getter";
 
   String operator[](int index) native "DOMStringList_item_Callback";
 
@@ -4908,7 +4908,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringLi
 
 class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList {
 
-  int get length() native "DOMTokenList_length_Getter";
+  int get length native "DOMTokenList_length_Getter";
 
   void add(String token) native "DOMTokenList_add_Callback";
 
@@ -4965,153 +4965,153 @@ class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
 class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
   _WindowEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get animationEnd() => this['webkitAnimationEnd'];
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
-  EventListenerList get animationIteration() => this['webkitAnimationIteration'];
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
-  EventListenerList get animationStart() => this['webkitAnimationStart'];
+  EventListenerList get animationStart => this['webkitAnimationStart'];
 
-  EventListenerList get beforeUnload() => this['beforeunload'];
+  EventListenerList get beforeUnload => this['beforeunload'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get canPlay() => this['canplay'];
+  EventListenerList get canPlay => this['canplay'];
 
-  EventListenerList get canPlayThrough() => this['canplaythrough'];
+  EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contentLoaded() => this['DOMContentLoaded'];
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get deviceMotion() => this['devicemotion'];
+  EventListenerList get deviceMotion => this['devicemotion'];
 
-  EventListenerList get deviceOrientation() => this['deviceorientation'];
+  EventListenerList get deviceOrientation => this['deviceorientation'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get durationChange() => this['durationchange'];
+  EventListenerList get durationChange => this['durationchange'];
 
-  EventListenerList get emptied() => this['emptied'];
+  EventListenerList get emptied => this['emptied'];
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get hashChange() => this['hashchange'];
+  EventListenerList get hashChange => this['hashchange'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get invalid() => this['invalid'];
+  EventListenerList get invalid => this['invalid'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get loadedData() => this['loadeddata'];
+  EventListenerList get loadedData => this['loadeddata'];
 
-  EventListenerList get loadedMetadata() => this['loadedmetadata'];
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get offline() => this['offline'];
+  EventListenerList get offline => this['offline'];
 
-  EventListenerList get online() => this['online'];
+  EventListenerList get online => this['online'];
 
-  EventListenerList get pageHide() => this['pagehide'];
+  EventListenerList get pageHide => this['pagehide'];
 
-  EventListenerList get pageShow() => this['pageshow'];
+  EventListenerList get pageShow => this['pageshow'];
 
-  EventListenerList get pause() => this['pause'];
+  EventListenerList get pause => this['pause'];
 
-  EventListenerList get play() => this['play'];
+  EventListenerList get play => this['play'];
 
-  EventListenerList get playing() => this['playing'];
+  EventListenerList get playing => this['playing'];
 
-  EventListenerList get popState() => this['popstate'];
+  EventListenerList get popState => this['popstate'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get rateChange() => this['ratechange'];
+  EventListenerList get rateChange => this['ratechange'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get seeked() => this['seeked'];
+  EventListenerList get seeked => this['seeked'];
 
-  EventListenerList get seeking() => this['seeking'];
+  EventListenerList get seeking => this['seeking'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get stalled() => this['stalled'];
+  EventListenerList get stalled => this['stalled'];
 
-  EventListenerList get storage() => this['storage'];
+  EventListenerList get storage => this['storage'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get suspend() => this['suspend'];
+  EventListenerList get suspend => this['suspend'];
 
-  EventListenerList get timeUpdate() => this['timeupdate'];
+  EventListenerList get timeUpdate => this['timeupdate'];
 
-  EventListenerList get touchCancel() => this['touchcancel'];
+  EventListenerList get touchCancel => this['touchcancel'];
 
-  EventListenerList get touchEnd() => this['touchend'];
+  EventListenerList get touchEnd => this['touchend'];
 
-  EventListenerList get touchMove() => this['touchmove'];
+  EventListenerList get touchMove => this['touchmove'];
 
-  EventListenerList get touchStart() => this['touchstart'];
+  EventListenerList get touchStart => this['touchstart'];
 
-  EventListenerList get transitionEnd() => this['webkitTransitionEnd'];
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 
-  EventListenerList get volumeChange() => this['volumechange'];
+  EventListenerList get volumeChange => this['volumechange'];
 
-  EventListenerList get waiting() => this['waiting'];
+  EventListenerList get waiting => this['waiting'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5142,118 +5142,118 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
   }
 
 
-  _WindowEventsImpl get on() =>
+  _WindowEventsImpl get on =>
     new _WindowEventsImpl(this);
 
-  DOMApplicationCache get applicationCache() native "DOMWindow_applicationCache_Getter";
+  DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
-  Navigator get clientInformation() native "DOMWindow_clientInformation_Getter";
+  Navigator get clientInformation native "DOMWindow_clientInformation_Getter";
 
-  bool get closed() native "DOMWindow_closed_Getter";
+  bool get closed native "DOMWindow_closed_Getter";
 
-  Console get console() native "DOMWindow_console_Getter";
+  Console get console native "DOMWindow_console_Getter";
 
-  Crypto get crypto() native "DOMWindow_crypto_Getter";
+  Crypto get crypto native "DOMWindow_crypto_Getter";
 
-  String get defaultStatus() native "DOMWindow_defaultStatus_Getter";
+  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
 
   void set defaultStatus(String) native "DOMWindow_defaultStatus_Setter";
 
-  String get defaultstatus() native "DOMWindow_defaultstatus_Getter";
+  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
 
   void set defaultstatus(String) native "DOMWindow_defaultstatus_Setter";
 
-  num get devicePixelRatio() native "DOMWindow_devicePixelRatio_Getter";
+  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
 
-  Document get document() native "DOMWindow_document_Getter";
+  Document get document native "DOMWindow_document_Getter";
 
-  Event get event() native "DOMWindow_event_Getter";
+  Event get event native "DOMWindow_event_Getter";
 
-  Window get frames() native "DOMWindow_frames_Getter";
+  Window get frames native "DOMWindow_frames_Getter";
 
-  History get history() native "DOMWindow_history_Getter";
+  History get history native "DOMWindow_history_Getter";
 
-  int get innerHeight() native "DOMWindow_innerHeight_Getter";
+  int get innerHeight native "DOMWindow_innerHeight_Getter";
 
-  int get innerWidth() native "DOMWindow_innerWidth_Getter";
+  int get innerWidth native "DOMWindow_innerWidth_Getter";
 
-  int get length() native "DOMWindow_length_Getter";
+  int get length native "DOMWindow_length_Getter";
 
-  Storage get localStorage() native "DOMWindow_localStorage_Getter";
+  Storage get localStorage native "DOMWindow_localStorage_Getter";
 
-  Location get location() native "DOMWindow_location_Getter";
+  Location get location native "DOMWindow_location_Getter";
 
   void set location(Location) native "DOMWindow_location_Setter";
 
-  BarInfo get locationbar() native "DOMWindow_locationbar_Getter";
+  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
 
-  BarInfo get menubar() native "DOMWindow_menubar_Getter";
+  BarInfo get menubar native "DOMWindow_menubar_Getter";
 
-  String get name() native "DOMWindow_name_Getter";
+  String get name native "DOMWindow_name_Getter";
 
   void set name(String) native "DOMWindow_name_Setter";
 
-  Navigator get navigator() native "DOMWindow_navigator_Getter";
+  Navigator get navigator native "DOMWindow_navigator_Getter";
 
-  bool get offscreenBuffering() native "DOMWindow_offscreenBuffering_Getter";
+  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
 
-  Window get opener() native "DOMWindow_opener_Getter";
+  Window get opener native "DOMWindow_opener_Getter";
 
-  int get outerHeight() native "DOMWindow_outerHeight_Getter";
+  int get outerHeight native "DOMWindow_outerHeight_Getter";
 
-  int get outerWidth() native "DOMWindow_outerWidth_Getter";
+  int get outerWidth native "DOMWindow_outerWidth_Getter";
 
-  PagePopupController get pagePopupController() native "DOMWindow_pagePopupController_Getter";
+  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
 
-  int get pageXOffset() native "DOMWindow_pageXOffset_Getter";
+  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
 
-  int get pageYOffset() native "DOMWindow_pageYOffset_Getter";
+  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
 
-  Window get parent() native "DOMWindow_parent_Getter";
+  Window get parent native "DOMWindow_parent_Getter";
 
-  Performance get performance() native "DOMWindow_performance_Getter";
+  Performance get performance native "DOMWindow_performance_Getter";
 
-  BarInfo get personalbar() native "DOMWindow_personalbar_Getter";
+  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
 
-  Screen get screen() native "DOMWindow_screen_Getter";
+  Screen get screen native "DOMWindow_screen_Getter";
 
-  int get screenLeft() native "DOMWindow_screenLeft_Getter";
+  int get screenLeft native "DOMWindow_screenLeft_Getter";
 
-  int get screenTop() native "DOMWindow_screenTop_Getter";
+  int get screenTop native "DOMWindow_screenTop_Getter";
 
-  int get screenX() native "DOMWindow_screenX_Getter";
+  int get screenX native "DOMWindow_screenX_Getter";
 
-  int get screenY() native "DOMWindow_screenY_Getter";
+  int get screenY native "DOMWindow_screenY_Getter";
 
-  int get scrollX() native "DOMWindow_scrollX_Getter";
+  int get scrollX native "DOMWindow_scrollX_Getter";
 
-  int get scrollY() native "DOMWindow_scrollY_Getter";
+  int get scrollY native "DOMWindow_scrollY_Getter";
 
-  BarInfo get scrollbars() native "DOMWindow_scrollbars_Getter";
+  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
 
-  Window get self() native "DOMWindow_self_Getter";
+  Window get self native "DOMWindow_self_Getter";
 
-  Storage get sessionStorage() native "DOMWindow_sessionStorage_Getter";
+  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
 
-  String get status() native "DOMWindow_status_Getter";
+  String get status native "DOMWindow_status_Getter";
 
   void set status(String) native "DOMWindow_status_Setter";
 
-  BarInfo get statusbar() native "DOMWindow_statusbar_Getter";
+  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
 
-  StyleMedia get styleMedia() native "DOMWindow_styleMedia_Getter";
+  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
 
-  BarInfo get toolbar() native "DOMWindow_toolbar_Getter";
+  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
 
-  Window get top() native "DOMWindow_top_Getter";
+  Window get top native "DOMWindow_top_Getter";
 
-  IDBFactory get webkitIndexedDB() native "DOMWindow_webkitIndexedDB_Getter";
+  IDBFactory get webkitIndexedDB native "DOMWindow_webkitIndexedDB_Getter";
 
-  NotificationCenter get webkitNotifications() native "DOMWindow_webkitNotifications_Getter";
+  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
 
-  StorageInfo get webkitStorageInfo() native "DOMWindow_webkitStorageInfo_Getter";
+  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
 
-  Window get window() native "DOMWindow_window_Getter";
+  Window get window native "DOMWindow_window_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
 
@@ -5350,9 +5350,9 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
 class _DataTransferItemImpl extends NativeFieldWrapperClass1 implements DataTransferItem {
 
-  String get kind() native "DataTransferItem_kind_Getter";
+  String get kind native "DataTransferItem_kind_Getter";
 
-  String get type() native "DataTransferItem_type_Getter";
+  String get type native "DataTransferItem_type_Getter";
 
   Blob getAsFile() native "DataTransferItem_getAsFile_Callback";
 
@@ -5369,7 +5369,7 @@ class _DataTransferItemImpl extends NativeFieldWrapperClass1 implements DataTran
 
 class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements DataTransferItemList {
 
-  int get length() native "DataTransferItemList_length_Getter";
+  int get length native "DataTransferItemList_length_Getter";
 
   void add(data_OR_file, [type = _null]) {
     if ((data_OR_file is File || data_OR_file === null) && type === _null) {
@@ -5563,7 +5563,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
 class _DatabaseImpl extends NativeFieldWrapperClass1 implements Database {
 
-  String get version() native "Database_version_Getter";
+  String get version native "Database_version_Getter";
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
 
@@ -5580,9 +5580,9 @@ class _DatabaseImpl extends NativeFieldWrapperClass1 implements Database {
 
 class _DatabaseSyncImpl extends NativeFieldWrapperClass1 implements DatabaseSync {
 
-  String get lastErrorMessage() native "DatabaseSync_lastErrorMessage_Getter";
+  String get lastErrorMessage native "DatabaseSync_lastErrorMessage_Getter";
 
-  String get version() native "DatabaseSync_version_Getter";
+  String get version native "DatabaseSync_version_Getter";
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
 
@@ -5595,7 +5595,7 @@ class _DatabaseSyncImpl extends NativeFieldWrapperClass1 implements DatabaseSync
 class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
   _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5605,7 +5605,7 @@ class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl impleme
 
 class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements DedicatedWorkerContext {
 
-  _DedicatedWorkerContextEventsImpl get on() =>
+  _DedicatedWorkerContextEventsImpl get on =>
     new _DedicatedWorkerContextEventsImpl(this);
 
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
@@ -5621,7 +5621,7 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
 
-  AudioParam get delayTime() native "DelayNode_delayTime_Getter";
+  AudioParam get delayTime native "DelayNode_delayTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5632,7 +5632,7 @@ class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
 
 class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent {
 
-  num get interval() native "DeviceMotionEvent_interval_Getter";
+  num get interval native "DeviceMotionEvent_interval_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5643,13 +5643,13 @@ class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent {
 
 class _DeviceOrientationEventImpl extends _EventImpl implements DeviceOrientationEvent {
 
-  bool get absolute() native "DeviceOrientationEvent_absolute_Getter";
+  bool get absolute native "DeviceOrientationEvent_absolute_Getter";
 
-  num get alpha() native "DeviceOrientationEvent_alpha_Getter";
+  num get alpha native "DeviceOrientationEvent_alpha_Getter";
 
-  num get beta() native "DeviceOrientationEvent_beta_Getter";
+  num get beta native "DeviceOrientationEvent_beta_Getter";
 
-  num get gamma() native "DeviceOrientationEvent_gamma_Getter";
+  num get gamma native "DeviceOrientationEvent_gamma_Getter";
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
@@ -5744,11 +5744,11 @@ class FilteredElementList implements ElementList {
   // with externally to this class.
   //
   // TODO(nweiz): Do we really need to copy the list to make the types work out?
-  List<Element> get _filtered() =>
+  List<Element> get _filtered =>
     new List.from(_childNodes.filter((n) => n is Element));
 
   // Don't use _filtered.first so we can short-circuit once we find an element.
-  Element get first() {
+  Element get first {
     for (final node in _childNodes) {
       if (node is Element) {
         return node;
@@ -5823,7 +5823,7 @@ class FilteredElementList implements ElementList {
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);
   bool isEmpty() => _filtered.isEmpty();
-  int get length() => _filtered.length;
+  int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
   List<Element> getRange(int start, int rangeLength) =>
@@ -5863,13 +5863,13 @@ class _FrozenCSSClassSet extends _CssClassSet {
   }
   Set<String> _read() => new Set<String>();
 
-  bool get isFrozen() => true;
+  bool get isFrozen => true;
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   ElementList _elements;
 
-  ElementList get elements() {
+  ElementList get elements {
     if (_elements == null) {
       _elements = new FilteredElementList(this);
     }
@@ -5890,13 +5890,13 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  String get innerHTML() {
+  String get innerHTML {
     final e = new Element.tag("div");
     e.nodes.add(this.clone(true));
     return e.innerHTML;
   }
 
-  String get outerHTML() => innerHTML;
+  String get outerHTML => innerHTML;
 
   // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
   // SVG strings?
@@ -5945,7 +5945,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
     this.insertAdjacentHTML('beforeend', text);
   }
 
-  Future<ElementRect> get rect() {
+  Future<ElementRect> get rect {
     return _createMeasurementFuture(() => const EmptyElementRect(),
                                     new Completer<ElementRect>());
   }
@@ -5953,29 +5953,29 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   // If we can come up with a semi-reasonable default value for an Element
   // getter, we'll use it. In general, these return the same values as an
   // element that has no parent.
-  String get contentEditable() => "false";
-  bool get isContentEditable() => false;
-  bool get draggable() => false;
-  bool get hidden() => false;
-  bool get spellcheck() => false;
-  bool get translate() => false;
-  int get tabIndex() => -1;
-  String get id() => "";
-  String get title() => "";
-  String get tagName() => "";
-  String get webkitdropzone() => "";
-  String get webkitRegionOverflow() => "";
+  String get contentEditable => "false";
+  bool get isContentEditable => false;
+  bool get draggable => false;
+  bool get hidden => false;
+  bool get spellcheck => false;
+  bool get translate => false;
+  int get tabIndex => -1;
+  String get id => "";
+  String get title => "";
+  String get tagName => "";
+  String get webkitdropzone => "";
+  String get webkitRegionOverflow => "";
   Element get $dom_firstElementChild() => elements.first();
   Element get $dom_lastElementChild() => elements.last();
-  Element get nextElementSibling() => null;
-  Element get previousElementSibling() => null;
-  Element get offsetParent() => null;
-  Element get parent() => null;
-  Map<String, String> get attributes() => const {};
-  CSSClassSet get classes() => new _FrozenCSSClassSet();
-  Map<String, String> get dataAttributes() => const {};
-  CSSStyleDeclaration get style() => new Element.tag('div').style;
-  Future<CSSStyleDeclaration> get computedStyle() =>
+  Element get nextElementSibling => null;
+  Element get previousElementSibling => null;
+  Element get offsetParent => null;
+  Element get parent => null;
+  Map<String, String> get attributes => const {};
+  CSSClassSet get classes => new _FrozenCSSClassSet();
+  Map<String, String> get dataAttributes => const {};
+  CSSStyleDeclaration get style => new Element.tag('div').style;
+  Future<CSSStyleDeclaration> get computedStyle =>
       _emptyStyleFuture();
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
@@ -6014,7 +6014,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
       "Content editable can't be set for document fragments.");
   }
 
-  String get dir() {
+  String get dir {
     throw new UnsupportedOperationException(
       "Document fragments don't support text direction.");
   }
@@ -6039,7 +6039,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
       "ID can't be set for document fragments.");
   }
 
-  String get lang() {
+  String get lang {
     throw new UnsupportedOperationException(
       "Document fragments don't support language.");
   }
@@ -6090,7 +6090,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   }
 
 
-  _ElementEventsImpl get on() =>
+  _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
   Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
@@ -6102,103 +6102,103 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   _DocumentEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get beforeCopy() => this['beforecopy'];
+  EventListenerList get beforeCopy => this['beforecopy'];
 
-  EventListenerList get beforeCut() => this['beforecut'];
+  EventListenerList get beforeCut => this['beforecut'];
 
-  EventListenerList get beforePaste() => this['beforepaste'];
+  EventListenerList get beforePaste => this['beforepaste'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get copy() => this['copy'];
+  EventListenerList get copy => this['copy'];
 
-  EventListenerList get cut() => this['cut'];
+  EventListenerList get cut => this['cut'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange() => this['webkitfullscreenchange'];
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  EventListenerList get fullscreenError() => this['webkitfullscreenerror'];
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get invalid() => this['invalid'];
+  EventListenerList get invalid => this['invalid'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get paste() => this['paste'];
+  EventListenerList get paste => this['paste'];
 
-  EventListenerList get pointerLockChange() => this['webkitpointerlockchange'];
+  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
-  EventListenerList get pointerLockError() => this['webkitpointerlockerror'];
+  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 
-  EventListenerList get readyStateChange() => this['readystatechange'];
+  EventListenerList get readyStateChange => this['readystatechange'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart() => this['selectstart'];
+  EventListenerList get selectStart => this['selectstart'];
 
-  EventListenerList get selectionChange() => this['selectionchange'];
+  EventListenerList get selectionChange => this['selectionchange'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get touchCancel() => this['touchcancel'];
+  EventListenerList get touchCancel => this['touchcancel'];
 
-  EventListenerList get touchEnd() => this['touchend'];
+  EventListenerList get touchEnd => this['touchend'];
 
-  EventListenerList get touchMove() => this['touchmove'];
+  EventListenerList get touchMove => this['touchmove'];
 
-  EventListenerList get touchStart() => this['touchstart'];
+  EventListenerList get touchStart => this['touchstart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6208,62 +6208,62 @@ class _DocumentImpl extends _NodeImpl implements Document
 {
 
 
-  _DocumentEventsImpl get on() =>
+  _DocumentEventsImpl get on =>
     new _DocumentEventsImpl(this);
 
-  Element get body() native "Document_body_Getter";
+  Element get body native "Document_body_Getter";
 
   void set body(Element) native "Document_body_Setter";
 
-  String get charset() native "Document_charset_Getter";
+  String get charset native "Document_charset_Getter";
 
   void set charset(String) native "Document_charset_Setter";
 
-  String get cookie() native "Document_cookie_Getter";
+  String get cookie native "Document_cookie_Getter";
 
   void set cookie(String) native "Document_cookie_Setter";
 
-  Window get window() native "Document_defaultView_Getter";
+  Window get window native "Document_defaultView_Getter";
 
-  Element get documentElement() native "Document_documentElement_Getter";
+  Element get documentElement native "Document_documentElement_Getter";
 
-  String get domain() native "Document_domain_Getter";
+  String get domain native "Document_domain_Getter";
 
-  HeadElement get head() native "Document_head_Getter";
+  HeadElement get head native "Document_head_Getter";
 
-  String get lastModified() native "Document_lastModified_Getter";
+  String get lastModified native "Document_lastModified_Getter";
 
-  String get preferredStylesheetSet() native "Document_preferredStylesheetSet_Getter";
+  String get preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
-  String get readyState() native "Document_readyState_Getter";
+  String get readyState native "Document_readyState_Getter";
 
-  String get referrer() native "Document_referrer_Getter";
+  String get referrer native "Document_referrer_Getter";
 
-  String get selectedStylesheetSet() native "Document_selectedStylesheetSet_Getter";
+  String get selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
   void set selectedStylesheetSet(String) native "Document_selectedStylesheetSet_Setter";
 
-  StyleSheetList get styleSheets() native "Document_styleSheets_Getter";
+  StyleSheetList get styleSheets native "Document_styleSheets_Getter";
 
-  String get title() native "Document_title_Getter";
+  String get title native "Document_title_Getter";
 
   void set title(String) native "Document_title_Setter";
 
-  Element get webkitCurrentFullScreenElement() native "Document_webkitCurrentFullScreenElement_Getter";
+  Element get webkitCurrentFullScreenElement native "Document_webkitCurrentFullScreenElement_Getter";
 
-  bool get webkitFullScreenKeyboardInputAllowed() native "Document_webkitFullScreenKeyboardInputAllowed_Getter";
+  bool get webkitFullScreenKeyboardInputAllowed native "Document_webkitFullScreenKeyboardInputAllowed_Getter";
 
-  Element get webkitFullscreenElement() native "Document_webkitFullscreenElement_Getter";
+  Element get webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
-  bool get webkitFullscreenEnabled() native "Document_webkitFullscreenEnabled_Getter";
+  bool get webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
-  bool get webkitHidden() native "Document_webkitHidden_Getter";
+  bool get webkitHidden native "Document_webkitHidden_Getter";
 
-  bool get webkitIsFullScreen() native "Document_webkitIsFullScreen_Getter";
+  bool get webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
-  Element get webkitPointerLockElement() native "Document_webkitPointerLockElement_Getter";
+  Element get webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
-  String get webkitVisibilityState() native "Document_webkitVisibilityState_Getter";
+  String get webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
   Range caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
@@ -6361,17 +6361,17 @@ class _DocumentImpl extends _NodeImpl implements Document
 
 class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
 
-  NamedNodeMap get entities() native "DocumentType_entities_Getter";
+  NamedNodeMap get entities native "DocumentType_entities_Getter";
 
-  String get internalSubset() native "DocumentType_internalSubset_Getter";
+  String get internalSubset native "DocumentType_internalSubset_Getter";
 
-  String get name() native "DocumentType_name_Getter";
+  String get name native "DocumentType_name_Getter";
 
-  NamedNodeMap get notations() native "DocumentType_notations_Getter";
+  NamedNodeMap get notations native "DocumentType_notations_Getter";
 
-  String get publicId() native "DocumentType_publicId_Getter";
+  String get publicId native "DocumentType_publicId_Getter";
 
-  String get systemId() native "DocumentType_systemId_Getter";
+  String get systemId native "DocumentType_systemId_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6382,17 +6382,17 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
 
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode {
 
-  AudioParam get attack() native "DynamicsCompressorNode_attack_Getter";
+  AudioParam get attack native "DynamicsCompressorNode_attack_Getter";
 
-  AudioParam get knee() native "DynamicsCompressorNode_knee_Getter";
+  AudioParam get knee native "DynamicsCompressorNode_knee_Getter";
 
-  AudioParam get ratio() native "DynamicsCompressorNode_ratio_Getter";
+  AudioParam get ratio native "DynamicsCompressorNode_ratio_Getter";
 
-  AudioParam get reduction() native "DynamicsCompressorNode_reduction_Getter";
+  AudioParam get reduction native "DynamicsCompressorNode_reduction_Getter";
 
-  AudioParam get release() native "DynamicsCompressorNode_release_Getter";
+  AudioParam get release native "DynamicsCompressorNode_release_Getter";
 
-  AudioParam get threshold() native "DynamicsCompressorNode_threshold_Getter";
+  AudioParam get threshold native "DynamicsCompressorNode_threshold_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6408,101 +6408,101 @@ class _EXTTextureFilterAnisotropicImpl extends NativeFieldWrapperClass1 implemen
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   _ElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get beforeCopy() => this['beforecopy'];
+  EventListenerList get beforeCopy => this['beforecopy'];
 
-  EventListenerList get beforeCut() => this['beforecut'];
+  EventListenerList get beforeCut => this['beforecut'];
 
-  EventListenerList get beforePaste() => this['beforepaste'];
+  EventListenerList get beforePaste => this['beforepaste'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get copy() => this['copy'];
+  EventListenerList get copy => this['copy'];
 
-  EventListenerList get cut() => this['cut'];
+  EventListenerList get cut => this['cut'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange() => this['webkitfullscreenchange'];
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  EventListenerList get fullscreenError() => this['webkitfullscreenerror'];
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get invalid() => this['invalid'];
+  EventListenerList get invalid => this['invalid'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get paste() => this['paste'];
+  EventListenerList get paste => this['paste'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart() => this['selectstart'];
+  EventListenerList get selectStart => this['selectstart'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get touchCancel() => this['touchcancel'];
+  EventListenerList get touchCancel => this['touchcancel'];
 
-  EventListenerList get touchEnd() => this['touchend'];
+  EventListenerList get touchEnd => this['touchend'];
 
-  EventListenerList get touchEnter() => this['touchenter'];
+  EventListenerList get touchEnter => this['touchenter'];
 
-  EventListenerList get touchLeave() => this['touchleave'];
+  EventListenerList get touchLeave => this['touchleave'];
 
-  EventListenerList get touchMove() => this['touchmove'];
+  EventListenerList get touchMove => this['touchmove'];
 
-  EventListenerList get touchStart() => this['touchstart'];
+  EventListenerList get touchStart => this['touchstart'];
 
-  EventListenerList get transitionEnd() => this['webkitTransitionEnd'];
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6527,7 +6527,7 @@ class _ChildrenElementList implements ElementList {
     return output;
   }
 
-  _ElementImpl get first() {
+  _ElementImpl get first {
     return _element.$dom_firstElementChild;
   }
 
@@ -6577,7 +6577,7 @@ class _ChildrenElementList implements ElementList {
     return _element.$dom_firstElementChild == null;
   }
 
-  int get length() {
+  int get length {
     return _childElements.length;
   }
 
@@ -6665,7 +6665,7 @@ class _FrozenElementList implements ElementList {
 
   _FrozenElementList._wrap(this._nodeList);
 
-  Element get first() {
+  Element get first {
     return _nodeList[0];
   }
 
@@ -6711,7 +6711,7 @@ class _FrozenElementList implements ElementList {
 
   bool isEmpty() => _nodeList.isEmpty();
 
-  int get length() => _nodeList.length;
+  int get length => _nodeList.length;
 
   Element operator [](int index) => _nodeList[index];
 
@@ -6886,7 +6886,7 @@ class _ElementAttributeMap implements AttributeMap {
   /**
    * The number of {key, value} pairs in the map.
    */
-  int get length() {
+  int get length {
     return _element.$dom_attributes.length;
   }
 
@@ -6961,7 +6961,7 @@ class _DataAttributeMap implements AttributeMap {
     return values;
   }
 
-  int get length() => getKeys().length;
+  int get length => getKeys().length;
 
   // TODO: Use lazy iterator when it is available on Map.
   bool isEmpty() => length == 0;
@@ -6999,9 +6999,9 @@ class _CssClassSet implements CSSClassSet {
 
   bool isEmpty() => _read().isEmpty();
 
-  bool get isFrozen() => false;
+  bool get isFrozen => false;
 
-  int get length() =>_read().length;
+  int get length =>_read().length;
 
   // interface Collection - END
 
@@ -7114,8 +7114,8 @@ class _SimpleClientRect implements ClientRect {
   final num top;
   final num width;
   final num height;
-  num get right() => left + width;
-  num get bottom() => top + height;
+  num get right => left + width;
+  num get bottom => top + height;
 
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
@@ -7160,10 +7160,10 @@ class _ElementRectImpl implements ElementRect {
     _boundingClientRect = element.$dom_getBoundingClientRect(),
     _clientRects = element.$dom_getClientRects();
 
-  _ClientRectImpl get bounding() => _boundingClientRect;
+  _ClientRectImpl get bounding => _boundingClientRect;
 
   // TODO(jacobr): cleanup.
-  List<ClientRect> get clientRects() {
+  List<ClientRect> get clientRects {
     final out = new List(_clientRects.length);
     for (num i = 0; i < _clientRects.length; i++) {
       out[i] = _clientRects.item(i);
@@ -7178,7 +7178,7 @@ class _ElementImpl extends _NodeImpl implements Element {
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  _ElementAttributeMap get attributes() => new _ElementAttributeMap(this);
+  _ElementAttributeMap get attributes => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -7194,14 +7194,14 @@ class _ElementImpl extends _NodeImpl implements Element {
     elements.addAll(value);
   }
 
-  ElementList get elements() => new _ChildrenElementList._wrap(this);
+  ElementList get elements => new _ChildrenElementList._wrap(this);
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  _CssClassSet get classes() => new _CssClassSet(this);
+  _CssClassSet get classes => new _CssClassSet(this);
 
   void set classes(Collection<String> value) {
     _CssClassSet classSet = classes;
@@ -7209,7 +7209,7 @@ class _ElementImpl extends _NodeImpl implements Element {
     classSet.addAll(value);
   }
 
-  Map<String, String> get dataAttributes() =>
+  Map<String, String> get dataAttributes =>
     new _DataAttributeMap(attributes);
 
   void set dataAttributes(Map<String, String> value) {
@@ -7220,13 +7220,13 @@ class _ElementImpl extends _NodeImpl implements Element {
     }
   }
 
-  Future<ElementRect> get rect() {
+  Future<ElementRect> get rect {
     return _createMeasurementFuture(
         () => new _ElementRectImpl(this),
         new Completer<ElementRect>());
   }
 
-  Future<CSSStyleDeclaration> get computedStyle() {
+  Future<CSSStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
@@ -7258,60 +7258,60 @@ class _ElementImpl extends _NodeImpl implements Element {
 
 
 
-  _ElementEventsImpl get on() =>
+  _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
-  int get $dom_childElementCount() native "Element_childElementCount_Getter";
+  int get $dom_childElementCount native "Element_childElementCount_Getter";
 
-  String get $dom_className() native "Element_className_Getter";
+  String get $dom_className native "Element_className_Getter";
 
   void set $dom_className(String) native "Element_className_Setter";
 
-  int get $dom_clientHeight() native "Element_clientHeight_Getter";
+  int get $dom_clientHeight native "Element_clientHeight_Getter";
 
-  int get $dom_clientLeft() native "Element_clientLeft_Getter";
+  int get $dom_clientLeft native "Element_clientLeft_Getter";
 
-  int get $dom_clientTop() native "Element_clientTop_Getter";
+  int get $dom_clientTop native "Element_clientTop_Getter";
 
-  int get $dom_clientWidth() native "Element_clientWidth_Getter";
+  int get $dom_clientWidth native "Element_clientWidth_Getter";
 
-  Map<String, String> get dataset() native "Element_dataset_Getter";
+  Map<String, String> get dataset native "Element_dataset_Getter";
 
-  Element get $dom_firstElementChild() native "Element_firstElementChild_Getter";
+  Element get $dom_firstElementChild native "Element_firstElementChild_Getter";
 
-  Element get $dom_lastElementChild() native "Element_lastElementChild_Getter";
+  Element get $dom_lastElementChild native "Element_lastElementChild_Getter";
 
-  Element get nextElementSibling() native "Element_nextElementSibling_Getter";
+  Element get nextElementSibling native "Element_nextElementSibling_Getter";
 
-  int get $dom_offsetHeight() native "Element_offsetHeight_Getter";
+  int get $dom_offsetHeight native "Element_offsetHeight_Getter";
 
-  int get $dom_offsetLeft() native "Element_offsetLeft_Getter";
+  int get $dom_offsetLeft native "Element_offsetLeft_Getter";
 
-  Element get offsetParent() native "Element_offsetParent_Getter";
+  Element get offsetParent native "Element_offsetParent_Getter";
 
-  int get $dom_offsetTop() native "Element_offsetTop_Getter";
+  int get $dom_offsetTop native "Element_offsetTop_Getter";
 
-  int get $dom_offsetWidth() native "Element_offsetWidth_Getter";
+  int get $dom_offsetWidth native "Element_offsetWidth_Getter";
 
-  Element get previousElementSibling() native "Element_previousElementSibling_Getter";
+  Element get previousElementSibling native "Element_previousElementSibling_Getter";
 
-  int get $dom_scrollHeight() native "Element_scrollHeight_Getter";
+  int get $dom_scrollHeight native "Element_scrollHeight_Getter";
 
-  int get $dom_scrollLeft() native "Element_scrollLeft_Getter";
+  int get $dom_scrollLeft native "Element_scrollLeft_Getter";
 
   void set $dom_scrollLeft(int) native "Element_scrollLeft_Setter";
 
-  int get $dom_scrollTop() native "Element_scrollTop_Getter";
+  int get $dom_scrollTop native "Element_scrollTop_Getter";
 
   void set $dom_scrollTop(int) native "Element_scrollTop_Setter";
 
-  int get $dom_scrollWidth() native "Element_scrollWidth_Getter";
+  int get $dom_scrollWidth native "Element_scrollWidth_Getter";
 
-  CSSStyleDeclaration get style() native "Element_style_Getter";
+  CSSStyleDeclaration get style native "Element_style_Getter";
 
-  String get tagName() native "Element_tagName_Getter";
+  String get tagName native "Element_tagName_Getter";
 
-  String get webkitRegionOverset() native "Element_webkitRegionOverset_Getter";
+  String get webkitRegionOverset native "Element_webkitRegionOverset_Getter";
 
   void blur() native "Element_blur_Callback";
 
@@ -7429,11 +7429,11 @@ class _ElementFactoryProvider {
 
 class _EntityImpl extends _NodeImpl implements Entity {
 
-  String get notationName() native "Entity_notationName_Getter";
+  String get notationName native "Entity_notationName_Getter";
 
-  String get publicId() native "Entity_publicId_Getter";
+  String get publicId native "Entity_publicId_Getter";
 
-  String get systemId() native "Entity_systemId_Getter";
+  String get systemId native "Entity_systemId_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7453,7 +7453,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference {
 
 class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 
-  int get length() native "EntryArray_length_Getter";
+  int get length native "EntryArray_length_Getter";
 
   Entry item(int index) native "EntryArray_item_Callback";
 
@@ -7466,7 +7466,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 
 class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements EntryArraySync {
 
-  int get length() native "EntryArraySync_length_Getter";
+  int get length native "EntryArraySync_length_Getter";
 
   EntrySync item(int index) native "EntryArraySync_item_Callback";
 
@@ -7479,15 +7479,15 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements EntryArray
 
 class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
-  DOMFileSystem get filesystem() native "Entry_filesystem_Getter";
+  DOMFileSystem get filesystem native "Entry_filesystem_Getter";
 
-  String get fullPath() native "Entry_fullPath_Getter";
+  String get fullPath native "Entry_fullPath_Getter";
 
-  bool get isDirectory() native "Entry_isDirectory_Getter";
+  bool get isDirectory native "Entry_isDirectory_Getter";
 
-  bool get isFile() native "Entry_isFile_Getter";
+  bool get isFile native "Entry_isFile_Getter";
 
-  String get name() native "Entry_name_Getter";
+  String get name native "Entry_name_Getter";
 
   void copyTo(parent, [name = _null, successCallback = _null, errorCallback = _null]) {
     if (name !== _null) {
@@ -7530,15 +7530,15 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
 class _EntrySyncImpl extends NativeFieldWrapperClass1 implements EntrySync {
 
-  DOMFileSystemSync get filesystem() native "EntrySync_filesystem_Getter";
+  DOMFileSystemSync get filesystem native "EntrySync_filesystem_Getter";
 
-  String get fullPath() native "EntrySync_fullPath_Getter";
+  String get fullPath native "EntrySync_fullPath_Getter";
 
-  bool get isDirectory() native "EntrySync_isDirectory_Getter";
+  bool get isDirectory native "EntrySync_isDirectory_Getter";
 
-  bool get isFile() native "EntrySync_isFile_Getter";
+  bool get isFile native "EntrySync_isFile_Getter";
 
-  String get name() native "EntrySync_name_Getter";
+  String get name native "EntrySync_name_Getter";
 
   EntrySync copyTo(DirectoryEntrySync parent, String name) native "EntrySync_copyTo_Callback";
 
@@ -7561,11 +7561,11 @@ class _EntrySyncImpl extends NativeFieldWrapperClass1 implements EntrySync {
 
 class _ErrorEventImpl extends _EventImpl implements ErrorEvent {
 
-  String get filename() native "ErrorEvent_filename_Getter";
+  String get filename native "ErrorEvent_filename_Getter";
 
-  int get lineno() native "ErrorEvent_lineno_Getter";
+  int get lineno native "ErrorEvent_lineno_Getter";
 
-  String get message() native "ErrorEvent_message_Getter";
+  String get message native "ErrorEvent_message_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7576,11 +7576,11 @@ class _ErrorEventImpl extends _EventImpl implements ErrorEvent {
 
 class _EventExceptionImpl extends NativeFieldWrapperClass1 implements EventException {
 
-  int get code() native "EventException_code_Getter";
+  int get code native "EventException_code_Getter";
 
-  String get message() native "EventException_message_Getter";
+  String get message native "EventException_message_Getter";
 
-  String get name() native "EventException_name_Getter";
+  String get name native "EventException_name_Getter";
 
   String toString() native "EventException_toString_Callback";
 
@@ -7593,33 +7593,33 @@ class _EventExceptionImpl extends NativeFieldWrapperClass1 implements EventExcep
 
 class _EventImpl extends NativeFieldWrapperClass1 implements Event {
 
-  bool get bubbles() native "Event_bubbles_Getter";
+  bool get bubbles native "Event_bubbles_Getter";
 
-  bool get cancelBubble() native "Event_cancelBubble_Getter";
+  bool get cancelBubble native "Event_cancelBubble_Getter";
 
   void set cancelBubble(bool) native "Event_cancelBubble_Setter";
 
-  bool get cancelable() native "Event_cancelable_Getter";
+  bool get cancelable native "Event_cancelable_Getter";
 
-  Clipboard get clipboardData() native "Event_clipboardData_Getter";
+  Clipboard get clipboardData native "Event_clipboardData_Getter";
 
-  EventTarget get currentTarget() native "Event_currentTarget_Getter";
+  EventTarget get currentTarget native "Event_currentTarget_Getter";
 
-  bool get defaultPrevented() native "Event_defaultPrevented_Getter";
+  bool get defaultPrevented native "Event_defaultPrevented_Getter";
 
-  int get eventPhase() native "Event_eventPhase_Getter";
+  int get eventPhase native "Event_eventPhase_Getter";
 
-  bool get returnValue() native "Event_returnValue_Getter";
+  bool get returnValue native "Event_returnValue_Getter";
 
   void set returnValue(bool) native "Event_returnValue_Setter";
 
-  EventTarget get srcElement() native "Event_srcElement_Getter";
+  EventTarget get srcElement native "Event_srcElement_Getter";
 
-  EventTarget get target() native "Event_target_Getter";
+  EventTarget get target native "Event_target_Getter";
 
-  int get timeStamp() native "Event_timeStamp_Getter";
+  int get timeStamp native "Event_timeStamp_Getter";
 
-  String get type() native "Event_type_Getter";
+  String get type native "Event_type_Getter";
 
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
 
@@ -7642,11 +7642,11 @@ class _EventSourceFactoryProvider {
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
   _EventSourceEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7656,14 +7656,14 @@ class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
 
 class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
-  _EventSourceEventsImpl get on() =>
+  _EventSourceEventsImpl get on =>
     new _EventSourceEventsImpl(this);
 
-  String get URL() native "EventSource_URL_Getter";
+  String get URL native "EventSource_URL_Getter";
 
-  int get readyState() native "EventSource_readyState_Getter";
+  int get readyState native "EventSource_readyState_Getter";
 
-  String get url() native "EventSource_url_Getter";
+  String get url native "EventSource_url_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
 
@@ -7732,7 +7732,7 @@ class _EventListenerListImpl implements EventListenerList {
 
 class _EventTargetImpl extends NativeFieldWrapperClass1 implements EventTarget {
 
-  Events get on() => new _EventsImpl(this);
+  Events get on => new _EventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
@@ -7775,7 +7775,7 @@ class _FileEntrySyncImpl extends _EntrySyncImpl implements FileEntrySync {
 
 class _FileErrorImpl extends NativeFieldWrapperClass1 implements FileError {
 
-  int get code() native "FileError_code_Getter";
+  int get code native "FileError_code_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7786,11 +7786,11 @@ class _FileErrorImpl extends NativeFieldWrapperClass1 implements FileError {
 
 class _FileExceptionImpl extends NativeFieldWrapperClass1 implements FileException {
 
-  int get code() native "FileException_code_Getter";
+  int get code native "FileException_code_Getter";
 
-  String get message() native "FileException_message_Getter";
+  String get message native "FileException_message_Getter";
 
-  String get name() native "FileException_name_Getter";
+  String get name native "FileException_name_Getter";
 
   String toString() native "FileException_toString_Callback";
 
@@ -7803,11 +7803,11 @@ class _FileExceptionImpl extends NativeFieldWrapperClass1 implements FileExcepti
 
 class _FileImpl extends _BlobImpl implements File {
 
-  Date get lastModifiedDate() native "File_lastModifiedDate_Getter";
+  Date get lastModifiedDate native "File_lastModifiedDate_Getter";
 
-  String get name() native "File_name_Getter";
+  String get name native "File_name_Getter";
 
-  String get webkitRelativePath() native "File_webkitRelativePath_Getter";
+  String get webkitRelativePath native "File_webkitRelativePath_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7818,7 +7818,7 @@ class _FileImpl extends _BlobImpl implements File {
 
 class _FileListImpl extends NativeFieldWrapperClass1 implements FileList {
 
-  int get length() native "FileList_length_Getter";
+  int get length native "FileList_length_Getter";
 
   File operator[](int index) native "FileList_item_Callback";
 
@@ -7917,17 +7917,17 @@ class _FileReaderFactoryProvider {
 class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
   _FileReaderEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadEnd() => this['loadend'];
+  EventListenerList get loadEnd => this['loadend'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7937,14 +7937,14 @@ class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
 
 class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
-  _FileReaderEventsImpl get on() =>
+  _FileReaderEventsImpl get on =>
     new _FileReaderEventsImpl(this);
 
-  FileError get error() native "FileReader_error_Getter";
+  FileError get error native "FileReader_error_Getter";
 
-  int get readyState() native "FileReader_readyState_Getter";
+  int get readyState native "FileReader_readyState_Getter";
 
-  Object get result() native "FileReader_result_Getter";
+  Object get result native "FileReader_result_Getter";
 
   void abort() native "FileReader_abort_Callback";
 
@@ -8011,17 +8011,17 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
 class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
   _FileWriterEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get write() => this['write'];
+  EventListenerList get write => this['write'];
 
-  EventListenerList get writeEnd() => this['writeend'];
+  EventListenerList get writeEnd => this['writeend'];
 
-  EventListenerList get writeStart() => this['writestart'];
+  EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8031,16 +8031,16 @@ class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
 
 class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
-  _FileWriterEventsImpl get on() =>
+  _FileWriterEventsImpl get on =>
     new _FileWriterEventsImpl(this);
 
-  FileError get error() native "FileWriter_error_Getter";
+  FileError get error native "FileWriter_error_Getter";
 
-  int get length() native "FileWriter_length_Getter";
+  int get length native "FileWriter_length_Getter";
 
-  int get position() native "FileWriter_position_Getter";
+  int get position native "FileWriter_position_Getter";
 
-  int get readyState() native "FileWriter_readyState_Getter";
+  int get readyState native "FileWriter_readyState_Getter";
 
   void abort() native "FileWriter_abort_Callback";
 
@@ -8065,9 +8065,9 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
 class _FileWriterSyncImpl extends NativeFieldWrapperClass1 implements FileWriterSync {
 
-  int get length() native "FileWriterSync_length_Getter";
+  int get length native "FileWriterSync_length_Getter";
 
-  int get position() native "FileWriterSync_position_Getter";
+  int get position native "FileWriterSync_position_Getter";
 
   void seek(int position) native "FileWriterSync_seek_Callback";
 
@@ -8084,7 +8084,7 @@ class _FileWriterSyncImpl extends NativeFieldWrapperClass1 implements FileWriter
 
 class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
-  int get length() native "Float32Array_length_Getter";
+  int get length native "Float32Array_length_Getter";
 
   num operator[](int index) native "Float32Array_numericIndexGetter_Callback";
 
@@ -8188,7 +8188,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
 class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
-  int get length() native "Float64Array_length_Getter";
+  int get length native "Float64Array_length_Getter";
 
   num operator[](int index) native "Float64Array_numericIndexGetter_Callback";
 
@@ -8292,15 +8292,15 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
 class _GamepadImpl extends NativeFieldWrapperClass1 implements Gamepad {
 
-  List<num> get axes() native "Gamepad_axes_Getter";
+  List<num> get axes native "Gamepad_axes_Getter";
 
-  List<num> get buttons() native "Gamepad_buttons_Getter";
+  List<num> get buttons native "Gamepad_buttons_Getter";
 
-  String get id() native "Gamepad_id_Getter";
+  String get id native "Gamepad_id_Getter";
 
-  int get index() native "Gamepad_index_Getter";
+  int get index native "Gamepad_index_Getter";
 
-  int get timestamp() native "Gamepad_timestamp_Getter";
+  int get timestamp native "Gamepad_timestamp_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8311,7 +8311,7 @@ class _GamepadImpl extends NativeFieldWrapperClass1 implements Gamepad {
 
 class _GamepadListImpl extends NativeFieldWrapperClass1 implements GamepadList {
 
-  int get length() native "GamepadList_length_Getter";
+  int get length native "GamepadList_length_Getter";
 
   Gamepad item(int index) native "GamepadList_item_Callback";
 
@@ -8339,9 +8339,9 @@ class _GeolocationImpl extends NativeFieldWrapperClass1 implements Geolocation {
 
 class _GeopositionImpl extends NativeFieldWrapperClass1 implements Geoposition {
 
-  Coordinates get coords() native "Geoposition_coords_Getter";
+  Coordinates get coords native "Geoposition_coords_Getter";
 
-  int get timestamp() native "Geoposition_timestamp_Getter";
+  int get timestamp native "Geoposition_timestamp_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8352,7 +8352,7 @@ class _GeopositionImpl extends NativeFieldWrapperClass1 implements Geoposition {
 
 class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAllCollection {
 
-  int get length() native "HTMLAllCollection_length_Getter";
+  int get length native "HTMLAllCollection_length_Getter";
 
   Node item(int index) native "HTMLAllCollection_item_Callback";
 
@@ -8369,81 +8369,81 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
 
 class _HTMLAnchorElementImpl extends _HTMLElementImpl implements AnchorElement {
 
-  String get charset() native "HTMLAnchorElement_charset_Getter";
+  String get charset native "HTMLAnchorElement_charset_Getter";
 
   void set charset(String) native "HTMLAnchorElement_charset_Setter";
 
-  String get coords() native "HTMLAnchorElement_coords_Getter";
+  String get coords native "HTMLAnchorElement_coords_Getter";
 
   void set coords(String) native "HTMLAnchorElement_coords_Setter";
 
-  String get download() native "HTMLAnchorElement_download_Getter";
+  String get download native "HTMLAnchorElement_download_Getter";
 
   void set download(String) native "HTMLAnchorElement_download_Setter";
 
-  String get hash() native "HTMLAnchorElement_hash_Getter";
+  String get hash native "HTMLAnchorElement_hash_Getter";
 
   void set hash(String) native "HTMLAnchorElement_hash_Setter";
 
-  String get host() native "HTMLAnchorElement_host_Getter";
+  String get host native "HTMLAnchorElement_host_Getter";
 
   void set host(String) native "HTMLAnchorElement_host_Setter";
 
-  String get hostname() native "HTMLAnchorElement_hostname_Getter";
+  String get hostname native "HTMLAnchorElement_hostname_Getter";
 
   void set hostname(String) native "HTMLAnchorElement_hostname_Setter";
 
-  String get href() native "HTMLAnchorElement_href_Getter";
+  String get href native "HTMLAnchorElement_href_Getter";
 
   void set href(String) native "HTMLAnchorElement_href_Setter";
 
-  String get hreflang() native "HTMLAnchorElement_hreflang_Getter";
+  String get hreflang native "HTMLAnchorElement_hreflang_Getter";
 
   void set hreflang(String) native "HTMLAnchorElement_hreflang_Setter";
 
-  String get name() native "HTMLAnchorElement_name_Getter";
+  String get name native "HTMLAnchorElement_name_Getter";
 
   void set name(String) native "HTMLAnchorElement_name_Setter";
 
-  String get origin() native "HTMLAnchorElement_origin_Getter";
+  String get origin native "HTMLAnchorElement_origin_Getter";
 
-  String get pathname() native "HTMLAnchorElement_pathname_Getter";
+  String get pathname native "HTMLAnchorElement_pathname_Getter";
 
   void set pathname(String) native "HTMLAnchorElement_pathname_Setter";
 
-  String get ping() native "HTMLAnchorElement_ping_Getter";
+  String get ping native "HTMLAnchorElement_ping_Getter";
 
   void set ping(String) native "HTMLAnchorElement_ping_Setter";
 
-  String get port() native "HTMLAnchorElement_port_Getter";
+  String get port native "HTMLAnchorElement_port_Getter";
 
   void set port(String) native "HTMLAnchorElement_port_Setter";
 
-  String get protocol() native "HTMLAnchorElement_protocol_Getter";
+  String get protocol native "HTMLAnchorElement_protocol_Getter";
 
   void set protocol(String) native "HTMLAnchorElement_protocol_Setter";
 
-  String get rel() native "HTMLAnchorElement_rel_Getter";
+  String get rel native "HTMLAnchorElement_rel_Getter";
 
   void set rel(String) native "HTMLAnchorElement_rel_Setter";
 
-  String get rev() native "HTMLAnchorElement_rev_Getter";
+  String get rev native "HTMLAnchorElement_rev_Getter";
 
   void set rev(String) native "HTMLAnchorElement_rev_Setter";
 
-  String get search() native "HTMLAnchorElement_search_Getter";
+  String get search native "HTMLAnchorElement_search_Getter";
 
   void set search(String) native "HTMLAnchorElement_search_Setter";
 
-  String get shape() native "HTMLAnchorElement_shape_Getter";
+  String get shape native "HTMLAnchorElement_shape_Getter";
 
   void set shape(String) native "HTMLAnchorElement_shape_Setter";
 
-  String get target() native "HTMLAnchorElement_target_Getter";
+  String get target native "HTMLAnchorElement_target_Getter";
 
   void set target(String) native "HTMLAnchorElement_target_Setter";
 
-  String get type() native "HTMLAnchorElement_type_Getter";
+  String get type native "HTMLAnchorElement_type_Getter";
 
   void set type(String) native "HTMLAnchorElement_type_Setter";
 
@@ -8458,47 +8458,47 @@ class _HTMLAnchorElementImpl extends _HTMLElementImpl implements AnchorElement {
 
 class _HTMLAppletElementImpl extends _HTMLElementImpl implements AppletElement {
 
-  String get align() native "HTMLAppletElement_align_Getter";
+  String get align native "HTMLAppletElement_align_Getter";
 
   void set align(String) native "HTMLAppletElement_align_Setter";
 
-  String get alt() native "HTMLAppletElement_alt_Getter";
+  String get alt native "HTMLAppletElement_alt_Getter";
 
   void set alt(String) native "HTMLAppletElement_alt_Setter";
 
-  String get archive() native "HTMLAppletElement_archive_Getter";
+  String get archive native "HTMLAppletElement_archive_Getter";
 
   void set archive(String) native "HTMLAppletElement_archive_Setter";
 
-  String get code() native "HTMLAppletElement_code_Getter";
+  String get code native "HTMLAppletElement_code_Getter";
 
   void set code(String) native "HTMLAppletElement_code_Setter";
 
-  String get codeBase() native "HTMLAppletElement_codeBase_Getter";
+  String get codeBase native "HTMLAppletElement_codeBase_Getter";
 
   void set codeBase(String) native "HTMLAppletElement_codeBase_Setter";
 
-  String get height() native "HTMLAppletElement_height_Getter";
+  String get height native "HTMLAppletElement_height_Getter";
 
   void set height(String) native "HTMLAppletElement_height_Setter";
 
-  String get hspace() native "HTMLAppletElement_hspace_Getter";
+  String get hspace native "HTMLAppletElement_hspace_Getter";
 
   void set hspace(String) native "HTMLAppletElement_hspace_Setter";
 
-  String get name() native "HTMLAppletElement_name_Getter";
+  String get name native "HTMLAppletElement_name_Getter";
 
   void set name(String) native "HTMLAppletElement_name_Setter";
 
-  String get object() native "HTMLAppletElement_object_Getter";
+  String get object native "HTMLAppletElement_object_Getter";
 
   void set object(String) native "HTMLAppletElement_object_Setter";
 
-  String get vspace() native "HTMLAppletElement_vspace_Getter";
+  String get vspace native "HTMLAppletElement_vspace_Getter";
 
   void set vspace(String) native "HTMLAppletElement_vspace_Setter";
 
-  String get width() native "HTMLAppletElement_width_Getter";
+  String get width native "HTMLAppletElement_width_Getter";
 
   void set width(String) native "HTMLAppletElement_width_Setter";
 
@@ -8511,45 +8511,45 @@ class _HTMLAppletElementImpl extends _HTMLElementImpl implements AppletElement {
 
 class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
 
-  String get alt() native "HTMLAreaElement_alt_Getter";
+  String get alt native "HTMLAreaElement_alt_Getter";
 
   void set alt(String) native "HTMLAreaElement_alt_Setter";
 
-  String get coords() native "HTMLAreaElement_coords_Getter";
+  String get coords native "HTMLAreaElement_coords_Getter";
 
   void set coords(String) native "HTMLAreaElement_coords_Setter";
 
-  String get hash() native "HTMLAreaElement_hash_Getter";
+  String get hash native "HTMLAreaElement_hash_Getter";
 
-  String get host() native "HTMLAreaElement_host_Getter";
+  String get host native "HTMLAreaElement_host_Getter";
 
-  String get hostname() native "HTMLAreaElement_hostname_Getter";
+  String get hostname native "HTMLAreaElement_hostname_Getter";
 
-  String get href() native "HTMLAreaElement_href_Getter";
+  String get href native "HTMLAreaElement_href_Getter";
 
   void set href(String) native "HTMLAreaElement_href_Setter";
 
-  bool get noHref() native "HTMLAreaElement_noHref_Getter";
+  bool get noHref native "HTMLAreaElement_noHref_Getter";
 
   void set noHref(bool) native "HTMLAreaElement_noHref_Setter";
 
-  String get pathname() native "HTMLAreaElement_pathname_Getter";
+  String get pathname native "HTMLAreaElement_pathname_Getter";
 
-  String get ping() native "HTMLAreaElement_ping_Getter";
+  String get ping native "HTMLAreaElement_ping_Getter";
 
   void set ping(String) native "HTMLAreaElement_ping_Setter";
 
-  String get port() native "HTMLAreaElement_port_Getter";
+  String get port native "HTMLAreaElement_port_Getter";
 
-  String get protocol() native "HTMLAreaElement_protocol_Getter";
+  String get protocol native "HTMLAreaElement_protocol_Getter";
 
-  String get search() native "HTMLAreaElement_search_Getter";
+  String get search native "HTMLAreaElement_search_Getter";
 
-  String get shape() native "HTMLAreaElement_shape_Getter";
+  String get shape native "HTMLAreaElement_shape_Getter";
 
   void set shape(String) native "HTMLAreaElement_shape_Setter";
 
-  String get target() native "HTMLAreaElement_target_Getter";
+  String get target native "HTMLAreaElement_target_Getter";
 
   void set target(String) native "HTMLAreaElement_target_Setter";
 
@@ -8579,7 +8579,7 @@ class _HTMLAudioElementImpl extends _HTMLMediaElementImpl implements AudioElemen
 
 class _HTMLBRElementImpl extends _HTMLElementImpl implements BRElement {
 
-  String get clear() native "HTMLBRElement_clear_Getter";
+  String get clear native "HTMLBRElement_clear_Getter";
 
   void set clear(String) native "HTMLBRElement_clear_Setter";
 
@@ -8592,11 +8592,11 @@ class _HTMLBRElementImpl extends _HTMLElementImpl implements BRElement {
 
 class _HTMLBaseElementImpl extends _HTMLElementImpl implements BaseElement {
 
-  String get href() native "HTMLBaseElement_href_Getter";
+  String get href native "HTMLBaseElement_href_Getter";
 
   void set href(String) native "HTMLBaseElement_href_Setter";
 
-  String get target() native "HTMLBaseElement_target_Getter";
+  String get target native "HTMLBaseElement_target_Getter";
 
   void set target(String) native "HTMLBaseElement_target_Setter";
 
@@ -8609,15 +8609,15 @@ class _HTMLBaseElementImpl extends _HTMLElementImpl implements BaseElement {
 
 class _HTMLBaseFontElementImpl extends _HTMLElementImpl implements BaseFontElement {
 
-  String get color() native "HTMLBaseFontElement_color_Getter";
+  String get color native "HTMLBaseFontElement_color_Getter";
 
   void set color(String) native "HTMLBaseFontElement_color_Setter";
 
-  String get face() native "HTMLBaseFontElement_face_Getter";
+  String get face native "HTMLBaseFontElement_face_Getter";
 
   void set face(String) native "HTMLBaseFontElement_face_Setter";
 
-  int get size() native "HTMLBaseFontElement_size_Getter";
+  int get size native "HTMLBaseFontElement_size_Getter";
 
   void set size(int) native "HTMLBaseFontElement_size_Setter";
 
@@ -8626,31 +8626,31 @@ class _HTMLBaseFontElementImpl extends _HTMLElementImpl implements BaseFontEleme
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
   _BodyElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get beforeUnload() => this['beforeunload'];
+  EventListenerList get beforeUnload => this['beforeunload'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get hashChange() => this['hashchange'];
+  EventListenerList get hashChange => this['hashchange'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get offline() => this['offline'];
+  EventListenerList get offline => this['offline'];
 
-  EventListenerList get online() => this['online'];
+  EventListenerList get online => this['online'];
 
-  EventListenerList get popState() => this['popstate'];
+  EventListenerList get popState => this['popstate'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get storage() => this['storage'];
+  EventListenerList get storage => this['storage'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8660,26 +8660,26 @@ class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEv
 
 class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
 
-  _BodyElementEventsImpl get on() =>
+  _BodyElementEventsImpl get on =>
     new _BodyElementEventsImpl(this);
 
-  String get aLink() native "HTMLBodyElement_aLink_Getter";
+  String get aLink native "HTMLBodyElement_aLink_Getter";
 
   void set aLink(String) native "HTMLBodyElement_aLink_Setter";
 
-  String get background() native "HTMLBodyElement_background_Getter";
+  String get background native "HTMLBodyElement_background_Getter";
 
   void set background(String) native "HTMLBodyElement_background_Setter";
 
-  String get bgColor() native "HTMLBodyElement_bgColor_Getter";
+  String get bgColor native "HTMLBodyElement_bgColor_Getter";
 
   void set bgColor(String) native "HTMLBodyElement_bgColor_Setter";
 
-  String get link() native "HTMLBodyElement_link_Getter";
+  String get link native "HTMLBodyElement_link_Getter";
 
   void set link(String) native "HTMLBodyElement_link_Setter";
 
-  String get vLink() native "HTMLBodyElement_vLink_Getter";
+  String get vLink native "HTMLBodyElement_vLink_Getter";
 
   void set vLink(String) native "HTMLBodyElement_vLink_Setter";
 
@@ -8692,55 +8692,55 @@ class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
 
 class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
-  bool get autofocus() native "HTMLButtonElement_autofocus_Getter";
+  bool get autofocus native "HTMLButtonElement_autofocus_Getter";
 
   void set autofocus(bool) native "HTMLButtonElement_autofocus_Setter";
 
-  bool get disabled() native "HTMLButtonElement_disabled_Getter";
+  bool get disabled native "HTMLButtonElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLButtonElement_disabled_Setter";
 
-  FormElement get form() native "HTMLButtonElement_form_Getter";
+  FormElement get form native "HTMLButtonElement_form_Getter";
 
-  String get formAction() native "HTMLButtonElement_formAction_Getter";
+  String get formAction native "HTMLButtonElement_formAction_Getter";
 
   void set formAction(String) native "HTMLButtonElement_formAction_Setter";
 
-  String get formEnctype() native "HTMLButtonElement_formEnctype_Getter";
+  String get formEnctype native "HTMLButtonElement_formEnctype_Getter";
 
   void set formEnctype(String) native "HTMLButtonElement_formEnctype_Setter";
 
-  String get formMethod() native "HTMLButtonElement_formMethod_Getter";
+  String get formMethod native "HTMLButtonElement_formMethod_Getter";
 
   void set formMethod(String) native "HTMLButtonElement_formMethod_Setter";
 
-  bool get formNoValidate() native "HTMLButtonElement_formNoValidate_Getter";
+  bool get formNoValidate native "HTMLButtonElement_formNoValidate_Getter";
 
   void set formNoValidate(bool) native "HTMLButtonElement_formNoValidate_Setter";
 
-  String get formTarget() native "HTMLButtonElement_formTarget_Getter";
+  String get formTarget native "HTMLButtonElement_formTarget_Getter";
 
   void set formTarget(String) native "HTMLButtonElement_formTarget_Setter";
 
-  NodeList get labels() native "HTMLButtonElement_labels_Getter";
+  NodeList get labels native "HTMLButtonElement_labels_Getter";
 
-  String get name() native "HTMLButtonElement_name_Getter";
+  String get name native "HTMLButtonElement_name_Getter";
 
   void set name(String) native "HTMLButtonElement_name_Setter";
 
-  String get type() native "HTMLButtonElement_type_Getter";
+  String get type native "HTMLButtonElement_type_Getter";
 
   void set type(String) native "HTMLButtonElement_type_Setter";
 
-  String get validationMessage() native "HTMLButtonElement_validationMessage_Getter";
+  String get validationMessage native "HTMLButtonElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLButtonElement_validity_Getter";
+  ValidityState get validity native "HTMLButtonElement_validity_Getter";
 
-  String get value() native "HTMLButtonElement_value_Getter";
+  String get value native "HTMLButtonElement_value_Getter";
 
   void set value(String) native "HTMLButtonElement_value_Setter";
 
-  bool get willValidate() native "HTMLButtonElement_willValidate_Getter";
+  bool get willValidate native "HTMLButtonElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLButtonElement_checkValidity_Callback";
 
@@ -8753,11 +8753,11 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
 class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
-  int get height() native "HTMLCanvasElement_height_Getter";
+  int get height native "HTMLCanvasElement_height_Getter";
 
   void set height(int) native "HTMLCanvasElement_height_Setter";
 
-  int get width() native "HTMLCanvasElement_width_Getter";
+  int get width native "HTMLCanvasElement_width_Getter";
 
   void set width(int) native "HTMLCanvasElement_width_Setter";
 
@@ -8766,7 +8766,7 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
   String toDataURL(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
 
-  CanvasRenderingContext2D get context2d() => getContext('2d');
+  CanvasRenderingContext2D get context2d => getContext('2d');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8776,7 +8776,7 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
 class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollection {
 
-  int get length() native "HTMLCollection_length_Getter";
+  int get length native "HTMLCollection_length_Getter";
 
   Node operator[](int index) native "HTMLCollection_item_Callback";
 
@@ -8873,7 +8873,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
 
 class _HTMLContentElementImpl extends _HTMLElementImpl implements ContentElement {
 
-  String get select() native "HTMLContentElement_select_Getter";
+  String get select native "HTMLContentElement_select_Getter";
 
   void set select(String) native "HTMLContentElement_select_Setter";
 
@@ -8886,7 +8886,7 @@ class _HTMLContentElementImpl extends _HTMLElementImpl implements ContentElement
 
 class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
 
-  bool get compact() native "HTMLDListElement_compact_Getter";
+  bool get compact native "HTMLDListElement_compact_Getter";
 
   void set compact(bool) native "HTMLDListElement_compact_Setter";
 
@@ -8899,7 +8899,7 @@ class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
 
 class _HTMLDataListElementImpl extends _HTMLElementImpl implements DataListElement {
 
-  HTMLCollection get options() native "HTMLDataListElement_options_Getter";
+  HTMLCollection get options native "HTMLDataListElement_options_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8910,7 +8910,7 @@ class _HTMLDataListElementImpl extends _HTMLElementImpl implements DataListEleme
 
 class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement {
 
-  bool get open() native "HTMLDetailsElement_open_Getter";
+  bool get open native "HTMLDetailsElement_open_Getter";
 
   void set open(bool) native "HTMLDetailsElement_open_Setter";
 
@@ -8923,7 +8923,7 @@ class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement
 
 class _HTMLDirectoryElementImpl extends _HTMLElementImpl implements DirectoryElement {
 
-  bool get compact() native "HTMLDirectoryElement_compact_Getter";
+  bool get compact native "HTMLDirectoryElement_compact_Getter";
 
   void set compact(bool) native "HTMLDirectoryElement_compact_Setter";
 
@@ -8936,7 +8936,7 @@ class _HTMLDirectoryElementImpl extends _HTMLElementImpl implements DirectoryEle
 
 class _HTMLDivElementImpl extends _HTMLElementImpl implements DivElement {
 
-  String get align() native "HTMLDivElement_align_Getter";
+  String get align native "HTMLDivElement_align_Getter";
 
   void set align(String) native "HTMLDivElement_align_Setter";
 
@@ -8949,7 +8949,7 @@ class _HTMLDivElementImpl extends _HTMLElementImpl implements DivElement {
 
 class _HTMLDocumentImpl extends _DocumentImpl implements Document {
 
-  Element get activeElement() native "HTMLDocument_activeElement_Getter";
+  Element get activeElement native "HTMLDocument_activeElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8960,57 +8960,57 @@ class _HTMLDocumentImpl extends _DocumentImpl implements Document {
 
 class _HTMLElementImpl extends _ElementImpl implements Element {
 
-  HTMLCollection get $dom_children() native "HTMLElement_children_Getter";
+  HTMLCollection get $dom_children native "HTMLElement_children_Getter";
 
-  String get contentEditable() native "HTMLElement_contentEditable_Getter";
+  String get contentEditable native "HTMLElement_contentEditable_Getter";
 
   void set contentEditable(String) native "HTMLElement_contentEditable_Setter";
 
-  String get dir() native "HTMLElement_dir_Getter";
+  String get dir native "HTMLElement_dir_Getter";
 
   void set dir(String) native "HTMLElement_dir_Setter";
 
-  bool get draggable() native "HTMLElement_draggable_Getter";
+  bool get draggable native "HTMLElement_draggable_Getter";
 
   void set draggable(bool) native "HTMLElement_draggable_Setter";
 
-  bool get hidden() native "HTMLElement_hidden_Getter";
+  bool get hidden native "HTMLElement_hidden_Getter";
 
   void set hidden(bool) native "HTMLElement_hidden_Setter";
 
-  String get id() native "HTMLElement_id_Getter";
+  String get id native "HTMLElement_id_Getter";
 
   void set id(String) native "HTMLElement_id_Setter";
 
-  String get innerHTML() native "HTMLElement_innerHTML_Getter";
+  String get innerHTML native "HTMLElement_innerHTML_Getter";
 
   void set innerHTML(String) native "HTMLElement_innerHTML_Setter";
 
-  bool get isContentEditable() native "HTMLElement_isContentEditable_Getter";
+  bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
 
-  String get lang() native "HTMLElement_lang_Getter";
+  String get lang native "HTMLElement_lang_Getter";
 
   void set lang(String) native "HTMLElement_lang_Setter";
 
-  String get outerHTML() native "HTMLElement_outerHTML_Getter";
+  String get outerHTML native "HTMLElement_outerHTML_Getter";
 
-  bool get spellcheck() native "HTMLElement_spellcheck_Getter";
+  bool get spellcheck native "HTMLElement_spellcheck_Getter";
 
   void set spellcheck(bool) native "HTMLElement_spellcheck_Setter";
 
-  int get tabIndex() native "HTMLElement_tabIndex_Getter";
+  int get tabIndex native "HTMLElement_tabIndex_Getter";
 
   void set tabIndex(int) native "HTMLElement_tabIndex_Setter";
 
-  String get title() native "HTMLElement_title_Getter";
+  String get title native "HTMLElement_title_Getter";
 
   void set title(String) native "HTMLElement_title_Setter";
 
-  bool get translate() native "HTMLElement_translate_Getter";
+  bool get translate native "HTMLElement_translate_Getter";
 
   void set translate(bool) native "HTMLElement_translate_Setter";
 
-  String get webkitdropzone() native "HTMLElement_webkitdropzone_Getter";
+  String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
 
   void set webkitdropzone(String) native "HTMLElement_webkitdropzone_Setter";
 
@@ -9031,27 +9031,27 @@ class _HTMLElementImpl extends _ElementImpl implements Element {
 
 class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
 
-  String get align() native "HTMLEmbedElement_align_Getter";
+  String get align native "HTMLEmbedElement_align_Getter";
 
   void set align(String) native "HTMLEmbedElement_align_Setter";
 
-  String get height() native "HTMLEmbedElement_height_Getter";
+  String get height native "HTMLEmbedElement_height_Getter";
 
   void set height(String) native "HTMLEmbedElement_height_Setter";
 
-  String get name() native "HTMLEmbedElement_name_Getter";
+  String get name native "HTMLEmbedElement_name_Getter";
 
   void set name(String) native "HTMLEmbedElement_name_Setter";
 
-  String get src() native "HTMLEmbedElement_src_Getter";
+  String get src native "HTMLEmbedElement_src_Getter";
 
   void set src(String) native "HTMLEmbedElement_src_Setter";
 
-  String get type() native "HTMLEmbedElement_type_Getter";
+  String get type native "HTMLEmbedElement_type_Getter";
 
   void set type(String) native "HTMLEmbedElement_type_Setter";
 
-  String get width() native "HTMLEmbedElement_width_Getter";
+  String get width native "HTMLEmbedElement_width_Getter";
 
   void set width(String) native "HTMLEmbedElement_width_Setter";
 
@@ -9064,25 +9064,25 @@ class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
 
 class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetElement {
 
-  bool get disabled() native "HTMLFieldSetElement_disabled_Getter";
+  bool get disabled native "HTMLFieldSetElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLFieldSetElement_disabled_Setter";
 
-  HTMLCollection get elements() native "HTMLFieldSetElement_elements_Getter";
+  HTMLCollection get elements native "HTMLFieldSetElement_elements_Getter";
 
-  FormElement get form() native "HTMLFieldSetElement_form_Getter";
+  FormElement get form native "HTMLFieldSetElement_form_Getter";
 
-  String get name() native "HTMLFieldSetElement_name_Getter";
+  String get name native "HTMLFieldSetElement_name_Getter";
 
   void set name(String) native "HTMLFieldSetElement_name_Setter";
 
-  String get type() native "HTMLFieldSetElement_type_Getter";
+  String get type native "HTMLFieldSetElement_type_Getter";
 
-  String get validationMessage() native "HTMLFieldSetElement_validationMessage_Getter";
+  String get validationMessage native "HTMLFieldSetElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLFieldSetElement_validity_Getter";
+  ValidityState get validity native "HTMLFieldSetElement_validity_Getter";
 
-  bool get willValidate() native "HTMLFieldSetElement_willValidate_Getter";
+  bool get willValidate native "HTMLFieldSetElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLFieldSetElement_checkValidity_Callback";
 
@@ -9097,15 +9097,15 @@ class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetEleme
 
 class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
 
-  String get color() native "HTMLFontElement_color_Getter";
+  String get color native "HTMLFontElement_color_Getter";
 
   void set color(String) native "HTMLFontElement_color_Setter";
 
-  String get face() native "HTMLFontElement_face_Getter";
+  String get face native "HTMLFontElement_face_Getter";
 
   void set face(String) native "HTMLFontElement_face_Setter";
 
-  String get size() native "HTMLFontElement_size_Getter";
+  String get size native "HTMLFontElement_size_Getter";
 
   void set size(String) native "HTMLFontElement_size_Setter";
 
@@ -9118,41 +9118,41 @@ class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
 
 class _HTMLFormElementImpl extends _HTMLElementImpl implements FormElement {
 
-  String get acceptCharset() native "HTMLFormElement_acceptCharset_Getter";
+  String get acceptCharset native "HTMLFormElement_acceptCharset_Getter";
 
   void set acceptCharset(String) native "HTMLFormElement_acceptCharset_Setter";
 
-  String get action() native "HTMLFormElement_action_Getter";
+  String get action native "HTMLFormElement_action_Getter";
 
   void set action(String) native "HTMLFormElement_action_Setter";
 
-  String get autocomplete() native "HTMLFormElement_autocomplete_Getter";
+  String get autocomplete native "HTMLFormElement_autocomplete_Getter";
 
   void set autocomplete(String) native "HTMLFormElement_autocomplete_Setter";
 
-  String get encoding() native "HTMLFormElement_encoding_Getter";
+  String get encoding native "HTMLFormElement_encoding_Getter";
 
   void set encoding(String) native "HTMLFormElement_encoding_Setter";
 
-  String get enctype() native "HTMLFormElement_enctype_Getter";
+  String get enctype native "HTMLFormElement_enctype_Getter";
 
   void set enctype(String) native "HTMLFormElement_enctype_Setter";
 
-  int get length() native "HTMLFormElement_length_Getter";
+  int get length native "HTMLFormElement_length_Getter";
 
-  String get method() native "HTMLFormElement_method_Getter";
+  String get method native "HTMLFormElement_method_Getter";
 
   void set method(String) native "HTMLFormElement_method_Setter";
 
-  String get name() native "HTMLFormElement_name_Getter";
+  String get name native "HTMLFormElement_name_Getter";
 
   void set name(String) native "HTMLFormElement_name_Setter";
 
-  bool get noValidate() native "HTMLFormElement_noValidate_Getter";
+  bool get noValidate native "HTMLFormElement_noValidate_Getter";
 
   void set noValidate(bool) native "HTMLFormElement_noValidate_Setter";
 
-  String get target() native "HTMLFormElement_target_Getter";
+  String get target native "HTMLFormElement_target_Getter";
 
   void set target(String) native "HTMLFormElement_target_Setter";
 
@@ -9171,78 +9171,78 @@ class _HTMLFormElementImpl extends _HTMLElementImpl implements FormElement {
 
 class _HTMLFrameElementImpl extends _HTMLElementImpl implements FrameElement {
 
-  Window get contentWindow() native "HTMLFrameElement_contentWindow_Getter";
+  Window get contentWindow native "HTMLFrameElement_contentWindow_Getter";
 
-  String get frameBorder() native "HTMLFrameElement_frameBorder_Getter";
+  String get frameBorder native "HTMLFrameElement_frameBorder_Getter";
 
   void set frameBorder(String) native "HTMLFrameElement_frameBorder_Setter";
 
-  int get height() native "HTMLFrameElement_height_Getter";
+  int get height native "HTMLFrameElement_height_Getter";
 
-  String get location() native "HTMLFrameElement_location_Getter";
+  String get location native "HTMLFrameElement_location_Getter";
 
   void set location(String) native "HTMLFrameElement_location_Setter";
 
-  String get longDesc() native "HTMLFrameElement_longDesc_Getter";
+  String get longDesc native "HTMLFrameElement_longDesc_Getter";
 
   void set longDesc(String) native "HTMLFrameElement_longDesc_Setter";
 
-  String get marginHeight() native "HTMLFrameElement_marginHeight_Getter";
+  String get marginHeight native "HTMLFrameElement_marginHeight_Getter";
 
   void set marginHeight(String) native "HTMLFrameElement_marginHeight_Setter";
 
-  String get marginWidth() native "HTMLFrameElement_marginWidth_Getter";
+  String get marginWidth native "HTMLFrameElement_marginWidth_Getter";
 
   void set marginWidth(String) native "HTMLFrameElement_marginWidth_Setter";
 
-  String get name() native "HTMLFrameElement_name_Getter";
+  String get name native "HTMLFrameElement_name_Getter";
 
   void set name(String) native "HTMLFrameElement_name_Setter";
 
-  bool get noResize() native "HTMLFrameElement_noResize_Getter";
+  bool get noResize native "HTMLFrameElement_noResize_Getter";
 
   void set noResize(bool) native "HTMLFrameElement_noResize_Setter";
 
-  String get scrolling() native "HTMLFrameElement_scrolling_Getter";
+  String get scrolling native "HTMLFrameElement_scrolling_Getter";
 
   void set scrolling(String) native "HTMLFrameElement_scrolling_Setter";
 
-  String get src() native "HTMLFrameElement_src_Getter";
+  String get src native "HTMLFrameElement_src_Getter";
 
   void set src(String) native "HTMLFrameElement_src_Setter";
 
-  int get width() native "HTMLFrameElement_width_Getter";
+  int get width native "HTMLFrameElement_width_Getter";
 
 }
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
   _FrameSetElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get beforeUnload() => this['beforeunload'];
+  EventListenerList get beforeUnload => this['beforeunload'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get hashChange() => this['hashchange'];
+  EventListenerList get hashChange => this['hashchange'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get offline() => this['offline'];
+  EventListenerList get offline => this['offline'];
 
-  EventListenerList get online() => this['online'];
+  EventListenerList get online => this['online'];
 
-  EventListenerList get popState() => this['popstate'];
+  EventListenerList get popState => this['popstate'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get storage() => this['storage'];
+  EventListenerList get storage => this['storage'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9252,14 +9252,14 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
 
 class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
 
-  _FrameSetElementEventsImpl get on() =>
+  _FrameSetElementEventsImpl get on =>
     new _FrameSetElementEventsImpl(this);
 
-  String get cols() native "HTMLFrameSetElement_cols_Getter";
+  String get cols native "HTMLFrameSetElement_cols_Getter";
 
   void set cols(String) native "HTMLFrameSetElement_cols_Setter";
 
-  String get rows() native "HTMLFrameSetElement_rows_Getter";
+  String get rows native "HTMLFrameSetElement_rows_Getter";
 
   void set rows(String) native "HTMLFrameSetElement_rows_Setter";
 
@@ -9272,19 +9272,19 @@ class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetEleme
 
 class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
 
-  String get align() native "HTMLHRElement_align_Getter";
+  String get align native "HTMLHRElement_align_Getter";
 
   void set align(String) native "HTMLHRElement_align_Setter";
 
-  bool get noShade() native "HTMLHRElement_noShade_Getter";
+  bool get noShade native "HTMLHRElement_noShade_Getter";
 
   void set noShade(bool) native "HTMLHRElement_noShade_Setter";
 
-  String get size() native "HTMLHRElement_size_Getter";
+  String get size native "HTMLHRElement_size_Getter";
 
   void set size(String) native "HTMLHRElement_size_Setter";
 
-  String get width() native "HTMLHRElement_width_Getter";
+  String get width native "HTMLHRElement_width_Getter";
 
   void set width(String) native "HTMLHRElement_width_Setter";
 
@@ -9297,7 +9297,7 @@ class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
 
 class _HTMLHeadElementImpl extends _HTMLElementImpl implements HeadElement {
 
-  String get profile() native "HTMLHeadElement_profile_Getter";
+  String get profile native "HTMLHeadElement_profile_Getter";
 
   void set profile(String) native "HTMLHeadElement_profile_Setter";
 
@@ -9310,7 +9310,7 @@ class _HTMLHeadElementImpl extends _HTMLElementImpl implements HeadElement {
 
 class _HTMLHeadingElementImpl extends _HTMLElementImpl implements HeadingElement {
 
-  String get align() native "HTMLHeadingElement_align_Getter";
+  String get align native "HTMLHeadingElement_align_Getter";
 
   void set align(String) native "HTMLHeadingElement_align_Setter";
 
@@ -9332,53 +9332,53 @@ class _HTMLHtmlElementImpl extends _HTMLElementImpl implements HtmlElement {
 
 class _HTMLIFrameElementImpl extends _HTMLElementImpl implements IFrameElement {
 
-  String get align() native "HTMLIFrameElement_align_Getter";
+  String get align native "HTMLIFrameElement_align_Getter";
 
   void set align(String) native "HTMLIFrameElement_align_Setter";
 
-  Window get contentWindow() native "HTMLIFrameElement_contentWindow_Getter";
+  Window get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
 
-  String get frameBorder() native "HTMLIFrameElement_frameBorder_Getter";
+  String get frameBorder native "HTMLIFrameElement_frameBorder_Getter";
 
   void set frameBorder(String) native "HTMLIFrameElement_frameBorder_Setter";
 
-  String get height() native "HTMLIFrameElement_height_Getter";
+  String get height native "HTMLIFrameElement_height_Getter";
 
   void set height(String) native "HTMLIFrameElement_height_Setter";
 
-  String get longDesc() native "HTMLIFrameElement_longDesc_Getter";
+  String get longDesc native "HTMLIFrameElement_longDesc_Getter";
 
   void set longDesc(String) native "HTMLIFrameElement_longDesc_Setter";
 
-  String get marginHeight() native "HTMLIFrameElement_marginHeight_Getter";
+  String get marginHeight native "HTMLIFrameElement_marginHeight_Getter";
 
   void set marginHeight(String) native "HTMLIFrameElement_marginHeight_Setter";
 
-  String get marginWidth() native "HTMLIFrameElement_marginWidth_Getter";
+  String get marginWidth native "HTMLIFrameElement_marginWidth_Getter";
 
   void set marginWidth(String) native "HTMLIFrameElement_marginWidth_Setter";
 
-  String get name() native "HTMLIFrameElement_name_Getter";
+  String get name native "HTMLIFrameElement_name_Getter";
 
   void set name(String) native "HTMLIFrameElement_name_Setter";
 
-  String get sandbox() native "HTMLIFrameElement_sandbox_Getter";
+  String get sandbox native "HTMLIFrameElement_sandbox_Getter";
 
   void set sandbox(String) native "HTMLIFrameElement_sandbox_Setter";
 
-  String get scrolling() native "HTMLIFrameElement_scrolling_Getter";
+  String get scrolling native "HTMLIFrameElement_scrolling_Getter";
 
   void set scrolling(String) native "HTMLIFrameElement_scrolling_Setter";
 
-  String get src() native "HTMLIFrameElement_src_Getter";
+  String get src native "HTMLIFrameElement_src_Getter";
 
   void set src(String) native "HTMLIFrameElement_src_Setter";
 
-  String get srcdoc() native "HTMLIFrameElement_srcdoc_Getter";
+  String get srcdoc native "HTMLIFrameElement_srcdoc_Getter";
 
   void set srcdoc(String) native "HTMLIFrameElement_srcdoc_Setter";
 
-  String get width() native "HTMLIFrameElement_width_Getter";
+  String get width native "HTMLIFrameElement_width_Getter";
 
   void set width(String) native "HTMLIFrameElement_width_Setter";
 
@@ -9391,78 +9391,78 @@ class _HTMLIFrameElementImpl extends _HTMLElementImpl implements IFrameElement {
 
 class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
 
-  String get align() native "HTMLImageElement_align_Getter";
+  String get align native "HTMLImageElement_align_Getter";
 
   void set align(String) native "HTMLImageElement_align_Setter";
 
-  String get alt() native "HTMLImageElement_alt_Getter";
+  String get alt native "HTMLImageElement_alt_Getter";
 
   void set alt(String) native "HTMLImageElement_alt_Setter";
 
-  String get border() native "HTMLImageElement_border_Getter";
+  String get border native "HTMLImageElement_border_Getter";
 
   void set border(String) native "HTMLImageElement_border_Setter";
 
-  bool get complete() native "HTMLImageElement_complete_Getter";
+  bool get complete native "HTMLImageElement_complete_Getter";
 
-  String get crossOrigin() native "HTMLImageElement_crossOrigin_Getter";
+  String get crossOrigin native "HTMLImageElement_crossOrigin_Getter";
 
   void set crossOrigin(String) native "HTMLImageElement_crossOrigin_Setter";
 
-  int get height() native "HTMLImageElement_height_Getter";
+  int get height native "HTMLImageElement_height_Getter";
 
   void set height(int) native "HTMLImageElement_height_Setter";
 
-  int get hspace() native "HTMLImageElement_hspace_Getter";
+  int get hspace native "HTMLImageElement_hspace_Getter";
 
   void set hspace(int) native "HTMLImageElement_hspace_Setter";
 
-  bool get isMap() native "HTMLImageElement_isMap_Getter";
+  bool get isMap native "HTMLImageElement_isMap_Getter";
 
   void set isMap(bool) native "HTMLImageElement_isMap_Setter";
 
-  String get longDesc() native "HTMLImageElement_longDesc_Getter";
+  String get longDesc native "HTMLImageElement_longDesc_Getter";
 
   void set longDesc(String) native "HTMLImageElement_longDesc_Setter";
 
-  String get lowsrc() native "HTMLImageElement_lowsrc_Getter";
+  String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
   void set lowsrc(String) native "HTMLImageElement_lowsrc_Setter";
 
-  String get name() native "HTMLImageElement_name_Getter";
+  String get name native "HTMLImageElement_name_Getter";
 
   void set name(String) native "HTMLImageElement_name_Setter";
 
-  int get naturalHeight() native "HTMLImageElement_naturalHeight_Getter";
+  int get naturalHeight native "HTMLImageElement_naturalHeight_Getter";
 
-  int get naturalWidth() native "HTMLImageElement_naturalWidth_Getter";
+  int get naturalWidth native "HTMLImageElement_naturalWidth_Getter";
 
-  String get src() native "HTMLImageElement_src_Getter";
+  String get src native "HTMLImageElement_src_Getter";
 
   void set src(String) native "HTMLImageElement_src_Setter";
 
-  String get useMap() native "HTMLImageElement_useMap_Getter";
+  String get useMap native "HTMLImageElement_useMap_Getter";
 
   void set useMap(String) native "HTMLImageElement_useMap_Setter";
 
-  int get vspace() native "HTMLImageElement_vspace_Getter";
+  int get vspace native "HTMLImageElement_vspace_Getter";
 
   void set vspace(int) native "HTMLImageElement_vspace_Setter";
 
-  int get width() native "HTMLImageElement_width_Getter";
+  int get width native "HTMLImageElement_width_Getter";
 
   void set width(int) native "HTMLImageElement_width_Setter";
 
-  int get x() native "HTMLImageElement_x_Getter";
+  int get x native "HTMLImageElement_x_Getter";
 
-  int get y() native "HTMLImageElement_y_Getter";
+  int get y native "HTMLImageElement_y_Getter";
 
 }
 
 class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
   _InputElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get speechChange() => this['webkitSpeechChange'];
+  EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9472,190 +9472,190 @@ class _InputElementEventsImpl extends _ElementEventsImpl implements InputElement
 
 class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
-  _InputElementEventsImpl get on() =>
+  _InputElementEventsImpl get on =>
     new _InputElementEventsImpl(this);
 
-  String get accept() native "HTMLInputElement_accept_Getter";
+  String get accept native "HTMLInputElement_accept_Getter";
 
   void set accept(String) native "HTMLInputElement_accept_Setter";
 
-  String get align() native "HTMLInputElement_align_Getter";
+  String get align native "HTMLInputElement_align_Getter";
 
   void set align(String) native "HTMLInputElement_align_Setter";
 
-  String get alt() native "HTMLInputElement_alt_Getter";
+  String get alt native "HTMLInputElement_alt_Getter";
 
   void set alt(String) native "HTMLInputElement_alt_Setter";
 
-  String get autocomplete() native "HTMLInputElement_autocomplete_Getter";
+  String get autocomplete native "HTMLInputElement_autocomplete_Getter";
 
   void set autocomplete(String) native "HTMLInputElement_autocomplete_Setter";
 
-  bool get autofocus() native "HTMLInputElement_autofocus_Getter";
+  bool get autofocus native "HTMLInputElement_autofocus_Getter";
 
   void set autofocus(bool) native "HTMLInputElement_autofocus_Setter";
 
-  bool get checked() native "HTMLInputElement_checked_Getter";
+  bool get checked native "HTMLInputElement_checked_Getter";
 
   void set checked(bool) native "HTMLInputElement_checked_Setter";
 
-  bool get defaultChecked() native "HTMLInputElement_defaultChecked_Getter";
+  bool get defaultChecked native "HTMLInputElement_defaultChecked_Getter";
 
   void set defaultChecked(bool) native "HTMLInputElement_defaultChecked_Setter";
 
-  String get defaultValue() native "HTMLInputElement_defaultValue_Getter";
+  String get defaultValue native "HTMLInputElement_defaultValue_Getter";
 
   void set defaultValue(String) native "HTMLInputElement_defaultValue_Setter";
 
-  bool get disabled() native "HTMLInputElement_disabled_Getter";
+  bool get disabled native "HTMLInputElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLInputElement_disabled_Setter";
 
-  FileList get files() native "HTMLInputElement_files_Getter";
+  FileList get files native "HTMLInputElement_files_Getter";
 
   void set files(FileList) native "HTMLInputElement_files_Setter";
 
-  FormElement get form() native "HTMLInputElement_form_Getter";
+  FormElement get form native "HTMLInputElement_form_Getter";
 
-  String get formAction() native "HTMLInputElement_formAction_Getter";
+  String get formAction native "HTMLInputElement_formAction_Getter";
 
   void set formAction(String) native "HTMLInputElement_formAction_Setter";
 
-  String get formEnctype() native "HTMLInputElement_formEnctype_Getter";
+  String get formEnctype native "HTMLInputElement_formEnctype_Getter";
 
   void set formEnctype(String) native "HTMLInputElement_formEnctype_Setter";
 
-  String get formMethod() native "HTMLInputElement_formMethod_Getter";
+  String get formMethod native "HTMLInputElement_formMethod_Getter";
 
   void set formMethod(String) native "HTMLInputElement_formMethod_Setter";
 
-  bool get formNoValidate() native "HTMLInputElement_formNoValidate_Getter";
+  bool get formNoValidate native "HTMLInputElement_formNoValidate_Getter";
 
   void set formNoValidate(bool) native "HTMLInputElement_formNoValidate_Setter";
 
-  String get formTarget() native "HTMLInputElement_formTarget_Getter";
+  String get formTarget native "HTMLInputElement_formTarget_Getter";
 
   void set formTarget(String) native "HTMLInputElement_formTarget_Setter";
 
-  int get height() native "HTMLInputElement_height_Getter";
+  int get height native "HTMLInputElement_height_Getter";
 
   void set height(int) native "HTMLInputElement_height_Setter";
 
-  bool get incremental() native "HTMLInputElement_incremental_Getter";
+  bool get incremental native "HTMLInputElement_incremental_Getter";
 
   void set incremental(bool) native "HTMLInputElement_incremental_Setter";
 
-  bool get indeterminate() native "HTMLInputElement_indeterminate_Getter";
+  bool get indeterminate native "HTMLInputElement_indeterminate_Getter";
 
   void set indeterminate(bool) native "HTMLInputElement_indeterminate_Setter";
 
-  NodeList get labels() native "HTMLInputElement_labels_Getter";
+  NodeList get labels native "HTMLInputElement_labels_Getter";
 
-  Element get list() native "HTMLInputElement_list_Getter";
+  Element get list native "HTMLInputElement_list_Getter";
 
-  String get max() native "HTMLInputElement_max_Getter";
+  String get max native "HTMLInputElement_max_Getter";
 
   void set max(String) native "HTMLInputElement_max_Setter";
 
-  int get maxLength() native "HTMLInputElement_maxLength_Getter";
+  int get maxLength native "HTMLInputElement_maxLength_Getter";
 
   void set maxLength(int) native "HTMLInputElement_maxLength_Setter";
 
-  String get min() native "HTMLInputElement_min_Getter";
+  String get min native "HTMLInputElement_min_Getter";
 
   void set min(String) native "HTMLInputElement_min_Setter";
 
-  bool get multiple() native "HTMLInputElement_multiple_Getter";
+  bool get multiple native "HTMLInputElement_multiple_Getter";
 
   void set multiple(bool) native "HTMLInputElement_multiple_Setter";
 
-  String get name() native "HTMLInputElement_name_Getter";
+  String get name native "HTMLInputElement_name_Getter";
 
   void set name(String) native "HTMLInputElement_name_Setter";
 
-  String get pattern() native "HTMLInputElement_pattern_Getter";
+  String get pattern native "HTMLInputElement_pattern_Getter";
 
   void set pattern(String) native "HTMLInputElement_pattern_Setter";
 
-  String get placeholder() native "HTMLInputElement_placeholder_Getter";
+  String get placeholder native "HTMLInputElement_placeholder_Getter";
 
   void set placeholder(String) native "HTMLInputElement_placeholder_Setter";
 
-  bool get readOnly() native "HTMLInputElement_readOnly_Getter";
+  bool get readOnly native "HTMLInputElement_readOnly_Getter";
 
   void set readOnly(bool) native "HTMLInputElement_readOnly_Setter";
 
-  bool get required() native "HTMLInputElement_required_Getter";
+  bool get required native "HTMLInputElement_required_Getter";
 
   void set required(bool) native "HTMLInputElement_required_Setter";
 
-  String get selectionDirection() native "HTMLInputElement_selectionDirection_Getter";
+  String get selectionDirection native "HTMLInputElement_selectionDirection_Getter";
 
   void set selectionDirection(String) native "HTMLInputElement_selectionDirection_Setter";
 
-  int get selectionEnd() native "HTMLInputElement_selectionEnd_Getter";
+  int get selectionEnd native "HTMLInputElement_selectionEnd_Getter";
 
   void set selectionEnd(int) native "HTMLInputElement_selectionEnd_Setter";
 
-  int get selectionStart() native "HTMLInputElement_selectionStart_Getter";
+  int get selectionStart native "HTMLInputElement_selectionStart_Getter";
 
   void set selectionStart(int) native "HTMLInputElement_selectionStart_Setter";
 
-  int get size() native "HTMLInputElement_size_Getter";
+  int get size native "HTMLInputElement_size_Getter";
 
   void set size(int) native "HTMLInputElement_size_Setter";
 
-  String get src() native "HTMLInputElement_src_Getter";
+  String get src native "HTMLInputElement_src_Getter";
 
   void set src(String) native "HTMLInputElement_src_Setter";
 
-  String get step() native "HTMLInputElement_step_Getter";
+  String get step native "HTMLInputElement_step_Getter";
 
   void set step(String) native "HTMLInputElement_step_Setter";
 
-  String get type() native "HTMLInputElement_type_Getter";
+  String get type native "HTMLInputElement_type_Getter";
 
   void set type(String) native "HTMLInputElement_type_Setter";
 
-  String get useMap() native "HTMLInputElement_useMap_Getter";
+  String get useMap native "HTMLInputElement_useMap_Getter";
 
   void set useMap(String) native "HTMLInputElement_useMap_Setter";
 
-  String get validationMessage() native "HTMLInputElement_validationMessage_Getter";
+  String get validationMessage native "HTMLInputElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLInputElement_validity_Getter";
+  ValidityState get validity native "HTMLInputElement_validity_Getter";
 
-  String get value() native "HTMLInputElement_value_Getter";
+  String get value native "HTMLInputElement_value_Getter";
 
   void set value(String) native "HTMLInputElement_value_Setter";
 
-  Date get valueAsDate() native "HTMLInputElement_valueAsDate_Getter";
+  Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
   void set valueAsDate(Date) native "HTMLInputElement_valueAsDate_Setter";
 
-  num get valueAsNumber() native "HTMLInputElement_valueAsNumber_Getter";
+  num get valueAsNumber native "HTMLInputElement_valueAsNumber_Getter";
 
   void set valueAsNumber(num) native "HTMLInputElement_valueAsNumber_Setter";
 
-  EntryArray get webkitEntries() native "HTMLInputElement_webkitEntries_Getter";
+  EntryArray get webkitEntries native "HTMLInputElement_webkitEntries_Getter";
 
-  bool get webkitGrammar() native "HTMLInputElement_webkitGrammar_Getter";
+  bool get webkitGrammar native "HTMLInputElement_webkitGrammar_Getter";
 
   void set webkitGrammar(bool) native "HTMLInputElement_webkitGrammar_Setter";
 
-  bool get webkitSpeech() native "HTMLInputElement_webkitSpeech_Getter";
+  bool get webkitSpeech native "HTMLInputElement_webkitSpeech_Getter";
 
   void set webkitSpeech(bool) native "HTMLInputElement_webkitSpeech_Setter";
 
-  bool get webkitdirectory() native "HTMLInputElement_webkitdirectory_Getter";
+  bool get webkitdirectory native "HTMLInputElement_webkitdirectory_Getter";
 
   void set webkitdirectory(bool) native "HTMLInputElement_webkitdirectory_Setter";
 
-  int get width() native "HTMLInputElement_width_Getter";
+  int get width native "HTMLInputElement_width_Getter";
 
   void set width(int) native "HTMLInputElement_width_Setter";
 
-  bool get willValidate() native "HTMLInputElement_willValidate_Getter";
+  bool get willValidate native "HTMLInputElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLInputElement_checkValidity_Callback";
 
@@ -9698,37 +9698,37 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
 class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
 
-  bool get autofocus() native "HTMLKeygenElement_autofocus_Getter";
+  bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
 
   void set autofocus(bool) native "HTMLKeygenElement_autofocus_Setter";
 
-  String get challenge() native "HTMLKeygenElement_challenge_Getter";
+  String get challenge native "HTMLKeygenElement_challenge_Getter";
 
   void set challenge(String) native "HTMLKeygenElement_challenge_Setter";
 
-  bool get disabled() native "HTMLKeygenElement_disabled_Getter";
+  bool get disabled native "HTMLKeygenElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLKeygenElement_disabled_Setter";
 
-  FormElement get form() native "HTMLKeygenElement_form_Getter";
+  FormElement get form native "HTMLKeygenElement_form_Getter";
 
-  String get keytype() native "HTMLKeygenElement_keytype_Getter";
+  String get keytype native "HTMLKeygenElement_keytype_Getter";
 
   void set keytype(String) native "HTMLKeygenElement_keytype_Setter";
 
-  NodeList get labels() native "HTMLKeygenElement_labels_Getter";
+  NodeList get labels native "HTMLKeygenElement_labels_Getter";
 
-  String get name() native "HTMLKeygenElement_name_Getter";
+  String get name native "HTMLKeygenElement_name_Getter";
 
   void set name(String) native "HTMLKeygenElement_name_Setter";
 
-  String get type() native "HTMLKeygenElement_type_Getter";
+  String get type native "HTMLKeygenElement_type_Getter";
 
-  String get validationMessage() native "HTMLKeygenElement_validationMessage_Getter";
+  String get validationMessage native "HTMLKeygenElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLKeygenElement_validity_Getter";
+  ValidityState get validity native "HTMLKeygenElement_validity_Getter";
 
-  bool get willValidate() native "HTMLKeygenElement_willValidate_Getter";
+  bool get willValidate native "HTMLKeygenElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLKeygenElement_checkValidity_Callback";
 
@@ -9743,11 +9743,11 @@ class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
 
 class _HTMLLIElementImpl extends _HTMLElementImpl implements LIElement {
 
-  String get type() native "HTMLLIElement_type_Getter";
+  String get type native "HTMLLIElement_type_Getter";
 
   void set type(String) native "HTMLLIElement_type_Setter";
 
-  int get value() native "HTMLLIElement_value_Getter";
+  int get value native "HTMLLIElement_value_Getter";
 
   void set value(int) native "HTMLLIElement_value_Setter";
 
@@ -9760,11 +9760,11 @@ class _HTMLLIElementImpl extends _HTMLElementImpl implements LIElement {
 
 class _HTMLLabelElementImpl extends _HTMLElementImpl implements LabelElement {
 
-  Element get control() native "HTMLLabelElement_control_Getter";
+  Element get control native "HTMLLabelElement_control_Getter";
 
-  FormElement get form() native "HTMLLabelElement_form_Getter";
+  FormElement get form native "HTMLLabelElement_form_Getter";
 
-  String get htmlFor() native "HTMLLabelElement_htmlFor_Getter";
+  String get htmlFor native "HTMLLabelElement_htmlFor_Getter";
 
   void set htmlFor(String) native "HTMLLabelElement_htmlFor_Setter";
 
@@ -9777,11 +9777,11 @@ class _HTMLLabelElementImpl extends _HTMLElementImpl implements LabelElement {
 
 class _HTMLLegendElementImpl extends _HTMLElementImpl implements LegendElement {
 
-  String get align() native "HTMLLegendElement_align_Getter";
+  String get align native "HTMLLegendElement_align_Getter";
 
   void set align(String) native "HTMLLegendElement_align_Setter";
 
-  FormElement get form() native "HTMLLegendElement_form_Getter";
+  FormElement get form native "HTMLLegendElement_form_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9792,45 +9792,45 @@ class _HTMLLegendElementImpl extends _HTMLElementImpl implements LegendElement {
 
 class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
 
-  String get charset() native "HTMLLinkElement_charset_Getter";
+  String get charset native "HTMLLinkElement_charset_Getter";
 
   void set charset(String) native "HTMLLinkElement_charset_Setter";
 
-  bool get disabled() native "HTMLLinkElement_disabled_Getter";
+  bool get disabled native "HTMLLinkElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLLinkElement_disabled_Setter";
 
-  String get href() native "HTMLLinkElement_href_Getter";
+  String get href native "HTMLLinkElement_href_Getter";
 
   void set href(String) native "HTMLLinkElement_href_Setter";
 
-  String get hreflang() native "HTMLLinkElement_hreflang_Getter";
+  String get hreflang native "HTMLLinkElement_hreflang_Getter";
 
   void set hreflang(String) native "HTMLLinkElement_hreflang_Setter";
 
-  String get media() native "HTMLLinkElement_media_Getter";
+  String get media native "HTMLLinkElement_media_Getter";
 
   void set media(String) native "HTMLLinkElement_media_Setter";
 
-  String get rel() native "HTMLLinkElement_rel_Getter";
+  String get rel native "HTMLLinkElement_rel_Getter";
 
   void set rel(String) native "HTMLLinkElement_rel_Setter";
 
-  String get rev() native "HTMLLinkElement_rev_Getter";
+  String get rev native "HTMLLinkElement_rev_Getter";
 
   void set rev(String) native "HTMLLinkElement_rev_Setter";
 
-  StyleSheet get sheet() native "HTMLLinkElement_sheet_Getter";
+  StyleSheet get sheet native "HTMLLinkElement_sheet_Getter";
 
-  DOMSettableTokenList get sizes() native "HTMLLinkElement_sizes_Getter";
+  DOMSettableTokenList get sizes native "HTMLLinkElement_sizes_Getter";
 
   void set sizes(DOMSettableTokenList) native "HTMLLinkElement_sizes_Setter";
 
-  String get target() native "HTMLLinkElement_target_Getter";
+  String get target native "HTMLLinkElement_target_Getter";
 
   void set target(String) native "HTMLLinkElement_target_Setter";
 
-  String get type() native "HTMLLinkElement_type_Getter";
+  String get type native "HTMLLinkElement_type_Getter";
 
   void set type(String) native "HTMLLinkElement_type_Setter";
 
@@ -9843,9 +9843,9 @@ class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
 
 class _HTMLMapElementImpl extends _HTMLElementImpl implements MapElement {
 
-  HTMLCollection get areas() native "HTMLMapElement_areas_Getter";
+  HTMLCollection get areas native "HTMLMapElement_areas_Getter";
 
-  String get name() native "HTMLMapElement_name_Getter";
+  String get name native "HTMLMapElement_name_Getter";
 
   void set name(String) native "HTMLMapElement_name_Setter";
 
@@ -9858,47 +9858,47 @@ class _HTMLMapElementImpl extends _HTMLElementImpl implements MapElement {
 
 class _HTMLMarqueeElementImpl extends _HTMLElementImpl implements MarqueeElement {
 
-  String get behavior() native "HTMLMarqueeElement_behavior_Getter";
+  String get behavior native "HTMLMarqueeElement_behavior_Getter";
 
   void set behavior(String) native "HTMLMarqueeElement_behavior_Setter";
 
-  String get bgColor() native "HTMLMarqueeElement_bgColor_Getter";
+  String get bgColor native "HTMLMarqueeElement_bgColor_Getter";
 
   void set bgColor(String) native "HTMLMarqueeElement_bgColor_Setter";
 
-  String get direction() native "HTMLMarqueeElement_direction_Getter";
+  String get direction native "HTMLMarqueeElement_direction_Getter";
 
   void set direction(String) native "HTMLMarqueeElement_direction_Setter";
 
-  String get height() native "HTMLMarqueeElement_height_Getter";
+  String get height native "HTMLMarqueeElement_height_Getter";
 
   void set height(String) native "HTMLMarqueeElement_height_Setter";
 
-  int get hspace() native "HTMLMarqueeElement_hspace_Getter";
+  int get hspace native "HTMLMarqueeElement_hspace_Getter";
 
   void set hspace(int) native "HTMLMarqueeElement_hspace_Setter";
 
-  int get loop() native "HTMLMarqueeElement_loop_Getter";
+  int get loop native "HTMLMarqueeElement_loop_Getter";
 
   void set loop(int) native "HTMLMarqueeElement_loop_Setter";
 
-  int get scrollAmount() native "HTMLMarqueeElement_scrollAmount_Getter";
+  int get scrollAmount native "HTMLMarqueeElement_scrollAmount_Getter";
 
   void set scrollAmount(int) native "HTMLMarqueeElement_scrollAmount_Setter";
 
-  int get scrollDelay() native "HTMLMarqueeElement_scrollDelay_Getter";
+  int get scrollDelay native "HTMLMarqueeElement_scrollDelay_Getter";
 
   void set scrollDelay(int) native "HTMLMarqueeElement_scrollDelay_Setter";
 
-  bool get trueSpeed() native "HTMLMarqueeElement_trueSpeed_Getter";
+  bool get trueSpeed native "HTMLMarqueeElement_trueSpeed_Getter";
 
   void set trueSpeed(bool) native "HTMLMarqueeElement_trueSpeed_Setter";
 
-  int get vspace() native "HTMLMarqueeElement_vspace_Getter";
+  int get vspace native "HTMLMarqueeElement_vspace_Getter";
 
   void set vspace(int) native "HTMLMarqueeElement_vspace_Setter";
 
-  String get width() native "HTMLMarqueeElement_width_Getter";
+  String get width native "HTMLMarqueeElement_width_Getter";
 
   void set width(String) native "HTMLMarqueeElement_width_Setter";
 
@@ -9911,55 +9911,55 @@ class _HTMLMarqueeElementImpl extends _HTMLElementImpl implements MarqueeElement
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
   _MediaElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get canPlay() => this['canplay'];
+  EventListenerList get canPlay => this['canplay'];
 
-  EventListenerList get canPlayThrough() => this['canplaythrough'];
+  EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  EventListenerList get durationChange() => this['durationchange'];
+  EventListenerList get durationChange => this['durationchange'];
 
-  EventListenerList get emptied() => this['emptied'];
+  EventListenerList get emptied => this['emptied'];
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 
-  EventListenerList get keyAdded() => this['webkitkeyadded'];
+  EventListenerList get keyAdded => this['webkitkeyadded'];
 
-  EventListenerList get keyError() => this['webkitkeyerror'];
+  EventListenerList get keyError => this['webkitkeyerror'];
 
-  EventListenerList get keyMessage() => this['webkitkeymessage'];
+  EventListenerList get keyMessage => this['webkitkeymessage'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get loadedData() => this['loadeddata'];
+  EventListenerList get loadedData => this['loadeddata'];
 
-  EventListenerList get loadedMetadata() => this['loadedmetadata'];
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  EventListenerList get needKey() => this['webkitneedkey'];
+  EventListenerList get needKey => this['webkitneedkey'];
 
-  EventListenerList get pause() => this['pause'];
+  EventListenerList get pause => this['pause'];
 
-  EventListenerList get play() => this['play'];
+  EventListenerList get play => this['play'];
 
-  EventListenerList get playing() => this['playing'];
+  EventListenerList get playing => this['playing'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get rateChange() => this['ratechange'];
+  EventListenerList get rateChange => this['ratechange'];
 
-  EventListenerList get seeked() => this['seeked'];
+  EventListenerList get seeked => this['seeked'];
 
-  EventListenerList get seeking() => this['seeking'];
+  EventListenerList get seeking => this['seeking'];
 
-  EventListenerList get show() => this['show'];
+  EventListenerList get show => this['show'];
 
-  EventListenerList get stalled() => this['stalled'];
+  EventListenerList get stalled => this['stalled'];
 
-  EventListenerList get suspend() => this['suspend'];
+  EventListenerList get suspend => this['suspend'];
 
-  EventListenerList get timeUpdate() => this['timeupdate'];
+  EventListenerList get timeUpdate => this['timeupdate'];
 
-  EventListenerList get volumeChange() => this['volumechange'];
+  EventListenerList get volumeChange => this['volumechange'];
 
-  EventListenerList get waiting() => this['waiting'];
+  EventListenerList get waiting => this['waiting'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9969,102 +9969,102 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
 
 class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
-  _MediaElementEventsImpl get on() =>
+  _MediaElementEventsImpl get on =>
     new _MediaElementEventsImpl(this);
 
-  bool get autoplay() native "HTMLMediaElement_autoplay_Getter";
+  bool get autoplay native "HTMLMediaElement_autoplay_Getter";
 
   void set autoplay(bool) native "HTMLMediaElement_autoplay_Setter";
 
-  TimeRanges get buffered() native "HTMLMediaElement_buffered_Getter";
+  TimeRanges get buffered native "HTMLMediaElement_buffered_Getter";
 
-  MediaController get controller() native "HTMLMediaElement_controller_Getter";
+  MediaController get controller native "HTMLMediaElement_controller_Getter";
 
   void set controller(MediaController) native "HTMLMediaElement_controller_Setter";
 
-  bool get controls() native "HTMLMediaElement_controls_Getter";
+  bool get controls native "HTMLMediaElement_controls_Getter";
 
   void set controls(bool) native "HTMLMediaElement_controls_Setter";
 
-  String get currentSrc() native "HTMLMediaElement_currentSrc_Getter";
+  String get currentSrc native "HTMLMediaElement_currentSrc_Getter";
 
-  num get currentTime() native "HTMLMediaElement_currentTime_Getter";
+  num get currentTime native "HTMLMediaElement_currentTime_Getter";
 
   void set currentTime(num) native "HTMLMediaElement_currentTime_Setter";
 
-  bool get defaultMuted() native "HTMLMediaElement_defaultMuted_Getter";
+  bool get defaultMuted native "HTMLMediaElement_defaultMuted_Getter";
 
   void set defaultMuted(bool) native "HTMLMediaElement_defaultMuted_Setter";
 
-  num get defaultPlaybackRate() native "HTMLMediaElement_defaultPlaybackRate_Getter";
+  num get defaultPlaybackRate native "HTMLMediaElement_defaultPlaybackRate_Getter";
 
   void set defaultPlaybackRate(num) native "HTMLMediaElement_defaultPlaybackRate_Setter";
 
-  num get duration() native "HTMLMediaElement_duration_Getter";
+  num get duration native "HTMLMediaElement_duration_Getter";
 
-  bool get ended() native "HTMLMediaElement_ended_Getter";
+  bool get ended native "HTMLMediaElement_ended_Getter";
 
-  MediaError get error() native "HTMLMediaElement_error_Getter";
+  MediaError get error native "HTMLMediaElement_error_Getter";
 
-  num get initialTime() native "HTMLMediaElement_initialTime_Getter";
+  num get initialTime native "HTMLMediaElement_initialTime_Getter";
 
-  bool get loop() native "HTMLMediaElement_loop_Getter";
+  bool get loop native "HTMLMediaElement_loop_Getter";
 
   void set loop(bool) native "HTMLMediaElement_loop_Setter";
 
-  String get mediaGroup() native "HTMLMediaElement_mediaGroup_Getter";
+  String get mediaGroup native "HTMLMediaElement_mediaGroup_Getter";
 
   void set mediaGroup(String) native "HTMLMediaElement_mediaGroup_Setter";
 
-  bool get muted() native "HTMLMediaElement_muted_Getter";
+  bool get muted native "HTMLMediaElement_muted_Getter";
 
   void set muted(bool) native "HTMLMediaElement_muted_Setter";
 
-  int get networkState() native "HTMLMediaElement_networkState_Getter";
+  int get networkState native "HTMLMediaElement_networkState_Getter";
 
-  bool get paused() native "HTMLMediaElement_paused_Getter";
+  bool get paused native "HTMLMediaElement_paused_Getter";
 
-  num get playbackRate() native "HTMLMediaElement_playbackRate_Getter";
+  num get playbackRate native "HTMLMediaElement_playbackRate_Getter";
 
   void set playbackRate(num) native "HTMLMediaElement_playbackRate_Setter";
 
-  TimeRanges get played() native "HTMLMediaElement_played_Getter";
+  TimeRanges get played native "HTMLMediaElement_played_Getter";
 
-  String get preload() native "HTMLMediaElement_preload_Getter";
+  String get preload native "HTMLMediaElement_preload_Getter";
 
   void set preload(String) native "HTMLMediaElement_preload_Setter";
 
-  int get readyState() native "HTMLMediaElement_readyState_Getter";
+  int get readyState native "HTMLMediaElement_readyState_Getter";
 
-  TimeRanges get seekable() native "HTMLMediaElement_seekable_Getter";
+  TimeRanges get seekable native "HTMLMediaElement_seekable_Getter";
 
-  bool get seeking() native "HTMLMediaElement_seeking_Getter";
+  bool get seeking native "HTMLMediaElement_seeking_Getter";
 
-  String get src() native "HTMLMediaElement_src_Getter";
+  String get src native "HTMLMediaElement_src_Getter";
 
   void set src(String) native "HTMLMediaElement_src_Setter";
 
-  num get startTime() native "HTMLMediaElement_startTime_Getter";
+  num get startTime native "HTMLMediaElement_startTime_Getter";
 
-  TextTrackList get textTracks() native "HTMLMediaElement_textTracks_Getter";
+  TextTrackList get textTracks native "HTMLMediaElement_textTracks_Getter";
 
-  num get volume() native "HTMLMediaElement_volume_Getter";
+  num get volume native "HTMLMediaElement_volume_Getter";
 
   void set volume(num) native "HTMLMediaElement_volume_Setter";
 
-  int get webkitAudioDecodedByteCount() native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
+  int get webkitAudioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
 
-  bool get webkitClosedCaptionsVisible() native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
+  bool get webkitClosedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
 
   void set webkitClosedCaptionsVisible(bool) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
 
-  bool get webkitHasClosedCaptions() native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
+  bool get webkitHasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
 
-  bool get webkitPreservesPitch() native "HTMLMediaElement_webkitPreservesPitch_Getter";
+  bool get webkitPreservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
 
   void set webkitPreservesPitch(bool) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
-  int get webkitVideoDecodedByteCount() native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
+  int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
   TextTrack addTextTrack(kind, [label = _null, language = _null]) {
     if (language !== _null) {
@@ -10125,7 +10125,7 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
 class _HTMLMenuElementImpl extends _HTMLElementImpl implements MenuElement {
 
-  bool get compact() native "HTMLMenuElement_compact_Getter";
+  bool get compact native "HTMLMenuElement_compact_Getter";
 
   void set compact(bool) native "HTMLMenuElement_compact_Setter";
 
@@ -10138,19 +10138,19 @@ class _HTMLMenuElementImpl extends _HTMLElementImpl implements MenuElement {
 
 class _HTMLMetaElementImpl extends _HTMLElementImpl implements MetaElement {
 
-  String get content() native "HTMLMetaElement_content_Getter";
+  String get content native "HTMLMetaElement_content_Getter";
 
   void set content(String) native "HTMLMetaElement_content_Setter";
 
-  String get httpEquiv() native "HTMLMetaElement_httpEquiv_Getter";
+  String get httpEquiv native "HTMLMetaElement_httpEquiv_Getter";
 
   void set httpEquiv(String) native "HTMLMetaElement_httpEquiv_Setter";
 
-  String get name() native "HTMLMetaElement_name_Getter";
+  String get name native "HTMLMetaElement_name_Getter";
 
   void set name(String) native "HTMLMetaElement_name_Setter";
 
-  String get scheme() native "HTMLMetaElement_scheme_Getter";
+  String get scheme native "HTMLMetaElement_scheme_Getter";
 
   void set scheme(String) native "HTMLMetaElement_scheme_Setter";
 
@@ -10163,29 +10163,29 @@ class _HTMLMetaElementImpl extends _HTMLElementImpl implements MetaElement {
 
 class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
 
-  num get high() native "HTMLMeterElement_high_Getter";
+  num get high native "HTMLMeterElement_high_Getter";
 
   void set high(num) native "HTMLMeterElement_high_Setter";
 
-  NodeList get labels() native "HTMLMeterElement_labels_Getter";
+  NodeList get labels native "HTMLMeterElement_labels_Getter";
 
-  num get low() native "HTMLMeterElement_low_Getter";
+  num get low native "HTMLMeterElement_low_Getter";
 
   void set low(num) native "HTMLMeterElement_low_Setter";
 
-  num get max() native "HTMLMeterElement_max_Getter";
+  num get max native "HTMLMeterElement_max_Getter";
 
   void set max(num) native "HTMLMeterElement_max_Setter";
 
-  num get min() native "HTMLMeterElement_min_Getter";
+  num get min native "HTMLMeterElement_min_Getter";
 
   void set min(num) native "HTMLMeterElement_min_Setter";
 
-  num get optimum() native "HTMLMeterElement_optimum_Getter";
+  num get optimum native "HTMLMeterElement_optimum_Getter";
 
   void set optimum(num) native "HTMLMeterElement_optimum_Setter";
 
-  num get value() native "HTMLMeterElement_value_Getter";
+  num get value native "HTMLMeterElement_value_Getter";
 
   void set value(num) native "HTMLMeterElement_value_Setter";
 
@@ -10198,11 +10198,11 @@ class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
 
 class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
 
-  String get cite() native "HTMLModElement_cite_Getter";
+  String get cite native "HTMLModElement_cite_Getter";
 
   void set cite(String) native "HTMLModElement_cite_Setter";
 
-  String get dateTime() native "HTMLModElement_dateTime_Getter";
+  String get dateTime native "HTMLModElement_dateTime_Getter";
 
   void set dateTime(String) native "HTMLModElement_dateTime_Setter";
 
@@ -10215,19 +10215,19 @@ class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
 
 class _HTMLOListElementImpl extends _HTMLElementImpl implements OListElement {
 
-  bool get compact() native "HTMLOListElement_compact_Getter";
+  bool get compact native "HTMLOListElement_compact_Getter";
 
   void set compact(bool) native "HTMLOListElement_compact_Setter";
 
-  bool get reversed() native "HTMLOListElement_reversed_Getter";
+  bool get reversed native "HTMLOListElement_reversed_Getter";
 
   void set reversed(bool) native "HTMLOListElement_reversed_Setter";
 
-  int get start() native "HTMLOListElement_start_Getter";
+  int get start native "HTMLOListElement_start_Getter";
 
   void set start(int) native "HTMLOListElement_start_Setter";
 
-  String get type() native "HTMLOListElement_type_Getter";
+  String get type native "HTMLOListElement_type_Getter";
 
   void set type(String) native "HTMLOListElement_type_Setter";
 
@@ -10240,77 +10240,77 @@ class _HTMLOListElementImpl extends _HTMLElementImpl implements OListElement {
 
 class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
 
-  String get align() native "HTMLObjectElement_align_Getter";
+  String get align native "HTMLObjectElement_align_Getter";
 
   void set align(String) native "HTMLObjectElement_align_Setter";
 
-  String get archive() native "HTMLObjectElement_archive_Getter";
+  String get archive native "HTMLObjectElement_archive_Getter";
 
   void set archive(String) native "HTMLObjectElement_archive_Setter";
 
-  String get border() native "HTMLObjectElement_border_Getter";
+  String get border native "HTMLObjectElement_border_Getter";
 
   void set border(String) native "HTMLObjectElement_border_Setter";
 
-  String get code() native "HTMLObjectElement_code_Getter";
+  String get code native "HTMLObjectElement_code_Getter";
 
   void set code(String) native "HTMLObjectElement_code_Setter";
 
-  String get codeBase() native "HTMLObjectElement_codeBase_Getter";
+  String get codeBase native "HTMLObjectElement_codeBase_Getter";
 
   void set codeBase(String) native "HTMLObjectElement_codeBase_Setter";
 
-  String get codeType() native "HTMLObjectElement_codeType_Getter";
+  String get codeType native "HTMLObjectElement_codeType_Getter";
 
   void set codeType(String) native "HTMLObjectElement_codeType_Setter";
 
-  String get data() native "HTMLObjectElement_data_Getter";
+  String get data native "HTMLObjectElement_data_Getter";
 
   void set data(String) native "HTMLObjectElement_data_Setter";
 
-  bool get declare() native "HTMLObjectElement_declare_Getter";
+  bool get declare native "HTMLObjectElement_declare_Getter";
 
   void set declare(bool) native "HTMLObjectElement_declare_Setter";
 
-  FormElement get form() native "HTMLObjectElement_form_Getter";
+  FormElement get form native "HTMLObjectElement_form_Getter";
 
-  String get height() native "HTMLObjectElement_height_Getter";
+  String get height native "HTMLObjectElement_height_Getter";
 
   void set height(String) native "HTMLObjectElement_height_Setter";
 
-  int get hspace() native "HTMLObjectElement_hspace_Getter";
+  int get hspace native "HTMLObjectElement_hspace_Getter";
 
   void set hspace(int) native "HTMLObjectElement_hspace_Setter";
 
-  String get name() native "HTMLObjectElement_name_Getter";
+  String get name native "HTMLObjectElement_name_Getter";
 
   void set name(String) native "HTMLObjectElement_name_Setter";
 
-  String get standby() native "HTMLObjectElement_standby_Getter";
+  String get standby native "HTMLObjectElement_standby_Getter";
 
   void set standby(String) native "HTMLObjectElement_standby_Setter";
 
-  String get type() native "HTMLObjectElement_type_Getter";
+  String get type native "HTMLObjectElement_type_Getter";
 
   void set type(String) native "HTMLObjectElement_type_Setter";
 
-  String get useMap() native "HTMLObjectElement_useMap_Getter";
+  String get useMap native "HTMLObjectElement_useMap_Getter";
 
   void set useMap(String) native "HTMLObjectElement_useMap_Setter";
 
-  String get validationMessage() native "HTMLObjectElement_validationMessage_Getter";
+  String get validationMessage native "HTMLObjectElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLObjectElement_validity_Getter";
+  ValidityState get validity native "HTMLObjectElement_validity_Getter";
 
-  int get vspace() native "HTMLObjectElement_vspace_Getter";
+  int get vspace native "HTMLObjectElement_vspace_Getter";
 
   void set vspace(int) native "HTMLObjectElement_vspace_Setter";
 
-  String get width() native "HTMLObjectElement_width_Getter";
+  String get width native "HTMLObjectElement_width_Getter";
 
   void set width(String) native "HTMLObjectElement_width_Setter";
 
-  bool get willValidate() native "HTMLObjectElement_willValidate_Getter";
+  bool get willValidate native "HTMLObjectElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLObjectElement_checkValidity_Callback";
 
@@ -10325,11 +10325,11 @@ class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
 
 class _HTMLOptGroupElementImpl extends _HTMLElementImpl implements OptGroupElement {
 
-  bool get disabled() native "HTMLOptGroupElement_disabled_Getter";
+  bool get disabled native "HTMLOptGroupElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLOptGroupElement_disabled_Setter";
 
-  String get label() native "HTMLOptGroupElement_label_Getter";
+  String get label native "HTMLOptGroupElement_label_Getter";
 
   void set label(String) native "HTMLOptGroupElement_label_Setter";
 
@@ -10350,27 +10350,27 @@ class _OptionElementFactoryProvider {
 
 class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
 
-  bool get defaultSelected() native "HTMLOptionElement_defaultSelected_Getter";
+  bool get defaultSelected native "HTMLOptionElement_defaultSelected_Getter";
 
   void set defaultSelected(bool) native "HTMLOptionElement_defaultSelected_Setter";
 
-  bool get disabled() native "HTMLOptionElement_disabled_Getter";
+  bool get disabled native "HTMLOptionElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLOptionElement_disabled_Setter";
 
-  FormElement get form() native "HTMLOptionElement_form_Getter";
+  FormElement get form native "HTMLOptionElement_form_Getter";
 
-  int get index() native "HTMLOptionElement_index_Getter";
+  int get index native "HTMLOptionElement_index_Getter";
 
-  String get label() native "HTMLOptionElement_label_Getter";
+  String get label native "HTMLOptionElement_label_Getter";
 
   void set label(String) native "HTMLOptionElement_label_Setter";
 
-  bool get selected() native "HTMLOptionElement_selected_Getter";
+  bool get selected native "HTMLOptionElement_selected_Getter";
 
   void set selected(bool) native "HTMLOptionElement_selected_Setter";
 
-  String get value() native "HTMLOptionElement_value_Getter";
+  String get value native "HTMLOptionElement_value_Getter";
 
   void set value(String) native "HTMLOptionElement_value_Setter";
 
@@ -10383,11 +10383,11 @@ class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
 
 class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection {
 
-  int get length() native "HTMLOptionsCollection_length_Getter";
+  int get length native "HTMLOptionsCollection_length_Getter";
 
   void set length(int) native "HTMLOptionsCollection_length_Setter";
 
-  int get selectedIndex() native "HTMLOptionsCollection_selectedIndex_Getter";
+  int get selectedIndex native "HTMLOptionsCollection_selectedIndex_Getter";
 
   void set selectedIndex(int) native "HTMLOptionsCollection_selectedIndex_Setter";
 
@@ -10404,33 +10404,33 @@ class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOpti
 
 class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 
-  String get defaultValue() native "HTMLOutputElement_defaultValue_Getter";
+  String get defaultValue native "HTMLOutputElement_defaultValue_Getter";
 
   void set defaultValue(String) native "HTMLOutputElement_defaultValue_Setter";
 
-  FormElement get form() native "HTMLOutputElement_form_Getter";
+  FormElement get form native "HTMLOutputElement_form_Getter";
 
-  DOMSettableTokenList get htmlFor() native "HTMLOutputElement_htmlFor_Getter";
+  DOMSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
 
   void set htmlFor(DOMSettableTokenList) native "HTMLOutputElement_htmlFor_Setter";
 
-  NodeList get labels() native "HTMLOutputElement_labels_Getter";
+  NodeList get labels native "HTMLOutputElement_labels_Getter";
 
-  String get name() native "HTMLOutputElement_name_Getter";
+  String get name native "HTMLOutputElement_name_Getter";
 
   void set name(String) native "HTMLOutputElement_name_Setter";
 
-  String get type() native "HTMLOutputElement_type_Getter";
+  String get type native "HTMLOutputElement_type_Getter";
 
-  String get validationMessage() native "HTMLOutputElement_validationMessage_Getter";
+  String get validationMessage native "HTMLOutputElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLOutputElement_validity_Getter";
+  ValidityState get validity native "HTMLOutputElement_validity_Getter";
 
-  String get value() native "HTMLOutputElement_value_Getter";
+  String get value native "HTMLOutputElement_value_Getter";
 
   void set value(String) native "HTMLOutputElement_value_Setter";
 
-  bool get willValidate() native "HTMLOutputElement_willValidate_Getter";
+  bool get willValidate native "HTMLOutputElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLOutputElement_checkValidity_Callback";
 
@@ -10445,7 +10445,7 @@ class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 
 class _HTMLParagraphElementImpl extends _HTMLElementImpl implements ParagraphElement {
 
-  String get align() native "HTMLParagraphElement_align_Getter";
+  String get align native "HTMLParagraphElement_align_Getter";
 
   void set align(String) native "HTMLParagraphElement_align_Setter";
 
@@ -10458,19 +10458,19 @@ class _HTMLParagraphElementImpl extends _HTMLElementImpl implements ParagraphEle
 
 class _HTMLParamElementImpl extends _HTMLElementImpl implements ParamElement {
 
-  String get name() native "HTMLParamElement_name_Getter";
+  String get name native "HTMLParamElement_name_Getter";
 
   void set name(String) native "HTMLParamElement_name_Setter";
 
-  String get type() native "HTMLParamElement_type_Getter";
+  String get type native "HTMLParamElement_type_Getter";
 
   void set type(String) native "HTMLParamElement_type_Setter";
 
-  String get value() native "HTMLParamElement_value_Getter";
+  String get value native "HTMLParamElement_value_Getter";
 
   void set value(String) native "HTMLParamElement_value_Setter";
 
-  String get valueType() native "HTMLParamElement_valueType_Getter";
+  String get valueType native "HTMLParamElement_valueType_Getter";
 
   void set valueType(String) native "HTMLParamElement_valueType_Setter";
 
@@ -10483,11 +10483,11 @@ class _HTMLParamElementImpl extends _HTMLElementImpl implements ParamElement {
 
 class _HTMLPreElementImpl extends _HTMLElementImpl implements PreElement {
 
-  int get width() native "HTMLPreElement_width_Getter";
+  int get width native "HTMLPreElement_width_Getter";
 
   void set width(int) native "HTMLPreElement_width_Setter";
 
-  bool get wrap() native "HTMLPreElement_wrap_Getter";
+  bool get wrap native "HTMLPreElement_wrap_Getter";
 
   void set wrap(bool) native "HTMLPreElement_wrap_Setter";
 
@@ -10500,15 +10500,15 @@ class _HTMLPreElementImpl extends _HTMLElementImpl implements PreElement {
 
 class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressElement {
 
-  NodeList get labels() native "HTMLProgressElement_labels_Getter";
+  NodeList get labels native "HTMLProgressElement_labels_Getter";
 
-  num get max() native "HTMLProgressElement_max_Getter";
+  num get max native "HTMLProgressElement_max_Getter";
 
   void set max(num) native "HTMLProgressElement_max_Setter";
 
-  num get position() native "HTMLProgressElement_position_Getter";
+  num get position native "HTMLProgressElement_position_Getter";
 
-  num get value() native "HTMLProgressElement_value_Getter";
+  num get value native "HTMLProgressElement_value_Getter";
 
   void set value(num) native "HTMLProgressElement_value_Setter";
 
@@ -10521,7 +10521,7 @@ class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressEleme
 
 class _HTMLQuoteElementImpl extends _HTMLElementImpl implements QuoteElement {
 
-  String get cite() native "HTMLQuoteElement_cite_Getter";
+  String get cite native "HTMLQuoteElement_cite_Getter";
 
   void set cite(String) native "HTMLQuoteElement_cite_Setter";
 
@@ -10534,35 +10534,35 @@ class _HTMLQuoteElementImpl extends _HTMLElementImpl implements QuoteElement {
 
 class _HTMLScriptElementImpl extends _HTMLElementImpl implements ScriptElement {
 
-  bool get async() native "HTMLScriptElement_async_Getter";
+  bool get async native "HTMLScriptElement_async_Getter";
 
   void set async(bool) native "HTMLScriptElement_async_Setter";
 
-  String get charset() native "HTMLScriptElement_charset_Getter";
+  String get charset native "HTMLScriptElement_charset_Getter";
 
   void set charset(String) native "HTMLScriptElement_charset_Setter";
 
-  String get crossOrigin() native "HTMLScriptElement_crossOrigin_Getter";
+  String get crossOrigin native "HTMLScriptElement_crossOrigin_Getter";
 
   void set crossOrigin(String) native "HTMLScriptElement_crossOrigin_Setter";
 
-  bool get defer() native "HTMLScriptElement_defer_Getter";
+  bool get defer native "HTMLScriptElement_defer_Getter";
 
   void set defer(bool) native "HTMLScriptElement_defer_Setter";
 
-  String get event() native "HTMLScriptElement_event_Getter";
+  String get event native "HTMLScriptElement_event_Getter";
 
   void set event(String) native "HTMLScriptElement_event_Setter";
 
-  String get htmlFor() native "HTMLScriptElement_htmlFor_Getter";
+  String get htmlFor native "HTMLScriptElement_htmlFor_Getter";
 
   void set htmlFor(String) native "HTMLScriptElement_htmlFor_Setter";
 
-  String get src() native "HTMLScriptElement_src_Getter";
+  String get src native "HTMLScriptElement_src_Getter";
 
   void set src(String) native "HTMLScriptElement_src_Setter";
 
-  String get type() native "HTMLScriptElement_type_Getter";
+  String get type native "HTMLScriptElement_type_Getter";
 
   void set type(String) native "HTMLScriptElement_type_Setter";
 
@@ -10575,57 +10575,57 @@ class _HTMLScriptElementImpl extends _HTMLElementImpl implements ScriptElement {
 
 class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
-  bool get autofocus() native "HTMLSelectElement_autofocus_Getter";
+  bool get autofocus native "HTMLSelectElement_autofocus_Getter";
 
   void set autofocus(bool) native "HTMLSelectElement_autofocus_Setter";
 
-  bool get disabled() native "HTMLSelectElement_disabled_Getter";
+  bool get disabled native "HTMLSelectElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLSelectElement_disabled_Setter";
 
-  FormElement get form() native "HTMLSelectElement_form_Getter";
+  FormElement get form native "HTMLSelectElement_form_Getter";
 
-  NodeList get labels() native "HTMLSelectElement_labels_Getter";
+  NodeList get labels native "HTMLSelectElement_labels_Getter";
 
-  int get length() native "HTMLSelectElement_length_Getter";
+  int get length native "HTMLSelectElement_length_Getter";
 
   void set length(int) native "HTMLSelectElement_length_Setter";
 
-  bool get multiple() native "HTMLSelectElement_multiple_Getter";
+  bool get multiple native "HTMLSelectElement_multiple_Getter";
 
   void set multiple(bool) native "HTMLSelectElement_multiple_Setter";
 
-  String get name() native "HTMLSelectElement_name_Getter";
+  String get name native "HTMLSelectElement_name_Getter";
 
   void set name(String) native "HTMLSelectElement_name_Setter";
 
-  HTMLOptionsCollection get options() native "HTMLSelectElement_options_Getter";
+  HTMLOptionsCollection get options native "HTMLSelectElement_options_Getter";
 
-  bool get required() native "HTMLSelectElement_required_Getter";
+  bool get required native "HTMLSelectElement_required_Getter";
 
   void set required(bool) native "HTMLSelectElement_required_Setter";
 
-  int get selectedIndex() native "HTMLSelectElement_selectedIndex_Getter";
+  int get selectedIndex native "HTMLSelectElement_selectedIndex_Getter";
 
   void set selectedIndex(int) native "HTMLSelectElement_selectedIndex_Setter";
 
-  HTMLCollection get selectedOptions() native "HTMLSelectElement_selectedOptions_Getter";
+  HTMLCollection get selectedOptions native "HTMLSelectElement_selectedOptions_Getter";
 
-  int get size() native "HTMLSelectElement_size_Getter";
+  int get size native "HTMLSelectElement_size_Getter";
 
   void set size(int) native "HTMLSelectElement_size_Setter";
 
-  String get type() native "HTMLSelectElement_type_Getter";
+  String get type native "HTMLSelectElement_type_Getter";
 
-  String get validationMessage() native "HTMLSelectElement_validationMessage_Getter";
+  String get validationMessage native "HTMLSelectElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLSelectElement_validity_Getter";
+  ValidityState get validity native "HTMLSelectElement_validity_Getter";
 
-  String get value() native "HTMLSelectElement_value_Getter";
+  String get value native "HTMLSelectElement_value_Getter";
 
   void set value(String) native "HTMLSelectElement_value_Setter";
 
-  bool get willValidate() native "HTMLSelectElement_willValidate_Getter";
+  bool get willValidate native "HTMLSelectElement_willValidate_Getter";
 
   bool checkValidity() native "HTMLSelectElement_checkValidity_Callback";
 
@@ -10653,15 +10653,15 @@ class _HTMLShadowElementImpl extends _HTMLElementImpl implements ShadowElement {
 
 class _HTMLSourceElementImpl extends _HTMLElementImpl implements SourceElement {
 
-  String get media() native "HTMLSourceElement_media_Getter";
+  String get media native "HTMLSourceElement_media_Getter";
 
   void set media(String) native "HTMLSourceElement_media_Setter";
 
-  String get src() native "HTMLSourceElement_src_Getter";
+  String get src native "HTMLSourceElement_src_Getter";
 
   void set src(String) native "HTMLSourceElement_src_Setter";
 
-  String get type() native "HTMLSourceElement_type_Getter";
+  String get type native "HTMLSourceElement_type_Getter";
 
   void set type(String) native "HTMLSourceElement_type_Setter";
 
@@ -10683,21 +10683,21 @@ class _HTMLSpanElementImpl extends _HTMLElementImpl implements SpanElement {
 
 class _HTMLStyleElementImpl extends _HTMLElementImpl implements StyleElement {
 
-  bool get disabled() native "HTMLStyleElement_disabled_Getter";
+  bool get disabled native "HTMLStyleElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLStyleElement_disabled_Setter";
 
-  String get media() native "HTMLStyleElement_media_Getter";
+  String get media native "HTMLStyleElement_media_Getter";
 
   void set media(String) native "HTMLStyleElement_media_Setter";
 
-  bool get scoped() native "HTMLStyleElement_scoped_Getter";
+  bool get scoped native "HTMLStyleElement_scoped_Getter";
 
   void set scoped(bool) native "HTMLStyleElement_scoped_Setter";
 
-  StyleSheet get sheet() native "HTMLStyleElement_sheet_Getter";
+  StyleSheet get sheet native "HTMLStyleElement_sheet_Getter";
 
-  String get type() native "HTMLStyleElement_type_Getter";
+  String get type native "HTMLStyleElement_type_Getter";
 
   void set type(String) native "HTMLStyleElement_type_Setter";
 
@@ -10710,7 +10710,7 @@ class _HTMLStyleElementImpl extends _HTMLElementImpl implements StyleElement {
 
 class _HTMLTableCaptionElementImpl extends _HTMLElementImpl implements TableCaptionElement {
 
-  String get align() native "HTMLTableCaptionElement_align_Getter";
+  String get align native "HTMLTableCaptionElement_align_Getter";
 
   void set align(String) native "HTMLTableCaptionElement_align_Setter";
 
@@ -10723,61 +10723,61 @@ class _HTMLTableCaptionElementImpl extends _HTMLElementImpl implements TableCapt
 
 class _HTMLTableCellElementImpl extends _HTMLElementImpl implements TableCellElement {
 
-  String get abbr() native "HTMLTableCellElement_abbr_Getter";
+  String get abbr native "HTMLTableCellElement_abbr_Getter";
 
   void set abbr(String) native "HTMLTableCellElement_abbr_Setter";
 
-  String get align() native "HTMLTableCellElement_align_Getter";
+  String get align native "HTMLTableCellElement_align_Getter";
 
   void set align(String) native "HTMLTableCellElement_align_Setter";
 
-  String get axis() native "HTMLTableCellElement_axis_Getter";
+  String get axis native "HTMLTableCellElement_axis_Getter";
 
   void set axis(String) native "HTMLTableCellElement_axis_Setter";
 
-  String get bgColor() native "HTMLTableCellElement_bgColor_Getter";
+  String get bgColor native "HTMLTableCellElement_bgColor_Getter";
 
   void set bgColor(String) native "HTMLTableCellElement_bgColor_Setter";
 
-  int get cellIndex() native "HTMLTableCellElement_cellIndex_Getter";
+  int get cellIndex native "HTMLTableCellElement_cellIndex_Getter";
 
-  String get ch() native "HTMLTableCellElement_ch_Getter";
+  String get ch native "HTMLTableCellElement_ch_Getter";
 
   void set ch(String) native "HTMLTableCellElement_ch_Setter";
 
-  String get chOff() native "HTMLTableCellElement_chOff_Getter";
+  String get chOff native "HTMLTableCellElement_chOff_Getter";
 
   void set chOff(String) native "HTMLTableCellElement_chOff_Setter";
 
-  int get colSpan() native "HTMLTableCellElement_colSpan_Getter";
+  int get colSpan native "HTMLTableCellElement_colSpan_Getter";
 
   void set colSpan(int) native "HTMLTableCellElement_colSpan_Setter";
 
-  String get headers() native "HTMLTableCellElement_headers_Getter";
+  String get headers native "HTMLTableCellElement_headers_Getter";
 
   void set headers(String) native "HTMLTableCellElement_headers_Setter";
 
-  String get height() native "HTMLTableCellElement_height_Getter";
+  String get height native "HTMLTableCellElement_height_Getter";
 
   void set height(String) native "HTMLTableCellElement_height_Setter";
 
-  bool get noWrap() native "HTMLTableCellElement_noWrap_Getter";
+  bool get noWrap native "HTMLTableCellElement_noWrap_Getter";
 
   void set noWrap(bool) native "HTMLTableCellElement_noWrap_Setter";
 
-  int get rowSpan() native "HTMLTableCellElement_rowSpan_Getter";
+  int get rowSpan native "HTMLTableCellElement_rowSpan_Getter";
 
   void set rowSpan(int) native "HTMLTableCellElement_rowSpan_Setter";
 
-  String get scope() native "HTMLTableCellElement_scope_Getter";
+  String get scope native "HTMLTableCellElement_scope_Getter";
 
   void set scope(String) native "HTMLTableCellElement_scope_Setter";
 
-  String get vAlign() native "HTMLTableCellElement_vAlign_Getter";
+  String get vAlign native "HTMLTableCellElement_vAlign_Getter";
 
   void set vAlign(String) native "HTMLTableCellElement_vAlign_Setter";
 
-  String get width() native "HTMLTableCellElement_width_Getter";
+  String get width native "HTMLTableCellElement_width_Getter";
 
   void set width(String) native "HTMLTableCellElement_width_Setter";
 
@@ -10790,27 +10790,27 @@ class _HTMLTableCellElementImpl extends _HTMLElementImpl implements TableCellEle
 
 class _HTMLTableColElementImpl extends _HTMLElementImpl implements TableColElement {
 
-  String get align() native "HTMLTableColElement_align_Getter";
+  String get align native "HTMLTableColElement_align_Getter";
 
   void set align(String) native "HTMLTableColElement_align_Setter";
 
-  String get ch() native "HTMLTableColElement_ch_Getter";
+  String get ch native "HTMLTableColElement_ch_Getter";
 
   void set ch(String) native "HTMLTableColElement_ch_Setter";
 
-  String get chOff() native "HTMLTableColElement_chOff_Getter";
+  String get chOff native "HTMLTableColElement_chOff_Getter";
 
   void set chOff(String) native "HTMLTableColElement_chOff_Setter";
 
-  int get span() native "HTMLTableColElement_span_Getter";
+  int get span native "HTMLTableColElement_span_Getter";
 
   void set span(int) native "HTMLTableColElement_span_Setter";
 
-  String get vAlign() native "HTMLTableColElement_vAlign_Getter";
+  String get vAlign native "HTMLTableColElement_vAlign_Getter";
 
   void set vAlign(String) native "HTMLTableColElement_vAlign_Setter";
 
-  String get width() native "HTMLTableColElement_width_Getter";
+  String get width native "HTMLTableColElement_width_Getter";
 
   void set width(String) native "HTMLTableColElement_width_Setter";
 
@@ -10823,55 +10823,55 @@ class _HTMLTableColElementImpl extends _HTMLElementImpl implements TableColEleme
 
 class _HTMLTableElementImpl extends _HTMLElementImpl implements TableElement {
 
-  String get align() native "HTMLTableElement_align_Getter";
+  String get align native "HTMLTableElement_align_Getter";
 
   void set align(String) native "HTMLTableElement_align_Setter";
 
-  String get bgColor() native "HTMLTableElement_bgColor_Getter";
+  String get bgColor native "HTMLTableElement_bgColor_Getter";
 
   void set bgColor(String) native "HTMLTableElement_bgColor_Setter";
 
-  String get border() native "HTMLTableElement_border_Getter";
+  String get border native "HTMLTableElement_border_Getter";
 
   void set border(String) native "HTMLTableElement_border_Setter";
 
-  TableCaptionElement get caption() native "HTMLTableElement_caption_Getter";
+  TableCaptionElement get caption native "HTMLTableElement_caption_Getter";
 
   void set caption(TableCaptionElement) native "HTMLTableElement_caption_Setter";
 
-  String get cellPadding() native "HTMLTableElement_cellPadding_Getter";
+  String get cellPadding native "HTMLTableElement_cellPadding_Getter";
 
   void set cellPadding(String) native "HTMLTableElement_cellPadding_Setter";
 
-  String get cellSpacing() native "HTMLTableElement_cellSpacing_Getter";
+  String get cellSpacing native "HTMLTableElement_cellSpacing_Getter";
 
   void set cellSpacing(String) native "HTMLTableElement_cellSpacing_Setter";
 
-  String get frame() native "HTMLTableElement_frame_Getter";
+  String get frame native "HTMLTableElement_frame_Getter";
 
   void set frame(String) native "HTMLTableElement_frame_Setter";
 
-  HTMLCollection get rows() native "HTMLTableElement_rows_Getter";
+  HTMLCollection get rows native "HTMLTableElement_rows_Getter";
 
-  String get rules() native "HTMLTableElement_rules_Getter";
+  String get rules native "HTMLTableElement_rules_Getter";
 
   void set rules(String) native "HTMLTableElement_rules_Setter";
 
-  String get summary() native "HTMLTableElement_summary_Getter";
+  String get summary native "HTMLTableElement_summary_Getter";
 
   void set summary(String) native "HTMLTableElement_summary_Setter";
 
-  HTMLCollection get tBodies() native "HTMLTableElement_tBodies_Getter";
+  HTMLCollection get tBodies native "HTMLTableElement_tBodies_Getter";
 
-  TableSectionElement get tFoot() native "HTMLTableElement_tFoot_Getter";
+  TableSectionElement get tFoot native "HTMLTableElement_tFoot_Getter";
 
   void set tFoot(TableSectionElement) native "HTMLTableElement_tFoot_Setter";
 
-  TableSectionElement get tHead() native "HTMLTableElement_tHead_Getter";
+  TableSectionElement get tHead native "HTMLTableElement_tHead_Getter";
 
   void set tHead(TableSectionElement) native "HTMLTableElement_tHead_Setter";
 
-  String get width() native "HTMLTableElement_width_Getter";
+  String get width native "HTMLTableElement_width_Getter";
 
   void set width(String) native "HTMLTableElement_width_Setter";
 
@@ -10902,29 +10902,29 @@ class _HTMLTableElementImpl extends _HTMLElementImpl implements TableElement {
 
 class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowElement {
 
-  String get align() native "HTMLTableRowElement_align_Getter";
+  String get align native "HTMLTableRowElement_align_Getter";
 
   void set align(String) native "HTMLTableRowElement_align_Setter";
 
-  String get bgColor() native "HTMLTableRowElement_bgColor_Getter";
+  String get bgColor native "HTMLTableRowElement_bgColor_Getter";
 
   void set bgColor(String) native "HTMLTableRowElement_bgColor_Setter";
 
-  HTMLCollection get cells() native "HTMLTableRowElement_cells_Getter";
+  HTMLCollection get cells native "HTMLTableRowElement_cells_Getter";
 
-  String get ch() native "HTMLTableRowElement_ch_Getter";
+  String get ch native "HTMLTableRowElement_ch_Getter";
 
   void set ch(String) native "HTMLTableRowElement_ch_Setter";
 
-  String get chOff() native "HTMLTableRowElement_chOff_Getter";
+  String get chOff native "HTMLTableRowElement_chOff_Getter";
 
   void set chOff(String) native "HTMLTableRowElement_chOff_Setter";
 
-  int get rowIndex() native "HTMLTableRowElement_rowIndex_Getter";
+  int get rowIndex native "HTMLTableRowElement_rowIndex_Getter";
 
-  int get sectionRowIndex() native "HTMLTableRowElement_sectionRowIndex_Getter";
+  int get sectionRowIndex native "HTMLTableRowElement_sectionRowIndex_Getter";
 
-  String get vAlign() native "HTMLTableRowElement_vAlign_Getter";
+  String get vAlign native "HTMLTableRowElement_vAlign_Getter";
 
   void set vAlign(String) native "HTMLTableRowElement_vAlign_Setter";
 
@@ -10941,21 +10941,21 @@ class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowEleme
 
 class _HTMLTableSectionElementImpl extends _HTMLElementImpl implements TableSectionElement {
 
-  String get align() native "HTMLTableSectionElement_align_Getter";
+  String get align native "HTMLTableSectionElement_align_Getter";
 
   void set align(String) native "HTMLTableSectionElement_align_Setter";
 
-  String get ch() native "HTMLTableSectionElement_ch_Getter";
+  String get ch native "HTMLTableSectionElement_ch_Getter";
 
   void set ch(String) native "HTMLTableSectionElement_ch_Setter";
 
-  String get chOff() native "HTMLTableSectionElement_chOff_Getter";
+  String get chOff native "HTMLTableSectionElement_chOff_Getter";
 
   void set chOff(String) native "HTMLTableSectionElement_chOff_Setter";
 
-  HTMLCollection get rows() native "HTMLTableSectionElement_rows_Getter";
+  HTMLCollection get rows native "HTMLTableSectionElement_rows_Getter";
 
-  String get vAlign() native "HTMLTableSectionElement_vAlign_Getter";
+  String get vAlign native "HTMLTableSectionElement_vAlign_Getter";
 
   void set vAlign(String) native "HTMLTableSectionElement_vAlign_Setter";
 
@@ -10972,77 +10972,77 @@ class _HTMLTableSectionElementImpl extends _HTMLElementImpl implements TableSect
 
 class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaElement {
 
-  bool get autofocus() native "HTMLTextAreaElement_autofocus_Getter";
+  bool get autofocus native "HTMLTextAreaElement_autofocus_Getter";
 
   void set autofocus(bool) native "HTMLTextAreaElement_autofocus_Setter";
 
-  int get cols() native "HTMLTextAreaElement_cols_Getter";
+  int get cols native "HTMLTextAreaElement_cols_Getter";
 
   void set cols(int) native "HTMLTextAreaElement_cols_Setter";
 
-  String get defaultValue() native "HTMLTextAreaElement_defaultValue_Getter";
+  String get defaultValue native "HTMLTextAreaElement_defaultValue_Getter";
 
   void set defaultValue(String) native "HTMLTextAreaElement_defaultValue_Setter";
 
-  bool get disabled() native "HTMLTextAreaElement_disabled_Getter";
+  bool get disabled native "HTMLTextAreaElement_disabled_Getter";
 
   void set disabled(bool) native "HTMLTextAreaElement_disabled_Setter";
 
-  FormElement get form() native "HTMLTextAreaElement_form_Getter";
+  FormElement get form native "HTMLTextAreaElement_form_Getter";
 
-  NodeList get labels() native "HTMLTextAreaElement_labels_Getter";
+  NodeList get labels native "HTMLTextAreaElement_labels_Getter";
 
-  int get maxLength() native "HTMLTextAreaElement_maxLength_Getter";
+  int get maxLength native "HTMLTextAreaElement_maxLength_Getter";
 
   void set maxLength(int) native "HTMLTextAreaElement_maxLength_Setter";
 
-  String get name() native "HTMLTextAreaElement_name_Getter";
+  String get name native "HTMLTextAreaElement_name_Getter";
 
   void set name(String) native "HTMLTextAreaElement_name_Setter";
 
-  String get placeholder() native "HTMLTextAreaElement_placeholder_Getter";
+  String get placeholder native "HTMLTextAreaElement_placeholder_Getter";
 
   void set placeholder(String) native "HTMLTextAreaElement_placeholder_Setter";
 
-  bool get readOnly() native "HTMLTextAreaElement_readOnly_Getter";
+  bool get readOnly native "HTMLTextAreaElement_readOnly_Getter";
 
   void set readOnly(bool) native "HTMLTextAreaElement_readOnly_Setter";
 
-  bool get required() native "HTMLTextAreaElement_required_Getter";
+  bool get required native "HTMLTextAreaElement_required_Getter";
 
   void set required(bool) native "HTMLTextAreaElement_required_Setter";
 
-  int get rows() native "HTMLTextAreaElement_rows_Getter";
+  int get rows native "HTMLTextAreaElement_rows_Getter";
 
   void set rows(int) native "HTMLTextAreaElement_rows_Setter";
 
-  String get selectionDirection() native "HTMLTextAreaElement_selectionDirection_Getter";
+  String get selectionDirection native "HTMLTextAreaElement_selectionDirection_Getter";
 
   void set selectionDirection(String) native "HTMLTextAreaElement_selectionDirection_Setter";
 
-  int get selectionEnd() native "HTMLTextAreaElement_selectionEnd_Getter";
+  int get selectionEnd native "HTMLTextAreaElement_selectionEnd_Getter";
 
   void set selectionEnd(int) native "HTMLTextAreaElement_selectionEnd_Setter";
 
-  int get selectionStart() native "HTMLTextAreaElement_selectionStart_Getter";
+  int get selectionStart native "HTMLTextAreaElement_selectionStart_Getter";
 
   void set selectionStart(int) native "HTMLTextAreaElement_selectionStart_Setter";
 
-  int get textLength() native "HTMLTextAreaElement_textLength_Getter";
+  int get textLength native "HTMLTextAreaElement_textLength_Getter";
 
-  String get type() native "HTMLTextAreaElement_type_Getter";
+  String get type native "HTMLTextAreaElement_type_Getter";
 
-  String get validationMessage() native "HTMLTextAreaElement_validationMessage_Getter";
+  String get validationMessage native "HTMLTextAreaElement_validationMessage_Getter";
 
-  ValidityState get validity() native "HTMLTextAreaElement_validity_Getter";
+  ValidityState get validity native "HTMLTextAreaElement_validity_Getter";
 
-  String get value() native "HTMLTextAreaElement_value_Getter";
+  String get value native "HTMLTextAreaElement_value_Getter";
 
   void set value(String) native "HTMLTextAreaElement_value_Setter";
 
-  bool get willValidate() native "HTMLTextAreaElement_willValidate_Getter";
+  bool get willValidate native "HTMLTextAreaElement_willValidate_Getter";
 
-  String get wrap() native "HTMLTextAreaElement_wrap_Getter";
+  String get wrap native "HTMLTextAreaElement_wrap_Getter";
 
   void set wrap(String) native "HTMLTextAreaElement_wrap_Setter";
 
@@ -11082,29 +11082,29 @@ class _HTMLTitleElementImpl extends _HTMLElementImpl implements TitleElement {
 
 class _HTMLTrackElementImpl extends _HTMLElementImpl implements TrackElement {
 
-  bool get defaultValue() native "HTMLTrackElement_default_Getter";
+  bool get defaultValue native "HTMLTrackElement_default_Getter";
 
   void set defaultValue(bool) native "HTMLTrackElement_default_Setter";
 
-  String get kind() native "HTMLTrackElement_kind_Getter";
+  String get kind native "HTMLTrackElement_kind_Getter";
 
   void set kind(String) native "HTMLTrackElement_kind_Setter";
 
-  String get label() native "HTMLTrackElement_label_Getter";
+  String get label native "HTMLTrackElement_label_Getter";
 
   void set label(String) native "HTMLTrackElement_label_Setter";
 
-  int get readyState() native "HTMLTrackElement_readyState_Getter";
+  int get readyState native "HTMLTrackElement_readyState_Getter";
 
-  String get src() native "HTMLTrackElement_src_Getter";
+  String get src native "HTMLTrackElement_src_Getter";
 
   void set src(String) native "HTMLTrackElement_src_Setter";
 
-  String get srclang() native "HTMLTrackElement_srclang_Getter";
+  String get srclang native "HTMLTrackElement_srclang_Getter";
 
   void set srclang(String) native "HTMLTrackElement_srclang_Setter";
 
-  TextTrack get track() native "HTMLTrackElement_track_Getter";
+  TextTrack get track native "HTMLTrackElement_track_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11115,11 +11115,11 @@ class _HTMLTrackElementImpl extends _HTMLElementImpl implements TrackElement {
 
 class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
 
-  bool get compact() native "HTMLUListElement_compact_Getter";
+  bool get compact native "HTMLUListElement_compact_Getter";
 
   void set compact(bool) native "HTMLUListElement_compact_Setter";
 
-  String get type() native "HTMLUListElement_type_Getter";
+  String get type native "HTMLUListElement_type_Getter";
 
   void set type(String) native "HTMLUListElement_type_Setter";
 
@@ -11141,27 +11141,27 @@ class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement
 
 class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElement {
 
-  int get height() native "HTMLVideoElement_height_Getter";
+  int get height native "HTMLVideoElement_height_Getter";
 
   void set height(int) native "HTMLVideoElement_height_Setter";
 
-  String get poster() native "HTMLVideoElement_poster_Getter";
+  String get poster native "HTMLVideoElement_poster_Getter";
 
   void set poster(String) native "HTMLVideoElement_poster_Setter";
 
-  int get videoHeight() native "HTMLVideoElement_videoHeight_Getter";
+  int get videoHeight native "HTMLVideoElement_videoHeight_Getter";
 
-  int get videoWidth() native "HTMLVideoElement_videoWidth_Getter";
+  int get videoWidth native "HTMLVideoElement_videoWidth_Getter";
 
-  int get webkitDecodedFrameCount() native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
+  int get webkitDecodedFrameCount native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
 
-  bool get webkitDisplayingFullscreen() native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
+  bool get webkitDisplayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
 
-  int get webkitDroppedFrameCount() native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
+  int get webkitDroppedFrameCount native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
 
-  bool get webkitSupportsFullscreen() native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
+  bool get webkitSupportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
 
-  int get width() native "HTMLVideoElement_width_Getter";
+  int get width native "HTMLVideoElement_width_Getter";
 
   void set width(int) native "HTMLVideoElement_width_Setter";
 
@@ -11182,9 +11182,9 @@ class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElemen
 
 class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent {
 
-  String get newURL() native "HashChangeEvent_newURL_Getter";
+  String get newURL native "HashChangeEvent_newURL_Getter";
 
-  String get oldURL() native "HashChangeEvent_oldURL_Getter";
+  String get oldURL native "HashChangeEvent_oldURL_Getter";
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
 
@@ -11197,9 +11197,9 @@ class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent {
 
 class _HistoryImpl extends NativeFieldWrapperClass1 implements History {
 
-  int get length() native "History_length_Getter";
+  int get length native "History_length_Getter";
 
-  Dynamic get state() native "History_state_Getter";
+  Dynamic get state native "History_state_Getter";
 
   void back() native "History_back_Callback";
 
@@ -11229,13 +11229,13 @@ class _IDBAnyImpl extends NativeFieldWrapperClass1 implements IDBAny {
 
 class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
-  String get direction() native "IDBCursor_direction_Getter";
+  String get direction native "IDBCursor_direction_Getter";
 
-  Dynamic get key() native "IDBCursor_key_Getter";
+  Dynamic get key native "IDBCursor_key_Getter";
 
-  Dynamic get primaryKey() native "IDBCursor_primaryKey_Getter";
+  Dynamic get primaryKey native "IDBCursor_primaryKey_Getter";
 
-  Dynamic get source() native "IDBCursor_source_Getter";
+  Dynamic get source native "IDBCursor_source_Getter";
 
   void advance(int count) native "IDBCursor_advance_Callback";
 
@@ -11264,7 +11264,7 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue {
 
-  Dynamic get value() native "IDBCursorWithValue_value_Getter";
+  Dynamic get value native "IDBCursorWithValue_value_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11275,11 +11275,11 @@ class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithVal
 
 class _IDBDatabaseExceptionImpl extends NativeFieldWrapperClass1 implements IDBDatabaseException {
 
-  int get code() native "IDBDatabaseException_code_Getter";
+  int get code native "IDBDatabaseException_code_Getter";
 
-  String get message() native "IDBDatabaseException_message_Getter";
+  String get message native "IDBDatabaseException_message_Getter";
 
-  String get name() native "IDBDatabaseException_name_Getter";
+  String get name native "IDBDatabaseException_name_Getter";
 
   String toString() native "IDBDatabaseException_toString_Callback";
 
@@ -11288,11 +11288,11 @@ class _IDBDatabaseExceptionImpl extends NativeFieldWrapperClass1 implements IDBD
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
   _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get versionChange() => this['versionchange'];
+  EventListenerList get versionChange => this['versionchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11302,14 +11302,14 @@ class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
 
 class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
-  _IDBDatabaseEventsImpl get on() =>
+  _IDBDatabaseEventsImpl get on =>
     new _IDBDatabaseEventsImpl(this);
 
-  String get name() native "IDBDatabase_name_Getter";
+  String get name native "IDBDatabase_name_Getter";
 
-  List<String> get objectStoreNames() native "IDBDatabase_objectStoreNames_Getter";
+  List<String> get objectStoreNames native "IDBDatabase_objectStoreNames_Getter";
 
-  Dynamic get version() native "IDBDatabase_version_Getter";
+  Dynamic get version native "IDBDatabase_version_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
 
@@ -11388,15 +11388,15 @@ class _IDBFactoryImpl extends NativeFieldWrapperClass1 implements IDBFactory {
 
 class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
 
-  Dynamic get keyPath() native "IDBIndex_keyPath_Getter";
+  Dynamic get keyPath native "IDBIndex_keyPath_Getter";
 
-  bool get multiEntry() native "IDBIndex_multiEntry_Getter";
+  bool get multiEntry native "IDBIndex_multiEntry_Getter";
 
-  String get name() native "IDBIndex_name_Getter";
+  String get name native "IDBIndex_name_Getter";
 
-  IDBObjectStore get objectStore() native "IDBIndex_objectStore_Getter";
+  IDBObjectStore get objectStore native "IDBIndex_objectStore_Getter";
 
-  bool get unique() native "IDBIndex_unique_Getter";
+  bool get unique native "IDBIndex_unique_Getter";
 
   IDBRequest count([key_OR_range = _null]) {
     if (key_OR_range === _null) {
@@ -11561,13 +11561,13 @@ class _IDBKeyImpl extends NativeFieldWrapperClass1 implements IDBKey {
 
 class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
-  Dynamic get lower() native "IDBKeyRange_lower_Getter";
+  Dynamic get lower native "IDBKeyRange_lower_Getter";
 
-  bool get lowerOpen() native "IDBKeyRange_lowerOpen_Getter";
+  bool get lowerOpen native "IDBKeyRange_lowerOpen_Getter";
 
-  Dynamic get upper() native "IDBKeyRange_upper_Getter";
+  Dynamic get upper native "IDBKeyRange_upper_Getter";
 
-  bool get upperOpen() native "IDBKeyRange_upperOpen_Getter";
+  bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
   static IDBKeyRange bound(lower, upper, [lowerOpen = _null, upperOpen = _null]) {
     if (upperOpen !== _null) {
@@ -11618,15 +11618,15 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
 class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectStore {
 
-  bool get autoIncrement() native "IDBObjectStore_autoIncrement_Getter";
+  bool get autoIncrement native "IDBObjectStore_autoIncrement_Getter";
 
-  List<String> get indexNames() native "IDBObjectStore_indexNames_Getter";
+  List<String> get indexNames native "IDBObjectStore_indexNames_Getter";
 
-  Dynamic get keyPath() native "IDBObjectStore_keyPath_Getter";
+  Dynamic get keyPath native "IDBObjectStore_keyPath_Getter";
 
-  String get name() native "IDBObjectStore_name_Getter";
+  String get name native "IDBObjectStore_name_Getter";
 
-  IDBTransaction get transaction() native "IDBObjectStore_transaction_Getter";
+  IDBTransaction get transaction native "IDBObjectStore_transaction_Getter";
 
   IDBRequest add(value, [key = _null]) {
     if (key !== _null) {
@@ -11781,9 +11781,9 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
   _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get blocked() => this['blocked'];
+  EventListenerList get blocked => this['blocked'];
 
-  EventListenerList get upgradeNeeded() => this['upgradeneeded'];
+  EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11793,7 +11793,7 @@ class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOp
 
 class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest {
 
-  _IDBOpenDBRequestEventsImpl get on() =>
+  _IDBOpenDBRequestEventsImpl get on =>
     new _IDBOpenDBRequestEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBOpenDBRequest_addEventListener_Callback";
@@ -11807,9 +11807,9 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
   _IDBRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get success() => this['success'];
+  EventListenerList get success => this['success'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11819,22 +11819,22 @@ class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
 
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
-  _IDBRequestEventsImpl get on() =>
+  _IDBRequestEventsImpl get on =>
     new _IDBRequestEventsImpl(this);
 
-  DOMError get error() native "IDBRequest_error_Getter";
+  DOMError get error native "IDBRequest_error_Getter";
 
-  int get errorCode() native "IDBRequest_errorCode_Getter";
+  int get errorCode native "IDBRequest_errorCode_Getter";
 
-  String get readyState() native "IDBRequest_readyState_Getter";
+  String get readyState native "IDBRequest_readyState_Getter";
 
-  Dynamic get result() native "IDBRequest_result_Getter";
+  Dynamic get result native "IDBRequest_result_Getter";
 
-  Dynamic get source() native "IDBRequest_source_Getter";
+  Dynamic get source native "IDBRequest_source_Getter";
 
-  IDBTransaction get transaction() native "IDBRequest_transaction_Getter";
+  IDBTransaction get transaction native "IDBRequest_transaction_Getter";
 
-  String get webkitErrorMessage() native "IDBRequest_webkitErrorMessage_Getter";
+  String get webkitErrorMessage native "IDBRequest_webkitErrorMessage_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
 
@@ -11847,11 +11847,11 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
   _IDBTransactionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get complete() => this['complete'];
+  EventListenerList get complete => this['complete'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11861,14 +11861,14 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
 
 class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
-  _IDBTransactionEventsImpl get on() =>
+  _IDBTransactionEventsImpl get on =>
     new _IDBTransactionEventsImpl(this);
 
-  IDBDatabase get db() native "IDBTransaction_db_Getter";
+  IDBDatabase get db native "IDBTransaction_db_Getter";
 
-  DOMError get error() native "IDBTransaction_error_Getter";
+  DOMError get error native "IDBTransaction_error_Getter";
 
-  String get mode() native "IDBTransaction_mode_Getter";
+  String get mode native "IDBTransaction_mode_Getter";
 
   void abort() native "IDBTransaction_abort_Callback";
 
@@ -11889,9 +11889,9 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
 class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededEvent {
 
-  int get newVersion() native "IDBUpgradeNeededEvent_newVersion_Getter";
+  int get newVersion native "IDBUpgradeNeededEvent_newVersion_Getter";
 
-  int get oldVersion() native "IDBUpgradeNeededEvent_oldVersion_Getter";
+  int get oldVersion native "IDBUpgradeNeededEvent_oldVersion_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11902,14 +11902,14 @@ class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededE
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent {
 
-  String get version() native "IDBVersionChangeEvent_version_Getter";
+  String get version native "IDBVersionChangeEvent_version_Getter";
 
 }
 
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
   _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get blocked() => this['blocked'];
+  EventListenerList get blocked => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11919,7 +11919,7 @@ class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implement
 
 class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersionChangeRequest {
 
-  _IDBVersionChangeRequestEventsImpl get on() =>
+  _IDBVersionChangeRequestEventsImpl get on =>
     new _IDBVersionChangeRequestEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBVersionChangeRequest_addEventListener_Callback";
@@ -11945,7 +11945,7 @@ class _IceCandidateFactoryProvider {
 
 class _IceCandidateImpl extends NativeFieldWrapperClass1 implements IceCandidate {
 
-  String get label() native "IceCandidate_label_Getter";
+  String get label native "IceCandidate_label_Getter";
 
   String toSdp() native "IceCandidate_toSdp_Callback";
 
@@ -11958,11 +11958,11 @@ class _IceCandidateImpl extends NativeFieldWrapperClass1 implements IceCandidate
 
 class _ImageDataImpl extends NativeFieldWrapperClass1 implements ImageData {
 
-  Uint8ClampedArray get data() native "ImageData_data_Getter";
+  Uint8ClampedArray get data native "ImageData_data_Getter";
 
-  int get height() native "ImageData_height_Getter";
+  int get height native "ImageData_height_Getter";
 
-  int get width() native "ImageData_width_Getter";
+  int get width native "ImageData_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11973,7 +11973,7 @@ class _ImageDataImpl extends NativeFieldWrapperClass1 implements ImageData {
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
-  int get length() native "Int16Array_length_Getter";
+  int get length native "Int16Array_length_Getter";
 
   int operator[](int index) native "Int16Array_numericIndexGetter_Callback";
 
@@ -12077,7 +12077,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
 class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
-  int get length() native "Int32Array_length_Getter";
+  int get length native "Int32Array_length_Getter";
 
   int operator[](int index) native "Int32Array_numericIndexGetter_Callback";
 
@@ -12181,7 +12181,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
 class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
-  int get length() native "Int8Array_length_Getter";
+  int get length native "Int8Array_length_Getter";
 
   int operator[](int index) native "Int8Array_numericIndexGetter_Callback";
 
@@ -12281,7 +12281,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
   _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get audioProcess() => this['audioprocess'];
+  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12291,10 +12291,10 @@ class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAu
 
 class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode {
 
-  _JavaScriptAudioNodeEventsImpl get on() =>
+  _JavaScriptAudioNodeEventsImpl get on =>
     new _JavaScriptAudioNodeEventsImpl(this);
 
-  int get bufferSize() native "JavaScriptAudioNode_bufferSize_Getter";
+  int get bufferSize native "JavaScriptAudioNode_bufferSize_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "JavaScriptAudioNode_addEventListener_Callback";
 
@@ -12311,21 +12311,21 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
 class _JavaScriptCallFrameImpl extends NativeFieldWrapperClass1 implements JavaScriptCallFrame {
 
-  JavaScriptCallFrame get caller() native "JavaScriptCallFrame_caller_Getter";
+  JavaScriptCallFrame get caller native "JavaScriptCallFrame_caller_Getter";
 
-  int get column() native "JavaScriptCallFrame_column_Getter";
+  int get column native "JavaScriptCallFrame_column_Getter";
 
-  String get functionName() native "JavaScriptCallFrame_functionName_Getter";
+  String get functionName native "JavaScriptCallFrame_functionName_Getter";
 
-  int get line() native "JavaScriptCallFrame_line_Getter";
+  int get line native "JavaScriptCallFrame_line_Getter";
 
-  List get scopeChain() native "JavaScriptCallFrame_scopeChain_Getter";
+  List get scopeChain native "JavaScriptCallFrame_scopeChain_Getter";
 
-  int get sourceID() native "JavaScriptCallFrame_sourceID_Getter";
+  int get sourceID native "JavaScriptCallFrame_sourceID_Getter";
 
-  Object get thisObject() native "JavaScriptCallFrame_thisObject_Getter";
+  Object get thisObject native "JavaScriptCallFrame_thisObject_Getter";
 
-  String get type() native "JavaScriptCallFrame_type_Getter";
+  String get type native "JavaScriptCallFrame_type_Getter";
 
   void evaluate(String script) native "JavaScriptCallFrame_evaluate_Callback";
 
@@ -12342,19 +12342,19 @@ class _JavaScriptCallFrameImpl extends NativeFieldWrapperClass1 implements JavaS
 
 class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent {
 
-  bool get altGraphKey() native "KeyboardEvent_altGraphKey_Getter";
+  bool get altGraphKey native "KeyboardEvent_altGraphKey_Getter";
 
-  bool get altKey() native "KeyboardEvent_altKey_Getter";
+  bool get altKey native "KeyboardEvent_altKey_Getter";
 
-  bool get ctrlKey() native "KeyboardEvent_ctrlKey_Getter";
+  bool get ctrlKey native "KeyboardEvent_ctrlKey_Getter";
 
-  String get keyIdentifier() native "KeyboardEvent_keyIdentifier_Getter";
+  String get keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
-  int get keyLocation() native "KeyboardEvent_keyLocation_Getter";
+  int get keyLocation native "KeyboardEvent_keyLocation_Getter";
 
-  bool get metaKey() native "KeyboardEvent_metaKey_Getter";
+  bool get metaKey native "KeyboardEvent_metaKey_Getter";
 
-  bool get shiftKey() native "KeyboardEvent_shiftKey_Getter";
+  bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
@@ -12384,39 +12384,39 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
 class _LocationImpl extends NativeFieldWrapperClass1 implements Location {
 
-  List<String> get ancestorOrigins() native "Location_ancestorOrigins_Getter";
+  List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
-  String get hash() native "Location_hash_Getter";
+  String get hash native "Location_hash_Getter";
 
   void set hash(String) native "Location_hash_Setter";
 
-  String get host() native "Location_host_Getter";
+  String get host native "Location_host_Getter";
 
   void set host(String) native "Location_host_Setter";
 
-  String get hostname() native "Location_hostname_Getter";
+  String get hostname native "Location_hostname_Getter";
 
   void set hostname(String) native "Location_hostname_Setter";
 
-  String get href() native "Location_href_Getter";
+  String get href native "Location_href_Getter";
 
   void set href(String) native "Location_href_Setter";
 
-  String get origin() native "Location_origin_Getter";
+  String get origin native "Location_origin_Getter";
 
-  String get pathname() native "Location_pathname_Getter";
+  String get pathname native "Location_pathname_Getter";
 
   void set pathname(String) native "Location_pathname_Setter";
 
-  String get port() native "Location_port_Getter";
+  String get port native "Location_port_Getter";
 
   void set port(String) native "Location_port_Setter";
 
-  String get protocol() native "Location_protocol_Getter";
+  String get protocol native "Location_protocol_Getter";
 
   void set protocol(String) native "Location_protocol_Setter";
 
-  String get search() native "Location_search_Getter";
+  String get search native "Location_search_Getter";
 
   void set search(String) native "Location_search_Setter";
 
@@ -12445,33 +12445,33 @@ class _MediaControllerFactoryProvider {
 
 class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
-  TimeRanges get buffered() native "MediaController_buffered_Getter";
+  TimeRanges get buffered native "MediaController_buffered_Getter";
 
-  num get currentTime() native "MediaController_currentTime_Getter";
+  num get currentTime native "MediaController_currentTime_Getter";
 
   void set currentTime(num) native "MediaController_currentTime_Setter";
 
-  num get defaultPlaybackRate() native "MediaController_defaultPlaybackRate_Getter";
+  num get defaultPlaybackRate native "MediaController_defaultPlaybackRate_Getter";
 
   void set defaultPlaybackRate(num) native "MediaController_defaultPlaybackRate_Setter";
 
-  num get duration() native "MediaController_duration_Getter";
+  num get duration native "MediaController_duration_Getter";
 
-  bool get muted() native "MediaController_muted_Getter";
+  bool get muted native "MediaController_muted_Getter";
 
   void set muted(bool) native "MediaController_muted_Setter";
 
-  bool get paused() native "MediaController_paused_Getter";
+  bool get paused native "MediaController_paused_Getter";
 
-  num get playbackRate() native "MediaController_playbackRate_Getter";
+  num get playbackRate native "MediaController_playbackRate_Getter";
 
   void set playbackRate(num) native "MediaController_playbackRate_Setter";
 
-  TimeRanges get played() native "MediaController_played_Getter";
+  TimeRanges get played native "MediaController_played_Getter";
 
-  TimeRanges get seekable() native "MediaController_seekable_Getter";
+  TimeRanges get seekable native "MediaController_seekable_Getter";
 
-  num get volume() native "MediaController_volume_Getter";
+  num get volume native "MediaController_volume_Getter";
 
   void set volume(num) native "MediaController_volume_Setter";
 
@@ -12494,7 +12494,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode {
 
-  MediaElement get mediaElement() native "MediaElementAudioSourceNode_mediaElement_Getter";
+  MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12505,7 +12505,7 @@ class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements M
 
 class _MediaErrorImpl extends NativeFieldWrapperClass1 implements MediaError {
 
-  int get code() native "MediaError_code_Getter";
+  int get code native "MediaError_code_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12516,7 +12516,7 @@ class _MediaErrorImpl extends NativeFieldWrapperClass1 implements MediaError {
 
 class _MediaKeyErrorImpl extends NativeFieldWrapperClass1 implements MediaKeyError {
 
-  int get code() native "MediaKeyError_code_Getter";
+  int get code native "MediaKeyError_code_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12527,19 +12527,19 @@ class _MediaKeyErrorImpl extends NativeFieldWrapperClass1 implements MediaKeyErr
 
 class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent {
 
-  String get defaultURL() native "MediaKeyEvent_defaultURL_Getter";
+  String get defaultURL native "MediaKeyEvent_defaultURL_Getter";
 
-  MediaKeyError get errorCode() native "MediaKeyEvent_errorCode_Getter";
+  MediaKeyError get errorCode native "MediaKeyEvent_errorCode_Getter";
 
-  Uint8Array get initData() native "MediaKeyEvent_initData_Getter";
+  Uint8Array get initData native "MediaKeyEvent_initData_Getter";
 
-  String get keySystem() native "MediaKeyEvent_keySystem_Getter";
+  String get keySystem native "MediaKeyEvent_keySystem_Getter";
 
-  Uint8Array get message() native "MediaKeyEvent_message_Getter";
+  Uint8Array get message native "MediaKeyEvent_message_Getter";
 
-  String get sessionId() native "MediaKeyEvent_sessionId_Getter";
+  String get sessionId native "MediaKeyEvent_sessionId_Getter";
 
-  int get systemCode() native "MediaKeyEvent_systemCode_Getter";
+  int get systemCode native "MediaKeyEvent_systemCode_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12550,9 +12550,9 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent {
 
 class _MediaListImpl extends NativeFieldWrapperClass1 implements MediaList {
 
-  int get length() native "MediaList_length_Getter";
+  int get length native "MediaList_length_Getter";
 
-  String get mediaText() native "MediaList_mediaText_Getter";
+  String get mediaText native "MediaList_mediaText_Getter";
 
   void set mediaText(String) native "MediaList_mediaText_Setter";
 
@@ -12653,9 +12653,9 @@ class _MediaListImpl extends NativeFieldWrapperClass1 implements MediaList {
 
 class _MediaQueryListImpl extends NativeFieldWrapperClass1 implements MediaQueryList {
 
-  bool get matches() native "MediaQueryList_matches_Getter";
+  bool get matches native "MediaQueryList_matches_Getter";
 
-  String get media() native "MediaQueryList_media_Getter";
+  String get media native "MediaQueryList_media_Getter";
 
   void addListener(MediaQueryListListener listener) native "MediaQueryList_addListener_Callback";
 
@@ -12678,11 +12678,11 @@ class _MediaSourceFactoryProvider {
 
 class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
 
-  SourceBufferList get activeSourceBuffers() native "MediaSource_activeSourceBuffers_Getter";
+  SourceBufferList get activeSourceBuffers native "MediaSource_activeSourceBuffers_Getter";
 
-  String get readyState() native "MediaSource_readyState_Getter";
+  String get readyState native "MediaSource_readyState_Getter";
 
-  SourceBufferList get sourceBuffers() native "MediaSource_sourceBuffers_Getter";
+  SourceBufferList get sourceBuffers native "MediaSource_sourceBuffers_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
 
@@ -12705,7 +12705,7 @@ class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
 
 class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaStreamAudioSourceNode {
 
-  MediaStream get mediaStream() native "MediaStreamAudioSourceNode_mediaStream_Getter";
+  MediaStream get mediaStream native "MediaStreamAudioSourceNode_mediaStream_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12716,7 +12716,7 @@ class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements Me
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
 
-  MediaStream get stream() native "MediaStreamEvent_stream_Getter";
+  MediaStream get stream native "MediaStreamEvent_stream_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12731,7 +12731,7 @@ class _MediaStreamFactoryProvider {
 class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
   _MediaStreamEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12741,16 +12741,16 @@ class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
 
 class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
-  _MediaStreamEventsImpl get on() =>
+  _MediaStreamEventsImpl get on =>
     new _MediaStreamEventsImpl(this);
 
-  MediaStreamTrackList get audioTracks() native "MediaStream_audioTracks_Getter";
+  MediaStreamTrackList get audioTracks native "MediaStream_audioTracks_Getter";
 
-  String get label() native "MediaStream_label_Getter";
+  String get label native "MediaStream_label_Getter";
 
-  int get readyState() native "MediaStream_readyState_Getter";
+  int get readyState native "MediaStream_readyState_Getter";
 
-  MediaStreamTrackList get videoTracks() native "MediaStream_videoTracks_Getter";
+  MediaStreamTrackList get videoTracks native "MediaStream_videoTracks_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
 
@@ -12767,7 +12767,7 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
 class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStreamList {
 
-  int get length() native "MediaStreamList_length_Getter";
+  int get length native "MediaStreamList_length_Getter";
 
   MediaStream item(int index) native "MediaStreamList_item_Callback";
 
@@ -12780,18 +12780,18 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStre
 
 class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent {
 
-  MediaStreamTrack get track() native "MediaStreamTrackEvent_track_Getter";
+  MediaStreamTrack get track native "MediaStreamTrackEvent_track_Getter";
 
 }
 
 class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
   _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 
-  EventListenerList get mute() => this['mute'];
+  EventListenerList get mute => this['mute'];
 
-  EventListenerList get unmute() => this['unmute'];
+  EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12801,18 +12801,18 @@ class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrac
 
 class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack {
 
-  _MediaStreamTrackEventsImpl get on() =>
+  _MediaStreamTrackEventsImpl get on =>
     new _MediaStreamTrackEventsImpl(this);
 
-  bool get enabled() native "MediaStreamTrack_enabled_Getter";
+  bool get enabled native "MediaStreamTrack_enabled_Getter";
 
   void set enabled(bool) native "MediaStreamTrack_enabled_Setter";
 
-  String get kind() native "MediaStreamTrack_kind_Getter";
+  String get kind native "MediaStreamTrack_kind_Getter";
 
-  String get label() native "MediaStreamTrack_label_Getter";
+  String get label native "MediaStreamTrack_label_Getter";
 
-  int get readyState() native "MediaStreamTrack_readyState_Getter";
+  int get readyState native "MediaStreamTrack_readyState_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
 
@@ -12825,9 +12825,9 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
   _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addTrack() => this['addtrack'];
+  EventListenerList get addTrack => this['addtrack'];
 
-  EventListenerList get removeTrack() => this['removetrack'];
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12837,10 +12837,10 @@ class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStream
 
 class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamTrackList {
 
-  _MediaStreamTrackListEventsImpl get on() =>
+  _MediaStreamTrackListEventsImpl get on =>
     new _MediaStreamTrackListEventsImpl(this);
 
-  int get length() native "MediaStreamTrackList_length_Getter";
+  int get length native "MediaStreamTrackList_length_Getter";
 
   void add(MediaStreamTrack track) native "MediaStreamTrackList_add_Callback";
 
@@ -12863,11 +12863,11 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 
 class _MemoryInfoImpl extends NativeFieldWrapperClass1 implements MemoryInfo {
 
-  int get jsHeapSizeLimit() native "MemoryInfo_jsHeapSizeLimit_Getter";
+  int get jsHeapSizeLimit native "MemoryInfo_jsHeapSizeLimit_Getter";
 
-  int get totalJSHeapSize() native "MemoryInfo_totalJSHeapSize_Getter";
+  int get totalJSHeapSize native "MemoryInfo_totalJSHeapSize_Getter";
 
-  int get usedJSHeapSize() native "MemoryInfo_usedJSHeapSize_Getter";
+  int get usedJSHeapSize native "MemoryInfo_usedJSHeapSize_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12886,9 +12886,9 @@ class _MessageChannelFactoryProvider {
 
 class _MessageChannelImpl extends NativeFieldWrapperClass1 implements MessageChannel {
 
-  MessagePort get port1() native "MessageChannel_port1_Getter";
+  MessagePort get port1 native "MessageChannel_port1_Getter";
 
-  MessagePort get port2() native "MessageChannel_port2_Getter";
+  MessagePort get port2 native "MessageChannel_port2_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12899,15 +12899,15 @@ class _MessageChannelImpl extends NativeFieldWrapperClass1 implements MessageCha
 
 class _MessageEventImpl extends _EventImpl implements MessageEvent {
 
-  Object get data() native "MessageEvent_data_Getter";
+  Object get data native "MessageEvent_data_Getter";
 
-  String get lastEventId() native "MessageEvent_lastEventId_Getter";
+  String get lastEventId native "MessageEvent_lastEventId_Getter";
 
-  String get origin() native "MessageEvent_origin_Getter";
+  String get origin native "MessageEvent_origin_Getter";
 
-  List get ports() native "MessageEvent_ports_Getter";
+  List get ports native "MessageEvent_ports_Getter";
 
-  Window get source() native "MessageEvent_source_Getter";
+  Window get source native "MessageEvent_source_Getter";
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
@@ -12918,7 +12918,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent {
 class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
   _MessagePortEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12928,7 +12928,7 @@ class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
 
 class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
-  _MessagePortEventsImpl get on() =>
+  _MessagePortEventsImpl get on =>
     new _MessagePortEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
@@ -12954,9 +12954,9 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
 class _MetadataImpl extends NativeFieldWrapperClass1 implements Metadata {
 
-  Date get modificationTime() native "Metadata_modificationTime_Getter";
+  Date get modificationTime native "Metadata_modificationTime_Getter";
 
-  int get size() native "Metadata_size_Getter";
+  int get size native "Metadata_size_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12967,43 +12967,43 @@ class _MetadataImpl extends NativeFieldWrapperClass1 implements Metadata {
 
 class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
-  bool get altKey() native "MouseEvent_altKey_Getter";
+  bool get altKey native "MouseEvent_altKey_Getter";
 
-  int get button() native "MouseEvent_button_Getter";
+  int get button native "MouseEvent_button_Getter";
 
-  int get clientX() native "MouseEvent_clientX_Getter";
+  int get clientX native "MouseEvent_clientX_Getter";
 
-  int get clientY() native "MouseEvent_clientY_Getter";
+  int get clientY native "MouseEvent_clientY_Getter";
 
-  bool get ctrlKey() native "MouseEvent_ctrlKey_Getter";
+  bool get ctrlKey native "MouseEvent_ctrlKey_Getter";
 
-  Clipboard get dataTransfer() native "MouseEvent_dataTransfer_Getter";
+  Clipboard get dataTransfer native "MouseEvent_dataTransfer_Getter";
 
-  Node get fromElement() native "MouseEvent_fromElement_Getter";
+  Node get fromElement native "MouseEvent_fromElement_Getter";
 
-  bool get metaKey() native "MouseEvent_metaKey_Getter";
+  bool get metaKey native "MouseEvent_metaKey_Getter";
 
-  int get offsetX() native "MouseEvent_offsetX_Getter";
+  int get offsetX native "MouseEvent_offsetX_Getter";
 
-  int get offsetY() native "MouseEvent_offsetY_Getter";
+  int get offsetY native "MouseEvent_offsetY_Getter";
 
-  EventTarget get relatedTarget() native "MouseEvent_relatedTarget_Getter";
+  EventTarget get relatedTarget native "MouseEvent_relatedTarget_Getter";
 
-  int get screenX() native "MouseEvent_screenX_Getter";
+  int get screenX native "MouseEvent_screenX_Getter";
 
-  int get screenY() native "MouseEvent_screenY_Getter";
+  int get screenY native "MouseEvent_screenY_Getter";
 
-  bool get shiftKey() native "MouseEvent_shiftKey_Getter";
+  bool get shiftKey native "MouseEvent_shiftKey_Getter";
 
-  Node get toElement() native "MouseEvent_toElement_Getter";
+  Node get toElement native "MouseEvent_toElement_Getter";
 
-  int get webkitMovementX() native "MouseEvent_webkitMovementX_Getter";
+  int get webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
-  int get webkitMovementY() native "MouseEvent_webkitMovementY_Getter";
+  int get webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
-  int get x() native "MouseEvent_x_Getter";
+  int get x native "MouseEvent_x_Getter";
 
-  int get y() native "MouseEvent_y_Getter";
+  int get y native "MouseEvent_y_Getter";
 
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
@@ -13016,15 +13016,15 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
 class _MutationEventImpl extends _EventImpl implements MutationEvent {
 
-  int get attrChange() native "MutationEvent_attrChange_Getter";
+  int get attrChange native "MutationEvent_attrChange_Getter";
 
-  String get attrName() native "MutationEvent_attrName_Getter";
+  String get attrName native "MutationEvent_attrName_Getter";
 
-  String get newValue() native "MutationEvent_newValue_Getter";
+  String get newValue native "MutationEvent_newValue_Getter";
 
-  String get prevValue() native "MutationEvent_prevValue_Getter";
+  String get prevValue native "MutationEvent_prevValue_Getter";
 
-  Node get relatedNode() native "MutationEvent_relatedNode_Getter";
+  Node get relatedNode native "MutationEvent_relatedNode_Getter";
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
 
@@ -13119,23 +13119,23 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
 
 class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRecord {
 
-  NodeList get addedNodes() native "MutationRecord_addedNodes_Getter";
+  NodeList get addedNodes native "MutationRecord_addedNodes_Getter";
 
-  String get attributeName() native "MutationRecord_attributeName_Getter";
+  String get attributeName native "MutationRecord_attributeName_Getter";
 
-  String get attributeNamespace() native "MutationRecord_attributeNamespace_Getter";
+  String get attributeNamespace native "MutationRecord_attributeNamespace_Getter";
 
-  Node get nextSibling() native "MutationRecord_nextSibling_Getter";
+  Node get nextSibling native "MutationRecord_nextSibling_Getter";
 
-  String get oldValue() native "MutationRecord_oldValue_Getter";
+  String get oldValue native "MutationRecord_oldValue_Getter";
 
-  Node get previousSibling() native "MutationRecord_previousSibling_Getter";
+  Node get previousSibling native "MutationRecord_previousSibling_Getter";
 
-  NodeList get removedNodes() native "MutationRecord_removedNodes_Getter";
+  NodeList get removedNodes native "MutationRecord_removedNodes_Getter";
 
-  Node get target() native "MutationRecord_target_Getter";
+  Node get target native "MutationRecord_target_Getter";
 
-  String get type() native "MutationRecord_type_Getter";
+  String get type native "MutationRecord_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13146,7 +13146,7 @@ class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRe
 
 class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap {
 
-  int get length() native "NamedNodeMap_length_Getter";
+  int get length native "NamedNodeMap_length_Getter";
 
   Node operator[](int index) native "NamedNodeMap_item_Callback";
 
@@ -13253,37 +13253,37 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
 
 class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
-  String get appCodeName() native "Navigator_appCodeName_Getter";
+  String get appCodeName native "Navigator_appCodeName_Getter";
 
-  String get appName() native "Navigator_appName_Getter";
+  String get appName native "Navigator_appName_Getter";
 
-  String get appVersion() native "Navigator_appVersion_Getter";
+  String get appVersion native "Navigator_appVersion_Getter";
 
-  bool get cookieEnabled() native "Navigator_cookieEnabled_Getter";
+  bool get cookieEnabled native "Navigator_cookieEnabled_Getter";
 
-  Geolocation get geolocation() native "Navigator_geolocation_Getter";
+  Geolocation get geolocation native "Navigator_geolocation_Getter";
 
-  String get language() native "Navigator_language_Getter";
+  String get language native "Navigator_language_Getter";
 
-  DOMMimeTypeArray get mimeTypes() native "Navigator_mimeTypes_Getter";
+  DOMMimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
-  bool get onLine() native "Navigator_onLine_Getter";
+  bool get onLine native "Navigator_onLine_Getter";
 
-  String get platform() native "Navigator_platform_Getter";
+  String get platform native "Navigator_platform_Getter";
 
-  DOMPluginArray get plugins() native "Navigator_plugins_Getter";
+  DOMPluginArray get plugins native "Navigator_plugins_Getter";
 
-  String get product() native "Navigator_product_Getter";
+  String get product native "Navigator_product_Getter";
 
-  String get productSub() native "Navigator_productSub_Getter";
+  String get productSub native "Navigator_productSub_Getter";
 
-  String get userAgent() native "Navigator_userAgent_Getter";
+  String get userAgent native "Navigator_userAgent_Getter";
 
-  String get vendor() native "Navigator_vendor_Getter";
+  String get vendor native "Navigator_vendor_Getter";
 
-  String get vendorSub() native "Navigator_vendorSub_Getter";
+  String get vendorSub native "Navigator_vendorSub_Getter";
 
-  BatteryManager get webkitBattery() native "Navigator_webkitBattery_Getter";
+  BatteryManager get webkitBattery native "Navigator_webkitBattery_Getter";
 
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
@@ -13302,7 +13302,7 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
 class _NavigatorUserMediaErrorImpl extends NativeFieldWrapperClass1 implements NavigatorUserMediaError {
 
-  int get code() native "NavigatorUserMediaError_code_Getter";
+  int get code native "NavigatorUserMediaError_code_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13331,7 +13331,7 @@ class _ChildNodeListLazy implements NodeList {
   _ChildNodeListLazy(this._this);
 
 
-  _NodeImpl get first() => _this.$dom_firstChild;
+  _NodeImpl get first => _this.$dom_firstChild;
   _NodeImpl last() => _this.$dom_lastChild;
 
   void add(_NodeImpl value) {
@@ -13416,13 +13416,13 @@ class _ChildNodeListLazy implements NodeList {
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
   // a local copy of $dom_childNodes is more efficient.
-  int get length() => _this.$dom_childNodes.length;
+  int get length => _this.$dom_childNodes.length;
 
   _NodeImpl operator[](int index) => _this.$dom_childNodes[index];
 }
 
 class _NodeImpl extends _EventTargetImpl implements Node {
-  _ChildNodeListLazy get nodes() {
+  _ChildNodeListLazy get nodes {
     return new _ChildNodeListLazy(this);
   }
 
@@ -13456,25 +13456,25 @@ class _NodeImpl extends _EventTargetImpl implements Node {
   }
 
 
-  NamedNodeMap get $dom_attributes() native "Node_attributes_Getter";
+  NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
 
-  NodeList get $dom_childNodes() native "Node_childNodes_Getter";
+  NodeList get $dom_childNodes native "Node_childNodes_Getter";
 
-  Node get $dom_firstChild() native "Node_firstChild_Getter";
+  Node get $dom_firstChild native "Node_firstChild_Getter";
 
-  Node get $dom_lastChild() native "Node_lastChild_Getter";
+  Node get $dom_lastChild native "Node_lastChild_Getter";
 
-  Node get nextNode() native "Node_nextSibling_Getter";
+  Node get nextNode native "Node_nextSibling_Getter";
 
-  int get $dom_nodeType() native "Node_nodeType_Getter";
+  int get $dom_nodeType native "Node_nodeType_Getter";
 
-  Document get document() native "Node_ownerDocument_Getter";
+  Document get document native "Node_ownerDocument_Getter";
 
-  Node get parent() native "Node_parentNode_Getter";
+  Node get parent native "Node_parentNode_Getter";
 
-  Node get previousNode() native "Node_previousSibling_Getter";
+  Node get previousNode native "Node_previousSibling_Getter";
 
-  String get text() native "Node_textContent_Getter";
+  String get text native "Node_textContent_Getter";
 
   void set text(String) native "Node_textContent_Setter";
 
@@ -13507,17 +13507,17 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
 class _NodeIteratorImpl extends NativeFieldWrapperClass1 implements NodeIterator {
 
-  bool get expandEntityReferences() native "NodeIterator_expandEntityReferences_Getter";
+  bool get expandEntityReferences native "NodeIterator_expandEntityReferences_Getter";
 
-  NodeFilter get filter() native "NodeIterator_filter_Getter";
+  NodeFilter get filter native "NodeIterator_filter_Getter";
 
-  bool get pointerBeforeReferenceNode() native "NodeIterator_pointerBeforeReferenceNode_Getter";
+  bool get pointerBeforeReferenceNode native "NodeIterator_pointerBeforeReferenceNode_Getter";
 
-  Node get referenceNode() native "NodeIterator_referenceNode_Getter";
+  Node get referenceNode native "NodeIterator_referenceNode_Getter";
 
-  Node get root() native "NodeIterator_root_Getter";
+  Node get root native "NodeIterator_root_Getter";
 
-  int get whatToShow() native "NodeIterator_whatToShow_Getter";
+  int get whatToShow native "NodeIterator_whatToShow_Getter";
 
   void detach() native "NodeIterator_detach_Callback";
 
@@ -13551,7 +13551,7 @@ class _ListWrapper<E> implements List<E> {
 
   bool isEmpty() => _list.isEmpty();
 
-  int get length() => _list.length;
+  int get length => _list.length;
 
   E operator [](int index) => _list[index];
 
@@ -13590,7 +13590,7 @@ class _ListWrapper<E> implements List<E> {
   void insertRange(int start, int rangeLength, [E initialValue = null]) =>
     _list.insertRange(start, rangeLength, initialValue);
 
-  E get first() => _list[0];
+  E get first => _list[0];
 }
 
 /**
@@ -13680,7 +13680,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
       _Lists.lastIndexOf(this, element, start);
 
   Node last() => this[length - 1];
-  Node get first() => this[0];
+  Node get first => this[0];
 
   // FIXME: implement thesee.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -13698,7 +13698,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
   // -- end List<Node> mixins.
 
 
-  int get length() native "NodeList_length_Getter";
+  int get length native "NodeList_length_Getter";
 
   Node operator[](int index) native "NodeList_item_Callback";
 
@@ -13713,9 +13713,9 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
 
 class _NotationImpl extends _NodeImpl implements Notation {
 
-  String get publicId() native "Notation_publicId_Getter";
+  String get publicId native "Notation_publicId_Getter";
 
-  String get systemId() native "Notation_systemId_Getter";
+  String get systemId native "Notation_systemId_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13747,15 +13747,15 @@ class _NotificationFactoryProvider {
 class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
   _NotificationEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get close() => this['close'];
+  EventListenerList get close => this['close'];
 
-  EventListenerList get display() => this['display'];
+  EventListenerList get display => this['display'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get show() => this['show'];
+  EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13765,20 +13765,20 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
 class _NotificationImpl extends _EventTargetImpl implements Notification {
 
-  _NotificationEventsImpl get on() =>
+  _NotificationEventsImpl get on =>
     new _NotificationEventsImpl(this);
 
-  String get dir() native "Notification_dir_Getter";
+  String get dir native "Notification_dir_Getter";
 
   void set dir(String) native "Notification_dir_Setter";
 
-  String get permission() native "Notification_permission_Getter";
+  String get permission native "Notification_permission_Getter";
 
-  String get replaceId() native "Notification_replaceId_Getter";
+  String get replaceId native "Notification_replaceId_Getter";
 
   void set replaceId(String) native "Notification_replaceId_Setter";
 
-  String get tag() native "Notification_tag_Getter";
+  String get tag native "Notification_tag_Getter";
 
   void set tag(String) native "Notification_tag_Setter";
 
@@ -13840,7 +13840,7 @@ class _OESVertexArrayObjectImpl extends NativeFieldWrapperClass1 implements OESV
 
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent {
 
-  AudioBuffer get renderedBuffer() native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
+  AudioBuffer get renderedBuffer native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13851,13 +13851,13 @@ class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudi
 
 class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 
-  AudioParam get detune() native "Oscillator_detune_Getter";
+  AudioParam get detune native "Oscillator_detune_Getter";
 
-  AudioParam get frequency() native "Oscillator_frequency_Getter";
+  AudioParam get frequency native "Oscillator_frequency_Getter";
 
-  int get playbackState() native "Oscillator_playbackState_Getter";
+  int get playbackState native "Oscillator_playbackState_Getter";
 
-  int get type() native "Oscillator_type_Getter";
+  int get type native "Oscillator_type_Getter";
 
   void set type(int) native "Oscillator_type_Setter";
 
@@ -13876,11 +13876,11 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 
 class _OverflowEventImpl extends _EventImpl implements OverflowEvent {
 
-  bool get horizontalOverflow() native "OverflowEvent_horizontalOverflow_Getter";
+  bool get horizontalOverflow native "OverflowEvent_horizontalOverflow_Getter";
 
-  int get orient() native "OverflowEvent_orient_Getter";
+  int get orient native "OverflowEvent_orient_Getter";
 
-  bool get verticalOverflow() native "OverflowEvent_verticalOverflow_Getter";
+  bool get verticalOverflow native "OverflowEvent_verticalOverflow_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13904,7 +13904,7 @@ class _PagePopupControllerImpl extends NativeFieldWrapperClass1 implements PageP
 
 class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent {
 
-  bool get persisted() native "PageTransitionEvent_persisted_Getter";
+  bool get persisted native "PageTransitionEvent_persisted_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13919,15 +13919,15 @@ class _PeerConnection00FactoryProvider {
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
   _PeerConnection00EventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addStream() => this['addstream'];
+  EventListenerList get addStream => this['addstream'];
 
-  EventListenerList get connecting() => this['connecting'];
+  EventListenerList get connecting => this['connecting'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 
-  EventListenerList get removeStream() => this['removestream'];
+  EventListenerList get removeStream => this['removestream'];
 
-  EventListenerList get stateChange() => this['statechange'];
+  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13937,20 +13937,20 @@ class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection0
 
 class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00 {
 
-  _PeerConnection00EventsImpl get on() =>
+  _PeerConnection00EventsImpl get on =>
     new _PeerConnection00EventsImpl(this);
 
-  int get iceState() native "PeerConnection00_iceState_Getter";
+  int get iceState native "PeerConnection00_iceState_Getter";
 
-  SessionDescription get localDescription() native "PeerConnection00_localDescription_Getter";
+  SessionDescription get localDescription native "PeerConnection00_localDescription_Getter";
 
-  MediaStreamList get localStreams() native "PeerConnection00_localStreams_Getter";
+  MediaStreamList get localStreams native "PeerConnection00_localStreams_Getter";
 
-  int get readyState() native "PeerConnection00_readyState_Getter";
+  int get readyState native "PeerConnection00_readyState_Getter";
 
-  SessionDescription get remoteDescription() native "PeerConnection00_remoteDescription_Getter";
+  SessionDescription get remoteDescription native "PeerConnection00_remoteDescription_Getter";
 
-  MediaStreamList get remoteStreams() native "PeerConnection00_remoteStreams_Getter";
+  MediaStreamList get remoteStreams native "PeerConnection00_remoteStreams_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
@@ -14023,11 +14023,11 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
 class _PerformanceImpl extends _EventTargetImpl implements Performance {
 
-  MemoryInfo get memory() native "Performance_memory_Getter";
+  MemoryInfo get memory native "Performance_memory_Getter";
 
-  PerformanceNavigation get navigation() native "Performance_navigation_Getter";
+  PerformanceNavigation get navigation native "Performance_navigation_Getter";
 
-  PerformanceTiming get timing() native "Performance_timing_Getter";
+  PerformanceTiming get timing native "Performance_timing_Getter";
 
   num webkitNow() native "Performance_webkitNow_Callback";
 
@@ -14040,9 +14040,9 @@ class _PerformanceImpl extends _EventTargetImpl implements Performance {
 
 class _PerformanceNavigationImpl extends NativeFieldWrapperClass1 implements PerformanceNavigation {
 
-  int get redirectCount() native "PerformanceNavigation_redirectCount_Getter";
+  int get redirectCount native "PerformanceNavigation_redirectCount_Getter";
 
-  int get type() native "PerformanceNavigation_type_Getter";
+  int get type native "PerformanceNavigation_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14053,47 +14053,47 @@ class _PerformanceNavigationImpl extends NativeFieldWrapperClass1 implements Per
 
 class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements PerformanceTiming {
 
-  int get connectEnd() native "PerformanceTiming_connectEnd_Getter";
+  int get connectEnd native "PerformanceTiming_connectEnd_Getter";
 
-  int get connectStart() native "PerformanceTiming_connectStart_Getter";
+  int get connectStart native "PerformanceTiming_connectStart_Getter";
 
-  int get domComplete() native "PerformanceTiming_domComplete_Getter";
+  int get domComplete native "PerformanceTiming_domComplete_Getter";
 
-  int get domContentLoadedEventEnd() native "PerformanceTiming_domContentLoadedEventEnd_Getter";
+  int get domContentLoadedEventEnd native "PerformanceTiming_domContentLoadedEventEnd_Getter";
 
-  int get domContentLoadedEventStart() native "PerformanceTiming_domContentLoadedEventStart_Getter";
+  int get domContentLoadedEventStart native "PerformanceTiming_domContentLoadedEventStart_Getter";
 
-  int get domInteractive() native "PerformanceTiming_domInteractive_Getter";
+  int get domInteractive native "PerformanceTiming_domInteractive_Getter";
 
-  int get domLoading() native "PerformanceTiming_domLoading_Getter";
+  int get domLoading native "PerformanceTiming_domLoading_Getter";
 
-  int get domainLookupEnd() native "PerformanceTiming_domainLookupEnd_Getter";
+  int get domainLookupEnd native "PerformanceTiming_domainLookupEnd_Getter";
 
-  int get domainLookupStart() native "PerformanceTiming_domainLookupStart_Getter";
+  int get domainLookupStart native "PerformanceTiming_domainLookupStart_Getter";
 
-  int get fetchStart() native "PerformanceTiming_fetchStart_Getter";
+  int get fetchStart native "PerformanceTiming_fetchStart_Getter";
 
-  int get loadEventEnd() native "PerformanceTiming_loadEventEnd_Getter";
+  int get loadEventEnd native "PerformanceTiming_loadEventEnd_Getter";
 
-  int get loadEventStart() native "PerformanceTiming_loadEventStart_Getter";
+  int get loadEventStart native "PerformanceTiming_loadEventStart_Getter";
 
-  int get navigationStart() native "PerformanceTiming_navigationStart_Getter";
+  int get navigationStart native "PerformanceTiming_navigationStart_Getter";
 
-  int get redirectEnd() native "PerformanceTiming_redirectEnd_Getter";
+  int get redirectEnd native "PerformanceTiming_redirectEnd_Getter";
 
-  int get redirectStart() native "PerformanceTiming_redirectStart_Getter";
+  int get redirectStart native "PerformanceTiming_redirectStart_Getter";
 
-  int get requestStart() native "PerformanceTiming_requestStart_Getter";
+  int get requestStart native "PerformanceTiming_requestStart_Getter";
 
-  int get responseEnd() native "PerformanceTiming_responseEnd_Getter";
+  int get responseEnd native "PerformanceTiming_responseEnd_Getter";
 
-  int get responseStart() native "PerformanceTiming_responseStart_Getter";
+  int get responseStart native "PerformanceTiming_responseStart_Getter";
 
-  int get secureConnectionStart() native "PerformanceTiming_secureConnectionStart_Getter";
+  int get secureConnectionStart native "PerformanceTiming_secureConnectionStart_Getter";
 
-  int get unloadEventEnd() native "PerformanceTiming_unloadEventEnd_Getter";
+  int get unloadEventEnd native "PerformanceTiming_unloadEventEnd_Getter";
 
-  int get unloadEventStart() native "PerformanceTiming_unloadEventStart_Getter";
+  int get unloadEventStart native "PerformanceTiming_unloadEventStart_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14104,7 +14104,7 @@ class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements Perform
 
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
-  Object get state() native "PopStateEvent_state_Getter";
+  Object get state native "PopStateEvent_state_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14115,9 +14115,9 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
 class _PositionErrorImpl extends NativeFieldWrapperClass1 implements PositionError {
 
-  int get code() native "PositionError_code_Getter";
+  int get code native "PositionError_code_Getter";
 
-  String get message() native "PositionError_message_Getter";
+  String get message native "PositionError_message_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14128,13 +14128,13 @@ class _PositionErrorImpl extends NativeFieldWrapperClass1 implements PositionErr
 
 class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruction {
 
-  String get data() native "ProcessingInstruction_data_Getter";
+  String get data native "ProcessingInstruction_data_Getter";
 
   void set data(String) native "ProcessingInstruction_data_Setter";
 
-  StyleSheet get sheet() native "ProcessingInstruction_sheet_Getter";
+  StyleSheet get sheet native "ProcessingInstruction_sheet_Getter";
 
-  String get target() native "ProcessingInstruction_target_Getter";
+  String get target native "ProcessingInstruction_target_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14145,11 +14145,11 @@ class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruct
 
 class _ProgressEventImpl extends _EventImpl implements ProgressEvent {
 
-  bool get lengthComputable() native "ProgressEvent_lengthComputable_Getter";
+  bool get lengthComputable native "ProgressEvent_lengthComputable_Getter";
 
-  int get loaded() native "ProgressEvent_loaded_Getter";
+  int get loaded native "ProgressEvent_loaded_Getter";
 
-  int get total() native "ProgressEvent_total_Getter";
+  int get total native "ProgressEvent_total_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14160,11 +14160,11 @@ class _ProgressEventImpl extends _EventImpl implements ProgressEvent {
 
 class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
 
-  CSSPrimitiveValue get blue() native "RGBColor_blue_Getter";
+  CSSPrimitiveValue get blue native "RGBColor_blue_Getter";
 
-  CSSPrimitiveValue get green() native "RGBColor_green_Getter";
+  CSSPrimitiveValue get green native "RGBColor_green_Getter";
 
-  CSSPrimitiveValue get red() native "RGBColor_red_Getter";
+  CSSPrimitiveValue get red native "RGBColor_red_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14198,7 +14198,7 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
 class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
 
-  String get value() native "RadioNodeList_value_Getter";
+  String get value native "RadioNodeList_value_Getter";
 
   void set value(String) native "RadioNodeList_value_Setter";
 
@@ -14211,11 +14211,11 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
 
 class _RangeExceptionImpl extends NativeFieldWrapperClass1 implements RangeException {
 
-  int get code() native "RangeException_code_Getter";
+  int get code native "RangeException_code_Getter";
 
-  String get message() native "RangeException_message_Getter";
+  String get message native "RangeException_message_Getter";
 
-  String get name() native "RangeException_name_Getter";
+  String get name native "RangeException_name_Getter";
 
   String toString() native "RangeException_toString_Callback";
 
@@ -14228,17 +14228,17 @@ class _RangeExceptionImpl extends NativeFieldWrapperClass1 implements RangeExcep
 
 class _RangeImpl extends NativeFieldWrapperClass1 implements Range {
 
-  bool get collapsed() native "Range_collapsed_Getter";
+  bool get collapsed native "Range_collapsed_Getter";
 
-  Node get commonAncestorContainer() native "Range_commonAncestorContainer_Getter";
+  Node get commonAncestorContainer native "Range_commonAncestorContainer_Getter";
 
-  Node get endContainer() native "Range_endContainer_Getter";
+  Node get endContainer native "Range_endContainer_Getter";
 
-  int get endOffset() native "Range_endOffset_Getter";
+  int get endOffset native "Range_endOffset_Getter";
 
-  Node get startContainer() native "Range_startContainer_Getter";
+  Node get startContainer native "Range_startContainer_Getter";
 
-  int get startOffset() native "Range_startOffset_Getter";
+  int get startOffset native "Range_startOffset_Getter";
 
   DocumentFragment cloneContents() native "Range_cloneContents_Callback";
 
@@ -14299,21 +14299,21 @@ class _RangeImpl extends NativeFieldWrapperClass1 implements Range {
 
 class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalyserNode {
 
-  int get fftSize() native "RealtimeAnalyserNode_fftSize_Getter";
+  int get fftSize native "RealtimeAnalyserNode_fftSize_Getter";
 
   void set fftSize(int) native "RealtimeAnalyserNode_fftSize_Setter";
 
-  int get frequencyBinCount() native "RealtimeAnalyserNode_frequencyBinCount_Getter";
+  int get frequencyBinCount native "RealtimeAnalyserNode_frequencyBinCount_Getter";
 
-  num get maxDecibels() native "RealtimeAnalyserNode_maxDecibels_Getter";
+  num get maxDecibels native "RealtimeAnalyserNode_maxDecibels_Getter";
 
   void set maxDecibels(num) native "RealtimeAnalyserNode_maxDecibels_Setter";
 
-  num get minDecibels() native "RealtimeAnalyserNode_minDecibels_Getter";
+  num get minDecibels native "RealtimeAnalyserNode_minDecibels_Getter";
 
   void set minDecibels(num) native "RealtimeAnalyserNode_minDecibels_Setter";
 
-  num get smoothingTimeConstant() native "RealtimeAnalyserNode_smoothingTimeConstant_Getter";
+  num get smoothingTimeConstant native "RealtimeAnalyserNode_smoothingTimeConstant_Getter";
 
   void set smoothingTimeConstant(num) native "RealtimeAnalyserNode_smoothingTimeConstant_Setter";
 
@@ -14332,13 +14332,13 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 
 class _RectImpl extends NativeFieldWrapperClass1 implements Rect {
 
-  CSSPrimitiveValue get bottom() native "Rect_bottom_Getter";
+  CSSPrimitiveValue get bottom native "Rect_bottom_Getter";
 
-  CSSPrimitiveValue get left() native "Rect_left_Getter";
+  CSSPrimitiveValue get left native "Rect_left_Getter";
 
-  CSSPrimitiveValue get right() native "Rect_right_Getter";
+  CSSPrimitiveValue get right native "Rect_right_Getter";
 
-  CSSPrimitiveValue get top() native "Rect_top_Getter";
+  CSSPrimitiveValue get top native "Rect_top_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14349,9 +14349,9 @@ class _RectImpl extends NativeFieldWrapperClass1 implements Rect {
 
 class _SQLErrorImpl extends NativeFieldWrapperClass1 implements SQLError {
 
-  int get code() native "SQLError_code_Getter";
+  int get code native "SQLError_code_Getter";
 
-  String get message() native "SQLError_message_Getter";
+  String get message native "SQLError_message_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14362,9 +14362,9 @@ class _SQLErrorImpl extends NativeFieldWrapperClass1 implements SQLError {
 
 class _SQLExceptionImpl extends NativeFieldWrapperClass1 implements SQLException {
 
-  int get code() native "SQLException_code_Getter";
+  int get code native "SQLException_code_Getter";
 
-  String get message() native "SQLException_message_Getter";
+  String get message native "SQLException_message_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14375,11 +14375,11 @@ class _SQLExceptionImpl extends NativeFieldWrapperClass1 implements SQLException
 
 class _SQLResultSetImpl extends NativeFieldWrapperClass1 implements SQLResultSet {
 
-  int get insertId() native "SQLResultSet_insertId_Getter";
+  int get insertId native "SQLResultSet_insertId_Getter";
 
-  SQLResultSetRowList get rows() native "SQLResultSet_rows_Getter";
+  SQLResultSetRowList get rows native "SQLResultSet_rows_Getter";
 
-  int get rowsAffected() native "SQLResultSet_rowsAffected_Getter";
+  int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14390,7 +14390,7 @@ class _SQLResultSetImpl extends NativeFieldWrapperClass1 implements SQLResultSet
 
 class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLResultSetRowList {
 
-  int get length() native "SQLResultSetRowList_length_Getter";
+  int get length native "SQLResultSetRowList_length_Getter";
 
   Map item(int index) native "SQLResultSetRowList_item_Callback";
 
@@ -14425,39 +14425,39 @@ class _SQLTransactionSyncImpl extends NativeFieldWrapperClass1 implements SQLTra
 
 class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
-  SVGAnimatedString get target() native "SVGAElement_target_Getter";
+  SVGAnimatedString get target native "SVGAElement_target_Getter";
 
-  SVGAnimatedString get href() native "SVGAElement_href_Getter";
+  SVGAnimatedString get href native "SVGAElement_href_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGAElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGAElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGAElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGAElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGAElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGAElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGAElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGAElement_xmllang_Getter";
+  String get xmllang native "SVGAElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGAElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGAElement_xmlspace_Getter";
+  String get xmlspace native "SVGAElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGAElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGAElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGAElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGAElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGAElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGAElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGAElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGAElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGAElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGAElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGAElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGAElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGAElement_getBBox_Callback";
 
@@ -14485,15 +14485,15 @@ class _SVGAltGlyphDefElementImpl extends _SVGElementImpl implements SVGAltGlyphD
 
 class _SVGAltGlyphElementImpl extends _SVGTextPositioningElementImpl implements SVGAltGlyphElement {
 
-  String get format() native "SVGAltGlyphElement_format_Getter";
+  String get format native "SVGAltGlyphElement_format_Getter";
 
   void set format(String) native "SVGAltGlyphElement_format_Setter";
 
-  String get glyphRef() native "SVGAltGlyphElement_glyphRef_Getter";
+  String get glyphRef native "SVGAltGlyphElement_glyphRef_Getter";
 
   void set glyphRef(String) native "SVGAltGlyphElement_glyphRef_Setter";
 
-  SVGAnimatedString get href() native "SVGAltGlyphElement_href_Getter";
+  SVGAnimatedString get href native "SVGAltGlyphElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14513,17 +14513,17 @@ class _SVGAltGlyphItemElementImpl extends _SVGElementImpl implements SVGAltGlyph
 
 class _SVGAngleImpl extends NativeFieldWrapperClass1 implements SVGAngle {
 
-  int get unitType() native "SVGAngle_unitType_Getter";
+  int get unitType native "SVGAngle_unitType_Getter";
 
-  num get value() native "SVGAngle_value_Getter";
+  num get value native "SVGAngle_value_Getter";
 
   void set value(num) native "SVGAngle_value_Setter";
 
-  String get valueAsString() native "SVGAngle_valueAsString_Getter";
+  String get valueAsString native "SVGAngle_valueAsString_Getter";
 
   void set valueAsString(String) native "SVGAngle_valueAsString_Setter";
 
-  num get valueInSpecifiedUnits() native "SVGAngle_valueInSpecifiedUnits_Getter";
+  num get valueInSpecifiedUnits native "SVGAngle_valueInSpecifiedUnits_Getter";
 
   void set valueInSpecifiedUnits(num) native "SVGAngle_valueInSpecifiedUnits_Setter";
 
@@ -14576,9 +14576,9 @@ class _SVGAnimateTransformElementImpl extends _SVGAnimationElementImpl implement
 
 class _SVGAnimatedAngleImpl extends NativeFieldWrapperClass1 implements SVGAnimatedAngle {
 
-  SVGAngle get animVal() native "SVGAnimatedAngle_animVal_Getter";
+  SVGAngle get animVal native "SVGAnimatedAngle_animVal_Getter";
 
-  SVGAngle get baseVal() native "SVGAnimatedAngle_baseVal_Getter";
+  SVGAngle get baseVal native "SVGAnimatedAngle_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14589,9 +14589,9 @@ class _SVGAnimatedAngleImpl extends NativeFieldWrapperClass1 implements SVGAnima
 
 class _SVGAnimatedBooleanImpl extends NativeFieldWrapperClass1 implements SVGAnimatedBoolean {
 
-  bool get animVal() native "SVGAnimatedBoolean_animVal_Getter";
+  bool get animVal native "SVGAnimatedBoolean_animVal_Getter";
 
-  bool get baseVal() native "SVGAnimatedBoolean_baseVal_Getter";
+  bool get baseVal native "SVGAnimatedBoolean_baseVal_Getter";
 
   void set baseVal(bool) native "SVGAnimatedBoolean_baseVal_Setter";
 
@@ -14604,9 +14604,9 @@ class _SVGAnimatedBooleanImpl extends NativeFieldWrapperClass1 implements SVGAni
 
 class _SVGAnimatedEnumerationImpl extends NativeFieldWrapperClass1 implements SVGAnimatedEnumeration {
 
-  int get animVal() native "SVGAnimatedEnumeration_animVal_Getter";
+  int get animVal native "SVGAnimatedEnumeration_animVal_Getter";
 
-  int get baseVal() native "SVGAnimatedEnumeration_baseVal_Getter";
+  int get baseVal native "SVGAnimatedEnumeration_baseVal_Getter";
 
   void set baseVal(int) native "SVGAnimatedEnumeration_baseVal_Setter";
 
@@ -14619,9 +14619,9 @@ class _SVGAnimatedEnumerationImpl extends NativeFieldWrapperClass1 implements SV
 
 class _SVGAnimatedIntegerImpl extends NativeFieldWrapperClass1 implements SVGAnimatedInteger {
 
-  int get animVal() native "SVGAnimatedInteger_animVal_Getter";
+  int get animVal native "SVGAnimatedInteger_animVal_Getter";
 
-  int get baseVal() native "SVGAnimatedInteger_baseVal_Getter";
+  int get baseVal native "SVGAnimatedInteger_baseVal_Getter";
 
   void set baseVal(int) native "SVGAnimatedInteger_baseVal_Setter";
 
@@ -14634,9 +14634,9 @@ class _SVGAnimatedIntegerImpl extends NativeFieldWrapperClass1 implements SVGAni
 
 class _SVGAnimatedLengthImpl extends NativeFieldWrapperClass1 implements SVGAnimatedLength {
 
-  SVGLength get animVal() native "SVGAnimatedLength_animVal_Getter";
+  SVGLength get animVal native "SVGAnimatedLength_animVal_Getter";
 
-  SVGLength get baseVal() native "SVGAnimatedLength_baseVal_Getter";
+  SVGLength get baseVal native "SVGAnimatedLength_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14647,9 +14647,9 @@ class _SVGAnimatedLengthImpl extends NativeFieldWrapperClass1 implements SVGAnim
 
 class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVGAnimatedLengthList {
 
-  SVGLengthList get animVal() native "SVGAnimatedLengthList_animVal_Getter";
+  SVGLengthList get animVal native "SVGAnimatedLengthList_animVal_Getter";
 
-  SVGLengthList get baseVal() native "SVGAnimatedLengthList_baseVal_Getter";
+  SVGLengthList get baseVal native "SVGAnimatedLengthList_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14660,9 +14660,9 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
 
 class _SVGAnimatedNumberImpl extends NativeFieldWrapperClass1 implements SVGAnimatedNumber {
 
-  num get animVal() native "SVGAnimatedNumber_animVal_Getter";
+  num get animVal native "SVGAnimatedNumber_animVal_Getter";
 
-  num get baseVal() native "SVGAnimatedNumber_baseVal_Getter";
+  num get baseVal native "SVGAnimatedNumber_baseVal_Getter";
 
   void set baseVal(num) native "SVGAnimatedNumber_baseVal_Setter";
 
@@ -14675,9 +14675,9 @@ class _SVGAnimatedNumberImpl extends NativeFieldWrapperClass1 implements SVGAnim
 
 class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVGAnimatedNumberList {
 
-  SVGNumberList get animVal() native "SVGAnimatedNumberList_animVal_Getter";
+  SVGNumberList get animVal native "SVGAnimatedNumberList_animVal_Getter";
 
-  SVGNumberList get baseVal() native "SVGAnimatedNumberList_baseVal_Getter";
+  SVGNumberList get baseVal native "SVGAnimatedNumberList_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14688,9 +14688,9 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
 
 class _SVGAnimatedPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SVGAnimatedPreserveAspectRatio {
 
-  SVGPreserveAspectRatio get animVal() native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
+  SVGPreserveAspectRatio get animVal native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
 
-  SVGPreserveAspectRatio get baseVal() native "SVGAnimatedPreserveAspectRatio_baseVal_Getter";
+  SVGPreserveAspectRatio get baseVal native "SVGAnimatedPreserveAspectRatio_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14701,9 +14701,9 @@ class _SVGAnimatedPreserveAspectRatioImpl extends NativeFieldWrapperClass1 imple
 
 class _SVGAnimatedRectImpl extends NativeFieldWrapperClass1 implements SVGAnimatedRect {
 
-  SVGRect get animVal() native "SVGAnimatedRect_animVal_Getter";
+  SVGRect get animVal native "SVGAnimatedRect_animVal_Getter";
 
-  SVGRect get baseVal() native "SVGAnimatedRect_baseVal_Getter";
+  SVGRect get baseVal native "SVGAnimatedRect_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14714,9 +14714,9 @@ class _SVGAnimatedRectImpl extends NativeFieldWrapperClass1 implements SVGAnimat
 
 class _SVGAnimatedStringImpl extends NativeFieldWrapperClass1 implements SVGAnimatedString {
 
-  String get animVal() native "SVGAnimatedString_animVal_Getter";
+  String get animVal native "SVGAnimatedString_animVal_Getter";
 
-  String get baseVal() native "SVGAnimatedString_baseVal_Getter";
+  String get baseVal native "SVGAnimatedString_baseVal_Getter";
 
   void set baseVal(String) native "SVGAnimatedString_baseVal_Setter";
 
@@ -14729,9 +14729,9 @@ class _SVGAnimatedStringImpl extends NativeFieldWrapperClass1 implements SVGAnim
 
 class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements SVGAnimatedTransformList {
 
-  SVGTransformList get animVal() native "SVGAnimatedTransformList_animVal_Getter";
+  SVGTransformList get animVal native "SVGAnimatedTransformList_animVal_Getter";
 
-  SVGTransformList get baseVal() native "SVGAnimatedTransformList_baseVal_Getter";
+  SVGTransformList get baseVal native "SVGAnimatedTransformList_baseVal_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14742,7 +14742,7 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
 
 class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationElement {
 
-  SVGElement get targetElement() native "SVGAnimationElement_targetElement_Getter";
+  SVGElement get targetElement native "SVGAnimationElement_targetElement_Getter";
 
   num getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
 
@@ -14750,15 +14750,15 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
-  SVGStringList get requiredExtensions() native "SVGAnimationElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGAnimationElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGAnimationElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGAnimationElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGAnimationElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGAnimationElement_hasExtension_Callback";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGAnimationElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGAnimationElement_externalResourcesRequired_Getter";
 
   void beginElement() native "SVGAnimationElement_beginElement_Callback";
 
@@ -14777,41 +14777,41 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
 class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement {
 
-  SVGAnimatedLength get cx() native "SVGCircleElement_cx_Getter";
+  SVGAnimatedLength get cx native "SVGCircleElement_cx_Getter";
 
-  SVGAnimatedLength get cy() native "SVGCircleElement_cy_Getter";
+  SVGAnimatedLength get cy native "SVGCircleElement_cy_Getter";
 
-  SVGAnimatedLength get r() native "SVGCircleElement_r_Getter";
+  SVGAnimatedLength get r native "SVGCircleElement_r_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGCircleElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGCircleElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGCircleElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGCircleElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGCircleElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGCircleElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGCircleElement_xmllang_Getter";
+  String get xmllang native "SVGCircleElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGCircleElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGCircleElement_xmlspace_Getter";
+  String get xmlspace native "SVGCircleElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGCircleElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGCircleElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGCircleElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGCircleElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGCircleElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGCircleElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGCircleElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGCircleElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGCircleElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGCircleElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGCircleElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGCircleElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGCircleElement_getBBox_Callback";
 
@@ -14830,37 +14830,37 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
 class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElement {
 
-  SVGAnimatedEnumeration get clipPathUnits() native "SVGClipPathElement_clipPathUnits_Getter";
+  SVGAnimatedEnumeration get clipPathUnits native "SVGClipPathElement_clipPathUnits_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGClipPathElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGClipPathElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGClipPathElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGClipPathElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGClipPathElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGClipPathElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGClipPathElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGClipPathElement_xmllang_Getter";
+  String get xmllang native "SVGClipPathElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGClipPathElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGClipPathElement_xmlspace_Getter";
+  String get xmlspace native "SVGClipPathElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGClipPathElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGClipPathElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGClipPathElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGClipPathElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGClipPathElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGClipPathElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGClipPathElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGClipPathElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGClipPathElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGClipPathElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGClipPathElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGClipPathElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGClipPathElement_getBBox_Callback";
 
@@ -14879,9 +14879,9 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
 class _SVGColorImpl extends _CSSValueImpl implements SVGColor {
 
-  int get colorType() native "SVGColor_colorType_Getter";
+  int get colorType native "SVGColor_colorType_Getter";
 
-  RGBColor get rgbColor() native "SVGColor_rgbColor_Getter";
+  RGBColor get rgbColor native "SVGColor_rgbColor_Getter";
 
   void setColor(int colorType, String rgbColor, String iccColor) native "SVGColor_setColor_Callback";
 
@@ -14898,19 +14898,19 @@ class _SVGColorImpl extends _CSSValueImpl implements SVGColor {
 
 class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implements SVGComponentTransferFunctionElement {
 
-  SVGAnimatedNumber get amplitude() native "SVGComponentTransferFunctionElement_amplitude_Getter";
+  SVGAnimatedNumber get amplitude native "SVGComponentTransferFunctionElement_amplitude_Getter";
 
-  SVGAnimatedNumber get exponent() native "SVGComponentTransferFunctionElement_exponent_Getter";
+  SVGAnimatedNumber get exponent native "SVGComponentTransferFunctionElement_exponent_Getter";
 
-  SVGAnimatedNumber get intercept() native "SVGComponentTransferFunctionElement_intercept_Getter";
+  SVGAnimatedNumber get intercept native "SVGComponentTransferFunctionElement_intercept_Getter";
 
-  SVGAnimatedNumber get offset() native "SVGComponentTransferFunctionElement_offset_Getter";
+  SVGAnimatedNumber get offset native "SVGComponentTransferFunctionElement_offset_Getter";
 
-  SVGAnimatedNumber get slope() native "SVGComponentTransferFunctionElement_slope_Getter";
+  SVGAnimatedNumber get slope native "SVGComponentTransferFunctionElement_slope_Getter";
 
-  SVGAnimatedNumberList get tableValues() native "SVGComponentTransferFunctionElement_tableValues_Getter";
+  SVGAnimatedNumberList get tableValues native "SVGComponentTransferFunctionElement_tableValues_Getter";
 
-  SVGAnimatedEnumeration get type() native "SVGComponentTransferFunctionElement_type_Getter";
+  SVGAnimatedEnumeration get type native "SVGComponentTransferFunctionElement_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14921,21 +14921,21 @@ class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implement
 
 class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement {
 
-  SVGAnimatedLength get x() native "SVGCursorElement_x_Getter";
+  SVGAnimatedLength get x native "SVGCursorElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGCursorElement_y_Getter";
+  SVGAnimatedLength get y native "SVGCursorElement_y_Getter";
 
-  SVGAnimatedString get href() native "SVGCursorElement_href_Getter";
+  SVGAnimatedString get href native "SVGCursorElement_href_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGCursorElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGCursorElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGCursorElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGCursorElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGCursorElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGCursorElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGCursorElement_hasExtension_Callback";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGCursorElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGCursorElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14946,35 +14946,35 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
 class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
-  SVGStringList get requiredExtensions() native "SVGDefsElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGDefsElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGDefsElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGDefsElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGDefsElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGDefsElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGDefsElement_xmllang_Getter";
+  String get xmllang native "SVGDefsElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGDefsElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGDefsElement_xmlspace_Getter";
+  String get xmlspace native "SVGDefsElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGDefsElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGDefsElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGDefsElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGDefsElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGDefsElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGDefsElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGDefsElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGDefsElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGDefsElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGDefsElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGDefsElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGDefsElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGDefsElement_getBBox_Callback";
 
@@ -14993,17 +14993,17 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
 class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
-  String get xmllang() native "SVGDescElement_xmllang_Getter";
+  String get xmllang native "SVGDescElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGDescElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGDescElement_xmlspace_Getter";
+  String get xmlspace native "SVGDescElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGDescElement_xmlspace_Setter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGDescElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGDescElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGDescElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGDescElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGDescElement_getPresentationAttribute_Callback";
 
@@ -15016,7 +15016,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
 class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 
-  SVGSVGElement get rootElement() native "SVGDocument_rootElement_Getter";
+  SVGSVGElement get rootElement native "SVGDocument_rootElement_Getter";
 
   Event $dom_createEvent(String eventType) native "SVGDocument_createEvent_Callback";
 
@@ -15036,14 +15036,14 @@ class _AttributeClassSet extends _CssClassSet {
 }
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement {
-  CSSClassSet get classes() {
+  CSSClassSet get classes {
     if (_cssClassSet === null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
     return _cssClassSet;
   }
 
-  ElementList get elements() => new FilteredElementList(this);
+  ElementList get elements => new FilteredElementList(this);
 
   void set elements(Collection<Element> value) {
     final elements = this.elements;
@@ -15051,14 +15051,14 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
     elements.addAll(value);
   }
 
-  String get outerHTML() {
+  String get outerHTML {
     final container = new Element.tag("div");
     final SVGElement cloned = this.clone(true);
     container.elements.add(cloned);
     return container.innerHTML;
   }
 
-  String get innerHTML() {
+  String get innerHTML {
     final container = new Element.tag("div");
     final SVGElement cloned = this.clone(true);
     container.elements.addAll(cloned.elements);
@@ -15074,15 +15074,15 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
   }
 
 
-  String get id() native "SVGElement_id_Getter";
+  String get id native "SVGElement_id_Getter";
 
   void set id(String) native "SVGElement_id_Setter";
 
-  SVGSVGElement get ownerSVGElement() native "SVGElement_ownerSVGElement_Getter";
+  SVGSVGElement get ownerSVGElement native "SVGElement_ownerSVGElement_Getter";
 
-  SVGElement get viewportElement() native "SVGElement_viewportElement_Getter";
+  SVGElement get viewportElement native "SVGElement_viewportElement_Getter";
 
-  String get xmlbase() native "SVGElement_xmlbase_Getter";
+  String get xmlbase native "SVGElement_xmlbase_Getter";
 
   void set xmlbase(String) native "SVGElement_xmlbase_Setter";
 
@@ -15091,85 +15091,85 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
   _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get beforeCopy() => this['beforecopy'];
+  EventListenerList get beforeCopy => this['beforecopy'];
 
-  EventListenerList get beforeCut() => this['beforecut'];
+  EventListenerList get beforeCut => this['beforecut'];
 
-  EventListenerList get beforePaste() => this['beforepaste'];
+  EventListenerList get beforePaste => this['beforepaste'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get copy() => this['copy'];
+  EventListenerList get copy => this['copy'];
 
-  EventListenerList get cut() => this['cut'];
+  EventListenerList get cut => this['cut'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get paste() => this['paste'];
+  EventListenerList get paste => this['paste'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart() => this['selectstart'];
+  EventListenerList get selectStart => this['selectstart'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15179,24 +15179,24 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
 
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
 
-  _SVGElementInstanceEventsImpl get on() =>
+  _SVGElementInstanceEventsImpl get on =>
     new _SVGElementInstanceEventsImpl(this);
 
-  SVGElementInstanceList get childNodes() native "SVGElementInstance_childNodes_Getter";
+  SVGElementInstanceList get childNodes native "SVGElementInstance_childNodes_Getter";
 
-  SVGElement get correspondingElement() native "SVGElementInstance_correspondingElement_Getter";
+  SVGElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
 
-  SVGUseElement get correspondingUseElement() native "SVGElementInstance_correspondingUseElement_Getter";
+  SVGUseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
 
-  SVGElementInstance get firstChild() native "SVGElementInstance_firstChild_Getter";
+  SVGElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
 
-  SVGElementInstance get lastChild() native "SVGElementInstance_lastChild_Getter";
+  SVGElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
 
-  SVGElementInstance get nextSibling() native "SVGElementInstance_nextSibling_Getter";
+  SVGElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
 
-  SVGElementInstance get parentNode() native "SVGElementInstance_parentNode_Getter";
+  SVGElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
 
-  SVGElementInstance get previousSibling() native "SVGElementInstance_previousSibling_Getter";
+  SVGElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15207,7 +15207,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 
 class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SVGElementInstanceList {
 
-  int get length() native "SVGElementInstanceList_length_Getter";
+  int get length native "SVGElementInstanceList_length_Getter";
 
   SVGElementInstance item(int index) native "SVGElementInstanceList_item_Callback";
 
@@ -15220,43 +15220,43 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SV
 
 class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElement {
 
-  SVGAnimatedLength get cx() native "SVGEllipseElement_cx_Getter";
+  SVGAnimatedLength get cx native "SVGEllipseElement_cx_Getter";
 
-  SVGAnimatedLength get cy() native "SVGEllipseElement_cy_Getter";
+  SVGAnimatedLength get cy native "SVGEllipseElement_cy_Getter";
 
-  SVGAnimatedLength get rx() native "SVGEllipseElement_rx_Getter";
+  SVGAnimatedLength get rx native "SVGEllipseElement_rx_Getter";
 
-  SVGAnimatedLength get ry() native "SVGEllipseElement_ry_Getter";
+  SVGAnimatedLength get ry native "SVGEllipseElement_ry_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGEllipseElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGEllipseElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGEllipseElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGEllipseElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGEllipseElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGEllipseElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGEllipseElement_xmllang_Getter";
+  String get xmllang native "SVGEllipseElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGEllipseElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGEllipseElement_xmlspace_Getter";
+  String get xmlspace native "SVGEllipseElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGEllipseElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGEllipseElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGEllipseElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGEllipseElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGEllipseElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGEllipseElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGEllipseElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGEllipseElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGEllipseElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGEllipseElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGEllipseElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGEllipseElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGEllipseElement_getBBox_Callback";
 
@@ -15275,11 +15275,11 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
 class _SVGExceptionImpl extends NativeFieldWrapperClass1 implements SVGException {
 
-  int get code() native "SVGException_code_Getter";
+  int get code native "SVGException_code_Getter";
 
-  String get message() native "SVGException_message_Getter";
+  String get message native "SVGException_message_Getter";
 
-  String get name() native "SVGException_name_Getter";
+  String get name native "SVGException_name_Getter";
 
   String toString() native "SVGException_toString_Callback";
 
@@ -15292,25 +15292,25 @@ class _SVGExceptionImpl extends NativeFieldWrapperClass1 implements SVGException
 
 class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElement {
 
-  SVGAnimatedString get in1() native "SVGFEBlendElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEBlendElement_in1_Getter";
 
-  SVGAnimatedString get in2() native "SVGFEBlendElement_in2_Getter";
+  SVGAnimatedString get in2 native "SVGFEBlendElement_in2_Getter";
 
-  SVGAnimatedEnumeration get mode() native "SVGFEBlendElement_mode_Getter";
+  SVGAnimatedEnumeration get mode native "SVGFEBlendElement_mode_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEBlendElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEBlendElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEBlendElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEBlendElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEBlendElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEBlendElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEBlendElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEBlendElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEBlendElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEBlendElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEBlendElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEBlendElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEBlendElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEBlendElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEBlendElement_getPresentationAttribute_Callback";
 
@@ -15323,25 +15323,25 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
 class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColorMatrixElement {
 
-  SVGAnimatedString get in1() native "SVGFEColorMatrixElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEColorMatrixElement_in1_Getter";
 
-  SVGAnimatedEnumeration get type() native "SVGFEColorMatrixElement_type_Getter";
+  SVGAnimatedEnumeration get type native "SVGFEColorMatrixElement_type_Getter";
 
-  SVGAnimatedNumberList get values() native "SVGFEColorMatrixElement_values_Getter";
+  SVGAnimatedNumberList get values native "SVGFEColorMatrixElement_values_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEColorMatrixElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEColorMatrixElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEColorMatrixElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEColorMatrixElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEColorMatrixElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEColorMatrixElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEColorMatrixElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEColorMatrixElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEColorMatrixElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEColorMatrixElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEColorMatrixElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEColorMatrixElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEColorMatrixElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEColorMatrixElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEColorMatrixElement_getPresentationAttribute_Callback";
 
@@ -15354,21 +15354,21 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
 class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGFEComponentTransferElement {
 
-  SVGAnimatedString get in1() native "SVGFEComponentTransferElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEComponentTransferElement_in1_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEComponentTransferElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEComponentTransferElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEComponentTransferElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEComponentTransferElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEComponentTransferElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEComponentTransferElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEComponentTransferElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEComponentTransferElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEComponentTransferElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEComponentTransferElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEComponentTransferElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEComponentTransferElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEComponentTransferElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEComponentTransferElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEComponentTransferElement_getPresentationAttribute_Callback";
 
@@ -15381,33 +15381,33 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
 class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFECompositeElement {
 
-  SVGAnimatedString get in1() native "SVGFECompositeElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFECompositeElement_in1_Getter";
 
-  SVGAnimatedString get in2() native "SVGFECompositeElement_in2_Getter";
+  SVGAnimatedString get in2 native "SVGFECompositeElement_in2_Getter";
 
-  SVGAnimatedNumber get k1() native "SVGFECompositeElement_k1_Getter";
+  SVGAnimatedNumber get k1 native "SVGFECompositeElement_k1_Getter";
 
-  SVGAnimatedNumber get k2() native "SVGFECompositeElement_k2_Getter";
+  SVGAnimatedNumber get k2 native "SVGFECompositeElement_k2_Getter";
 
-  SVGAnimatedNumber get k3() native "SVGFECompositeElement_k3_Getter";
+  SVGAnimatedNumber get k3 native "SVGFECompositeElement_k3_Getter";
 
-  SVGAnimatedNumber get k4() native "SVGFECompositeElement_k4_Getter";
+  SVGAnimatedNumber get k4 native "SVGFECompositeElement_k4_Getter";
 
-  SVGAnimatedEnumeration get operator() native "SVGFECompositeElement_operator_Getter";
+  SVGAnimatedEnumeration get operator native "SVGFECompositeElement_operator_Getter";
 
-  SVGAnimatedLength get height() native "SVGFECompositeElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFECompositeElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFECompositeElement_result_Getter";
+  SVGAnimatedString get result native "SVGFECompositeElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFECompositeElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFECompositeElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFECompositeElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFECompositeElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFECompositeElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFECompositeElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFECompositeElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFECompositeElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFECompositeElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFECompositeElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFECompositeElement_getPresentationAttribute_Callback";
 
@@ -15420,43 +15420,43 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
 class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFEConvolveMatrixElement {
 
-  SVGAnimatedNumber get bias() native "SVGFEConvolveMatrixElement_bias_Getter";
+  SVGAnimatedNumber get bias native "SVGFEConvolveMatrixElement_bias_Getter";
 
-  SVGAnimatedNumber get divisor() native "SVGFEConvolveMatrixElement_divisor_Getter";
+  SVGAnimatedNumber get divisor native "SVGFEConvolveMatrixElement_divisor_Getter";
 
-  SVGAnimatedEnumeration get edgeMode() native "SVGFEConvolveMatrixElement_edgeMode_Getter";
+  SVGAnimatedEnumeration get edgeMode native "SVGFEConvolveMatrixElement_edgeMode_Getter";
 
-  SVGAnimatedString get in1() native "SVGFEConvolveMatrixElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEConvolveMatrixElement_in1_Getter";
 
-  SVGAnimatedNumberList get kernelMatrix() native "SVGFEConvolveMatrixElement_kernelMatrix_Getter";
+  SVGAnimatedNumberList get kernelMatrix native "SVGFEConvolveMatrixElement_kernelMatrix_Getter";
 
-  SVGAnimatedNumber get kernelUnitLengthX() native "SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter";
+  SVGAnimatedNumber get kernelUnitLengthX native "SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter";
 
-  SVGAnimatedNumber get kernelUnitLengthY() native "SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter";
+  SVGAnimatedNumber get kernelUnitLengthY native "SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter";
 
-  SVGAnimatedInteger get orderX() native "SVGFEConvolveMatrixElement_orderX_Getter";
+  SVGAnimatedInteger get orderX native "SVGFEConvolveMatrixElement_orderX_Getter";
 
-  SVGAnimatedInteger get orderY() native "SVGFEConvolveMatrixElement_orderY_Getter";
+  SVGAnimatedInteger get orderY native "SVGFEConvolveMatrixElement_orderY_Getter";
 
-  SVGAnimatedBoolean get preserveAlpha() native "SVGFEConvolveMatrixElement_preserveAlpha_Getter";
+  SVGAnimatedBoolean get preserveAlpha native "SVGFEConvolveMatrixElement_preserveAlpha_Getter";
 
-  SVGAnimatedInteger get targetX() native "SVGFEConvolveMatrixElement_targetX_Getter";
+  SVGAnimatedInteger get targetX native "SVGFEConvolveMatrixElement_targetX_Getter";
 
-  SVGAnimatedInteger get targetY() native "SVGFEConvolveMatrixElement_targetY_Getter";
+  SVGAnimatedInteger get targetY native "SVGFEConvolveMatrixElement_targetY_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEConvolveMatrixElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEConvolveMatrixElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEConvolveMatrixElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEConvolveMatrixElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEConvolveMatrixElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEConvolveMatrixElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEConvolveMatrixElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEConvolveMatrixElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEConvolveMatrixElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEConvolveMatrixElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEConvolveMatrixElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEConvolveMatrixElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEConvolveMatrixElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEConvolveMatrixElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEConvolveMatrixElement_getPresentationAttribute_Callback";
 
@@ -15469,29 +15469,29 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
 class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFEDiffuseLightingElement {
 
-  SVGAnimatedNumber get diffuseConstant() native "SVGFEDiffuseLightingElement_diffuseConstant_Getter";
+  SVGAnimatedNumber get diffuseConstant native "SVGFEDiffuseLightingElement_diffuseConstant_Getter";
 
-  SVGAnimatedString get in1() native "SVGFEDiffuseLightingElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEDiffuseLightingElement_in1_Getter";
 
-  SVGAnimatedNumber get kernelUnitLengthX() native "SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter";
+  SVGAnimatedNumber get kernelUnitLengthX native "SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter";
 
-  SVGAnimatedNumber get kernelUnitLengthY() native "SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter";
+  SVGAnimatedNumber get kernelUnitLengthY native "SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter";
 
-  SVGAnimatedNumber get surfaceScale() native "SVGFEDiffuseLightingElement_surfaceScale_Getter";
+  SVGAnimatedNumber get surfaceScale native "SVGFEDiffuseLightingElement_surfaceScale_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEDiffuseLightingElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEDiffuseLightingElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEDiffuseLightingElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEDiffuseLightingElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEDiffuseLightingElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEDiffuseLightingElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEDiffuseLightingElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEDiffuseLightingElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEDiffuseLightingElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEDiffuseLightingElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEDiffuseLightingElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEDiffuseLightingElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEDiffuseLightingElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEDiffuseLightingElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEDiffuseLightingElement_getPresentationAttribute_Callback";
 
@@ -15504,29 +15504,29 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
 class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFEDisplacementMapElement {
 
-  SVGAnimatedString get in1() native "SVGFEDisplacementMapElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEDisplacementMapElement_in1_Getter";
 
-  SVGAnimatedString get in2() native "SVGFEDisplacementMapElement_in2_Getter";
+  SVGAnimatedString get in2 native "SVGFEDisplacementMapElement_in2_Getter";
 
-  SVGAnimatedNumber get scale() native "SVGFEDisplacementMapElement_scale_Getter";
+  SVGAnimatedNumber get scale native "SVGFEDisplacementMapElement_scale_Getter";
 
-  SVGAnimatedEnumeration get xChannelSelector() native "SVGFEDisplacementMapElement_xChannelSelector_Getter";
+  SVGAnimatedEnumeration get xChannelSelector native "SVGFEDisplacementMapElement_xChannelSelector_Getter";
 
-  SVGAnimatedEnumeration get yChannelSelector() native "SVGFEDisplacementMapElement_yChannelSelector_Getter";
+  SVGAnimatedEnumeration get yChannelSelector native "SVGFEDisplacementMapElement_yChannelSelector_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEDisplacementMapElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEDisplacementMapElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEDisplacementMapElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEDisplacementMapElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEDisplacementMapElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEDisplacementMapElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEDisplacementMapElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEDisplacementMapElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEDisplacementMapElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEDisplacementMapElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEDisplacementMapElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEDisplacementMapElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEDisplacementMapElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEDisplacementMapElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEDisplacementMapElement_getPresentationAttribute_Callback";
 
@@ -15539,9 +15539,9 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
 class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDistantLightElement {
 
-  SVGAnimatedNumber get azimuth() native "SVGFEDistantLightElement_azimuth_Getter";
+  SVGAnimatedNumber get azimuth native "SVGFEDistantLightElement_azimuth_Getter";
 
-  SVGAnimatedNumber get elevation() native "SVGFEDistantLightElement_elevation_Getter";
+  SVGAnimatedNumber get elevation native "SVGFEDistantLightElement_elevation_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15552,31 +15552,31 @@ class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDist
 
 class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropShadowElement {
 
-  SVGAnimatedNumber get dx() native "SVGFEDropShadowElement_dx_Getter";
+  SVGAnimatedNumber get dx native "SVGFEDropShadowElement_dx_Getter";
 
-  SVGAnimatedNumber get dy() native "SVGFEDropShadowElement_dy_Getter";
+  SVGAnimatedNumber get dy native "SVGFEDropShadowElement_dy_Getter";
 
-  SVGAnimatedString get in1() native "SVGFEDropShadowElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEDropShadowElement_in1_Getter";
 
-  SVGAnimatedNumber get stdDeviationX() native "SVGFEDropShadowElement_stdDeviationX_Getter";
+  SVGAnimatedNumber get stdDeviationX native "SVGFEDropShadowElement_stdDeviationX_Getter";
 
-  SVGAnimatedNumber get stdDeviationY() native "SVGFEDropShadowElement_stdDeviationY_Getter";
+  SVGAnimatedNumber get stdDeviationY native "SVGFEDropShadowElement_stdDeviationY_Getter";
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEDropShadowElement_setStdDeviation_Callback";
 
-  SVGAnimatedLength get height() native "SVGFEDropShadowElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEDropShadowElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEDropShadowElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEDropShadowElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEDropShadowElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEDropShadowElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEDropShadowElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEDropShadowElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEDropShadowElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEDropShadowElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEDropShadowElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEDropShadowElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEDropShadowElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEDropShadowElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEDropShadowElement_getPresentationAttribute_Callback";
 
@@ -15589,19 +15589,19 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
 class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElement {
 
-  SVGAnimatedLength get height() native "SVGFEFloodElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEFloodElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEFloodElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEFloodElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEFloodElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEFloodElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEFloodElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEFloodElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEFloodElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEFloodElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEFloodElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEFloodElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEFloodElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEFloodElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEFloodElement_getPresentationAttribute_Callback";
 
@@ -15650,27 +15650,27 @@ class _SVGFEFuncRElementImpl extends _SVGComponentTransferFunctionElementImpl im
 
 class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaussianBlurElement {
 
-  SVGAnimatedString get in1() native "SVGFEGaussianBlurElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEGaussianBlurElement_in1_Getter";
 
-  SVGAnimatedNumber get stdDeviationX() native "SVGFEGaussianBlurElement_stdDeviationX_Getter";
+  SVGAnimatedNumber get stdDeviationX native "SVGFEGaussianBlurElement_stdDeviationX_Getter";
 
-  SVGAnimatedNumber get stdDeviationY() native "SVGFEGaussianBlurElement_stdDeviationY_Getter";
+  SVGAnimatedNumber get stdDeviationY native "SVGFEGaussianBlurElement_stdDeviationY_Getter";
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEGaussianBlurElement_setStdDeviation_Callback";
 
-  SVGAnimatedLength get height() native "SVGFEGaussianBlurElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEGaussianBlurElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEGaussianBlurElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEGaussianBlurElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEGaussianBlurElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEGaussianBlurElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEGaussianBlurElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEGaussianBlurElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEGaussianBlurElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEGaussianBlurElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEGaussianBlurElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEGaussianBlurElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEGaussianBlurElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEGaussianBlurElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEGaussianBlurElement_getPresentationAttribute_Callback";
 
@@ -15683,33 +15683,33 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
 class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElement {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGFEImageElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFEImageElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedString get href() native "SVGFEImageElement_href_Getter";
+  SVGAnimatedString get href native "SVGFEImageElement_href_Getter";
 
-  String get xmllang() native "SVGFEImageElement_xmllang_Getter";
+  String get xmllang native "SVGFEImageElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGFEImageElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGFEImageElement_xmlspace_Getter";
+  String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGFEImageElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGFEImageElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGFEImageElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEImageElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEImageElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEImageElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEImageElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEImageElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEImageElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEImageElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEImageElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEImageElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEImageElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEImageElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEImageElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEImageElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEImageElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEImageElement_getPresentationAttribute_Callback";
 
@@ -15722,19 +15722,19 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
 class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElement {
 
-  SVGAnimatedLength get height() native "SVGFEMergeElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEMergeElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEMergeElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEMergeElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEMergeElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEMergeElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEMergeElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEMergeElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEMergeElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEMergeElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEMergeElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEMergeElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEMergeElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEMergeElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEMergeElement_getPresentationAttribute_Callback";
 
@@ -15747,7 +15747,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
 class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNodeElement {
 
-  SVGAnimatedString get in1() native "SVGFEMergeNodeElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEMergeNodeElement_in1_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15758,29 +15758,29 @@ class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNo
 
 class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorphologyElement {
 
-  SVGAnimatedString get in1() native "SVGFEMorphologyElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEMorphologyElement_in1_Getter";
 
-  SVGAnimatedEnumeration get operator() native "SVGFEMorphologyElement_operator_Getter";
+  SVGAnimatedEnumeration get operator native "SVGFEMorphologyElement_operator_Getter";
 
-  SVGAnimatedNumber get radiusX() native "SVGFEMorphologyElement_radiusX_Getter";
+  SVGAnimatedNumber get radiusX native "SVGFEMorphologyElement_radiusX_Getter";
 
-  SVGAnimatedNumber get radiusY() native "SVGFEMorphologyElement_radiusY_Getter";
+  SVGAnimatedNumber get radiusY native "SVGFEMorphologyElement_radiusY_Getter";
 
   void setRadius(num radiusX, num radiusY) native "SVGFEMorphologyElement_setRadius_Callback";
 
-  SVGAnimatedLength get height() native "SVGFEMorphologyElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEMorphologyElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEMorphologyElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEMorphologyElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEMorphologyElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEMorphologyElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEMorphologyElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEMorphologyElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEMorphologyElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEMorphologyElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEMorphologyElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEMorphologyElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEMorphologyElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEMorphologyElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEMorphologyElement_getPresentationAttribute_Callback";
 
@@ -15793,25 +15793,25 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
 class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElement {
 
-  SVGAnimatedNumber get dx() native "SVGFEOffsetElement_dx_Getter";
+  SVGAnimatedNumber get dx native "SVGFEOffsetElement_dx_Getter";
 
-  SVGAnimatedNumber get dy() native "SVGFEOffsetElement_dy_Getter";
+  SVGAnimatedNumber get dy native "SVGFEOffsetElement_dy_Getter";
 
-  SVGAnimatedString get in1() native "SVGFEOffsetElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFEOffsetElement_in1_Getter";
 
-  SVGAnimatedLength get height() native "SVGFEOffsetElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFEOffsetElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFEOffsetElement_result_Getter";
+  SVGAnimatedString get result native "SVGFEOffsetElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFEOffsetElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFEOffsetElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFEOffsetElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFEOffsetElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFEOffsetElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFEOffsetElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFEOffsetElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFEOffsetElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFEOffsetElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFEOffsetElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEOffsetElement_getPresentationAttribute_Callback";
 
@@ -15824,11 +15824,11 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
 class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointLightElement {
 
-  SVGAnimatedNumber get x() native "SVGFEPointLightElement_x_Getter";
+  SVGAnimatedNumber get x native "SVGFEPointLightElement_x_Getter";
 
-  SVGAnimatedNumber get y() native "SVGFEPointLightElement_y_Getter";
+  SVGAnimatedNumber get y native "SVGFEPointLightElement_y_Getter";
 
-  SVGAnimatedNumber get z() native "SVGFEPointLightElement_z_Getter";
+  SVGAnimatedNumber get z native "SVGFEPointLightElement_z_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15839,27 +15839,27 @@ class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointL
 
 class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFESpecularLightingElement {
 
-  SVGAnimatedString get in1() native "SVGFESpecularLightingElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFESpecularLightingElement_in1_Getter";
 
-  SVGAnimatedNumber get specularConstant() native "SVGFESpecularLightingElement_specularConstant_Getter";
+  SVGAnimatedNumber get specularConstant native "SVGFESpecularLightingElement_specularConstant_Getter";
 
-  SVGAnimatedNumber get specularExponent() native "SVGFESpecularLightingElement_specularExponent_Getter";
+  SVGAnimatedNumber get specularExponent native "SVGFESpecularLightingElement_specularExponent_Getter";
 
-  SVGAnimatedNumber get surfaceScale() native "SVGFESpecularLightingElement_surfaceScale_Getter";
+  SVGAnimatedNumber get surfaceScale native "SVGFESpecularLightingElement_surfaceScale_Getter";
 
-  SVGAnimatedLength get height() native "SVGFESpecularLightingElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFESpecularLightingElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFESpecularLightingElement_result_Getter";
+  SVGAnimatedString get result native "SVGFESpecularLightingElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFESpecularLightingElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFESpecularLightingElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFESpecularLightingElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFESpecularLightingElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFESpecularLightingElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFESpecularLightingElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFESpecularLightingElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFESpecularLightingElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFESpecularLightingElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFESpecularLightingElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFESpecularLightingElement_getPresentationAttribute_Callback";
 
@@ -15872,21 +15872,21 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
 class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLightElement {
 
-  SVGAnimatedNumber get limitingConeAngle() native "SVGFESpotLightElement_limitingConeAngle_Getter";
+  SVGAnimatedNumber get limitingConeAngle native "SVGFESpotLightElement_limitingConeAngle_Getter";
 
-  SVGAnimatedNumber get pointsAtX() native "SVGFESpotLightElement_pointsAtX_Getter";
+  SVGAnimatedNumber get pointsAtX native "SVGFESpotLightElement_pointsAtX_Getter";
 
-  SVGAnimatedNumber get pointsAtY() native "SVGFESpotLightElement_pointsAtY_Getter";
+  SVGAnimatedNumber get pointsAtY native "SVGFESpotLightElement_pointsAtY_Getter";
 
-  SVGAnimatedNumber get pointsAtZ() native "SVGFESpotLightElement_pointsAtZ_Getter";
+  SVGAnimatedNumber get pointsAtZ native "SVGFESpotLightElement_pointsAtZ_Getter";
 
-  SVGAnimatedNumber get specularExponent() native "SVGFESpotLightElement_specularExponent_Getter";
+  SVGAnimatedNumber get specularExponent native "SVGFESpotLightElement_specularExponent_Getter";
 
-  SVGAnimatedNumber get x() native "SVGFESpotLightElement_x_Getter";
+  SVGAnimatedNumber get x native "SVGFESpotLightElement_x_Getter";
 
-  SVGAnimatedNumber get y() native "SVGFESpotLightElement_y_Getter";
+  SVGAnimatedNumber get y native "SVGFESpotLightElement_y_Getter";
 
-  SVGAnimatedNumber get z() native "SVGFESpotLightElement_z_Getter";
+  SVGAnimatedNumber get z native "SVGFESpotLightElement_z_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15897,21 +15897,21 @@ class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLig
 
 class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement {
 
-  SVGAnimatedString get in1() native "SVGFETileElement_in1_Getter";
+  SVGAnimatedString get in1 native "SVGFETileElement_in1_Getter";
 
-  SVGAnimatedLength get height() native "SVGFETileElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFETileElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFETileElement_result_Getter";
+  SVGAnimatedString get result native "SVGFETileElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFETileElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFETileElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFETileElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFETileElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFETileElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFETileElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFETileElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFETileElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFETileElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFETileElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFETileElement_getPresentationAttribute_Callback";
 
@@ -15924,31 +15924,31 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
 class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbulenceElement {
 
-  SVGAnimatedNumber get baseFrequencyX() native "SVGFETurbulenceElement_baseFrequencyX_Getter";
+  SVGAnimatedNumber get baseFrequencyX native "SVGFETurbulenceElement_baseFrequencyX_Getter";
 
-  SVGAnimatedNumber get baseFrequencyY() native "SVGFETurbulenceElement_baseFrequencyY_Getter";
+  SVGAnimatedNumber get baseFrequencyY native "SVGFETurbulenceElement_baseFrequencyY_Getter";
 
-  SVGAnimatedInteger get numOctaves() native "SVGFETurbulenceElement_numOctaves_Getter";
+  SVGAnimatedInteger get numOctaves native "SVGFETurbulenceElement_numOctaves_Getter";
 
-  SVGAnimatedNumber get seed() native "SVGFETurbulenceElement_seed_Getter";
+  SVGAnimatedNumber get seed native "SVGFETurbulenceElement_seed_Getter";
 
-  SVGAnimatedEnumeration get stitchTiles() native "SVGFETurbulenceElement_stitchTiles_Getter";
+  SVGAnimatedEnumeration get stitchTiles native "SVGFETurbulenceElement_stitchTiles_Getter";
 
-  SVGAnimatedEnumeration get type() native "SVGFETurbulenceElement_type_Getter";
+  SVGAnimatedEnumeration get type native "SVGFETurbulenceElement_type_Getter";
 
-  SVGAnimatedLength get height() native "SVGFETurbulenceElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFETurbulenceElement_height_Getter";
 
-  SVGAnimatedString get result() native "SVGFETurbulenceElement_result_Getter";
+  SVGAnimatedString get result native "SVGFETurbulenceElement_result_Getter";
 
-  SVGAnimatedLength get width() native "SVGFETurbulenceElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFETurbulenceElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFETurbulenceElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFETurbulenceElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFETurbulenceElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFETurbulenceElement_y_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFETurbulenceElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFETurbulenceElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFETurbulenceElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFETurbulenceElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFETurbulenceElement_getPresentationAttribute_Callback";
 
@@ -15961,39 +15961,39 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
 class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement {
 
-  SVGAnimatedInteger get filterResX() native "SVGFilterElement_filterResX_Getter";
+  SVGAnimatedInteger get filterResX native "SVGFilterElement_filterResX_Getter";
 
-  SVGAnimatedInteger get filterResY() native "SVGFilterElement_filterResY_Getter";
+  SVGAnimatedInteger get filterResY native "SVGFilterElement_filterResY_Getter";
 
-  SVGAnimatedEnumeration get filterUnits() native "SVGFilterElement_filterUnits_Getter";
+  SVGAnimatedEnumeration get filterUnits native "SVGFilterElement_filterUnits_Getter";
 
-  SVGAnimatedLength get height() native "SVGFilterElement_height_Getter";
+  SVGAnimatedLength get height native "SVGFilterElement_height_Getter";
 
-  SVGAnimatedEnumeration get primitiveUnits() native "SVGFilterElement_primitiveUnits_Getter";
+  SVGAnimatedEnumeration get primitiveUnits native "SVGFilterElement_primitiveUnits_Getter";
 
-  SVGAnimatedLength get width() native "SVGFilterElement_width_Getter";
+  SVGAnimatedLength get width native "SVGFilterElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGFilterElement_x_Getter";
+  SVGAnimatedLength get x native "SVGFilterElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGFilterElement_y_Getter";
+  SVGAnimatedLength get y native "SVGFilterElement_y_Getter";
 
   void setFilterRes(int filterResX, int filterResY) native "SVGFilterElement_setFilterRes_Callback";
 
-  SVGAnimatedString get href() native "SVGFilterElement_href_Getter";
+  SVGAnimatedString get href native "SVGFilterElement_href_Getter";
 
-  String get xmllang() native "SVGFilterElement_xmllang_Getter";
+  String get xmllang native "SVGFilterElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGFilterElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGFilterElement_xmlspace_Getter";
+  String get xmlspace native "SVGFilterElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGFilterElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGFilterElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGFilterElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGFilterElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGFilterElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGFilterElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFilterElement_getPresentationAttribute_Callback";
 
@@ -16060,43 +16060,43 @@ class _SVGFontFaceUriElementImpl extends _SVGElementImpl implements SVGFontFaceU
 
 class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeignObjectElement {
 
-  SVGAnimatedLength get height() native "SVGForeignObjectElement_height_Getter";
+  SVGAnimatedLength get height native "SVGForeignObjectElement_height_Getter";
 
-  SVGAnimatedLength get width() native "SVGForeignObjectElement_width_Getter";
+  SVGAnimatedLength get width native "SVGForeignObjectElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGForeignObjectElement_x_Getter";
+  SVGAnimatedLength get x native "SVGForeignObjectElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGForeignObjectElement_y_Getter";
+  SVGAnimatedLength get y native "SVGForeignObjectElement_y_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGForeignObjectElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGForeignObjectElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGForeignObjectElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGForeignObjectElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGForeignObjectElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGForeignObjectElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGForeignObjectElement_xmllang_Getter";
+  String get xmllang native "SVGForeignObjectElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGForeignObjectElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGForeignObjectElement_xmlspace_Getter";
+  String get xmlspace native "SVGForeignObjectElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGForeignObjectElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGForeignObjectElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGForeignObjectElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGForeignObjectElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGForeignObjectElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGForeignObjectElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGForeignObjectElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGForeignObjectElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGForeignObjectElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGForeignObjectElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGForeignObjectElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGForeignObjectElement_getBBox_Callback";
 
@@ -16115,35 +16115,35 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
 class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
-  SVGStringList get requiredExtensions() native "SVGGElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGGElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGGElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGGElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGGElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGGElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGGElement_xmllang_Getter";
+  String get xmllang native "SVGGElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGGElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGGElement_xmlspace_Getter";
+  String get xmlspace native "SVGGElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGGElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGGElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGGElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGGElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGGElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGGElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGGElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGGElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGGElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGGElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGGElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGGElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGGElement_getBBox_Callback";
 
@@ -16171,35 +16171,35 @@ class _SVGGlyphElementImpl extends _SVGElementImpl implements SVGGlyphElement {
 
 class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElement {
 
-  num get dx() native "SVGGlyphRefElement_dx_Getter";
+  num get dx native "SVGGlyphRefElement_dx_Getter";
 
   void set dx(num) native "SVGGlyphRefElement_dx_Setter";
 
-  num get dy() native "SVGGlyphRefElement_dy_Getter";
+  num get dy native "SVGGlyphRefElement_dy_Getter";
 
   void set dy(num) native "SVGGlyphRefElement_dy_Setter";
 
-  String get format() native "SVGGlyphRefElement_format_Getter";
+  String get format native "SVGGlyphRefElement_format_Getter";
 
   void set format(String) native "SVGGlyphRefElement_format_Setter";
 
-  String get glyphRef() native "SVGGlyphRefElement_glyphRef_Getter";
+  String get glyphRef native "SVGGlyphRefElement_glyphRef_Getter";
 
   void set glyphRef(String) native "SVGGlyphRefElement_glyphRef_Setter";
 
-  num get x() native "SVGGlyphRefElement_x_Getter";
+  num get x native "SVGGlyphRefElement_x_Getter";
 
   void set x(num) native "SVGGlyphRefElement_x_Setter";
 
-  num get y() native "SVGGlyphRefElement_y_Getter";
+  num get y native "SVGGlyphRefElement_y_Getter";
 
   void set y(num) native "SVGGlyphRefElement_y_Setter";
 
-  SVGAnimatedString get href() native "SVGGlyphRefElement_href_Getter";
+  SVGAnimatedString get href native "SVGGlyphRefElement_href_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGGlyphRefElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGGlyphRefElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGGlyphRefElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGGlyphRefElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
 
@@ -16212,19 +16212,19 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
 class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElement {
 
-  SVGAnimatedTransformList get gradientTransform() native "SVGGradientElement_gradientTransform_Getter";
+  SVGAnimatedTransformList get gradientTransform native "SVGGradientElement_gradientTransform_Getter";
 
-  SVGAnimatedEnumeration get gradientUnits() native "SVGGradientElement_gradientUnits_Getter";
+  SVGAnimatedEnumeration get gradientUnits native "SVGGradientElement_gradientUnits_Getter";
 
-  SVGAnimatedEnumeration get spreadMethod() native "SVGGradientElement_spreadMethod_Getter";
+  SVGAnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
 
-  SVGAnimatedString get href() native "SVGGradientElement_href_Getter";
+  SVGAnimatedString get href native "SVGGradientElement_href_Getter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGGradientElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGGradientElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGGradientElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGGradientElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGGradientElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGGradientElement_getPresentationAttribute_Callback";
 
@@ -16246,47 +16246,47 @@ class _SVGHKernElementImpl extends _SVGElementImpl implements SVGHKernElement {
 
 class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
-  SVGAnimatedLength get height() native "SVGImageElement_height_Getter";
+  SVGAnimatedLength get height native "SVGImageElement_height_Getter";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGImageElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGImageElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedLength get width() native "SVGImageElement_width_Getter";
+  SVGAnimatedLength get width native "SVGImageElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGImageElement_x_Getter";
+  SVGAnimatedLength get x native "SVGImageElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGImageElement_y_Getter";
+  SVGAnimatedLength get y native "SVGImageElement_y_Getter";
 
-  SVGAnimatedString get href() native "SVGImageElement_href_Getter";
+  SVGAnimatedString get href native "SVGImageElement_href_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGImageElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGImageElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGImageElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGImageElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGImageElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGImageElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGImageElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGImageElement_xmllang_Getter";
+  String get xmllang native "SVGImageElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGImageElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGImageElement_xmlspace_Getter";
+  String get xmlspace native "SVGImageElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGImageElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGImageElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGImageElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGImageElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGImageElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGImageElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGImageElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGImageElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGImageElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGImageElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGImageElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGImageElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGImageElement_getBBox_Callback";
 
@@ -16305,17 +16305,17 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
 class _SVGLengthImpl extends NativeFieldWrapperClass1 implements SVGLength {
 
-  int get unitType() native "SVGLength_unitType_Getter";
+  int get unitType native "SVGLength_unitType_Getter";
 
-  num get value() native "SVGLength_value_Getter";
+  num get value native "SVGLength_value_Getter";
 
   void set value(num) native "SVGLength_value_Setter";
 
-  String get valueAsString() native "SVGLength_valueAsString_Getter";
+  String get valueAsString native "SVGLength_valueAsString_Getter";
 
   void set valueAsString(String) native "SVGLength_valueAsString_Setter";
 
-  num get valueInSpecifiedUnits() native "SVGLength_valueInSpecifiedUnits_Getter";
+  num get valueInSpecifiedUnits native "SVGLength_valueInSpecifiedUnits_Getter";
 
   void set valueInSpecifiedUnits(num) native "SVGLength_valueInSpecifiedUnits_Setter";
 
@@ -16332,7 +16332,7 @@ class _SVGLengthImpl extends NativeFieldWrapperClass1 implements SVGLength {
 
 class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthList {
 
-  int get numberOfItems() native "SVGLengthList_numberOfItems_Getter";
+  int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
 
   SVGLength appendItem(SVGLength item) native "SVGLengthList_appendItem_Callback";
 
@@ -16357,43 +16357,43 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
 
 class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
-  SVGAnimatedLength get x1() native "SVGLineElement_x1_Getter";
+  SVGAnimatedLength get x1 native "SVGLineElement_x1_Getter";
 
-  SVGAnimatedLength get x2() native "SVGLineElement_x2_Getter";
+  SVGAnimatedLength get x2 native "SVGLineElement_x2_Getter";
 
-  SVGAnimatedLength get y1() native "SVGLineElement_y1_Getter";
+  SVGAnimatedLength get y1 native "SVGLineElement_y1_Getter";
 
-  SVGAnimatedLength get y2() native "SVGLineElement_y2_Getter";
+  SVGAnimatedLength get y2 native "SVGLineElement_y2_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGLineElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGLineElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGLineElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGLineElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGLineElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGLineElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGLineElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGLineElement_xmllang_Getter";
+  String get xmllang native "SVGLineElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGLineElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGLineElement_xmlspace_Getter";
+  String get xmlspace native "SVGLineElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGLineElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGLineElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGLineElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGLineElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGLineElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGLineElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGLineElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGLineElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGLineElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGLineElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGLineElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGLineElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGLineElement_getBBox_Callback";
 
@@ -16412,13 +16412,13 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
 class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements SVGLinearGradientElement {
 
-  SVGAnimatedLength get x1() native "SVGLinearGradientElement_x1_Getter";
+  SVGAnimatedLength get x1 native "SVGLinearGradientElement_x1_Getter";
 
-  SVGAnimatedLength get x2() native "SVGLinearGradientElement_x2_Getter";
+  SVGAnimatedLength get x2 native "SVGLinearGradientElement_x2_Getter";
 
-  SVGAnimatedLength get y1() native "SVGLinearGradientElement_y1_Getter";
+  SVGAnimatedLength get y1 native "SVGLinearGradientElement_y1_Getter";
 
-  SVGAnimatedLength get y2() native "SVGLinearGradientElement_y2_Getter";
+  SVGAnimatedLength get y2 native "SVGLinearGradientElement_y2_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16429,9 +16429,9 @@ class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements S
 
 class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement {
 
-  SVGAnimatedString get href() native "SVGMPathElement_href_Getter";
+  SVGAnimatedString get href native "SVGMPathElement_href_Getter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGMPathElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGMPathElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16442,43 +16442,43 @@ class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement {
 
 class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement {
 
-  SVGAnimatedLength get markerHeight() native "SVGMarkerElement_markerHeight_Getter";
+  SVGAnimatedLength get markerHeight native "SVGMarkerElement_markerHeight_Getter";
 
-  SVGAnimatedEnumeration get markerUnits() native "SVGMarkerElement_markerUnits_Getter";
+  SVGAnimatedEnumeration get markerUnits native "SVGMarkerElement_markerUnits_Getter";
 
-  SVGAnimatedLength get markerWidth() native "SVGMarkerElement_markerWidth_Getter";
+  SVGAnimatedLength get markerWidth native "SVGMarkerElement_markerWidth_Getter";
 
-  SVGAnimatedAngle get orientAngle() native "SVGMarkerElement_orientAngle_Getter";
+  SVGAnimatedAngle get orientAngle native "SVGMarkerElement_orientAngle_Getter";
 
-  SVGAnimatedEnumeration get orientType() native "SVGMarkerElement_orientType_Getter";
+  SVGAnimatedEnumeration get orientType native "SVGMarkerElement_orientType_Getter";
 
-  SVGAnimatedLength get refX() native "SVGMarkerElement_refX_Getter";
+  SVGAnimatedLength get refX native "SVGMarkerElement_refX_Getter";
 
-  SVGAnimatedLength get refY() native "SVGMarkerElement_refY_Getter";
+  SVGAnimatedLength get refY native "SVGMarkerElement_refY_Getter";
 
   void setOrientToAngle(SVGAngle angle) native "SVGMarkerElement_setOrientToAngle_Callback";
 
   void setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
 
-  String get xmllang() native "SVGMarkerElement_xmllang_Getter";
+  String get xmllang native "SVGMarkerElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGMarkerElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGMarkerElement_xmlspace_Getter";
+  String get xmlspace native "SVGMarkerElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGMarkerElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGMarkerElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGMarkerElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGMarkerElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGMarkerElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGMarkerElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGMarkerElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGMarkerElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedRect get viewBox() native "SVGMarkerElement_viewBox_Getter";
+  SVGAnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16489,39 +16489,39 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
 class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
-  SVGAnimatedLength get height() native "SVGMaskElement_height_Getter";
+  SVGAnimatedLength get height native "SVGMaskElement_height_Getter";
 
-  SVGAnimatedEnumeration get maskContentUnits() native "SVGMaskElement_maskContentUnits_Getter";
+  SVGAnimatedEnumeration get maskContentUnits native "SVGMaskElement_maskContentUnits_Getter";
 
-  SVGAnimatedEnumeration get maskUnits() native "SVGMaskElement_maskUnits_Getter";
+  SVGAnimatedEnumeration get maskUnits native "SVGMaskElement_maskUnits_Getter";
 
-  SVGAnimatedLength get width() native "SVGMaskElement_width_Getter";
+  SVGAnimatedLength get width native "SVGMaskElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGMaskElement_x_Getter";
+  SVGAnimatedLength get x native "SVGMaskElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGMaskElement_y_Getter";
+  SVGAnimatedLength get y native "SVGMaskElement_y_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGMaskElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGMaskElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGMaskElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGMaskElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGMaskElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGMaskElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGMaskElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGMaskElement_xmllang_Getter";
+  String get xmllang native "SVGMaskElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGMaskElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGMaskElement_xmlspace_Getter";
+  String get xmlspace native "SVGMaskElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGMaskElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGMaskElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGMaskElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGMaskElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGMaskElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGMaskElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGMaskElement_getPresentationAttribute_Callback";
 
@@ -16534,27 +16534,27 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
 class _SVGMatrixImpl extends NativeFieldWrapperClass1 implements SVGMatrix {
 
-  num get a() native "SVGMatrix_a_Getter";
+  num get a native "SVGMatrix_a_Getter";
 
   void set a(num) native "SVGMatrix_a_Setter";
 
-  num get b() native "SVGMatrix_b_Getter";
+  num get b native "SVGMatrix_b_Getter";
 
   void set b(num) native "SVGMatrix_b_Setter";
 
-  num get c() native "SVGMatrix_c_Getter";
+  num get c native "SVGMatrix_c_Getter";
 
   void set c(num) native "SVGMatrix_c_Setter";
 
-  num get d() native "SVGMatrix_d_Getter";
+  num get d native "SVGMatrix_d_Getter";
 
   void set d(num) native "SVGMatrix_d_Setter";
 
-  num get e() native "SVGMatrix_e_Getter";
+  num get e native "SVGMatrix_e_Getter";
 
   void set e(num) native "SVGMatrix_e_Setter";
 
-  num get f() native "SVGMatrix_f_Getter";
+  num get f native "SVGMatrix_f_Getter";
 
   void set f(num) native "SVGMatrix_f_Setter";
 
@@ -16607,7 +16607,7 @@ class _SVGMissingGlyphElementImpl extends _SVGElementImpl implements SVGMissingG
 
 class _SVGNumberImpl extends NativeFieldWrapperClass1 implements SVGNumber {
 
-  num get value() native "SVGNumber_value_Getter";
+  num get value native "SVGNumber_value_Getter";
 
   void set value(num) native "SVGNumber_value_Setter";
 
@@ -16620,7 +16620,7 @@ class _SVGNumberImpl extends NativeFieldWrapperClass1 implements SVGNumber {
 
 class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberList {
 
-  int get numberOfItems() native "SVGNumberList_numberOfItems_Getter";
+  int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
 
   SVGNumber appendItem(SVGNumber item) native "SVGNumberList_appendItem_Callback";
 
@@ -16645,9 +16645,9 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
 
 class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint {
 
-  int get paintType() native "SVGPaint_paintType_Getter";
+  int get paintType native "SVGPaint_paintType_Getter";
 
-  String get uri() native "SVGPaint_uri_Getter";
+  String get uri native "SVGPaint_uri_Getter";
 
   void setPaint(int paintType, String uri, String rgbColor, String iccColor) native "SVGPaint_setPaint_Callback";
 
@@ -16662,15 +16662,15 @@ class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint {
 
 class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
-  SVGPathSegList get animatedNormalizedPathSegList() native "SVGPathElement_animatedNormalizedPathSegList_Getter";
+  SVGPathSegList get animatedNormalizedPathSegList native "SVGPathElement_animatedNormalizedPathSegList_Getter";
 
-  SVGPathSegList get animatedPathSegList() native "SVGPathElement_animatedPathSegList_Getter";
+  SVGPathSegList get animatedPathSegList native "SVGPathElement_animatedPathSegList_Getter";
 
-  SVGPathSegList get normalizedPathSegList() native "SVGPathElement_normalizedPathSegList_Getter";
+  SVGPathSegList get normalizedPathSegList native "SVGPathElement_normalizedPathSegList_Getter";
 
-  SVGAnimatedNumber get pathLength() native "SVGPathElement_pathLength_Getter";
+  SVGAnimatedNumber get pathLength native "SVGPathElement_pathLength_Getter";
 
-  SVGPathSegList get pathSegList() native "SVGPathElement_pathSegList_Getter";
+  SVGPathSegList get pathSegList native "SVGPathElement_pathSegList_Getter";
 
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
 
@@ -16716,35 +16716,35 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   num getTotalLength() native "SVGPathElement_getTotalLength_Callback";
 
-  SVGStringList get requiredExtensions() native "SVGPathElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGPathElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGPathElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGPathElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGPathElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGPathElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGPathElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGPathElement_xmllang_Getter";
+  String get xmllang native "SVGPathElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGPathElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGPathElement_xmlspace_Getter";
+  String get xmlspace native "SVGPathElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGPathElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPathElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGPathElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGPathElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGPathElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGPathElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGPathElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGPathElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGPathElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGPathElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGPathElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGPathElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGPathElement_getBBox_Callback";
 
@@ -16763,31 +16763,31 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
 class _SVGPathSegArcAbsImpl extends _SVGPathSegImpl implements SVGPathSegArcAbs {
 
-  num get angle() native "SVGPathSegArcAbs_angle_Getter";
+  num get angle native "SVGPathSegArcAbs_angle_Getter";
 
   void set angle(num) native "SVGPathSegArcAbs_angle_Setter";
 
-  bool get largeArcFlag() native "SVGPathSegArcAbs_largeArcFlag_Getter";
+  bool get largeArcFlag native "SVGPathSegArcAbs_largeArcFlag_Getter";
 
   void set largeArcFlag(bool) native "SVGPathSegArcAbs_largeArcFlag_Setter";
 
-  num get r1() native "SVGPathSegArcAbs_r1_Getter";
+  num get r1 native "SVGPathSegArcAbs_r1_Getter";
 
   void set r1(num) native "SVGPathSegArcAbs_r1_Setter";
 
-  num get r2() native "SVGPathSegArcAbs_r2_Getter";
+  num get r2 native "SVGPathSegArcAbs_r2_Getter";
 
   void set r2(num) native "SVGPathSegArcAbs_r2_Setter";
 
-  bool get sweepFlag() native "SVGPathSegArcAbs_sweepFlag_Getter";
+  bool get sweepFlag native "SVGPathSegArcAbs_sweepFlag_Getter";
 
   void set sweepFlag(bool) native "SVGPathSegArcAbs_sweepFlag_Setter";
 
-  num get x() native "SVGPathSegArcAbs_x_Getter";
+  num get x native "SVGPathSegArcAbs_x_Getter";
 
   void set x(num) native "SVGPathSegArcAbs_x_Setter";
 
-  num get y() native "SVGPathSegArcAbs_y_Getter";
+  num get y native "SVGPathSegArcAbs_y_Getter";
 
   void set y(num) native "SVGPathSegArcAbs_y_Setter";
 
@@ -16800,31 +16800,31 @@ class _SVGPathSegArcAbsImpl extends _SVGPathSegImpl implements SVGPathSegArcAbs 
 
 class _SVGPathSegArcRelImpl extends _SVGPathSegImpl implements SVGPathSegArcRel {
 
-  num get angle() native "SVGPathSegArcRel_angle_Getter";
+  num get angle native "SVGPathSegArcRel_angle_Getter";
 
   void set angle(num) native "SVGPathSegArcRel_angle_Setter";
 
-  bool get largeArcFlag() native "SVGPathSegArcRel_largeArcFlag_Getter";
+  bool get largeArcFlag native "SVGPathSegArcRel_largeArcFlag_Getter";
 
   void set largeArcFlag(bool) native "SVGPathSegArcRel_largeArcFlag_Setter";
 
-  num get r1() native "SVGPathSegArcRel_r1_Getter";
+  num get r1 native "SVGPathSegArcRel_r1_Getter";
 
   void set r1(num) native "SVGPathSegArcRel_r1_Setter";
 
-  num get r2() native "SVGPathSegArcRel_r2_Getter";
+  num get r2 native "SVGPathSegArcRel_r2_Getter";
 
   void set r2(num) native "SVGPathSegArcRel_r2_Setter";
 
-  bool get sweepFlag() native "SVGPathSegArcRel_sweepFlag_Getter";
+  bool get sweepFlag native "SVGPathSegArcRel_sweepFlag_Getter";
 
   void set sweepFlag(bool) native "SVGPathSegArcRel_sweepFlag_Setter";
 
-  num get x() native "SVGPathSegArcRel_x_Getter";
+  num get x native "SVGPathSegArcRel_x_Getter";
 
   void set x(num) native "SVGPathSegArcRel_x_Setter";
 
-  num get y() native "SVGPathSegArcRel_y_Getter";
+  num get y native "SVGPathSegArcRel_y_Getter";
 
   void set y(num) native "SVGPathSegArcRel_y_Setter";
 
@@ -16846,27 +16846,27 @@ class _SVGPathSegClosePathImpl extends _SVGPathSegImpl implements SVGPathSegClos
 
 class _SVGPathSegCurvetoCubicAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicAbs {
 
-  num get x() native "SVGPathSegCurvetoCubicAbs_x_Getter";
+  num get x native "SVGPathSegCurvetoCubicAbs_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoCubicAbs_x_Setter";
 
-  num get x1() native "SVGPathSegCurvetoCubicAbs_x1_Getter";
+  num get x1 native "SVGPathSegCurvetoCubicAbs_x1_Getter";
 
   void set x1(num) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
 
-  num get x2() native "SVGPathSegCurvetoCubicAbs_x2_Getter";
+  num get x2 native "SVGPathSegCurvetoCubicAbs_x2_Getter";
 
   void set x2(num) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
 
-  num get y() native "SVGPathSegCurvetoCubicAbs_y_Getter";
+  num get y native "SVGPathSegCurvetoCubicAbs_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoCubicAbs_y_Setter";
 
-  num get y1() native "SVGPathSegCurvetoCubicAbs_y1_Getter";
+  num get y1 native "SVGPathSegCurvetoCubicAbs_y1_Getter";
 
   void set y1(num) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
 
-  num get y2() native "SVGPathSegCurvetoCubicAbs_y2_Getter";
+  num get y2 native "SVGPathSegCurvetoCubicAbs_y2_Getter";
 
   void set y2(num) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
 
@@ -16879,27 +16879,27 @@ class _SVGPathSegCurvetoCubicAbsImpl extends _SVGPathSegImpl implements SVGPathS
 
 class _SVGPathSegCurvetoCubicRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicRel {
 
-  num get x() native "SVGPathSegCurvetoCubicRel_x_Getter";
+  num get x native "SVGPathSegCurvetoCubicRel_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoCubicRel_x_Setter";
 
-  num get x1() native "SVGPathSegCurvetoCubicRel_x1_Getter";
+  num get x1 native "SVGPathSegCurvetoCubicRel_x1_Getter";
 
   void set x1(num) native "SVGPathSegCurvetoCubicRel_x1_Setter";
 
-  num get x2() native "SVGPathSegCurvetoCubicRel_x2_Getter";
+  num get x2 native "SVGPathSegCurvetoCubicRel_x2_Getter";
 
   void set x2(num) native "SVGPathSegCurvetoCubicRel_x2_Setter";
 
-  num get y() native "SVGPathSegCurvetoCubicRel_y_Getter";
+  num get y native "SVGPathSegCurvetoCubicRel_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoCubicRel_y_Setter";
 
-  num get y1() native "SVGPathSegCurvetoCubicRel_y1_Getter";
+  num get y1 native "SVGPathSegCurvetoCubicRel_y1_Getter";
 
   void set y1(num) native "SVGPathSegCurvetoCubicRel_y1_Setter";
 
-  num get y2() native "SVGPathSegCurvetoCubicRel_y2_Getter";
+  num get y2 native "SVGPathSegCurvetoCubicRel_y2_Getter";
 
   void set y2(num) native "SVGPathSegCurvetoCubicRel_y2_Setter";
 
@@ -16912,19 +16912,19 @@ class _SVGPathSegCurvetoCubicRelImpl extends _SVGPathSegImpl implements SVGPathS
 
 class _SVGPathSegCurvetoCubicSmoothAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicSmoothAbs {
 
-  num get x() native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
+  num get x native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
 
-  num get x2() native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
+  num get x2 native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
 
   void set x2(num) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
 
-  num get y() native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
+  num get y native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
 
-  num get y2() native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
+  num get y2 native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
 
   void set y2(num) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
 
@@ -16937,19 +16937,19 @@ class _SVGPathSegCurvetoCubicSmoothAbsImpl extends _SVGPathSegImpl implements SV
 
 class _SVGPathSegCurvetoCubicSmoothRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicSmoothRel {
 
-  num get x() native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
+  num get x native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
 
-  num get x2() native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
+  num get x2 native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
 
   void set x2(num) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
 
-  num get y() native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
+  num get y native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
 
-  num get y2() native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
+  num get y2 native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
 
   void set y2(num) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
 
@@ -16962,19 +16962,19 @@ class _SVGPathSegCurvetoCubicSmoothRelImpl extends _SVGPathSegImpl implements SV
 
 class _SVGPathSegCurvetoQuadraticAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticAbs {
 
-  num get x() native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
+  num get x native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
 
-  num get x1() native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
+  num get x1 native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
 
   void set x1(num) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
 
-  num get y() native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
+  num get y native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
 
-  num get y1() native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
+  num get y1 native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
 
   void set y1(num) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
 
@@ -16987,19 +16987,19 @@ class _SVGPathSegCurvetoQuadraticAbsImpl extends _SVGPathSegImpl implements SVGP
 
 class _SVGPathSegCurvetoQuadraticRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticRel {
 
-  num get x() native "SVGPathSegCurvetoQuadraticRel_x_Getter";
+  num get x native "SVGPathSegCurvetoQuadraticRel_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
 
-  num get x1() native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
+  num get x1 native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
 
   void set x1(num) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
 
-  num get y() native "SVGPathSegCurvetoQuadraticRel_y_Getter";
+  num get y native "SVGPathSegCurvetoQuadraticRel_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
 
-  num get y1() native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
+  num get y1 native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
 
   void set y1(num) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
 
@@ -17012,11 +17012,11 @@ class _SVGPathSegCurvetoQuadraticRelImpl extends _SVGPathSegImpl implements SVGP
 
 class _SVGPathSegCurvetoQuadraticSmoothAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticSmoothAbs {
 
-  num get x() native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
+  num get x native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
 
-  num get y() native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
+  num get y native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
 
@@ -17029,11 +17029,11 @@ class _SVGPathSegCurvetoQuadraticSmoothAbsImpl extends _SVGPathSegImpl implement
 
 class _SVGPathSegCurvetoQuadraticSmoothRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticSmoothRel {
 
-  num get x() native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
+  num get x native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
 
   void set x(num) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
 
-  num get y() native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
+  num get y native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
 
   void set y(num) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
 
@@ -17046,9 +17046,9 @@ class _SVGPathSegCurvetoQuadraticSmoothRelImpl extends _SVGPathSegImpl implement
 
 class _SVGPathSegImpl extends NativeFieldWrapperClass1 implements SVGPathSeg {
 
-  int get pathSegType() native "SVGPathSeg_pathSegType_Getter";
+  int get pathSegType native "SVGPathSeg_pathSegType_Getter";
 
-  String get pathSegTypeAsLetter() native "SVGPathSeg_pathSegTypeAsLetter_Getter";
+  String get pathSegTypeAsLetter native "SVGPathSeg_pathSegTypeAsLetter_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17059,11 +17059,11 @@ class _SVGPathSegImpl extends NativeFieldWrapperClass1 implements SVGPathSeg {
 
 class _SVGPathSegLinetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegLinetoAbs {
 
-  num get x() native "SVGPathSegLinetoAbs_x_Getter";
+  num get x native "SVGPathSegLinetoAbs_x_Getter";
 
   void set x(num) native "SVGPathSegLinetoAbs_x_Setter";
 
-  num get y() native "SVGPathSegLinetoAbs_y_Getter";
+  num get y native "SVGPathSegLinetoAbs_y_Getter";
 
   void set y(num) native "SVGPathSegLinetoAbs_y_Setter";
 
@@ -17076,7 +17076,7 @@ class _SVGPathSegLinetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegLine
 
 class _SVGPathSegLinetoHorizontalAbsImpl extends _SVGPathSegImpl implements SVGPathSegLinetoHorizontalAbs {
 
-  num get x() native "SVGPathSegLinetoHorizontalAbs_x_Getter";
+  num get x native "SVGPathSegLinetoHorizontalAbs_x_Getter";
 
   void set x(num) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
 
@@ -17089,7 +17089,7 @@ class _SVGPathSegLinetoHorizontalAbsImpl extends _SVGPathSegImpl implements SVGP
 
 class _SVGPathSegLinetoHorizontalRelImpl extends _SVGPathSegImpl implements SVGPathSegLinetoHorizontalRel {
 
-  num get x() native "SVGPathSegLinetoHorizontalRel_x_Getter";
+  num get x native "SVGPathSegLinetoHorizontalRel_x_Getter";
 
   void set x(num) native "SVGPathSegLinetoHorizontalRel_x_Setter";
 
@@ -17102,11 +17102,11 @@ class _SVGPathSegLinetoHorizontalRelImpl extends _SVGPathSegImpl implements SVGP
 
 class _SVGPathSegLinetoRelImpl extends _SVGPathSegImpl implements SVGPathSegLinetoRel {
 
-  num get x() native "SVGPathSegLinetoRel_x_Getter";
+  num get x native "SVGPathSegLinetoRel_x_Getter";
 
   void set x(num) native "SVGPathSegLinetoRel_x_Setter";
 
-  num get y() native "SVGPathSegLinetoRel_y_Getter";
+  num get y native "SVGPathSegLinetoRel_y_Getter";
 
   void set y(num) native "SVGPathSegLinetoRel_y_Setter";
 
@@ -17119,7 +17119,7 @@ class _SVGPathSegLinetoRelImpl extends _SVGPathSegImpl implements SVGPathSegLine
 
 class _SVGPathSegLinetoVerticalAbsImpl extends _SVGPathSegImpl implements SVGPathSegLinetoVerticalAbs {
 
-  num get y() native "SVGPathSegLinetoVerticalAbs_y_Getter";
+  num get y native "SVGPathSegLinetoVerticalAbs_y_Getter";
 
   void set y(num) native "SVGPathSegLinetoVerticalAbs_y_Setter";
 
@@ -17132,7 +17132,7 @@ class _SVGPathSegLinetoVerticalAbsImpl extends _SVGPathSegImpl implements SVGPat
 
 class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPathSegLinetoVerticalRel {
 
-  num get y() native "SVGPathSegLinetoVerticalRel_y_Getter";
+  num get y native "SVGPathSegLinetoVerticalRel_y_Getter";
 
   void set y(num) native "SVGPathSegLinetoVerticalRel_y_Setter";
 
@@ -17145,7 +17145,7 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 
 class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSegList {
 
-  int get numberOfItems() native "SVGPathSegList_numberOfItems_Getter";
+  int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
 
   SVGPathSeg appendItem(SVGPathSeg newItem) native "SVGPathSegList_appendItem_Callback";
 
@@ -17170,11 +17170,11 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
 
 class _SVGPathSegMovetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegMovetoAbs {
 
-  num get x() native "SVGPathSegMovetoAbs_x_Getter";
+  num get x native "SVGPathSegMovetoAbs_x_Getter";
 
   void set x(num) native "SVGPathSegMovetoAbs_x_Setter";
 
-  num get y() native "SVGPathSegMovetoAbs_y_Getter";
+  num get y native "SVGPathSegMovetoAbs_y_Getter";
 
   void set y(num) native "SVGPathSegMovetoAbs_y_Setter";
 
@@ -17187,11 +17187,11 @@ class _SVGPathSegMovetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegMove
 
 class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMovetoRel {
 
-  num get x() native "SVGPathSegMovetoRel_x_Getter";
+  num get x native "SVGPathSegMovetoRel_x_Getter";
 
   void set x(num) native "SVGPathSegMovetoRel_x_Setter";
 
-  num get y() native "SVGPathSegMovetoRel_y_Getter";
+  num get y native "SVGPathSegMovetoRel_y_Getter";
 
   void set y(num) native "SVGPathSegMovetoRel_y_Setter";
 
@@ -17204,49 +17204,49 @@ class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMove
 
 class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElement {
 
-  SVGAnimatedLength get height() native "SVGPatternElement_height_Getter";
+  SVGAnimatedLength get height native "SVGPatternElement_height_Getter";
 
-  SVGAnimatedEnumeration get patternContentUnits() native "SVGPatternElement_patternContentUnits_Getter";
+  SVGAnimatedEnumeration get patternContentUnits native "SVGPatternElement_patternContentUnits_Getter";
 
-  SVGAnimatedTransformList get patternTransform() native "SVGPatternElement_patternTransform_Getter";
+  SVGAnimatedTransformList get patternTransform native "SVGPatternElement_patternTransform_Getter";
 
-  SVGAnimatedEnumeration get patternUnits() native "SVGPatternElement_patternUnits_Getter";
+  SVGAnimatedEnumeration get patternUnits native "SVGPatternElement_patternUnits_Getter";
 
-  SVGAnimatedLength get width() native "SVGPatternElement_width_Getter";
+  SVGAnimatedLength get width native "SVGPatternElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGPatternElement_x_Getter";
+  SVGAnimatedLength get x native "SVGPatternElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGPatternElement_y_Getter";
+  SVGAnimatedLength get y native "SVGPatternElement_y_Getter";
 
-  SVGAnimatedString get href() native "SVGPatternElement_href_Getter";
+  SVGAnimatedString get href native "SVGPatternElement_href_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGPatternElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGPatternElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGPatternElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGPatternElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGPatternElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGPatternElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGPatternElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGPatternElement_xmllang_Getter";
+  String get xmllang native "SVGPatternElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGPatternElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGPatternElement_xmlspace_Getter";
+  String get xmlspace native "SVGPatternElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGPatternElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPatternElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGPatternElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGPatternElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGPatternElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGPatternElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGPatternElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGPatternElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGPatternElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedRect get viewBox() native "SVGPatternElement_viewBox_Getter";
+  SVGAnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17257,11 +17257,11 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
 class _SVGPointImpl extends NativeFieldWrapperClass1 implements SVGPoint {
 
-  num get x() native "SVGPoint_x_Getter";
+  num get x native "SVGPoint_x_Getter";
 
   void set x(num) native "SVGPoint_x_Setter";
 
-  num get y() native "SVGPoint_y_Getter";
+  num get y native "SVGPoint_y_Getter";
 
   void set y(num) native "SVGPoint_y_Setter";
 
@@ -17276,7 +17276,7 @@ class _SVGPointImpl extends NativeFieldWrapperClass1 implements SVGPoint {
 
 class _SVGPointListImpl extends NativeFieldWrapperClass1 implements SVGPointList {
 
-  int get numberOfItems() native "SVGPointList_numberOfItems_Getter";
+  int get numberOfItems native "SVGPointList_numberOfItems_Getter";
 
   SVGPoint appendItem(SVGPoint item) native "SVGPointList_appendItem_Callback";
 
@@ -17301,39 +17301,39 @@ class _SVGPointListImpl extends NativeFieldWrapperClass1 implements SVGPointList
 
 class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElement {
 
-  SVGPointList get animatedPoints() native "SVGPolygonElement_animatedPoints_Getter";
+  SVGPointList get animatedPoints native "SVGPolygonElement_animatedPoints_Getter";
 
-  SVGPointList get points() native "SVGPolygonElement_points_Getter";
+  SVGPointList get points native "SVGPolygonElement_points_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGPolygonElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGPolygonElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGPolygonElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGPolygonElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGPolygonElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGPolygonElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGPolygonElement_xmllang_Getter";
+  String get xmllang native "SVGPolygonElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGPolygonElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGPolygonElement_xmlspace_Getter";
+  String get xmlspace native "SVGPolygonElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGPolygonElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPolygonElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGPolygonElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGPolygonElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGPolygonElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGPolygonElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGPolygonElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGPolygonElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGPolygonElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGPolygonElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGPolygonElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGPolygonElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGPolygonElement_getBBox_Callback";
 
@@ -17352,39 +17352,39 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
 class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElement {
 
-  SVGPointList get animatedPoints() native "SVGPolylineElement_animatedPoints_Getter";
+  SVGPointList get animatedPoints native "SVGPolylineElement_animatedPoints_Getter";
 
-  SVGPointList get points() native "SVGPolylineElement_points_Getter";
+  SVGPointList get points native "SVGPolylineElement_points_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGPolylineElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGPolylineElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGPolylineElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGPolylineElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGPolylineElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGPolylineElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGPolylineElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGPolylineElement_xmllang_Getter";
+  String get xmllang native "SVGPolylineElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGPolylineElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGPolylineElement_xmlspace_Getter";
+  String get xmlspace native "SVGPolylineElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGPolylineElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGPolylineElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGPolylineElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGPolylineElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGPolylineElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGPolylineElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGPolylineElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGPolylineElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGPolylineElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGPolylineElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGPolylineElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGPolylineElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGPolylineElement_getBBox_Callback";
 
@@ -17403,11 +17403,11 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
 class _SVGPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SVGPreserveAspectRatio {
 
-  int get align() native "SVGPreserveAspectRatio_align_Getter";
+  int get align native "SVGPreserveAspectRatio_align_Getter";
 
   void set align(int) native "SVGPreserveAspectRatio_align_Setter";
 
-  int get meetOrSlice() native "SVGPreserveAspectRatio_meetOrSlice_Getter";
+  int get meetOrSlice native "SVGPreserveAspectRatio_meetOrSlice_Getter";
 
   void set meetOrSlice(int) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
 
@@ -17420,15 +17420,15 @@ class _SVGPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SV
 
 class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements SVGRadialGradientElement {
 
-  SVGAnimatedLength get cx() native "SVGRadialGradientElement_cx_Getter";
+  SVGAnimatedLength get cx native "SVGRadialGradientElement_cx_Getter";
 
-  SVGAnimatedLength get cy() native "SVGRadialGradientElement_cy_Getter";
+  SVGAnimatedLength get cy native "SVGRadialGradientElement_cy_Getter";
 
-  SVGAnimatedLength get fx() native "SVGRadialGradientElement_fx_Getter";
+  SVGAnimatedLength get fx native "SVGRadialGradientElement_fx_Getter";
 
-  SVGAnimatedLength get fy() native "SVGRadialGradientElement_fy_Getter";
+  SVGAnimatedLength get fy native "SVGRadialGradientElement_fy_Getter";
 
-  SVGAnimatedLength get r() native "SVGRadialGradientElement_r_Getter";
+  SVGAnimatedLength get r native "SVGRadialGradientElement_r_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17439,47 +17439,47 @@ class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements S
 
 class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
-  SVGAnimatedLength get height() native "SVGRectElement_height_Getter";
+  SVGAnimatedLength get height native "SVGRectElement_height_Getter";
 
-  SVGAnimatedLength get rx() native "SVGRectElement_rx_Getter";
+  SVGAnimatedLength get rx native "SVGRectElement_rx_Getter";
 
-  SVGAnimatedLength get ry() native "SVGRectElement_ry_Getter";
+  SVGAnimatedLength get ry native "SVGRectElement_ry_Getter";
 
-  SVGAnimatedLength get width() native "SVGRectElement_width_Getter";
+  SVGAnimatedLength get width native "SVGRectElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGRectElement_x_Getter";
+  SVGAnimatedLength get x native "SVGRectElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGRectElement_y_Getter";
+  SVGAnimatedLength get y native "SVGRectElement_y_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGRectElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGRectElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGRectElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGRectElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGRectElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGRectElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGRectElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGRectElement_xmllang_Getter";
+  String get xmllang native "SVGRectElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGRectElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGRectElement_xmlspace_Getter";
+  String get xmlspace native "SVGRectElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGRectElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGRectElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGRectElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGRectElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGRectElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGRectElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGRectElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGRectElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGRectElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGRectElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGRectElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGRectElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGRectElement_getBBox_Callback";
 
@@ -17498,19 +17498,19 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
 class _SVGRectImpl extends NativeFieldWrapperClass1 implements SVGRect {
 
-  num get height() native "SVGRect_height_Getter";
+  num get height native "SVGRect_height_Getter";
 
   void set height(num) native "SVGRect_height_Setter";
 
-  num get width() native "SVGRect_width_Getter";
+  num get width native "SVGRect_width_Getter";
 
   void set width(num) native "SVGRect_width_Setter";
 
-  num get x() native "SVGRect_x_Getter";
+  num get x native "SVGRect_x_Getter";
 
   void set x(num) native "SVGRect_x_Setter";
 
-  num get y() native "SVGRect_y_Getter";
+  num get y native "SVGRect_y_Getter";
 
   void set y(num) native "SVGRect_y_Setter";
 
@@ -17532,41 +17532,41 @@ class _SVGRenderingIntentImpl extends NativeFieldWrapperClass1 implements SVGRen
 
 class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
-  String get contentScriptType() native "SVGSVGElement_contentScriptType_Getter";
+  String get contentScriptType native "SVGSVGElement_contentScriptType_Getter";
 
   void set contentScriptType(String) native "SVGSVGElement_contentScriptType_Setter";
 
-  String get contentStyleType() native "SVGSVGElement_contentStyleType_Getter";
+  String get contentStyleType native "SVGSVGElement_contentStyleType_Getter";
 
   void set contentStyleType(String) native "SVGSVGElement_contentStyleType_Setter";
 
-  num get currentScale() native "SVGSVGElement_currentScale_Getter";
+  num get currentScale native "SVGSVGElement_currentScale_Getter";
 
   void set currentScale(num) native "SVGSVGElement_currentScale_Setter";
 
-  SVGPoint get currentTranslate() native "SVGSVGElement_currentTranslate_Getter";
+  SVGPoint get currentTranslate native "SVGSVGElement_currentTranslate_Getter";
 
-  SVGViewSpec get currentView() native "SVGSVGElement_currentView_Getter";
+  SVGViewSpec get currentView native "SVGSVGElement_currentView_Getter";
 
-  SVGAnimatedLength get height() native "SVGSVGElement_height_Getter";
+  SVGAnimatedLength get height native "SVGSVGElement_height_Getter";
 
-  num get pixelUnitToMillimeterX() native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
+  num get pixelUnitToMillimeterX native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
 
-  num get pixelUnitToMillimeterY() native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
+  num get pixelUnitToMillimeterY native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
 
-  num get screenPixelToMillimeterX() native "SVGSVGElement_screenPixelToMillimeterX_Getter";
+  num get screenPixelToMillimeterX native "SVGSVGElement_screenPixelToMillimeterX_Getter";
 
-  num get screenPixelToMillimeterY() native "SVGSVGElement_screenPixelToMillimeterY_Getter";
+  num get screenPixelToMillimeterY native "SVGSVGElement_screenPixelToMillimeterY_Getter";
 
-  bool get useCurrentView() native "SVGSVGElement_useCurrentView_Getter";
+  bool get useCurrentView native "SVGSVGElement_useCurrentView_Getter";
 
-  SVGRect get viewport() native "SVGSVGElement_viewport_Getter";
+  SVGRect get viewport native "SVGSVGElement_viewport_Getter";
 
-  SVGAnimatedLength get width() native "SVGSVGElement_width_Getter";
+  SVGAnimatedLength get width native "SVGSVGElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGSVGElement_x_Getter";
+  SVGAnimatedLength get x native "SVGSVGElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGSVGElement_y_Getter";
+  SVGAnimatedLength get y native "SVGSVGElement_y_Getter";
 
   bool animationsPaused() native "SVGSVGElement_animationsPaused_Callback";
 
@@ -17614,33 +17614,33 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   void unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
 
-  SVGStringList get requiredExtensions() native "SVGSVGElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGSVGElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGSVGElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGSVGElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGSVGElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGSVGElement_xmllang_Getter";
+  String get xmllang native "SVGSVGElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGSVGElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGSVGElement_xmlspace_Getter";
+  String get xmlspace native "SVGSVGElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGSVGElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGSVGElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGSVGElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGSVGElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGSVGElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGSVGElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
 
-  SVGElement get farthestViewportElement() native "SVGSVGElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGSVGElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGSVGElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGSVGElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGSVGElement_getBBox_Callback";
 
@@ -17650,11 +17650,11 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGSVGElement_getTransformToElement_Callback";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGSVGElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedRect get viewBox() native "SVGSVGElement_viewBox_Getter";
+  SVGAnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
 
-  int get zoomAndPan() native "SVGSVGElement_zoomAndPan_Getter";
+  int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
 
   void set zoomAndPan(int) native "SVGSVGElement_zoomAndPan_Setter";
 
@@ -17667,13 +17667,13 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
 class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement {
 
-  String get type() native "SVGScriptElement_type_Getter";
+  String get type native "SVGScriptElement_type_Getter";
 
   void set type(String) native "SVGScriptElement_type_Setter";
 
-  SVGAnimatedString get href() native "SVGScriptElement_href_Getter";
+  SVGAnimatedString get href native "SVGScriptElement_href_Getter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGScriptElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGScriptElement_externalResourcesRequired_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17693,11 +17693,11 @@ class _SVGSetElementImpl extends _SVGAnimationElementImpl implements SVGSetEleme
 
 class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
-  SVGAnimatedNumber get offset() native "SVGStopElement_offset_Getter";
+  SVGAnimatedNumber get offset native "SVGStopElement_offset_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGStopElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGStopElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGStopElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGStopElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGStopElement_getPresentationAttribute_Callback";
 
@@ -17710,7 +17710,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
 class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringList {
 
-  int get numberOfItems() native "SVGStringList_numberOfItems_Getter";
+  int get numberOfItems native "SVGStringList_numberOfItems_Getter";
 
   String appendItem(String item) native "SVGStringList_appendItem_Callback";
 
@@ -17735,27 +17735,27 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
 
 class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
 
-  bool get disabled() native "SVGStyleElement_disabled_Getter";
+  bool get disabled native "SVGStyleElement_disabled_Getter";
 
   void set disabled(bool) native "SVGStyleElement_disabled_Setter";
 
-  String get media() native "SVGStyleElement_media_Getter";
+  String get media native "SVGStyleElement_media_Getter";
 
   void set media(String) native "SVGStyleElement_media_Setter";
 
-  String get title() native "SVGStyleElement_title_Getter";
+  String get title native "SVGStyleElement_title_Getter";
 
   void set title(String) native "SVGStyleElement_title_Setter";
 
-  String get type() native "SVGStyleElement_type_Getter";
+  String get type native "SVGStyleElement_type_Getter";
 
   void set type(String) native "SVGStyleElement_type_Setter";
 
-  String get xmllang() native "SVGStyleElement_xmllang_Getter";
+  String get xmllang native "SVGStyleElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGStyleElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGStyleElement_xmlspace_Getter";
+  String get xmlspace native "SVGStyleElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGStyleElement_xmlspace_Setter";
 
@@ -17768,35 +17768,35 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
 
 class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement {
 
-  SVGStringList get requiredExtensions() native "SVGSwitchElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGSwitchElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGSwitchElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGSwitchElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGSwitchElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGSwitchElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGSwitchElement_xmllang_Getter";
+  String get xmllang native "SVGSwitchElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGSwitchElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGSwitchElement_xmlspace_Getter";
+  String get xmlspace native "SVGSwitchElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGSwitchElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGSwitchElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGSwitchElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGSwitchElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGSwitchElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGSwitchElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGSwitchElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGSwitchElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGSwitchElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGSwitchElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGSwitchElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGSwitchElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGSwitchElement_getBBox_Callback";
 
@@ -17815,25 +17815,25 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
 class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement {
 
-  String get xmllang() native "SVGSymbolElement_xmllang_Getter";
+  String get xmllang native "SVGSymbolElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGSymbolElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGSymbolElement_xmlspace_Getter";
+  String get xmlspace native "SVGSymbolElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGSymbolElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGSymbolElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGSymbolElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGSymbolElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGSymbolElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGSymbolElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGSymbolElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGSymbolElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSymbolElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedRect get viewBox() native "SVGSymbolElement_viewBox_Getter";
+  SVGAnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17844,7 +17844,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
 class _SVGTRefElementImpl extends _SVGTextPositioningElementImpl implements SVGTRefElement {
 
-  SVGAnimatedString get href() native "SVGTRefElement_href_Getter";
+  SVGAnimatedString get href native "SVGTRefElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17864,9 +17864,9 @@ class _SVGTSpanElementImpl extends _SVGTextPositioningElementImpl implements SVG
 
 class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextContentElement {
 
-  SVGAnimatedEnumeration get lengthAdjust() native "SVGTextContentElement_lengthAdjust_Getter";
+  SVGAnimatedEnumeration get lengthAdjust native "SVGTextContentElement_lengthAdjust_Getter";
 
-  SVGAnimatedLength get textLength() native "SVGTextContentElement_textLength_Getter";
+  SVGAnimatedLength get textLength native "SVGTextContentElement_textLength_Getter";
 
   int getCharNumAtPosition(SVGPoint point) native "SVGTextContentElement_getCharNumAtPosition_Callback";
 
@@ -17886,27 +17886,27 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   void selectSubString(int offset, int length) native "SVGTextContentElement_selectSubString_Callback";
 
-  SVGStringList get requiredExtensions() native "SVGTextContentElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGTextContentElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGTextContentElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGTextContentElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGTextContentElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGTextContentElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGTextContentElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGTextContentElement_xmllang_Getter";
+  String get xmllang native "SVGTextContentElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGTextContentElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGTextContentElement_xmlspace_Getter";
+  String get xmlspace native "SVGTextContentElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGTextContentElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGTextContentElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGTextContentElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGTextContentElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGTextContentElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGTextContentElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGTextContentElement_getPresentationAttribute_Callback";
 
@@ -17919,11 +17919,11 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
 class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGTextElement {
 
-  SVGAnimatedTransformList get transform() native "SVGTextElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGTextElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGTextElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGTextElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGTextElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGTextElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGTextElement_getBBox_Callback";
 
@@ -17942,13 +17942,13 @@ class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGT
 
 class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGTextPathElement {
 
-  SVGAnimatedEnumeration get method() native "SVGTextPathElement_method_Getter";
+  SVGAnimatedEnumeration get method native "SVGTextPathElement_method_Getter";
 
-  SVGAnimatedEnumeration get spacing() native "SVGTextPathElement_spacing_Getter";
+  SVGAnimatedEnumeration get spacing native "SVGTextPathElement_spacing_Getter";
 
-  SVGAnimatedLength get startOffset() native "SVGTextPathElement_startOffset_Getter";
+  SVGAnimatedLength get startOffset native "SVGTextPathElement_startOffset_Getter";
 
-  SVGAnimatedString get href() native "SVGTextPathElement_href_Getter";
+  SVGAnimatedString get href native "SVGTextPathElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17959,15 +17959,15 @@ class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGT
 
 class _SVGTextPositioningElementImpl extends _SVGTextContentElementImpl implements SVGTextPositioningElement {
 
-  SVGAnimatedLengthList get dx() native "SVGTextPositioningElement_dx_Getter";
+  SVGAnimatedLengthList get dx native "SVGTextPositioningElement_dx_Getter";
 
-  SVGAnimatedLengthList get dy() native "SVGTextPositioningElement_dy_Getter";
+  SVGAnimatedLengthList get dy native "SVGTextPositioningElement_dy_Getter";
 
-  SVGAnimatedNumberList get rotate() native "SVGTextPositioningElement_rotate_Getter";
+  SVGAnimatedNumberList get rotate native "SVGTextPositioningElement_rotate_Getter";
 
-  SVGAnimatedLengthList get x() native "SVGTextPositioningElement_x_Getter";
+  SVGAnimatedLengthList get x native "SVGTextPositioningElement_x_Getter";
 
-  SVGAnimatedLengthList get y() native "SVGTextPositioningElement_y_Getter";
+  SVGAnimatedLengthList get y native "SVGTextPositioningElement_y_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17978,17 +17978,17 @@ class _SVGTextPositioningElementImpl extends _SVGTextContentElementImpl implemen
 
 class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
-  String get xmllang() native "SVGTitleElement_xmllang_Getter";
+  String get xmllang native "SVGTitleElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGTitleElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGTitleElement_xmlspace_Getter";
+  String get xmlspace native "SVGTitleElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGTitleElement_xmlspace_Setter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGTitleElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGTitleElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGTitleElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGTitleElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGTitleElement_getPresentationAttribute_Callback";
 
@@ -18001,11 +18001,11 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
 class _SVGTransformImpl extends NativeFieldWrapperClass1 implements SVGTransform {
 
-  num get angle() native "SVGTransform_angle_Getter";
+  num get angle native "SVGTransform_angle_Getter";
 
-  SVGMatrix get matrix() native "SVGTransform_matrix_Getter";
+  SVGMatrix get matrix native "SVGTransform_matrix_Getter";
 
-  int get type() native "SVGTransform_type_Getter";
+  int get type native "SVGTransform_type_Getter";
 
   void setMatrix(SVGMatrix matrix) native "SVGTransform_setMatrix_Callback";
 
@@ -18028,7 +18028,7 @@ class _SVGTransformImpl extends NativeFieldWrapperClass1 implements SVGTransform
 
 class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTransformList {
 
-  int get numberOfItems() native "SVGTransformList_numberOfItems_Getter";
+  int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
 
   SVGTransform appendItem(SVGTransform item) native "SVGTransformList_appendItem_Callback";
 
@@ -18066,49 +18066,49 @@ class _SVGUnitTypesImpl extends NativeFieldWrapperClass1 implements SVGUnitTypes
 
 class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
-  SVGElementInstance get animatedInstanceRoot() native "SVGUseElement_animatedInstanceRoot_Getter";
+  SVGElementInstance get animatedInstanceRoot native "SVGUseElement_animatedInstanceRoot_Getter";
 
-  SVGAnimatedLength get height() native "SVGUseElement_height_Getter";
+  SVGAnimatedLength get height native "SVGUseElement_height_Getter";
 
-  SVGElementInstance get instanceRoot() native "SVGUseElement_instanceRoot_Getter";
+  SVGElementInstance get instanceRoot native "SVGUseElement_instanceRoot_Getter";
 
-  SVGAnimatedLength get width() native "SVGUseElement_width_Getter";
+  SVGAnimatedLength get width native "SVGUseElement_width_Getter";
 
-  SVGAnimatedLength get x() native "SVGUseElement_x_Getter";
+  SVGAnimatedLength get x native "SVGUseElement_x_Getter";
 
-  SVGAnimatedLength get y() native "SVGUseElement_y_Getter";
+  SVGAnimatedLength get y native "SVGUseElement_y_Getter";
 
-  SVGAnimatedString get href() native "SVGUseElement_href_Getter";
+  SVGAnimatedString get href native "SVGUseElement_href_Getter";
 
-  SVGStringList get requiredExtensions() native "SVGUseElement_requiredExtensions_Getter";
+  SVGStringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
 
-  SVGStringList get requiredFeatures() native "SVGUseElement_requiredFeatures_Getter";
+  SVGStringList get requiredFeatures native "SVGUseElement_requiredFeatures_Getter";
 
-  SVGStringList get systemLanguage() native "SVGUseElement_systemLanguage_Getter";
+  SVGStringList get systemLanguage native "SVGUseElement_systemLanguage_Getter";
 
   bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
 
-  String get xmllang() native "SVGUseElement_xmllang_Getter";
+  String get xmllang native "SVGUseElement_xmllang_Getter";
 
   void set xmllang(String) native "SVGUseElement_xmllang_Setter";
 
-  String get xmlspace() native "SVGUseElement_xmlspace_Getter";
+  String get xmlspace native "SVGUseElement_xmlspace_Getter";
 
   void set xmlspace(String) native "SVGUseElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGUseElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedString get $dom_svgClassName() native "SVGUseElement_className_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGUseElement_className_Getter";
 
-  CSSStyleDeclaration get style() native "SVGUseElement_style_Getter";
+  CSSStyleDeclaration get style native "SVGUseElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedTransformList get transform() native "SVGUseElement_transform_Getter";
+  SVGAnimatedTransformList get transform native "SVGUseElement_transform_Getter";
 
-  SVGElement get farthestViewportElement() native "SVGUseElement_farthestViewportElement_Getter";
+  SVGElement get farthestViewportElement native "SVGUseElement_farthestViewportElement_Getter";
 
-  SVGElement get nearestViewportElement() native "SVGUseElement_nearestViewportElement_Getter";
+  SVGElement get nearestViewportElement native "SVGUseElement_nearestViewportElement_Getter";
 
   SVGRect getBBox() native "SVGUseElement_getBBox_Callback";
 
@@ -18136,15 +18136,15 @@ class _SVGVKernElementImpl extends _SVGElementImpl implements SVGVKernElement {
 
 class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 
-  SVGStringList get viewTarget() native "SVGViewElement_viewTarget_Getter";
+  SVGStringList get viewTarget native "SVGViewElement_viewTarget_Getter";
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "SVGViewElement_externalResourcesRequired_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGViewElement_externalResourcesRequired_Getter";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewElement_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedRect get viewBox() native "SVGViewElement_viewBox_Getter";
+  SVGAnimatedRect get viewBox native "SVGViewElement_viewBox_Getter";
 
-  int get zoomAndPan() native "SVGViewElement_zoomAndPan_Getter";
+  int get zoomAndPan native "SVGViewElement_zoomAndPan_Getter";
 
   void set zoomAndPan(int) native "SVGViewElement_zoomAndPan_Setter";
 
@@ -18157,23 +18157,23 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 
 class _SVGViewSpecImpl extends NativeFieldWrapperClass1 implements SVGViewSpec {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewSpec_preserveAspectRatio_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewSpec_preserveAspectRatio_Getter";
 
-  String get preserveAspectRatioString() native "SVGViewSpec_preserveAspectRatioString_Getter";
+  String get preserveAspectRatioString native "SVGViewSpec_preserveAspectRatioString_Getter";
 
-  SVGTransformList get transform() native "SVGViewSpec_transform_Getter";
+  SVGTransformList get transform native "SVGViewSpec_transform_Getter";
 
-  String get transformString() native "SVGViewSpec_transformString_Getter";
+  String get transformString native "SVGViewSpec_transformString_Getter";
 
-  SVGAnimatedRect get viewBox() native "SVGViewSpec_viewBox_Getter";
+  SVGAnimatedRect get viewBox native "SVGViewSpec_viewBox_Getter";
 
-  String get viewBoxString() native "SVGViewSpec_viewBoxString_Getter";
+  String get viewBoxString native "SVGViewSpec_viewBoxString_Getter";
 
-  SVGElement get viewTarget() native "SVGViewSpec_viewTarget_Getter";
+  SVGElement get viewTarget native "SVGViewSpec_viewTarget_Getter";
 
-  String get viewTargetString() native "SVGViewSpec_viewTargetString_Getter";
+  String get viewTargetString native "SVGViewSpec_viewTargetString_Getter";
 
-  int get zoomAndPan() native "SVGViewSpec_zoomAndPan_Getter";
+  int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
 
   void set zoomAndPan(int) native "SVGViewSpec_zoomAndPan_Setter";
 
@@ -18186,15 +18186,15 @@ class _SVGViewSpecImpl extends NativeFieldWrapperClass1 implements SVGViewSpec {
 
 class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent {
 
-  num get newScale() native "SVGZoomEvent_newScale_Getter";
+  num get newScale native "SVGZoomEvent_newScale_Getter";
 
-  SVGPoint get newTranslate() native "SVGZoomEvent_newTranslate_Getter";
+  SVGPoint get newTranslate native "SVGZoomEvent_newTranslate_Getter";
 
-  num get previousScale() native "SVGZoomEvent_previousScale_Getter";
+  num get previousScale native "SVGZoomEvent_previousScale_Getter";
 
-  SVGPoint get previousTranslate() native "SVGZoomEvent_previousTranslate_Getter";
+  SVGPoint get previousTranslate native "SVGZoomEvent_previousTranslate_Getter";
 
-  SVGRect get zoomRectScreen() native "SVGZoomEvent_zoomRectScreen_Getter";
+  SVGRect get zoomRectScreen native "SVGZoomEvent_zoomRectScreen_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18205,21 +18205,21 @@ class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent {
 
 class _ScreenImpl extends NativeFieldWrapperClass1 implements Screen {
 
-  int get availHeight() native "Screen_availHeight_Getter";
+  int get availHeight native "Screen_availHeight_Getter";
 
-  int get availLeft() native "Screen_availLeft_Getter";
+  int get availLeft native "Screen_availLeft_Getter";
 
-  int get availTop() native "Screen_availTop_Getter";
+  int get availTop native "Screen_availTop_Getter";
 
-  int get availWidth() native "Screen_availWidth_Getter";
+  int get availWidth native "Screen_availWidth_Getter";
 
-  int get colorDepth() native "Screen_colorDepth_Getter";
+  int get colorDepth native "Screen_colorDepth_Getter";
 
-  int get height() native "Screen_height_Getter";
+  int get height native "Screen_height_Getter";
 
-  int get pixelDepth() native "Screen_pixelDepth_Getter";
+  int get pixelDepth native "Screen_pixelDepth_Getter";
 
-  int get width() native "Screen_width_Getter";
+  int get width native "Screen_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18230,11 +18230,11 @@ class _ScreenImpl extends NativeFieldWrapperClass1 implements Screen {
 
 class _ScriptProfileImpl extends NativeFieldWrapperClass1 implements ScriptProfile {
 
-  ScriptProfileNode get head() native "ScriptProfile_head_Getter";
+  ScriptProfileNode get head native "ScriptProfile_head_Getter";
 
-  String get title() native "ScriptProfile_title_Getter";
+  String get title native "ScriptProfile_title_Getter";
 
-  int get uid() native "ScriptProfile_uid_Getter";
+  int get uid native "ScriptProfile_uid_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18245,21 +18245,21 @@ class _ScriptProfileImpl extends NativeFieldWrapperClass1 implements ScriptProfi
 
 class _ScriptProfileNodeImpl extends NativeFieldWrapperClass1 implements ScriptProfileNode {
 
-  int get callUID() native "ScriptProfileNode_callUID_Getter";
+  int get callUID native "ScriptProfileNode_callUID_Getter";
 
-  String get functionName() native "ScriptProfileNode_functionName_Getter";
+  String get functionName native "ScriptProfileNode_functionName_Getter";
 
-  int get lineNumber() native "ScriptProfileNode_lineNumber_Getter";
+  int get lineNumber native "ScriptProfileNode_lineNumber_Getter";
 
-  int get numberOfCalls() native "ScriptProfileNode_numberOfCalls_Getter";
+  int get numberOfCalls native "ScriptProfileNode_numberOfCalls_Getter";
 
-  num get selfTime() native "ScriptProfileNode_selfTime_Getter";
+  num get selfTime native "ScriptProfileNode_selfTime_Getter";
 
-  num get totalTime() native "ScriptProfileNode_totalTime_Getter";
+  num get totalTime native "ScriptProfileNode_totalTime_Getter";
 
-  String get url() native "ScriptProfileNode_url_Getter";
+  String get url native "ScriptProfileNode_url_Getter";
 
-  bool get visible() native "ScriptProfileNode_visible_Getter";
+  bool get visible native "ScriptProfileNode_visible_Getter";
 
   List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
 
@@ -18301,17 +18301,17 @@ class _ShadowRootFactoryProvider {
 
 class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
-  Element get activeElement() native "ShadowRoot_activeElement_Getter";
+  Element get activeElement native "ShadowRoot_activeElement_Getter";
 
-  bool get applyAuthorStyles() native "ShadowRoot_applyAuthorStyles_Getter";
+  bool get applyAuthorStyles native "ShadowRoot_applyAuthorStyles_Getter";
 
   void set applyAuthorStyles(bool) native "ShadowRoot_applyAuthorStyles_Setter";
 
-  String get innerHTML() native "ShadowRoot_innerHTML_Getter";
+  String get innerHTML native "ShadowRoot_innerHTML_Getter";
 
   void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
 
-  bool get resetStyleInheritance() native "ShadowRoot_resetStyleInheritance_Getter";
+  bool get resetStyleInheritance native "ShadowRoot_resetStyleInheritance_Getter";
 
   void set resetStyleInheritance(bool) native "ShadowRoot_resetStyleInheritance_Setter";
 
@@ -18330,7 +18330,7 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
   _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get connect() => this['connect'];
+  EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18340,10 +18340,10 @@ class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements
 
 class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorkerContext {
 
-  _SharedWorkerContextEventsImpl get on() =>
+  _SharedWorkerContextEventsImpl get on =>
     new _SharedWorkerContextEventsImpl(this);
 
-  String get name() native "SharedWorkerContext_name_Getter";
+  String get name native "SharedWorkerContext_name_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18362,7 +18362,7 @@ class _SharedWorkerFactoryProvider {
 
 class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
 
-  MessagePort get port() native "SharedWorker_port_Getter";
+  MessagePort get port native "SharedWorker_port_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18373,9 +18373,9 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
 
 class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer {
 
-  TimeRanges get buffered() native "SourceBuffer_buffered_Getter";
+  TimeRanges get buffered native "SourceBuffer_buffered_Getter";
 
-  num get timestampOffset() native "SourceBuffer_timestampOffset_Getter";
+  num get timestampOffset native "SourceBuffer_timestampOffset_Getter";
 
   void set timestampOffset(num) native "SourceBuffer_timestampOffset_Setter";
 
@@ -18392,7 +18392,7 @@ class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer
 
 class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList {
 
-  int get length() native "SourceBufferList_length_Getter";
+  int get length native "SourceBufferList_length_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
 
@@ -18419,11 +18419,11 @@ class _SpeechGrammarFactoryProvider {
 
 class _SpeechGrammarImpl extends NativeFieldWrapperClass1 implements SpeechGrammar {
 
-  String get src() native "SpeechGrammar_src_Getter";
+  String get src native "SpeechGrammar_src_Getter";
 
   void set src(String) native "SpeechGrammar_src_Setter";
 
-  num get weight() native "SpeechGrammar_weight_Getter";
+  num get weight native "SpeechGrammar_weight_Getter";
 
   void set weight(num) native "SpeechGrammar_weight_Setter";
 
@@ -18444,7 +18444,7 @@ class _SpeechGrammarListFactoryProvider {
 
 class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechGrammarList {
 
-  int get length() native "SpeechGrammarList_length_Getter";
+  int get length native "SpeechGrammarList_length_Getter";
 
   void addFromString(string, [weight = _null]) {
     if (weight !== _null) {
@@ -18481,7 +18481,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
 
-  SpeechInputResultList get results() native "SpeechInputEvent_results_Getter";
+  SpeechInputResultList get results native "SpeechInputEvent_results_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18492,9 +18492,9 @@ class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
 
 class _SpeechInputResultImpl extends NativeFieldWrapperClass1 implements SpeechInputResult {
 
-  num get confidence() native "SpeechInputResult_confidence_Getter";
+  num get confidence native "SpeechInputResult_confidence_Getter";
 
-  String get utterance() native "SpeechInputResult_utterance_Getter";
+  String get utterance native "SpeechInputResult_utterance_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18505,7 +18505,7 @@ class _SpeechInputResultImpl extends NativeFieldWrapperClass1 implements SpeechI
 
 class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements SpeechInputResultList {
 
-  int get length() native "SpeechInputResultList_length_Getter";
+  int get length native "SpeechInputResultList_length_Getter";
 
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
@@ -18518,9 +18518,9 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Spe
 
 class _SpeechRecognitionAlternativeImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionAlternative {
 
-  num get confidence() native "SpeechRecognitionAlternative_confidence_Getter";
+  num get confidence native "SpeechRecognitionAlternative_confidence_Getter";
 
-  String get transcript() native "SpeechRecognitionAlternative_transcript_Getter";
+  String get transcript native "SpeechRecognitionAlternative_transcript_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18531,9 +18531,9 @@ class _SpeechRecognitionAlternativeImpl extends NativeFieldWrapperClass1 impleme
 
 class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError {
 
-  int get code() native "SpeechRecognitionError_code_Getter";
+  int get code native "SpeechRecognitionError_code_Getter";
 
-  String get message() native "SpeechRecognitionError_message_Getter";
+  String get message native "SpeechRecognitionError_message_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18544,11 +18544,11 @@ class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitio
 
 class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent {
 
-  SpeechRecognitionResult get result() native "SpeechRecognitionEvent_result_Getter";
+  SpeechRecognitionResult get result native "SpeechRecognitionEvent_result_Getter";
 
-  SpeechRecognitionResultList get resultHistory() native "SpeechRecognitionEvent_resultHistory_Getter";
+  SpeechRecognitionResultList get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
 
-  int get resultIndex() native "SpeechRecognitionEvent_resultIndex_Getter";
+  int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18563,29 +18563,29 @@ class _SpeechRecognitionFactoryProvider {
 class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
   _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get audioEnd() => this['audioend'];
+  EventListenerList get audioEnd => this['audioend'];
 
-  EventListenerList get audioStart() => this['audiostart'];
+  EventListenerList get audioStart => this['audiostart'];
 
-  EventListenerList get end() => this['end'];
+  EventListenerList get end => this['end'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get noMatch() => this['nomatch'];
+  EventListenerList get noMatch => this['nomatch'];
 
-  EventListenerList get result() => this['result'];
+  EventListenerList get result => this['result'];
 
-  EventListenerList get resultDeleted() => this['resultdeleted'];
+  EventListenerList get resultDeleted => this['resultdeleted'];
 
-  EventListenerList get soundEnd() => this['soundend'];
+  EventListenerList get soundEnd => this['soundend'];
 
-  EventListenerList get soundStart() => this['soundstart'];
+  EventListenerList get soundStart => this['soundstart'];
 
-  EventListenerList get speechEnd() => this['speechend'];
+  EventListenerList get speechEnd => this['speechend'];
 
-  EventListenerList get speechStart() => this['speechstart'];
+  EventListenerList get speechStart => this['speechstart'];
 
-  EventListenerList get start() => this['start'];
+  EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18595,22 +18595,22 @@ class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognit
 
 class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecognition {
 
-  _SpeechRecognitionEventsImpl get on() =>
+  _SpeechRecognitionEventsImpl get on =>
     new _SpeechRecognitionEventsImpl(this);
 
-  bool get continuous() native "SpeechRecognition_continuous_Getter";
+  bool get continuous native "SpeechRecognition_continuous_Getter";
 
   void set continuous(bool) native "SpeechRecognition_continuous_Setter";
 
-  SpeechGrammarList get grammars() native "SpeechRecognition_grammars_Getter";
+  SpeechGrammarList get grammars native "SpeechRecognition_grammars_Getter";
 
   void set grammars(SpeechGrammarList) native "SpeechRecognition_grammars_Setter";
 
-  String get lang() native "SpeechRecognition_lang_Getter";
+  String get lang native "SpeechRecognition_lang_Getter";
 
   void set lang(String) native "SpeechRecognition_lang_Setter";
 
-  int get maxAlternatives() native "SpeechRecognition_maxAlternatives_Getter";
+  int get maxAlternatives native "SpeechRecognition_maxAlternatives_Getter";
 
   void set maxAlternatives(int) native "SpeechRecognition_maxAlternatives_Setter";
 
@@ -18635,11 +18635,11 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
 class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResult {
 
-  Document get emma() native "SpeechRecognitionResult_emma_Getter";
+  Document get emma native "SpeechRecognitionResult_emma_Getter";
 
-  bool get finalValue() native "SpeechRecognitionResult_final_Getter";
+  bool get finalValue native "SpeechRecognitionResult_final_Getter";
 
-  int get length() native "SpeechRecognitionResult_length_Getter";
+  int get length native "SpeechRecognitionResult_length_Getter";
 
   SpeechRecognitionAlternative item(int index) native "SpeechRecognitionResult_item_Callback";
 
@@ -18652,7 +18652,7 @@ class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements S
 
 class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResultList {
 
-  int get length() native "SpeechRecognitionResultList_length_Getter";
+  int get length native "SpeechRecognitionResultList_length_Getter";
 
   SpeechRecognitionResult item(int index) native "SpeechRecognitionResultList_item_Callback";
 
@@ -18665,15 +18665,15 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
 
 class _StorageEventImpl extends _EventImpl implements StorageEvent {
 
-  String get key() native "StorageEvent_key_Getter";
+  String get key native "StorageEvent_key_Getter";
 
-  String get newValue() native "StorageEvent_newValue_Getter";
+  String get newValue native "StorageEvent_newValue_Getter";
 
-  String get oldValue() native "StorageEvent_oldValue_Getter";
+  String get oldValue native "StorageEvent_oldValue_Getter";
 
-  Storage get storageArea() native "StorageEvent_storageArea_Getter";
+  Storage get storageArea native "StorageEvent_storageArea_Getter";
 
-  String get url() native "StorageEvent_url_Getter";
+  String get url native "StorageEvent_url_Getter";
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
 
@@ -18727,11 +18727,11 @@ class _StorageImpl extends NativeFieldWrapperClass1 implements Storage {
     return values;
   }
 
-  int get length() => $dom_length;
+  int get length => $dom_length;
 
   bool isEmpty() => $dom_key(0) == null;
 
-  int get $dom_length() native "Storage_length_Getter";
+  int get $dom_length native "Storage_length_Getter";
 
   void $dom_clear() native "Storage_clear_Callback";
 
@@ -18765,7 +18765,7 @@ class _StorageInfoImpl extends NativeFieldWrapperClass1 implements StorageInfo {
 
 class _StyleMediaImpl extends NativeFieldWrapperClass1 implements StyleMedia {
 
-  String get type() native "StyleMedia_type_Getter";
+  String get type native "StyleMedia_type_Getter";
 
   bool matchMedium(String mediaquery) native "StyleMedia_matchMedium_Callback";
 
@@ -18778,21 +18778,21 @@ class _StyleMediaImpl extends NativeFieldWrapperClass1 implements StyleMedia {
 
 class _StyleSheetImpl extends NativeFieldWrapperClass1 implements StyleSheet {
 
-  bool get disabled() native "StyleSheet_disabled_Getter";
+  bool get disabled native "StyleSheet_disabled_Getter";
 
   void set disabled(bool) native "StyleSheet_disabled_Setter";
 
-  String get href() native "StyleSheet_href_Getter";
+  String get href native "StyleSheet_href_Getter";
 
-  MediaList get media() native "StyleSheet_media_Getter";
+  MediaList get media native "StyleSheet_media_Getter";
 
-  Node get ownerNode() native "StyleSheet_ownerNode_Getter";
+  Node get ownerNode native "StyleSheet_ownerNode_Getter";
 
-  StyleSheet get parentStyleSheet() native "StyleSheet_parentStyleSheet_Getter";
+  StyleSheet get parentStyleSheet native "StyleSheet_parentStyleSheet_Getter";
 
-  String get title() native "StyleSheet_title_Getter";
+  String get title native "StyleSheet_title_Getter";
 
-  String get type() native "StyleSheet_type_Getter";
+  String get type native "StyleSheet_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18803,7 +18803,7 @@ class _StyleSheetImpl extends NativeFieldWrapperClass1 implements StyleSheet {
 
 class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements StyleSheetList {
 
-  int get length() native "StyleSheetList_length_Getter";
+  int get length native "StyleSheetList_length_Getter";
 
   StyleSheet operator[](int index) native "StyleSheetList_item_Callback";
 
@@ -18898,7 +18898,7 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements StyleSheet
 
 class _TextEventImpl extends _UIEventImpl implements TextEvent {
 
-  String get data() native "TextEvent_data_Getter";
+  String get data native "TextEvent_data_Getter";
 
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
@@ -18911,7 +18911,7 @@ class _TextEventImpl extends _UIEventImpl implements TextEvent {
 
 class _TextImpl extends _CharacterDataImpl implements Text {
 
-  String get wholeText() native "Text_wholeText_Getter";
+  String get wholeText native "Text_wholeText_Getter";
 
   Text replaceWholeText(String content) native "Text_replaceWholeText_Callback";
 
@@ -18926,7 +18926,7 @@ class _TextImpl extends _CharacterDataImpl implements Text {
 
 class _TextMetricsImpl extends NativeFieldWrapperClass1 implements TextMetrics {
 
-  num get width() native "TextMetrics_width_Getter";
+  num get width native "TextMetrics_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18941,9 +18941,9 @@ class _TextTrackCueFactoryProvider {
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
   _TextTrackCueEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get enter() => this['enter'];
+  EventListenerList get enter => this['enter'];
 
-  EventListenerList get exit() => this['exit'];
+  EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18953,52 +18953,52 @@ class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents 
 
 class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
-  _TextTrackCueEventsImpl get on() =>
+  _TextTrackCueEventsImpl get on =>
     new _TextTrackCueEventsImpl(this);
 
-  String get align() native "TextTrackCue_align_Getter";
+  String get align native "TextTrackCue_align_Getter";
 
   void set align(String) native "TextTrackCue_align_Setter";
 
-  num get endTime() native "TextTrackCue_endTime_Getter";
+  num get endTime native "TextTrackCue_endTime_Getter";
 
   void set endTime(num) native "TextTrackCue_endTime_Setter";
 
-  String get id() native "TextTrackCue_id_Getter";
+  String get id native "TextTrackCue_id_Getter";
 
   void set id(String) native "TextTrackCue_id_Setter";
 
-  int get line() native "TextTrackCue_line_Getter";
+  int get line native "TextTrackCue_line_Getter";
 
   void set line(int) native "TextTrackCue_line_Setter";
 
-  bool get pauseOnExit() native "TextTrackCue_pauseOnExit_Getter";
+  bool get pauseOnExit native "TextTrackCue_pauseOnExit_Getter";
 
   void set pauseOnExit(bool) native "TextTrackCue_pauseOnExit_Setter";
 
-  int get position() native "TextTrackCue_position_Getter";
+  int get position native "TextTrackCue_position_Getter";
 
   void set position(int) native "TextTrackCue_position_Setter";
 
-  int get size() native "TextTrackCue_size_Getter";
+  int get size native "TextTrackCue_size_Getter";
 
   void set size(int) native "TextTrackCue_size_Setter";
 
-  bool get snapToLines() native "TextTrackCue_snapToLines_Getter";
+  bool get snapToLines native "TextTrackCue_snapToLines_Getter";
 
   void set snapToLines(bool) native "TextTrackCue_snapToLines_Setter";
 
-  num get startTime() native "TextTrackCue_startTime_Getter";
+  num get startTime native "TextTrackCue_startTime_Getter";
 
   void set startTime(num) native "TextTrackCue_startTime_Setter";
 
-  String get text() native "TextTrackCue_text_Getter";
+  String get text native "TextTrackCue_text_Getter";
 
   void set text(String) native "TextTrackCue_text_Setter";
 
-  TextTrack get track() native "TextTrackCue_track_Getter";
+  TextTrack get track native "TextTrackCue_track_Getter";
 
-  String get vertical() native "TextTrackCue_vertical_Getter";
+  String get vertical native "TextTrackCue_vertical_Getter";
 
   void set vertical(String) native "TextTrackCue_vertical_Setter";
 
@@ -19019,7 +19019,7 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
 class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrackCueList {
 
-  int get length() native "TextTrackCueList_length_Getter";
+  int get length native "TextTrackCueList_length_Getter";
 
   TextTrackCue getCueById(String id) native "TextTrackCueList_getCueById_Callback";
 
@@ -19030,7 +19030,7 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
 class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
   _TextTrackEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get cueChange() => this['cuechange'];
+  EventListenerList get cueChange => this['cuechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19040,20 +19040,20 @@ class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
 
 class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 
-  _TextTrackEventsImpl get on() =>
+  _TextTrackEventsImpl get on =>
     new _TextTrackEventsImpl(this);
 
-  TextTrackCueList get activeCues() native "TextTrack_activeCues_Getter";
+  TextTrackCueList get activeCues native "TextTrack_activeCues_Getter";
 
-  TextTrackCueList get cues() native "TextTrack_cues_Getter";
+  TextTrackCueList get cues native "TextTrack_cues_Getter";
 
-  String get kind() native "TextTrack_kind_Getter";
+  String get kind native "TextTrack_kind_Getter";
 
-  String get label() native "TextTrack_label_Getter";
+  String get label native "TextTrack_label_Getter";
 
-  String get language() native "TextTrack_language_Getter";
+  String get language native "TextTrack_language_Getter";
 
-  int get mode() native "TextTrack_mode_Getter";
+  int get mode native "TextTrack_mode_Getter";
 
   void set mode(int) native "TextTrack_mode_Setter";
 
@@ -19072,7 +19072,7 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
   _TextTrackListEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addTrack() => this['addtrack'];
+  EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19082,10 +19082,10 @@ class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvent
 
 class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 
-  _TextTrackListEventsImpl get on() =>
+  _TextTrackListEventsImpl get on =>
     new _TextTrackListEventsImpl(this);
 
-  int get length() native "TextTrackList_length_Getter";
+  int get length native "TextTrackList_length_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
@@ -19104,7 +19104,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 
 class _TimeRangesImpl extends NativeFieldWrapperClass1 implements TimeRanges {
 
-  int get length() native "TimeRanges_length_Getter";
+  int get length native "TimeRanges_length_Getter";
 
   num end(int index) native "TimeRanges_end_Callback";
 
@@ -19119,19 +19119,19 @@ class _TimeRangesImpl extends NativeFieldWrapperClass1 implements TimeRanges {
 
 class _TouchEventImpl extends _UIEventImpl implements TouchEvent {
 
-  bool get altKey() native "TouchEvent_altKey_Getter";
+  bool get altKey native "TouchEvent_altKey_Getter";
 
-  TouchList get changedTouches() native "TouchEvent_changedTouches_Getter";
+  TouchList get changedTouches native "TouchEvent_changedTouches_Getter";
 
-  bool get ctrlKey() native "TouchEvent_ctrlKey_Getter";
+  bool get ctrlKey native "TouchEvent_ctrlKey_Getter";
 
-  bool get metaKey() native "TouchEvent_metaKey_Getter";
+  bool get metaKey native "TouchEvent_metaKey_Getter";
 
-  bool get shiftKey() native "TouchEvent_shiftKey_Getter";
+  bool get shiftKey native "TouchEvent_shiftKey_Getter";
 
-  TouchList get targetTouches() native "TouchEvent_targetTouches_Getter";
+  TouchList get targetTouches native "TouchEvent_targetTouches_Getter";
 
-  TouchList get touches() native "TouchEvent_touches_Getter";
+  TouchList get touches native "TouchEvent_touches_Getter";
 
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
@@ -19144,29 +19144,29 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent {
 
 class _TouchImpl extends NativeFieldWrapperClass1 implements Touch {
 
-  int get clientX() native "Touch_clientX_Getter";
+  int get clientX native "Touch_clientX_Getter";
 
-  int get clientY() native "Touch_clientY_Getter";
+  int get clientY native "Touch_clientY_Getter";
 
-  int get identifier() native "Touch_identifier_Getter";
+  int get identifier native "Touch_identifier_Getter";
 
-  int get pageX() native "Touch_pageX_Getter";
+  int get pageX native "Touch_pageX_Getter";
 
-  int get pageY() native "Touch_pageY_Getter";
+  int get pageY native "Touch_pageY_Getter";
 
-  int get screenX() native "Touch_screenX_Getter";
+  int get screenX native "Touch_screenX_Getter";
 
-  int get screenY() native "Touch_screenY_Getter";
+  int get screenY native "Touch_screenY_Getter";
 
-  EventTarget get target() native "Touch_target_Getter";
+  EventTarget get target native "Touch_target_Getter";
 
-  num get webkitForce() native "Touch_webkitForce_Getter";
+  num get webkitForce native "Touch_webkitForce_Getter";
 
-  int get webkitRadiusX() native "Touch_webkitRadiusX_Getter";
+  int get webkitRadiusX native "Touch_webkitRadiusX_Getter";
 
-  int get webkitRadiusY() native "Touch_webkitRadiusY_Getter";
+  int get webkitRadiusY native "Touch_webkitRadiusY_Getter";
 
-  num get webkitRotationAngle() native "Touch_webkitRotationAngle_Getter";
+  num get webkitRotationAngle native "Touch_webkitRotationAngle_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19177,7 +19177,7 @@ class _TouchImpl extends NativeFieldWrapperClass1 implements Touch {
 
 class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
 
-  int get length() native "TouchList_length_Getter";
+  int get length native "TouchList_length_Getter";
 
   Touch operator[](int index) native "TouchList_item_Callback";
 
@@ -19272,7 +19272,7 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
 
 class _TrackEventImpl extends _EventImpl implements TrackEvent {
 
-  Object get track() native "TrackEvent_track_Getter";
+  Object get track native "TrackEvent_track_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19283,17 +19283,17 @@ class _TrackEventImpl extends _EventImpl implements TrackEvent {
 
 class _TreeWalkerImpl extends NativeFieldWrapperClass1 implements TreeWalker {
 
-  Node get currentNode() native "TreeWalker_currentNode_Getter";
+  Node get currentNode native "TreeWalker_currentNode_Getter";
 
   void set currentNode(Node) native "TreeWalker_currentNode_Setter";
 
-  bool get expandEntityReferences() native "TreeWalker_expandEntityReferences_Getter";
+  bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
 
-  NodeFilter get filter() native "TreeWalker_filter_Getter";
+  NodeFilter get filter native "TreeWalker_filter_Getter";
 
-  Node get root() native "TreeWalker_root_Getter";
+  Node get root native "TreeWalker_root_Getter";
 
-  int get whatToShow() native "TreeWalker_whatToShow_Getter";
+  int get whatToShow native "TreeWalker_whatToShow_Getter";
 
   Node firstChild() native "TreeWalker_firstChild_Callback";
 
@@ -19318,23 +19318,23 @@ class _TreeWalkerImpl extends NativeFieldWrapperClass1 implements TreeWalker {
 
 class _UIEventImpl extends _EventImpl implements UIEvent {
 
-  int get charCode() native "UIEvent_charCode_Getter";
+  int get charCode native "UIEvent_charCode_Getter";
 
-  int get detail() native "UIEvent_detail_Getter";
+  int get detail native "UIEvent_detail_Getter";
 
-  int get keyCode() native "UIEvent_keyCode_Getter";
+  int get keyCode native "UIEvent_keyCode_Getter";
 
-  int get layerX() native "UIEvent_layerX_Getter";
+  int get layerX native "UIEvent_layerX_Getter";
 
-  int get layerY() native "UIEvent_layerY_Getter";
+  int get layerY native "UIEvent_layerY_Getter";
 
-  int get pageX() native "UIEvent_pageX_Getter";
+  int get pageX native "UIEvent_pageX_Getter";
 
-  int get pageY() native "UIEvent_pageY_Getter";
+  int get pageY native "UIEvent_pageY_Getter";
 
-  Window get view() native "UIEvent_view_Getter";
+  Window get view native "UIEvent_view_Getter";
 
-  int get which() native "UIEvent_which_Getter";
+  int get which native "UIEvent_which_Getter";
 
   void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
@@ -19347,7 +19347,7 @@ class _UIEventImpl extends _EventImpl implements UIEvent {
 
 class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
-  int get length() native "Uint16Array_length_Getter";
+  int get length native "Uint16Array_length_Getter";
 
   int operator[](int index) native "Uint16Array_numericIndexGetter_Callback";
 
@@ -19451,7 +19451,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
 class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
-  int get length() native "Uint32Array_length_Getter";
+  int get length native "Uint32Array_length_Getter";
 
   int operator[](int index) native "Uint32Array_numericIndexGetter_Callback";
 
@@ -19555,7 +19555,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
 class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
-  int get length() native "Uint8Array_length_Getter";
+  int get length native "Uint8Array_length_Getter";
 
   int operator[](int index) native "Uint8Array_numericIndexGetter_Callback";
 
@@ -19659,7 +19659,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
 class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray {
 
-  int get length() native "Uint8ClampedArray_length_Getter";
+  int get length native "Uint8ClampedArray_length_Getter";
 
   int operator[](int index) native "Uint8ClampedArray_numericIndexGetter_Callback";
 
@@ -19687,23 +19687,23 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
 class _ValidityStateImpl extends NativeFieldWrapperClass1 implements ValidityState {
 
-  bool get customError() native "ValidityState_customError_Getter";
+  bool get customError native "ValidityState_customError_Getter";
 
-  bool get patternMismatch() native "ValidityState_patternMismatch_Getter";
+  bool get patternMismatch native "ValidityState_patternMismatch_Getter";
 
-  bool get rangeOverflow() native "ValidityState_rangeOverflow_Getter";
+  bool get rangeOverflow native "ValidityState_rangeOverflow_Getter";
 
-  bool get rangeUnderflow() native "ValidityState_rangeUnderflow_Getter";
+  bool get rangeUnderflow native "ValidityState_rangeUnderflow_Getter";
 
-  bool get stepMismatch() native "ValidityState_stepMismatch_Getter";
+  bool get stepMismatch native "ValidityState_stepMismatch_Getter";
 
-  bool get tooLong() native "ValidityState_tooLong_Getter";
+  bool get tooLong native "ValidityState_tooLong_Getter";
 
-  bool get typeMismatch() native "ValidityState_typeMismatch_Getter";
+  bool get typeMismatch native "ValidityState_typeMismatch_Getter";
 
-  bool get valid() native "ValidityState_valid_Getter";
+  bool get valid native "ValidityState_valid_Getter";
 
-  bool get valueMissing() native "ValidityState_valueMissing_Getter";
+  bool get valueMissing native "ValidityState_valueMissing_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19714,7 +19714,7 @@ class _ValidityStateImpl extends NativeFieldWrapperClass1 implements ValiditySta
 
 class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode {
 
-  Float32Array get curve() native "WaveShaperNode_curve_Getter";
+  Float32Array get curve native "WaveShaperNode_curve_Getter";
 
   void set curve(Float32Array) native "WaveShaperNode_curve_Setter";
 
@@ -19736,11 +19736,11 @@ class _WaveTableImpl extends NativeFieldWrapperClass1 implements WaveTable {
 
 class _WebGLActiveInfoImpl extends NativeFieldWrapperClass1 implements WebGLActiveInfo {
 
-  String get name() native "WebGLActiveInfo_name_Getter";
+  String get name native "WebGLActiveInfo_name_Getter";
 
-  int get size() native "WebGLActiveInfo_size_Getter";
+  int get size native "WebGLActiveInfo_size_Getter";
 
-  int get type() native "WebGLActiveInfo_type_Getter";
+  int get type native "WebGLActiveInfo_type_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19769,27 +19769,27 @@ class _WebGLCompressedTextureS3TCImpl extends NativeFieldWrapperClass1 implement
 
 class _WebGLContextAttributesImpl extends NativeFieldWrapperClass1 implements WebGLContextAttributes {
 
-  bool get alpha() native "WebGLContextAttributes_alpha_Getter";
+  bool get alpha native "WebGLContextAttributes_alpha_Getter";
 
   void set alpha(bool) native "WebGLContextAttributes_alpha_Setter";
 
-  bool get antialias() native "WebGLContextAttributes_antialias_Getter";
+  bool get antialias native "WebGLContextAttributes_antialias_Getter";
 
   void set antialias(bool) native "WebGLContextAttributes_antialias_Setter";
 
-  bool get depth() native "WebGLContextAttributes_depth_Getter";
+  bool get depth native "WebGLContextAttributes_depth_Getter";
 
   void set depth(bool) native "WebGLContextAttributes_depth_Setter";
 
-  bool get premultipliedAlpha() native "WebGLContextAttributes_premultipliedAlpha_Getter";
+  bool get premultipliedAlpha native "WebGLContextAttributes_premultipliedAlpha_Getter";
 
   void set premultipliedAlpha(bool) native "WebGLContextAttributes_premultipliedAlpha_Setter";
 
-  bool get preserveDrawingBuffer() native "WebGLContextAttributes_preserveDrawingBuffer_Getter";
+  bool get preserveDrawingBuffer native "WebGLContextAttributes_preserveDrawingBuffer_Getter";
 
   void set preserveDrawingBuffer(bool) native "WebGLContextAttributes_preserveDrawingBuffer_Setter";
 
-  bool get stencil() native "WebGLContextAttributes_stencil_Getter";
+  bool get stencil native "WebGLContextAttributes_stencil_Getter";
 
   void set stencil(bool) native "WebGLContextAttributes_stencil_Setter";
 
@@ -19802,7 +19802,7 @@ class _WebGLContextAttributesImpl extends NativeFieldWrapperClass1 implements We
 
 class _WebGLContextEventImpl extends _EventImpl implements WebGLContextEvent {
 
-  String get statusMessage() native "WebGLContextEvent_statusMessage_Getter";
+  String get statusMessage native "WebGLContextEvent_statusMessage_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19882,9 +19882,9 @@ class _WebGLRenderbufferImpl extends NativeFieldWrapperClass1 implements WebGLRe
 
 class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements WebGLRenderingContext {
 
-  int get drawingBufferHeight() native "WebGLRenderingContext_drawingBufferHeight_Getter";
+  int get drawingBufferHeight native "WebGLRenderingContext_drawingBufferHeight_Getter";
 
-  int get drawingBufferWidth() native "WebGLRenderingContext_drawingBufferWidth_Getter";
+  int get drawingBufferWidth native "WebGLRenderingContext_drawingBufferWidth_Getter";
 
   void activeTexture(int texture) native "WebGLRenderingContext_activeTexture_Callback";
 
@@ -20276,11 +20276,11 @@ class _WebGLShaderImpl extends NativeFieldWrapperClass1 implements WebGLShader {
 
 class _WebGLShaderPrecisionFormatImpl extends NativeFieldWrapperClass1 implements WebGLShaderPrecisionFormat {
 
-  int get precision() native "WebGLShaderPrecisionFormat_precision_Getter";
+  int get precision native "WebGLShaderPrecisionFormat_precision_Getter";
 
-  int get rangeMax() native "WebGLShaderPrecisionFormat_rangeMax_Getter";
+  int get rangeMax native "WebGLShaderPrecisionFormat_rangeMax_Getter";
 
-  int get rangeMin() native "WebGLShaderPrecisionFormat_rangeMin_Getter";
+  int get rangeMin native "WebGLShaderPrecisionFormat_rangeMin_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20318,9 +20318,9 @@ class _WebGLVertexArrayObjectOESImpl extends NativeFieldWrapperClass1 implements
 
 class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
 
-  String get animationName() native "WebKitAnimationEvent_animationName_Getter";
+  String get animationName native "WebKitAnimationEvent_animationName_Getter";
 
-  num get elapsedTime() native "WebKitAnimationEvent_elapsedTime_Getter";
+  num get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20331,25 +20331,25 @@ class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
 
 class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation {
 
-  num get delay() native "WebKitAnimation_delay_Getter";
+  num get delay native "WebKitAnimation_delay_Getter";
 
-  int get direction() native "WebKitAnimation_direction_Getter";
+  int get direction native "WebKitAnimation_direction_Getter";
 
-  num get duration() native "WebKitAnimation_duration_Getter";
+  num get duration native "WebKitAnimation_duration_Getter";
 
-  num get elapsedTime() native "WebKitAnimation_elapsedTime_Getter";
+  num get elapsedTime native "WebKitAnimation_elapsedTime_Getter";
 
   void set elapsedTime(num) native "WebKitAnimation_elapsedTime_Setter";
 
-  bool get ended() native "WebKitAnimation_ended_Getter";
+  bool get ended native "WebKitAnimation_ended_Getter";
 
-  int get fillMode() native "WebKitAnimation_fillMode_Getter";
+  int get fillMode native "WebKitAnimation_fillMode_Getter";
 
-  int get iterationCount() native "WebKitAnimation_iterationCount_Getter";
+  int get iterationCount native "WebKitAnimation_iterationCount_Getter";
 
-  String get name() native "WebKitAnimation_name_Getter";
+  String get name native "WebKitAnimation_name_Getter";
 
-  bool get paused() native "WebKitAnimation_paused_Getter";
+  bool get paused native "WebKitAnimation_paused_Getter";
 
   void pause() native "WebKitAnimation_pause_Callback";
 
@@ -20364,7 +20364,7 @@ class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation
 
 class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements AnimationList {
 
-  int get length() native "WebKitAnimationList_length_Getter";
+  int get length native "WebKitAnimationList_length_Getter";
 
   Animation item(int index) native "WebKitAnimationList_item_Callback";
 
@@ -20377,7 +20377,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements Anima
 
 class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFilterValue {
 
-  int get operationType() native "WebKitCSSFilterValue_operationType_Getter";
+  int get operationType native "WebKitCSSFilterValue_operationType_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20388,11 +20388,11 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
 
 class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule {
 
-  String get keyText() native "WebKitCSSKeyframeRule_keyText_Getter";
+  String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
 
   void set keyText(String) native "WebKitCSSKeyframeRule_keyText_Setter";
 
-  CSSStyleDeclaration get style() native "WebKitCSSKeyframeRule_style_Getter";
+  CSSStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20403,9 +20403,9 @@ class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule
 
 class _WebKitCSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
 
-  CSSRuleList get cssRules() native "WebKitCSSKeyframesRule_cssRules_Getter";
+  CSSRuleList get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
-  String get name() native "WebKitCSSKeyframesRule_name_Getter";
+  String get name native "WebKitCSSKeyframesRule_name_Getter";
 
   void set name(String) native "WebKitCSSKeyframesRule_name_Setter";
 
@@ -20432,91 +20432,91 @@ class _CSSMatrixFactoryProvider {
 
 class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix {
 
-  num get a() native "WebKitCSSMatrix_a_Getter";
+  num get a native "WebKitCSSMatrix_a_Getter";
 
   void set a(num) native "WebKitCSSMatrix_a_Setter";
 
-  num get b() native "WebKitCSSMatrix_b_Getter";
+  num get b native "WebKitCSSMatrix_b_Getter";
 
   void set b(num) native "WebKitCSSMatrix_b_Setter";
 
-  num get c() native "WebKitCSSMatrix_c_Getter";
+  num get c native "WebKitCSSMatrix_c_Getter";
 
   void set c(num) native "WebKitCSSMatrix_c_Setter";
 
-  num get d() native "WebKitCSSMatrix_d_Getter";
+  num get d native "WebKitCSSMatrix_d_Getter";
 
   void set d(num) native "WebKitCSSMatrix_d_Setter";
 
-  num get e() native "WebKitCSSMatrix_e_Getter";
+  num get e native "WebKitCSSMatrix_e_Getter";
 
   void set e(num) native "WebKitCSSMatrix_e_Setter";
 
-  num get f() native "WebKitCSSMatrix_f_Getter";
+  num get f native "WebKitCSSMatrix_f_Getter";
 
   void set f(num) native "WebKitCSSMatrix_f_Setter";
 
-  num get m11() native "WebKitCSSMatrix_m11_Getter";
+  num get m11 native "WebKitCSSMatrix_m11_Getter";
 
   void set m11(num) native "WebKitCSSMatrix_m11_Setter";
 
-  num get m12() native "WebKitCSSMatrix_m12_Getter";
+  num get m12 native "WebKitCSSMatrix_m12_Getter";
 
   void set m12(num) native "WebKitCSSMatrix_m12_Setter";
 
-  num get m13() native "WebKitCSSMatrix_m13_Getter";
+  num get m13 native "WebKitCSSMatrix_m13_Getter";
 
   void set m13(num) native "WebKitCSSMatrix_m13_Setter";
 
-  num get m14() native "WebKitCSSMatrix_m14_Getter";
+  num get m14 native "WebKitCSSMatrix_m14_Getter";
 
   void set m14(num) native "WebKitCSSMatrix_m14_Setter";
 
-  num get m21() native "WebKitCSSMatrix_m21_Getter";
+  num get m21 native "WebKitCSSMatrix_m21_Getter";
 
   void set m21(num) native "WebKitCSSMatrix_m21_Setter";
 
-  num get m22() native "WebKitCSSMatrix_m22_Getter";
+  num get m22 native "WebKitCSSMatrix_m22_Getter";
 
   void set m22(num) native "WebKitCSSMatrix_m22_Setter";
 
-  num get m23() native "WebKitCSSMatrix_m23_Getter";
+  num get m23 native "WebKitCSSMatrix_m23_Getter";
 
   void set m23(num) native "WebKitCSSMatrix_m23_Setter";
 
-  num get m24() native "WebKitCSSMatrix_m24_Getter";
+  num get m24 native "WebKitCSSMatrix_m24_Getter";
 
   void set m24(num) native "WebKitCSSMatrix_m24_Setter";
 
-  num get m31() native "WebKitCSSMatrix_m31_Getter";
+  num get m31 native "WebKitCSSMatrix_m31_Getter";
 
   void set m31(num) native "WebKitCSSMatrix_m31_Setter";
 
-  num get m32() native "WebKitCSSMatrix_m32_Getter";
+  num get m32 native "WebKitCSSMatrix_m32_Getter";
 
   void set m32(num) native "WebKitCSSMatrix_m32_Setter";
 
-  num get m33() native "WebKitCSSMatrix_m33_Getter";
+  num get m33 native "WebKitCSSMatrix_m33_Getter";
 
   void set m33(num) native "WebKitCSSMatrix_m33_Setter";
 
-  num get m34() native "WebKitCSSMatrix_m34_Getter";
+  num get m34 native "WebKitCSSMatrix_m34_Getter";
 
   void set m34(num) native "WebKitCSSMatrix_m34_Setter";
 
-  num get m41() native "WebKitCSSMatrix_m41_Getter";
+  num get m41 native "WebKitCSSMatrix_m41_Getter";
 
   void set m41(num) native "WebKitCSSMatrix_m41_Setter";
 
-  num get m42() native "WebKitCSSMatrix_m42_Getter";
+  num get m42 native "WebKitCSSMatrix_m42_Getter";
 
   void set m42(num) native "WebKitCSSMatrix_m42_Setter";
 
-  num get m43() native "WebKitCSSMatrix_m43_Getter";
+  num get m43 native "WebKitCSSMatrix_m43_Getter";
 
   void set m43(num) native "WebKitCSSMatrix_m43_Setter";
 
-  num get m44() native "WebKitCSSMatrix_m44_Getter";
+  num get m44 native "WebKitCSSMatrix_m44_Getter";
 
   void set m44(num) native "WebKitCSSMatrix_m44_Setter";
 
@@ -20549,7 +20549,7 @@ class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix
 
 class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
 
-  int get operationType() native "WebKitCSSTransformValue_operationType_Getter";
+  int get operationType native "WebKitCSSTransformValue_operationType_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20560,11 +20560,11 @@ class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTrans
 
 class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
-  int get firstEmptyRegionIndex() native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
+  int get firstEmptyRegionIndex native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
 
-  String get name() native "WebKitNamedFlow_name_Getter";
+  String get name native "WebKitNamedFlow_name_Getter";
 
-  bool get overset() native "WebKitNamedFlow_overset_Getter";
+  bool get overset native "WebKitNamedFlow_overset_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
 
@@ -20587,11 +20587,11 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
 class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
 
-  num get x() native "WebKitPoint_x_Getter";
+  num get x native "WebKitPoint_x_Getter";
 
   void set x(num) native "WebKitPoint_x_Setter";
 
-  num get y() native "WebKitPoint_y_Getter";
+  num get y native "WebKitPoint_y_Getter";
 
   void set y(num) native "WebKitPoint_y_Setter";
 
@@ -20604,22 +20604,22 @@ class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
 
 class _WebKitTransitionEventImpl extends _EventImpl implements TransitionEvent {
 
-  num get elapsedTime() native "WebKitTransitionEvent_elapsedTime_Getter";
+  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
 
-  String get propertyName() native "WebKitTransitionEvent_propertyName_Getter";
+  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
 
 }
 
 class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
   _WebSocketEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get close() => this['close'];
+  EventListenerList get close => this['close'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20629,24 +20629,24 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
-  _WebSocketEventsImpl get on() =>
+  _WebSocketEventsImpl get on =>
     new _WebSocketEventsImpl(this);
 
-  String get URL() native "WebSocket_URL_Getter";
+  String get URL native "WebSocket_URL_Getter";
 
-  String get binaryType() native "WebSocket_binaryType_Getter";
+  String get binaryType native "WebSocket_binaryType_Getter";
 
   void set binaryType(String) native "WebSocket_binaryType_Setter";
 
-  int get bufferedAmount() native "WebSocket_bufferedAmount_Getter";
+  int get bufferedAmount native "WebSocket_bufferedAmount_Getter";
 
-  String get extensions() native "WebSocket_extensions_Getter";
+  String get extensions native "WebSocket_extensions_Getter";
 
-  String get protocol() native "WebSocket_protocol_Getter";
+  String get protocol native "WebSocket_protocol_Getter";
 
-  int get readyState() native "WebSocket_readyState_Getter";
+  int get readyState native "WebSocket_readyState_Getter";
 
-  String get url() native "WebSocket_url_Getter";
+  String get url native "WebSocket_url_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
@@ -20683,13 +20683,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
 class _WheelEventImpl extends _MouseEventImpl implements WheelEvent {
 
-  bool get webkitDirectionInvertedFromDevice() native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
+  bool get webkitDirectionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
-  int get wheelDelta() native "WheelEvent_wheelDelta_Getter";
+  int get wheelDelta native "WheelEvent_wheelDelta_Getter";
 
-  int get wheelDeltaX() native "WheelEvent_wheelDeltaX_Getter";
+  int get wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
 
-  int get wheelDeltaY() native "WheelEvent_wheelDeltaY_Getter";
+  int get wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
@@ -20698,7 +20698,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent {
 class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
   _WorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20708,18 +20708,18 @@ class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvent
 
 class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
-  _WorkerContextEventsImpl get on() =>
+  _WorkerContextEventsImpl get on =>
     new _WorkerContextEventsImpl(this);
 
-  WorkerLocation get location() native "WorkerContext_location_Getter";
+  WorkerLocation get location native "WorkerContext_location_Getter";
 
-  WorkerNavigator get navigator() native "WorkerContext_navigator_Getter";
+  WorkerNavigator get navigator native "WorkerContext_navigator_Getter";
 
-  WorkerContext get self() native "WorkerContext_self_Getter";
+  WorkerContext get self native "WorkerContext_self_Getter";
 
-  IDBFactory get webkitIndexedDB() native "WorkerContext_webkitIndexedDB_Getter";
+  IDBFactory get webkitIndexedDB native "WorkerContext_webkitIndexedDB_Getter";
 
-  NotificationCenter get webkitNotifications() native "WorkerContext_webkitNotifications_Getter";
+  NotificationCenter get webkitNotifications native "WorkerContext_webkitNotifications_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_addEventListener_Callback";
 
@@ -20764,7 +20764,7 @@ class _WorkerFactoryProvider {
 class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
   _WorkerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20774,7 +20774,7 @@ class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvent
 
 class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
 
-  _WorkerEventsImpl get on() =>
+  _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
   void postMessage(message, [List messagePorts]) native "Worker_postMessage_Callback";
@@ -20792,21 +20792,21 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
 
 class _WorkerLocationImpl extends NativeFieldWrapperClass1 implements WorkerLocation {
 
-  String get hash() native "WorkerLocation_hash_Getter";
+  String get hash native "WorkerLocation_hash_Getter";
 
-  String get host() native "WorkerLocation_host_Getter";
+  String get host native "WorkerLocation_host_Getter";
 
-  String get hostname() native "WorkerLocation_hostname_Getter";
+  String get hostname native "WorkerLocation_hostname_Getter";
 
-  String get href() native "WorkerLocation_href_Getter";
+  String get href native "WorkerLocation_href_Getter";
 
-  String get pathname() native "WorkerLocation_pathname_Getter";
+  String get pathname native "WorkerLocation_pathname_Getter";
 
-  String get port() native "WorkerLocation_port_Getter";
+  String get port native "WorkerLocation_port_Getter";
 
-  String get protocol() native "WorkerLocation_protocol_Getter";
+  String get protocol native "WorkerLocation_protocol_Getter";
 
-  String get search() native "WorkerLocation_search_Getter";
+  String get search native "WorkerLocation_search_Getter";
 
   String toString() native "WorkerLocation_toString_Callback";
 
@@ -20819,15 +20819,15 @@ class _WorkerLocationImpl extends NativeFieldWrapperClass1 implements WorkerLoca
 
 class _WorkerNavigatorImpl extends NativeFieldWrapperClass1 implements WorkerNavigator {
 
-  String get appName() native "WorkerNavigator_appName_Getter";
+  String get appName native "WorkerNavigator_appName_Getter";
 
-  String get appVersion() native "WorkerNavigator_appVersion_Getter";
+  String get appVersion native "WorkerNavigator_appVersion_Getter";
 
-  bool get onLine() native "WorkerNavigator_onLine_Getter";
+  bool get onLine native "WorkerNavigator_onLine_Getter";
 
-  String get platform() native "WorkerNavigator_platform_Getter";
+  String get platform native "WorkerNavigator_platform_Getter";
 
-  String get userAgent() native "WorkerNavigator_userAgent_Getter";
+  String get userAgent native "WorkerNavigator_userAgent_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20838,11 +20838,11 @@ class _WorkerNavigatorImpl extends NativeFieldWrapperClass1 implements WorkerNav
 
 class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements HttpRequestException {
 
-  int get code() native "XMLHttpRequestException_code_Getter";
+  int get code native "XMLHttpRequestException_code_Getter";
 
-  String get message() native "XMLHttpRequestException_message_Getter";
+  String get message native "XMLHttpRequestException_message_Getter";
 
-  String get name() native "XMLHttpRequestException_name_Getter";
+  String get name native "XMLHttpRequestException_name_Getter";
 
   String toString() native "XMLHttpRequestException_toString_Callback";
 
@@ -20867,19 +20867,19 @@ class _HttpRequestFactoryProvider {
 class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
   _HttpRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadEnd() => this['loadend'];
+  EventListenerList get loadEnd => this['loadend'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get readyStateChange() => this['readystatechange'];
+  EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20889,28 +20889,28 @@ class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
 
 class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
-  _HttpRequestEventsImpl get on() =>
+  _HttpRequestEventsImpl get on =>
     new _HttpRequestEventsImpl(this);
 
-  int get readyState() native "XMLHttpRequest_readyState_Getter";
+  int get readyState native "XMLHttpRequest_readyState_Getter";
 
-  Object get response() native "XMLHttpRequest_response_Getter";
+  Object get response native "XMLHttpRequest_response_Getter";
 
-  String get responseText() native "XMLHttpRequest_responseText_Getter";
+  String get responseText native "XMLHttpRequest_responseText_Getter";
 
-  String get responseType() native "XMLHttpRequest_responseType_Getter";
+  String get responseType native "XMLHttpRequest_responseType_Getter";
 
   void set responseType(String) native "XMLHttpRequest_responseType_Setter";
 
-  Document get responseXML() native "XMLHttpRequest_responseXML_Getter";
+  Document get responseXML native "XMLHttpRequest_responseXML_Getter";
 
-  int get status() native "XMLHttpRequest_status_Getter";
+  int get status native "XMLHttpRequest_status_Getter";
 
-  String get statusText() native "XMLHttpRequest_statusText_Getter";
+  String get statusText native "XMLHttpRequest_statusText_Getter";
 
-  HttpRequestUpload get upload() native "XMLHttpRequest_upload_Getter";
+  HttpRequestUpload get upload native "XMLHttpRequest_upload_Getter";
 
-  bool get withCredentials() native "XMLHttpRequest_withCredentials_Getter";
+  bool get withCredentials native "XMLHttpRequest_withCredentials_Getter";
 
   void set withCredentials(bool) native "XMLHttpRequest_withCredentials_Setter";
 
@@ -20943,26 +20943,26 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
 class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent {
 
-  int get position() native "XMLHttpRequestProgressEvent_position_Getter";
+  int get position native "XMLHttpRequestProgressEvent_position_Getter";
 
-  int get totalSize() native "XMLHttpRequestProgressEvent_totalSize_Getter";
+  int get totalSize native "XMLHttpRequestProgressEvent_totalSize_Getter";
 
 }
 
 class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUploadEvents {
   _HttpRequestUploadEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadEnd() => this['loadend'];
+  EventListenerList get loadEnd => this['loadend'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20972,7 +20972,7 @@ class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUpl
 
 class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUpload {
 
-  _HttpRequestUploadEventsImpl get on() =>
+  _HttpRequestUploadEventsImpl get on =>
     new _HttpRequestUploadEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
@@ -21032,11 +21032,11 @@ class _XPathEvaluatorImpl extends NativeFieldWrapperClass1 implements XPathEvalu
 
 class _XPathExceptionImpl extends NativeFieldWrapperClass1 implements XPathException {
 
-  int get code() native "XPathException_code_Getter";
+  int get code native "XPathException_code_Getter";
 
-  String get message() native "XPathException_message_Getter";
+  String get message native "XPathException_message_Getter";
 
-  String get name() native "XPathException_name_Getter";
+  String get name native "XPathException_name_Getter";
 
   String toString() native "XPathException_toString_Callback";
 
@@ -21071,19 +21071,19 @@ class _XPathNSResolverImpl extends NativeFieldWrapperClass1 implements XPathNSRe
 
 class _XPathResultImpl extends NativeFieldWrapperClass1 implements XPathResult {
 
-  bool get booleanValue() native "XPathResult_booleanValue_Getter";
+  bool get booleanValue native "XPathResult_booleanValue_Getter";
 
-  bool get invalidIteratorState() native "XPathResult_invalidIteratorState_Getter";
+  bool get invalidIteratorState native "XPathResult_invalidIteratorState_Getter";
 
-  num get numberValue() native "XPathResult_numberValue_Getter";
+  num get numberValue native "XPathResult_numberValue_Getter";
 
-  int get resultType() native "XPathResult_resultType_Getter";
+  int get resultType native "XPathResult_resultType_Getter";
 
-  Node get singleNodeValue() native "XPathResult_singleNodeValue_Getter";
+  Node get singleNodeValue native "XPathResult_singleNodeValue_Getter";
 
-  int get snapshotLength() native "XPathResult_snapshotLength_Getter";
+  int get snapshotLength native "XPathResult_snapshotLength_Getter";
 
-  String get stringValue() native "XPathResult_stringValue_Getter";
+  String get stringValue native "XPathResult_stringValue_Getter";
 
   Node iterateNext() native "XPathResult_iterateNext_Callback";
 
@@ -21434,7 +21434,7 @@ interface AbstractWorker extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  AbstractWorkerEvents get on();
+  AbstractWorkerEvents get on;
 
   /** @domName AbstractWorker.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -21448,7 +21448,7 @@ interface AbstractWorker extends EventTarget {
 
 interface AbstractWorkerEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21871,7 +21871,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  AudioContextEvents get on();
+  AudioContextEvents get on;
 
   /** @domName AudioContext.activeSourceCount */
   final int activeSourceCount;
@@ -21948,7 +21948,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
 interface AudioContextEvents extends Events {
 
-  EventListenerList get complete();
+  EventListenerList get complete;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22244,7 +22244,7 @@ interface BatteryManager extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  BatteryManagerEvents get on();
+  BatteryManagerEvents get on;
 
   /** @domName BatteryManager.charging */
   final bool charging;
@@ -22270,13 +22270,13 @@ interface BatteryManager extends EventTarget {
 
 interface BatteryManagerEvents extends Events {
 
-  EventListenerList get chargingChange();
+  EventListenerList get chargingChange;
 
-  EventListenerList get chargingTimeChange();
+  EventListenerList get chargingTimeChange;
 
-  EventListenerList get dischargingTimeChange();
+  EventListenerList get dischargingTimeChange;
 
-  EventListenerList get levelChange();
+  EventListenerList get levelChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22367,7 +22367,7 @@ interface BodyElement extends Element default _Elements {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  BodyElementEvents get on();
+  BodyElementEvents get on;
 
   /** @domName HTMLBodyElement.aLink */
   String aLink;
@@ -22387,31 +22387,31 @@ interface BodyElement extends Element default _Elements {
 
 interface BodyElementEvents extends ElementEvents {
 
-  EventListenerList get beforeUnload();
+  EventListenerList get beforeUnload;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get hashChange();
+  EventListenerList get hashChange;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get offline();
+  EventListenerList get offline;
 
-  EventListenerList get online();
+  EventListenerList get online;
 
-  EventListenerList get popState();
+  EventListenerList get popState;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get storage();
+  EventListenerList get storage;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25499,7 +25499,7 @@ interface DOMApplicationCache extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  DOMApplicationCacheEvents get on();
+  DOMApplicationCacheEvents get on;
 
   static const int CHECKING = 2;
 
@@ -25537,21 +25537,21 @@ interface DOMApplicationCache extends EventTarget {
 
 interface DOMApplicationCacheEvents extends Events {
 
-  EventListenerList get cached();
+  EventListenerList get cached;
 
-  EventListenerList get checking();
+  EventListenerList get checking;
 
-  EventListenerList get downloading();
+  EventListenerList get downloading;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get noUpdate();
+  EventListenerList get noUpdate;
 
-  EventListenerList get obsolete();
+  EventListenerList get obsolete;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get updateReady();
+  EventListenerList get updateReady;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26140,7 +26140,7 @@ interface DedicatedWorkerContext extends WorkerContext {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  DedicatedWorkerContextEvents get on();
+  DedicatedWorkerContextEvents get on;
 
   /** @domName DedicatedWorkerContext.postMessage */
   void postMessage(Object message, [List messagePorts]);
@@ -26151,7 +26151,7 @@ interface DedicatedWorkerContext extends WorkerContext {
 
 interface DedicatedWorkerContextEvents extends WorkerContextEvents {
 
-  EventListenerList get message();
+  EventListenerList get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26318,7 +26318,7 @@ interface Document extends HtmlElement {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  DocumentEvents get on();
+  DocumentEvents get on;
 
   /** @domName HTMLDocument.activeElement */
   final Element activeElement;
@@ -26474,103 +26474,103 @@ interface Document extends HtmlElement {
 
 interface DocumentEvents extends ElementEvents {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get fullscreenChange();
+  EventListenerList get fullscreenChange;
 
-  EventListenerList get fullscreenError();
+  EventListenerList get fullscreenError;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get invalid();
+  EventListenerList get invalid;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get paste();
+  EventListenerList get paste;
 
-  EventListenerList get pointerLockChange();
+  EventListenerList get pointerLockChange;
 
-  EventListenerList get pointerLockError();
+  EventListenerList get pointerLockError;
 
-  EventListenerList get readyStateChange();
+  EventListenerList get readyStateChange;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get selectStart();
+  EventListenerList get selectStart;
 
-  EventListenerList get selectionChange();
+  EventListenerList get selectionChange;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchCancel;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchMove();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchStart();
+  EventListenerList get touchStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26595,7 +26595,7 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  ElementEvents get on();
+  ElementEvents get on;
 
   /** @domName DocumentFragment.querySelector */
   Element $dom_querySelector(String selectors);
@@ -26790,7 +26790,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  ElementEvents get on();
+  ElementEvents get on;
 
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
@@ -26981,101 +26981,101 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
 interface ElementEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get fullscreenChange();
+  EventListenerList get fullscreenChange;
 
-  EventListenerList get fullscreenError();
+  EventListenerList get fullscreenError;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get invalid();
+  EventListenerList get invalid;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get paste();
+  EventListenerList get paste;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get selectStart();
+  EventListenerList get selectStart;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchCancel;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchEnter();
+  EventListenerList get touchEnter;
 
-  EventListenerList get touchLeave();
+  EventListenerList get touchLeave;
 
-  EventListenerList get touchMove();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchStart();
+  EventListenerList get touchStart;
 
-  EventListenerList get transitionEnd();
+  EventListenerList get transitionEnd;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27475,7 +27475,7 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  EventSourceEvents get on();
+  EventSourceEvents get on;
 
   static const int CLOSED = 2;
 
@@ -27507,11 +27507,11 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
 interface EventSourceEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get open();
+  EventListenerList get open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27753,7 +27753,7 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  FileReaderEvents get on();
+  FileReaderEvents get on;
 
   static const int DONE = 2;
 
@@ -27797,17 +27797,17 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
 
 interface FileReaderEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27851,7 +27851,7 @@ interface FileWriter extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  FileWriterEvents get on();
+  FileWriterEvents get on;
 
   static const int DONE = 2;
 
@@ -27895,17 +27895,17 @@ interface FileWriter extends EventTarget {
 
 interface FileWriterEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get write();
+  EventListenerList get write;
 
-  EventListenerList get writeEnd();
+  EventListenerList get writeEnd;
 
-  EventListenerList get writeStart();
+  EventListenerList get writeStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28135,7 +28135,7 @@ interface FrameSetElement extends Element {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  FrameSetElementEvents get on();
+  FrameSetElementEvents get on;
 
   /** @domName HTMLFrameSetElement.cols */
   String cols;
@@ -28146,31 +28146,31 @@ interface FrameSetElement extends Element {
 
 interface FrameSetElementEvents extends ElementEvents {
 
-  EventListenerList get beforeUnload();
+  EventListenerList get beforeUnload;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get hashChange();
+  EventListenerList get hashChange;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get offline();
+  EventListenerList get offline;
 
-  EventListenerList get online();
+  EventListenerList get online;
 
-  EventListenerList get popState();
+  EventListenerList get popState;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get storage();
+  EventListenerList get storage;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28438,7 +28438,7 @@ interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  HttpRequestEvents get on();
+  HttpRequestEvents get on;
 
   static const int DONE = 4;
 
@@ -28510,19 +28510,19 @@ interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
 
 interface HttpRequestEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get readyStateChange();
+  EventListenerList get readyStateChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28576,7 +28576,7 @@ interface HttpRequestUpload extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  HttpRequestUploadEvents get on();
+  HttpRequestUploadEvents get on;
 
   /** @domName XMLHttpRequestUpload.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -28590,17 +28590,17 @@ interface HttpRequestUpload extends EventTarget {
 
 interface HttpRequestUploadEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28676,7 +28676,7 @@ interface IDBDatabase extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBDatabaseEvents get on();
+  IDBDatabaseEvents get on;
 
   /** @domName IDBDatabase.name */
   final String name;
@@ -28714,11 +28714,11 @@ interface IDBDatabase extends EventTarget {
 
 interface IDBDatabaseEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get versionChange();
+  EventListenerList get versionChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28945,14 +28945,14 @@ interface IDBOpenDBRequest extends IDBRequest, EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBOpenDBRequestEvents get on();
+  IDBOpenDBRequestEvents get on;
 }
 
 interface IDBOpenDBRequestEvents extends IDBRequestEvents {
 
-  EventListenerList get blocked();
+  EventListenerList get blocked;
 
-  EventListenerList get upgradeNeeded();
+  EventListenerList get upgradeNeeded;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28966,7 +28966,7 @@ interface IDBRequest extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBRequestEvents get on();
+  IDBRequestEvents get on;
 
   /** @domName IDBRequest.error */
   final DOMError error;
@@ -29001,9 +29001,9 @@ interface IDBRequest extends EventTarget {
 
 interface IDBRequestEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get success();
+  EventListenerList get success;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29017,7 +29017,7 @@ interface IDBTransaction extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBTransactionEvents get on();
+  IDBTransactionEvents get on;
 
   static const int READ_ONLY = 0;
 
@@ -29052,11 +29052,11 @@ interface IDBTransaction extends EventTarget {
 
 interface IDBTransactionEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get complete();
+  EventListenerList get complete;
 
-  EventListenerList get error();
+  EventListenerList get error;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29097,12 +29097,12 @@ interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBVersionChangeRequestEvents get on();
+  IDBVersionChangeRequestEvents get on;
 }
 
 interface IDBVersionChangeRequestEvents extends IDBRequestEvents {
 
-  EventListenerList get blocked();
+  EventListenerList get blocked;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29281,7 +29281,7 @@ interface InputElement extends Element default _Elements {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  InputElementEvents get on();
+  InputElementEvents get on;
 
   /** @domName HTMLInputElement.accept */
   String accept;
@@ -29451,7 +29451,7 @@ interface InputElement extends Element default _Elements {
 
 interface InputElementEvents extends ElementEvents {
 
-  EventListenerList get speechChange();
+  EventListenerList get speechChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29543,7 +29543,7 @@ interface JavaScriptAudioNode extends AudioNode, EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  JavaScriptAudioNodeEvents get on();
+  JavaScriptAudioNodeEvents get on;
 
   /** @domName JavaScriptAudioNode.bufferSize */
   final int bufferSize;
@@ -29551,7 +29551,7 @@ interface JavaScriptAudioNode extends AudioNode, EventTarget {
 
 interface JavaScriptAudioNodeEvents extends Events {
 
-  EventListenerList get audioProcess();
+  EventListenerList get audioProcess;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29982,7 +29982,7 @@ interface MediaElement extends Element {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaElementEvents get on();
+  MediaElementEvents get on;
 
   static const int HAVE_CURRENT_DATA = 2;
 
@@ -30125,55 +30125,55 @@ interface MediaElement extends Element {
 
 interface MediaElementEvents extends ElementEvents {
 
-  EventListenerList get canPlay();
+  EventListenerList get canPlay;
 
-  EventListenerList get canPlayThrough();
+  EventListenerList get canPlayThrough;
 
-  EventListenerList get durationChange();
+  EventListenerList get durationChange;
 
-  EventListenerList get emptied();
+  EventListenerList get emptied;
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 
-  EventListenerList get keyAdded();
+  EventListenerList get keyAdded;
 
-  EventListenerList get keyError();
+  EventListenerList get keyError;
 
-  EventListenerList get keyMessage();
+  EventListenerList get keyMessage;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get loadedData();
+  EventListenerList get loadedData;
 
-  EventListenerList get loadedMetadata();
+  EventListenerList get loadedMetadata;
 
-  EventListenerList get needKey();
+  EventListenerList get needKey;
 
-  EventListenerList get pause();
+  EventListenerList get pause;
 
-  EventListenerList get play();
+  EventListenerList get play;
 
-  EventListenerList get playing();
+  EventListenerList get playing;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get rateChange();
+  EventListenerList get rateChange;
 
-  EventListenerList get seeked();
+  EventListenerList get seeked;
 
-  EventListenerList get seeking();
+  EventListenerList get seeking;
 
-  EventListenerList get show();
+  EventListenerList get show;
 
-  EventListenerList get stalled();
+  EventListenerList get stalled;
 
-  EventListenerList get suspend();
+  EventListenerList get suspend;
 
-  EventListenerList get timeUpdate();
+  EventListenerList get timeUpdate;
 
-  EventListenerList get volumeChange();
+  EventListenerList get volumeChange;
 
-  EventListenerList get waiting();
+  EventListenerList get waiting;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30372,7 +30372,7 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaStreamEvents get on();
+  MediaStreamEvents get on;
 
   static const int ENDED = 2;
 
@@ -30402,7 +30402,7 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
 interface MediaStreamEvents extends Events {
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30455,7 +30455,7 @@ interface MediaStreamTrack extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaStreamTrackEvents get on();
+  MediaStreamTrackEvents get on;
 
   static const int ENDED = 2;
 
@@ -30487,11 +30487,11 @@ interface MediaStreamTrack extends EventTarget {
 
 interface MediaStreamTrackEvents extends Events {
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 
-  EventListenerList get mute();
+  EventListenerList get mute;
 
-  EventListenerList get unmute();
+  EventListenerList get unmute;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30517,7 +30517,7 @@ interface MediaStreamTrackList extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaStreamTrackListEvents get on();
+  MediaStreamTrackListEvents get on;
 
   /** @domName MediaStreamTrackList.length */
   final int length;
@@ -30543,9 +30543,9 @@ interface MediaStreamTrackList extends EventTarget {
 
 interface MediaStreamTrackListEvents extends Events {
 
-  EventListenerList get addTrack();
+  EventListenerList get addTrack;
 
-  EventListenerList get removeTrack();
+  EventListenerList get removeTrack;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30638,7 +30638,7 @@ interface MessagePort extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MessagePortEvents get on();
+  MessagePortEvents get on;
 
   /** @domName MessagePort.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -30664,7 +30664,7 @@ interface MessagePort extends EventTarget {
 
 interface MessagePortEvents extends Events {
 
-  EventListenerList get message();
+  EventListenerList get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31315,7 +31315,7 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  NotificationEvents get on();
+  NotificationEvents get on;
 
   /** @domName Notification.dir */
   String dir;
@@ -31350,15 +31350,15 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
 
 interface NotificationEvents extends Events {
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get close();
+  EventListenerList get close;
 
-  EventListenerList get display();
+  EventListenerList get display;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get show();
+  EventListenerList get show;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31792,7 +31792,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  PeerConnection00Events get on();
+  PeerConnection00Events get on;
 
   static const int ACTIVE = 2;
 
@@ -31879,15 +31879,15 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
 interface PeerConnection00Events extends Events {
 
-  EventListenerList get addStream();
+  EventListenerList get addStream;
 
-  EventListenerList get connecting();
+  EventListenerList get connecting;
 
-  EventListenerList get open();
+  EventListenerList get open;
 
-  EventListenerList get removeStream();
+  EventListenerList get removeStream;
 
-  EventListenerList get stateChange();
+  EventListenerList get stateChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33074,7 +33074,7 @@ interface SVGElementInstance extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SVGElementInstanceEvents get on();
+  SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
   final SVGElementInstanceList childNodes;
@@ -33103,85 +33103,85 @@ interface SVGElementInstance extends EventTarget {
 
 interface SVGElementInstanceEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get paste();
+  EventListenerList get paste;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get selectStart();
+  EventListenerList get selectStart;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36180,7 +36180,7 @@ interface SharedWorkerContext extends WorkerContext {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SharedWorkerContextEvents get on();
+  SharedWorkerContextEvents get on;
 
   /** @domName SharedWorkerContext.name */
   final String name;
@@ -36188,7 +36188,7 @@ interface SharedWorkerContext extends WorkerContext {
 
 interface SharedWorkerContextEvents extends WorkerContextEvents {
 
-  EventListenerList get connect();
+  EventListenerList get connect;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36362,7 +36362,7 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SpeechRecognitionEvents get on();
+  SpeechRecognitionEvents get on;
 
   /** @domName SpeechRecognition.continuous */
   bool continuous;
@@ -36397,29 +36397,29 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
 
 interface SpeechRecognitionEvents extends Events {
 
-  EventListenerList get audioEnd();
+  EventListenerList get audioEnd;
 
-  EventListenerList get audioStart();
+  EventListenerList get audioStart;
 
-  EventListenerList get end();
+  EventListenerList get end;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get noMatch();
+  EventListenerList get noMatch;
 
-  EventListenerList get result();
+  EventListenerList get result;
 
-  EventListenerList get resultDeleted();
+  EventListenerList get resultDeleted;
 
-  EventListenerList get soundEnd();
+  EventListenerList get soundEnd;
 
-  EventListenerList get soundStart();
+  EventListenerList get soundStart;
 
-  EventListenerList get speechEnd();
+  EventListenerList get speechEnd;
 
-  EventListenerList get speechStart();
+  EventListenerList get speechStart;
 
-  EventListenerList get start();
+  EventListenerList get start;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37107,7 +37107,7 @@ interface TextTrack extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  TextTrackEvents get on();
+  TextTrackEvents get on;
 
   static const int DISABLED = 0;
 
@@ -37151,7 +37151,7 @@ interface TextTrack extends EventTarget {
 
 interface TextTrackEvents extends Events {
 
-  EventListenerList get cueChange();
+  EventListenerList get cueChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37167,7 +37167,7 @@ interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  TextTrackCueEvents get on();
+  TextTrackCueEvents get on;
 
   /** @domName TextTrackCue.align */
   String align;
@@ -37220,9 +37220,9 @@ interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider 
 
 interface TextTrackCueEvents extends Events {
 
-  EventListenerList get enter();
+  EventListenerList get enter;
 
-  EventListenerList get exit();
+  EventListenerList get exit;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37254,7 +37254,7 @@ interface TextTrackList extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  TextTrackListEvents get on();
+  TextTrackListEvents get on;
 
   /** @domName TextTrackList.length */
   final int length;
@@ -37274,7 +37274,7 @@ interface TextTrackList extends EventTarget {
 
 interface TextTrackListEvents extends Events {
 
-  EventListenerList get addTrack();
+  EventListenerList get addTrack;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39115,7 +39115,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WebSocketEvents get on();
+  WebSocketEvents get on;
 
   static const int CLOSED = 3;
 
@@ -39164,13 +39164,13 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
 interface WebSocketEvents extends Events {
 
-  EventListenerList get close();
+  EventListenerList get close;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get open();
+  EventListenerList get open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39247,7 +39247,7 @@ interface Window extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WindowEvents get on();
+  WindowEvents get on;
 
   static const int PERSISTENT = 1;
 
@@ -39536,153 +39536,153 @@ interface Window extends EventTarget {
 
 interface WindowEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get animationEnd();
+  EventListenerList get animationEnd;
 
-  EventListenerList get animationIteration();
+  EventListenerList get animationIteration;
 
-  EventListenerList get animationStart();
+  EventListenerList get animationStart;
 
-  EventListenerList get beforeUnload();
+  EventListenerList get beforeUnload;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get canPlay();
+  EventListenerList get canPlay;
 
-  EventListenerList get canPlayThrough();
+  EventListenerList get canPlayThrough;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contentLoaded();
+  EventListenerList get contentLoaded;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get deviceMotion();
+  EventListenerList get deviceMotion;
 
-  EventListenerList get deviceOrientation();
+  EventListenerList get deviceOrientation;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get durationChange();
+  EventListenerList get durationChange;
 
-  EventListenerList get emptied();
+  EventListenerList get emptied;
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get hashChange();
+  EventListenerList get hashChange;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get invalid();
+  EventListenerList get invalid;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get loadedData();
+  EventListenerList get loadedData;
 
-  EventListenerList get loadedMetadata();
+  EventListenerList get loadedMetadata;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get offline();
+  EventListenerList get offline;
 
-  EventListenerList get online();
+  EventListenerList get online;
 
-  EventListenerList get pageHide();
+  EventListenerList get pageHide;
 
-  EventListenerList get pageShow();
+  EventListenerList get pageShow;
 
-  EventListenerList get pause();
+  EventListenerList get pause;
 
-  EventListenerList get play();
+  EventListenerList get play;
 
-  EventListenerList get playing();
+  EventListenerList get playing;
 
-  EventListenerList get popState();
+  EventListenerList get popState;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get rateChange();
+  EventListenerList get rateChange;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get seeked();
+  EventListenerList get seeked;
 
-  EventListenerList get seeking();
+  EventListenerList get seeking;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get stalled();
+  EventListenerList get stalled;
 
-  EventListenerList get storage();
+  EventListenerList get storage;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get suspend();
+  EventListenerList get suspend;
 
-  EventListenerList get timeUpdate();
+  EventListenerList get timeUpdate;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchCancel;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchMove();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchStart();
+  EventListenerList get touchStart;
 
-  EventListenerList get transitionEnd();
+  EventListenerList get transitionEnd;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 
-  EventListenerList get volumeChange();
+  EventListenerList get volumeChange;
 
-  EventListenerList get waiting();
+  EventListenerList get waiting;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39698,7 +39698,7 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WorkerEvents get on();
+  WorkerEvents get on;
 
   /** @domName Worker.postMessage */
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
@@ -39712,7 +39712,7 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
 interface WorkerEvents extends AbstractWorkerEvents {
 
-  EventListenerList get message();
+  EventListenerList get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39726,7 +39726,7 @@ interface WorkerContext extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WorkerContextEvents get on();
+  WorkerContextEvents get on;
 
   static const int PERSISTENT = 1;
 
@@ -39795,7 +39795,7 @@ interface WorkerContext extends EventTarget {
 
 interface WorkerContextEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

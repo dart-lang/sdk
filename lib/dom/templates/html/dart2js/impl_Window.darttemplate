@@ -4,12 +4,12 @@
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
-  _DocumentImpl get document() native "return this.document;";
+  _DocumentImpl get document native "return this.document;";
 
-  Window get _top() native "return this.top;";
+  Window get _top native "return this.top;";
 
   // Override top to return secure wrapper.
-  Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
+  Window get top => _DOMWindowCrossFrameImpl._createSafe(_top);
 
   Window _open2(url, name) native "return this.open(url, name);";
 
@@ -26,7 +26,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
-  Location get location() => _get_location();
+  Location get location => _get_location();
 
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
@@ -58,7 +58,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   var _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  Location get _location() native 'return this.location';
+  Location get _location native 'return this.location';
   void set _location(Location value) native 'this.location = value';
   // Prevent compiled from thinking 'location' property is available for a Dart
   // member.
@@ -113,7 +113,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 ''';
 
 
-  _IDBFactoryImpl get indexedDB() => _get_indexedDB();
+  _IDBFactoryImpl get indexedDB => _get_indexedDB();
 
   _IDBFactoryImpl _get_indexedDB() native
       'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';

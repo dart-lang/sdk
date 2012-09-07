@@ -716,11 +716,11 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
     for event_name in event_attrs:
       if event_name in _html_event_names:
-        events_members.Emit('\n  EventListenerList get $NAME();\n',
+        events_members.Emit('\n  EventListenerList get $NAME;\n',
           NAME=_html_event_names[event_name])
         implementation_events_members.Emit(
             "\n"
-            "  EventListenerList get $NAME() => this['$DOM_NAME'];\n",
+            "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
             NAME=_html_event_names[event_name],
             DOM_NAME=event_name)
       else:
@@ -732,11 +732,11 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         '\n   * @domName EventTarget.addEventListener, '
         'EventTarget.removeEventListener, EventTarget.dispatchEvent'
         '\n   */'
-        '\n  $TYPE get on();\n',
+        '\n  $TYPE get on;\n',
         TYPE=events_interface)
 
     self._implementation_members_emitter.Emit(
-        '\n  $TYPE get on() =>\n    new $TYPE(this);\n',
+        '\n  $TYPE get on =>\n    new $TYPE(this);\n',
         TYPE=events_class)
 
 
@@ -856,7 +856,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
-    # get length(), [], and maybe []=.  It is possible to extend from a base
+    # length, [], and maybe []=.  It is possible to extend from a base
     # array implementation class only when there is no other implementation
     # inheritance.  There might be no implementation inheritance other than
     # DOMBaseWrapper for many classes, but there might be some where the
@@ -965,7 +965,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
-        '\n  $TYPE get $HTML_NAME() native "return this.$NAME;";\n',
+        '\n  $TYPE get $HTML_NAME native "return this.$NAME;";\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=return_type)
@@ -983,8 +983,8 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
-        '\n  $RETURN_TYPE get $HTML_NAME() => $CONVERT(this._$(HTML_NAME));'
-        '\n  $NATIVE_TYPE get _$HTML_NAME() native "return this.$NAME;";'
+        '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
+        '\n  $NATIVE_TYPE get _$HTML_NAME native "return this.$NAME;";'
         '\n',
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,

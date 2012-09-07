@@ -47,7 +47,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return values;
   }
 
-  int get length() => $dom_length;
+  int get length => $dom_length;
 
   bool isEmpty() => $dom_key(0) == null;
 $!MEMBERS
