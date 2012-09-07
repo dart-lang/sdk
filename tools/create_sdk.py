@@ -109,19 +109,15 @@ def CopyDart2Js(build_dir, sdk_root, revision):
   if utils.GuessOS() == 'win32':
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js.bat')
     Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
-    ReplaceInFiles([dart2js],
-                   [(r'%SCRIPTPATH%\.\.\\lib',
-                     r'%SCRIPTPATH%..\lib')])
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc.bat')
     Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
   else:
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
-    ReplaceInFiles([dart2js],
-                   [(r'\$BIN_DIR/\.\./\.\./lib',
-                     r'$BIN_DIR/../lib')])
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc')
     Copy(os.path.join(build_dir, 'dartdoc'), dartdoc)
+    ReplaceInFiles([dart2js, dartdoc],
+                   [(r'\$BIN_DIR/\.\./\.\.', r'$BIN_DIR/..')])
 
 
 def Main(argv):
