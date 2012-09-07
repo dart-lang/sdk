@@ -13,14 +13,14 @@ class _AttributeClassSet extends _CssClassSet {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  CSSClassSet get classes {
+  CSSClassSet get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
     return _cssClassSet;
   }
 
-  ElementList get elements => new FilteredElementList(this);
+  ElementList get elements() => new FilteredElementList(this);
 
   void set elements(Collection<Element> value) {
     final elements = this.elements;
@@ -28,14 +28,14 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     elements.addAll(value);
   }
 
-  String get outerHTML {
+  String get outerHTML() {
     final container = new Element.tag("div");
     final SVGElement cloned = this.clone(true);
     container.elements.add(cloned);
     return container.innerHTML;
   }
 
-  String get innerHTML {
+  String get innerHTML() {
     final container = new Element.tag("div");
     final SVGElement cloned = this.clone(true);
     container.elements.addAll(cloned.elements);

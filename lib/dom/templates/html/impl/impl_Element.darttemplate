@@ -21,7 +21,7 @@ class _ChildrenElementList implements ElementList {
     return output;
   }
 
-  _ElementImpl get first {
+  _ElementImpl get first() {
     return _element.$dom_firstElementChild;
   }
 
@@ -71,7 +71,7 @@ class _ChildrenElementList implements ElementList {
     return _element.$dom_firstElementChild == null;
   }
 
-  int get length {
+  int get length() {
     return _childElements.length;
   }
 
@@ -159,7 +159,7 @@ class _FrozenElementList implements ElementList {
 
   _FrozenElementList._wrap(this._nodeList);
 
-  Element get first {
+  Element get first() {
     return _nodeList[0];
   }
 
@@ -205,7 +205,7 @@ class _FrozenElementList implements ElementList {
 
   bool isEmpty() => _nodeList.isEmpty();
 
-  int get length => _nodeList.length;
+  int get length() => _nodeList.length;
 
   Element operator [](int index) => _nodeList[index];
 
@@ -380,7 +380,7 @@ class _ElementAttributeMap implements AttributeMap {
   /**
    * The number of {key, value} pairs in the map.
    */
-  int get length {
+  int get length() {
     return _element.$dom_attributes.length;
   }
 
@@ -455,7 +455,7 @@ class _DataAttributeMap implements AttributeMap {
     return values;
   }
 
-  int get length => getKeys().length;
+  int get length() => getKeys().length;
 
   // TODO: Use lazy iterator when it is available on Map.
   bool isEmpty() => length == 0;
@@ -493,9 +493,9 @@ class _CssClassSet implements CSSClassSet {
 
   bool isEmpty() => _read().isEmpty();
 
-  bool get isFrozen => false;
+  bool get isFrozen() => false;
 
-  int get length =>_read().length;
+  int get length() =>_read().length;
 
   // interface Collection - END
 
@@ -608,8 +608,8 @@ class _SimpleClientRect implements ClientRect {
   final num top;
   final num width;
   final num height;
-  num get right => left + width;
-  num get bottom => top + height;
+  num get right() => left + width;
+  num get bottom() => top + height;
 
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
@@ -654,10 +654,10 @@ class _ElementRectImpl implements ElementRect {
     _boundingClientRect = element.$dom_getBoundingClientRect(),
     _clientRects = element.$dom_getClientRects();
 
-  _ClientRectImpl get bounding => _boundingClientRect;
+  _ClientRectImpl get bounding() => _boundingClientRect;
 
   // TODO(jacobr): cleanup.
-  List<ClientRect> get clientRects {
+  List<ClientRect> get clientRects() {
     final out = new List(_clientRects.length);
     for (num i = 0; i < _clientRects.length; i++) {
       out[i] = _clientRects.item(i);
@@ -672,7 +672,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  _ElementAttributeMap get attributes => new _ElementAttributeMap(this);
+  _ElementAttributeMap get attributes() => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -688,14 +688,14 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     elements.addAll(value);
   }
 
-  ElementList get elements => new _ChildrenElementList._wrap(this);
+  ElementList get elements() => new _ChildrenElementList._wrap(this);
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  _CssClassSet get classes => new _CssClassSet(this);
+  _CssClassSet get classes() => new _CssClassSet(this);
 
   void set classes(Collection<String> value) {
     _CssClassSet classSet = classes;
@@ -703,7 +703,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     classSet.addAll(value);
   }
 
-  Map<String, String> get dataAttributes =>
+  Map<String, String> get dataAttributes() =>
     new _DataAttributeMap(attributes);
 
   void set dataAttributes(Map<String, String> value) {
@@ -714,13 +714,13 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
-  Future<ElementRect> get rect {
+  Future<ElementRect> get rect() {
     return _createMeasurementFuture(
         () => new _ElementRectImpl(this),
         new Completer<ElementRect>());
   }
 
-  Future<CSSStyleDeclaration> get computedStyle {
+  Future<CSSStyleDeclaration> get computedStyle() {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }

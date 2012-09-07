@@ -416,7 +416,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def _AddGetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = '%s get %s' % (self._DartType(attr.type.id), html_name)
+    dart_declaration = '%s get %s()' % (self._DartType(attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -484,7 +484,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
-    # length, [], and maybe []=.  It is possible to extend from a base
+    # get length(), [], and maybe []=.  It is possible to extend from a base
     # array implementation class only when there is no other implementation
     # inheritance.  There might be no implementation inheritance other than
     # DOMBaseWrapper for many classes, but there might be some where the

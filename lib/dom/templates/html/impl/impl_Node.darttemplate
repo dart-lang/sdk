@@ -14,10 +14,10 @@ class _ChildNodeListLazy implements NodeList {
 
 
 $if DART2JS
-  _NodeImpl get first => JS('_NodeImpl', '#.firstChild', _this);
+  _NodeImpl get first() => JS('_NodeImpl', '#.firstChild', _this);
   _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
 $else
-  _NodeImpl get first => _this.$dom_firstChild;
+  _NodeImpl get first() => _this.$dom_firstChild;
   _NodeImpl last() => _this.$dom_lastChild;
 $endif
 
@@ -103,13 +103,13 @@ $endif
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
   // a local copy of $dom_childNodes is more efficient.
-  int get length => _this.$dom_childNodes.length;
+  int get length() => _this.$dom_childNodes.length;
 
   _NodeImpl operator[](int index) => _this.$dom_childNodes[index];
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  _ChildNodeListLazy get nodes {
+  _ChildNodeListLazy get nodes() {
     return new _ChildNodeListLazy(this);
   }
 

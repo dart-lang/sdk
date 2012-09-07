@@ -56,6 +56,6 @@ class _EventListenerListImpl implements EventListenerList {
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  Events get on => new _EventsImpl(this);
+  Events get on() => new _EventsImpl(this);
 $!MEMBERS
 }

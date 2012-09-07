@@ -5,7 +5,7 @@
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
-  int get offsetX {
+  int get offsetX() {
     if (JS('bool', '!!this.offsetX')) {
       return this._offsetX;
     } else {
@@ -19,7 +19,7 @@ $!MEMBERS
     }
   }
 
-  int get offsetY {
+  int get offsetY() {
     if (JS('bool', '!!this.offsetY')) {
       return this._offsetY;
     } else {
@@ -33,6 +33,6 @@ $!MEMBERS
     }
   }
 
-  int get _offsetX native 'return this.offsetX';
-  int get _offsetY native 'return this.offsetY';
+  int get _offsetX() native 'return this.offsetX';
+  int get _offsetY() native 'return this.offsetY';
 }
