@@ -111,6 +111,9 @@ def CopyDart2Js(build_dir, sdk_root, revision):
     Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc.bat')
     Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
+    # TODO(dgrove) - fix this once issue 4788 is addressed.
+    ReplaceInFiles([dart2js],
+                   [(r'%SCRIPTPATH%..\\lib', r'%SCRIPTPATH%..\\pkg')]);
   else:
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
@@ -119,9 +122,9 @@ def CopyDart2Js(build_dir, sdk_root, revision):
 
     # TODO(dgrove) - fix this once issue 4788 is addressed.
     ReplaceInFiles([dart2js],
-                   [(r'\$BIN_DIR/../../lib', r'$BIN_DIR/../pkg')])
+                   [(r'$BIN_DIR/../../lib', r'$BIN_DIR/../pkg')])
     ReplaceInFiles([dartdoc],
-                   [(r'\$BIN_DIR/../..', r'$BIN_DIR/..')])
+                   [(r'$BIN_DIR/../..', r'$BIN_DIR/..')])
 
 
 def Main(argv):
