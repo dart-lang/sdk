@@ -221,7 +221,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     return _numberOfEntries == 0;
   }
 
-  int get length() {
+  int get length {
     return _numberOfEntries;
   }
 
@@ -377,7 +377,7 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
     return _backingMap.isEmpty();
   }
 
-  int get length() {
+  int get length {
     return _backingMap.length;
   }
 

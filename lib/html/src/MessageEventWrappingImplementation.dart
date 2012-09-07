@@ -14,13 +14,13 @@ class MessageEventWrappingImplementation extends EventWrappingImplementation imp
     return LevelDom.wrapMessageEvent(e);
   }
 
-  String get data() => _ptr.data;
+  String get data => _ptr.data;
 
-  String get lastEventId() => _ptr.lastEventId;
+  String get lastEventId => _ptr.lastEventId;
 
-  MessagePort get messagePort() => LevelDom.wrapMessagePort(_ptr.messagePort);
+  MessagePort get messagePort => LevelDom.wrapMessagePort(_ptr.messagePort);
 
-  String get origin() => _ptr.origin;
+  String get origin => _ptr.origin;
 
-  Window get source() => LevelDom.wrapWindow(_ptr.source);
+  Window get source => LevelDom.wrapWindow(_ptr.source);
 }

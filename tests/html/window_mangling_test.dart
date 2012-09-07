@@ -8,7 +8,7 @@
 #import('dart:html', prefix: 'dom');
 
 // Defined in dom.Window.
-get navigator() => "Dummy";
+get navigator => "Dummy";
 
 $eq(x, y) => false;
 $eq$(x, y) => false;

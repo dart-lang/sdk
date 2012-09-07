@@ -7,7 +7,7 @@ interface AnimationEvent extends Event default AnimationEventWrappingImplementat
   AnimationEvent(String type, String propertyName, double elapsedTime,
       [bool canBubble, bool cancelable]);
 
-  String get animationName();
+  String get animationName;
 
-  num get elapsedTime();
+  num get elapsedTime;
 }

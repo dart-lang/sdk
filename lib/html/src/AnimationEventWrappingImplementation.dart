@@ -7,7 +7,7 @@ class AnimationEventWrappingImplementation extends EventWrappingImplementation i
 
   AnimationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
-  static String get _eventName() {
+  static String get _eventName {
     if (_name != null) return _name;
 
     try {
@@ -27,7 +27,7 @@ class AnimationEventWrappingImplementation extends EventWrappingImplementation i
     return LevelDom.wrapAnimationEvent(e);
   }
 
-  String get animationName() => _ptr.animationName;
+  String get animationName => _ptr.animationName;
 
-  num get elapsedTime() => _ptr.elapsedTime;
+  num get elapsedTime => _ptr.elapsedTime;
 }

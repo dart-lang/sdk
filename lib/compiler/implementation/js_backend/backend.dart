@@ -438,7 +438,7 @@ class JavaScriptBackend extends Backend {
     argumentTypes = new ArgumentTypesRegistry(this);
   }
 
-  Element get cyclicThrowHelper() {
+  Element get cyclicThrowHelper {
     return compiler.findHelper(const SourceString("throwCyclicInit"));
   }
 

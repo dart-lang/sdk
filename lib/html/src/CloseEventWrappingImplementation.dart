@@ -12,9 +12,9 @@ class CloseEventWrappingImplementation extends EventWrappingImplementation imple
     return LevelDom.wrapCloseEvent(e);
   }
 
-  int get code() => _ptr.code;
+  int get code => _ptr.code;
 
-  String get reason() => _ptr.reason;
+  String get reason => _ptr.reason;
 
-  bool get wasClean() => _ptr.wasClean;
+  bool get wasClean => _ptr.wasClean;
 }

@@ -235,9 +235,9 @@ class HtmlEnhancedConfiguration extends Configuration {
   }
 
 
-  static bool get _isIE() => document.window.navigator.userAgent.contains('MSIE');
+  static bool get _isIE => document.window.navigator.userAgent.contains('MSIE');
 
-  String get _htmlTestCSS() =>
+  String get _htmlTestCSS =>
   '''
   body{
     font-size: 14px;

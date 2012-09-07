@@ -14,9 +14,9 @@ class ProgressEventWrappingImplementation extends EventWrappingImplementation im
     return LevelDom.wrapProgressEvent(e);
   }
 
-  bool get lengthComputable() => _ptr.lengthComputable;
+  bool get lengthComputable => _ptr.lengthComputable;
 
-  int get loaded() => _ptr.loaded;
+  int get loaded => _ptr.loaded;
 
-  int get total() => _ptr.total;
+  int get total => _ptr.total;
 }

@@ -176,7 +176,7 @@ class ErrorInputStream implements InputStream {
   int available() => 0;
   void pipe(OutputStream output, [bool close]){ }
   void close() { }
-  bool get closed() => true;
+  bool get closed => true;
   void set onData(void callback()) { }
   void set onClosed(void callback()) { }
   void set onError(void callback(Exception e)) {

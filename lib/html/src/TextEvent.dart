@@ -7,5 +7,5 @@ interface TextEvent extends UIEvent default TextEventWrappingImplementation {
   TextEvent(String type, Window view, String data, [bool canBubble,
       bool cancelable]);
 
-  String get data();
+  String get data;
 }

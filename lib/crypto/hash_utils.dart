@@ -53,7 +53,7 @@ class _HashBase implements Hash {
   }
 
   // Returns the block size of the hash in bytes.
-  int get blockSize() {
+  int get blockSize {
     return _chunkSizeInWords * _BYTES_PER_WORD;
   }
 

@@ -7,7 +7,7 @@ class TransitionEventWrappingImplementation extends EventWrappingImplementation 
 
   TransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
-  static String get _eventName() {
+  static String get _eventName {
     if (_name != null) return _name;
 
     try {
@@ -28,7 +28,7 @@ class TransitionEventWrappingImplementation extends EventWrappingImplementation 
     return LevelDom.wrapTransitionEvent(e);
   }
 
-  num get elapsedTime() => _ptr.elapsedTime;
+  num get elapsedTime => _ptr.elapsedTime;
 
-  String get propertyName() => _ptr.propertyName;
+  String get propertyName => _ptr.propertyName;
 }

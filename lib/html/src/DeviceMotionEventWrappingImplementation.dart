@@ -12,5 +12,5 @@ class DeviceMotionEventWrappingImplementation extends EventWrappingImplementatio
     return LevelDom.wrapDeviceMotionEvent(e);
   }
 
-  num get interval() => _ptr.interval;
+  num get interval => _ptr.interval;
 }

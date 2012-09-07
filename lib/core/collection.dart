@@ -64,5 +64,5 @@ interface Collection<E> extends Iterable<E> {
   /**
    * Returns the number of elements in this collection.
    */
-  int get length();
+  int get length;
 }

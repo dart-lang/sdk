@@ -7,15 +7,15 @@ interface SVGElement extends Element default SVGElementWrappingImplementation {
   SVGElement.tag(String tag);
   SVGElement.svg(String svg);
 
-  String get id();
+  String get id;
 
   void set id(String value);
 
-  SVGSVGElement get ownerSVGElement();
+  SVGSVGElement get ownerSVGElement;
 
-  SVGElement get viewportElement();
+  SVGElement get viewportElement;
 
-  String get xmlbase();
+  String get xmlbase;
 
   void set xmlbase(String value);
 

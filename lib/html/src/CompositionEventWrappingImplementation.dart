@@ -13,5 +13,5 @@ class CompositionEventWrappingImplementation extends UIEventWrappingImplementati
     return LevelDom.wrapCompositionEvent(e);
   }
 
-  String get data() => _ptr.data;
+  String get data => _ptr.data;
 }

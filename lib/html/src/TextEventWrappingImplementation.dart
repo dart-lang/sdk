@@ -12,5 +12,5 @@ class TextEventWrappingImplementation extends UIEventWrappingImplementation impl
     return LevelDom.wrapTextEvent(e);
   }
 
-  String get data() => _ptr.data;
+  String get data => _ptr.data;
 }

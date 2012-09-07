@@ -7,7 +7,7 @@ interface TransitionEvent extends Event default TransitionEventWrappingImplement
   TransitionEvent(String type, String propertyName, double elapsedTime,
       [bool canBubble, bool cancelable]);
 
-  num get elapsedTime();
+  num get elapsedTime;
 
-  String get propertyName();
+  String get propertyName;
 }

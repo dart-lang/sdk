@@ -5,7 +5,7 @@
 // Should be an error because we have a function overriding a getter.
 
 class A {
-  int get a() {
+  int get a {
     return 10;
   }
   int a() {

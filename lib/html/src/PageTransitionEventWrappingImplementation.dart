@@ -13,5 +13,5 @@ class PageTransitionEventWrappingImplementation extends EventWrappingImplementat
     return LevelDom.wrapPageTransitionEvent(e);
   }
 
-  bool get persisted() => _ptr.persisted;
+  bool get persisted => _ptr.persisted;
 }

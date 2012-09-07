@@ -52,7 +52,7 @@ class FutureImpl<T> implements Future<T> {
     return res;
   }
 
-  T get value() {
+  T get value {
     if (!isComplete) {
       throw new FutureNotCompleteException();
     }
@@ -62,25 +62,25 @@ class FutureImpl<T> implements Future<T> {
     return _value;
   }
 
-  Object get exception() {
+  Object get exception {
     if (!isComplete) {
       throw new FutureNotCompleteException();
     }
     return _exception;
   }
 
-  Object get stackTrace() {
+  Object get stackTrace {
     if (!isComplete) {
       throw new FutureNotCompleteException();
     }
     return _stackTrace;
   }
 
-  bool get isComplete() {
+  bool get isComplete {
     return _isComplete;
   }
 
-  bool get hasValue() {
+  bool get hasValue {
     return isComplete && _exception === null;
   }
 
@@ -238,7 +238,7 @@ class CompleterImpl<T> implements Completer<T> {
 
   CompleterImpl() : _futureImpl = new FutureImpl() {}
 
-  Future<T> get future() {
+  Future<T> get future {
     return _futureImpl;
   }
 

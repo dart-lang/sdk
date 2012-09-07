@@ -13,9 +13,9 @@ class OverflowEventWrappingImplementation extends EventWrappingImplementation im
     return LevelDom.wrapOverflowEvent(e);
   }
 
-  bool get horizontalOverflow() => _ptr.horizontalOverflow;
+  bool get horizontalOverflow => _ptr.horizontalOverflow;
 
-  int get orient() => _ptr.orient;
+  int get orient => _ptr.orient;
 
-  bool get verticalOverflow() => _ptr.verticalOverflow;
+  bool get verticalOverflow => _ptr.verticalOverflow;
 }

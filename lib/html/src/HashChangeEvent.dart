@@ -7,7 +7,7 @@ interface HashChangeEvent extends Event default HashChangeEventWrappingImplement
   HashChangeEvent(String type, String oldURL, String newURL, [bool canBubble,
       bool cancelable]);
 
-  String get newURL();
+  String get newURL;
 
-  String get oldURL();
+  String get oldURL;
 }

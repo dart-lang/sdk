@@ -33,14 +33,14 @@ interface Future<T> default FutureImpl<T> {
   Future.immediate(T value);
 
   /** The value provided. Throws an exception if [hasValue] is false. */
-  T get value();
+  T get value;
 
   /**
    * Exception that occurred ([:null:] if no exception occured). This property
    * throws a [FutureNotCompleteException] if it is used before this future is
    * completes.
    */
-  Object get exception();
+  Object get exception;
 
   /**
    * The stack trace object associated with the exception that occurred. This
@@ -48,19 +48,19 @@ interface Future<T> default FutureImpl<T> {
    * completes. Returns [:null:] if the future completed successfully or a
    * stack trace wasn't provided with the exception when it occurred.
    */
-  Object get stackTrace();
+  Object get stackTrace;
 
   /**
    * Whether the future is complete (either the value is available or there was
    * an exception).
    */
-  bool get isComplete();
+  bool get isComplete;
 
   /**
    * Whether the value is available (meaning [isComplete] is true, and there was
    * no exception).
    */
-  bool get hasValue();
+  bool get hasValue;
 
   /**
    * When this future is complete (either with a value or with an exception),
@@ -163,7 +163,7 @@ interface Completer<T> default CompleterImpl<T> {
   Completer();
 
   /** The future that will contain the value produced by this completer. */
-  Future get future();
+  Future get future;
 
   /** Supply a value for [future]. */
   void complete(T value);

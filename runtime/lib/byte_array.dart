@@ -833,7 +833,7 @@ abstract class _ByteArrayBase {
     return this.length === 0;
   }
 
-  int get length() {
+  int get length {
     return _length();
   }
 
@@ -2312,7 +2312,7 @@ class _ByteArrayViewBase {
     return this.length === 0;
   }
 
-  abstract int get length();
+  abstract int get length;
 
   // Methods implementing the List interface.
 
@@ -2385,7 +2385,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2457,7 +2457,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2529,7 +2529,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2601,7 +2601,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2673,7 +2673,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2745,7 +2745,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2817,7 +2817,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2889,7 +2889,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -2961,7 +2961,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 
@@ -3033,7 +3033,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
     _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
-  get length() {
+  get length {
     return _length;
   }
 

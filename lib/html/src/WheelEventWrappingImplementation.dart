@@ -14,33 +14,33 @@ class WheelEventWrappingImplementation extends UIEventWrappingImplementation imp
     return LevelDom.wrapWheelEvent(e);
   }
 
-  bool get altKey() => _ptr.altKey;
+  bool get altKey => _ptr.altKey;
 
-  int get clientX() => _ptr.clientX;
+  int get clientX => _ptr.clientX;
 
-  int get clientY() => _ptr.clientY;
+  int get clientY => _ptr.clientY;
 
-  bool get ctrlKey() => _ptr.ctrlKey;
+  bool get ctrlKey => _ptr.ctrlKey;
 
-  bool get metaKey() => _ptr.metaKey;
+  bool get metaKey => _ptr.metaKey;
 
-  int get offsetX() => _ptr.offsetX;
+  int get offsetX => _ptr.offsetX;
 
-  int get offsetY() => _ptr.offsetY;
+  int get offsetY => _ptr.offsetY;
 
-  int get screenX() => _ptr.screenX;
+  int get screenX => _ptr.screenX;
 
-  int get screenY() => _ptr.screenY;
+  int get screenY => _ptr.screenY;
 
-  bool get shiftKey() => _ptr.shiftKey;
+  bool get shiftKey => _ptr.shiftKey;
 
-  int get wheelDelta() => _ptr.wheelDelta;
+  int get wheelDelta => _ptr.wheelDelta;
 
-  int get wheelDeltaX() => _ptr.wheelDeltaX;
+  int get wheelDeltaX => _ptr.wheelDeltaX;
 
-  int get wheelDeltaY() => _ptr.wheelDeltaY;
+  int get wheelDeltaY => _ptr.wheelDeltaY;
 
-  int get x() => _ptr.x;
+  int get x => _ptr.x;
 
-  int get y() => _ptr.y;
+  int get y => _ptr.y;
 }

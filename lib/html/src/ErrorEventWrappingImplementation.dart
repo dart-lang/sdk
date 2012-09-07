@@ -13,9 +13,9 @@ class ErrorEventWrappingImplementation extends EventWrappingImplementation imple
     return LevelDom.wrapErrorEvent(e);
   }
 
-  String get filename() => _ptr.filename;
+  String get filename => _ptr.filename;
 
-  int get lineno() => _ptr.lineno;
+  int get lineno => _ptr.lineno;
 
-  String get message() => _ptr.message;
+  String get message => _ptr.message;
 }

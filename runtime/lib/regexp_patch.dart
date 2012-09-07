@@ -50,7 +50,7 @@ class _JSRegExpMatch implements Match {
     return regexp._groupCount;
   }
 
-  String get pattern() => regexp.pattern;
+  String get pattern => regexp.pattern;
 
   final RegExp regexp;
   final String str;

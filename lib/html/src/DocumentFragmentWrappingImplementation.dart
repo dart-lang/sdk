@@ -12,11 +12,11 @@ class FilteredElementList implements ElementList {
   // with externally to this class.
   //
   // TODO(nweiz): Do we really need to copy the list to make the types work out?
-  List<Element> get _filtered() =>
+  List<Element> get _filtered =>
     new List.from(_childNodes.filter((n) => n is Element));
 
   // Don't use _filtered.first so we can short-circuit once we find an element.
-  Element get first() {
+  Element get first {
     for (var node in _childNodes) {
       if (node is Element) {
         return node;
@@ -91,7 +91,7 @@ class FilteredElementList implements ElementList {
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);
   bool isEmpty() => _filtered.isEmpty();
-  int get length() => _filtered.length;
+  int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
   List<Element> getRange(int start, int length) =>
@@ -182,7 +182,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return fragment;
   }
 
-  ElementList get elements() {
+  ElementList get elements {
     if (_elements == null) {
       _elements = new FilteredElementList(this);
     }
@@ -197,13 +197,13 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     elements.addAll(copy);
   }
 
-  String get innerHTML() {
+  String get innerHTML {
     var e = new Element.tag("div");
     e.nodes.add(this.clone(true));
     return e.innerHTML;
   }
 
-  String get outerHTML() => innerHTML;
+  String get outerHTML => innerHTML;
 
   // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
   // SVG strings?
@@ -246,14 +246,14 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
       position_OR_where, new DocumentFragment.html(text));
   }
 
-  ElementEvents get on() {
+  ElementEvents get on {
     if (_on === null) {
       _on = new ElementEventsImplementation._wrap(_ptr);
     }
     return _on;
   }
 
-  Future<ElementRect> get rect() {
+  Future<ElementRect> get rect {
     return _createMeasurementFuture(() => const EmptyElementRect(),
                                     new Completer<ElementRect>());
   }
@@ -267,27 +267,27 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   // If we can come up with a semi-reasonable default value for an Element
   // getter, we'll use it. In general, these return the same values as an
   // element that has no parent.
-  String get contentEditable() => "false";
-  bool get isContentEditable() => false;
-  bool get draggable() => false;
-  bool get hidden() => false;
-  bool get spellcheck() => false;
-  int get tabIndex() => -1;
-  String get id() => "";
-  String get title() => "";
-  String get tagName() => "";
-  String get webkitdropzone() => "";
-  Element get firstElementChild() => elements.first();
-  Element get lastElementChild() => elements.last();
-  Element get nextElementSibling() => null;
-  Element get previousElementSibling() => null;
-  Element get offsetParent() => null;
-  Element get parent() => null;
-  Map<String, String> get attributes() => const {};
-  CSSClassSet get classes() => null;
-  Map<String, String> get dataAttributes() => const {};
-  CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
-  Future<CSSStyleDeclaration> get computedStyle() =>
+  String get contentEditable => "false";
+  bool get isContentEditable => false;
+  bool get draggable => false;
+  bool get hidden => false;
+  bool get spellcheck => false;
+  int get tabIndex => -1;
+  String get id => "";
+  String get title => "";
+  String get tagName => "";
+  String get webkitdropzone => "";
+  Element get firstElementChild => elements.first();
+  Element get lastElementChild => elements.last();
+  Element get nextElementSibling => null;
+  Element get previousElementSibling => null;
+  Element get offsetParent => null;
+  Element get parent => null;
+  Map<String, String> get attributes => const {};
+  CSSClassSet get classes => null;
+  Map<String, String> get dataAttributes => const {};
+  CSSStyleDeclaration get style => new EmptyStyleDeclaration();
+  Future<CSSStyleDeclaration> get computedStyle =>
       _emptyStyleFuture();
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
@@ -323,7 +323,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
       "Content editable can't be set for document fragments.");
   }
 
-  String get dir() {
+  String get dir {
     throw new UnsupportedOperationException(
       "Document fragments don't support text direction.");
   }
@@ -348,7 +348,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
       "ID can't be set for document fragments.");
   }
 
-  String get lang() {
+  String get lang {
     throw new UnsupportedOperationException(
       "Document fragments don't support language.");
   }

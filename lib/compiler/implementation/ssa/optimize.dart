@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 interface OptimizationPhase {
-  String get name();
+  String get name;
   void visitGraph(HGraph graph);
 }
 

@@ -7,9 +7,9 @@ interface ProgressEvent extends Event default ProgressEventWrappingImplementatio
   ProgressEvent(String type, int loaded, [bool canBubble, bool cancelable,
       bool lengthComputable, int total]);
 
-  bool get lengthComputable();
+  bool get lengthComputable;
 
-  int get loaded();
+  int get loaded;
 
-  int get total();
+  int get total;
 }

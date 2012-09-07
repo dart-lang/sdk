@@ -60,7 +60,7 @@ class FriendList /*extends Template*/ {
     each_0(friends, e0_0);
   }
 
-  Element get root() => _fragment.nodes.first;
+  Element get root => _fragment.nodes.first;
 
   String toString(){
     return _fragment.innerHTML;
@@ -131,7 +131,7 @@ class FriendEntry /*extends Template*/ {
     with_0(friend, e0);
   }
 
-  Element get root() => _fragment.nodes.first;
+  Element get root => _fragment.nodes.first;
 
   String toString(){
     return _fragment.innerHTML;
@@ -160,7 +160,7 @@ class FriendEntryEvents /*extends Template*/ {
   Element _fragment;
   var _friendElem;
 
-  get friendElem() => _friendElem;
+  get friendElem => _friendElem;
 
   // ${#with friend}
   with_0(Friend item, Element parent) {
@@ -205,7 +205,7 @@ class FriendEntryEvents /*extends Template*/ {
    with_0(friend, e0);
   }
 
-  Element get root() => _fragment.nodes.first;
+  Element get root => _fragment.nodes.first;
 
   String toString(){
    return _fragment.innerHTML;

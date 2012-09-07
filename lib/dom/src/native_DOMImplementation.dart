@@ -63,7 +63,7 @@ class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Windo
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   // Implementation support.
-  String get typeName() => "DOMWindow";
+  String get typeName => "DOMWindow";
 }
 
 class _HistoryCrossFrameImpl extends NativeFieldWrapperClass1 implements History {
@@ -75,7 +75,7 @@ class _HistoryCrossFrameImpl extends NativeFieldWrapperClass1 implements History
   void go(int distance) native "History_go_Callback";
 
   // Implementation support.
-  String get typeName() => "History";
+  String get typeName => "History";
 }
 
 class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Location {
@@ -85,7 +85,7 @@ class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Locati
   void set href(String) native "Location_href_Setter";
 
   // Implementation support.
-  String get typeName() => "Location";
+  String get typeName => "Location";
 }
 
 class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, String> {
@@ -101,7 +101,7 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
   Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
   Collection<String> getValues() => Maps.getValues(this);
-  int get length() => Maps.length(this);
+  int get length => Maps.length(this);
   bool isEmpty() => Maps.isEmpty(this);
 }
 

@@ -7,13 +7,13 @@ interface StorageEvent extends Event default StorageEventWrappingImplementation 
   StorageEvent(String type, String key, String url, Storage storageArea,
       [bool canBubble, bool cancelable, String oldValue, String newValue]);
 
-  String get key();
+  String get key;
 
-  String get newValue();
+  String get newValue;
 
-  String get oldValue();
+  String get oldValue;
 
-  Storage get storageArea();
+  Storage get storageArea;
 
-  String get url();
+  String get url;
 }

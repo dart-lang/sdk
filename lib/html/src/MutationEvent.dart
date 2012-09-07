@@ -14,13 +14,13 @@ interface MutationEvent extends Event default MutationEventWrappingImplementatio
 
   static const int REMOVAL = 3;
 
-  int get attrChange();
+  int get attrChange;
 
-  String get attrName();
+  String get attrName;
 
-  String get newValue();
+  String get newValue;
 
-  String get prevValue();
+  String get prevValue;
 
-  Node get relatedNode();
+  Node get relatedNode;
 }

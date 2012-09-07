@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class RuntimeOptions implements Options {
-  List<String> get arguments() {
+  List<String> get arguments {
     if (_arguments === null) {
       // On first access make a copy of the native arguments.
       _arguments = _nativeArguments.getRange(0, _nativeArguments.length);
@@ -11,11 +11,11 @@ class RuntimeOptions implements Options {
     return _arguments;
   }
 
-  String get executable() {
+  String get executable {
     return _nativeExecutable;
   }
 
-  String get script() {
+  String get script {
     return _nativeScript;
   }
 

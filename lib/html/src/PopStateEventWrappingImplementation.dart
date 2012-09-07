@@ -12,5 +12,5 @@ class PopStateEventWrappingImplementation extends EventWrappingImplementation im
     return LevelDom.wrapPopStateEvent(e);
   }
 
-  String get state() => _ptr.state;
+  String get state => _ptr.state;
 }

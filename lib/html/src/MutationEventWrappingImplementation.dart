@@ -15,13 +15,13 @@ class MutationEventWrappingImplementation extends EventWrappingImplementation im
     return LevelDom.wrapMutationEvent(e);
   }
 
-  int get attrChange() => _ptr.attrChange;
+  int get attrChange => _ptr.attrChange;
 
-  String get attrName() => _ptr.attrName;
+  String get attrName => _ptr.attrName;
 
-  String get newValue() => _ptr.newValue;
+  String get newValue => _ptr.newValue;
 
-  String get prevValue() => _ptr.prevValue;
+  String get prevValue => _ptr.prevValue;
 
-  Node get relatedNode() => LevelDom.wrapNode(_ptr.relatedNode);
+  Node get relatedNode => LevelDom.wrapNode(_ptr.relatedNode);
 }

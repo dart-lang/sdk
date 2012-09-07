@@ -28,7 +28,7 @@ int global_var = 0;
 final int final_global_var = 0;
 
 // Top-level getter and setter.
-int get myVar() { return 5; }
+int get myVar { return 5; }
 int set myVar(x) {}
 
 // This function will be invoked reflectively.

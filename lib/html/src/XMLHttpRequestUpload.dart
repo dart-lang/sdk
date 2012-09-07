@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 interface XMLHttpRequestUploadEvents extends Events {
-  EventListenerList get abort();
-  EventListenerList get error();
-  EventListenerList get load();
-  EventListenerList get loadStart();
-  EventListenerList get progress();
+  EventListenerList get abort;
+  EventListenerList get error;
+  EventListenerList get load;
+  EventListenerList get loadStart;
+  EventListenerList get progress;
 }
 
 interface XMLHttpRequestUpload extends EventTarget {
-  XMLHttpRequestUploadEvents get on();
+  XMLHttpRequestUploadEvents get on;
 }

@@ -6,5 +6,5 @@ interface CustomEvent extends Event default CustomEventWrappingImplementation {
 
   CustomEvent(String type, [bool canBubble, bool cancelable, Object detail]);
 
-  String get detail();
+  String get detail;
 }

@@ -7,9 +7,9 @@ interface CloseEvent extends Event default CloseEventWrappingImplementation {
   CloseEvent(String type, int code, String reason,
       [bool canBubble, bool cancelable, bool wasClean]);
 
-  int get code();
+  int get code;
 
-  String get reason();
+  String get reason;
 
-  bool get wasClean();
+  bool get wasClean;
 }

@@ -7,5 +7,5 @@ interface PageTransitionEvent extends Event default PageTransitionEventWrappingI
   PageTransitionEvent(String type, [bool canBubble, bool cancelable,
       bool persisted]);
 
-  bool get persisted();
+  bool get persisted;
 }

@@ -248,13 +248,13 @@ class Utf32BytesDecoder implements _ListRangeIterator {
     }
   }
 
-  int get position() => utf32EncodedBytesIterator.position ~/ 4;
+  int get position => utf32EncodedBytesIterator.position ~/ 4;
 
   void backup([int by = 1]) {
     utf32EncodedBytesIterator.backup(4 * by);
   }
 
-  int get remaining() => (utf32EncodedBytesIterator.remaining + 3) ~/ 4;
+  int get remaining => (utf32EncodedBytesIterator.remaining + 3) ~/ 4;
 
   void skip([int count = 1]) {
     utf32EncodedBytesIterator.skip(4 * count);

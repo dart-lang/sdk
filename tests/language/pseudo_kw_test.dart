@@ -76,7 +76,7 @@ class A {
 
 class B {
   var set = 100;
-  get get() => set;
+  get get => set;
   set get(get) => set = 2 * get.get;
 
   static() {
@@ -92,7 +92,7 @@ class B {
 class C {
   static int operator = (5);
   static var get;
-  static get set() => 111;
+  static get set => 111;
   static set set(set) { }
 }
 

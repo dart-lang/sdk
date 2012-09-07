@@ -7,21 +7,21 @@ interface UIEvent extends Event default UIEventWrappingImplementation {
   UIEvent(String type, Window view, int detail, [bool canBubble,
       bool cancelable]);
 
-  int get charCode();
+  int get charCode;
 
-  int get detail();
+  int get detail;
 
-  int get keyCode();
+  int get keyCode;
 
-  int get layerX();
+  int get layerX;
 
-  int get layerY();
+  int get layerY;
 
-  int get pageX();
+  int get pageX;
 
-  int get pageY();
+  int get pageY;
 
-  Window get view();
+  Window get view;
 
-  int get which();
+  int get which;
 }

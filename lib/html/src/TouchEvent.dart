@@ -9,17 +9,17 @@ interface TouchEvent extends UIEvent default TouchEventWrappingImplementation {
       int screenY, int clientX, int clientY, [bool ctrlKey, bool altKey,
       bool shiftKey, bool metaKey]);
 
-  bool get altKey();
+  bool get altKey;
 
-  TouchList get changedTouches();
+  TouchList get changedTouches;
 
-  bool get ctrlKey();
+  bool get ctrlKey;
 
-  bool get metaKey();
+  bool get metaKey;
 
-  bool get shiftKey();
+  bool get shiftKey;
 
-  TouchList get targetTouches();
+  TouchList get targetTouches;
 
-  TouchList get touches();
+  TouchList get touches;
 }

@@ -229,13 +229,13 @@ Usage dartdoc [options] <entrypoint(s)>
  */
 // TODO(johnniwinther): Convert to final (lazily initialized) variables when
 // the feature is supported.
-Path get scriptDir() =>
+Path get scriptDir =>
     new Path.fromNative(new Options().script).directoryPath;
 
 // TODO(johnniwinther): Trailing slashes matter due to the use of [libPath] as
 // a base URI with [Uri.resolve].
 /// Relative path to the library in which dart2js resides.
-Path get libPath() => IN_SDK
+Path get libPath => IN_SDK
     ? scriptDir.append('../../lib/dart2js/')
     : scriptDir.append('../../');
 
@@ -451,7 +451,7 @@ class Dartdoc {
     return false;
   }
 
-  String get footerContent(){
+  String get footerContent{
     var footerItems = [];
     if (!omitGenerationTime) {
       footerItems.add("This page was generated at ${new Date.now()}");
@@ -623,7 +623,7 @@ class Dartdoc {
     writeln('<div class="content">');
   }
 
-  String get clientScript() {
+  String get clientScript {
     switch (mode) {
       case MODE_STATIC:   return 'client-static';
       case MODE_LIVE_NAV: return 'client-live-nav';
@@ -704,10 +704,10 @@ class Dartdoc {
     String dartString = jsonString.replaceAll(@"$", @"\$");
     final filePath = tmpPath.append('nav.dart');
     writeString(new File.fromPath(filePath),
-        'get json() => $dartString;');
+        'get json => $dartString;');
   }
 
-  Path get tmpPath() => dartdocPath.append('tmp');
+  Path get tmpPath => dartdocPath.append('tmp');
 
   void cleanup() {
     final dir = new Directory.fromPath(tmpPath);

@@ -8,5 +8,5 @@ interface DeviceMotionEvent extends Event default DeviceMotionEventWrappingImple
   // DeviceMotionEvent more thoroughly.
   DeviceMotionEvent(String type, [bool canBubble, bool cancelable]);
 
-  num get interval();
+  num get interval;
 }

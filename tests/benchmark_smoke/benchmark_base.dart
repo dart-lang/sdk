@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Accessors for our Singleton variables. */
-BenchmarkSuite get BENCHMARK_SUITE() {
+BenchmarkSuite get BENCHMARK_SUITE {
   if (BenchmarkSuite._ONLY == null) {
     BenchmarkSuite._ONLY = new BenchmarkSuite._internal();
   }
   return BenchmarkSuite._ONLY;
 }
 
-BenchmarkView get BENCHMARK_VIEW() {
+BenchmarkView get BENCHMARK_VIEW {
   if (BenchmarkView._ONLY == null) {
     BenchmarkView._ONLY = new BenchmarkView._internal();
   }

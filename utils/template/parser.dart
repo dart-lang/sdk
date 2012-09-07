@@ -289,7 +289,7 @@ class Parser {
   //              }
   //
   //              D.)
-  //              get foo() {
+  //              get foo {
   //                <div>..</div>
   //              }
   //

@@ -33,7 +33,7 @@ class Metric {
   }
 }
 
-List<Person> get dataModel() {
+List<Person> get dataModel {
   List<Person> persons = [];
 
   List<Search> searches = [];

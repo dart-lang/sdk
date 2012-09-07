@@ -29,14 +29,14 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
         'XML had ${parentTag.nodes.length} top-level nodes but 1 expected');
   }
 
-  CSSClassSet get classes() {
+  CSSClassSet get classes {
     if (_cssClassSet === null) {
       _cssClassSet = new _XMLClassSet(_ptr);
     }
     return _cssClassSet;
   }
 
-  ElementList get elements() {
+  ElementList get elements {
     if (_elements == null) {
       _elements = new FilteredElementList(this);
     }
@@ -49,7 +49,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
     elements.addAll(value);
   }
 
-  String get outerHTML() {
+  String get outerHTML {
     final container = new Element.tag("div");
     // Safari requires that the clone be removed from its owner document before
     // being inserted into the HTML document.
@@ -57,7 +57,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
     return container.innerHTML;
   }
 
-  String get innerHTML() {
+  String get innerHTML {
     final container = new Element.tag("div");
     // Safari requires that the clone be removed from its owner document before
     // being inserted into the HTML document.
@@ -110,14 +110,14 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
       position_OR_where, new DocumentFragment.xml(text));
   }
 
-  Future<ElementRect> get rect() {
+  Future<ElementRect> get rect {
     return _createMeasurementFuture(() => const EmptyElementRect(),
                                     new Completer<ElementRect>());
   }
 
   // For HTML elemens, the default value of "contentEditable" is "inherit", so
   // we'll use that here as well even though it doesn't really make sense.
-  String get contentEditable() => _attr('contentEditable', 'inherit');
+  String get contentEditable => _attr('contentEditable', 'inherit');
 
   void set contentEditable(String value) {
     attributes['contentEditable'] = value;
@@ -132,19 +132,19 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
   // Parentless HTML elements return false regardless of the value of their
   // contentEditable attribute, so XML elements do the same since they're never
   // actually editable.
-  bool get isContentEditable() => false;
+  bool get isContentEditable => false;
 
-  bool get draggable() => attributes['draggable'] == 'true';
+  bool get draggable => attributes['draggable'] == 'true';
 
   void set draggable(bool value) { attributes['draggable'] = value.toString(); }
 
-  bool get spellcheck() => attributes['spellcheck'] == 'true';
+  bool get spellcheck => attributes['spellcheck'] == 'true';
 
   void set spellcheck(bool value) {
     attributes['spellcheck'] = value.toString();
   }
 
-  bool get hidden() => attributes.containsKey('hidden');
+  bool get hidden => attributes.containsKey('hidden');
 
   void set hidden(bool value) {
     if (value) {
@@ -154,7 +154,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
     }
   }
 
-  int get tabIndex() {
+  int get tabIndex {
     try {
       return Math.parseInt(_attr('tabIndex'));
     } on FormatException catch (e) {
@@ -164,25 +164,25 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
 
   void set tabIndex(int value) { attributes['tabIndex'] = value.toString(); }
 
-  String get id() => _attr('id');
+  String get id => _attr('id');
 
   void set id(String value) { attributes['id'] = value; }
 
-  String get title() => _attr('title');
+  String get title => _attr('title');
 
   void set title(String value) { attributes['title'] = value; }
 
-  String get webkitdropzone() => _attr('webkitdropzone');
+  String get webkitdropzone => _attr('webkitdropzone');
 
   void set webkitdropzone(String value) {
     attributes['webkitdropzone'] = value;
   }
 
-  String get lang() => _attr('lang');
+  String get lang => _attr('lang');
 
   void set lang(String value) { attributes['lang'] = value; }
 
-  String get dir() => _attr('dir');
+  String get dir => _attr('dir');
 
   void set dir(String value) { attributes['dir'] = value; }
 

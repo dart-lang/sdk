@@ -94,7 +94,7 @@ class TemplateChildren extends ASTNode {
 
   ASTNode last() => children.last();
   ASTNode removeLast() => children.removeLast();
-  bool get anyChildren() => children != null && children.length > 0;
+  bool get anyChildren => children != null && children.length > 0;
 
   visit(TreeVisitor visitor) => visitor.visitTemplateChildren(this);
 
@@ -169,13 +169,13 @@ class TemplateElement extends TemplateChildren {
   TemplateElement.attributes(this.tagTokenId, this.attributes, this._varName,
     SourceSpan span): super.empty(span);
 
-  bool get isFragment() => tagTokenId == -1;
-  bool get anyAttributes() => attributes != null;
+  bool get isFragment => tagTokenId == -1;
+  bool get anyAttributes => attributes != null;
 
   visit(TreeVisitor visitor) => visitor.visitTemplateElement(this);
 
-  bool get hasVar() => _varName != null;
-  String get varName() => hasVar ? _varName.value : null;
+  bool get hasVar => _varName != null;
+  String get varName => hasVar ? _varName.value : null;
 
   String attributesToString() {
     StringBuffer buff = new StringBuffer();
@@ -189,10 +189,10 @@ class TemplateElement extends TemplateChildren {
     return buff.toString();
   }
 
-  String get tagName() => isFragment ?
+  String get tagName => isFragment ?
     'root' : TokenKind.tagNameFromTokenId(tagTokenId);
 
-  bool get scoped() => !TokenKind.unscopedTag(tagTokenId);
+  bool get scoped => !TokenKind.unscopedTag(tagTokenId);
 
   String tagStartToString() => "<${tagName}${attributesToString()}>";
 
@@ -252,8 +252,8 @@ class TemplateEachCommand extends ASTNode {
   TemplateEachCommand(this.listName, this.loopItem, this.documentFragment,
       SourceSpan span): super(span);
 
-  bool get hasLoopItem() => loopItem != null;
-  String get loopNameOptional() => hasLoopItem ? " ${loopItem}" : "";
+  bool get hasLoopItem => loopItem != null;
+  String get loopNameOptional => hasLoopItem ? " ${loopItem}" : "";
 
   visit(TreeVisitor visitor) => visitor.visitTemplateEachCommand(this);
 
@@ -268,8 +268,8 @@ class TemplateWithCommand extends ASTNode {
   TemplateWithCommand(this.objectName, this.blockItem, this.documentFragment,
       SourceSpan span): super(span);
 
-  bool get hasBlockItem() => blockItem != null;
-  String get blockNameOptional() => hasBlockItem ? " ${blockItem}" : "";
+  bool get hasBlockItem => blockItem != null;
+  String get blockNameOptional => hasBlockItem ? " ${blockItem}" : "";
 
   visit(TreeVisitor visitor) => visitor.visitTemplateWithCommand(this);
 

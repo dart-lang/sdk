@@ -592,5 +592,5 @@ class NoColorMatchException implements Exception {
   String _colorName;
   NoColorMatchException(this._colorName);
 
-  String get name() => _colorName;
+  String get name => _colorName;
 }

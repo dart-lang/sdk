@@ -2613,8 +2613,8 @@ class HBlockFlow {
  * Information about a syntactic-like structure.
  */
 interface HBlockInformation {
-  HBasicBlock get start();
-  HBasicBlock get end();
+  HBasicBlock get start;
+  HBasicBlock get end;
   bool accept(HBlockInformationVisitor visitor);
 }
 
@@ -2632,7 +2632,7 @@ interface HStatementInformation extends HBlockInformation {
  */
 interface HExpressionInformation extends HBlockInformation {
   bool accept(HExpressionInformationVisitor visitor);
-  HInstruction get conditionExpression();
+  HInstruction get conditionExpression;
 }
 
 

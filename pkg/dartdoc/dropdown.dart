@@ -264,7 +264,7 @@ void set currentResultIndex(int index) {
   }
 }
 
-int get currentResultIndex() => _currentResultIndex;
+int get currentResultIndex => _currentResultIndex;
 
 void set currentResult(Result result) {
   if (_currentResult != result) {
@@ -278,7 +278,7 @@ void set currentResult(Result result) {
   }
 }
 
-Result get currentResult() => _currentResult;
+Result get currentResult => _currentResult;
 
 /**
  * Navigate the search drop down using up/down inside the search field. Follow

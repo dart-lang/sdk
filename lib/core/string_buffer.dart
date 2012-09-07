@@ -16,7 +16,7 @@ interface StringBuffer default StringBufferImpl {
   /**
    * Returns the length of the buffer.
    */
-  int get length();
+  int get length;
 
   /**
    * Returns whether the buffer is empty.

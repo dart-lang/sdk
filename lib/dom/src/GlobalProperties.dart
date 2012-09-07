@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-Window get window() {
+Window get window {
   return _NativeDomGlobalProperties.getWindow();
 }
 
 // TODO(vsm): Remove when prefixes are supported.
-Window get dom_window() {
+Window get dom_window {
   return _NativeDomGlobalProperties.getWindow();
 }
 
-Document get document() {
+Document get document {
   return _NativeDomGlobalProperties.getDocument();
 }
 

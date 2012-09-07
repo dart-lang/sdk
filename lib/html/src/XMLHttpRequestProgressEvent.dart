@@ -7,7 +7,7 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent default XMLHttpReque
   XMLHttpRequestProgressEvent(String type, int loaded, [bool canBubble,
       bool cancelable, bool lengthComputable, int total]);
 
-  int get position();
+  int get position;
 
-  int get totalSize();
+  int get totalSize;
 }

@@ -8,7 +8,7 @@ class A {
   int a() {
     return 1;
   }
-  int get a() {
+  int get a {
     return 10;
   }
 }

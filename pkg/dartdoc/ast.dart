@@ -29,7 +29,7 @@ class Element implements Node {
     : children = [new Text(text)],
       attributes = <String, String>{};
 
-  bool get isEmpty() => children == null;
+  bool get isEmpty => children == null;
 
   void accept(NodeVisitor visitor) {
     if (visitor.visitElementBefore(this)) {

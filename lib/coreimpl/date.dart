@@ -171,14 +171,14 @@ class DateImplementation implements Date {
   external static int _brokenDownDateToMillisecondsSinceEpoch(
       int years, int month, int day, int hour, int minute, int second,
       int millisecond, bool isUtc);
-  external String get timeZoneName();
-  external Duration get timeZoneOffset();
-  external int get year();
-  external int get month();
-  external int get day();
-  external int get hour();
-  external int get minute();
-  external int get second();
-  external int get millisecond();
-  external int get weekday();
+  external String get timeZoneName;
+  external Duration get timeZoneOffset;
+  external int get year;
+  external int get month;
+  external int get day;
+  external int get hour;
+  external int get minute;
+  external int get second;
+  external int get millisecond;
+  external int get weekday;
 }

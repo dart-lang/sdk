@@ -12,7 +12,7 @@ class HashChangeEventWrappingImplementation extends EventWrappingImplementation 
     return LevelDom.wrapHashChangeEvent(e);
   }
 
-  String get newURL() => _ptr.newURL;
+  String get newURL => _ptr.newURL;
 
-  String get oldURL() => _ptr.oldURL;
+  String get oldURL => _ptr.oldURL;
 }

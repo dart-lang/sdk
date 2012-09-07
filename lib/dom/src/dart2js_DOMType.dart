@@ -6,5 +6,5 @@ interface DOMType {
   // TODO(vsm): Remove if/when Dart supports OLS for all objects.
   var dartObjectLocalStorage;
 
-  String get typeName();
+  String get typeName;
 }

@@ -21,28 +21,28 @@ interface BinaryOperation extends Operation {
  * A [ConstantSystem] is responsible for creating constants and folding them.
  */
 interface ConstantSystem {
-  BinaryOperation get add();
-  BinaryOperation get bitAnd();
-  UnaryOperation get bitNot();
-  BinaryOperation get bitOr();
-  BinaryOperation get bitXor();
-  BinaryOperation get booleanAnd();
-  BinaryOperation get booleanOr();
-  BinaryOperation get divide();
-  BinaryOperation get equal();
-  BinaryOperation get greaterEqual();
-  BinaryOperation get greater();
-  BinaryOperation get identity();
-  BinaryOperation get lessEqual();
-  BinaryOperation get less();
-  BinaryOperation get modulo();
-  BinaryOperation get multiply();
-  UnaryOperation get negate();
-  UnaryOperation get not();
-  BinaryOperation get shiftLeft();
-  BinaryOperation get shiftRight();
-  BinaryOperation get subtract();
-  BinaryOperation get truncatingDivide();
+  BinaryOperation get add;
+  BinaryOperation get bitAnd;
+  UnaryOperation get bitNot;
+  BinaryOperation get bitOr;
+  BinaryOperation get bitXor;
+  BinaryOperation get booleanAnd;
+  BinaryOperation get booleanOr;
+  BinaryOperation get divide;
+  BinaryOperation get equal;
+  BinaryOperation get greaterEqual;
+  BinaryOperation get greater;
+  BinaryOperation get identity;
+  BinaryOperation get lessEqual;
+  BinaryOperation get less;
+  BinaryOperation get modulo;
+  BinaryOperation get multiply;
+  UnaryOperation get negate;
+  UnaryOperation get not;
+  BinaryOperation get shiftLeft;
+  BinaryOperation get shiftRight;
+  BinaryOperation get subtract;
+  BinaryOperation get truncatingDivide;
 
   Constant createInt(int i);
   Constant createDouble(double d);

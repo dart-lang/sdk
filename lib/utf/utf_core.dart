@@ -232,7 +232,7 @@ class _ListRange implements Iterable {
   _ListRangeIterator iterator() =>
       new _ListRangeIteratorImpl(_source, _offset, _offset + _length);
 
-  int get length() => _length;
+  int get length => _length;
 }
 
 /**
@@ -243,9 +243,9 @@ class _ListRange implements Iterable {
 interface _ListRangeIterator extends Iterator<int> {
   bool hasNext();
   int next();
-  int get position();
+  int get position;
   void backup([by]);
-  int get remaining();
+  int get remaining;
   void skip([count]);
 }
 
@@ -260,13 +260,13 @@ class _ListRangeIteratorImpl implements _ListRangeIterator {
 
   int next() => _source[_offset++];
 
-  int get position() => _offset;
+  int get position => _offset;
 
   void backup([int by = 1]) {
     _offset -= by;
   }
 
-  int get remaining() => _end - _offset;
+  int get remaining => _end - _offset;
 
   void skip([int count = 1]) {
     _offset += count;

@@ -6,5 +6,5 @@ interface PopStateEvent extends Event default PopStateEventWrappingImplementatio
 
   PopStateEvent(String type, Object state, [bool canBubble, bool cancelable]);
 
-  String get state();
+  String get state;
 }

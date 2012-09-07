@@ -7,13 +7,13 @@ interface MessageEvent extends Event default MessageEventWrappingImplementation 
   MessageEvent(String type, String data, String origin, String lastEventId,
       Window source, MessagePort port, [bool canBubble, bool cancelable]);
 
-  String get data();
+  String get data;
 
-  String get lastEventId();
+  String get lastEventId;
 
-  MessagePort get messagePort();
+  MessagePort get messagePort;
 
-  String get origin();
+  String get origin;
 
-  Window get source();
+  Window get source;
 }

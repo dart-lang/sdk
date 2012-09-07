@@ -7,9 +7,9 @@ interface DeviceOrientationEvent extends Event default DeviceOrientationEventWra
   DeviceOrientationEvent(String type, double alpha, double beta, double gamma,
       [bool canBubble, bool cancelable]);
 
-  num get alpha();
+  num get alpha;
 
-  num get beta();
+  num get beta;
 
-  num get gamma();
+  num get gamma;
 }

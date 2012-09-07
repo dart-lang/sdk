@@ -31,7 +31,7 @@ class Logger {
   final String name;
 
   /** The full name of this logger, which includes the parent's full name. */
-  String get fullName() =>
+  String get fullName =>
       (parent == null || parent.name == '') ? name : '${parent.fullName}.$name';
 
   /** Parent of this logger in the hierarchy of loggers. */
@@ -82,7 +82,7 @@ class Logger {
    * Effective level considering the levels established in this logger's parents
    * (when [hierarchicalLoggingEnabled] is true).
    */
-  Level get level() {
+  Level get level {
     if (hierarchicalLoggingEnabled) {
       if (_level != null) return _level;
       if (parent != null) return parent.level;
@@ -110,7 +110,7 @@ class Logger {
    * instance:
    *    logger.on.record.add((record) { ... });
    */
-  LoggerEvents get on() => new LoggerEvents(this);
+  LoggerEvents get on => new LoggerEvents(this);
 
   /** Adds a handler to listen whenever a log record is added to this logger. */
   void _addHandler(LoggerHandler handler) {
@@ -201,7 +201,7 @@ class Logger {
   }
 
   /** Top-level root [Logger]. */
-  static get root() => new Logger('');
+  static get root => new Logger('');
 
   /** All [Logger]s in the system. */
   static Map<String, Logger> _loggers;
@@ -219,7 +219,7 @@ class LoggerEvents {
   LoggerEvents(this._logger);
 
   /** Event fired when a log record is added to a [Logger]. */
-  LoggerHandlerList get record() => new LoggerHandlerList(_logger);
+  LoggerHandlerList get record => new LoggerHandlerList(_logger);
 }
 
 

@@ -16,19 +16,19 @@ class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation 
     return LevelDom.wrapKeyboardEvent(e);
   }
 
-  bool get altGraphKey() => _ptr.altGraphKey;
+  bool get altGraphKey => _ptr.altGraphKey;
 
-  bool get altKey() => _ptr.altKey;
+  bool get altKey => _ptr.altKey;
 
-  bool get ctrlKey() => _ptr.ctrlKey;
+  bool get ctrlKey => _ptr.ctrlKey;
 
-  String get keyIdentifier() => _ptr.keyIdentifier;
+  String get keyIdentifier => _ptr.keyIdentifier;
 
-  int get keyLocation() => _ptr.keyLocation;
+  int get keyLocation => _ptr.keyLocation;
 
-  bool get metaKey() => _ptr.metaKey;
+  bool get metaKey => _ptr.metaKey;
 
-  bool get shiftKey() => _ptr.shiftKey;
+  bool get shiftKey => _ptr.shiftKey;
 
   bool getModifierState(String keyIdentifierArg) {
     return _ptr.getModifierState(keyIdentifierArg);

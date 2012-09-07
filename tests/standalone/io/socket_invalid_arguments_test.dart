@@ -11,7 +11,7 @@ class NotAnInteger {
 }
 
 class NotAList {
-  get length() => 10;
+  get length => 10;
   operator[](index) => 1;
 }
 

@@ -15,13 +15,13 @@ class StorageEventWrappingImplementation extends EventWrappingImplementation imp
     return LevelDom.wrapStorageEvent(e);
   }
 
-  String get key() => _ptr.key;
+  String get key => _ptr.key;
 
-  String get newValue() => _ptr.newValue;
+  String get newValue => _ptr.newValue;
 
-  String get oldValue() => _ptr.oldValue;
+  String get oldValue => _ptr.oldValue;
 
-  Storage get storageArea() => LevelDom.wrapStorage(_ptr.storageArea);
+  Storage get storageArea => LevelDom.wrapStorage(_ptr.storageArea);
 
-  String get url() => _ptr.url;
+  String get url => _ptr.url;
 }

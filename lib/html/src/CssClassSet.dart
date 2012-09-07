@@ -46,7 +46,7 @@ class _CssClassSet implements Set<String> {
     return _read().isEmpty();
   }
 
-  int get length() {
+  int get length {
     return _read().length;
   }
   // interface Collection - END

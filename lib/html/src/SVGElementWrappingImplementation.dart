@@ -36,26 +36,26 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
         'top-level elements but 1 expected');
   }
 
-  CSSClassSet get classes() {
+  CSSClassSet get classes {
     if (_cssClassSet === null) {
       _cssClassSet = new _SVGClassSet(_ptr);
     }
     return _cssClassSet;
   }
 
-  String get id() { return _ptr.id; }
+  String get id { return _ptr.id; }
 
   void set id(String value) { _ptr.id = value; }
 
-  SVGSVGElement get ownerSVGElement() { return LevelDom.wrapSVGSVGElement(_ptr.ownerSVGElement); }
+  SVGSVGElement get ownerSVGElement { return LevelDom.wrapSVGSVGElement(_ptr.ownerSVGElement); }
 
-  SVGElement get viewportElement() { return LevelDom.wrapSVGElement(_ptr.viewportElement); }
+  SVGElement get viewportElement { return LevelDom.wrapSVGElement(_ptr.viewportElement); }
 
-  String get xmlbase() { return _ptr.xmlbase; }
+  String get xmlbase { return _ptr.xmlbase; }
 
   void set xmlbase(String value) { _ptr.xmlbase = value; }
 
-  ElementList get elements() {
+  ElementList get elements {
     if (_elements == null) {
       _elements = new FilteredElementList(this);
     }
@@ -68,13 +68,13 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
     elements.addAll(value);
   }
 
-  String get outerHTML() {
+  String get outerHTML {
     final container = new Element.tag("div");
     container.elements.add(this.clone(true));
     return container.innerHTML;
   }
 
-  String get innerHTML() {
+  String get innerHTML {
     final container = new Element.tag("div");
     container.elements.addAll(this.clone(true).elements);
     return container.innerHTML;

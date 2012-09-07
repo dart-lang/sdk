@@ -7,9 +7,9 @@ interface ErrorEvent extends Event default ErrorEventWrappingImplementation {
   ErrorEvent(String type, String message, String filename, int lineNo,
       [bool canBubble, bool cancelable]);
 
-  String get filename();
+  String get filename;
 
-  int get lineno();
+  int get lineno;
 
-  String get message();
+  String get message;
 }

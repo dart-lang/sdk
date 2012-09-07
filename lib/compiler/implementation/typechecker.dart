@@ -25,8 +25,8 @@ class TypeCheckerTask extends CompilerTask {
 }
 
 abstract class DartType implements Hashable {
-  abstract SourceString get name();
-  abstract Element get element();
+  abstract SourceString get name;
+  abstract Element get element;
 
   /**
    * Returns the unaliased type of this type.

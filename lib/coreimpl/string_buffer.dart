@@ -19,7 +19,7 @@ class StringBufferImpl implements StringBuffer {
   /**
    * Returns the length of the buffer.
    */
-  int get length() {
+  int get length {
     return _length;
   }
 

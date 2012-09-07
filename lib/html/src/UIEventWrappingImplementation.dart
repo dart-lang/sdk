@@ -12,21 +12,21 @@ class UIEventWrappingImplementation extends EventWrappingImplementation implemen
     return LevelDom.wrapUIEvent(e);
   }
 
-  int get charCode() => _ptr.charCode;
+  int get charCode => _ptr.charCode;
 
-  int get detail() => _ptr.detail;
+  int get detail => _ptr.detail;
 
-  int get keyCode() => _ptr.keyCode;
+  int get keyCode => _ptr.keyCode;
 
-  int get layerX() => _ptr.layerX;
+  int get layerX => _ptr.layerX;
 
-  int get layerY() => _ptr.layerY;
+  int get layerY => _ptr.layerY;
 
-  int get pageX() => _ptr.pageX;
+  int get pageX => _ptr.pageX;
 
-  int get pageY() => _ptr.pageY;
+  int get pageY => _ptr.pageY;
 
-  Window get view() => LevelDom.wrapWindow(_ptr.view);
+  Window get view => LevelDom.wrapWindow(_ptr.view);
 
-  int get which() => _ptr.which;
+  int get which => _ptr.which;
 }

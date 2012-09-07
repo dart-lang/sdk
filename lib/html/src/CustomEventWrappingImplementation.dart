@@ -12,5 +12,5 @@ class CustomEventWrappingImplementation extends EventWrappingImplementation impl
     return LevelDom.wrapCustomEvent(e);
   }
 
-  String get detail() => _ptr.detail;
+  String get detail => _ptr.detail;
 }

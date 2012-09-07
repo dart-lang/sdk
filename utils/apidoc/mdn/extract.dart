@@ -229,11 +229,11 @@ final domTypesRaw = const [
 
 Map dbEntry;
 
-Map get dartIdl() => data['dartIdl'];
-String get currentType() => data['type'];
+Map get dartIdl => data['dartIdl'];
+String get currentType => data['type'];
 
 String _currentTypeShort;
-String get currentTypeShort() {
+String get currentTypeShort {
   if (_currentTypeShort == null) {
     _currentTypeShort = currentType;
     _currentTypeShort = trimPrefix(_currentTypeShort, "HTML");
@@ -246,7 +246,7 @@ String get currentTypeShort() {
 }
 
 String _currentTypeTiny;
-String get currentTypeTiny() {
+String get currentTypeTiny {
   if (_currentTypeTiny == null) {
     _currentTypeTiny = currentTypeShort;
     _currentTypeTiny = trimEnd(_currentTypeTiny, "Element");
@@ -254,18 +254,18 @@ String get currentTypeTiny() {
   return _currentTypeTiny;
 }
 
-Map get searchResult() => data['searchResult'];
-String get pageUrl() => searchResult['link'];
+Map get searchResult => data['searchResult'];
+String get pageUrl => searchResult['link'];
 
 String _pageDomain;
-String get pageDomain() {
+String get pageDomain {
   if (_pageDomain == null) {
     _pageDomain = pageUrl.substring(0, pageUrl.indexOf("/", "https://".length));
   }
   return _pageDomain;
 }
 
-String get pageDir() {
+String get pageDir {
   return pageUrl.substring(0, pageUrl.lastIndexOf('/') + 1);
 }
 

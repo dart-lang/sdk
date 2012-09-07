@@ -14,7 +14,7 @@ class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWra
     return LevelDom.wrapProgressEvent(e);
   }
 
-  int get position() => _ptr.position;
+  int get position => _ptr.position;
 
-  int get totalSize() => _ptr.totalSize;
+  int get totalSize => _ptr.totalSize;
 }

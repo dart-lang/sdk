@@ -185,7 +185,7 @@ interface SourceString extends Hashable, Iterable<int> default StringWrapper {
    */
   SourceString copyWithoutQuotes(int initial, int terminal);
 
-  String get stringValue();
+  String get stringValue;
 
   String slowToString();
 

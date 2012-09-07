@@ -12,5 +12,5 @@ class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation 
     return LevelDom.wrapBeforeLoadEvent(e);
   }
 
-  String get url() => _ptr.url;
+  String get url => _ptr.url;
 }

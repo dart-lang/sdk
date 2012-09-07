@@ -16,17 +16,17 @@ class TouchEventWrappingImplementation extends UIEventWrappingImplementation imp
     return LevelDom.wrapTouchEvent(e);
   }
 
-  bool get altKey() => _ptr.altKey;
+  bool get altKey => _ptr.altKey;
 
-  TouchList get changedTouches() => LevelDom.wrapTouchList(_ptr.changedTouches);
+  TouchList get changedTouches => LevelDom.wrapTouchList(_ptr.changedTouches);
 
-  bool get ctrlKey() => _ptr.ctrlKey;
+  bool get ctrlKey => _ptr.ctrlKey;
 
-  bool get metaKey() => _ptr.metaKey;
+  bool get metaKey => _ptr.metaKey;
 
-  bool get shiftKey() => _ptr.shiftKey;
+  bool get shiftKey => _ptr.shiftKey;
 
-  TouchList get targetTouches() => LevelDom.wrapTouchList(_ptr.targetTouches);
+  TouchList get targetTouches => LevelDom.wrapTouchList(_ptr.targetTouches);
 
-  TouchList get touches() => LevelDom.wrapTouchList(_ptr.touches);
+  TouchList get touches => LevelDom.wrapTouchList(_ptr.touches);
 }

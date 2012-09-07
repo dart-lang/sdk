@@ -716,7 +716,7 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
 }
 
 interface LabelScope {
-  LabelScope get outer();
+  LabelScope get outer;
   LabelElement lookup(String label);
 }
 

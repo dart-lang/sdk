@@ -21,7 +21,7 @@ class SearchText {
             : '${searchText.substring(0, 1).toUpperCase()}'
               '${searchText.substring(1)}';
 
-  int get length() => text.length;
+  int get length => text.length;
 
   bool isEmpty() => length == 0;
 }
@@ -48,25 +48,25 @@ class StringMatch {
            '${text.substring(matchEnd)}';
   }
 
-  String get matchText() =>
+  String get matchText =>
       text.substring(matchOffset, matchEnd);
 
   /**
    * Is [:true:] iff [searchText] matches the full [text] case-sensitively.
    */
-  bool get isFullMatch() => text == searchText.text;
+  bool get isFullMatch => text == searchText.text;
 
   /**
    * Is [:true:] iff [searchText] matches a substring of [text]
    * case-sensitively.
    */
-  bool get isExactMatch() => matchText == searchText.text;
+  bool get isExactMatch => matchText == searchText.text;
 
   /**
    * Is [:true:] iff [searchText] matches a substring of [text] when
    * [searchText] is interpreted as camel case.
    */
-  bool get isCamelCaseMatch() => matchText == searchText.camelCase;
+  bool get isCamelCaseMatch => matchText == searchText.camelCase;
 }
 
 /**
@@ -88,7 +88,7 @@ class Result {
          [this.library, this.type, String args, this.prefix])
       : this.args = args != null ? '&lt;$args&gt;' : '';
 
-  bool get isTopLevel() => prefix == null && type == null;
+  bool get isTopLevel => prefix == null && type == null;
 
   void addRow(TableElement table) {
     if (row != null) return;

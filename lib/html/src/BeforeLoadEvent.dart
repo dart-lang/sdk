@@ -6,5 +6,5 @@ interface BeforeLoadEvent extends Event default BeforeLoadEventWrappingImplement
 
   BeforeLoadEvent(String type, String url, [bool canBubble, bool cancelable]);
 
-  String get url();
+  String get url;
 }

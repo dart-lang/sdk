@@ -40,7 +40,7 @@ class Boz extends Foo {
   int _field2;
   final String field3 = "field3";
 
-  int get field2() => _field2;
+  int get field2 => _field2;
   void set field2(int value) {
     _field2 = value;
   }

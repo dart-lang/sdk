@@ -16,19 +16,19 @@ interface KeyboardEvent extends UIEvent default KeyboardEventWrappingImplementat
       [bool canBubble, bool cancelable, bool ctrlKey, bool altKey,
       bool shiftKey, bool metaKey, bool altGraphKey]);
 
-  bool get altGraphKey();
+  bool get altGraphKey;
 
-  bool get altKey();
+  bool get altKey;
 
-  bool get ctrlKey();
+  bool get ctrlKey;
 
-  String get keyIdentifier();
+  String get keyIdentifier;
 
-  int get keyLocation();
+  int get keyLocation;
 
-  bool get metaKey();
+  bool get metaKey;
 
-  bool get shiftKey();
+  bool get shiftKey;
 
   bool getModifierState(String keyIdentifierArg);
 }

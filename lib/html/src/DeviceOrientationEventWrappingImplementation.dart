@@ -14,9 +14,9 @@ class DeviceOrientationEventWrappingImplementation extends EventWrappingImplemen
     return LevelDom.wrapDeviceOrientationEvent(e);
   }
 
-  num get alpha() => _ptr.alpha;
+  num get alpha => _ptr.alpha;
 
-  num get beta() => _ptr.beta;
+  num get beta => _ptr.beta;
 
-  num get gamma() => _ptr.gamma;
+  num get gamma => _ptr.gamma;
 }

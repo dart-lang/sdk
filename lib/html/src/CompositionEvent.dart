@@ -7,5 +7,5 @@ interface CompositionEvent extends UIEvent default CompositionEventWrappingImple
   CompositionEvent(String type, Window view, String data, [bool canBubble,
       bool cancelable]);
 
-  String get data();
+  String get data;
 }

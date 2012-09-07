@@ -29,7 +29,7 @@ interface String
   /**
    * The length of the string.
    */
-  int get length();
+  int get length;
 
   /**
    * Returns whether the two strings are equal. This method compares

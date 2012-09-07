@@ -37,7 +37,7 @@ class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
     return xmlDoc;
   }
 
-  Node get parent() => null;
+  Node get parent => null;
 
   Node _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
@@ -69,7 +69,7 @@ class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
       position_OR_where, new DocumentFragment.xml(text));
   }
 
-  Future<ElementRect> get rect() => documentEl.rect;
+  Future<ElementRect> get rect => documentEl.rect;
 
   Future<Range> caretRangeFromPoint([int x = null, int y = null]) =>
     new Future<Range>.immediate(null);
@@ -89,14 +89,14 @@ class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
   void scrollByLines([int lines = null]) {}
   void scrollByPages([int pages = null]) {}
   void scrollIntoView([bool centerIfNeeded = null]) {}
-  XMLElement get activeElement() => null;
-  String get domain() => "";
+  XMLElement get activeElement => null;
+  String get domain => "";
 
   void set body(Element value) {
     throw new UnsupportedOperationException("XML documents don't have a body.");
   }
 
-  String get cookie() {
+  String get cookie {
     throw new UnsupportedOperationException(
         "XML documents don't support cookies.");
   }
@@ -106,64 +106,64 @@ class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
         "XML documents don't support cookies.");
   }
 
-  String get manifest() => "";
+  String get manifest => "";
 
   void set manifest(String value) {
     throw new UnsupportedOperationException(
         "Manifest can't be set for XML documents.");
   }
 
-  CSSClassSet get classes() => documentEl.classes;
+  CSSClassSet get classes => documentEl.classes;
 
-  ElementList get elements() => documentEl.elements;
+  ElementList get elements => documentEl.elements;
 
   void set elements(Collection<Element> value) { documentEl.elements = value; }
 
-  String get outerHTML() => documentEl.outerHTML;
+  String get outerHTML => documentEl.outerHTML;
 
-  String get innerHTML() => documentEl.innerHTML;
+  String get innerHTML => documentEl.innerHTML;
 
   void set innerHTML(String xml) { documentEl.innerHTML = xml; }
 
-  String get contentEditable() => documentEl.contentEditable;
+  String get contentEditable => documentEl.contentEditable;
 
   void set contentEditable(String value) { documentEl.contentEditable = value; }
 
-  bool get isContentEditable() => documentEl.isContentEditable;
+  bool get isContentEditable => documentEl.isContentEditable;
 
-  bool get draggable() => documentEl.draggable;
+  bool get draggable => documentEl.draggable;
 
   void set draggable(bool value) { documentEl.draggable = value; }
 
-  bool get spellcheck() => documentEl.spellcheck;
+  bool get spellcheck => documentEl.spellcheck;
 
   void set spellcheck(bool value) { documentEl.spellcheck = value; }
 
-  bool get hidden() => documentEl.hidden;
+  bool get hidden => documentEl.hidden;
 
   void set hidden(bool value) { documentEl.hidden = value; }
 
-  int get tabIndex() => documentEl.tabIndex;
+  int get tabIndex => documentEl.tabIndex;
 
   void set tabIndex(int value) { documentEl.tabIndex = value; }
 
-  String get id() => documentEl.id;
+  String get id => documentEl.id;
 
   void set id(String value) { documentEl.id = value; }
 
-  String get title() => documentEl.title;
+  String get title => documentEl.title;
 
   void set title(String value) { documentEl.title = value; }
 
-  String get webkitdropzone() => documentEl.webkitdropzone;
+  String get webkitdropzone => documentEl.webkitdropzone;
 
   void set webkitdropzone(String value) { documentEl.webkitdropzone = value; }
 
-  String get lang() => documentEl.lang;
+  String get lang => documentEl.lang;
 
   void set lang(String value) { documentEl.lang = value; }
 
-  String get dir() => documentEl.dir;
+  String get dir => documentEl.dir;
 
   void set dir(String value) { documentEl.dir = value; }
 }

@@ -9,16 +9,16 @@ class _DOMWindowCrossFrameImpl implements DOMType, DOMWindow {
 
   // DOMType
   var dartObjectLocalStorage;
-  String get typeName() => "DOMWindow";
+  String get typeName => "DOMWindow";
 
   // Fields.
   // TODO(vsm): Implement history and location getters.
 
-  bool get closed() => _window.closed;
-  int get length() => _window.length;
-  DOMWindow get opener() => _createSafe(_window.opener);
-  DOMWindow get parent() => _createSafe(_window.parent);
-  DOMWindow get top() => _createSafe(_window.top);
+  bool get closed => _window.closed;
+  int get length => _window.length;
+  DOMWindow get opener => _createSafe(_window.opener);
+  DOMWindow get parent => _createSafe(_window.parent);
+  DOMWindow get top => _createSafe(_window.top);
 
   // Methods.
   void focus() => _window.focus();

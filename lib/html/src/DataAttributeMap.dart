@@ -69,7 +69,7 @@ class _DataAttributeMap implements AttributeMap {
     return values;
   }
 
-  int get length() => getKeys().length;
+  int get length => getKeys().length;
 
   // TODO: Use lazy iterator when it is available on Map.
   bool isEmpty() => length == 0;

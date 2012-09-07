@@ -81,7 +81,7 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.ISOLATE}.${namer.ISOLATE_PROPERTIES}';
   String get supportsProtoName
       => 'supportsProto';
-  String get lazyInitializerName()
+  String get lazyInitializerName
       => '${namer.ISOLATE}.\$lazy';
 
   final String GETTER_SUFFIX = "?";
@@ -272,7 +272,7 @@ function(collectedClasses) {
 }""";
   }
 
-  String get lazyInitializerFunction() {
+  String get lazyInitializerFunction {
     String isolate = namer.CURRENT_ISOLATE;
     JavaScriptBackend backend = compiler.backend;
     String cyclicThrow = namer.isolateAccess(backend.cyclicThrowHelper);

@@ -12,7 +12,7 @@
 SendPort _port;
 
 /** The port used to communicate with the C extension. */
-SendPort get servicePort() {
+SendPort get servicePort {
   if (_port == null) _port = _newServicePort();
   return _port;
 }

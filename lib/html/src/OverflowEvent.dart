@@ -12,9 +12,9 @@ interface OverflowEvent extends Event default OverflowEventWrappingImplementatio
 
   static const int VERTICAL = 1;
 
-  bool get horizontalOverflow();
+  bool get horizontalOverflow;
 
-  int get orient();
+  int get orient;
 
-  bool get verticalOverflow();
+  bool get verticalOverflow;
 }

@@ -8,33 +8,33 @@ interface WheelEvent extends UIEvent default WheelEventWrappingImplementation {
       int clientX, int clientY, [bool ctrlKey, bool altKey, bool shiftKey,
       bool metaKey]);
 
-  bool get altKey();
+  bool get altKey;
 
-  int get clientX();
+  int get clientX;
 
-  int get clientY();
+  int get clientY;
 
-  bool get ctrlKey();
+  bool get ctrlKey;
 
-  bool get metaKey();
+  bool get metaKey;
 
-  int get offsetX();
+  int get offsetX;
 
-  int get offsetY();
+  int get offsetY;
 
-  int get screenX();
+  int get screenX;
 
-  int get screenY();
+  int get screenY;
 
-  bool get shiftKey();
+  bool get shiftKey;
 
-  int get wheelDelta();
+  int get wheelDelta;
 
-  int get wheelDeltaX();
+  int get wheelDeltaX;
 
-  int get wheelDeltaY();
+  int get wheelDeltaY;
 
-  int get x();
+  int get x;
 
-  int get y();
+  int get y;
 }

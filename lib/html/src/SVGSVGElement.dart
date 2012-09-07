@@ -7,41 +7,41 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
   SVGSVGElement();
 
-  String get contentScriptType();
+  String get contentScriptType;
 
   void set contentScriptType(String value);
 
-  String get contentStyleType();
+  String get contentStyleType;
 
   void set contentStyleType(String value);
 
-  num get currentScale();
+  num get currentScale;
 
   void set currentScale(num value);
 
-  SVGPoint get currentTranslate();
+  SVGPoint get currentTranslate;
 
-  SVGAnimatedLength get height();
+  SVGAnimatedLength get height;
 
-  num get pixelUnitToMillimeterX();
+  num get pixelUnitToMillimeterX;
 
-  num get pixelUnitToMillimeterY();
+  num get pixelUnitToMillimeterY;
 
-  num get screenPixelToMillimeterX();
+  num get screenPixelToMillimeterX;
 
-  num get screenPixelToMillimeterY();
+  num get screenPixelToMillimeterY;
 
-  bool get useCurrentView();
+  bool get useCurrentView;
 
   void set useCurrentView(bool value);
 
-  SVGRect get viewport();
+  SVGRect get viewport;
 
-  SVGAnimatedLength get width();
+  SVGAnimatedLength get width;
 
-  SVGAnimatedLength get x();
+  SVGAnimatedLength get x;
 
-  SVGAnimatedLength get y();
+  SVGAnimatedLength get y;
 
   bool animationsPaused();
 

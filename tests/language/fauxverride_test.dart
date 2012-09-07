@@ -38,7 +38,7 @@
 // "A static variable declaration of one of the forms static T v;,
 // static T v = e; , static const T v = e; or static final T v = e;
 // always induces an implicit static getter function (7.2) with
-// signature static T get v() whose invocation evaluates as described
+// signature static T get v whose invocation evaluates as described
 // below (7.7.1)."
 
 m() => 'top level';

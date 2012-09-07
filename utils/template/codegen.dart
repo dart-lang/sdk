@@ -26,13 +26,13 @@ class CGBlock {
     assert(_blockType >= CGBlock.CONSTRUCTOR && _blockType <= CGBlock.WITH);
   }
 
-  bool get anyStatements() => !_stmts.isEmpty();
-  bool get isConstructor() => _blockType == CGBlock.CONSTRUCTOR;
-  bool get isEach() => _blockType == CGBlock.EACH;
-  bool get isWith() => _blockType == CGBlock.WITH;
+  bool get anyStatements => !_stmts.isEmpty();
+  bool get isConstructor => _blockType == CGBlock.CONSTRUCTOR;
+  bool get isEach => _blockType == CGBlock.EACH;
+  bool get isWith => _blockType == CGBlock.WITH;
 
-  bool get hasLocalName() => _localName != null;
-  String get localName() => _localName;
+  bool get hasLocalName => _localName != null;
+  String get localName => _localName;
 
   CGStatement push(var elem, var parentName, [bool exact = false]) {
     var varName;
@@ -59,7 +59,7 @@ class CGBlock {
     }
   }
 
-  CGStatement get last() => _stmts.length > 0 ? _stmts.last() : null;
+  CGStatement get last => _stmts.length > 0 ? _stmts.last() : null;
 
   /**
    * Returns mixed list of elements marked with the var attribute.  If the
@@ -75,7 +75,7 @@ class CGBlock {
    *
    *                   DivElement varName;
    */
-  String get globalDeclarations() {
+  String get globalDeclarations {
     StringBuffer buff = new StringBuffer();
     for (final CGStatement stmt in _stmts) {
       buff.add(stmt.globalDeclaration());
@@ -95,7 +95,7 @@ class CGBlock {
    *
    *    myVar = [];
    */
-  String get globalInitializers() {
+  String get globalInitializers {
     StringBuffer buff = new StringBuffer();
     for (final CGStatement stmt in _stmts) {
       buff.add(stmt.globalInitializers());
@@ -104,7 +104,7 @@ class CGBlock {
     return buff.toString();
   }
 
-  String get codeBody() {
+  String get codeBody {
     StringBuffer buff = new StringBuffer();
 
     for (final CGStatement stmt in _stmts) {
@@ -141,8 +141,8 @@ class CGStatement {
     }
   }
 
-  bool get hasGlobalVariable() => _globalVariable;
-  String get variableName() => varName;
+  bool get hasGlobalVariable => _globalVariable;
+  String get variableName => varName;
 
   String globalDeclaration() {
     if (hasGlobalVariable) {
@@ -166,7 +166,7 @@ class CGStatement {
     _buff.add(value);
   }
 
-  bool get isClosed() => _closed;
+  bool get isClosed => _closed;
 
   void close() {
     if (_elem is TemplateElement && _elem.scoped) {
@@ -436,7 +436,7 @@ class Codegen {
 
     buff.add(emitGetters(content.getters));
 
-    buff.add("  Element get root() => _fragment;\n");
+    buff.add("  Element get root => _fragment;\n");
 
     // Emit all CSS class selectors:
     buff.add(_emitCSSSelectors(content.css));
@@ -521,7 +521,7 @@ class ElemCG {
     _globalDecls = new StringBuffer(),
     _globalInits = new StringBuffer();
 
-  bool get isLastBlockConstructor() {
+  bool get isLastBlockConstructor {
     CGBlock block = _cgBlocks.last();
     return block.isConstructor;
   }
@@ -625,7 +625,7 @@ Nested #each or #with must have a localName;
     return lastBlock.push(elem, parentName, true);
   }
 
-  bool get isClosedStatement() {
+  bool get isClosedStatement {
     return (lastBlock != null && lastBlock.last != null) ?
         lastBlock.last.isClosed : false;
   }
@@ -637,37 +637,37 @@ Nested #each or #with must have a localName;
     }
   }
 
-  String get lastVariableName() {
+  String get lastVariableName {
     if (lastBlock != null && lastBlock.last != null) {
       return lastBlock.last.variableName;
     }
   }
 
-  String get lastParentName() {
+  String get lastParentName {
     if (lastBlock != null && lastBlock.last != null) {
       return lastBlock.last.parentName;
     }
   }
 
-  CGBlock get lastBlock() => _cgBlocks.length > 0 ? _cgBlocks.last() : null;
+  CGBlock get lastBlock => _cgBlocks.length > 0 ? _cgBlocks.last() : null;
 
   void add(String str) {
     _cgBlocks.last().add(str);
   }
 
-  String get globalDeclarations() {
+  String get globalDeclarations {
     assert(_cgBlocks.length == 1);    // Only constructor body should be left.
     _globalDecls.add(lastBlock.globalDeclarations);
     return _globalDecls.toString();
   }
 
-  String get globalInitializers() {
+  String get globalInitializers {
     assert(_cgBlocks.length == 1);    // Only constructor body should be left.
     _globalInits.add(lastBlock.globalInitializers);
     return _globalInits.toString();
   }
 
-  String get codeBody() {
+  String get codeBody {
     closeStatement();
     return _cgBlocks.last().codeBody;
   }
@@ -956,7 +956,7 @@ Nested #each or #with must have a localName;
     add("${funcName}(${withName}, ${parentVarName})");
   }
 
-  String get lastBlockVarName() {
+  String get lastBlockVarName {
     var varName;
     if (lastBlock != null && lastBlock.anyStatements) {
       varName = lastBlock.last.variableName;

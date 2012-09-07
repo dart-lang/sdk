@@ -147,7 +147,7 @@ class NullPointerException implements Exception {
     }
   }
 
-  String get exceptionName() => "NullPointerException";
+  String get exceptionName => "NullPointerException";
 
   final String functionName;
   final List arguments;
