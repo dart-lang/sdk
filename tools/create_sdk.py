@@ -23,7 +23,6 @@
 # ......dart_debugger_api.h
 # ....lib/
 # ......_internal/
-# ......compiler/
 # ......core/
 # ......coreimpl/
 # ......crypto/
@@ -37,6 +36,7 @@
 # ......utf/
 # ....pkg/
 # ......args/
+# ......compiler/
 # ......dartdoc/
 #.......htmlescape/
 # ......intl/
@@ -102,7 +102,7 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDart2Js(build_dir, sdk_root, revision):
   if revision:
-    ReplaceInFiles([os.path.join(sdk_root, 'lib', 'compiler',
+    ReplaceInFiles([os.path.join(sdk_root, 'pkg', 'compiler', 
                                  'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
                      r"BUILD_ID = '%s'" % revision)])
@@ -116,8 +116,12 @@ def CopyDart2Js(build_dir, sdk_root, revision):
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc')
     Copy(os.path.join(build_dir, 'dartdoc'), dartdoc)
-    ReplaceInFiles([dart2js, dartdoc],
-                   [(r'\$BIN_DIR/\.\./\.\.', r'$BIN_DIR/..')])
+
+    # TODO(dgrove) - fix this once issue 4788 is addressed.
+    ReplaceInFiles([dart2js],
+                   [(r'\$BIN_DIR/../../lib', r'$BIN_DIR/../pkg')])
+    ReplaceInFiles([dartdoc],
+                   [(r'\$BIN_DIR/../..', r'$BIN_DIR/..')])
 
 
 def Main(argv):
@@ -215,15 +219,11 @@ def Main(argv):
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'compiler', 'html', 'core', 'coreimpl',
+  for library in ['_internal', 'html', 'core', 'coreimpl',
                   'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
-  # TODO(dgrove): fix this really ugly hack
-  ReplaceInFiles(
-        [join(LIB, 'compiler', 'implementation', 'lib', 'io.dart')],
-        [('../../runtime/bin', '../io/runtime')])
 
   # Create and copy pkg.
   PKG = join(SDK_tmp, 'pkg')
@@ -239,14 +239,38 @@ def Main(argv):
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh'))
 
+  # TODO(dgrove): Remove this once issue 4788 is addressed.
+  copytree(join(HOME, 'lib', 'compiler'), join(PKG, 'compiler'),
+             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
+
+  ReplaceInFiles(
+        [join(LIB, '_internal', 'libraries.dart')],
+        [('"compiler/', '"../pkg/compiler/')])
+
+  ReplaceInFiles(
+        [join(PKG, 'compiler', 'implementation', 'lib', 'io.dart')],
+        [('../../runtime/bin', '../../lib/io/runtime')])
+
   # Fixup dartdoc
   ReplaceInFiles([
       join(PKG, 'dartdoc', 'dartdoc.dart'),
     ], [
       ("final bool IN_SDK = false;",
        "final bool IN_SDK = true;"),
-    ])
+    ]) 
 
+  # TODO(dgrove): Remove this once issue 4788 is addressed.
+  ReplaceInFiles([
+      join(PKG, 'dartdoc', 'mirrors', 'dart2js_mirror.dart'),
+      join(PKG, 'dartdoc', 'mirrors', 'mirrors_util.dart'),
+      join(PKG, 'dartdoc', 'classify.dart'),
+      join(PKG, 'dartdoc', 'client-live-nav.dart'),
+      join(PKG, 'dartdoc', 'client-static.dart'),
+      join(PKG, 'dartdoc', 'dartdoc.dart'),
+    ], [
+      ("../../lib/compiler",
+       "../../pkg/compiler"),
+    ])
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
