@@ -580,7 +580,8 @@ void group(String description, void body()) {
     _testTeardown = null;
     body();
   } catch (e, trace) {
-    _reportTestError(e.toString(), trace == null ? '' : trace.toString());
+    var stack = (trace == null) ? '' : ': ${trace.toString()}';
+    _uncaughtErrorMessage = "${e.toString()}$stack";
   } finally {
     // Now that the group is over, restore the previous one.
     _currentGroup = parentGroup;
