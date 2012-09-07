@@ -26,7 +26,7 @@ const extern = const Tag("external");
   @meta1 @meta2
   static String staticField;
 
-  @Meta.Alien("ET") void foo(@meta1 bool fool, {@meta1 @Tag("opt") x: 100}) {
+  @Meta.Alien("ET") int foo(@meta1 bool fool, {@meta1 @Tag("opt") x: 100}) {
     return x;
   }
 
