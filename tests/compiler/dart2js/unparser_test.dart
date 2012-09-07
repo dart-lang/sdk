@@ -473,6 +473,19 @@ testFieldTypeOutput() {
   testDart2Dart('main(){new A().field;}class B{}class A{B field;}');
 }
 
+class DynoMap implements Map<Element, ElementAst> {
+  final compiler;
+  DynoMap(this.compiler);
+
+  get resolvedElements => compiler.enqueuer.resolution.resolvedElements;
+  ElementAst operator[](Element element) =>
+      new ElementAst(element.parseNode(compiler), resolvedElements[element]);
+}
+
+PlaceholderCollector collectPlaceholders(compiler, element) =>
+  new PlaceholderCollector(compiler, new Set<String>(), new DynoMap(compiler))
+      ..collect(element);
+
 testLocalFunctionPlaceholder() {
   var src = '''
 main() {
@@ -484,10 +497,7 @@ main() {
   compiler.parseScript(src);
   FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
   compiler.processQueue(compiler.enqueuer.resolution, mainElement);
-  PlaceholderCollector collector =
-      new PlaceholderCollector(compiler, new Set<String>());
-  collector.collect(mainElement,
-      compiler.enqueuer.resolution.resolvedElements[mainElement]);
+  PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
   FunctionExpression mainNode = mainElement.parseNode(compiler);
   FunctionExpression fooNode = mainNode.body.statements.nodes.head.function;
   LocalPlaceholder fooPlaceholder =
@@ -514,9 +524,7 @@ main() {
   ClassElement interfaceElement = compiler.mainApp.find(buildSourceString('I'));
   interfaceElement.ensureResolved(compiler);
   PlaceholderCollector collector =
-      new PlaceholderCollector(compiler, new Set<String>());
-  collector.collect(interfaceElement,
-      compiler.enqueuer.resolution.resolvedElements[interfaceElement]);
+      collectPlaceholders(compiler, interfaceElement);
   ClassNode interfaceNode = interfaceElement.parseNode(compiler);
   Node defaultTypeNode = interfaceNode.defaultClause.typeName;
   ClassElement classElement = compiler.mainApp.find(buildSourceString('C'));

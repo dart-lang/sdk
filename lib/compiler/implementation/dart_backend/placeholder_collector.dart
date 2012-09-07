@@ -140,6 +140,7 @@ class SendVisitor extends ResolvedVisitor {
 class PlaceholderCollector extends AbstractVisitor {
   final Compiler compiler;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
+  final Map<Element, ElementAst> elementAsts;
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
@@ -154,7 +155,7 @@ class PlaceholderCollector extends AbstractVisitor {
   LibraryElement get coreLibrary => compiler.coreLibrary;
   FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
 
-  PlaceholderCollector(this.compiler, this.fixedMemberNames) :
+  PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
@@ -204,8 +205,11 @@ class PlaceholderCollector extends AbstractVisitor {
       if (element.defaultImplementation !== null
           && element.defaultImplementation !== element) {
         FunctionElement implementingFactory = element.defaultImplementation;
-        tryMakeConstructorNamePlaceholder(implementingFactory.cachedNode,
-            element.getEnclosingClass());
+        if (implementingFactory is !SynthesizedConstructorElement) {
+          tryMakeConstructorNamePlaceholder(
+              elementAsts[implementingFactory].ast,
+              element.getEnclosingClass());
+        }
       }
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
@@ -231,16 +235,17 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
-  void collect(Element element, TreeElements elements) {
-    treeElements = elements;
-    currentElement = element;
-    Node elementNode = currentElement.parseNode(compiler);
+  void collect(Element element) {
+    this.currentElement = element;
+    final ElementAst elementAst = elementAsts[element];
+    this.treeElements = elementAst.treeElements;
+    Node elementNode = elementAst.ast;
     if (element is FunctionElement) {
       collectFunctionDeclarationPlaceholders(element, elementNode);
     } else if (element is VariableListElement) {
       VariableDefinitions definitions = elementNode;
       for (Node definition in definitions.definitions) {
-        final definitionElement = elements[definition];
+        final definitionElement = treeElements[definition];
         // definitionElement === null if variable is actually unused.
         if (definitionElement === null) continue;
         collectFieldDeclarationPlaceholders(definitionElement, definition);
