@@ -89,7 +89,6 @@ Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this fai
 Language/07_Classes/07_Classes_A03_t08: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t09: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t10: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t18: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A04_t19: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A04_t21: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A04_t22: Fail # TODO(ahe): Please triage this failure.
@@ -116,7 +115,6 @@ Language/07_Classes/2_Getters_A01_t04: Fail # TODO(ahe): Please triage this fail
 Language/07_Classes/2_Getters_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/3_Setters_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/3_Setters_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/3_Setters_A03_t03: Fail # TODO(ahe): Please triage this failure.
@@ -383,6 +381,69 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # TODO(ahe): Please triage t
 LibTest/core/Futures/wait_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
 
+[ $compiler == dart2js && unchecked ]
+Language/07_Classes/3_Setters_A01_t03: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/07_Classes_A04_t18: Fail # TODO(ahe): Please triage this failure.
+
+
+[ $compiler == dart2js && checked ]
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/5_Constructors/2_Factories_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/5_Constructors/2_Factories_A06_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(ahe): Please triage this failure.
+Language/09_Generics/09_Generics_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/09_Generics/09_Generics_A04_t05: Fail # TODO(ahe): Please triage this failure.
+Language/09_Generics/09_Generics_A04_t06: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/04_Booleans/1_Boolean_Conversion_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/06_Lists_A09_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/06_Lists_A09_t05: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/07_Maps_A10_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/07_Maps_A10_t05: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Function_Expressions_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Function_Expressions_A05_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/10_Instance_Creation/1_New_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/16_Assignment_A04_t06: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/16_Assignment_A04_t07: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/17_Conditional_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/04_If_A02_t01: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/04_If_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/05_For/1_For_Loop_A01_t07: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/06_While_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/07_Do_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A03_t05: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A03_t06: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t01: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t02: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t03: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t04: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t05: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t06: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/15_Assert_A05_t03: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/7_Type_Void_A01_t02: crash
+Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
+
+
+[ $compiler == dart2js ]
 Language/05_Variables/05_Variables_A05_t03: Fail, OK
 Language/05_Variables/05_Variables_A04_t09: Fail, OK
 Language/05_Variables/05_Variables_A03_t09: Fail, OK
