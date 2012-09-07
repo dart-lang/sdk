@@ -180,6 +180,7 @@ class FinalizablePersistentHandle {
     ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(FinalizablePersistentHandle* free_list) {
+    Clear();
     SetNext(free_list);
   }
 
