@@ -381,12 +381,12 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # TODO(ahe): Please triage t
 LibTest/core/Futures/wait_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
 
-[ $compiler == dart2js && unchecked ]
+[ $compiler == dart2js && $unchecked ]
 Language/07_Classes/3_Setters_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A04_t18: Fail # TODO(ahe): Please triage this failure.
 
 
-[ $compiler == dart2js && checked ]
+[ $compiler == dart2js && $checked ]
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
