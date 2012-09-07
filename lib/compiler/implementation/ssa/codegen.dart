@@ -1715,6 +1715,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void generateConstant(Constant constant) {
     Namer namer = backend.namer;
+    // TODO(floitsch): should we use the ConstantVisitor here?
     if (!constant.isObject()) {
       if (constant.isBool()) {
         push(new js.LiteralBool((constant as BoolConstant).value));
