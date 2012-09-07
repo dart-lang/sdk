@@ -82,11 +82,12 @@ void main() {
   _diff.run();
 
   // Process handwritten HTML documentation.
+  print('Processing handwritten HTML documentation...');
   final htmldoc = new Htmldoc();
+  htmldoc.includeApi = true;
   htmldoc.documentLibraries(
     <Path>[doc.scriptDir.append('../../lib/html/doc/html.dartdoc')],
     doc.libPath);
-  print('Processing handwritten HTML documentation...');
 
   // Process libraries.
 
