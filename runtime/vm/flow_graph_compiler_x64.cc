@@ -21,6 +21,7 @@ namespace dart {
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
+DECLARE_FLAG(bool, reject_named_argument_as_positional);
 DECLARE_FLAG(bool, trace_functions);
 
 
@@ -589,9 +590,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(RAX, test_cache);
   __ pushq(RAX);
-  GenerateCallRuntime(token_pos,
-                      kTypeCheckRuntimeEntry,
-                      locs);
+  GenerateCallRuntime(token_pos, kTypeCheckRuntimeEntry, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -626,29 +625,36 @@ void FlowGraphCompiler::CopyParameters() {
       function.is_native() && function.IsImplicitInstanceClosureFunction();
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
-  const int num_opt_params = function.num_optional_parameters();
+  const int num_opt_pos_params = function.num_optional_positional_parameters();
+  int num_opt_named_params = function.num_optional_named_parameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
   int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
   ASSERT(parsed_function().first_parameter_index() ==
          ParsedFunction::kFirstLocalSlotIndex + implicit_this_param_pos);
+
+  // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
+  // where num_pos_args is the number of positional arguments passed in.
+  const int min_num_pos_args = num_fixed_params;
+  const int max_num_pos_args = num_fixed_params + num_opt_pos_params +
+      (FLAG_reject_named_argument_as_positional ? 0 : num_opt_named_params);
+
+  // Number of positional args is the second Smi in descriptor array (R10).
+  __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+  // Check that min_num_pos_args <= num_pos_args.
+  Label wrong_num_arguments;
+  __ cmpq(RCX, Immediate(Smi::RawValue(min_num_pos_args)));
+  __ j(LESS, &wrong_num_arguments);
+  // Check that num_pos_args <= max_num_pos_args.
+  __ cmpq(RCX, Immediate(Smi::RawValue(max_num_pos_args)));
+  __ j(GREATER, &wrong_num_arguments);
+
   // Copy positional arguments.
-  // Check that no fewer than num_fixed_params positional arguments are passed
-  // in and that no more than num_params arguments are passed in.
-  // Passed argument i at fp[1 + argc - i]
-  // copied to fp[ParsedFunction::kFirstLocalSlotIndex - i].
-  const int num_params = num_fixed_params + num_opt_params;
+  // Argument i passed at fp[1 + num_args - i] is copied
+  // to fp[ParsedFunction::kFirstLocalSlotIndex - i].
 
   // Total number of args is the first Smi in args descriptor array (R10).
   __ movq(RBX, FieldAddress(R10, Array::data_offset()));
-  // Check that num_args <= num_params.
-  Label wrong_num_arguments;
-  __ cmpq(RBX, Immediate(Smi::RawValue(num_params)));
-  __ j(GREATER, &wrong_num_arguments);
-  // Number of positional args is the second Smi in descriptor array (R10).
-  __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
-  // Check that num_pos_args >= num_fixed_params.
-  __ cmpq(RCX, Immediate(Smi::RawValue(num_fixed_params)));
-  __ j(LESS, &wrong_num_arguments);
-
   // Since RBX and RCX are Smi, use TIMES_4 instead of TIMES_8.
   // Let RBX point to the last passed positional argument, i.e. to
   // fp[1 + num_args - (num_pos_args - 1)].
@@ -686,13 +692,18 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 
   // Copy or initialize optional named arguments.
+
+  if (!FLAG_reject_named_argument_as_positional) {
+    // Treat optional positional parameters as optional named parameters.
+    num_opt_named_params += num_opt_pos_params;
+  }
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label all_arguments_processed;
-  if (num_opt_params > 0) {
+  if (num_opt_named_params > 0) {
     // Start by alphabetically sorting the names of the optional parameters.
-    LocalVariable** opt_param = new LocalVariable*[num_opt_params];
-    int* opt_param_position = new int[num_opt_params];
+    LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
+    int* opt_param_position = new int[num_opt_named_params];
     for (int pos = num_fixed_params; pos < num_params; pos++) {
       LocalVariable* parameter = scope->VariableAt(pos);
       const String& opt_param_name = parameter->name();
@@ -718,16 +729,19 @@ void FlowGraphCompiler::CopyParameters() {
     __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
     // Let EDI point to the name/pos pair of the first named argument.
     __ leaq(RDI, FieldAddress(R10, Array::data_offset() + (2 * kWordSize)));
-    for (int i = 0; i < num_opt_params; i++) {
-      // Handle this optional parameter only if k or fewer positional arguments
-      // have been passed, where k is the position of this optional parameter in
-      // the formal parameter list.
+    for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter, next_parameter;
       const int param_pos = opt_param_position[i];
-      __ cmpq(RCX, Immediate(param_pos));
-      __ j(GREATER, &next_parameter, Assembler::kNearJump);
+      if (!FLAG_reject_named_argument_as_positional) {
+        // Handle this optional parameter only if k or fewer positional
+        // arguments have been passed, where k is the position of this optional
+        // parameter in the formal parameter list.
+        __ cmpq(RCX, Immediate(param_pos));
+        __ j(GREATER, &next_parameter, Assembler::kNearJump);
+      }
       // Check if this named parameter was passed in.
       __ movq(RAX, Address(RDI, 0));  // Load RAX with the name of the argument.
+      ASSERT(opt_param[i]->name().IsSymbol());
       __ CompareObject(RAX, opt_param[i]->name());
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
@@ -739,7 +753,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ movq(RAX, argument_addr);
       __ jmp(&assign_optional_parameter, Assembler::kNearJump);
       __ Bind(&load_default_value);
-      // Load RAX with default argument at pos.
+      // Load RAX with default argument.
       const Object& value = Object::ZoneHandle(
           parsed_function().default_parameter_values().At(
               param_pos - num_fixed_params));
@@ -759,6 +773,39 @@ void FlowGraphCompiler::CopyParameters() {
     delete[] opt_param_position;
     // Check that RDI now points to the null terminator in the array descriptor.
     __ cmpq(Address(RDI, 0), raw_null);
+    __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+  } else if (num_opt_pos_params > 0) {
+    ASSERT(FLAG_reject_named_argument_as_positional);
+    // Number of positional args is the second Smi in descriptor array (R10).
+    __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+    __ SmiUntag(RCX);
+    for (int i = 0; i < num_opt_pos_params; i++) {
+      Label next_parameter;
+      // Handle this optional positonal parameter only if k or fewer positional
+      // arguments have been passed, where k is param_pos, the position of this
+      // optional parameter in the formal parameter list.
+      const int param_pos = num_fixed_params + i;
+      __ cmpq(RCX, Immediate(param_pos));
+      __ j(GREATER, &next_parameter, Assembler::kNearJump);
+      // Load RAX with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(i));
+      __ LoadObject(RAX, value);
+      // Assign RAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
+                                     param_pos + implicit_this_param_pos);
+      const Address param_addr(RBP, (computed_param_pos * kWordSize));
+      __ movq(param_addr, RAX);
+      __ Bind(&next_parameter);
+    }
+    // Total number of args is the first Smi in args descriptor array (R10).
+    __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+    __ SmiUntag(RBX);
+    // Check that RCX equals RBX, i.e. no named arguments passed.
+    __ cmpq(RCX, RBX);
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
   } else {
     ASSERT(is_native_instance_closure);
@@ -804,7 +851,7 @@ void FlowGraphCompiler::CopyParameters() {
   if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                       empty_stack_bitmap,
-                                      0);
+                                      0);  // No registers.
   }
 
   if (FLAG_trace_functions) {
@@ -819,7 +866,7 @@ void FlowGraphCompiler::CopyParameters() {
     if (is_optimizing()) {
       stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                         empty_stack_bitmap,
-                                        0);
+                                        0);  // No registers.
     }
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
@@ -914,9 +961,9 @@ void FlowGraphCompiler::CompileGraph() {
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
   const Function& function = parsed_function().function();
 
-  const int parameter_count = function.num_fixed_parameters();
-  const int copied_parameter_count = parsed_function().copied_parameter_count();
-  const int local_count = parsed_function().stack_local_count();
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_copied_params = parsed_function().num_copied_params();
+  const int num_locals = parsed_function().num_stack_locals();
   __ Comment("Enter frame");
   if (IsLeaf()) {
     AssemblerMacros::EnterDartLeafFrame(assembler(), (StackSize() * kWordSize));
@@ -934,13 +981,14 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   // We check the number of passed arguments when we have to copy them due to
-  // the presence of optional named parameters.
+  // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are debug mode or unless we are compiling a closure.
   LocalVariable* saved_args_desc_var =
       parsed_function().GetSavedArgumentsDescriptorVar();
-  if (copied_parameter_count == 0) {
+  if (num_copied_params == 0) {
 #ifdef DEBUG
+    ASSERT(!parsed_function().function().HasOptionalParameters());
     const bool check_arguments = true;
 #else
     const bool check_arguments = function.IsClosureFunction();
@@ -951,7 +999,7 @@ void FlowGraphCompiler::CompileGraph() {
       Label argc_in_range;
       // Total number of args is the first Smi in args descriptor array (R10).
       __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-      __ cmpq(RAX, Immediate(Smi::RawValue(parameter_count)));
+      __ cmpq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(function.token_pos(),
@@ -982,13 +1030,13 @@ void FlowGraphCompiler::CompileGraph() {
 
   // In unoptimized code, initialize (non-argument) stack allocated slots to
   // null. This does not cover the saved_args_desc_var slot.
-  if (!is_optimizing() && (local_count > 0)) {
+  if (!is_optimizing() && (num_locals > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movq(RAX, raw_null);
-    for (intptr_t i = 0; i < local_count; ++i) {
+    for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
       __ movq(Address(RBP, (slot_base - i) * kWordSize), RAX);
     }

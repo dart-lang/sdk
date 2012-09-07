@@ -37,6 +37,9 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
+DEFINE_FLAG(bool, reject_named_argument_as_positional, false,
+    "Enforce new rules for optional parameters and disallow passing of named "
+    "arguments to optional positional formal parameters");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -3868,27 +3871,27 @@ void Function::set_kind(RawFunction::Kind value) const {
 }
 
 
-void Function::set_is_static(bool is_static) const {
+void Function::set_is_static(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = StaticBit::update(is_static, bits);
+  raw_ptr()->kind_tag_ = StaticBit::update(value, bits);
 }
 
 
-void Function::set_is_const(bool is_const) const {
+void Function::set_is_const(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = ConstBit::update(is_const, bits);
+  raw_ptr()->kind_tag_ = ConstBit::update(value, bits);
 }
 
 
-void Function::set_is_external(bool is_external) const {
+void Function::set_is_external(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = ExternalBit::update(is_external, bits);
+  raw_ptr()->kind_tag_ = ExternalBit::update(value, bits);
 }
 
 
-void Function::set_token_pos(intptr_t pos) const {
-  ASSERT(pos >= 0);
-  raw_ptr()->token_pos_ = pos;
+void Function::set_token_pos(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->token_pos_ = value;
 }
 
 
@@ -3897,15 +3900,27 @@ void Function::set_kind_tag(intptr_t value) const {
 }
 
 
-void Function::set_num_fixed_parameters(intptr_t n) const {
-  ASSERT(n >= 0);
-  raw_ptr()->num_fixed_parameters_ = n;
+void Function::set_num_fixed_parameters(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->num_fixed_parameters_ = value;
 }
 
 
-void Function::set_num_optional_parameters(intptr_t n) const {
-  ASSERT(n >= 0);
-  raw_ptr()->num_optional_parameters_ = n;
+void Function::set_num_optional_positional_parameters(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->num_optional_positional_parameters_ = value;
+  // Optional positional and optional named parameters are mutually exclusive.
+  ASSERT((num_optional_positional_parameters() == 0) ||
+         (num_optional_named_parameters() == 0));
+}
+
+
+void Function::set_num_optional_named_parameters(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->num_optional_named_parameters_ = value;
+  // Optional positional and optional named parameters are mutually exclusive.
+  ASSERT((num_optional_positional_parameters() == 0) ||
+         (num_optional_named_parameters() == 0));
 }
 
 
@@ -3941,7 +3956,8 @@ void Function::set_is_abstract(bool value) const {
 
 
 intptr_t Function::NumberOfParameters() const {
-  return num_fixed_parameters() + num_optional_parameters();
+  return num_fixed_parameters() +
+      num_optional_positional_parameters() + num_optional_named_parameters();
 }
 
 
@@ -3964,9 +3980,79 @@ intptr_t Function::NumberOfImplicitParameters() const {
 }
 
 
+void Function::SetNumberOfParameters(intptr_t num_fixed_parameters,
+                                     intptr_t num_optional_parameters,
+                                     bool are_optional_positional) const {
+  set_num_fixed_parameters(num_fixed_parameters);
+  if (are_optional_positional) {
+    set_num_optional_positional_parameters(num_optional_parameters);
+    set_num_optional_named_parameters(0);
+  } else {
+    set_num_optional_positional_parameters(0);
+    set_num_optional_named_parameters(num_optional_parameters);
+  }
+}
+
+
 bool Function::AreValidArgumentCounts(int num_arguments,
                                       int num_named_arguments,
                                       String* error_message) const {
+  if (FLAG_reject_named_argument_as_positional) {
+    if (num_named_arguments > num_optional_named_parameters()) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "%d named passed, at most %"Pd" expected",
+                    num_named_arguments,
+                    num_optional_named_parameters());
+        *error_message = String::New(message_buffer);
+      }
+      return false;  // Too many named arguments.
+    }
+    const int num_pos_args = num_arguments - num_named_arguments;
+    const int num_opt_pos_params = num_optional_positional_parameters();
+    const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
+    if (num_pos_args > num_pos_params) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        // Hide implicit parameters to the user.
+        const intptr_t num_hidden_params = NumberOfImplicitParameters();
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "%"Pd"%s passed, %s%"Pd" expected",
+                    num_pos_args - num_hidden_params,
+                    num_opt_pos_params > 0 ? " positional" : "",
+                    num_opt_pos_params > 0 ? "at most " : "",
+                    num_pos_params - num_hidden_params);
+        *error_message = String::New(message_buffer);
+      }
+      return false;  // Too many fixed and/or positional arguments.
+    }
+    if (num_pos_args < num_fixed_parameters()) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        // Hide implicit parameters to the user.
+        const intptr_t num_hidden_params = NumberOfImplicitParameters();
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "%"Pd"%s passed, %s%"Pd" expected",
+                    num_pos_args - num_hidden_params,
+                    num_opt_pos_params > 0 ? " positional" : "",
+                    num_opt_pos_params > 0 ? "at least " : "",
+                    num_fixed_parameters() - num_hidden_params);
+        *error_message = String::New(message_buffer);
+      }
+      return false;  // Too few fixed and/or positional arguments.
+    }
+    return true;
+  }
+
+  // TODO(regis): Remove the following code once the flag is removed.
+
   if (num_arguments > NumberOfParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
@@ -3977,7 +4063,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
                   kMessageBufferSize,
                   "%"Pd" passed, %s%"Pd" expected",
                   num_arguments - num_hidden_params,
-                  num_optional_parameters() > 0 ? "at most " : "",
+                  HasOptionalParameters() ? "at most " : "",
                   NumberOfParameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
@@ -3994,7 +4080,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
                   kMessageBufferSize,
                   "%"Pd" %spassed, %"Pd" expected",
                   num_positional_args - num_hidden_params,
-                  num_optional_parameters() > 0 ? "positional " : "",
+                  HasOptionalParameters() ? "positional " : "",
                   num_fixed_parameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
@@ -4102,11 +4188,56 @@ const char* Function::ToFullyQualifiedCString() const {
 
 
 bool Function::HasCompatibleParametersWith(const Function& other) const {
-  // The default values of optional parameters can differ.
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_params = num_optional_parameters();
+  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
+  const intptr_t num_opt_named_params = num_optional_named_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
-  const intptr_t other_num_opt_params = other.num_optional_parameters();
+  const intptr_t other_num_opt_pos_params =
+      other.num_optional_positional_parameters();
+  const intptr_t other_num_opt_named_params =
+      other.num_optional_named_parameters();
+  if (FLAG_reject_named_argument_as_positional) {
+    // The default values of optional parameters can differ.
+    if ((num_fixed_params != other_num_fixed_params) ||
+        (num_opt_pos_params < other_num_opt_pos_params) ||
+        (num_opt_named_params < other_num_opt_named_params)) {
+      return false;
+    }
+    if (other_num_opt_named_params == 0) {
+      return true;
+    }
+    // Check that for each optional named parameter of the other function there
+    // exists an optional named parameter of this function with an identical
+    // name.
+    // Note that SetParameterNameAt() guarantees that names are symbols, so we
+    // can compare their raw pointers.
+    const int num_params = num_fixed_params + num_opt_named_params;
+    const int other_num_params =
+        other_num_fixed_params + other_num_opt_named_params;
+    bool found_param_name;
+    String& other_param_name = String::Handle();
+    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+      other_param_name = other.ParameterNameAt(i);
+      found_param_name = false;
+      for (intptr_t j = num_fixed_params; j < num_params; j++) {
+        if (ParameterNameAt(j) == other_param_name.raw()) {
+          found_param_name = true;
+          break;
+        }
+      }
+      if (!found_param_name) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // TODO(regis): Remove the following code once the flag is removed.
+
+  // The default values of optional parameters can differ.
+  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
+  const intptr_t other_num_opt_params =
+      other_num_opt_pos_params + other_num_opt_named_params;
   if ((num_fixed_params != other_num_fixed_params) ||
       (num_opt_params < other_num_opt_params)) {
     return false;
@@ -4119,6 +4250,8 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   const int other_num_params = other_num_fixed_params + other_num_opt_params;
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     const String& other_param_name = String::Handle(other.ParameterNameAt(i));
+    ASSERT(other_param_name.IsSymbol());
+    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
     if (ParameterNameAt(i) != other_param_name.raw()) {
       return false;
     }
@@ -4128,22 +4261,23 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
 
 
 // If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
-// of this function is a subtype or a supertype of the type of the corresponding
+// of this function is a subtype or a supertype of the type of the specified
 // parameter of the other function.
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
-// parameter of this function is more specific than the type of the
-// corresponding parameter of the other function.
+// parameter of this function is more specific than the type of the specified
+// parameter of the other function.
 // Note that we do not apply contravariance of parameter types, but covariance
 // of both parameter types and result type.
 bool Function::TestParameterType(
     TypeTestKind test_kind,
     intptr_t parameter_position,
+    intptr_t other_parameter_position,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
   AbstractType& other_param_type =
-      AbstractType::Handle(other.ParameterTypeAt(parameter_position));
+      AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
     other_param_type = other_param_type.InstantiateFrom(other_type_arguments);
   }
@@ -4179,11 +4313,16 @@ bool Function::TypeTest(TypeTestKind test_kind,
                         const AbstractTypeArguments& other_type_arguments,
                         Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_params = num_optional_parameters();
+  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
+  const intptr_t num_opt_named_params = num_optional_named_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
-  const intptr_t other_num_opt_params = other.num_optional_parameters();
+  const intptr_t other_num_opt_pos_params =
+      other.num_optional_positional_parameters();
+  const intptr_t other_num_opt_named_params =
+      other.num_optional_named_parameters();
   if ((num_fixed_params != other_num_fixed_params) ||
-      (num_opt_params < other_num_opt_params)) {
+      (num_opt_pos_params < other_num_opt_pos_params) ||
+      (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
   // Check the result type.
@@ -4211,10 +4350,60 @@ bool Function::TypeTest(TypeTestKind test_kind,
       }
     }
   }
+  if (FLAG_reject_named_argument_as_positional) {
+    // Check the types of fixed and optional positional parameters.
+    for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
+      if (!TestParameterType(test_kind,
+                             i, i, type_arguments, other, other_type_arguments,
+                             malformed_error)) {
+        return false;
+      }
+    }
+    // Check the names and types of optional named parameters.
+    if (other_num_opt_named_params == 0) {
+      return true;
+    }
+    // Check that for each optional named parameter of type T of the other
+    // function type, there exists an optional named parameter of this function
+    // type with an identical name and with a type S that is a either a subtype
+    // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
+    // than T (if test_kind == kIsMoreSpecificThan).
+    // Note that SetParameterNameAt() guarantees that names are symbols, so we
+    // can compare their raw pointers.
+    const int num_params = num_fixed_params + num_opt_named_params;
+    const int other_num_params =
+        other_num_fixed_params + other_num_opt_named_params;
+    bool found_param_name;
+    String& other_param_name = String::Handle();
+    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+      other_param_name = other.ParameterNameAt(i);
+      ASSERT(other_param_name.IsSymbol());
+      found_param_name = false;
+      for (intptr_t j = num_fixed_params; j < num_params; j++) {
+        ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
+        if (ParameterNameAt(j) == other_param_name.raw()) {
+          found_param_name = true;
+          if (!TestParameterType(test_kind,
+                                 j, i,
+                                 type_arguments, other, other_type_arguments,
+                                 malformed_error)) {
+            return false;
+          }
+          break;
+        }
+      }
+      if (!found_param_name) {
+        return false;
+      }
+    }
+  }
+
+  // TODO(regis): Remove the following code once the flag is removed.
+
   // Check the types of fixed parameters.
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     if (!TestParameterType(test_kind,
-                           i, type_arguments, other, other_type_arguments,
+                           i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -4227,14 +4416,16 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // or that is more specific than T (if test_kind == kIsMoreSpecificThan).
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
-  const intptr_t other_num_params =
-      other_num_fixed_params + other_num_opt_params;
+  const intptr_t other_num_params = other_num_fixed_params +
+      other_num_opt_pos_params + other_num_opt_named_params;
   String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
+    ASSERT(other_param_name.IsSymbol());
+    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
         !TestParameterType(test_kind,
-                           i, type_arguments, other, other_type_arguments,
+                           i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -4285,7 +4476,8 @@ RawFunction* Function::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
-  result.set_num_optional_parameters(0);
+  result.set_num_optional_positional_parameters(0);
+  result.set_num_optional_named_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
@@ -4344,10 +4536,13 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // removing the receiver if this is an instance method.
   const int has_receiver = is_static() ? 0 : 1;
   const int num_fixed_params = num_fixed_parameters() - has_receiver;
-  const int num_optional_params = num_optional_parameters();
-  const int num_params = num_fixed_params + num_optional_params;
+  const int num_opt_pos_params = num_optional_positional_parameters();
+  const int num_opt_named_params = num_optional_named_parameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
   closure_function.set_num_fixed_parameters(num_fixed_params);
-  closure_function.set_num_optional_parameters(num_optional_params);
+  closure_function.set_num_optional_positional_parameters(num_opt_pos_params);
+  closure_function.set_num_optional_named_parameters(num_opt_named_params);
   closure_function.set_parameter_types(Array::Handle(Array::New(num_params,
                                                                 Heap::kOld)));
   closure_function.set_parameter_names(Array::Handle(Array::New(num_params,
@@ -4403,6 +4598,8 @@ RawString* Function::BuildSignature(
   const String& kRParen = String::Handle(Symbols::New(") => "));
   const String& kLBracket = String::Handle(Symbols::New("["));
   const String& kRBracket = String::Handle(Symbols::New("]"));
+  const String& kLBrace = String::Handle(Symbols::New("{"));
+  const String& kRBrace = String::Handle(Symbols::New("}"));
   String& name = String::Handle();
   if (!instantiate && !is_static()) {
     // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
@@ -4440,7 +4637,9 @@ RawString* Function::BuildSignature(
   AbstractType& param_type = AbstractType::Handle();
   const intptr_t num_params = NumberOfParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_params = num_optional_parameters();
+  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
+  const intptr_t num_opt_named_params = num_optional_named_parameters();
+  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
   pieces.Add(kLParen);
   for (intptr_t i = 0; i < num_fixed_params; i++) {
@@ -4456,11 +4655,20 @@ RawString* Function::BuildSignature(
     }
   }
   if (num_opt_params > 0) {
-    pieces.Add(kLBracket);
+    if (num_opt_pos_params > 0) {
+      pieces.Add(kLBracket);
+    } else {
+      pieces.Add(kLBrace);
+    }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
-      name = ParameterNameAt(i);
-      pieces.Add(name);
-      pieces.Add(kColonSpace);
+      // The parameter name of an optional positional parameter does not need
+      // to be part of the signature, since it is not used.
+      if (!FLAG_reject_named_argument_as_positional ||
+          (num_opt_named_params > 0)) {
+        name = ParameterNameAt(i);
+        pieces.Add(name);
+        pieces.Add(kColonSpace);
+      }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
         param_type = param_type.InstantiateFrom(instantiator);
@@ -4472,7 +4680,11 @@ RawString* Function::BuildSignature(
         pieces.Add(kCommaSpace);
       }
     }
-    pieces.Add(kRBracket);
+    if (num_opt_pos_params > 0) {
+      pieces.Add(kRBracket);
+    } else {
+      pieces.Add(kRBrace);
+    }
   }
   pieces.Add(kRParen);
   AbstractType& res_type = AbstractType::Handle(result_type());

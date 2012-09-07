@@ -2839,7 +2839,9 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
   // provide them in the argument lists they are handed.
   *fixed_param_count = (func.num_fixed_parameters() -
                         func.NumberOfImplicitParameters());
-  *opt_param_count = func.num_optional_parameters();
+  // TODO(regis): Separately report named and positional optional param counts.
+  *opt_param_count = (func.num_optional_positional_parameters() +
+                      func.num_optional_named_parameters());
 
   ASSERT(*fixed_param_count >= 0);
   ASSERT(*opt_param_count >= 0);

@@ -20,9 +20,9 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     assigned_vars_(),
     current_ssa_temp_index_(0),
     parsed_function_(builder.parsed_function()),
-    copied_parameter_count_(builder.copied_parameter_count()),
-    non_copied_parameter_count_(builder.non_copied_parameter_count()),
-    stack_local_count_(builder.stack_local_count()),
+    num_copied_params_(builder.num_copied_params()),
+    num_non_copied_params_(builder.num_non_copied_params()),
+    num_stack_locals_(builder.num_stack_locals()),
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
@@ -47,7 +47,7 @@ void FlowGraph::DiscoverBlocks() {
                                &parent_,
                                &assigned_vars_,
                                variable_count(),
-                               non_copied_parameter_count());
+                               num_non_copied_params());
   // Number blocks in reverse postorder.
   intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
@@ -510,7 +510,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     start_env.Add(graph_entry_->constant_null());
   }
   graph_entry_->set_start_env(
-      new Environment(start_env, non_copied_parameter_count_));
+      new Environment(start_env, num_non_copied_params_));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
@@ -543,7 +543,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // Attach current environment to the instruction. First, each instruction
     // gets a full copy of the environment. Later we optimize this by
     // eliminating unnecessary environments.
-    current->set_env(new Environment(*env, non_copied_parameter_count_));
+    current->set_env(new Environment(*env, num_non_copied_params_));
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -582,14 +582,14 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       if ((load != NULL) || (store != NULL)) {
         intptr_t index;
         if (store != NULL) {
-          index = store->local().BitIndexIn(non_copied_parameter_count_);
+          index = store->local().BitIndexIn(num_non_copied_params_);
           // Update renaming environment.
           (*env)[index] = store->value()->definition();
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(definition->is_used());
-          index = load->local().BitIndexIn(non_copied_parameter_count_);
+          index = load->local().BitIndexIn(num_non_copied_params_);
 
           PhiInstr* phi = (*env)[index]->AsPhi();
           if ((phi != NULL) && !phi->is_alive()) {

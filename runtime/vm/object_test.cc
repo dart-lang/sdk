@@ -40,8 +40,10 @@ TEST_CASE(Class) {
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
-  function.set_num_fixed_parameters(kNumFixedParameters);
-  function.set_num_optional_parameters(kNumOptionalParameters);
+  const bool kAreOptionalPositional = true;
+  function.SetNumberOfParameters(kNumFixedParameters,
+                                 kNumOptionalParameters,
+                                 kAreOptionalPositional);
   functions.SetAt(1, function);
 
   function_name = Symbols::New("baz");
@@ -91,13 +93,15 @@ TEST_CASE(Class) {
   function = cls.LookupDynamicFunction(function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(0, function.num_fixed_parameters());
-  EXPECT_EQ(0, function.num_optional_parameters());
+  EXPECT(!function.HasOptionalParameters());
 
   function_name = String::New("bar");
   function = cls.LookupDynamicFunction(function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
-  EXPECT_EQ(kNumOptionalParameters, function.num_optional_parameters());
+  EXPECT_EQ(kNumOptionalParameters,
+            function.num_optional_positional_parameters() +
+            function.num_optional_named_parameters());
 
   const Array& interfaces = Array::Handle(Array::New(2));
   Class& interface = Class::Handle();

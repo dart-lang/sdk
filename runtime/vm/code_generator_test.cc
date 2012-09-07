@@ -62,7 +62,7 @@ CODEGEN_TEST_GENERATE(ReturnParameterCodegen, test) {
   ASSERT(local_scope->num_variables() == num_params);
   const Function& function = test->function();
   function.set_num_fixed_parameters(num_params);
-  ASSERT(function.num_optional_parameters() == 0);
+  ASSERT(!function.HasOptionalParameters());
   node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, parameter)));
 }
 
@@ -94,7 +94,7 @@ CODEGEN_TEST_GENERATE(SmiParamSumCodegen, test) {
   ASSERT(local_scope->num_variables() == num_params + num_locals);
   const Function& function = test->function();
   function.set_num_fixed_parameters(num_params);
-  ASSERT(function.num_optional_parameters() == 0);
+  ASSERT(!function.HasOptionalParameters());
   BinaryOpNode* add = new BinaryOpNode(kPos,
                                        Token::kADD,
                                        new LoadLocalNode(kPos, param1),
@@ -196,7 +196,7 @@ CODEGEN_TEST_RUN(BinaryOpCodegen, Double::New(2.5));
 
 
 // Tested Dart code:
-//   int dec(int a, int b = 1) native: "TestSmiSub";
+//   int dec(int a, [int b = 1]) native: "TestSmiSub";
 // The native entry TestSmiSub implements dec natively.
 CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   // A NativeBodyNode, preceded by an EnterNode and followed by a ReturnNode,
@@ -216,8 +216,7 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   default_values.SetAt(0, Smi::ZoneHandle(Smi::New(1)));  // b = 1.
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
-  function.set_num_fixed_parameters(num_fixed_params);
-  function.set_num_optional_parameters(num_opt_params);
+  function.SetNumberOfParameters(num_fixed_params, num_opt_params, true);
   const bool has_opt_params = true;
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestSmiSub"));
@@ -387,8 +386,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   default_values.SetAt(2, Smi::ZoneHandle(Smi::New(-32)));
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
-  function.set_num_fixed_parameters(num_fixed_params);
-  function.set_num_optional_parameters(num_opt_params);
+  function.SetNumberOfParameters(num_fixed_params, num_opt_params, true);
   function.set_parameter_types(Array::Handle(Array::New(num_params)));
   function.set_parameter_names(Array::Handle(Array::New(num_params)));
   const Type& param_type = Type::Handle(Type::DynamicType());

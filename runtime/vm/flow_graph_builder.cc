@@ -31,12 +31,12 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
   : parsed_function_(parsed_function),
-    copied_parameter_count_(parsed_function.copied_parameter_count()),
+    num_copied_params_(parsed_function.num_copied_params()),
     // All parameters are copied if any parameter is.
-    non_copied_parameter_count_((copied_parameter_count_ == 0)
+    num_non_copied_params_((num_copied_params_ == 0)
         ? parsed_function.function().num_fixed_parameters()
         : 0),
-    stack_local_count_(parsed_function.stack_local_count()),
+    num_stack_locals_(parsed_function.num_stack_locals()),
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),

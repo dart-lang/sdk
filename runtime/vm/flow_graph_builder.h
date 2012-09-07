@@ -47,14 +47,14 @@ class FlowGraphBuilder: public ValueObject {
 
   void AddCatchEntry(TargetEntryInstr* entry);
 
-  intptr_t copied_parameter_count() const {
-    return copied_parameter_count_;
+  intptr_t num_copied_params() const {
+    return num_copied_params_;
   }
-  intptr_t non_copied_parameter_count() const {
-    return non_copied_parameter_count_;
+  intptr_t num_non_copied_params() const {
+    return num_non_copied_params_;
   }
-  intptr_t stack_local_count() const {
-    return stack_local_count_;
+  intptr_t num_stack_locals() const {
+    return num_stack_locals_;
   }
 
   bool InInliningContext() const { return inlining_context_ != kNotInlining; }
@@ -67,17 +67,17 @@ class FlowGraphBuilder: public ValueObject {
 
  private:
   intptr_t parameter_count() const {
-    return copied_parameter_count_ + non_copied_parameter_count_;
+    return num_copied_params_ + num_non_copied_params_;
   }
   intptr_t variable_count() const {
-    return parameter_count() + stack_local_count_;
+    return parameter_count() + num_stack_locals_;
   }
 
   const ParsedFunction& parsed_function_;
 
-  const intptr_t copied_parameter_count_;
-  const intptr_t non_copied_parameter_count_;
-  const intptr_t stack_local_count_;  // Does not include any parameters.
+  const intptr_t num_copied_params_;
+  const intptr_t num_non_copied_params_;
+  const intptr_t num_stack_locals_;  // Does not include any parameters.
 
   intptr_t context_level_;
   intptr_t last_used_try_index_;

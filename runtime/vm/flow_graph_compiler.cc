@@ -50,8 +50,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   const Function& function = compiler->parsed_function().function();
   // For functions with optional arguments, all incoming are copied to local
   // area below FP, deoptimization environment does not track them.
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   const intptr_t fixed_parameter_count =
       deoptimization_env_->fixed_parameter_count();
   DeoptInfoBuilder builder(compiler->object_table(), num_args);
@@ -128,7 +128,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 bool FlowGraphCompiler::IsLeaf() const {
   return is_dart_leaf_ &&
          !parsed_function_.function().IsClosureFunction() &&
-         (parsed_function().copied_parameter_count() == 0);
+         (parsed_function().num_copied_params() == 0);
 }
 
 
@@ -196,8 +196,8 @@ intptr_t FlowGraphCompiler::StackSize() const {
   if (is_optimizing_) {
     return block_order_[0]->AsGraphEntry()->spill_slot_count();
   } else {
-    return parsed_function_.stack_local_count() +
-        parsed_function_.copied_parameter_count();
+    return parsed_function_.num_stack_locals() +
+        parsed_function_.num_copied_params();
   }
 }
 

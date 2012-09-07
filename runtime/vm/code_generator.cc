@@ -1486,8 +1486,8 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
   const Function& function = Function::Handle(optimized_code.function());
   // Do not copy incoming arguments if there are optional arguments (they
   // are copied into local space at method entry).
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   // FP, PC-marker and return-address will be copied as well.
   const intptr_t frame_copy_size =
       1  // Deoptimized function's return address: caller_frame->pc().
@@ -1554,8 +1554,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   // For functions with optional argument deoptimization info does not
   // describe incoming arguments.
   const Function& function = Function::Handle(optimized_code.function());
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t unoptimized_stack_size =
       + deopt_info.Length() - num_args
       - 2;  // Subtract caller FP and PC.
@@ -1577,8 +1577,8 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
 
   intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame.sp() - kWordSize);
   const Function& function = Function::Handle(code.function());
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t to_frame_size =
       1  // Deoptimized function's return address.
       + (caller_frame.fp() - caller_frame.sp()) / kWordSize

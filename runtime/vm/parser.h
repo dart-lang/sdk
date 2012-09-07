@@ -41,8 +41,8 @@ class ParsedFunction : public ValueObject {
         expression_temp_var_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
-        copied_parameter_count_(0),
-        stack_local_count_(0) { }
+        num_copied_params_(0),
+        num_stack_locals_(0) { }
 
   const Function& function() const { return function_; }
 
@@ -87,8 +87,8 @@ class ParsedFunction : public ValueObject {
 
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
-  int copied_parameter_count() const { return copied_parameter_count_; }
-  int stack_local_count() const { return stack_local_count_; }
+  int num_copied_params() const { return num_copied_params_; }
+  int num_stack_locals() const { return num_stack_locals_; }
 
   void AllocateVariables();
 
@@ -102,8 +102,8 @@ class ParsedFunction : public ValueObject {
 
   int first_parameter_index_;
   int first_stack_local_index_;
-  int copied_parameter_count_;
-  int stack_local_count_;
+  int num_copied_params_;
+  int num_stack_locals_;
 
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };

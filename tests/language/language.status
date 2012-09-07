@@ -305,6 +305,9 @@ number_identifier_negative_test: Fail
 # Bug in dart2js frontent: does not support this feature.
 switch_label_test: Fail
 # Common with language_dart2js.
+function_type_alias2_test: Fail # Support for optional parameters not conform to latest spec.
+named_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
+optional_named_parameters_test: Fail # Support for optional parameters not conform to latest spec.
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail

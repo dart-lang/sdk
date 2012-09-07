@@ -1470,21 +1470,25 @@ class Function : public Object {
     raw_ptr()->end_token_pos_ = value;
   }
 
-  static intptr_t num_fixed_parameters_offset() {
-    return OFFSET_OF(RawFunction, num_fixed_parameters_);
-  }
   intptr_t num_fixed_parameters() const {
     return raw_ptr()->num_fixed_parameters_;
   }
   void set_num_fixed_parameters(intptr_t value) const;
 
-  static intptr_t num_optional_parameters_offset() {
-    return OFFSET_OF(RawFunction, num_optional_parameters_);
+  bool HasOptionalParameters() const {
+    return (num_optional_positional_parameters() +
+            num_optional_named_parameters()) > 0;
   }
-  intptr_t num_optional_parameters() const {
-    return raw_ptr()->num_optional_parameters_;
+
+  intptr_t num_optional_positional_parameters() const {
+    return raw_ptr()->num_optional_positional_parameters_;
   }
-  void set_num_optional_parameters(intptr_t value) const;
+  void set_num_optional_positional_parameters(intptr_t value) const;
+
+  intptr_t num_optional_named_parameters() const {
+    return raw_ptr()->num_optional_named_parameters_;
+  }
+  void set_num_optional_named_parameters(intptr_t value) const;
 
   static intptr_t usage_counter_offset() {
     return OFFSET_OF(RawFunction, usage_counter_);
@@ -1521,6 +1525,9 @@ class Function : public Object {
 
   intptr_t NumberOfParameters() const;
   intptr_t NumberOfImplicitParameters() const;
+  void SetNumberOfParameters(intptr_t num_fixed_parameters,
+                             intptr_t num_optional_parameters,
+                             bool are_optional_positional) const;
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
@@ -1666,8 +1673,8 @@ class Function : public Object {
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
-  void set_is_static(bool is_static) const;
-  void set_is_const(bool is_const) const;
+  void set_is_static(bool value) const;
+  void set_is_const(bool value) const;
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
@@ -1692,6 +1699,7 @@ class Function : public Object {
   // and the type of the other function.
   bool TestParameterType(TypeTestKind test_kind,
                          intptr_t parameter_position,
+                         intptr_t other_parameter_position,
                          const AbstractTypeArguments& type_arguments,
                          const Function& other,
                          const AbstractTypeArguments& other_type_arguments,

@@ -172,9 +172,9 @@ class TypeTest {
   static testFunctionNum() {
     int result = 0;
     Function anyFunction;
-    void acceptFunNum(void funNum(num num)) { };
+    void acceptFunNum(void funNum(num n)) { };
     void funObj(Object obj) { };
-    void funNum(num num) { };
+    void funNum(num n) { };
     void funInt(int i) { };
     void funString(String s) { };
     anyFunction = funObj;  // No error.
