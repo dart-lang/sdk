@@ -237,7 +237,8 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, unittest}
   #
 
-  for library in ['args', 'htmlescape', dartdoc', 'intl', 'logging', 'unittest']:
+  for library in ['args', 'htmlescape', 'dartdoc', 'intl', 'logging', 
+                  'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh'))
