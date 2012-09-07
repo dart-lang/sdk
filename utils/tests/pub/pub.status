@@ -48,6 +48,3 @@ pub_update_hosted_test: Skip
 
 [ $runtime == opera ]
 *: Skip
-
-[ $compiler == dart2js && $checked ]
-yaml_test: Fail # Issue 3720

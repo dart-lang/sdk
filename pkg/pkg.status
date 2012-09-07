@@ -32,32 +32,5 @@ unittest/test/mock_stepwise_negative_test: fail
 unittest/test/instance_test: Skip
 
 [ $compiler == dart2js && $checked ]
-# The following tests fail on int checks.
-# Issue 3720
-fixnum/test/int_32_test: Fail
-fixnum/test/int_64_test: Fail
-args/test/args_test: Fail
-intl/test/bidi_format_test: Fail
-intl/test/bidi_utils_test: Fail
-intl/test/date_time_format_local_test: Fail
-intl/test/date_time_format_test: Fail
-intl/test/intl_message_test: Fail
-intl/test/intl_test: Fail
-intl/test/number_format_test: Fail
-logging/test/logging_test: Fail
-unittest/test/matchers_test: Fail
-unittest/test/mock_test: Fail
-args/test/args_test: Fail
-intl/test/bidi_format_test: Fail
-intl/test/bidi_utils_test: Fail
-intl/test/date_time_format_test: Fail
-intl/test/intl_message_test: Fail
-intl/test/intl_test: Fail
-intl/test/number_format_test: Fail
-logging/test/logging_test: Fail
-unittest/test/matchers_test: Fail
-unittest/test/mock_test: Fail
-yaml_test: Fail
-
-[ $compiler == dart2js && $runtime == d8 && $checked ]
-unittest/test/unittest_test: Fail
+fixnum/test/int_32_test: Fail # int does not implement Comparable
+fixnum/test/int_64_test: Fail # int does not implement Comparable

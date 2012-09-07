@@ -29,6 +29,3 @@ dummy_compiler_test: Fail # http://dartbug.com/4539
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
-
-[ $compiler == dart2js && $checked ]
-markdown_test: Fail # Issue 3720

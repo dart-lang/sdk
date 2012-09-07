@@ -68,8 +68,6 @@ io/options_test: Fail
 [ $compiler == dart2js && $checked ]
 io/http_read_test: Skip # Timeout TODO(ngeoffray): investigate
 io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
-io/http_date_test: Fail # Issue 3720
-io/http_headers_test: Fail # Issue 3720
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

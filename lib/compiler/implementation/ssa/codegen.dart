@@ -2148,6 +2148,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary(cmp, left, or0));
   }
 
+  void checkBigInt(HInstruction input, String cmp) {
+    use(input);
+    js.Expression left = pop();
+    use(input);
+    js.Expression right = pop();
+    // TODO(4984): Deal with infinity.
+    push(new js.LiteralExpression.withData('Math.floor(#) === #',
+                                           <js.Expression>[left, right]));
+  }
+
   void checkTypeOf(HInstruction input, String cmp, String typeName) {
     use(input);
     js.Expression typeOf = new js.Prefix("typeof", pop());
@@ -2303,9 +2313,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkFunction(input, type);
       attachLocationToLast(node);
     } else if (element == compiler.intClass) {
+      // The is check in the code tells us that it might not be an
+      // int. So we do a typeof first to avoid possible
+      // deoptimizations on the JS engine due to the Math.floor check.
       checkNum(input, '===');
       js.Expression numTest = pop();
-      checkInt(input, '===');
+      checkBigInt(input, '===');
       push(new js.Binary('&&', numTest, pop()), node);
     } else if (Elements.isStringSupertype(element, compiler)) {
       handleStringSupertypeCheck(input, type);

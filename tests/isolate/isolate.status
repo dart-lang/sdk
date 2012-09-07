@@ -83,30 +83,3 @@ timer_repeat_test: Fail,OK # Needs Timer to run.
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
-
-[ $compiler == dart2js && $checked ]
-
-# The following tests fail on int checks.
-# Issue 3720
-count_test: Fail
-cross_isolate_message_test: Fail
-isolate_complex_messages_test: Fail
-mandel_isolate_test: Fail
-message2_test: Fail
-message_test: Fail
-mint_maker_test: Fail
-nested_spawn2_test: Fail
-nested_spawn_test: Fail
-request_reply_test: Fail
-spawn_function_custom_class_test: Fail
-spawn_function_test: Fail
-unresolved_ports_test: Fail
-
-[ $compiler == dart2js && $checked && $browser]
-
-# The following tests fail on int checks.
-# Issue 3720
-compute_this_script_browser_test: Fail
-multiple_timer_test: Fail
-timer_repeat_test: Fail
-timer_test: Fail

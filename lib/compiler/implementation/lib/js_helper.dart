@@ -146,7 +146,7 @@ sub$slow(var a, var b) {
 mod(var a, var b) {
   if (checkNumbers(a, b)) {
     // Euclidean Modulo.
-    int result = JS('num', @'# % #', a, b);
+    num result = JS('num', @'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', b) < 0) {

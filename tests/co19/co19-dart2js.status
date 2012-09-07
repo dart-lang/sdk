@@ -489,6 +489,7 @@ LibTest/core/Math/parseDouble_A02_t01: Fail
 
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
+LibTest/core/Queue/addLast_A01_t01: Slow, Pass
 
 # These test the Clock class which has been removed.
 # issue co19 - 173
@@ -843,72 +844,6 @@ LibTest/core/Date/isUtc_A01_t01: Fail, OK
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
 
 [ $compiler == dart2js && $checked ]
-
-# The following tests fail on int checks.
-# Issue 3720
-Language/10_Expressions/03_Numbers_A05_t01: Fail
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A04_t04: Fail
-Language/11_Statements/05_For/2_For_in_A01_t01: Fail
-LibTest/core/Date/Date.fromString_A01_t01: Fail
-LibTest/core/Date/Date.fromString_A01_t02: Fail
-LibTest/core/Date/Date.now_A01_t01: Fail
-LibTest/core/Date/Date.now_A01_t02: Fail
-LibTest/core/Date/Date.now_A01_t03: Fail
-LibTest/core/Date/Date_A01_t04: Fail
-LibTest/core/Date/Date_A01_t05: Fail
-LibTest/core/Date/add_A01_t01: Fail
-LibTest/core/Date/add_A02_t01: Fail
-LibTest/core/Date/add_A03_t01: Fail
-LibTest/core/Date/compareTo_A01_t01: Fail
-LibTest/core/Date/compareTo_A01_t02: Fail
-LibTest/core/Date/day_A01_t01: Fail
-LibTest/core/Date/difference_A01_t01: Fail
-LibTest/core/Date/hour_A01_t01: Fail
-LibTest/core/Date/millisecond_A01_t01: Fail
-LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail
-LibTest/core/Date/minute_A01_t01: Fail
-LibTest/core/Date/month_A01_t01: Fail
-LibTest/core/Date/operator_GE_A01_t01: Fail
-LibTest/core/Date/operator_GT_A01_t01: Fail
-LibTest/core/Date/operator_LE_A01_t01: Fail
-LibTest/core/Date/operator_LT_A01_t01: Fail
-LibTest/core/Date/operator_equality_A01_t01: Fail
-LibTest/core/Date/second_A01_t01: Fail
-LibTest/core/Date/subtract_A01_t01: Fail
-LibTest/core/Date/subtract_A02_t01: Fail
-LibTest/core/Date/subtract_A03_t01: Fail
-LibTest/core/Date/timeZoneName_A01_t01: Fail
-LibTest/core/Date/toLocal_A01_t01: Fail
-LibTest/core/Date/toString_A01_t01: Fail
-LibTest/core/Date/toUtc_A01_t01: Fail
-LibTest/core/Date/weekday_A01_t01: Fail
-LibTest/core/Duration/Duration_A01_t01: Fail
-LibTest/core/Duration/Duration_A02_t01: Fail
-LibTest/core/Duration/inDays_A01_t01: Fail
-LibTest/core/Duration/inHours_A01_t01: Fail
-LibTest/core/Duration/inMilliseconds_A01_t01: Fail
-LibTest/core/Duration/inMinutes_A01_t01: Fail
-LibTest/core/Duration/inSeconds_A01_t01: Fail
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail
-LibTest/core/Stopwatch/elapsed_A01_t01: Fail
-LibTest/core/Stopwatch/elapsed_A01_t02: Fail
-LibTest/core/Stopwatch/frequency_A01_t01: Fail
-LibTest/core/Stopwatch/start_A01_t01: Fail
-LibTest/core/Stopwatch/start_A01_t02: Fail
-LibTest/core/Stopwatch/start_A01_t03: Fail
-LibTest/core/Stopwatch/stop_A01_t01: Fail
-LibTest/core/double/operator_GE_A01_t02: Fail
-LibTest/core/double/operator_GT_A01_t02: Fail
-LibTest/core/double/operator_LE_A01_t02: Fail
-LibTest/core/double/operator_LT_A01_t02: Fail
-LibTest/core/double/operator_remainder_A01_t01: Fail
-LibTest/core/double/operator_remainder_A01_t02: Fail
-LibTest/core/double/operator_remainder_A01_t03: Fail
-LibTest/core/double/operator_remainder_A01_t04: Fail
-LibTest/core/double/operator_remainder_A01_t05: Fail
-
-
 LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 
 #
@@ -960,8 +895,6 @@ LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const cons
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
 LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
-LibTest/core/double/toInt_A01_t01: Fail, OK # Requires big int.
-LibTest/core/double/toInt_A01_t02: Fail, OK # Requires big int.
 LibTest/core/double/toInt_A01_t05: Fail, OK # Requires big int.
 LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.
 LibTest/core/double/toStringAsExponential_A01_t01: Fail, OK # Unimplemented test stub.
@@ -981,7 +914,6 @@ LibTest/core/int/operator_truncating_division_A01_t02: Fail, OK # Leg only has d
 LibTest/core/int/remainder_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
-LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # Co19 Issue 112.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # Co19 Issue 114.
