@@ -4,7 +4,8 @@
 
 /**
  * Test date formatting and parsing using locale data which is available
- * directly in the program as a constant.*/
+ * directly in the program as a constant.
+ */
 
 #library('date_time_format_test');
 
@@ -13,14 +14,17 @@
 #import('../date_symbol_data_local.dart');
 #import('date_time_format_test_core.dart');
 
-main() {
+runWith([Function getSubset]) {
   // Initialize one locale just so we know what the list is.
-  initializeDateFormatting("en_US",null).then(runEverything);
+  // Also, note that we take the list of locales as a function so that we don't
+  // evaluate it until after we know that all the locales are available.
+  initializeDateFormatting("en_US",null).then(
+      (_) => runEverything(getSubset));
 }
 
-void runEverything(_) {
+void runEverything(Function getSubset) {
   // Initialize all locales and wait for them to finish before running tests.
   var futures = DateFormat.allLocalesWithSymbols().map(
       (locale) => initializeDateFormatting(locale, null));
-  Futures.wait(futures).then((results) => runDateTests());
+  Futures.wait(futures).then((results) => runDateTests(getSubset()));
 }

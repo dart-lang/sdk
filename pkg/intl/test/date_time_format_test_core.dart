@@ -169,10 +169,31 @@ testRoundTripParsing(String localeName, Date date) {
   }
 }
 
+/** A shortcut for returning all the locales we have available.*/
+List<String> allLocales() => DateFormat.allLocalesWithSymbols();
+
+/**
+ * Return only the odd-numbered locales. A simple way to divide the list into
+ * two roughly equal parts.
+ */
+List oddLocales() {
+  int i = 1;
+  return allLocales().filter((x) => (i++).isOdd());
+}
+
+/**
+ * Return only the even-numbered locales. A simple way to divide the list into
+ * two roughly equal parts.
+ */
+List evenLocales() {
+  int i = 1;
+  return allLocales().filter((x) => !((i++).isOdd()));
+}
+
 // TODO(alanknight): Run specific tests for the en_ISO locale which isn't
 // included in CLDR, and check that our patterns for it are correct (they
 // very likely aren't).
-runDateTests() {
+runDateTests([List<String> subset]) {
   test('Multiple patterns', () {
     var date = new Date.now();
     var multiple1 = new DateFormat.yMd().add_jms();
@@ -210,7 +231,7 @@ runDateTests() {
   test('Test round-trip parsing of dates', () {
     var hours = [0, 1, 11, 12, 13, 23];
     var months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    var locales = DateFormat.allLocalesWithSymbols();
+    var locales = subset == null ? allLocales() : subset;
     for (var locale in locales) {
       for (var month in months) {
         var aDate = new Date(2012, month, 27, 13, 58, 59, 012, false);
@@ -227,7 +248,7 @@ runDateTests() {
     var patterns = new List.from(dateTimePatterns.getKeys());
     var compare = (a, b) => a.compareTo(b);
     patterns.sort(compare);
-    var symbols = DateFormat.allLocalesWithSymbols();
+    var symbols = allLocales();
     // Workaround for a dartj2 issue that treats the keys as immutable
     symbols = new List.from(symbols);
     symbols.sort(compare);

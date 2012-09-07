@@ -7,7 +7,7 @@
  * local file system.
  */
 
-#library('date_time_format_test');
+#library('date_time_format_file_test');
 
 #import('../date_format.dart');
 #import('../date_symbol_data_file.dart');
@@ -15,14 +15,15 @@
 #import('date_time_format_test_core.dart');
 #import('data_directory.dart');
 
-main() {
+runWith([Function getSubset]) {
   // Initialize one locale just so we know what the list is.
-  initializeDateFormatting("en_US", dataDirectory).then(runEverything);
+  initializeDateFormatting("en_US", dataDirectory).then(
+      (_) => runEverything(getSubset));
 }
 
-void runEverything(_) {
+void runEverything(Function getSubset) {
   // Initialize all locales and wait for them to finish before running tests.
   var futures = DateFormat.allLocalesWithSymbols().map(
       (locale) => initializeDateFormatting(locale, dataDirectory));
-  Futures.wait(futures).then((results) => runDateTests());
+  Futures.wait(futures).then((results) => runDateTests(getSubset()));
 }
