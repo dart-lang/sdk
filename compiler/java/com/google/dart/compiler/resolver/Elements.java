@@ -51,6 +51,10 @@ import java.util.Set;
  * Utility and factory methods for elements.
  */
 public class Elements {
+  /**
+   * Name of the artificial function used for resolution of "assert" statement.
+   */
+  public static final String ASSERT_FUNCTION_NAME = "assert__forStatement" + System.currentTimeMillis();
   private static final ImmutableSet<Token> ASSIGN_OPERATORS =
       Sets.immutableEnumSet(
           Token.ASSIGN,
@@ -776,7 +780,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   public static boolean isArtificialAssertMethod(Element element) {
     if (element instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) element;
-      return Objects.equal(methodElement.getName(), "assert")
+      return Objects.equal(methodElement.getName(), ASSERT_FUNCTION_NAME)
           && methodElement.getEnclosingElement() instanceof LibraryElement
           && methodElement.getEnclosingElement().getName().equals("dart://core/core.dart");
     }

@@ -1467,6 +1467,10 @@ public class Resolver {
     public Element visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
       Scope scope = getContext().getScope();
       Element element = scope.findElement(scope.getLibrary(), x.getTarget().getName());
+      if (element == null && x.getTarget().getName().equals("assert")
+          && x.getArguments().size() == 1) {
+        element = scope.findElement(scope.getLibrary(), Elements.ASSERT_FUNCTION_NAME);
+      }
       ElementKind kind = ElementKind.of(element);
       if (!INVOKABLE_ELEMENTS.contains(kind)) {
         diagnoseErrorInUnqualifiedInvocation(x);

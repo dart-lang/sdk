@@ -1117,13 +1117,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 13, 3, 6),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 14, 3, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
         errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
         errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
         errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12),
-        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 13, 3, 19),
-        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 14, 3, 7),
         errEx(TypeErrorCode.ASSERT_IS_STATEMENT, 16, 10, 12));
   }
 
@@ -1146,6 +1146,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "main() {",
         "  bool assert;",
         "  assert;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_assert_asInheritedGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get assert() {}",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    assert;",
+        "  }",
         "}",
         "");
     assertErrors(libraryResult.getErrors());

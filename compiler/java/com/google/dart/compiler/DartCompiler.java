@@ -859,9 +859,9 @@ public class DartCompiler {
           Closeables.close(r, failed);
         }
         
-        // auto-magically define "assert" function
+        // auto-magically define function to use instead of "assert" statement
         if (dartSrc.getUri().toString().equals("dart://core/object.dart")) {
-          srcCode += "\nvoid assert(x) {}";
+          srcCode += "\nvoid " + Elements.ASSERT_FUNCTION_NAME + "(x) {}";
         }
 
         // inject "Type" type from 1.0 M1 specification

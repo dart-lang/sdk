@@ -1633,23 +1633,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     @Override
-    public Type visitExprStmt(DartExprStmt node) {
-      // special support for incomplete "assert"
-      if (node.getExpression() instanceof DartIdentifier) {
-        DartIdentifier identifier = (DartIdentifier) node.getExpression();
-        NodeElement element = identifier.getElement();
-        if (Objects.equal(identifier.getName(), "assert")
-            && Elements.isArtificialAssertMethod(element)) {
-          onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
-          return voidType;
-        }
-      }
-      // normal
-      typeOf(node.getExpression());
-      return voidType;
-    }
-
-    @Override
     public Type visitFieldDefinition(DartFieldDefinition node) {
       node.visitChildren(this);
       return voidType;
@@ -2552,10 +2535,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
             restoreOnBlockExit.put(restoreBlock, variableRestorer);
             inferVariableTypesFromIsConditions(condition, variableRestorer);
           }
-        } else {
-          onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
+          // done for "assert"
+          return voidType;
         }
-        return voidType;
       }
       // normal invocation
       Type type;
