@@ -1418,23 +1418,46 @@ static void WeakPersistentHandlePeerFinalizer(Dart_Handle handle, void* peer) {
 TEST_CASE(WeakPersistentHandleCallback) {
   Dart_Handle weak_ref = Dart_Null();
   EXPECT(Dart_IsNull(weak_ref));
-  int* peer = new int();
+  int peer = 0;
   {
     Dart_EnterScope();
     Dart_Handle obj = Dart_NewString("new string");
     EXPECT_VALID(obj);
-    weak_ref = Dart_NewWeakPersistentHandle(obj, peer,
+    weak_ref = Dart_NewWeakPersistentHandle(obj, &peer,
                                             WeakPersistentHandlePeerFinalizer);
     Dart_ExitScope();
   }
   EXPECT_VALID(weak_ref);
-  EXPECT(*peer == 0);
+  EXPECT(peer == 0);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(*peer == 0);
+  EXPECT(peer == 0);
   GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT(*peer == 42);
-  delete peer;
+  EXPECT(peer == 42);
   Dart_DeletePersistentHandle(weak_ref);
+}
+
+
+TEST_CASE(WeakPersistentHandleNoCallback) {
+  Dart_Handle weak_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_ref));
+  int peer = 0;
+  {
+    Dart_EnterScope();
+    Dart_Handle obj = Dart_NewString("new string");
+    EXPECT_VALID(obj);
+    weak_ref = Dart_NewWeakPersistentHandle(obj, &peer,
+                                            WeakPersistentHandlePeerFinalizer);
+    Dart_ExitScope();
+  }
+  // A finalizer is not invoked on a deleted handle.  Therefore, the
+  // peer value should not change after the referent is collected.
+  Dart_DeletePersistentHandle(weak_ref);
+  EXPECT_VALID(weak_ref);
+  EXPECT(peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT(peer == 0);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  EXPECT(peer == 0);
 }
 
 
