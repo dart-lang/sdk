@@ -275,6 +275,7 @@ typed_arrays_arraybuffer_test: Fail
 typed_arrays_dataview_test: Fail
 typed_arrays_range_checks_test: Fail
 typing_test: Fail
+url_test: Fail
 websocket_test: Fail
 websql_test: Fail
 window_eq_test: Fail
