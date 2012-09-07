@@ -239,6 +239,8 @@ LibTest/core/Expect/approxEquals_A04_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t03: Fail, OK
 
+LibTest/core/InternalError/*: Fail, OK  # InternalError is not part of the SDK.
+
 # The #resource tag has been removed.
 # http://code.google.com/p/co19/issues/detail?id=181
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail, OK

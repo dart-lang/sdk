@@ -52,7 +52,7 @@ package/*: Skip # Do not run those in Dartium.
 medium_integer_test: Fail, OK # cannot resolve type Mint
 
 [ $compiler == dart2js && $runtime == d8 ]
-assert_test: Fail # Assert not implemented
+assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
 byte_array_test: Fail, OK # ByteArray
 deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.

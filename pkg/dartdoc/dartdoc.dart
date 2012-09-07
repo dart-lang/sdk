@@ -1727,3 +1727,12 @@ class Dartdoc {
   }
 }
 
+/**
+ * Used to report an unexpected error in the DartDoc tool or the
+ * underlying data
+ */
+class InternalError {
+  final String message;
+  const InternalError(this.message);
+  String toString() => "InternalError: '$message'";
+}
