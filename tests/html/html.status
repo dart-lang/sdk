@@ -13,6 +13,7 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+url_test: Fail   # createObjectURL not implemented.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -91,6 +92,7 @@ shadow_dom_layout_test: Fail
 shadow_dom_test: Fail
 storage_test: Fail
 svg_3_test: Fail
+url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test: Fail
 window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)

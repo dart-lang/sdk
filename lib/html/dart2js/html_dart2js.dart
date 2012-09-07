@@ -17469,6 +17469,13 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }
 
+  String createObjectUrl(object) native '''
+    return (window.URL || window.webkitURL).createObjectURL(object)
+  ''';
+
+  void revokeObjectUrl(String objectUrl) native '''
+    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
+  ''';
 
   _WindowEventsImpl get on() =>
     new _WindowEventsImpl(this);
@@ -36440,6 +36447,16 @@ interface Window extends EventTarget {
   void cancelAnimationFrame(int id);
 
   IDBFactory get indexedDB();
+
+  /**
+   * Creates a new object URL for the specified object. The URL will be
+   * available until revokeObjectUrl is called.
+   * [object] can be a Blob, MediaStream or MediaSource.
+   */
+  String createObjectUrl(object);
+
+  /** @domName DOMURL.revokeObjectURL */
+  void revokeObjectUrl(String objectUrl);
 
 
   /**
