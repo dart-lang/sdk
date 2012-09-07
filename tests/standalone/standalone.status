@@ -28,6 +28,7 @@ io/socket_many_connections_test: Skip
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
+io/http_client_test: Pass, Fail  # Issue 4981
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
