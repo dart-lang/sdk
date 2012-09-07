@@ -35,10 +35,10 @@
 # ......mirrors/
 # ......uri/
 # ......utf/
-# ......web/
 # ....pkg/
 # ......args/
 # ......dartdoc/
+#.......htmlescape/
 # ......intl/
 # ......logging/
 # ......unittest/
@@ -102,7 +102,7 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDart2Js(build_dir, sdk_root, revision):
   if revision:
-    ReplaceInFiles([os.path.join(sdk_root, 'lib', 'compiler', 
+    ReplaceInFiles([os.path.join(sdk_root, 'lib', 'compiler',
                                  'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
                      r"BUILD_ID = '%s'" % revision)])
@@ -220,8 +220,7 @@ def Main(argv):
   #
 
   for library in ['_internal', 'compiler', 'html', 'core', 'coreimpl',
-                  'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf',
-                  'web']:
+                  'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
@@ -238,7 +237,7 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, unittest}
   #
 
-  for library in ['args', 'dartdoc', 'intl', 'logging', 'unittest']:
+  for library in ['args', 'htmlescape', dartdoc', 'intl', 'logging', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh'))

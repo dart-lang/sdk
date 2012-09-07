@@ -23,7 +23,6 @@ const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kUtfLibURL = "dart:utf";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
-const char* DartUtils::kWebLibURL = "dart:web";
 
 
 const char* DartUtils::kIdFieldName = "_id";
@@ -166,11 +165,6 @@ bool DartUtils::IsDartUtfLibURL(const char* url_name) {
 }
 
 
-bool DartUtils::IsDartWebLibURL(const char* url_name) {
-  return (strcmp(url_name, kWebLibURL) == 0);
-}
-
-
 Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
                                        Dart_Handle library,
                                        const char* url_str) {
@@ -306,8 +300,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       id = Builtin::kUriLibrary;
     } else if (DartUtils::IsDartUtfLibURL(url_string)) {
       id = Builtin::kUtfLibrary;
-    } else if (DartUtils::IsDartWebLibURL(url_string)) {
-      id = Builtin::kWebLibrary;
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
