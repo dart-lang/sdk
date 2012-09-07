@@ -1551,11 +1551,15 @@ class Elements {
     return new SourceString('operator\$$str');
   }
 
-  static bool isStringSupertype(Element element, Compiler compiler) {
+  static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
     return (element == coreLibrary.find(const SourceString('Comparable')))
-        || (element == coreLibrary.find(const SourceString('Hashable')))
-        || (element == coreLibrary.find(const SourceString('Pattern')));
+        || (element == coreLibrary.find(const SourceString('Hashable')));
+  }
+
+  static bool isStringOnlySupertype(Element element, Compiler compiler) {
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    return element == coreLibrary.find(const SourceString('Pattern'));
   }
 
   static bool isListSupertype(Element element, Compiler compiler) {

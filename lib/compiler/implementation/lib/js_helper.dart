@@ -1113,6 +1113,40 @@ callTypeCast(value, property) {
 }
 
 /**
+ * Specialization of the type check for num and String and their
+ * supertype since [value] can be a JS primitive.
+ */
+numberOrStringSuperTypeCheck(value, property) {
+  if (value === null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+numberOrStringSuperTypeCast(value, property) {
+  if (value is String) return value;
+  if (value is num) return value;
+  return propertyTypeCast(value, property);
+}
+
+numberOrStringSuperNativeTypeCheck(value, property) {
+  if (value === null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '#[#]()', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+numberOrStringSuperNativeTypeCast(value, property) {
+  if (value === null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '#[#]()', value, property)) return value;
+  propertyTypeCastError(value, property);
+}
+
+/**
  * Specialization of the type check for String and its supertype
  * since [value] can be a JS primitive.
  */

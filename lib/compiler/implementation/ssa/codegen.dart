@@ -2252,11 +2252,26 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void handleStringSupertypeCheck(HInstruction input, DartType type) {
-    // Make sure List and String don't share supertypes, otherwise we
-    // would need to check for List too.
+  void handleNumberOrStringSupertypeCheck(HInstruction input, DartType type) {
     assert(type.element !== compiler.listClass
-           && !Elements.isListSupertype(type.element, compiler));
+           && !Elements.isListSupertype(type.element, compiler)
+           && !Elements.isStringOnlySupertype(type.element, compiler));
+    checkNum(input, '===');
+    js.Expression numberTest = pop();
+    checkString(input, '===');
+    js.Expression stringTest = pop();
+    checkObject(input, '===');
+    js.Expression objectTest = pop();
+    checkType(input, type);
+    push(new js.Binary('||',
+                       new js.Binary('||', numberTest, stringTest),
+                       new js.Binary('&&', objectTest, pop())));
+  }
+
+  void handleStringSupertypeCheck(HInstruction input, DartType type) {
+    assert(type.element !== compiler.listClass
+           && !Elements.isListSupertype(type.element, compiler)
+           && !Elements.isNumberOrStringSupertype(type.element, compiler));
     checkString(input, '===');
     js.Expression stringTest = pop();
     checkObject(input, '===');
@@ -2268,10 +2283,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleListOrSupertypeCheck(HInstruction input, DartType type) {
-    // Make sure List and String don't share supertypes, otherwise we
-    // would need to check for String too.
     assert(type.element !== compiler.stringClass
-           && !Elements.isStringSupertype(type.element, compiler));
+           && !Elements.isStringOnlySupertype(type.element, compiler)
+           && !Elements.isNumberOrStringSupertype(type.element, compiler));
     checkObject(input, '===');
     js.Expression objectTest = pop();
     checkArray(input, '===');
@@ -2321,7 +2335,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression numTest = pop();
       checkBigInt(input, '===');
       push(new js.Binary('&&', numTest, pop()), node);
-    } else if (Elements.isStringSupertype(element, compiler)) {
+    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+      handleNumberOrStringSupertypeCheck(input, type);
+      attachLocationToLast(node);
+    } else if (Elements.isStringOnlySupertype(element, compiler)) {
       handleStringSupertypeCheck(input, type);
       attachLocationToLast(node);
     } else if (element === compiler.listClass
@@ -2375,6 +2392,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           const SourceString("functionTypeCast"),
       "intTypeCheck":
           const SourceString("intTypeCast"),
+      "numberOrStringSuperNativeTypeCheck":
+          const SourceString("numberOrStringSuperNativeTypeCast"),
+      "numberOrStringSuperTypeCheck":
+          const SourceString("numberOrStringSuperTypeCast"),
       "stringSuperNativeTypeCheck":
           const SourceString("stringSuperNativeTypeCast"),
       "stringSuperTypeCheck":

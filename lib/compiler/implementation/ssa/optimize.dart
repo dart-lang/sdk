@@ -512,7 +512,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         || element === compiler.dynamicClass) {
       return graph.addConstantBool(true, constantSystem);
     } else if (expressionType.isInteger()) {
-      if (element === compiler.intClass || element === compiler.numClass) {
+      if (element === compiler.intClass
+          || element === compiler.numClass
+          || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else if (element === compiler.doubleClass) {
         // We let the JS semantics decide for that check. Currently
@@ -522,7 +524,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false, constantSystem);
       }
     } else if (expressionType.isDouble()) {
-      if (element === compiler.doubleClass || element === compiler.numClass) {
+      if (element === compiler.doubleClass
+          || element === compiler.numClass
+          || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else if (element === compiler.intClass) {
         // We let the JS semantics decide for that check. Currently
@@ -540,7 +544,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       // type int or double.
     } else if (expressionType.isString()) {
       if (element === compiler.stringClass
-               || Elements.isStringSupertype(element, compiler)) {
+               || Elements.isStringOnlySupertype(element, compiler)
+               || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else {
         return graph.addConstantBool(false, constantSystem);

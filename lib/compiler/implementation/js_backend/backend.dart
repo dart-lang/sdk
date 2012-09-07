@@ -702,25 +702,25 @@ class JavaScriptBackend extends Backend {
       return const SourceString('functionTypeCheck');
     } else if (element == compiler.intClass) {
       return const SourceString('intTypeCheck');
-    } else if (Elements.isStringSupertype(element, compiler)) {
-      if (nativeCheck) {
-        return const SourceString('stringSuperNativeTypeCheck');
-      } else {
-        return const SourceString('stringSuperTypeCheck');
-      }
+    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+      return nativeCheck
+          ? const SourceString('numberOrStringSuperNativeTypeCheck')
+          : const SourceString('numberOrStringSuperTypeCheck');
+    } else if (Elements.isStringOnlySupertype(element, compiler)) {
+      return nativeCheck
+          ? const SourceString('stringSuperNativeTypeCheck')
+          : const SourceString('stringSuperTypeCheck');
     } else if (element === compiler.listClass) {
       return const SourceString('listTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
-        if (nativeCheck) {
-          return const SourceString('listSuperNativeTypeCheck');
-        } else {
-          return const SourceString('listSuperTypeCheck');
-        }
-      } else if (nativeCheck) {
-        return const SourceString('callTypeCheck');
+        return nativeCheck
+            ? const SourceString('listSuperNativeTypeCheck')
+            : const SourceString('listSuperTypeCheck');
       } else {
-        return const SourceString('propertyTypeCheck');
+        return nativeCheck
+            ? const SourceString('callTypeCheck')
+            : const SourceString('propertyTypeCheck');
       }
     }
   }
