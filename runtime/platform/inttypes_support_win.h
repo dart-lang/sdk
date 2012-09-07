@@ -14,4 +14,14 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
+// Printf format specifiers for intptr_t and uintptr_t.
+#define PRIdPTR "Id"
+#define PRIuPTR "Iu"
+#define PRIxPTR "Ix"
+
+// Printf format specifiers for int64_t and uint64_t.
+#define PRId64 "I64d"
+#define PRIu64 "I64u"
+#define PRIx64 "I64x"
+
 #endif  // PLATFORM_INTTYPES_SUPPORT_WIN_H_
