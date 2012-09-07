@@ -81,7 +81,7 @@ class Arrays {
       throw new IllegalArgumentException("negative length $length");
     }
     if (start < 0 ) {
-      String message = "$start must be greater equal to 0";
+      String message = "$start must be greater than or equal to 0";
       throw new IndexOutOfRangeException(message);
     }
     if (start + length > a.length) {
