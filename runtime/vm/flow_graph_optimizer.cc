@@ -1157,6 +1157,73 @@ static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
 }
 
 
+void LICM::Hoist(ForwardInstructionIterator* it,
+                 BlockEntryInstr* pre_header,
+                 Definition* current) {
+  // TODO(fschneider): Avoid repeated deoptimization when
+  // speculatively hoisting checks.
+  if (FLAG_trace_optimization) {
+    OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
+              current->DebugName(),
+              current->deopt_id(),
+              current->GetBlock()->block_id(),
+              pre_header->block_id());
+  }
+  // Move the instruction out of the loop.
+  it->RemoveCurrentFromGraph();
+  GotoInstr* last = pre_header->last_instruction()->AsGoto();
+  current->InsertBefore(last);
+  // Attach the environment of the Goto instruction to the hoisted
+  // instruction and set the correct deopt_id.
+  ASSERT(last->env() != NULL);
+  last->env()->CopyTo(current);
+  current->deopt_id_ = last->GetDeoptId();
+}
+
+
+void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
+                                      BlockEntryInstr* header,
+                                      BlockEntryInstr* pre_header,
+                                      Definition* current) {
+  PhiInstr* phi = current->InputAt(0)->definition()->AsPhi();
+  if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
+    return;
+  }
+
+  if (phi->GetPropagatedCid() == kSmiCid) {
+    it->RemoveCurrentFromGraph();
+    return;
+  }
+
+  // Check if there is only a single kDynamicCid input to the phi that
+  // comes from the pre-header.
+  const intptr_t kNotFound = -1;
+  intptr_t non_smi_input = kNotFound;
+  for (intptr_t i = 0; i < phi->InputCount(); ++i) {
+    Value* input = phi->InputAt(i);
+    if (input->ResultCid() != kSmiCid) {
+      if ((non_smi_input != kNotFound) || (input->ResultCid() != kDynamicCid)) {
+        // There are multiple kDynamicCid inputs or there is an input that is
+        // known to be non-smi.
+        return;
+      } else {
+        non_smi_input = i;
+      }
+    }
+  }
+
+  if ((non_smi_input == kNotFound) ||
+      (phi->block()->PredecessorAt(non_smi_input) != pre_header)) {
+    return;
+  }
+
+  // Host CheckSmi instruction and make this phi smi one.
+  Hoist(it, pre_header, current);
+  current->SetInputAt(non_smi_input, phi->InputAt(non_smi_input));
+  phi->SetPropagatedCid(kSmiCid);
+}
+
+
 void LICM::Optimize(FlowGraph* flow_graph) {
   GrowableArray<BlockEntryInstr*> loop_headers;
   flow_graph->ComputeLoops(&loop_headers);
@@ -1187,24 +1254,10 @@ void LICM::Optimize(FlowGraph* flow_graph) {
             }
           }
           if (inputs_loop_invariant) {
-            // TODO(fschneider): Avoid repeated deoptimization when
-            // speculatively hoisting checks.
-            if (FLAG_trace_optimization) {
-              OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
-                        current->DebugName(),
-                        current->deopt_id(),
-                        current->GetBlock()->block_id(),
-                        pre_header->block_id());
-            }
-            // Move the instruction out of the loop.
-            it.RemoveCurrentFromGraph();
-            GotoInstr* last = pre_header->last_instruction()->AsGoto();
-            current->InsertBefore(last);
-            // Attach the environment of the Goto instruction to the hoisted
-            // instruction and set the correct deopt_id.
-            ASSERT(last->env() != NULL);
-            last->env()->CopyTo(current);
-            current->deopt_id_ = last->GetDeoptId();
+            Hoist(&it, pre_header, current);
+          } else if (current->IsCheckSmi() &&
+                     current->InputAt(0)->definition()->IsPhi()) {
+            TryHoistCheckSmiThroughPhi(&it, header, pre_header, current);
           }
         }
       }

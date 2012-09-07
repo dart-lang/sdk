@@ -124,6 +124,16 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 class LICM : public AllStatic {
  public:
   static void Optimize(FlowGraph* flow_graph);
+
+ private:
+  static void Hoist(ForwardInstructionIterator* it,
+                    BlockEntryInstr* pre_header,
+                    Definition* current);
+
+  static void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
+                                         BlockEntryInstr* header,
+                                         BlockEntryInstr* pre_header,
+                                         Definition* current);
 };
 
 
