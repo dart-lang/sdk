@@ -88,6 +88,7 @@ field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 
 [ $compiler == dartc ]
 
+assert_lexical_scope_test: Fail # http://dartbug.com/4987
 bad_constructor_test/04: Fail # Constructor name clashes with other member
 bad_constructor_test/05: Fail # Constructor name clashes with other member
 bad_constructor_test/06: Fail # Constructor name clashes with other member
@@ -229,6 +230,8 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+pseudo_kw_illegal_test/02: Fail
+assert_lexical_scope_test: Fail
 bad_constructor_test/04: Fail
 bad_constructor_test/05: Fail
 bad_constructor_test/06: Fail
