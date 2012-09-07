@@ -1438,19 +1438,6 @@ TEST_CASE(WeakPersistentHandleCallback) {
 }
 
 
-UNIT_TEST_CASE(WeakPersistentHandlesCallbackShutdown) {
-  TestCase::CreateTestIsolate();
-  Dart_EnterScope();
-  Dart_Handle ref = Dart_True();
-  int peer = 1234;
-  Dart_NewWeakPersistentHandle(ref,
-                               &peer,
-                               WeakPersistentHandlePeerFinalizer);
-  Dart_ShutdownIsolate();
-  EXPECT(peer == 42);
-}
-
-
 TEST_CASE(ObjectGroups) {
   Dart_Handle strong = Dart_Null();
   EXPECT(Dart_IsNull(strong));
