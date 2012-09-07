@@ -4909,7 +4909,7 @@ bool Parser::IsVariableDeclaration() {
     return is_var_decl;
   }
   if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kCONST)) {
-    // Not a legal type identifier or const keyword or metadata
+    // Not a legal type identifier or const keyword or metadata.
     return false;
   }
   const intptr_t saved_pos = TokenPos();
