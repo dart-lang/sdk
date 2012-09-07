@@ -39,7 +39,8 @@ const String DEFAULT_HELPERLIB = @'''
   getRuntimeTypeInfo(a) {}
   stringTypeCheck(x) {}
   interface JavaScriptIndexingBehavior {}
-  S() {}''';
+  S() {}
+  assert(a){}''';
 
 const String DEFAULT_INTERCEPTORSLIB = @'''
   add$1(receiver, value) {}
@@ -52,7 +53,6 @@ const String DEFAULT_INTERCEPTORSLIB = @'''
 
 const String DEFAULT_CORELIB = @'''
   print(var obj) {}
-  assert(x) {}
   interface int extends num {}
   interface double extends num {}
   class bool {}
@@ -84,11 +84,11 @@ class MockCompiler extends Compiler {
     parseScript(coreSource, coreLibrary);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
-    assertMethod = coreLibrary.find(buildSourceString('assert'));
 
     script = new Script(uri, new MockFile(helperSource));
     jsHelperLibrary = new LibraryElement(script);
     parseScript(helperSource, jsHelperLibrary);
+    assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
 
     script = new Script(uri, new MockFile(interceptorsSource));
     interceptorsLibrary = new LibraryElement(script);

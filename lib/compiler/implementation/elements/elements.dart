@@ -158,6 +158,7 @@ class Element implements Hashable {
   bool isTypedef() => kind === ElementKind.TYPEDEF;
   bool isTypeVariable() => kind === ElementKind.TYPE_VARIABLE;
   bool isField() => kind === ElementKind.FIELD;
+  bool isAbstractField() => kind === ElementKind.ABSTRACT_FIELD;
   bool isGetter() => kind === ElementKind.GETTER;
   bool isSetter() => kind === ElementKind.SETTER;
   bool isAccessor() => isGetter() || isSetter();

@@ -50,7 +50,6 @@ Language/05_Variables/05_Variables_A08_t06: Fail # TODO(ahe): Please triage this
 Language/05_Variables/05_Variables_A08_t07: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/06_Functions_A01_t23: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t31: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/1_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
@@ -189,20 +188,14 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail # TODO(ahe): 
 Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/16_Assignment_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/20_Equality_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/20_Equality_A01_t16: Fail # TODO(ahe): Please triage this failure.
@@ -259,8 +252,6 @@ Language/11_Statements/09_Try_A06_t05: Fail # TODO(ahe): Please triage this fail
 Language/11_Statements/10_Return_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/10_Return_A04_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/10_Return_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/15_Assert_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/15_Assert_A01_t04: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # TODO(ahe): Please triage this failure.
@@ -745,7 +736,6 @@ Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t08: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t04: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail # Compile-time error: duplicate definition
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # Compile-time error: error: cannot resolve type Undeclared
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
@@ -994,7 +984,14 @@ Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t05: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t06: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t08: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # @compile-error

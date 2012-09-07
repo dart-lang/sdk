@@ -171,6 +171,14 @@ class Selector implements Hashable {
   bool isUnaryOperator() => isOperator() && argumentCount == 0;
   bool isBinaryOperator() => isOperator() && argumentCount == 1;
 
+  /** Check whether this is a call to 'assert' with one positional parameter. */
+  bool isAssertSyntax() {
+    return (isCall() &&
+            name.stringValue === "assert" &&
+            argumentCount == 1 &&
+            namedArgumentCount == 0);
+  }
+
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;

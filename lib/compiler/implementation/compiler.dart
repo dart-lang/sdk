@@ -359,7 +359,7 @@ class Compiler implements DiagnosticListener {
     libraries['dart:core'] = coreLibrary;
     libraries['dart:coreimpl'] = coreImplLibrary;
 
-    assertMethod = coreLibrary.find(const SourceString('assert'));
+    assertMethod = jsHelperLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
   }

@@ -7,11 +7,10 @@
 
 class AssertTest {
   static test() {
-    int i = 0;
     try {
       assert(false);
+      Expect.fail("Assertion 'false' didn't fail.");
     } on AssertionError catch (error) {
-      i = 1;
       Expect.equals("false", error.failedAssertion);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -19,17 +18,15 @@ class AssertTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("assert_test.dart", subs);
-      Expect.equals(12, error.line);
+      Expect.equals(11, error.line);
       Expect.equals(14, error.column);
     }
-    return i;
   }
   static testClosure() {
-    int i = 0;
     try {
       assert(() => false);
+      Expect.fail("Assertion '() => false' didn't fail.");
     } on AssertionError catch (error) {
-      i = 1;
       Expect.equals("() => false", error.failedAssertion);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -37,15 +34,14 @@ class AssertTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("assert_test.dart", subs);
-      Expect.equals(30, error.line);
+      Expect.equals(27, error.line);
       Expect.equals(14, error.column);
     }
-    return i;
   }
 
   static testMain() {
-    Expect.equals(1, test());
-    Expect.equals(1, testClosure());
+    test();
+    testClosure();
   }
 }
 

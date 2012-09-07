@@ -35,7 +35,6 @@ interface Map {}
 interface Closure {}
 interface Dynamic {}
 interface Null {}
-assert() {}
 class Math {
   static double parseDouble(String s) => 1.0;
 }
