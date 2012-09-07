@@ -3,24 +3,122 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == vm ]
+Language/07_Classes/07_Classes_A01_t20: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t32: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t34: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A03_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A03_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A03_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A03_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A03_t10: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A09_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A09_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A09_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/2_Getters_A01_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/2_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t07: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t08: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A15_t38: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/29_Type_Test_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/29_Type_Test_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/29_Type_Test_A05_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A06_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A06_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A06_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t10: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t25: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/3_Includes_A02_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/4_External_Functions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/03_Overview_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/03_Overview_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A18_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -59,52 +157,34 @@ Language/10_Expressions/16_Assignment_A04_t03: Fail # TODO(vm-team): Please tria
 Language/10_Expressions/16_Assignment_A04_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A06_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t10: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A10_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A10_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A10_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A01_t30: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A01_t31: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A01_t39: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A06_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A07_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A10_t02: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/Futures/wait_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/List/forEach_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/double/operator_negate_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 
 
-[ $runtime == vm && $unchecked ]
-Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-
-
 [ $runtime == vm && $checked ]
-Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t05: Fail # TODO(vm-team): Please triage this failure.
+
+
+[ $runtime == vm && $unchecked ]
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A05_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A05_t05: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/List/forEach_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 
 
 [ $runtime == vm ]
@@ -114,7 +194,6 @@ Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(vm-team): Please t
 Language/05_Variables/05_Variables_A05_t03: Fail, OK
 Language/05_Variables/05_Variables_A04_t09: Fail, OK
 Language/05_Variables/05_Variables_A03_t09: Fail, OK
-Language/12_Libraries_and_Scripts/3_Includes_A02_t03: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t02: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t03: Fail, OK
@@ -227,15 +306,6 @@ Language/03_Overview/2_Privacy_A01_t08: Fail # co19 issue 183
 Language/07_Classes/07_Classes_A02_t29: Skip # co19 issue 183
 Language/07_Classes/07_Classes_A02_t31: Skip # co19 issue 183
 Language/07_Classes/07_Classes_A07_t10: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t02: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Skip # co19 issue 183
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Skip # co19 issue 183
 Language/07_Classes/2_Getters_A01_t01: Fail # co19 issue 183
 Language/07_Classes/3_Setters_A01_t01: Fail # co19 issue 183
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # co19 issue 183
@@ -255,7 +325,6 @@ Language/10_Expressions/07_Maps_A10_t03: Pass, Fail # co19 175
 Language/10_Expressions/07_Maps_A10_t04: Pass, Fail # co19 175
 Language/10_Expressions/07_Maps_A10_t05: Pass, Fail # co19 175
 
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # issue 1604 (call operator not implemented)
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # issue 1286. (This test may become obsolete)
@@ -278,7 +347,6 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # issue 1286 (fu
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/09_Try_A01_t14: Fail # co19 issue 168
 Language/11_Statements/09_Try_A05_t06: Fail # issue 430
-Language/13_Types/5_Function_Types_A02_t01: Fail # issue 1604 (call operator not implemented)
 LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
 
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
@@ -367,10 +435,7 @@ LibTest/core/Date/year_A01_t01: Fail, OK
 
 # The following tests contain String operator + which is being removed
 # from the language.
-Language/11_Statements/10_Return_A02_t01: Fail, OK
 Language/11_Statements/07_Do_A02_t02: Fail, OK
-Language/10_Expressions/17_Conditional_A03_t01: Fail, OK
-Language/10_Expressions/17_Conditional_A01_t01: Fail, OK
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail, OK
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail, OK
 LibTest/core/Expect/listEquals_A03_t01: Fail, OK
@@ -382,252 +447,22 @@ LibTest/core/Date/Date_A01_t02: Fail, OK
 Language/03_Overview/1_Scoping_A02_t30: Fail, OK
 Language/03_Overview/2_Privacy_A01_t06: Fail, OK
 Language/03_Overview/2_Privacy_A01_t21: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t02: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail, OK
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail, OK
-Language/07_Classes/2_Getters_A02_t01: Fail, OK
-Language/07_Classes/4_Instance_Variables_A04_t02: Fail, OK
-Language/07_Classes/4_Instance_Variables_A04_t03: Fail, OK
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t02: Fail, OK
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t01: Fail, OK
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t02: Fail, OK
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t03: Fail, OK
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t04: Fail, OK
-Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail, OK
-Language/07_Classes/5_Constructors/2_Factories_A06_t02: Fail, OK
 Language/07_Classes/5_Constructors/2_Factories_A06_t03: Fail, OK
-Language/07_Classes/5_Constructors/2_Factories_A06_t04: Fail, OK
-Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail, OK
-Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail, OK
-Language/07_Classes/7_Static_Variables_A01_t03: Fail, OK
-Language/07_Classes/7_Static_Variables_A01_t04: Fail, OK
-Language/07_Classes/7_Static_Variables_A01_t05: Fail, OK
-Language/07_Classes/7_Static_Variables_A02_t01: Fail, OK
-Language/07_Classes/7_Static_Variables_A03_t02: Fail, OK
-Language/07_Classes/7_Static_Variables_A03_t03: Fail, OK
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A03_t01: Fail, OK
-Language/07_Classes/9_Superinterfaces_A06_t01: Fail, OK
 Language/08_Interfaces/1_Methods_A02_t01: Fail, OK
 Language/08_Interfaces/1_Methods_A02_t02: Fail, OK
 Language/08_Interfaces/1_Methods_A02_t03: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail, OK
-Language/09_Generics/09_Generics_A03_t01: Fail, OK
-Language/09_Generics/09_Generics_A04_t04: Fail, OK
-Language/09_Generics/09_Generics_A04_t05: Fail, OK
-Language/09_Generics/09_Generics_A04_t06: Fail, OK
-Language/10_Expressions/01_Constants_A11_t01: Fail, OK
-Language/10_Expressions/01_Constants_A12_t01: Fail, OK
-Language/10_Expressions/01_Constants_A14_t01: Fail, OK
-Language/10_Expressions/02_Null_A05_t02: Fail, OK
-Language/10_Expressions/03_Numbers_A05_t02: Fail, OK
-Language/10_Expressions/03_Numbers_A06_t02: Fail, OK
-Language/10_Expressions/04_Booleans/1_Boolean_Conversion_A01_t01: Fail, OK
-Language/10_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: Fail, OK
-Language/10_Expressions/04_Booleans_A04_t02: Fail, OK
-Language/10_Expressions/05_Strings_A18_t02: Fail, OK
-Language/10_Expressions/05_Strings_A18_t03: Fail, OK
-Language/10_Expressions/05_Strings_A18_t04: Fail, OK
-Language/10_Expressions/05_Strings_A18_t05: Fail, OK
-Language/10_Expressions/05_Strings_A18_t06: Fail, OK
-Language/10_Expressions/05_Strings_A18_t07: Fail, OK
-Language/10_Expressions/05_Strings_A18_t08: Fail, OK
-Language/10_Expressions/05_Strings_A18_t09: Fail, OK
-Language/10_Expressions/06_Lists_A02_t01: Fail, OK
-Language/10_Expressions/06_Lists_A06_t01: Fail, OK
-Language/10_Expressions/06_Lists_A09_t01: Fail, OK
-Language/10_Expressions/06_Lists_A09_t02: Fail, OK
-Language/10_Expressions/06_Lists_A09_t03: Fail, OK
-Language/10_Expressions/06_Lists_A09_t04: Fail, OK
-Language/10_Expressions/06_Lists_A09_t05: Fail, OK
-Language/10_Expressions/07_Maps_A05_t01: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A03_t02: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A03_t03: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A03_t04: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A05_t02: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A05_t03: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A05_t04: Fail, OK
-Language/10_Expressions/08_Function_Expressions_A05_t05: Fail, OK
-Language/10_Expressions/09_This_A02_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A06_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A14_t02: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A14_t03: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A09_t02: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A09_t03: Fail, OK
-Language/10_Expressions/10_Instance_Creation_A05_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation_A05_t02: Fail, OK
-Language/10_Expressions/10_Instance_Creation_A06_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation_A06_t02: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A02_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A03_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A05_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A05_t02: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A05_t03: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A05_t04: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t02: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t03: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t06: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t07: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t08: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t02: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t03: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t04: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t02: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t03: Fail, OK
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t04: Fail, OK
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail, OK
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A04_t02: Fail, OK
-Language/10_Expressions/13_Function_Invocation_A01_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A02_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A06_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A06_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A07_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A03_t01: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A03_t02: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A05_t01: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A05_t02: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A06_t02: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A07_t01: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A07_t02: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A08_t01: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A08_t02: Fail, OK
-Language/10_Expressions/16_Assignment_A01_t05: Fail, OK
-Language/10_Expressions/16_Assignment_A02_t01: Fail, OK
-Language/10_Expressions/16_Assignment_A03_t01: Fail, OK
-Language/10_Expressions/16_Assignment_A04_t06: Fail, OK
-Language/10_Expressions/16_Assignment_A04_t07: Fail, OK
-Language/10_Expressions/16_Assignment_A06_t01: Fail, OK
-Language/10_Expressions/16_Assignment_A07_t01: Fail, OK
-Language/10_Expressions/16_Assignment_A08_t03: Fail, OK
-Language/10_Expressions/17_Conditional_A02_t01: Fail, OK
-Language/10_Expressions/17_Conditional_A02_t03: Fail, OK
-Language/10_Expressions/17_Conditional_A02_t04: Fail, OK
-Language/10_Expressions/17_Conditional_A04_t02: Fail, OK
-Language/10_Expressions/17_Conditional_A04_t03: Fail, OK
-Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail, OK
-Language/10_Expressions/18_Logical_Boolean_Expressions_A04_t02: Fail, OK
-Language/10_Expressions/20_Equality_A10_t02: Fail, OK
-Language/10_Expressions/22_Shift_A01_t15: Fail, OK
-Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail, OK
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t01: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A05_t01: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A07_t01: Fail, OK
-Language/10_Expressions/27_Assignable_Expressions_A01_t01: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A05_t06: Fail, OK
-Language/10_Expressions/29_Type_Test_A04_t01: Fail, OK
-Language/11_Statements/01_Blocks_A01_t02: Fail, OK
-Language/11_Statements/03_Variable_Declaration_A01_t01: Fail, OK
-Language/11_Statements/03_Variable_Declaration_A01_t02: Fail, OK
-Language/11_Statements/03_Variable_Declaration_A01_t07: Fail, OK
-Language/11_Statements/04_If_A02_t01: Fail, OK
-Language/11_Statements/04_If_A02_t02: Fail, OK
-Language/11_Statements/04_If_A05_t01: Fail, OK
-Language/11_Statements/04_If_A05_t02: Fail, OK
-Language/11_Statements/05_For/1_For_Loop_A01_t07: Fail, OK
-Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail, OK
 Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK
 Language/11_Statements/05_For/2_For_in_A01_t04: Fail, OK
-Language/11_Statements/06_While_A02_t02: Fail, OK
-Language/11_Statements/06_While_A03_t01: Fail, OK
-Language/11_Statements/06_While_A03_t02: Fail, OK
-Language/11_Statements/06_While_A03_t03: Fail, OK
-Language/11_Statements/07_Do_A02_t03: Fail, OK
-Language/11_Statements/07_Do_A03_t01: Fail, OK
-Language/11_Statements/07_Do_A03_t02: Fail, OK
-Language/11_Statements/07_Do_A03_t03: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
-Language/11_Statements/09_Try_A02_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
-Language/11_Statements/09_Try_A02_t04: Fail, OK
 Language/11_Statements/09_Try_A04_t01: Fail, OK
-Language/11_Statements/09_Try_A05_t01: Fail, OK
-Language/11_Statements/09_Try_A05_t02: Fail, OK
 Language/11_Statements/09_Try_A05_t03: Fail, OK
-Language/11_Statements/09_Try_A05_t05: Fail, OK
-Language/11_Statements/09_Try_A05_t07: Fail, OK
-Language/11_Statements/09_Try_A05_t08: Fail, OK
-Language/11_Statements/09_Try_A05_t09: Fail, OK
-Language/11_Statements/10_Return_A03_t01: Fail, OK
-Language/11_Statements/10_Return_A03_t02: Fail, OK
-Language/11_Statements/11_Labels_A01_t01: Fail, OK
-Language/11_Statements/11_Labels_A03_t01: Fail, OK
-Language/11_Statements/12_Break_A01_t02: Fail, OK
-Language/11_Statements/12_Break_A03_t01: Fail, OK
-Language/11_Statements/12_Break_A03_t02: Fail, OK
-Language/11_Statements/12_Break_A03_t03: Fail, OK
-Language/11_Statements/12_Break_A03_t06: Fail, OK
-Language/11_Statements/12_Break_A03_t09: Fail, OK
-Language/11_Statements/13_Continue_A03_t01: Fail, OK
-Language/11_Statements/13_Continue_A03_t04: Fail, OK
-Language/11_Statements/13_Continue_A03_t06: Fail, OK
-Language/11_Statements/13_Continue_A03_t07: Fail, OK
 Language/11_Statements/14_Throw_A02_t02: Fail, OK
 Language/11_Statements/14_Throw_A02_t03: Fail, OK
-Language/11_Statements/14_Throw_A02_t04: Fail, OK
 Language/11_Statements/14_Throw_A03_t02: Fail, OK
 Language/11_Statements/14_Throw_A03_t03: Fail, OK
-Language/11_Statements/15_Assert_A02_t01: Fail, OK
-Language/11_Statements/15_Assert_A03_t01: Fail, OK
-Language/11_Statements/15_Assert_A03_t02: Fail, OK
-Language/11_Statements/15_Assert_A03_t03: Fail, OK
-Language/11_Statements/15_Assert_A03_t04: Fail, OK
-Language/11_Statements/15_Assert_A03_t05: Fail, OK
-Language/11_Statements/15_Assert_A03_t06: Fail, OK
-Language/11_Statements/15_Assert_A03_t08: Fail, OK
-Language/11_Statements/15_Assert_A03_t09: Fail, OK
-Language/11_Statements/15_Assert_A04_t01: Fail, OK
-Language/11_Statements/15_Assert_A04_t02: Fail, OK
-Language/11_Statements/15_Assert_A04_t03: Fail, OK
-Language/11_Statements/15_Assert_A04_t04: Fail, OK
-Language/11_Statements/15_Assert_A04_t05: Fail, OK
-Language/11_Statements/15_Assert_A04_t06: Fail, OK
-Language/11_Statements/15_Assert_A04_t07: Fail, OK
-Language/11_Statements/15_Assert_A05_t01: Fail, OK
-Language/11_Statements/15_Assert_A05_t02: Fail, OK
-Language/11_Statements/15_Assert_A05_t03: Fail, OK
-Language/11_Statements/15_Assert_A05_t04: Fail, OK
-Language/11_Statements/15_Assert_A05_t05: Fail, OK
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t01: Fail, OK
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail, OK
-Language/13_Types/2_Dynamic_Type_System_A01_t01: Fail, OK
-Language/13_Types/4_Interface_Types_A08_t03: Fail, OK
-Language/13_Types/6_Type_Dynamic_A03_t01: Fail, OK
-Language/13_Types/6_Type_Dynamic_A04_t01: Fail, OK
-Language/13_Types/8_Parameterized_Types_A02_t01: Fail, OK
-Language/14_Reference/1_Lexical_Rules/2_Comments_A01_t05: Fail, OK
-Language/14_Reference/1_Lexical_Rules/2_Comments_A01_t06: Fail, OK
 LibTest/core/AssertionError/column_A01_t02: Fail, OK
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail, OK
 LibTest/core/AssertionError/line_A01_t02: Fail, OK
@@ -690,11 +525,9 @@ LibTest/core/Expect/throws_A01_t03: Fail, OK
 LibTest/core/Expect/throws_A01_t05: Fail, OK
 LibTest/core/FallThroughError/toString_A01_t01: Fail, OK
 LibTest/core/FallThroughError/toString_A01_t02: Fail, OK
-LibTest/core/Future/chain_A02_t05: Fail, OK
 LibTest/core/Future/exception_A02_t01: Fail, OK
 LibTest/core/Future/handleException_A01_t04: Fail, OK
 LibTest/core/Future/handleException_A01_t05: Fail, OK
-LibTest/core/Future/transform_A02_t04: Fail, OK
 LibTest/core/HashMap/HashMap.from_A02_t01: Fail, OK
 LibTest/core/HashSet/HashSet.from_A02_t01: Fail, OK
 LibTest/core/int/operator_left_shift_A01_t03: Fail, OK
@@ -713,12 +546,9 @@ LibTest/core/List/addAll_A03_t01: Fail, OK
 LibTest/core/List/addLast_A02_t01: Fail, OK
 LibTest/core/List/clear_A02_t01: Fail, OK
 LibTest/core/List/every_A01_t01: Fail, OK
-LibTest/core/List/forEach_A02_t01: Fail, OK
 LibTest/core/List/getRange_A03_t01: Fail, OK
 LibTest/core/List/getRange_A04_t01: Fail, OK
 LibTest/core/List/getRange_A05_t01: Fail, OK
-LibTest/core/List/getRange_A06_t01: Fail, OK
-LibTest/core/List/indexOf_A06_t01: Fail, OK
 LibTest/core/List/insertRange_A02_t01: Fail, OK
 LibTest/core/List/insertRange_A05_t01: Fail, OK
 LibTest/core/List/insertRange_A06_t01: Fail, OK
@@ -728,7 +558,6 @@ LibTest/core/List/last_A02_t01: Fail, OK
 LibTest/core/List/length_A04_t01: Fail, OK
 LibTest/core/List/length_A05_t01: Fail, OK
 LibTest/core/List/length_A06_t01: Fail, OK
-LibTest/core/List/length_A07_t01: Fail, OK
 LibTest/core/List/List_A01_t01: Fail, OK
 LibTest/core/List/List_A01_t02: Fail, OK
 LibTest/core/List/List_A03_t01: Fail, OK
@@ -756,7 +585,6 @@ LibTest/core/Map/forEach_A01_t02: Fail, OK
 LibTest/core/Map/forEach_A01_t04: Fail, OK
 LibTest/core/Map/operator_subscript_A01_t02: Fail, OK
 LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail, OK
-LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK
 LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK
 LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK
 LibTest/core/Map/putIfAbsent_A01_t10: Fail, OK
@@ -835,29 +663,11 @@ LibTest/core/TypeError/url_A01_t01: Fail, OK
 # Tests that used to fail before deprecating the old try-catch syntax.
 # The original issue that used to cause the test to fail is put in an
 # end-of-line comment. See co19 issue 184.
-Language/07_Classes/07_Classes_A03_t03: Pass, OK # co19 issue 183, 182
-Language/07_Classes/07_Classes_A03_t04: Pass, OK # co19 issue 183, 182
-Language/07_Classes/07_Classes_A03_t05: Pass, OK # co19 issue 183, 182
-Language/07_Classes/07_Classes_A03_t06: Pass, OK # co19 issue 183, 182
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Pass, OK # co19 issue 379
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t19: Pass, OK # co19 issue 169
-Language/07_Classes/2_Getters_A01_t03: Pass, OK # co19 issue 170
-Language/07_Classes/4_Instance_Variables_A01_t01: Pass, OK # co19 issue 172
-Language/07_Classes/4_Instance_Variables_A01_t02: Pass, OK # co19 issue 172
-Language/07_Classes/4_Instance_Variables_A01_t07: Pass, OK # co19 issue 172
-Language/10_Expressions/01_Constants_A15_t38: Pass, OK # issue 3558 - use of final var in const expression
 Language/10_Expressions/01_Constants_A15_t48: Pass, OK # co19 issue 171
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Pass, OK # co19 issue 152
-Language/12_Libraries_and_Scripts/2_Imports_A03_t01: Pass, OK # co19 issue 176
-Language/12_Libraries_and_Scripts/2_Imports_A03_t02: Pass, OK # co19 issue 176
-Language/12_Libraries_and_Scripts/2_Imports_A04_t01: Pass, OK # issue 4564
 
 
 LibTest/core/String/contains_A01_t03: Skip # Times out.
-
-# VM issues wrong error, static setter f is not inherited by class B
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t02: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t03: Fail
 
 Language/07_Classes/5_Constructors/2_Factories_A05_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail
@@ -874,10 +684,6 @@ Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
 
 [ $runtime == vm && $arch == ia32 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-
-
-[ $runtime == vm && $unchecked ]
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 
 
 [ $runtime == vm ]
@@ -930,10 +736,6 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 Language/11_Statements/08_Switch_A01_t01: Fail
 
 
-# 'foo' is already defined
-Language/12_Libraries_and_Scripts/2_Imports_A02_t09: Fail
-
-
 # class '?' overrides function '?' of super class '?' with incompatible parameters
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
@@ -973,7 +775,6 @@ Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail
 
 # invalid operator overloading
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail
-Language/07_Classes/1_Instance_Methods/2_Operators_A09_t01: Fail
 Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail
 Language/10_Expressions/20_Equality_A02_t02: Fail
@@ -993,21 +794,11 @@ Language/11_Statements/05_For_A01_t11: Fail
 
 
 [ $runtime == vm && $unchecked ]
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # unexpected token '&&'
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
 
 
 [ $runtime == vm && $checked ]
 Language/03_Overview/1_Scoping_A02_t30: Fail
-Language/10_Expressions/08_Function_Expressions_A03_t02: Fail
-Language/13_Types/7_Type_Void_A04_t02: Fail # co19 issue 158
-Language/13_Types/7_Type_Void_A04_t03: Fail # co19 issue 158
-Language/13_Types/7_Type_Void_A04_t04: Fail # co19 issue 158
-Language/13_Types/7_Type_Void_A04_t05: Fail # co19 issue 158
-
-# Test that fail because they use old try-catch syntax. See co19 issue 184.
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail, OK
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail, OK
 
 
 [ $runtime == vm && $mode == debug && $unchecked ]
