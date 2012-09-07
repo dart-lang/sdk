@@ -21,8 +21,7 @@ main() {
   Expect.equals(0, x - y);
   Expect.equals(0, foo());
   Expect.isTrue(x is double);
-  // TODO(floitsch): we probably want to change this to be true.
-  Expect.isFalse(x is int);
+  Expect.isTrue(x is int);
   Expect.equals(8, b);
   Expect.equals(8, 1.0 << 3);  // This would not be valid with Dart semantics.
   Expect.isTrue(1 == 1.0);
