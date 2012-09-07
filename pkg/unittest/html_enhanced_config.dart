@@ -241,7 +241,8 @@ class HtmlEnhancedConfiguration extends Configuration {
   '''
   body{
     font-size: 14px;
-    font-family: 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+    font-family: 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande','''
+  ''' sans-serif;
     background: WhiteSmoke;
   }
 
@@ -258,10 +259,14 @@ class HtmlEnhancedConfiguration extends Configuration {
     ${_isIE ? "border-bottom:solid black 1px;": ""}
     ${_isIE ? "border-top:solid #777777 1px;": ""}
 
-    background-image: -webkit-linear-gradient(bottom, rgb(50,50,50) 0%, rgb(100,100,100) 100%);
-    background-image: -moz-linear-gradient(bottom, rgb(50,50,50) 0%, rgb(100,100,100) 100%);
-    background-image: -ms-linear-gradient(bottom, rgb(50,50,50) 0%, rgb(100,100,100) 100%);
-    background-image: linear-gradient(bottom, rgb(50,50,50) 0%, rgb(100,100,100) 100%);
+    background-image: -webkit-linear-gradient(bottom, rgb(50,50,50) 0%, '''
+    '''rgb(100,100,100) 100%);
+    background-image: -moz-linear-gradient(bottom, rgb(50,50,50) 0%, '''
+    '''rgb(100,100,100) 100%);
+    background-image: -ms-linear-gradient(bottom, rgb(50,50,50) 0%, '''
+    '''rgb(100,100,100) 100%);
+    background-image: linear-gradient(bottom, rgb(50,50,50) 0%, '''
+    '''rgb(100,100,100) 100%);
 
     display: -webkit-box;
     display: -moz-box;
@@ -289,17 +294,24 @@ class HtmlEnhancedConfiguration extends Configuration {
 
   .unittest-group-status-pass{
     background: Green;
-    background: -webkit-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
-    background: -moz-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
-    background: -ms-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
-    background: radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
+    background: '''
+    '''-webkit-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
+    background: '''
+    '''-moz-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
+    background: '''
+    '''-ms-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
+    background: '''
+    '''radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
   }
 
   .unittest-group-status-fail{
     background: Red;
-    background: -webkit-radial-gradient(center, ellipse cover, #FFAAAA 0%,Red 100%);
-    background: -moz-radial-gradient(center, ellipse cover, #FFAAAA 0%,Red 100%);
-    background: -ms-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
+    background: '''
+    '''-webkit-radial-gradient(center, ellipse cover, #FFAAAA 0%,Red 100%);
+    background: '''
+    '''-moz-radial-gradient(center, ellipse cover, #FFAAAA 0%,Red 100%);
+    background: '''
+    '''-ms-radial-gradient(center, ellipse cover, #AAFFAA 0%,Green 100%);
     background: radial-gradient(center, ellipse cover, #FFAAAA 0%,Red 100%);
   }
 
