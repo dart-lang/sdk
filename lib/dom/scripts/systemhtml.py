@@ -298,6 +298,7 @@ _html_element_constructors = {
   'PreElement': 'pre',
   'ProgressElement': 'progress',
   'ScriptElement': 'script',
+  'SelectElement': 'select',
   'SourceElement': 'source',
   'SpanElement': 'span',
   'StyleElement': 'style',

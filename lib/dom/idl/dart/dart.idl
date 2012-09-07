@@ -69,6 +69,11 @@ module html {
   };
 
   [Supplemental]
+  interface HTMLSelectElement {
+    [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
+  };
+
+  [Supplemental]
   interface ImageData {
     readonly attribute Uint8ClampedArray data;
   };

@@ -14792,8 +14792,6 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   final bool willValidate;
 
-  void add(_ElementImpl element, _ElementImpl before) native;
-
   bool checkValidity() native;
 
   _NodeImpl item(int index) native;
@@ -18322,6 +18320,11 @@ class _Elements {
 
   factory ScriptElement() {
     _ScriptElementImpl _e = _document.$dom_createElement("script");
+    return _e;
+  }
+
+  factory SelectElement() {
+    _SelectElementImpl _e = _document.$dom_createElement("select");
     return _e;
   }
 
@@ -33228,7 +33231,9 @@ interface ScriptProfileNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSelectElement
-interface SelectElement extends Element {
+interface SelectElement extends Element default _Elements {
+
+  SelectElement();
 
   /** @domName HTMLSelectElement.autofocus */
   bool autofocus;
@@ -33280,9 +33285,6 @@ interface SelectElement extends Element {
 
   /** @domName HTMLSelectElement.willValidate */
   final bool willValidate;
-
-  /** @domName HTMLSelectElement.add */
-  void add(Element element, Element before);
 
   /** @domName HTMLSelectElement.checkValidity */
   bool checkValidity();
