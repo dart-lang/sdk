@@ -819,6 +819,9 @@ class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromElement(Element element) {
+    if (Elements.isErroneousElement(element)) {
+      element = element.enclosingElement;
+    }
     if (element.position() === null) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is

@@ -990,8 +990,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     TargetElement element = mapping[statement];
     if (element === null) {
       element = new TargetElement(statement,
-                                     statementScope.nestingLevel,
-                                     enclosingElement);
+                                  statementScope.nestingLevel,
+                                  enclosingElement);
       mapping[statement] = element;
     }
     return element;
@@ -1015,6 +1015,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitInStaticContext(Node node) {
     inStaticContext(() => visit(node));
+  }
+
+  ErroneousElement warnAndCreateErroneousElement(Node node,
+                                                 SourceString name,
+                                                 MessageKind kind,
+                                                 List<Node> arguments) {
+    ResolutionWarning warning = new ResolutionWarning(kind, arguments);
+    compiler.reportWarning(node, warning);
+    return new ErroneousElement(warning.message, name, enclosingElement);
   }
 
   Element visitIdentifier(Identifier node) {
@@ -1245,13 +1254,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       target = currentClass.lookupSuperMember(name);
       // [target] may be null which means invoking noSuchMethod on
       // super.
-    } else if (Element.isInvalid(resolvedReceiver)) {
+    } else if (Elements.isUnresolved(resolvedReceiver)) {
       return null;
     } else if (resolvedReceiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = resolvedReceiver;
       target = receiverClass.ensureResolved(compiler).lookupLocalMember(name);
       if (target === null) {
-        error(node, MessageKind.METHOD_NOT_FOUND, [receiverClass.name, name]);
+        return warnAndCreateErroneousElement(node, name,
+                                             MessageKind.METHOD_NOT_FOUND,
+                                             [receiverClass.name, name]);
       } else if (target.isInstanceMember()) {
         error(node, MessageKind.MEMBER_NOT_STATIC, [receiverClass.name, name]);
       }
@@ -1348,12 +1359,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitSend(Send node) {
     Element target = resolveSend(node);
-    if (!Element.isInvalid(target)
+    if (!Elements.isUnresolved(target)
         && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
-      if (Element.isInvalid(target) && !inInstanceContext) {
-        // TODO(karlklose): make this a runtime error.
+      if (Elements.isUnresolved(target) && !inInstanceContext) {
         error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
       }
     }
@@ -1391,7 +1401,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // we need to register that fact that we may be calling a closure
     // with the same arguments.
     if (node.isCall &&
-        (Element.isInvalid(target) ||
+        (Elements.isUnresolved(target) ||
          target.isGetter() ||
          Elements.isClosureSend(node, target))) {
       Selector call = new Selector.callClosureFrom(selector);
@@ -1421,16 +1431,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element getter = target;
     String source = node.assignmentOperator.source.stringValue;
     bool isComplex = source !== '=';
-    if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
+    if (!Elements.isUnresolved(target)
+        && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       setter = field.setter;
       getter = field.getter;
-      if (Element.isInvalid(setter) && !inInstanceContext) {
-        // TODO(karlklose): make this a runtime error.
+      if (setter == null && !inInstanceContext) {
         error(node.selector, MessageKind.CANNOT_RESOLVE_SETTER);
       }
-      if (isComplex && Element.isInvalid(getter) && !inInstanceContext) {
-        // TODO(karlklose): make this a runtime error.
+      if (isComplex && getter == null && !inInstanceContext) {
         error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
       }
     }
@@ -1560,7 +1569,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     resolveSelector(node.send);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
-    if (Element.isInvalid(constructor)) return constructor;
+    if (Elements.isUnresolved(constructor)) return constructor;
     // TODO(karlklose): handle optional arguments.
     if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
       // TODO(ngeoffray): resolution error with wrong number of
@@ -1596,7 +1605,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     FunctionElement constructor = node.accept(visitor);
     // Try to resolve the type that the new-expression constructs.
     TypeAnnotation annotation = node.send.getTypeAnnotation();
-    if (Element.isInvalid(constructor)) {
+    if (Elements.isUnresolved(constructor)) {
       // Resolve the type arguments. We cannot create a type and check the
       // number of type arguments for this annotation, because we do not know
       // the element.
@@ -2483,13 +2492,15 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 
   failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
-                               MessageKind kind, List arguments) {
+                               SourceString targetName, MessageKind kind,
+                               List arguments) {
     if (inConstContext) {
       error(diagnosticNode, kind, arguments);
     } else {
       ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
       compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousFunctionElement(warning.message, enclosing);
+      return new ErroneousFunctionElement(warning.message, targetName,
+                                          enclosing);
     }
   }
 
@@ -2505,6 +2516,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                               '.${constructorName.slowToString()}';
       }
       return failOrReturnErroneousElement(cls, diagnosticNode,
+                                          new SourceString(fullConstructorName),
                                           MessageKind.CANNOT_FIND_CONSTRUCTOR,
                                           [fullConstructorName]);
     }
@@ -2514,7 +2526,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     Element e = visit(selector);
-    if (!Element.isInvalid(e) && e.kind === ElementKind.CLASS) {
+    if (!Elements.isUnresolved(e) && e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
       if (cls.isInterface() && (cls.defaultClass === null)) {
@@ -2531,7 +2543,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   visitSend(Send node) {
     Element e = visit(node.receiver);
-    if (Element.isInvalid(e)) return e;
+    if (Elements.isUnresolved(e)) return e;
     Identifier name = node.selector.asIdentifier();
     if (name === null) internalError(node.selector, 'unexpected node');
 
@@ -2548,6 +2560,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       e = prefix.lookupLocalMember(name.source);
       if (e === null) {
         return failOrReturnErroneousElement(resolver.enclosingElement, name,
+                                            name.source,
                                             MessageKind.CANNOT_RESOLVE,
                                             [name]);
       } else if (e.kind !== ElementKind.CLASS) {
@@ -2563,7 +2576,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     SourceString name = node.source;
     Element e = resolver.lookup(node, name);
     if (e === null) {
-      return failOrReturnErroneousElement(resolver.enclosingElement, node,
+      return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
                                           MessageKind.CANNOT_RESOLVE, [name]);
     } else if (e.kind === ElementKind.TYPEDEF) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);

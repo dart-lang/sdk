@@ -454,7 +454,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     DartType returnType;
     DartType previousType;
     final FunctionElement element = elements[node];
-    if (Element.isInvalid(element)) return types.dynamicType;
+    if (Elements.isUnresolved(element)) return types.dynamicType;
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
         element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
       type = types.dynamicType;
@@ -632,7 +632,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
           if (memberType.element === compiler.dynamicClass) return null;
           return memberType;
         } else {
-          if (element === null) {
+          if (Elements.isUnresolved(element)) {
             fail(node, 'unresolved ${node.selector}');
           } else if (element.kind === ElementKind.FUNCTION) {
             return computeType(element);
@@ -769,7 +769,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType computeType(Element element) {
-    if (Element.isInvalid(element)) return types.dynamicType;
+    if (Elements.isUnresolved(element)) return types.dynamicType;
     DartType result = element.computeType(compiler);
     return (result !== null) ? result : types.dynamicType;
   }

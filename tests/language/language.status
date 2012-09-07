@@ -96,6 +96,7 @@ argument_definition_test/*: Skip # Not implemented.
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail  # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
+call_nonexistent_static_test/03: Fail # Unresolved static calls are no longer errors.
 call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
 char_escape_test: Pass # Issue 1654
@@ -197,6 +198,11 @@ import_core_no_prefix_test: Fail # Issue 4607
 
 [ $compiler == none && $runtime == vm ]
 import_core_no_prefix_test: Fail # Issue 4607
+
+[ $runtime == vm ]
+call_nonexistent_static_test/01: Fail # Issues 3094
+call_nonexistent_static_test/02: Fail # Issues 3088
+call_nonexistent_static_test/03: Fail # Issues 3085
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip

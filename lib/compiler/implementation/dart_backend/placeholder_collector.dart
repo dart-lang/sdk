@@ -59,6 +59,8 @@ class SendVisitor extends ResolvedVisitor {
     // element === null means dynamic property access.
     if (element === null) {
       collector.tryMakeMemberPlaceholder(node.selector);
+    } else if (element.isErroneous()) {
+      return;
     } else if (element.isPrefix()) {
       // Node is prefix part in case of source 'lib.somesetter = 5;'
       collector.makeNullPlaceholder(node);
@@ -82,6 +84,9 @@ class SendVisitor extends ResolvedVisitor {
 
   visitStaticSend(Send node) {
     final element = elements[node];
+    if (Elements.isUnresolved(element)) {
+      return;
+    }
     if (element.isConstructor() || element.isFactoryConstructor()) {
       // Rename named constructor in redirection position:
       // class C { C.named(); C.redirecting() : this.named(); }
@@ -362,7 +367,7 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitSendSet(SendSet send) {
     final element = treeElements[send];
-    if (element !== null) {
+    if (!Elements.isUnresolved(element)) {
       if (Elements.isStaticOrTopLevel(element)) {
         assert(element is VariableElement || element.isSetter());
         makeElementPlaceholder(send.selector, element);
