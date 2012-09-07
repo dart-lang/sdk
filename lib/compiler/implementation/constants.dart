@@ -2,6 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface ConstantVisitor<R> {
+  R visitSentinel(SentinelConstant constant);
+  R visitFunction(FunctionConstant constant);
+  R visitNull(NullConstant constant);
+  R visitInt(IntConstant constant);
+  R visitDouble(DoubleConstant constant);
+  R visitTrue(TrueConstant constant);
+  R visitFalse(FalseConstant constant);
+  R visitString(StringConstant constant);
+  R visitList(ListConstant constant);
+  R visitMap(MapConstant constant);
+  R visitConstructed(ConstructedConstant constant);
+}
+
 class Constant implements Hashable {
   const Constant();
 
@@ -26,35 +40,23 @@ class Constant implements Hashable {
   bool isNaN() => false;
   bool isMinusZero() => false;
 
-  abstract void _writeJsCode(CodeBuffer buffer, ConstantHandler handler);
-  /**
-    * Unless the constant can be emitted multiple times (as for numbers and
-    * strings) adds its canonical name to the buffer.
-    */
-  abstract void _writeCanonicalizedJsCode(CodeBuffer buffer,
-                                          ConstantHandler handler);
   abstract List<Constant> getDependencies();
+
+  abstract accept(ConstantVisitor);
 }
 
 class SentinelConstant extends Constant {
   const SentinelConstant();
   static final SENTINEL = const SentinelConstant();
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    handler.compiler.internalError(
-        "The parameter sentinel constant does not need specific JS code");
-  }
-
-  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add(handler.compiler.namer.CURRENT_ISOLATE);
-  }
-
   List<Constant> getDependencies() => const <Constant>[];
 
-  // Just use a randome value.
-  int hashCode() => 926429784158;
+  // Just use a random value.
+  int hashCode() => 24297418;
 
   bool isSentinel() => true;
+
+  accept(ConstantVisitor visitor) => visitor.visitSentinel(this);
 }
 
 class FunctionConstant extends Constant {
@@ -75,16 +77,9 @@ class FunctionConstant extends Constant {
     return new DartString.literal(element.name.slowToString());
   }
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    handler.compiler.internalError(
-        "A constant function does not need specific JS code");
-  }
-
-  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add(handler.compiler.namer.isolatePropertiesAccess(element));
-  }
-
   int hashCode() => (17 * element.hashCode()) & 0x7fffffff;
+
+  accept(ConstantVisitor visitor) => visitor.visitFunction(this);
 }
 
 class PrimitiveConstant extends Constant {
@@ -103,10 +98,6 @@ class PrimitiveConstant extends Constant {
   // Primitive constants don't have dependencies.
   List<Constant> getDependencies() => const <Constant>[];
   abstract DartString toDartString();
-
-  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    _writeJsCode(buffer, handler);
-  }
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -125,6 +116,8 @@ class NullConstant extends PrimitiveConstant {
   // The magic constant has no meaning. It is just a random value.
   int hashCode() => 785965825;
   DartString toDartString() => const LiteralDartString("null");
+
+  accept(ConstantVisitor visitor) => visitor.visitNull(this);
 }
 
 class NumConstant extends PrimitiveConstant {
@@ -156,10 +149,6 @@ class IntConstant extends NumConstant {
   const IntConstant._internal(this.value);
   bool isInt() => true;
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add("$value");
-  }
-
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
   // The is [:!IntConstant:] check at the beginning of the function makes sure
@@ -172,6 +161,8 @@ class IntConstant extends NumConstant {
 
   int hashCode() => value.hashCode();
   DartString toDartString() => new DartString.literal(value.toString());
+
+  accept(ConstantVisitor visitor) => visitor.visitInt(this);
 }
 
 class DoubleConstant extends NumConstant {
@@ -197,18 +188,6 @@ class DoubleConstant extends NumConstant {
   // We need to check for the negative sign since -0.0 == 0.0.
   bool isMinusZero() => value == 0.0 && value.isNegative();
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    if (value.isNaN()) {
-      buffer.add("(0/0)");
-    } else if (value == double.INFINITY) {
-      buffer.add("(1/0)");
-    } else if (value == -double.INFINITY) {
-      buffer.add("(-1/0)");
-    } else {
-      buffer.add("$value");
-    }
-  }
-
   bool operator ==(var other) {
     if (other is !DoubleConstant) return false;
     DoubleConstant otherDouble = other;
@@ -224,6 +203,8 @@ class DoubleConstant extends NumConstant {
 
   int hashCode() => value.hashCode();
   DartString toDartString() => new DartString.literal(value.toString());
+
+  accept(ConstantVisitor visitor) => visitor.visitDouble(this);
 }
 
 class BoolConstant extends PrimitiveConstant {
@@ -243,10 +224,6 @@ class TrueConstant extends BoolConstant {
   const TrueConstant._internal() : super._internal();
   bool isTrue() => true;
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add("true");
-  }
-
   FalseConstant negate() => new FalseConstant();
 
   bool operator ==(var other) => this === other;
@@ -254,6 +231,8 @@ class TrueConstant extends BoolConstant {
   // significance.
   int hashCode() => 499;
   DartString toDartString() => const LiteralDartString("true");
+
+  accept(ConstantVisitor visitor) => visitor.visitTrue(this);
 }
 
 class FalseConstant extends BoolConstant {
@@ -263,10 +242,6 @@ class FalseConstant extends BoolConstant {
   const FalseConstant._internal() : super._internal();
   bool isFalse() => true;
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add("false");
-  }
-
   TrueConstant negate() => new TrueConstant();
 
   bool operator ==(var other) => this === other;
@@ -274,6 +249,8 @@ class FalseConstant extends BoolConstant {
   // significance.
   int hashCode() => 536555975;
   DartString toDartString() => const LiteralDartString("false");
+
+  accept(ConstantVisitor visitor) => visitor.visitFalse(this);
 }
 
 class StringConstant extends PrimitiveConstant {
@@ -289,14 +266,6 @@ class StringConstant extends PrimitiveConstant {
   }
   bool isString() => true;
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add("'");
-    ConstantHandler.writeEscapedString(value, buffer, (reason) {
-      handler.compiler.reportError(node, reason);
-    });
-    buffer.add("'");
-  }
-
   bool operator ==(var other) {
     if (other is !StringConstant) return false;
     StringConstant otherString = other;
@@ -306,6 +275,8 @@ class StringConstant extends PrimitiveConstant {
   int hashCode() => _hashCode;
   DartString toDartString() => value;
   int get length => value.length;
+
+  accept(ConstantVisitor visitor) => visitor.visitString(this);
 }
 
 class ObjectConstant extends Constant {
@@ -317,11 +288,6 @@ class ObjectConstant extends Constant {
   // TODO(1603): The class should be marked as abstract, but the VM doesn't
   // currently allow this.
   abstract int hashCode();
-
-  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    String name = handler.getNameForConstant(this);
-    buffer.add(handler.compiler.namer.isolatePropertiesAccessForConstant(name));
-  }
 }
 
 class ListConstant extends ObjectConstant {
@@ -335,19 +301,6 @@ class ListConstant extends ObjectConstant {
     _hashCode = hash;
   }
   bool isList() => true;
-
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    // TODO(floitsch): we should not need to go through the compiler to make
-    // the list constant.
-    buffer.add("${handler.compiler.namer.ISOLATE}.makeConstantList");
-    buffer.add("([");
-    for (int i = 0; i < entries.length; i++) {
-      if (i != 0) buffer.add(", ");
-      Constant entry = entries[i];
-      handler.writeConstant(buffer, entry);
-    }
-    buffer.add("])");
-  }
 
   bool operator ==(var other) {
     if (other is !ListConstant) return false;
@@ -366,6 +319,8 @@ class ListConstant extends ObjectConstant {
   List<Constant> getDependencies() => entries;
 
   int get length => entries.length;
+
+  accept(ConstantVisitor visitor) => visitor.visitList(this);
 }
 
 class MapConstant extends ObjectConstant {
@@ -373,7 +328,8 @@ class MapConstant extends ObjectConstant {
    * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
    * object. It would change the prototype chain.
    */
-  static const String PROTO_PROPERTY = "__proto__";
+  static const LiteralDartString PROTO_PROPERTY =
+      const LiteralDartString("__proto__");
 
   /** The dart class implementing constant map literals. */
   static const SourceString DART_CLASS = const SourceString("ConstantMap");
@@ -398,66 +354,6 @@ class MapConstant extends ObjectConstant {
   }
   bool isMap() => true;
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-
-    void writeJsMap() {
-      buffer.add("{");
-      int valueIndex = 0;
-      for (int i = 0; i < keys.entries.length; i++) {
-        StringConstant key = keys.entries[i];
-        if (key.value == const LiteralDartString(PROTO_PROPERTY)) continue;
-
-        if (valueIndex != 0) buffer.add(", ");
-
-        key._writeJsCode(buffer, handler);
-        buffer.add(": ");
-        Constant value = values[valueIndex++];
-        handler.writeConstant(buffer, value);
-      }
-      buffer.add("}");
-      if (valueIndex != values.length) {
-        handler.compiler.internalError("Bad value count.");
-      }
-    }
-
-    void badFieldCountError() {
-      handler.compiler.internalError(
-          "Compiler and ConstantMap disagree on number of fields.");
-    }
-
-    ClassElement classElement = type.element;
-    buffer.add("new ");
-    buffer.add(handler.getJsConstructor(classElement));
-    buffer.add("(");
-    // The arguments of the JavaScript constructor for any given Dart class
-    // are in the same order as the members of the class element.
-    int emittedArgumentCount = 0;
-    classElement.forEachInstanceField(
-        includeBackendMembers: true,
-        includeSuperMembers: true,
-        f: (ClassElement enclosing, Element field) {
-      if (emittedArgumentCount != 0) buffer.add(", ");
-      if (field.name == LENGTH_NAME) {
-        buffer.add(keys.entries.length);
-      } else if (field.name == JS_OBJECT_NAME) {
-        writeJsMap();
-      } else if (field.name == KEYS_NAME) {
-        handler.writeConstant(buffer, keys);
-      } else if (field.name == PROTO_VALUE) {
-        assert(protoValue !== null);
-        handler.writeConstant(buffer, protoValue);
-      } else {
-        badFieldCountError();
-      }
-      emittedArgumentCount++;
-    });
-    if ((protoValue === null && emittedArgumentCount != 3) ||
-        (protoValue !== null && emittedArgumentCount != 4)) {
-      badFieldCountError();
-    }
-    buffer.add(")");
-  }
-
   bool operator ==(var other) {
     if (other is !MapConstant) return false;
     MapConstant otherMap = other;
@@ -479,6 +375,8 @@ class MapConstant extends ObjectConstant {
   }
 
   int get length => keys.length;
+
+  accept(ConstantVisitor visitor) => visitor.visitMap(this);
 }
 
 class ConstructedConstant extends ObjectConstant {
@@ -497,18 +395,6 @@ class ConstructedConstant extends ObjectConstant {
   }
   bool isConstructedObject() => true;
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add("new ");
-    buffer.add(handler.getJsConstructor(type.element));
-    buffer.add("(");
-    for (int i = 0; i < fields.length; i++) {
-      if (i != 0) buffer.add(", ");
-      Constant field = fields[i];
-      handler.writeConstant(buffer, field);
-    }
-    buffer.add(")");
-  }
-
   bool operator ==(var otherVar) {
     if (otherVar is !ConstructedConstant) return false;
     ConstructedConstant other = otherVar;
@@ -524,4 +410,6 @@ class ConstructedConstant extends ObjectConstant {
 
   int hashCode() => _hashCode;
   List<Constant> getDependencies() => fields;
+
+  accept(ConstantVisitor visitor) => visitor.visitConstructed(this);
 }

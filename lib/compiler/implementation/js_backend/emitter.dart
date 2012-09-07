@@ -34,6 +34,7 @@ class CodeEmitterTask extends CompilerTask {
   bool needsClosureClass = false;
   bool needsLazyInitializer = false;
   final Namer namer;
+  ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
   CodeBuffer boundClosureBuffer;
   CodeBuffer mainBuffer;
@@ -45,14 +46,25 @@ class CodeEmitterTask extends CompilerTask {
 
   final bool generateSourceMap;
 
-  CodeEmitterTask(Compiler compiler, this.namer,
+  CodeEmitterTask(Compiler compiler, Namer namer,
                   [bool generateSourceMap = false])
       : boundClosureBuffer = new CodeBuffer(),
         mainBuffer = new CodeBuffer(),
+        this.namer = namer,
         boundClosureCache = new Map<int, String>(),
         generateSourceMap = generateSourceMap,
+        constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
+  }
+
+  void writeConstantToBuffer(Constant value, CodeBuffer buffer,
+                             [emitCanonicalVersion = true]) {
+    if (emitCanonicalVersion) {
+      constantEmitter.emitCanonicalVersionOfConstant(value, buffer);
+    } else {
+      constantEmitter.emitJavaScriptCodeForConstant(value, buffer);
+    }
   }
 
   String get name => 'CodeEmitter';
@@ -398,7 +410,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         // Note that [elements] may be null for a synthetized [member].
         } else if (elements != null && elements.isParameterChecked(element)) {
           CodeBuffer argumentBuffer = new CodeBuffer();
-          handler.writeConstant(argumentBuffer, SentinelConstant.SENTINEL);
+          writeConstantToBuffer(SentinelConstant.SENTINEL, argumentBuffer);
           argumentsBuffer[count] = argumentBuffer.toString();
         } else {
           Constant value = handler.initialVariableValues[element];
@@ -411,7 +423,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
               indexOfLastOptionalArgumentInParameters = count;
             }
             CodeBuffer argumentBuffer = new CodeBuffer();
-            handler.writeConstant(argumentBuffer, value);
+            writeConstantToBuffer(value, argumentBuffer);
             argumentsBuffer[count] = argumentBuffer.toString();
           }
         }
@@ -922,7 +934,8 @@ $classesCollector.$mangledName = {'':
     for (Element element in staticNonFinalFields) {
       buffer.add('$isolateProperties.${namer.getName(element)} = ');
       compiler.withCurrentElement(element, () {
-          handler.writeJsCodeForVariable(buffer, element);
+          Constant initialValue = handler.getInitialValueFor(element);
+          writeConstantToBuffer(initialValue, buffer);
         });
       buffer.add(';\n');
     }
@@ -963,7 +976,10 @@ $classesCollector.$mangledName = {'':
     List<Constant> constants = handler.getConstantsForEmission();
     bool addedMakeConstantList = false;
     for (Constant constant in constants) {
-      String name = handler.getNameForConstant(constant);
+      // No need to emit functions. We already did that.
+      if (constant.isFunction()) continue;
+
+      String name = namer.constantName(constant);
       // The name is null when the constant is already a JS constant.
       // TODO(floitsch): every constant should be registered, so that we can
       // share the ones that take up too much space (like some strings).
@@ -973,7 +989,7 @@ $classesCollector.$mangledName = {'':
         emitMakeConstantList(buffer);
       }
       buffer.add('$isolateProperties.$name = ');
-      handler.writeJsCode(buffer, constant);
+      writeConstantToBuffer(constant, buffer, emitCanonicalVersion: false);
       buffer.add(';\n');
     }
   }

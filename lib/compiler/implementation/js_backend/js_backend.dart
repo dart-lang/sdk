@@ -14,9 +14,11 @@
 #import('../source_map_builder.dart');
 #import('../ssa/ssa.dart');
 #import('../tree/tree.dart');
+#import('../util/characters.dart');
 #import('../util/util.dart');
 
 #source('backend.dart');
+#source('constant_emitter.dart');
 #source('constant_system_javascript.dart');
 #source('emitter.dart');
 #source('function_set.dart');

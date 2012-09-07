@@ -203,10 +203,6 @@ class Compiler implements DiagnosticListener {
     tasks.addAll(backend.tasks);
   }
 
-  // TODO(floitsch): remove once the compile-time constant handler doesn't
-  // depend on it anymore.
-  js_backend.Namer get namer => (backend as js_backend.JavaScriptBackend).namer;
-
   Universe get resolverWorld => enqueuer.resolution.universe;
   Universe get codegenWorld => enqueuer.codegen.universe;
 

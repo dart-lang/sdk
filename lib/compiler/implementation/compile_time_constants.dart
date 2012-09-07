@@ -17,8 +17,8 @@ class ConstantHandler extends CompilerTask {
    */
   final Map<VariableElement, Constant> initialVariableValues;
 
-  /** Map from compile-time constants to their JS name. */
-  final Map<Constant, String> compiledConstants;
+  /** Set of all registered compiled constants. */
+  final Set<Constant> compiledConstants;
 
   /** The set of variable elements that are in the process of being computed. */
   final Set<VariableElement> pendingVariables;
@@ -29,18 +29,14 @@ class ConstantHandler extends CompilerTask {
 
   ConstantHandler(Compiler compiler, this.constantSystem)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
-        compiledConstants = new Map<Constant, String>(),
+        compiledConstants = new Set<Constant>(),
         pendingVariables = new Set<VariableElement>(),
         lazyStatics = new Set<VariableElement>(),
         super(compiler);
   String get name => 'ConstantHandler';
 
   void registerCompileTimeConstant(Constant constant) {
-    Function ifAbsentThunk = (() {
-      return constant.isFunction()
-          ? null : compiler.namer.getFreshGlobalName("CTC");
-    });
-    compiledConstants.putIfAbsent(constant, ifAbsentThunk);
+    compiledConstants.add(constant);
   }
 
   /**
@@ -212,91 +208,17 @@ class ConstantHandler extends CompilerTask {
       }
     }
 
-    compiledConstants.forEach((Constant key, ignored) => addConstant(key));
+    compiledConstants.forEach(addConstant);
     return result;
   }
 
-  String getNameForConstant(Constant constant) {
-    return compiledConstants[constant];
-  }
-
-  /** This function writes the constant in non-canonicalized form. */
-  CodeBuffer writeJsCode(CodeBuffer buffer, Constant value) {
-    value._writeJsCode(buffer, this);
-    return buffer;
-  }
-
-  CodeBuffer writeConstant(CodeBuffer buffer, Constant value) {
-    value._writeCanonicalizedJsCode(buffer, this);
-    return buffer;
-  }
-
-  CodeBuffer writeJsCodeForVariable(CodeBuffer buffer,
-                                    VariableElement element) {
-    if (!initialVariableValues.containsKey(element)) {
+  Constant getInitialValueFor(VariableElement element) {
+    Constant initialValue = initialVariableValues[element];
+    if (initialValue === null) {
       compiler.internalError("No initial value for given element",
                              element: element);
     }
-    Constant constant = initialVariableValues[element];
-    writeConstant(buffer, constant);
-    return buffer;
-  }
-
-  /**
-   * Write the contents of the quoted string to a [CodeBuffer] in
-   * a form that is valid as JavaScript string literal content.
-   * The string is assumed quoted by single quote characters.
-   */
-  static void writeEscapedString(DartString string,
-                                 CodeBuffer buffer,
-                                 void cancel(String reason)) {
-    Iterator<int> iterator = string.iterator();
-    while (iterator.hasNext()) {
-      int code = iterator.next();
-      if (code === $SQ) {
-        buffer.add(@"\'");
-      } else if (code === $LF) {
-        buffer.add(@'\n');
-      } else if (code === $CR) {
-        buffer.add(@'\r');
-      } else if (code === $LS) {
-        // This Unicode line terminator and $PS are invalid in JS string
-        // literals.
-        buffer.add(@'\u2028');
-      } else if (code === $PS) {
-        buffer.add(@'\u2029');
-      } else if (code === $BACKSLASH) {
-        buffer.add(@'\\');
-      } else {
-        if (code > 0xffff) {
-          cancel('Unhandled non-BMP character: U+${code.toRadixString(16)}');
-        }
-        // TODO(lrn): Consider whether all codes above 0x7f really need to
-        // be escaped. We build a Dart string here, so it should be a literal
-        // stage that converts it to, e.g., UTF-8 for a JS interpreter.
-        if (code < 0x20) {
-          buffer.add(@'\x');
-          if (code < 0x10) buffer.add('0');
-          buffer.add(code.toRadixString(16));
-        } else if (code >= 0x80) {
-          if (code < 0x100) {
-            buffer.add(@'\x');
-          } else {
-            buffer.add(@'\u');
-            if (code < 0x1000) {
-              buffer.add('0');
-            }
-          }
-          buffer.add(code.toRadixString(16));
-        } else {
-          buffer.addCharCode(code);
-        }
-      }
-    }
-  }
-
-  String getJsConstructor(ClassElement element) {
-    return compiler.namer.isolatePropertiesAccess(element);
+    return initialValue;
   }
 }
 
@@ -381,7 +303,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     List<Constant> values = <Constant>[];
     Constant protoValue = null;
     for (StringConstant key in keys) {
-      if (key.value == const LiteralDartString(MapConstant.PROTO_PROPERTY)) {
+      if (key.value == MapConstant.PROTO_PROPERTY) {
         protoValue = map[key];
       } else {
         values.add(map[key]);

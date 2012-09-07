@@ -1714,33 +1714,30 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateConstant(Constant constant) {
-    ConstantHandler handler = compiler.constantHandler;
-    String name = handler.getNameForConstant(constant);
-    if (name === null) {
-      assert(!constant.isObject());
+    Namer namer = backend.namer;
+    if (!constant.isObject()) {
       if (constant.isBool()) {
         push(new js.LiteralBool((constant as BoolConstant).value));
       } else if (constant.isNum()) {
         // TODO(floitsch): get rid of the code buffer.
         CodeBuffer buffer = new CodeBuffer();
-        handler.writeConstant(buffer, constant);
+        backend.emitter.writeConstantToBuffer(constant, buffer);
         push(new js.LiteralNumber(buffer.toString()));
       } else if (constant.isNull()) {
         push(new js.LiteralNull());
       } else if (constant.isString()) {
         // TODO(floitsch): get rid of the code buffer.
         CodeBuffer buffer = new CodeBuffer();
-        handler.writeConstant(buffer, constant);
+        backend.emitter.writeConstantToBuffer(constant, buffer);
         push(new js.LiteralString(buffer.toString()));
       } else if (constant.isFunction()) {
         FunctionConstant function = constant;
         world.registerStaticUse(function.element);
-        push(new js.VariableUse(
-            backend.namer.isolateAccess(function.element)));
+        push(new js.VariableUse(namer.isolateAccess(function.element)));
       } else if (constant.isSentinel()) {
         // TODO(floitsch): get rid of the code buffer.
         CodeBuffer buffer = new CodeBuffer();
-        handler.writeConstant(buffer, constant);
+        backend.emitter.writeConstantToBuffer(constant, buffer);
         push(new js.VariableUse(buffer.toString()));
       } else {
         compiler.internalError(
@@ -1748,6 +1745,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             "constant $constant");
       }
     } else {
+      String name = namer.constantName(constant);
       js.VariableUse currentIsolateUse =
           new js.VariableUse(backend.namer.CURRENT_ISOLATE);
       push(new js.PropertyAccess.field(currentIsolateUse, name));
