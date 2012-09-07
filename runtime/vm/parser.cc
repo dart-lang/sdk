@@ -1018,6 +1018,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   bool var_seen = false;
   bool this_seen = false;
 
+  SkipMetadata();
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
     parameter.is_final = true;
@@ -1182,6 +1183,31 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 }
 
 
+// Parses a sequence of normal or optional formal parameters.
+void Parser::ParseFormalParameters(bool allow_explicit_default_values,
+                                   ParamList* params) {
+  TRACE_PARSER("ParseFormalParameters");
+  do {
+    ConsumeToken();
+    if (!params->has_optional_positional_parameters &&
+        !params->has_optional_named_parameters &&
+        (CurrentToken() == Token::kLBRACK)) {
+      // End of normal parameters, start of optional positional parameters.
+      params->has_optional_positional_parameters = true;
+      return;
+    }
+    if (!params->has_optional_positional_parameters &&
+        !params->has_optional_named_parameters &&
+        (CurrentToken() == Token::kLBRACE)) {
+      // End of normal parameters, start of optional named parameters.
+      params->has_optional_named_parameters = true;
+      return;
+    }
+    ParseFormalParameter(allow_explicit_default_values, params);
+  } while (CurrentToken() == Token::kCOMMA);
+}
+
+
 void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
                                       ParamList* params) {
   TRACE_PARSER("ParseFormalParameterList");
@@ -1214,31 +1240,6 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
     ConsumeToken();
   }
   ExpectToken(Token::kRPAREN);
-}
-
-
-// Parses a sequence of normal or optional formal parameters.
-void Parser::ParseFormalParameters(bool allow_explicit_default_values,
-                                   ParamList* params) {
-  TRACE_PARSER("ParseFormalParameters");
-  do {
-    ConsumeToken();
-    if (!params->has_optional_positional_parameters &&
-        !params->has_optional_named_parameters &&
-        (CurrentToken() == Token::kLBRACK)) {
-      // End of normal parameters, start of optional positional parameters.
-      params->has_optional_positional_parameters = true;
-      return;
-    }
-    if (!params->has_optional_positional_parameters &&
-        !params->has_optional_named_parameters &&
-        (CurrentToken() == Token::kLBRACE)) {
-      // End of normal parameters, start of optional named parameters.
-      params->has_optional_named_parameters = true;
-      return;
-    }
-    ParseFormalParameter(allow_explicit_default_values, params);
-  } while (CurrentToken() == Token::kCOMMA);
 }
 
 
@@ -3118,6 +3119,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   ExpectToken(Token::kLBRACE);
   ClassDesc members(cls, class_name, false, class_pos);
   while (CurrentToken() != Token::kRBRACE) {
+    SkipMetadata();
     ParseClassMemberDefinition(&members);
   }
   ExpectToken(Token::kRBRACE);
@@ -3481,6 +3483,25 @@ void Parser::ConsumeRightAngleBracket() {
 }
 
 
+void Parser::SkipMetadata() {
+  while (CurrentToken() == Token::kAT) {
+    ConsumeToken();
+    ExpectIdentifier("identifier expected");
+    if (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+      if (CurrentToken() == Token::kPERIOD) {
+        ConsumeToken();
+        ExpectIdentifier("identifier expected");
+      }
+    }
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+    }
+  }
+}
+
+
 void Parser::SkipTypeArguments() {
   if (CurrentToken() == Token::kLT) {
     do {
@@ -3526,6 +3547,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
     AbstractType& type_parameter_bound = Type::Handle();
     do {
       ConsumeToken();
+      SkipMetadata();
       if (CurrentToken() != Token::kIDENT) {
         ErrorMsg("type parameter name expected");
       }
@@ -4179,6 +4201,7 @@ void Parser::ParseTopLevel() {
 
   while (true) {
     set_current_class(Class::Handle());  // No current class.
+    SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
@@ -4541,6 +4564,7 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
 // declared, the individual initializers are collected in a sequence node.
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
+  SkipMetadata();
   bool is_final = (CurrentToken() == Token::kFINAL);
   bool is_const = (CurrentToken() == Token::kCONST);
   const AbstractType& type = AbstractType::ZoneHandle(ParseConstFinalVarOrType(
@@ -4864,7 +4888,8 @@ bool Parser::TryParseReturnType() {
 
 
 // Look ahead to detect whether the next tokens should be parsed as
-// a variable declaration. Returns true if we detect the token pattern:
+// a variable declaration. Ignores optional metadata.
+// Returns true if we detect the token pattern:
 //     'var'
 //   | 'final'
 //   | const [type] ident (';' | '=' | ',')
@@ -4875,8 +4900,16 @@ bool Parser::IsVariableDeclaration() {
       (CurrentToken() == Token::kFINAL)) {
     return true;
   }
+  // Skip optional metadata.
+  if (CurrentToken() == Token::kAT) {
+    const intptr_t saved_pos = TokenPos();
+    SkipMetadata();
+    const bool is_var_decl = IsVariableDeclaration();
+    SetPosition(saved_pos);
+    return is_var_decl;
+  }
   if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kCONST)) {
-    // Not a legal type identifier or const keyword
+    // Not a legal type identifier or const keyword or metadata
     return false;
   }
   const intptr_t saved_pos = TokenPos();

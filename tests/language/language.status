@@ -87,7 +87,7 @@ type_parameter_test/04: Fail # Issue 4932
 field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 
 [ $compiler == dartc ]
-
+metadata_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member
 bad_constructor_test/05: Fail # Constructor name clashes with other member
 bad_constructor_test/06: Fail # Constructor name clashes with other member
@@ -229,6 +229,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+metadata_test: Fail
 pseudo_kw_illegal_test/02: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass

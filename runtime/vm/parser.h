@@ -216,6 +216,7 @@ class Parser : public ValueObject {
 
   void SkipIf(Token::Kind);
   void SkipBlock();
+  void SkipMetadata();
   void SkipToMatchingParenthesis();
   void SkipTypeArguments();
   void SkipType(bool allow_void);

@@ -826,7 +826,7 @@ void Scanner::Scan() {
         break;
 
       case '@':
-        Recognize(Token::kILLEGAL);
+        Recognize(Token::kAT);
         if ((c0_ == '"') || (c0_ == '\'')) {
           ScanLiteralString(true);
         }
