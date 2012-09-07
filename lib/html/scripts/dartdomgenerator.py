@@ -104,14 +104,14 @@ def Generate(system_names, database_dir, use_database_cache,
 
 def GenerateSingleFile(systems):
   if 'htmldart2js' in systems:
-    _logger.info('Copy html_dart2js to ../html/dart2js/')
-    subprocess.call(['cd ../../html/generated ; '
+    _logger.info('Copy html_dart2js to dart2js/')
+    subprocess.call(['cd ../generated ; '
                      '../../../tools/copy_dart.py ../dart2js html_dart2js.dart'],
                     shell=True)
 
   if 'htmldartium' in systems:
-    _logger.info('Copy html_dartium to ../html/dartium/')
-    subprocess.call(['cd ../../html/generated ; '
+    _logger.info('Copy html_dartium to dartium/')
+    subprocess.call(['cd ../generated ; '
                      '../../../tools/copy_dart.py ../dartium html_dartium.dart'],
                     shell=True)
 
@@ -138,7 +138,7 @@ def main():
   systems = options.systems.split(',')
 
   html_output_dir = options.output_dir or os.path.join(current_dir,
-      '../../html/generated')
+      '../generated')
   Generate(systems, database_dir, options.use_database_cache,
               html_output_dir)
   GenerateSingleFile(systems)

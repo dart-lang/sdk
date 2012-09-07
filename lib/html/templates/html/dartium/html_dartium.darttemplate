@@ -20,13 +20,13 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/Timer.dart');
 #source('$AUXILIARY_DIR/_Collections.dart');
 #source('$AUXILIARY_DIR/_HttpRequestUtils.dart');
-#source('$AUXILIARY_DIR/../../html/src/shared_FactoryProviders.dart');
-#source('$AUXILIARY_DIR/../../html/src/dartium_FactoryProviders.dart');
-#source('$AUXILIARY_DIR/../../html/src/Device.dart');
-#source('$AUXILIARY_DIR/../../html/src/Isolates.dart');
-#source('$AUXILIARY_DIR/../../html/src/Measurement.dart');
-#source('$AUXILIARY_DIR/../../html/src/Serialization.dart');
-#source('$AUXILIARY_DIR/../../html/src/_Testing.dart');
+#source('$AUXILIARY_DIR/shared_FactoryProviders.dart');
+#source('$AUXILIARY_DIR/dartium_FactoryProviders.dart');
+#source('$AUXILIARY_DIR/Device.dart');
+#source('$AUXILIARY_DIR/Isolates.dart');
+#source('$AUXILIARY_DIR/Measurement.dart');
+#source('$AUXILIARY_DIR/Serialization.dart');
+#source('$AUXILIARY_DIR/_Testing.dart');
 #source('$AUXILIARY_DIR/_ListIterators.dart');
 #source('$AUXILIARY_DIR/_Lists.dart');
 
