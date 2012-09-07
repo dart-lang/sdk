@@ -110,6 +110,9 @@ public class SystemLibraryManager  {
     return result;
   }
   
+  public Collection<SystemLibrary> getAllSystemLibraries(){
+    return libraries;
+  }
   
   /**
    * Load the libraries listed out in the libraries.dart files as read by the {@link SystemLibrariesReader}
@@ -131,7 +134,8 @@ public class SystemLibraryManager  {
         continue;
       }
       String shortName = entry.getKey().trim();
-      String path = entry.getValue().getPath();
+      DartLibrary library = entry.getValue();
+      String path = library.getPath();
       File file;
       try {
         file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
@@ -150,20 +154,29 @@ public class SystemLibraryManager  {
         String scheme = shortName.substring(0, index + 1);
         String name = shortName.substring(index + 1);
         String host = file.getParentFile().getName();
-        addLib(scheme, host, name, file.getParentFile(), file.getName());
+        addLib(scheme, 
+               host, 
+               name, 
+               file.getParentFile(), 
+               file.getName(), 
+               library.getCategory(),
+               library.isDocumented(), 
+               library.isImplementation());
       
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
   
-  private boolean addLib(String scheme, String host, String name, File dir, String libFileName)
+  private boolean addLib(String scheme, String host, String name, File dir, String libFileName, 
+                          String category, boolean documented, boolean implementation)
       throws AssertionError {
+    
     File libFile = new File(dir, libFileName);
     if (!libFile.isFile()) {
       throw new InternalCompilerException("Error mapping dart:" + host + ", path "
           + libFile.getAbsolutePath() + " is not a file.");
     }
-    SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir);
+    SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir, category,documented, implementation);
     libraries.add(lib);
     String libSpec = scheme + name;
     URI libUri;

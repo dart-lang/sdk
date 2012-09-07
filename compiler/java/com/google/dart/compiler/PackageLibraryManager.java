@@ -306,8 +306,11 @@ public class PackageLibraryManager {
   }
   
   protected SystemLibrary[] getDefaultLibraries() {
-    return SDK_LIBRARY_MANAGER.getDefaultLibraries();
-    
+    return SDK_LIBRARY_MANAGER.getDefaultLibraries(); 
+  }
+  
+  public Collection<SystemLibrary> getSystemLibraries(){
+    return SDK_LIBRARY_MANAGER.getAllSystemLibraries();
   }
   
   public File getSdkLibPath() {
