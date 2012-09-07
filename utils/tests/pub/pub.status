@@ -17,6 +17,9 @@ pubspec_test: Skip
 lock_file_test: Skip
 version_solver_test: Skip
 
+[ $compiler == dart2dart ]
+yaml_test: Fail, Pass # Broken in minify mode only.
+
 [ $compiler == dartc ]
 version_solver_test: Fail # dart:io is using private named parameters
 
