@@ -604,6 +604,18 @@ void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
 }
 
 
+void Assembler::cvttsd2siq(Register dst, XmmRegister src) {
+  ASSERT(src <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF2);
+  Operand operand(dst);
+  EmitOperandREX(0, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x2C);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::fldl(const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);

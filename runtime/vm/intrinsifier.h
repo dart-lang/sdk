@@ -51,6 +51,7 @@ namespace dart {
   V(Double, Double.fromInteger, Double_fromInteger)                            \
   V(Double, isNaN, Double_isNaN)                                               \
   V(Double, isNegative, Double_isNegative)                                     \
+  V(Double, toInt, Double_toInt)                                               \
   V(ObjectArray, ObjectArray., ObjectArray_Allocate)                           \
   V(ObjectArray, get:length, Array_getLength)                                  \
   V(ObjectArray, [], Array_getIndexed)                                         \
