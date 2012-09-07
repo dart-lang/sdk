@@ -89,7 +89,7 @@ def Generate(system_names, database_dir, use_database_cache,
       backend = HtmlDart2JSSystem(options)
     else:
       options = CreateGeneratorOptions(
-          ['dom/native', 'html/dartium', 'html/impl', ''],
+          ['html/dartium', 'html/impl', ''],
           {'DARTIUM': True, 'DART2JS': False},
           type_registry, html_output_dir, renamer)
       backend = NativeImplementationSystem(options, auxiliary_dir)
