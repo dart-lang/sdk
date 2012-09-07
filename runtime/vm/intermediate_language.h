@@ -777,6 +777,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   void set_start_env(Environment* env) { start_env_ = env; }
 
   ConstantInstr* constant_null() const { return constant_null_; }
+  void set_constant_null(ConstantInstr* instr) { constant_null_ = instr; }
 
   intptr_t spill_slot_count() const { return spill_slot_count_; }
   void set_spill_slot_count(intptr_t count) {
@@ -1154,7 +1155,7 @@ class ParameterInstr : public Definition {
     return kIllegalCid;
   }
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
@@ -1209,7 +1210,7 @@ class PushArgumentInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
@@ -1745,7 +1746,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return true; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   InstanceCallInstr* instance_call_;

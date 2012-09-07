@@ -494,7 +494,9 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   }
 
   // Name global constants.
-  graph_entry_->constant_null()->set_ssa_temp_index(alloc_ssa_temp_index());
+  ConstantInstr* constant_null = new ConstantInstr(Object::ZoneHandle());
+  constant_null->set_ssa_temp_index(alloc_ssa_temp_index());
+  graph_entry_->set_constant_null(constant_null);
 
   // Initialize start environment.
   GrowableArray<Definition*> start_env(variable_count());

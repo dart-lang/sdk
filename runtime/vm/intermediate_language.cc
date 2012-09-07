@@ -105,7 +105,7 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
       normal_entry_(normal_entry),
       catch_entries_(),
       start_env_(NULL),
-      constant_null_(new ConstantInstr(Object::ZoneHandle())),
+      constant_null_(NULL),
       spill_slot_count_(0) {
 }
 
