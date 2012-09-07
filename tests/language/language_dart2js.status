@@ -44,7 +44,7 @@ type_parameter_test/04: Fail # Issue 4932
 assertion_test: Fail
 
 [ $compiler == dart2js ]
-inifinity_test: Fail # Issue 4984
+infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
 
 class_literal_test/03: Fail # Calling a nonexistent static is not a compile time error anymore.
