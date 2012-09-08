@@ -43,8 +43,13 @@ type_parameter_test/04: Fail # Issue 4932
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $host_unchecked ]
 metadata_test: Fail # Metadata on type parameters not supported.
+
+[ $compiler == dart2js && $host_checked ]
+metadata_test: Crash # Metadata on type parameters not supported.
+
+[ $compiler == dart2js ]
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
 
