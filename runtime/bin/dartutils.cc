@@ -404,9 +404,19 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   Dart_Handle result = Dart_SetField(print_impl,
                                      Dart_NewString("_printClosure"), print);
 
-  // Setup the IO library.
+  // Setup the 'timer' factory.
+  Dart_Handle url = Dart_NewString(kIsolateLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(isolate_lib);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  Builtin::SetupIOLibrary(io_lib);
+  Dart_Handle timer_closure =
+      Dart_Invoke(io_lib, Dart_NewString("_getTimerFactoryClosure"), 0, NULL);
+  Dart_Handle args[1];
+  args[0] = timer_closure;
+  DART_CHECK_VALID(Dart_Invoke(isolate_lib,
+                               Dart_NewString("_setTimerFactoryClosure"),
+                               1, args));
 
   // Set up package root if specified.
   if (package_root != NULL) {
