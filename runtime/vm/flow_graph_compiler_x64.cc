@@ -1059,12 +1059,14 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 13 bytes
   // at entry point.
-  pc_descriptors_list()->AddDescriptor(PcDescriptors::kPatchCode,
-                                       assembler()->CodeSize(),
-                                       Isolate::kNoDeoptId,
-                                       0,
-                                       -1);
+  AddCurrentDescriptor(PcDescriptors::kPatchCode,
+                       Isolate::kNoDeoptId,
+                       0);  // No token position.
   __ jmp(&StubCode::FixCallersTargetLabel());
+  AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
+                       Isolate::kNoDeoptId,
+                       0);  // No token position.
+  __ jmp(&StubCode::DeoptimizeLazyLabel());
 }
 
 

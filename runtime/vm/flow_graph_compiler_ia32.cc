@@ -1054,6 +1054,10 @@ void FlowGraphCompiler::CompileGraph() {
                        Isolate::kNoDeoptId,
                        0);  // No token position.
   __ jmp(&StubCode::FixCallersTargetLabel());
+  AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
+                       Isolate::kNoDeoptId,
+                       0);  // No token position.
+  __ jmp(&StubCode::DeoptimizeLazyLabel());
 }
 
 

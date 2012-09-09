@@ -6927,14 +6927,15 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeoptBefore: return "deopt-before ";
-    case PcDescriptors::kDeoptAfter:  return "deopt-after  ";
-    case PcDescriptors::kDeoptIndex:  return "deopt-ix     ";
-    case PcDescriptors::kPatchCode:   return "patch        ";
-    case PcDescriptors::kIcCall:      return "ic-call      ";
-    case PcDescriptors::kFuncCall:    return "fn-call      ";
-    case PcDescriptors::kReturn:      return "return       ";
-    case PcDescriptors::kOther:       return "other        ";
+    case PcDescriptors::kDeoptBefore:   return "deopt-before ";
+    case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
+    case PcDescriptors::kDeoptIndex:    return "deopt-ix     ";
+    case PcDescriptors::kPatchCode:     return "patch        ";
+    case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
+    case PcDescriptors::kIcCall:        return "ic-call      ";
+    case PcDescriptors::kFuncCall:      return "fn-call      ";
+    case PcDescriptors::kReturn:        return "return       ";
+    case PcDescriptors::kOther:         return "other        ";
   }
   UNREACHABLE();
   return "";
@@ -7029,6 +7030,16 @@ void PcDescriptors::Verify(bool check_ids) const {
     }
   }
 #endif  // DEBUG
+}
+
+
+uword PcDescriptors::GetPcForKind(Kind kind) const {
+  for (intptr_t i = 0; i < Length(); i++) {
+    if (DescriptorKind(i) == kind) {
+      return PC(i);
+    }
+  }
+  return 0;
 }
 
 
@@ -7600,12 +7611,13 @@ const char* Code::ToCString() const {
 
 uword Code::GetPatchCodePc() const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (descriptors.DescriptorKind(i) == PcDescriptors::kPatchCode) {
-      return descriptors.PC(i);
-    }
-  }
-  return 0;
+  return descriptors.GetPcForKind(PcDescriptors::kPatchCode);
+}
+
+
+uword Code::GetLazyDeoptPc() const {
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  return descriptors.GetPcForKind(PcDescriptors::kLazyDeoptJump);
 }
 
 

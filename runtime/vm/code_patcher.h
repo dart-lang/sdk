@@ -36,7 +36,7 @@ class CodePatcher : public AllStatic {
   static void RestoreEntry(const Code& code);
 
   // Returns true if the code can be patched with a jump at beginnning (checks
-  // that there are no conflicts with object pointers).
+  // that there are no conflicts with object pointers). Used in ASSERTs.
   static bool CodeIsPatchable(const Code& code);
 
   // Returns true if the code before return_address is a static
@@ -59,8 +59,7 @@ class CodePatcher : public AllStatic {
 
   static intptr_t InstanceCallSizeInBytes();
 
-  static RawArray* GetTypeTestArray(uword instruction_address);
-  static void SetTypeTestArray(uword instruction_address, const Array& value);
+  static void InsertCallAt(uword start, uword target);
 };
 
 }  // namespace dart

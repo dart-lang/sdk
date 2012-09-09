@@ -1452,6 +1452,17 @@ void DeoptimizeAll() {
       uword continue_at_pc =
           unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
       ASSERT(continue_at_pc != 0);
+      // The switch to unoptimized code may have already occured.
+      if (function.HasOptimizedCode()) {
+        function.SwitchToUnoptimizedCode();
+      }
+      // Patch call site (lazy deoptimization is quite rare, patching it twice
+      // is not a performance issue).
+      uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
+      ASSERT(lazy_deopt_jump != 0);
+      CodePatcher::InsertCallAt(frame->pc(), lazy_deopt_jump);
+      // Mark code as dead (do not GC its embedded objects).
+      optimized_code.set_is_alive(false);
     }
     frame = iterator.NextFrame();
   }
@@ -1628,7 +1639,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
                       &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
-  uword continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
+  uword continue_at_pc = 0;
+  if (deopt_reason == kDeoptAtCall) {
+    continue_at_pc = unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
+  } else {
+    continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
+  }
   ASSERT(continue_at_pc != 0);
   if (FLAG_trace_deopt) {
     OS::Print("  -> continue at %#"Px"\n", continue_at_pc);

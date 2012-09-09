@@ -3782,6 +3782,9 @@ static void CompileSource(Isolate* isolate,
 // only the necessary ones.
 static void RemoveOptimizedCode() {
   ASSERT(FLAG_use_cha);
+  // Deoptimize all live frames.
+  DeoptimizeAll();
+  // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Class& cls = Class::Handle();
   Array& array = Array::Handle();

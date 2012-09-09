@@ -260,18 +260,10 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-RawArray* CodePatcher::GetTypeTestArray(uword instruction_address) {
-  Array& result = Array::Handle();
-  uint32_t* target_addr = reinterpret_cast<uint32_t*>(instruction_address + 1);
-  result ^= reinterpret_cast<RawObject*>(*target_addr);
-  return result.raw();
-}
-
-
-void CodePatcher::SetTypeTestArray(uword instruction_address,
-                                   const Array& value) {
-  uint32_t* target_addr = reinterpret_cast<uint32_t*>(instruction_address + 1);
-  *target_addr = reinterpret_cast<uint32_t>(value.raw());
+void CodePatcher::InsertCallAt(uword start, uword target) {
+  *reinterpret_cast<uint8_t*>(start) = 0xE8;
+  CallPattern call(start);
+  call.SetTargetAddress(target);
 }
 
 

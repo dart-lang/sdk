@@ -9,6 +9,7 @@
 #include "vm/assembler_macros.h"
 #include "vm/compiler.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/pages.h"
 #include "vm/resolver.h"
@@ -474,6 +475,7 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
 DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
+
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
 // frame contains all values on stack.
@@ -486,8 +488,6 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // GC can occur only after frame is fully rewritten.
 // Stack:
 //   +------------------+
-//   | 0 as PC marker   | <- TOS
-//   +------------------+
 //   | Saved FP         |
 //   +------------------+
 //   | return-address   |  (deoptimization point)
@@ -495,8 +495,15 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 //   | optimized frame  |
 //   |  ...             |
 //
-void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
+// Parts of the code cannot GC, part of the code can GC.
+static void GenerateDeoptimizationSequence(Assembler* assembler,
+                                           bool preserve_rax) {
   __ EnterFrame(0);
+  // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
+  // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
+  const intptr_t saved_rax_offset_from_ebp = -(kNumberOfCpuRegisters - RAX);
+  // Result in EAX is preserved as part of pushing all registers below.
+
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
@@ -517,6 +524,12 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (RAX) is stack-size (FP - SP) in bytes, incl. the return address.
+
+  if (preserve_rax) {
+    // Restore result into RBX temporarily.
+    __ movq(RBX, Address(RBP, saved_rax_offset_from_ebp * kWordSize));
+  }
+
   __ LeaveFrame();
   __ popq(RCX);   // Preserve return address.
   __ movq(RSP, RBP);
@@ -525,19 +538,50 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
   __ EnterFrame(0);
   __ movq(RCX, RSP);  // Get last FP address.
+  if (preserve_rax) {
+    __ pushq(RBX);  // Preserve result.
+  }
   __ ReserveAlignedFrameSpace(0);
   __ movq(RDI, RCX);  // Set up argument 1 last_fp.
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
+  if (preserve_rax) {
+    // Restore result into RAX.
+    __ movq(RAX, Address(RBP, -1 * kWordSize));
+  }
+  // Code above cannot cause GC.
   __ LeaveFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterFrame(0);
+  if (preserve_rax) {
+    __ pushq(RAX);  // Preserve result, it will be GC-d here.
+  }
   __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  if (preserve_rax) {
+    __ popq(RAX);  // Restore result.
+  }
   __ LeaveFrame();
 
   __ ret();
+}
+
+
+// TOS: return address + call-instruction-size (5 bytes).
+// RAX: result, must be preserved
+void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ popq(RBX);
+  __ subq(RBX, Immediate(ShortCallPattern::InstructionLength()));
+  __ pushq(RBX);
+  GenerateDeoptimizationSequence(assembler, true);  // Preserve RAX.
+}
+
+
+void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
+  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve RAX.
 }
 
 

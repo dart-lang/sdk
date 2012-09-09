@@ -2276,6 +2276,7 @@ class PcDescriptors : public Object {
     kDeoptAfter,       // Deoptimization continuation point after instruction.
     kDeoptIndex,       // Index into deopt info array.
     kPatchCode,        // Buffer for patching code entry.
+    kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
     kFuncCall,         // Call to known target, e.g. static call, closure call.
     kReturn,           // Return from function.
@@ -2322,6 +2323,9 @@ class PcDescriptors : public Object {
   }
 
   static RawPcDescriptors* New(intptr_t num_descriptors);
+
+  // Returns 0 if not found.
+  uword GetPcForKind(Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(bool check_ids) const;
@@ -2656,8 +2660,9 @@ class Code : public Object {
   }
   intptr_t GetTokenIndexOfPC(uword pc) const;
 
-  // Find pc of patch code buffer. Return 0 if not found.
+  // Find pc, return 0 if not found.
   uword GetPatchCodePc() const;
+  uword GetLazyDeoptPc() const;
 
   uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
   uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
