@@ -100,9 +100,16 @@ def GetBuildInfo():
 def NeedsXterm(compiler, runtime):
   return runtime in ['ie', 'chrome', 'safari', 'opera', 'ff', 'drt']
 
+
+def TestStepName(name, flags):
+  # Filter out flags with '=' as this breaks the /stats feature of the
+  # build bot.
+  flags = [x for x in flags if not '=' in x]
+  return '%s tests %s' % (name, ' '.join(flags))
+
+
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
-  print '@@@BUILD_STEP %s %s tests: %s %s@@@' % (name, compiler, runtime,
-      ' '.join(flags))
+  print '@@@BUILD_STEP %s@@@' % TestStepName(name, flags)
   sys.stdout.flush()
   if NeedsXterm(compiler, runtime) and system == 'linux':
     cmd = ['xvfb-run', '-a']
