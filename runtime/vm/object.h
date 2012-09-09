@@ -1840,6 +1840,8 @@ class TokenStream : public Object {
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
   intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
+  RawString* PrivateKey() const;
+
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
@@ -1894,7 +1896,6 @@ class TokenStream : public Object {
   };
 
  private:
-  RawString* PrivateKey() const;
   void SetPrivateKey(const String& value) const;
 
   static RawTokenStream* New();
@@ -3524,7 +3525,7 @@ class String : public Instance {
                    intptr_t src_offset,
                    intptr_t len);
 
-  static RawString* EscapeDoubleQuotes(const String& str);
+  static RawString* EscapeSpecialCharacters(const String& str, bool raw_str);
 
   static RawString* Concat(const String& str1,
                            const String& str2,
@@ -3593,7 +3594,7 @@ class OneByteString : public String {
     return kOneByteChar;
   }
 
-  RawOneByteString* EscapeDoubleQuotes() const;
+  RawOneByteString* EscapeSpecialCharacters(bool raw_str) const;
 
   bool EqualsIgnoringPrivateKey(const OneByteString& str) const;
 
@@ -3669,7 +3670,7 @@ class TwoByteString : public String {
     return kTwoByteChar;
   }
 
-  RawTwoByteString* EscapeDoubleQuotes() const;
+  RawTwoByteString* EscapeSpecialCharacters(bool raw_str) const;
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 2;
@@ -3731,7 +3732,7 @@ class FourByteString : public String {
     return kFourByteChar;
   }
 
-  RawFourByteString* EscapeDoubleQuotes() const;
+  RawFourByteString* EscapeSpecialCharacters(bool raw_str) const;
 
   static const intptr_t kBytesPerElement = 4;
   static const intptr_t kMaxElements = String::kMaxElements;

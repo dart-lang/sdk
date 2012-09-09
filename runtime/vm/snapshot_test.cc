@@ -681,6 +681,36 @@ class TestSnapshotWriter : public SnapshotWriter {
 };
 
 
+static void GenerateSourceAndCheck(const Script& script) {
+  // Check if we are able to generate the source from the token stream.
+  // Rescan this source and compare the token stream to see if they are
+  // the same.
+  const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
+  TokenStream::Iterator expected_iterator(expected_tokens, 0);
+  const String& str = String::Handle(expected_tokens.GenerateSource());
+  const String& private_key = String::Handle(expected_tokens.PrivateKey());
+  Scanner scanner(str, private_key);
+  const TokenStream& reconstructed_tokens =
+      TokenStream::Handle(TokenStream::New(scanner.GetStream(), private_key));
+  expected_iterator.SetCurrentPosition(0);
+  TokenStream::Iterator reconstructed_iterator(reconstructed_tokens, 0);
+  Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
+  Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
+  String& expected_literal = String::Handle();
+  String& actual_literal = String::Handle();
+  while (expected_kind != Token::kEOS && reconstructed_kind != Token::kEOS) {
+    EXPECT_EQ(expected_kind, reconstructed_kind);
+    expected_literal ^= expected_iterator.CurrentLiteral();
+    actual_literal ^= reconstructed_iterator.CurrentLiteral();
+    EXPECT(expected_literal.Equals(actual_literal));
+    expected_iterator.Advance();
+    reconstructed_iterator.Advance();
+    expected_kind = expected_iterator.CurrentTokenKind();
+    reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
+  }
+}
+
+
 TEST_CASE(SerializeScript) {
   const char* kScriptChars =
       "class A {\n"
@@ -746,27 +776,48 @@ TEST_CASE(SerializeScript) {
   // Check if we are able to generate the source from the token stream.
   // Rescan this source and compare the token stream to see if they are
   // the same.
-  str ^= serialized_tokens.GenerateSource();
-  const String& dummy_key = String::Handle(String::New(""));
-  Scanner scanner(str, dummy_key);
-  const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(TokenStream::New(scanner.GetStream(), dummy_key));
-  expected_iterator.SetCurrentPosition(0);
-  TokenStream::Iterator reconstructed_iterator(reconstructed_tokens, 0);
-  expected_kind = expected_iterator.CurrentTokenKind();
-  Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
-  while (expected_kind != Token::kEOS && reconstructed_kind != Token::kEOS) {
-    EXPECT_EQ(expected_kind, reconstructed_kind);
-    expected_literal ^= expected_iterator.CurrentLiteral();
-    actual_literal ^= reconstructed_iterator.CurrentLiteral();
-    EXPECT(expected_literal.Equals(actual_literal));
-    expected_iterator.Advance();
-    reconstructed_iterator.Advance();
-    expected_kind = expected_iterator.CurrentTokenKind();
-    reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
-  }
+  GenerateSourceAndCheck(serialized_script);
 
   free(buffer);
+}
+
+
+static void IterateScripts(const Library& lib) {
+  const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
+  Script& script = Script::Handle();
+  for (intptr_t i = 0; i < lib_scripts.Length(); i++) {
+    script ^= lib_scripts.At(i);
+    EXPECT(!script.IsNull());
+    GenerateSourceAndCheck(script);
+  }
+}
+
+TEST_CASE(GenerateSource) {
+  Library& lib = Library::Handle();
+  // Check core lib.
+  lib = Library::CoreLibrary();
+  EXPECT(!lib.IsNull());
+  IterateScripts(lib);
+
+  // Check core impl lib.
+  lib = Library::CoreImplLibrary();
+  EXPECT(!lib.IsNull());
+  IterateScripts(lib);
+
+  // Check isolate lib.
+  lib = Library::IsolateLibrary();
+  EXPECT(!lib.IsNull());
+  IterateScripts(lib);
+
+  // Check math lib.
+  lib = Library::MathLibrary();
+  EXPECT(!lib.IsNull());
+  IterateScripts(lib);
+
+  // Check mirrors lib.
+  lib = Library::MirrorsLibrary();
+  EXPECT(!lib.IsNull());
+  IterateScripts(lib);
 }
 
 

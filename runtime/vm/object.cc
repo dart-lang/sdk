@@ -190,6 +190,40 @@ static RawString* IdentifierPrettyName(const String& name) {
 }
 
 
+template<typename type>
+static bool IsSpecialCharacter(type value) {
+  return ((value == '"') ||
+          (value == '\n') ||
+          (value == '\f') ||
+          (value == '\b') ||
+          (value == '\t') ||
+          (value == '\v') ||
+          (value == '\r'));
+}
+
+
+template<typename type>
+static type SpecialCharacter(type value) {
+  if (value == '"') {
+    return '"';
+  } else if (value == '\n') {
+    return 'n';
+  } else if (value == '\f') {
+    return 'f';
+  } else if (value == '\b') {
+    return 'b';
+  } else if (value == '\t') {
+    return 't';
+  } else if (value == '\v') {
+    return 'v';
+  } else if (value == '\r') {
+    return 'r';
+  }
+  UNREACHABLE();
+  return '\0';
+}
+
+
 void Object::InitOnce() {
   // TODO(iposva): NoGCScope needs to be added here.
   ASSERT(class_class() == null_);
@@ -5040,6 +5074,7 @@ RawString* TokenStream::GenerateSource() const {
   String& double_quotes = String::Handle(String::New("\""));
   String& dollar = String::Handle(String::New("$"));
   String& two_spaces = String::Handle(String::New("  "));
+  String& raw_string = String::Handle(String::New("@"));
 
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
@@ -5059,18 +5094,34 @@ RawString* TokenStream::GenerateSource() const {
 
     // Handle the current token.
     if (curr == Token::kSTRING) {
-      bool escape_quotes = false;
+      bool is_raw_string = false;
+      bool escape_characters = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
-        if (literal.CharAt(i) == '"') {
-          escape_quotes = true;
-          break;
+        if (IsSpecialCharacter(literal.CharAt(i))) {
+          escape_characters = true;
+        }
+        // TODO(4995): Temp solution for raw strings, this will break
+        // if we saw a string that is not a raw string but has back slashes
+        // in it.
+        if ((literal.CharAt(i) == '\\')) {
+          if ((next != Token::kINTERPOL_VAR) &&
+              (next != Token::kINTERPOL_START) &&
+              (prev != Token::kINTERPOL_VAR) &&
+              (prev != Token::kINTERPOL_END)) {
+            is_raw_string = true;
+          } else {
+            escape_characters = true;
+          }
         }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
+        if (is_raw_string) {
+          literals.Add(raw_string);
+        }
         literals.Add(double_quotes);
       }
-      if (escape_quotes) {
-        literal = String::EscapeDoubleQuotes(literal);
+      if (escape_characters) {
+        literal = String::EscapeSpecialCharacters(literal, is_raw_string);
         literals.Add(literal);
       } else {
         literals.Add(literal);
@@ -5080,6 +5131,9 @@ RawString* TokenStream::GenerateSource() const {
       }
     } else if (curr == Token::kINTERPOL_VAR) {
       literals.Add(dollar);
+      if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+        literal = String::SubString(literal, 0, literal.Length() - private_len);
+      }
       literals.Add(literal);
     } else if (curr == Token::kIDENT) {
       if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
@@ -9415,18 +9469,18 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 }
 
 
-RawString* String::EscapeDoubleQuotes(const String& str) {
+RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
   if (str.IsOneByteString()) {
     const OneByteString& onestr = OneByteString::Cast(str);
-    return onestr.EscapeDoubleQuotes();
+    return onestr.EscapeSpecialCharacters(raw_str);
   }
   if (str.IsTwoByteString()) {
     const TwoByteString& twostr = TwoByteString::Cast(str);
-    return twostr.EscapeDoubleQuotes();
+    return twostr.EscapeSpecialCharacters(raw_str);
   }
   ASSERT(str.IsFourByteString());
   const FourByteString& fourstr = FourByteString::Cast(str);
-  return fourstr.EscapeDoubleQuotes();
+  return fourstr.EscapeSpecialCharacters(raw_str);
 }
 
 
@@ -9594,22 +9648,27 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 }
 
 
-RawOneByteString* OneByteString::EscapeDoubleQuotes() const {
+RawOneByteString* OneByteString::EscapeSpecialCharacters(bool raw_str) const {
   intptr_t len = Length();
   if (len > 0) {
-    intptr_t num_quotes = 0;
+    intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
-        num_quotes += 1;
+      if (IsSpecialCharacter(*CharAddr(i)) ||
+          (!raw_str && (*CharAddr(i) == '\\'))) {
+        num_escapes += 1;
       }
     }
     const OneByteString& dststr = OneByteString::Handle(
-        OneByteString::New(len + num_quotes, Heap::kNew));
+        OneByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
+      if (IsSpecialCharacter(*CharAddr(i))) {
         *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '"';
+        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(i) == '\\')) {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '\\';
         index += 2;
       } else {
         *(dststr.CharAddr(index)) = *CharAddr(i);
@@ -9792,22 +9851,27 @@ const char* OneByteString::ToCString() const {
 }
 
 
-RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
+RawTwoByteString* TwoByteString::EscapeSpecialCharacters(bool raw_str) const {
   intptr_t len = Length();
   if (len > 0) {
-    intptr_t num_quotes = 0;
+    intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
-        num_quotes += 1;
+      if (IsSpecialCharacter(*CharAddr(i)) ||
+          (!raw_str && (*CharAddr(i) == '\\'))) {
+        num_escapes += 1;
       }
     }
     const TwoByteString& dststr = TwoByteString::Handle(
-        TwoByteString::New(len + num_quotes, Heap::kNew));
+        TwoByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
+      if (IsSpecialCharacter(*CharAddr(i))) {
         *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '"';
+        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(i) == '\\')) {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '\\';
         index += 2;
       } else {
         *(dststr.CharAddr(index)) = *CharAddr(i);
@@ -9924,22 +9988,27 @@ const char* TwoByteString::ToCString() const {
 }
 
 
-RawFourByteString* FourByteString::EscapeDoubleQuotes() const {
+RawFourByteString* FourByteString::EscapeSpecialCharacters(bool raw_str) const {
   intptr_t len = Length();
   if (len > 0) {
-    intptr_t num_quotes = 0;
+    intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
-        num_quotes += 1;
+      if (IsSpecialCharacter(*CharAddr(i)) ||
+          (!raw_str && (*CharAddr(i) == '\\'))) {
+        num_escapes += 1;
       }
     }
     const FourByteString& dststr = FourByteString::Handle(
-        FourByteString::New(len + num_quotes, Heap::kNew));
+        FourByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
+      if (IsSpecialCharacter(*CharAddr(i))) {
         *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '"';
+        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(i) == '\\')) {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '\\';
         index += 2;
       } else {
         *(dststr.CharAddr(index)) = *CharAddr(i);
