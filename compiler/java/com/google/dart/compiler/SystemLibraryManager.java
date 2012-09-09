@@ -136,54 +136,64 @@ public class SystemLibraryManager  {
       String shortName = entry.getKey().trim();
       DartLibrary library = entry.getValue();
       String path = library.getPath();
-      File file;
+      URI libFileUri;
       try {
-        file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
+        libFileUri = base.resolve(new URI(null, null, path, null, null)).normalize();
       } catch (URISyntaxException e) {
         continue;
       }
+      File file = new File(libFileUri);
       if (!file.exists()) {
         throw new InternalCompilerException("Can't find system library dart:" + shortName
                                             + " at " + file);
       }
-        int index = shortName.indexOf(':');
-        if (index == -1) {
-          continue;
-        }
-        explicitShortNames.add(shortName);
-        String scheme = shortName.substring(0, index + 1);
-        String name = shortName.substring(index + 1);
-        String host = file.getParentFile().getName();
-        addLib(scheme, 
-               host, 
-               name, 
-               file.getParentFile(), 
-               file.getName(), 
-               library.getCategory(),
-               library.isDocumented(), 
-               library.isImplementation());
+      int index = shortName.indexOf(':');
+      if (index == -1) {
+        continue;
+      }
+      explicitShortNames.add(shortName);
+      String scheme = shortName.substring(0, index + 1);
+      String name = shortName.substring(index + 1);
+      
+      String relPath = sdkLibPathUri.relativize(libFileUri).getPath();
+      index = relPath.indexOf('/');
+      if (index == -1) {
+        continue;
+      }
+      String host = relPath.substring(0, index);
+      File dir = new File(sdkLibPath, host);
+      String pathToLib = relPath.substring(index + 1);
+      
+      addLib(scheme, 
+          host, 
+          name, 
+          dir, 
+          pathToLib, 
+          library.getCategory(),
+          library.isDocumented(), 
+          library.isImplementation());
       
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
   
-  private boolean addLib(String scheme, String host, String name, File dir, String libFileName, 
+  private boolean addLib(String scheme, String host, String name, File dir, String pathToLib, 
                           String category, boolean documented, boolean implementation)
       throws AssertionError {
-    
-    File libFile = new File(dir, libFileName);
+    File libFile = new File(dir, pathToLib);
     if (!libFile.isFile()) {
       throw new InternalCompilerException("Error mapping dart:" + host + ", path "
           + libFile.getAbsolutePath() + " is not a file.");
     }
-    SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir, category,documented, implementation);
+    SystemLibrary lib = new SystemLibrary(
+        name, host, pathToLib, dir, category, documented, implementation);
     libraries.add(lib);
     String libSpec = scheme + name;
     URI libUri;
     URI expandedUri;
     try {
       libUri = new URI(libSpec);
-      expandedUri = new URI("dart:" + "//" + host + "/" + libFileName);
+      expandedUri = new URI("dart:" + "//" + host + "/" + pathToLib);
     } catch (URISyntaxException e) {
       throw new AssertionError(e);
     }
