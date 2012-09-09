@@ -9,8 +9,6 @@ Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash # http://dartbug.c
 
 LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Math/parseInt_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js && $checked ]
@@ -726,7 +724,6 @@ LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Expect/equals_A01_t03: Fail  # Issue co19 - 178
 LibTest/core/Expect/notEquals_A01_t03: Fail # Issue co19 - 178
-LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
