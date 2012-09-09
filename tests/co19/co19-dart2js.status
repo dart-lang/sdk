@@ -7,6 +7,11 @@ Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
 Language/03_Overview/03_Overview_A01_t02: Crash # http://dartbug.com/5016
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
 
+LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Math/parseInt_A02_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Please triage this failure.
+
 
 [ $compiler == dart2js && $checked ]
 Language/14_Types/7_Type_Void_A01_t02: Crash # http://dartbug.com/5018
@@ -76,103 +81,108 @@ Language/11_Statements/15_Assert_A05_t03: Fail # dart2js doesn't throw ClosureAr
 
 
 [ $compiler == dart2js ]
-Language/05_Variables/05_Variables_A05_t03: Fail, OK # Math class was removed.
-Language/05_Variables/05_Variables_A04_t09: Fail, OK # Math class was removed.
-Language/05_Variables/05_Variables_A03_t09: Fail, OK # Math class was removed.
-LibTest/core/double/ceil_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/double/truncate_A01_t05: Fail, OK # Math class was removed.
-LibTest/core/double/floor_A01_t06: Fail, OK # Math class was removed.
-LibTest/core/double/toDouble_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/double/floor_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/double/floor_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/double/ceil_A01_t06: Fail, OK # Math class was removed.
-LibTest/core/double/round_A01_t05: Fail, OK # Math class was removed.
-LibTest/core/double/ceil_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A18_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/exp_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/acos_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A15_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/cos_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A14_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A07_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/acos_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/asin_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A10_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/min_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A16_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/sin_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/random_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A03_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A12_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/sin_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/asin_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/tan_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/exp_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/max_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/asin_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A09_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A19_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/asin_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/atan2_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/atan_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/min_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A17_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/acos_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/atan_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/sin_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/log_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/parseDouble_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/atan_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A02_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/cos_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/log_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A04_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/cos_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A05_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/log_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/max_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/tan_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/log_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/atan2_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/acos_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/sqrt_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Math/parseInt_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/atan2_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/sqrt_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A06_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/pow_A08_t01: Fail, OK # Math class was removed.
-LibTest/core/Math/sqrt_A01_t03: Fail, OK # Math class was removed.
-LibTest/core/Math/sqrt_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_remainder_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/int/remainder_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/int/operator_LE_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_GT_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_LT_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_division_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_addition_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_GE_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/int/operator_subtraction_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Expect/approxEquals_A01_t04: Fail, OK # Math class was removed.
-LibTest/core/Expect/approxEquals_A02_t01: Fail, OK # Math class was removed.
-LibTest/core/Expect/approxEquals_A01_t02: Fail, OK # Math class was removed.
-LibTest/core/Expect/approxEquals_A04_t01: Fail, OK # Math class was removed.
-LibTest/core/Expect/approxEquals_A01_t01: Fail, OK # Math class was removed.
-LibTest/core/Expect/approxEquals_A01_t03: Fail, OK # Math class was removed.
-Language/13_Libraries_and_Scripts/3_Includes_A02_t03: Fail, OK # Math class was removed.
+Language/05_Variables/05_Variables_A03_t09: Fail, OK # co19 issue 200
+Language/05_Variables/05_Variables_A04_t09: Fail, OK # co19 issue 200
+Language/05_Variables/05_Variables_A05_t03: Fail, OK # co19 issue 200
+Language/13_Libraries_and_Scripts/3_Includes_A02_t03: Fail, OK # co19 issue 200
+Language/13_Libraries_and_Scripts/source2: Fail, OK # co19 issue 200
+LibTest/core/Expect/approxEquals_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Expect/approxEquals_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Expect/approxEquals_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Expect/approxEquals_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Expect/approxEquals_A02_t01: Fail, OK # co19 issue 200
+LibTest/core/Expect/approxEquals_A04_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/acos_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/acos_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/acos_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/acos_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/asin_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/asin_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/asin_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/asin_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/atan2_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/atan2_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/atan2_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/atan2_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/atan_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/atan_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/atan_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/cos_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/cos_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/cos_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/exp_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/exp_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/exp_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/log_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/log_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/log_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/log_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/max_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/max_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/min_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/min_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/parseDouble_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/parseDouble_A02_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/parseInt_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/parseInt_A02_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A02_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A03_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A04_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A05_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A06_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A07_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A08_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A09_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A10_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A11_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A12_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A13_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A14_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A15_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A16_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A17_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A18_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/pow_A19_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/random_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/sin_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/sin_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/sin_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/sin_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/sqrt_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/sqrt_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/sqrt_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/Math/sqrt_A01_t04: Fail, OK # co19 issue 200
+LibTest/core/Math/tan_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/Math/tan_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/Math/tan_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/double/ceil_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/double/ceil_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/double/ceil_A01_t06: Fail, OK # co19 issue 200
+LibTest/core/double/floor_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/double/floor_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/double/floor_A01_t06: Fail, OK # co19 issue 200
+LibTest/core/double/round_A01_t05: Fail, OK # co19 issue 200
+LibTest/core/double/toDouble_A01_t03: Fail, OK # co19 issue 200
+LibTest/core/double/toInt_A01_t05: Fail, OK # co19 issue 200
+LibTest/core/double/truncate_A01_t05: Fail, OK # co19 issue 200
+LibTest/core/int/operator_GE_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/operator_LE_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/operator_LT_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/operator_addition_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/operator_division_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/operator_remainder_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/int/operator_subtraction_A01_t01: Fail, OK # co19 issue 200
+LibTest/core/int/remainder_A01_t02: Fail, OK # co19 issue 200
+LibTest/core/int/toDouble_A01_t01: Fail, OK # co19 issue 200
 
-LibTest/core/InternalError/*: Fail, OK  # InternalError is not part of the SDK.
-
-# Rename "BadNumberFormatException" to "FormatException"
-# TODO(rnystrom): These can be enabled when
-# http://code.google.com/p/co19/issues/detail?id=167 is fixed.
-LibTest/core/double/toInt_A01_t03: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
-LibTest/core/double/toInt_A01_t04: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
-LibTest/core/Math/parseInt_A02_t01: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
-LibTest/core/Math/parseDouble_A02_t01: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
+LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
+LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
 
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
