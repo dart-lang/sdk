@@ -3,387 +3,18 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-Language/11_Statements/05_For_A01_t13: Crash
-Language/03_Overview/03_Overview_A01_t02: Crash
-Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
+Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
+Language/03_Overview/03_Overview_A01_t02: Crash # http://dartbug.com/5016
+Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
 
 
-Language/03_Overview/03_Overview_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/1_Scoping_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t05: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t08: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t07: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t08: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t10: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t04: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t05: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t06: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t07: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t08: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A04_t10: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t02: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t03: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t04: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t05: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t06: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t07: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/06_Functions_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/06_Functions_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/06_Functions_A01_t31: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/06_Functions/4_External_Functions_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A01_t20: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t11: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t31: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t32: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t34: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t08: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t09: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t10: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t19: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t21: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t22: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t24: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t25: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/10_Superinterfaces_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A02_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t07: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A03_t08: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t07: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t08: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A21_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/01_Constants_A15_t38: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/01_Constants_A16_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/01_Constants_A16_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/01_Constants_A19_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t39: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t41: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t43: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t45: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/06_Lists_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/07_Maps_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/08_Function_Expressions_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/2_Const_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/20_Equality_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/20_Equality_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/20_Equality_A01_t17: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/20_Equality_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t10: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/03_Variable_Declaration_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/03_Variable_Declaration_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/03_Variable_Declaration_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/03_Variable_Declaration_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/03_Variable_Declaration_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/05_For_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/08_Switch_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/08_Switch_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/09_Try_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/09_Try_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/09_Try_A06_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/09_Try_A06_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/09_Try_A06_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/10_Return_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/10_Return_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Statements/10_Return_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t10: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t25: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/3_Includes_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A05_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A08_t05: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A08_t06: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A10_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A10_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A10_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A10_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A10_t07: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A11_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A11_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A11_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A12_t09: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A12_t10: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t05: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t08: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t09: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t17: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t19: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t20: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t21: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t22: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t23: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/7_Type_Void_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Futures/wait_A03_t01: Fail # TODO(ahe): Please triage this failure.
+[ $compiler == dart2js && $checked ]
+Language/14_Types/7_Type_Void_A01_t02: Crash # http://dartbug.com/5018
 
 
 [ $compiler == dart2js && $unchecked ]
-Language/07_Classes/3_Setters_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A04_t18: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/3_Setters_A01_t03: Fail # Missing error on parameter-less setter.
+Language/07_Classes/07_Classes_A04_t18: Fail, OK # co19 issue 190
 
 
 [ $compiler == dart2js && $checked ]
@@ -438,108 +69,108 @@ Language/11_Statements/15_Assert_A04_t05: Fail # TODO(ahe): Please triage this f
 Language/11_Statements/15_Assert_A04_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/15_Assert_A05_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/7_Type_Void_A01_t02: crash
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js ]
-Language/05_Variables/05_Variables_A05_t03: Fail, OK
-Language/05_Variables/05_Variables_A04_t09: Fail, OK
-Language/05_Variables/05_Variables_A03_t09: Fail, OK
-LibTest/core/double/ceil_A01_t03: Fail, OK
-LibTest/core/double/truncate_A01_t05: Fail, OK
-LibTest/core/double/floor_A01_t06: Fail, OK
-LibTest/core/double/toDouble_A01_t03: Fail, OK
-LibTest/core/double/floor_A01_t03: Fail, OK
-LibTest/core/double/floor_A01_t01: Fail, OK
-LibTest/core/double/ceil_A01_t06: Fail, OK
-LibTest/core/double/round_A01_t05: Fail, OK
-LibTest/core/double/ceil_A01_t01: Fail, OK
-LibTest/core/Math/pow_A18_t01: Fail, OK
-LibTest/core/Math/exp_A01_t02: Fail, OK
-LibTest/core/Math/acos_A01_t02: Fail, OK
-LibTest/core/Math/pow_A15_t01: Fail, OK
-LibTest/core/Math/cos_A01_t02: Fail, OK
-LibTest/core/Math/pow_A14_t01: Fail, OK
-LibTest/core/Math/pow_A07_t01: Fail, OK
-LibTest/core/Math/acos_A01_t01: Fail, OK
-LibTest/core/Math/asin_A01_t02: Fail, OK
-LibTest/core/Math/pow_A10_t01: Fail, OK
-LibTest/core/Math/pow_A01_t04: Fail, OK
-LibTest/core/Math/min_A01_t02: Fail, OK
-LibTest/core/Math/pow_A16_t01: Fail, OK
-LibTest/core/Math/sin_A01_t03: Fail, OK
-LibTest/core/Math/random_A01_t01: Fail, OK
-LibTest/core/Math/pow_A01_t02: Fail, OK
-LibTest/core/Math/pow_A03_t01: Fail, OK
-LibTest/core/Math/pow_A12_t01: Fail, OK
-LibTest/core/Math/sin_A01_t02: Fail, OK
-LibTest/core/Math/asin_A01_t01: Fail, OK
-LibTest/core/Math/tan_A01_t02: Fail, OK
-LibTest/core/Math/exp_A01_t03: Fail, OK
-LibTest/core/Math/max_A01_t02: Fail, OK
-LibTest/core/Math/asin_A01_t04: Fail, OK
-LibTest/core/Math/pow_A09_t01: Fail, OK
-LibTest/core/Math/pow_A19_t01: Fail, OK
-LibTest/core/Math/asin_A01_t03: Fail, OK
-LibTest/core/Math/atan2_A01_t04: Fail, OK
-LibTest/core/Math/atan_A01_t03: Fail, OK
-LibTest/core/Math/min_A01_t01: Fail, OK
-LibTest/core/Math/pow_A17_t01: Fail, OK
-LibTest/core/Math/acos_A01_t04: Fail, OK
-LibTest/core/Math/atan_A01_t01: Fail, OK
-LibTest/core/Math/sin_A01_t04: Fail, OK
-LibTest/core/Math/log_A01_t01: Fail, OK
-LibTest/core/Math/parseDouble_A01_t01: Fail, OK
-LibTest/core/Math/atan_A01_t02: Fail, OK
-LibTest/core/Math/pow_A02_t01: Fail, OK
-LibTest/core/Math/cos_A01_t01: Fail, OK
-LibTest/core/Math/log_A01_t03: Fail, OK
-LibTest/core/Math/pow_A04_t01: Fail, OK
-LibTest/core/Math/atan2_A01_t01: Fail, OK
-LibTest/core/Math/cos_A01_t03: Fail, OK
-LibTest/core/Math/pow_A05_t01: Fail, OK
-LibTest/core/Math/log_A01_t02: Fail, OK
-LibTest/core/Math/max_A01_t01: Fail, OK
-LibTest/core/Math/tan_A01_t03: Fail, OK
-LibTest/core/Math/log_A01_t04: Fail, OK
-LibTest/core/Math/atan2_A01_t03: Fail, OK
-LibTest/core/Math/acos_A01_t03: Fail, OK
-LibTest/core/Math/pow_A01_t03: Fail, OK
-LibTest/core/Math/sqrt_A01_t04: Fail, OK
-LibTest/core/Math/parseInt_A01_t01: Fail, OK
-LibTest/core/Math/atan2_A01_t02: Fail, OK
-LibTest/core/Math/sqrt_A01_t02: Fail, OK
-LibTest/core/Math/pow_A06_t01: Fail, OK
-LibTest/core/Math/pow_A08_t01: Fail, OK
-LibTest/core/Math/sqrt_A01_t03: Fail, OK
-LibTest/core/Math/sqrt_A01_t01: Fail, OK
-LibTest/core/int/operator_remainder_A01_t02: Fail, OK
-LibTest/core/int/remainder_A01_t02: Fail, OK
-LibTest/core/int/operator_LE_A01_t01: Fail, OK
-LibTest/core/int/operator_GT_A01_t01: Fail, OK
-LibTest/core/int/operator_LT_A01_t01: Fail, OK
-LibTest/core/int/operator_division_A01_t01: Fail, OK
-LibTest/core/int/operator_addition_A01_t01: Fail, OK
-LibTest/core/int/operator_GE_A01_t01: Fail, OK
-LibTest/core/int/operator_subtraction_A01_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A01_t04: Fail, OK
-LibTest/core/Expect/approxEquals_A02_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A01_t02: Fail, OK
-LibTest/core/Expect/approxEquals_A04_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A01_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A01_t03: Fail, OK
+Language/05_Variables/05_Variables_A05_t03: Fail, OK # Math class was removed.
+Language/05_Variables/05_Variables_A04_t09: Fail, OK # Math class was removed.
+Language/05_Variables/05_Variables_A03_t09: Fail, OK # Math class was removed.
+LibTest/core/double/ceil_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/double/truncate_A01_t05: Fail, OK # Math class was removed.
+LibTest/core/double/floor_A01_t06: Fail, OK # Math class was removed.
+LibTest/core/double/toDouble_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/double/floor_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/double/floor_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/double/ceil_A01_t06: Fail, OK # Math class was removed.
+LibTest/core/double/round_A01_t05: Fail, OK # Math class was removed.
+LibTest/core/double/ceil_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A18_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/exp_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/acos_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A15_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/cos_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A14_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A07_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/acos_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/asin_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A10_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/min_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A16_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/sin_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/random_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A03_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A12_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/sin_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/asin_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/tan_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/exp_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/max_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/asin_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A09_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A19_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/asin_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/atan2_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/atan_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/min_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A17_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/acos_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/atan_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/sin_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/log_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/parseDouble_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/atan_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A02_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/cos_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/log_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A04_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/atan2_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/cos_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A05_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/log_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/max_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/tan_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/log_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/atan2_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/acos_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/sqrt_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Math/parseInt_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/atan2_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/sqrt_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A06_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/pow_A08_t01: Fail, OK # Math class was removed.
+LibTest/core/Math/sqrt_A01_t03: Fail, OK # Math class was removed.
+LibTest/core/Math/sqrt_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_remainder_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/int/remainder_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/int/operator_LE_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_GT_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_LT_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_division_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_addition_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_GE_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/int/operator_subtraction_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Expect/approxEquals_A01_t04: Fail, OK # Math class was removed.
+LibTest/core/Expect/approxEquals_A02_t01: Fail, OK # Math class was removed.
+LibTest/core/Expect/approxEquals_A01_t02: Fail, OK # Math class was removed.
+LibTest/core/Expect/approxEquals_A04_t01: Fail, OK # Math class was removed.
+LibTest/core/Expect/approxEquals_A01_t01: Fail, OK # Math class was removed.
+LibTest/core/Expect/approxEquals_A01_t03: Fail, OK # Math class was removed.
+Language/13_Libraries_and_Scripts/3_Includes_A02_t03: Fail, OK # Math class was removed.
 
 LibTest/core/InternalError/*: Fail, OK  # InternalError is not part of the SDK.
 
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
-LibTest/core/double/toInt_A01_t03: Fail
-LibTest/core/double/toInt_A01_t04: Fail
-LibTest/core/Math/parseInt_A02_t01: Fail
-LibTest/core/Math/parseDouble_A02_t01: Fail
+LibTest/core/double/toInt_A01_t03: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
+LibTest/core/double/toInt_A01_t04: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
+LibTest/core/Math/parseInt_A02_t01: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
+LibTest/core/Math/parseDouble_A02_t01: Fail, OK # Rename "BadNumberFormatException" to "FormatException"
 
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
@@ -776,11 +407,11 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK
 # The original issue that used to cause the test to fail is put in an
 # end-of-line comment. See co19 issue 184.
 Language/03_Overview/2_Privacy_A01_t02: Pass, OK # Unresolvable constructors are not a compile-time error after 0.11.
-Language/08_Interfaces/1_Methods_A03_t01: Pass, OK # Bad test: assumes eager loading.
-Language/08_Interfaces/1_Methods_A03_t02: Pass, OK # Bad test: assumes eager loading.
-Language/08_Interfaces/1_Methods_A03_t03: Pass, OK # Bad test: assumes eager loading.
-Language/08_Interfaces/1_Methods_A03_t04: Pass, OK # Bad test: assumes eager loading.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Pass, OK # Bad test: assumes eager loading.
+Language/08_Interfaces/1_Methods_A03_t01: Pass, OK # co19 issue 188
+Language/08_Interfaces/1_Methods_A03_t02: Pass, OK # co19 issue 188
+Language/08_Interfaces/1_Methods_A03_t03: Pass, OK # co19 issue 188
+Language/08_Interfaces/1_Methods_A03_t04: Pass, OK # co19 issue 188
+Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Pass, OK # co19 issue 188
 Language/08_Interfaces/Interfaces_A01_t04: Pass, OK # TODO(ahe): Is this a bad test or a bug in dart2js?
 Language/10_Expressions/01_Constants_A15_t48: Pass, OK # co19 issue 171
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Pass, OK # Missing check for const initializer
@@ -923,7 +554,73 @@ LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled 
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 
-Language/10_Expressions/02_Null_A04_t01: Fail, OK # Bad test: assumes eager loading.
+Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
+
+Language/11_Statements/09_Try_A01_t14: Fail, OK # co19 issue 168
+
+Language/03_Overview/2_Privacy_A01_t12: Fail, OK # co19 issue 191
+
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail, OK # co19 issue 192
+
+Language/07_Classes/07_Classes_A01_t20: Fail, OK # co19 issue 193
+Language/07_Classes/07_Classes_A02_t34: Fail, OK # co19 issue 193
+Language/07_Classes/07_Classes_A03_t10: Fail, OK # co19 issue 193
+
+Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail, OK # co19 issue 194
+Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail, OK # co19 issue 194
+Language/08_Interfaces/5_Superinterfaces_A03_t02: Fail, OK # co19 issue 194
+Language/11_Statements/09_Try_A06_t01: Fail, OK # co19 issue 194
+Language/11_Statements/09_Try_A06_t02: Fail, OK # co19 issue 194
+Language/11_Statements/09_Try_A06_t03: Fail, OK # co19 issue 194
+Language/11_Statements/09_Try_A06_t04: Fail, OK # co19 issue 194
+Language/11_Statements/09_Try_A06_t05: Fail, OK # co19 issue 194
+LibTest/core/Futures/wait_A03_t01: Fail, OK # co19 issue 194
+
+Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
+
+Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # co19 issue 195
+
+Language/07_Classes/07_Classes_A02_t01: Fail, OK # co19 issue 197
+
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -983,7 +680,6 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects n
 #
 [ $compiler == dart2js ]
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
-Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # compiler cancelled: cannot find constructor A or ADef
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # compiler cancelled: internal error: super property store not implemented
 Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
@@ -996,7 +692,6 @@ Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessible
 Language/03_Overview/2_Privacy_A01_t11: Fail # internal error: super property read not implemented
 Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=> _
 Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
-
 
 
 Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
@@ -1040,64 +735,30 @@ Language/10_Expressions/07_Maps_A07_t04: Fail # Is check with generics.
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 
-#
-# The following tests are all negative tests that should be fixed.
-#
 [ $compiler == dart2js ]
-Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t05: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t06: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t08: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail # @compile-error
-Language/11_Statements/09_Try_A01_t14: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t*: Fail # http://dartbug.com/5019
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Pass # For the wrong reason, http://dartbug.com/5019
+Language/10_Expressions/28_Identifier_Reference_A06_t14: Pass # For the wrong reason, http://dartbug.com/5019
+Language/10_Expressions/28_Identifier_Reference_A06_t16: Pass # For the wrong reason, http://dartbug.com/5019
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # co19 issue 188
 
 
 [ $compiler == dart2dart ]
@@ -1106,3 +767,345 @@ Language/11_Statements/09_Try_A01_t14: Fail # @compile-error
 
 [ $compiler == dart2js && $browser ]
 *: Skip
+
+
+#
+# Missing compile-time errors.
+#
+[ $compiler == dart2js ]
+Language/03_Overview/1_Scoping_A01_t39: Fail # Checks that it is a compile-time error if a typedef declaration declares two identically named optional parameters.
+Language/03_Overview/1_Scoping_A01_t40: Fail # Checks that it is a compile-time error if a typedef declaration declares a positional and an optional parameter using the same name.
+Language/03_Overview/1_Scoping_A01_t41: Fail # Checks that it is a compile-time error if a typedef declaration declares two identically named parameters.
+Language/05_Variables/05_Variables_A01_t04: Fail # Checks that a variable declaration cannot contain both 'final' and 'var'.
+Language/05_Variables/05_Variables_A01_t05: Fail # Checks that a variable declaration cannot contain both 'var' and 'type'.
+Language/05_Variables/05_Variables_A01_t08: Fail # Checks different variables in a single variable declaration must be delimited by commas.
+Language/05_Variables/05_Variables_A01_t12: Fail # Checks that variable declaration cannot contain both 'const' and 'var'.
+Language/05_Variables/05_Variables_A01_t13: Fail # Checks that variable declaration cannot contain both 'const' and 'final'.
+Language/05_Variables/05_Variables_A01_t14: Fail # Checks that variable declaration cannot contain 'const', 'final' and 'var' simultaneously.
+Language/05_Variables/05_Variables_A01_t15: Fail # Checks that a variable declaration cannot contain the 'abstract' keyword.
+Language/05_Variables/05_Variables_A03_t01: Fail # Checks that a compile-time error occurs if local final variable is redefined.
+Language/05_Variables/05_Variables_A03_t02: Fail # Checks that a compile-time error occurs if local final variable is not assigned.
+Language/05_Variables/05_Variables_A03_t03: Fail # Checks that a compile-time error occurs if a global final variable is redefined.
+Language/05_Variables/05_Variables_A03_t04: Fail # Checks that a compile-time error occurs if a global final variable is not assigned.
+Language/05_Variables/05_Variables_A03_t05: Fail # Checks that a compile-time error occurs if local typed final variable is redefined.
+Language/05_Variables/05_Variables_A03_t06: Fail # Checks that a compile-time error occurs if local typed final variable is not assigned.
+Language/05_Variables/05_Variables_A03_t07: Fail # Checks that a compile-time error occurs if a global typed final variable is redefined.
+Language/05_Variables/05_Variables_A03_t08: Fail # Checks that a compile-time error occurs if a global typed final variable is not assigned.
+Language/05_Variables/05_Variables_A03_t10: Fail # Checks that assigning a final variable to the same value it already holds still produces a compile-time error.
+Language/05_Variables/05_Variables_A04_t01: Fail # Checks that a compile-time error occurs if a local constant variable is redefined.
+Language/05_Variables/05_Variables_A04_t02: Fail # Checks that a compile-time error occurs if a local typed constant variable is redefined.
+Language/05_Variables/05_Variables_A04_t03: Fail # Checks that a compile-time error occurs if a global constant variable is redefined.
+Language/05_Variables/05_Variables_A04_t04: Fail # Checks that a compile-time error occurs if a global typed constant variable is redefined.
+Language/05_Variables/05_Variables_A04_t05: Fail # Checks that a compile-time error occurs if a local constant variable is not initialized at declaration.
+Language/05_Variables/05_Variables_A04_t06: Fail # Checks that a compile-time error occurs if a local typed constant variable is not initialized at declaration.
+Language/05_Variables/05_Variables_A04_t07: Fail # Checks that a compile-time error occurs if a global constant variable is not initialized at declaration.
+Language/05_Variables/05_Variables_A04_t08: Fail # Checks that a compile-time error occurs if a global typed constant variable is not initialized at declaration.
+Language/05_Variables/05_Variables_A04_t10: Fail # Checks that assigning a constant variable to the same value it already holds still produces a compile-time error.
+Language/05_Variables/05_Variables_A05_t01: Fail # Checks that a compile-time error occurs if a constant variable is not initialized.
+Language/05_Variables/05_Variables_A08_t02: Fail # Checks that it is a compile-time error if a top level variable declaration is prefaced with the built-in identifier static.
+Language/05_Variables/05_Variables_A08_t03: Fail # Checks that it is a compile-time error if a top level typed variable declaration is prefaced with the built-in identifier static.
+Language/05_Variables/05_Variables_A08_t04: Fail # Checks that it is a compile-time error if a top level final variable declaration is prefaced with the built-in identifier static.
+Language/05_Variables/05_Variables_A08_t05: Fail # Checks that it is a compile-time error if a top level final typed variable declaration is prefaced with the built-in identifier static.
+Language/05_Variables/05_Variables_A08_t06: Fail # Checks that it is a compile-time error if a top level constant variable declaration is prefaced with the built-in identifier static.
+Language/05_Variables/05_Variables_A08_t07: Fail # Checks that it is a compile-time error if a top level constant typed variable declaration is prefaced with the built-in identifier static.
+Language/06_Functions/06_Functions_A01_t06: Fail # Checks that it is a compile error if a block of a function body isn't closed
+Language/06_Functions/06_Functions_A01_t31: Fail # Checks that functions can't be declared as static inside of a function body.
+Language/06_Functions/1_Function_Declaration_A01_t01: Fail # Checks that it is a compile-time error to preface library function with 'static'.
+Language/06_Functions/1_Function_Declaration_A02_t02: Fail # Checks that 'id' is not assignable since its declaration is equivalent to a final variable declaration.
+Language/06_Functions/1_Function_Declaration_A03_t02: Fail # Checks that 'id' is not assignable since its declaration is equivalent to the final variable declaration.
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t03: Fail # Checks that a required parameter can be constant. Reassigning it should produce a compile-time error.
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t04: Fail # Checks that static variable declaration can't be a required formal parameter
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # Checks that reassigning a final required parameter produces a compile-time error.
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: Fail # Checks that a functionSignature parameter cannot be final.
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: Fail # Checks that a functionSignature parameter cannot be declared as variable.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail # Checks that an optional positional parameter can be final.  Reassigning it should produce a compile-time error.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t07: Fail # Checks that an optional positional parameter can be constant.  Reassigning it should produce a compile-time error.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # Checks that it is a compile-time error if the name of a positional optional parameter begins with an '_' character.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # Checks that it is a compile-time error if the name of a positional optional parameter begins with an '_' character.
+Language/06_Functions/2_Formal_Parameters_A03_t01: Fail # Checks that it is a compile-time error if a required parameter is declared as a constant variable.
+Language/06_Functions/2_Formal_Parameters_A03_t02: Fail # Checks that it is a compile-time error if a required parameter is declared as a constant typed variable.
+Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # Checks that it is a compile-time error if an optional positional parameter is declared as a constant variable.
+Language/07_Classes/07_Classes_A02_t02: Fail # Checks that it is a compile-time error if a constant constructor declaration includes a body.
+Language/07_Classes/07_Classes_A02_t04: Fail # Checks that it is a compile-time error if a constant constructor declaration with initializers includes a body.
+Language/07_Classes/07_Classes_A02_t11: Fail # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
+Language/07_Classes/07_Classes_A02_t31: Fail # Checks that it is a compile-time error when a constant constructor is declared abstract.
+Language/07_Classes/07_Classes_A02_t32: Fail # Checks that it is a compile-time error when a constant constructor is declared abstract.
+Language/07_Classes/07_Classes_A03_t02: Fail # Checks that it is a compile-time error if a factory constructor method definition does not include a body.
+Language/07_Classes/07_Classes_A03_t03: Fail # Checks that it is a compile-time error if a function method definition does not include a body.
+Language/07_Classes/07_Classes_A03_t04: Fail # Checks that it is a compile-time error if a getter method definition does not include a body.
+Language/07_Classes/07_Classes_A03_t05: Fail # Checks that it is a compile-time error if a setter method definition does not include a body.
+Language/07_Classes/07_Classes_A03_t06: Fail # Checks that it is a compile-time error if an operator definition does not include a body.
+Language/07_Classes/07_Classes_A03_t07: Fail # Checks that it is a compile-time error if a static getter method definition does not include a body.
+Language/07_Classes/07_Classes_A03_t08: Fail # Checks that it is a compile-time error if a static setter method definition does not include a body.
+Language/07_Classes/07_Classes_A03_t09: Fail # Checks that it is a compile-time error if a static function method definition does not include a body.
+Language/07_Classes/07_Classes_A04_t19: Fail # Checks that an abstract static method can't be used in place of a class member definition./
+Language/07_Classes/07_Classes_A04_t21: Fail # Checks that a static operator can't be used in place of a class member definition.
+Language/07_Classes/07_Classes_A04_t22: Fail # Checks that an abstract static operator can't be used in place of a class member definition./
+Language/07_Classes/07_Classes_A04_t24: Fail # Checks that a static abstract getter can't be used in place of a class member definition.
+Language/07_Classes/07_Classes_A04_t25: Fail # Checks that a static abstract setter can't be used in place of a class member definition.
+Language/07_Classes/07_Classes_A09_t01: Fail # Checks that it is a compile-time error if a class has a non-abstract instance method and a static member method with the same name.
+Language/07_Classes/07_Classes_A09_t02: Fail # Checks that it is a compile-time error if a class has an abstract instance method and a static member method with the same name.
+Language/07_Classes/07_Classes_A09_t04: Fail # Checks that it is a compile-time error if a class has an instance method and a static field method with the same name.
+Language/07_Classes/10_Superinterfaces_A04_t01: Fail # Checks that it is a compile-time error if the same type appears more than once in the implements clause.
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Checks that it is a compile-time error if a class attempts to define an operator without a name (basically, an instance method named 'operator').
+Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # Checks that a compile-time error is produced if a user-defined operator ~ specifies one parameter.
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter.
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter in addition to the required one.
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter.
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter in addition to the two required ones.
+Language/07_Classes/1_Instance_Methods_A02_t01: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (2 vs 3) and neither have any required parameters.
+Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (1 vs. 0) and neither have any required parameters.
+Language/07_Classes/1_Instance_Methods_A02_t03: Fail # Checks that a compile-time error is produced if m1 has the same set of named parameters as m2 but in a different order.
+Language/07_Classes/1_Instance_Methods_A02_t04: Fail # Checks that a compile-time error is produced if m1 has the same set of named parameters as m2 but in a different order.
+Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-time error is produced if m1 has almost the same set of named  parameters as m2 except for one of them having a different name.
+Language/07_Classes/1_Instance_Methods_A02_t06: Fail # Checks that a compile-time error is produced if m1 has the same set of named parameters as m2 but in a different order even if the class declaring m1 is not a direct subtype of the class declaring m2.
+Language/07_Classes/2_Getters_A01_t03: Fail # Checks that a compile-time error is produced if empty formal parameter list is present.
+Language/07_Classes/2_Getters_A01_t04: Fail # Checks that a compile-time error is produced if non-empty formal parameter list is present.
+Language/07_Classes/2_Getters_A01_t05: Fail # Checks that a compile-time error is produced if an static getter has empty formal parameter list.
+Language/07_Classes/2_Getters_A01_t06: Fail # Checks that a compile-time error is produced if an arbitrary static getter specifies a single formal parameter.
+Language/07_Classes/2_Getters_A01_t07: Fail # Checks that a compile-time error is produced if an arbitrary instance getter specifies a single formal parameter.
+Language/07_Classes/3_Setters_A03_t01: Fail # Checks that a compile-time error is produced if a setter's formal parameter list contains two required parameters.
+Language/07_Classes/3_Setters_A03_t02: Fail # Checks that a compile-time error is produced if a setter's formal parameter list consists of a single optional parameter.
+Language/07_Classes/3_Setters_A03_t03: Fail # Checks that a compile-time error is produced if a setter's formal parameter list is empty.
+Language/07_Classes/3_Setters_A03_t04: Fail # Checks that a compile-time error is produced if a setter's formal parameter list contains a single optional parameter with a default value.
+Language/07_Classes/3_Setters_A03_t05: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list contains two required parameters.
+Language/07_Classes/3_Setters_A03_t06: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list consists of a single optional parameter.
+Language/07_Classes/3_Setters_A03_t07: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list is empty.
+Language/07_Classes/3_Setters_A03_t08: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list contains a single optional parameter with a default value.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Checks that a compile-time error is produced when the overriding abstract method has fewer named parameters than the instance method being overridden (2 vs 3) and neither  have any required parameters.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t04: Fail # Checks that a compile-time error is produced when the overriding abstract method has the same set of named parameters as the non-abstract instance method being overriden, but in a different order.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has the same set of named parameters as the abstract method being overriden,  but in a different order.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # Checks that redirecting constructor can not have initializing formals.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A21_t01: Fail # Checks that a compile-time error occur if k’s initializer list contains an initializer for a ﬁnal variable whose declaration includes an initialization expression.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail # Checks that it is a compile-time error when a constant constructor  declaration has a body.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail # Checks that it is a compile-time error if a named constant constructor has a body.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
+Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.
+Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
+Language/07_Classes/6_Constructors_A03_t03: Fail # Checks that 'default' constructor is not generated if the class  declares a named constructor.
+Language/07_Classes/7_Static_Methods_A01_t03: Fail # Checks that it is a compile-time error when a superclass's static method is being accessed using a subclass's name.
+Language/10_Expressions/01_Constants_A15_t38: Fail # Checks that a reference to a final variable cannot be assigned to a constant variable.
+Language/10_Expressions/01_Constants_A16_t01: Fail # Checks that an IntegerDivisionByZeroException raised during evaluation  of a compile-time constant causes a compile-time error.
+Language/10_Expressions/01_Constants_A16_t02: Fail # Checks that an OutOfMemoryException raised during evaluation of a compile-time constant causes a compile-time error.
+Language/10_Expressions/05_Strings_A02_t39: Fail # Checks that unbalanced string cause compile-time erros.
+Language/10_Expressions/05_Strings_A02_t41: Fail # Checks that unbalanced raw multiline string cause compile-time erros.
+Language/10_Expressions/05_Strings_A02_t43: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
+Language/10_Expressions/05_Strings_A02_t45: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
+Language/10_Expressions/05_Strings_A02_t46: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
+Language/10_Expressions/05_Strings_A02_t47: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
+Language/10_Expressions/05_Strings_A02_t48: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
+Language/10_Expressions/05_Strings_A02_t49: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
+Language/10_Expressions/06_Lists_A04_t01: Fail # Checks that it is a compile-time error if the type argument of a constant list literal includes a type variable.
+Language/10_Expressions/07_Maps_A03_t01: Fail # Checks that it is a compile-error if if the type argument of a constant map literal includes a type variable.
+Language/10_Expressions/08_Function_Expressions_A01_t03: Fail # Checks that the function body is required.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # Checks that it is a compile-time error if T is not a class or interface accessible in the current scope.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail # Checks that it is a compile-time error if T is not a class or interface accessible in the current scope. Named constructor case.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # Checks that it is a compile-time error if T is a reference to a static method.
+Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # Checks that it is a compile-time error if the type being instantiated  does not declare a named constructor T.id.
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # Checks that it is a compile-time error if a class does not declare a constructor with the same name.
+Language/10_Expressions/10_Instance_Creation/2_Const_A01_t02: Fail # Checks that it is a compile-time error if a constant object expression does not have arguments.
+Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Checks that it is a compile-time error if T includes any type variables as a type argument.
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail # Checks that it is a compile-time error if T.id is the name of a non-constant constructor declared by the type T.
+Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail # Checks that it is a compile-time error if T declares a non-constant constructor with the same name as the declaration of T.
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # Checks that it is a static warning if interface C does not declare a static method or getter m.
+Language/10_Expressions/20_Equality_A01_t15: Fail # Checks that equality expressions cannot be operands of another equality expression.
+Language/10_Expressions/20_Equality_A01_t16: Fail # Checks that equality expressions cannot be operands of another equality expression.
+Language/10_Expressions/20_Equality_A01_t17: Fail # Checks that equality expressions cannot be operands of another equality expression.
+Language/10_Expressions/20_Equality_A01_t18: Fail # Checks that equality expressions cannot be operands of another equality expression.
+Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail # Checks that a relational expression cannot be the operand of another relational expression.
+Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail # Checks that a relational expression cannot be the operand of another relational expression.
+Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail # Checks that a relational expression cannot be the operand of another relational expression.
+Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail # Checks that a relational expression cannot be the operand of another relational expression.
+Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail # Checks that identifier can't contain letters from the cyrillic alphabet.
+Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail # Checks that identifier can't contain letters from the turkish alphabet.
+Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail # Checks that it is a compile-time error when a built-in identifier "assert" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Checks that it is a compile-time error when a built-in identifier "equals" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # Checks that it is a compile-time error when a built-in identifier "factory" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # Checks that it is a compile-time error when a built-in identifier "get" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # Checks that it is a compile-time error when a built-in identifier "implements" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail # Checks that it is a compile-time error when a built-in identifier "interface" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Checks that it is a compile-time error when a built-in identifier "negate" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # Checks that it is a compile-time error when a built-in identifier "operator" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # Checks that it is a compile-time error when a built-in identifier "set" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # Checks that it is a compile-time error when a built-in identifier "static" is used as a type annotation of a local variable.
+Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail # Checks that it is a compile-time error when a built-in identifier "typedef" is used as a type annotation of a local variable.
+Language/11_Statements/02_Expression_Statements_A01_t09: Fail # Checks that it is a compile-time error when a map literal is used as a statement.
+Language/11_Statements/02_Expression_Statements_A01_t10: Fail # Checks that it is a compile-time error when a map literal is used as a statement.
+Language/11_Statements/02_Expression_Statements_A01_t11: Fail # Checks that it is a compile-time error when a map literal is used as a statement.
+Language/11_Statements/03_Variable_Declaration_A03_t01: Fail # Checks that if the variable declaration is prefixed with the final modifier, then that variable cannot be assigned a new value outside of this declaration.
+Language/11_Statements/03_Variable_Declaration_A03_t02: Fail # Checks that if the variable declaration is prefixed with the final modifier, then variable must be initialized right there and then.
+Language/11_Statements/03_Variable_Declaration_A03_t03: Fail # Checks that if a variable declaration is prefixed with  const modifier, then it cannot be assigned a new value afterwards.
+Language/11_Statements/03_Variable_Declaration_A03_t04: Fail # Checks that if a variable declaration is prefixed with  const modifier, then it must be initialized right there and then.
+Language/11_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
+Language/11_Statements/05_For_A01_t12: Fail # Checks that it is a compile-time error when the loop variable in a 'id in expression' includes initializer.
+Language/11_Statements/08_Switch_A05_t01: Fail # Checks that it is a compile-time error if case expressions of a switch statement without a default case have different types.
+Language/11_Statements/08_Switch_A05_t02: Fail # Checks that it is a compile-time error if case expressions of a switch statement with a default case have different types.
+Language/11_Statements/08_Switch_A06_t01: Fail # Checks that it is a compile-time error if a case expression is not a compile-time constant.
+Language/11_Statements/08_Switch_A06_t02: Fail # Checks that it is a compile-time error if a case expression is a compile-time constant of type bool.
+Language/11_Statements/08_Switch_A06_t03: Fail # Checks that it is a compile-time error if a case expression is null
+Language/11_Statements/08_Switch_A06_t04: Fail # Checks that it is a compile-time error if a case expression is a compile-time constant of type double.
+Language/11_Statements/10_Return_A04_t01: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a generative constructor.
+Language/11_Statements/10_Return_A04_t02: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a named generative constructor.
+Language/11_Statements/10_Return_A04_t03: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a generative constructor.
+Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # Checks that a source tag must be started with the character '#'.
+Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # Checks that it is a compile-time error if the contents of the URI are not a valid compilation unit (invalid variable declaration).
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as a type alias).
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as a type alias).
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
+Language/14_Types/7_Type_Void_A01_t02: Fail # Checks that specifying void as a function's parameter type causes a compile-time error.
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
+Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
+
+
+#
+# Unexpected compile-time errors.
+#
+[ $compiler == dart2js ]
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # http://dartbug.com/5027
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027
+Language/10_Expressions/16_Assignment_A04_t05: Fail # http://dartbug.com/5027
+
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # http://dartbug.com/5028
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # http://dartbug.com/5028
+Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # http://dartbug.com/5028
+Language/10_Expressions/16_Assignment_A04_t03: Fail # http://dartbug.com/5028
+
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A03_t01: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A03_t02: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A05_t01: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A05_t02: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A05_t04: Fail # http://dartbug.com/5029
+
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # http://dartbug.com/3566
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # http://dartbug.com/3566
+
+Language/03_Overview/03_Overview_A01_t01: Fail # http://dartbug.com/3903
+
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
+
+Language/07_Classes/3_Setters_A04_t01: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t02: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t03: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t04: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
+Language/07_Classes/3_Setters_A04_t08: Fail # http://dartbug.com/5023
+
+Language/14_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # http://dartbug.com/5022
+Language/14_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # http://dartbug.com/5022
+Language/14_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # http://dartbug.com/5022
+Language/14_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # http://dartbug.com/5022
+Language/14_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # http://dartbug.com/5022
+Language/14_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t01: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t02: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t03: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t05: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t06: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t07: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t08: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t09: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t11: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t12: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t13: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t14: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t15: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t16: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t17: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t18: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t19: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t20: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t21: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
+
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Fail # http://dartbug.com/4291
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t01: Fail # http://dartbug.com/4291
+Language/06_Functions/2_Formal_Parameters_A01_t01: Fail # http://dartbug.com/4291
+Language/06_Functions/2_Formal_Parameters_A02_t02: Fail # http://dartbug.com/4291
+
+Language/06_Functions/06_Functions_A01_t03: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t10: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t25: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # http://dartbug.com/4050
+Language/03_Overview/1_Scoping_A03_t02: Fail # http://dartbug.com/4050
+Language/03_Overview/2_Privacy_A01_t01: Fail # http://dartbug.com/4050
+Language/03_Overview/2_Privacy_A01_t16: Fail # http://dartbug.com/4050
+Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # http://dartbug.com/4050
+
+
+#
+# Unexpected runtime errors.
+#
+[ $compiler == dart2js ]
+Language/10_Expressions/01_Constants_A19_t01: Fail # TypeError: Cannot set property 'call$0' of undefined
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TypeError: Object #<C> has no method 'call$0'
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TypeError: Object #<Foo> has no method 'call$0'
+Language/10_Expressions/30_Type_Cast_A02_t01: Fail # Expect.identical(expected: <Instance of 'C'>, actual: <Instance of 'C'>) fails.
+Language/10_Expressions/30_Type_Cast_A02_t02: Fail # Expect.fail('NullPointerException expected')
+Language/10_Expressions/30_Type_Cast_A02_t03: Fail # Expect.fail('CastException expected')
+Language/10_Expressions/30_Type_Cast_A05_t03: Fail # CastException: Casting value of type Number to incompatible type G
+Language/10_Expressions/30_Type_Cast_A05_t05: Fail # CastException: Casting value of type Number to incompatible type G
+Language/14_Types/5_Function_Types_A02_t01: Fail # Expect.isTrue(false) fails.
+
+Language/14_Types/4_Interface_Types_A05_t02: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A05_t03: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A08_t05: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A08_t06: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A10_t01: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A10_t02: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A10_t03: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A10_t04: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A10_t07: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A11_t02: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A11_t03: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A11_t04: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A12_t09: Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A12_t10: Fail # http://dartbug.com/5020
