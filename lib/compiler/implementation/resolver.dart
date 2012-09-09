@@ -1936,7 +1936,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
 
     Scope blockScope = new BlockScope(scope);
+    var wasTypeRequired = typeRequired;
+    typeRequired = true;
     doInCheckContext(() => visitIn(node.type, blockScope));
+    typeRequired = wasTypeRequired;
     visitIn(node.formals, blockScope);
     visitIn(node.block, blockScope);
   }
