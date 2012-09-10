@@ -21,10 +21,16 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // TODO(johnniwinther): remove the 'element.patch' hack.
     Element sourceElement = element.patch == null ? element : element.patch;
     SourceFile sourceFile = sourceElement.getCompilationUnit().script.file;
-    result.sourcePosition = new SourceFileLocation(
-        sourceFile, expression.getBeginToken());
-    result.endSourcePosition = new SourceFileLocation(
-        sourceFile, expression.getEndToken());
+    // TODO(podivilov): find the right sourceFile here and remove offset checks
+    // below.
+    if (expression.getBeginToken().charOffset < sourceFile.text.length) {
+      result.sourcePosition = new SourceFileLocation(
+          sourceFile, expression.getBeginToken());
+    }
+    if (expression.getEndToken().charOffset < sourceFile.text.length) {
+      result.endSourcePosition = new SourceFileLocation(
+          sourceFile, expression.getEndToken());
+    }
     return result;
   }
 
