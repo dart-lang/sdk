@@ -18,6 +18,7 @@
 #import('source_file.dart');
 #import('source_map_builder.dart');
 #import('tree/tree.dart');
+#import('universe/universe.dart');
 #import('util/characters.dart');
 #import('util/util.dart');
 #import('../compiler.dart', prefix: 'api');
@@ -37,6 +38,5 @@
 #source('script.dart');
 #source('tree_validator.dart');
 #source('typechecker.dart');
-#source('universe.dart');
 #source('warnings.dart');
 #source('world.dart');

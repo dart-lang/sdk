@@ -14,6 +14,7 @@
 #import('../source_map_builder.dart');
 #import('../ssa/ssa.dart');
 #import('../tree/tree.dart');
+#import('../universe/universe.dart');
 #import('../util/characters.dart');
 #import('../util/util.dart');
 
@@ -21,8 +22,5 @@
 #source('constant_emitter.dart');
 #source('constant_system_javascript.dart');
 #source('emitter.dart');
-#source('function_set.dart');
 #source('namer.dart');
 #source('native_emitter.dart');
-#source('partial_type_tree.dart');
-#source('selector_map.dart');

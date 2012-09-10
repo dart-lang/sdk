@@ -2,6 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('universe');
+
+#import('../closure.dart');
+#import('../elements/elements.dart');
+#import('../leg.dart');
+#import('../scanner/scannerlib.dart');
+// For RuntimeTypeInformation. TODO(ngeoffray): remove this dependency.
+#import('../ssa/ssa.dart');
+#import('../tree/tree.dart');
+#import('../util/util.dart');
+
+#source('function_set.dart');
+#source('partial_type_tree.dart');
+#source('selector_map.dart');
+
 class Universe {
   Map<Element, CodeBuffer> generatedCode;
   Map<Element, CodeBuffer> generatedBailoutCode;
