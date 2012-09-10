@@ -9,6 +9,7 @@
 #import("../../../lib/compiler/implementation/ssa/ssa.dart");
 #import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
 #import("../../../lib/compiler/implementation/leg.dart");
+#import("../../../lib/compiler/implementation/universe/universe.dart");
 
 #import('compiler_helper.dart');
 #import('parser_helper.dart');
