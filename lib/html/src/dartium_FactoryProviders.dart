@@ -4,7 +4,10 @@
 
 class _AudioContextFactoryProvider {
   factory AudioContext() => _createAudioContext();
-  static _createAudioContext() native "AudioContext_constructor_Callback";
+  static _createAudioContext([int numberOfChannels,
+                              int numberOfFrames,
+                              int sampleRate])
+      native "AudioContext_constructor_Callback";
 }
 
 class _IDBKeyRangeFactoryProvider {
