@@ -3,6 +3,7 @@
 /dart-runtime.sln
 /*.vcproj
 /*.vcxproj
+/*.mk
 /dart_no_snapshot.target.mk
 /dart-runtime.Makefile
 /dart-runtime.xcodeproj
