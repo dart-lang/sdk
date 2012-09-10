@@ -208,9 +208,31 @@ PushArgumentInstr* EffectGraphVisitor::PushArgument(Value* value) {
 }
 
 
+Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
+                                               Value* value) {
+  ASSERT(!local.is_captured());
+  return new StoreLocalInstr(local, value, owner()->context_level());
+}
+
+
+Definition* EffectGraphVisitor::BuildStoreExprTemp(Value* value) {
+  return BuildStoreTemp(*owner()->parsed_function().expression_temp_var(),
+                        value);
+}
+
+
+Definition* EffectGraphVisitor::BuildLoadExprTemp() {
+  return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
+}
+
+
 Definition* EffectGraphVisitor::BuildStoreLocal(
-    const LocalVariable& local, Value* value) {
+    const LocalVariable& local, Value* value, bool result_is_needed) {
   if (local.is_captured()) {
+    if (result_is_needed) {
+      value = Bind(BuildStoreExprTemp(value));
+    }
+
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
@@ -219,11 +241,18 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
       context = Bind(new LoadVMFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle()));
     }
-    return new StoreVMFieldInstr(
-        context,
-        Context::variable_offset(local.index()),
-        value,
-        local.type());
+
+    StoreVMFieldInstr* store =
+        new StoreVMFieldInstr(context,
+                              Context::variable_offset(local.index()),
+                              value,
+                              local.type());
+    if (result_is_needed) {
+      Do(store);
+      return BuildLoadExprTemp();
+    } else {
+      return store;
+    }
   } else {
     return new StoreLocalInstr(local, value, owner()->context_level());
   }
@@ -252,7 +281,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
 // Stores current context into the 'variable'
 void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
   Value* context = Bind(new CurrentContextInstr());
-  Do(BuildStoreLocal(variable, context));
+  Do(BuildStoreLocal(variable, context, kResultNotNeeded));
 }
 
 
@@ -656,28 +685,21 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
         for_right.Bind(new StrictCompareInstr(Token::kEQ_STRICT,
                                               right_value,
                                               constant_true));
-    for_right.Do(BuildStoreLocal(
-        *owner()->parsed_function().expression_temp_var(),
-        compare));
+    for_right.Do(BuildStoreExprTemp(compare));
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index());
       Value* constant_false = for_false.Bind(new ConstantInstr(bool_false));
-      for_false.Do(BuildStoreLocal(
-          *owner()->parsed_function().expression_temp_var(),
-          constant_false));
+      for_false.Do(BuildStoreExprTemp(constant_false));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner(), temp_index());
       Value* constant_true = for_true.Bind(new ConstantInstr(bool_true));
-      for_true.Do(BuildStoreLocal(
-          *owner()->parsed_function().expression_temp_var(),
-          constant_true));
+      for_true.Do(BuildStoreExprTemp(constant_true));
       Join(for_test, for_true, for_right);
     }
-    ReturnDefinition(
-        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+    ReturnDefinition(BuildLoadExprTemp());
     return;
   }
   EffectGraphVisitor::VisitBinaryOpNode(node);
@@ -703,10 +725,8 @@ void EffectGraphVisitor::BuildTypecheckArguments(
         BuildInstantiatorTypeArguments(token_pos, NULL);
   } else {
     // Preserve instantiator.
-    const LocalVariable& expr_temp =
-        *owner()->parsed_function().expression_temp_var();
-    instantiator = Bind(BuildStoreLocal(expr_temp, instantiator));
-    Value* loaded = Bind(BuildLoadLocal(expr_temp));
+    instantiator = Bind(BuildStoreExprTemp(instantiator));
+    Value* loaded = Bind(BuildLoadExprTemp());
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_pos, loaded);
   }
@@ -1007,18 +1027,15 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   ValueGraphVisitor for_true(owner(), temp_index());
   node->true_expr()->Visit(&for_true);
   ASSERT(for_true.is_open());
-  for_true.Do(BuildStoreLocal(
-      *owner()->parsed_function().expression_temp_var(), for_true.value()));
+  for_true.Do(BuildStoreExprTemp(for_true.value()));
 
   ValueGraphVisitor for_false(owner(), temp_index());
   node->false_expr()->Visit(&for_false);
   ASSERT(for_false.is_open());
-  for_false.Do(BuildStoreLocal(
-      *owner()->parsed_function().expression_temp_var(), for_false.value()));
+  for_false.Do(BuildStoreExprTemp(for_false.value()));
 
   Join(for_test, for_true, for_false);
-  ReturnDefinition(
-      BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+  ReturnDefinition(BuildLoadExprTemp());
 }
 
 
@@ -1813,7 +1830,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
       node->token_pos(), NULL);
   Value* stored_instantiator =
-      Bind(BuildStoreLocal(t1, instantiator_type_arguments));
+      Bind(BuildStoreTemp(t1, instantiator_type_arguments));
   // t1: instantiator type arguments.
 
   Value* extract_type_arguments = Bind(
@@ -1822,13 +1839,13 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
           node->type_arguments(),
           stored_instantiator));
 
-  Do(BuildStoreLocal(t2, extract_type_arguments));
+  Do(BuildStoreTemp(t2, extract_type_arguments));
   // t2: extracted constructor type arguments.
   Value* load_instantiator = Bind(BuildLoadLocal(t1));
 
   Value* extract_instantiator =
       Bind(new ExtractConstructorInstantiatorInstr(node, load_instantiator));
-  Do(BuildStoreLocal(t1, extract_instantiator));
+  Do(BuildStoreTemp(t1, extract_instantiator));
   // t2: extracted constructor type arguments.
   // t1: extracted constructor instantiator.
   Value* type_arguments_val = Bind(BuildLoadLocal(t2));
@@ -1867,10 +1884,9 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   tn       <- LoadLocal(temp)
 
   Value* allocate = BuildObjectAllocation(node);
-  Definition* store_allocated = BuildStoreLocal(
+  Value* allocated_value = Bind(BuildStoreTemp(
       node->allocated_object_var(),
-      allocate);
-  Value* allocated_value = Bind(store_allocated);
+      allocate));
   PushArgumentInstr* push_allocated_value = PushArgument(allocated_value);
   BuildConstructorCall(node, push_allocated_value);
   Definition* load_allocated = BuildLoadLocal(
@@ -1914,9 +1930,7 @@ void EffectGraphVisitor::BuildInstanceSetterArguments(
 
   Value* value = NULL;
   if (result_is_needed) {
-    value = Bind(
-        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
-                        for_value.value()));
+    value = Bind(BuildStoreExprTemp(for_value.value()));
   } else {
     value = for_value.value();
   }
@@ -1928,7 +1942,7 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   InlineBailout("EffectGraphVisitor::VisitInstanceSetterNode");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
-  BuildInstanceSetterArguments(node, arguments, false);  // Value not used.
+  BuildInstanceSetterArguments(node, arguments, kResultNotNeeded);
   const String& name =
       String::ZoneHandle(Field::SetterSymbol(node->field_name()));
   InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
@@ -1945,7 +1959,7 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   InlineBailout("ValueGraphVisitor::VisitInstanceSetterNode");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
-  BuildInstanceSetterArguments(node, arguments, true);  // Value used.
+  BuildInstanceSetterArguments(node, arguments, kResultNeeded);
   const String& name =
       String::ZoneHandle(Field::SetterSymbol(node->field_name()));
   Do(new InstanceCallInstr(node->token_pos(),
@@ -1954,8 +1968,7 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                            arguments,
                            Array::ZoneHandle(),
                            1));  // Checked argument count.
-  ReturnDefinition(
-       BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+  ReturnDefinition(BuildLoadExprTemp());
 }
 
 
@@ -2017,9 +2030,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
   Append(for_value);
   Value* value = NULL;
   if (result_is_needed) {
-    value = Bind(
-        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
-                        for_value.value()));
+    value = Bind(BuildStoreExprTemp(for_value.value()));
   } else {
     value = for_value.value();
   }
@@ -2031,8 +2042,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                               arguments);
   if (result_is_needed) {
     Do(call);
-    ReturnDefinition(
-         BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+    ReturnDefinition(BuildLoadExprTemp());
   } else {
     ReturnDefinition(call);
   }
@@ -2086,7 +2096,8 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 
 // <Expression> ::= StoreLocal { local: LocalVariable
 //                               value: <Expression> }
-void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
+void EffectGraphVisitor::HandleStoreLocal(StoreLocalNode* node,
+                                          bool result_is_needed) {
   InlineBailout("EffectGraphVisitor::VisitStoreLocalNode");
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
@@ -2098,8 +2109,20 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
                                        node->local().type(),
                                        node->local().name());
   }
-  Definition* store = BuildStoreLocal(node->local(), store_value);
+  Definition* store = BuildStoreLocal(node->local(),
+                                      store_value,
+                                      result_is_needed);
   ReturnDefinition(store);
+}
+
+
+void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
+  HandleStoreLocal(node, kResultNotNeeded);
+}
+
+
+void ValueGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
+  HandleStoreLocal(node, kResultNeeded);
 }
 
 
@@ -2154,12 +2177,18 @@ void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
+Definition* EffectGraphVisitor::BuildStoreStaticField(
+  StoreStaticFieldNode* node, bool result_is_needed) {
   InlineBailout("EffectGraphVisitor::VisitStoreStaticFieldNode");
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  Value* store_value = for_value.value();
+  Value* store_value = NULL;
+  if (result_is_needed) {
+    store_value = Bind(BuildStoreExprTemp(for_value.value()));
+  } else {
+    store_value = for_value.value();
+  }
   if (FLAG_enable_type_checks) {
     const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
     const String& dst_name = String::ZoneHandle(node->field().name());
@@ -2170,7 +2199,23 @@ void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   }
   StoreStaticFieldInstr* store =
       new StoreStaticFieldInstr(node->field(), store_value);
-  ReturnDefinition(store);
+
+  if (result_is_needed) {
+    Do(store);
+    return BuildLoadExprTemp();
+  } else {
+    return store;
+  }
+}
+
+
+void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
+  ReturnDefinition(BuildStoreStaticField(node, kResultNotNeeded));
+}
+
+
+void ValueGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
+  ReturnDefinition(BuildStoreStaticField(node, kResultNeeded));
 }
 
 
@@ -2222,9 +2267,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   Append(for_value);
   Value* value = NULL;
   if (result_is_needed) {
-    value = Bind(
-        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
-                        for_value.value()));
+    value = Bind(BuildStoreExprTemp(for_value.value()));
   } else {
     value = for_value.value();
   }
@@ -2241,7 +2284,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
                                                    checked_argument_count);
   if (result_is_needed) {
     Do(store);
-    return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
+    return BuildLoadExprTemp();
   } else {
     return store;
   }
@@ -2250,15 +2293,13 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
 
 void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
   InlineBailout("EffectGraphVisitor::VisitStoreIndexedNode");
-  ReturnDefinition(BuildStoreIndexedValues(node,
-                                           false));  // Result not needed.
+  ReturnDefinition(BuildStoreIndexedValues(node, kResultNotNeeded));
 }
 
 
 void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
   InlineBailout("ValueGraphVisitor::VisitStoreIndexedNode");
-  ReturnDefinition(BuildStoreIndexedValues(node,
-                                           true));  // Result is needed.
+  ReturnDefinition(BuildStoreIndexedValues(node, kResultNeeded));
 }
 
 
@@ -2302,8 +2343,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // save it in a pre-allocated variable and restore it on exit.
     if (MustSaveRestoreContext(node)) {
       Value* current_context = Bind(new CurrentContextInstr());
-      Do(BuildStoreLocal(*owner()->parsed_function().saved_context_var(),
-                         current_context));
+      Do(BuildStoreTemp(*owner()->parsed_function().saved_context_var(),
+                        current_context));
       Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
       Do(new StoreContextInstr(null_context));
     }
@@ -2339,13 +2380,13 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
           // Copy parameter from local frame to current context.
           Value* load = Bind(BuildLoadLocal(*temp_local));
-          Do(BuildStoreLocal(parameter, load));
+          Do(BuildStoreLocal(parameter, load, kResultNotNeeded));
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
           // the function.
           Value* null_constant =
               Bind(new ConstantInstr(Object::ZoneHandle()));
-          Do(BuildStoreLocal(*temp_local, null_constant));
+          Do(BuildStoreLocal(*temp_local, null_constant, kResultNotNeeded));
         }
       }
     }
@@ -2382,7 +2423,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         // Store the type checked argument back to its corresponding local
         // variable so that ssa renaming detects the dependency and makes use
         // of the checked type in type propagation.
-        Do(BuildStoreLocal(parameter, parameter_value));
+        Do(BuildStoreLocal(parameter, parameter_value, kResultNotNeeded));
       }
       pos++;
     }

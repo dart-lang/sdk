@@ -6777,7 +6777,9 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
        result->IsInstanceSetterNode() ||
-       result->IsStaticSetterNode())) {
+       result->IsStaticSetterNode() ||
+       result->IsStoreStaticFieldNode() ||
+       result->IsStoreLocalNode())) {
     EnsureExpressionTemp();
   }
   return result;
