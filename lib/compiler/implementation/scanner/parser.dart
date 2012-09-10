@@ -221,7 +221,7 @@ class Parser {
     if (kind === KEYWORD_TOKEN) {
       Keyword keyword = token.value;
       String value = keyword.stringValue;
-      return (keyword.isPseudo) || (value === 'Dynamic') || (value === 'void');
+      return keyword.isPseudo || (value === 'Dynamic') || (value === 'void');
     }
     return false;
   }
