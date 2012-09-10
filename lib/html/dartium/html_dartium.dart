@@ -583,7 +583,7 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_addEventListener_Callback";
 
-  bool $dom_dispatchEvent(Event evt) native "BatteryManager_dispatchEvent_Callback";
+  bool $dom_dispatchEvent(Event event) native "BatteryManager_dispatchEvent_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
@@ -12674,6 +12674,10 @@ class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
 
   SourceBufferList get activeSourceBuffers() native "MediaSource_activeSourceBuffers_Getter";
 
+  num get duration() native "MediaSource_duration_Getter";
+
+  void set duration(num) native "MediaSource_duration_Setter";
+
   String get readyState() native "MediaSource_readyState_Getter";
 
   SourceBufferList get sourceBuffers() native "MediaSource_sourceBuffers_Getter";
@@ -12931,13 +12935,13 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
   bool $dom_dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
 
-  void postMessage(String message, [List messagePorts]) native "MessagePort_postMessage_Callback";
+  void postMessage(Object message, [List messagePorts]) native "MessagePort_postMessage_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
   void start() native "MessagePort_start_Callback";
 
-  void webkitPostMessage(String message, [List transfer]) native "MessagePort_webkitPostMessage_Callback";
+  void webkitPostMessage(Object message, [List transfer]) native "MessagePort_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14165,9 +14169,59 @@ class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+class _RTCIceCandidateEventImpl extends _EventImpl implements RTCIceCandidateEvent {
+
+  RTCIceCandidate get candidate() native "RTCIceCandidateEvent_candidate_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _RTCIceCandidateFactoryProvider {
+  factory RTCIceCandidate(Map dictionary) => _createRTCIceCandidate(dictionary);
+  static RTCIceCandidate _createRTCIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCIceCandidateImpl extends NativeFieldWrapperClass1 implements RTCIceCandidate {
+
+  String get candidate() native "RTCIceCandidate_candidate_Getter";
+
+  int get sdpMLineIndex() native "RTCIceCandidate_sdpMLineIndex_Getter";
+
+  String get sdpMid() native "RTCIceCandidate_sdpMid_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _RTCPeerConnectionFactoryProvider {
-  factory RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) => _createRTCPeerConnection(rtcICEServers, mediaConstraints);
-  static RTCPeerConnection _createRTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+  factory RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) => _createRTCPeerConnection(rtcIceServers, mediaConstraints);
+  static RTCPeerConnection _createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+}
+
+class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
+  _RTCPeerConnectionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream() => this['addstream'];
+
+  EventListenerList get iceCandidate() => this['icecandidate'];
+
+  EventListenerList get iceChange() => this['icechange'];
+
+  EventListenerList get open() => this['open'];
+
+  EventListenerList get removeStream() => this['removestream'];
+
+  EventListenerList get stateChange() => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14177,11 +14231,69 @@ class _RTCPeerConnectionFactoryProvider {
 
 class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnection {
 
+  _RTCPeerConnectionEventsImpl get on() =>
+    new _RTCPeerConnectionEventsImpl(this);
+
+  String get iceState() native "RTCPeerConnection_iceState_Getter";
+
+  RTCSessionDescription get localDescription() native "RTCPeerConnection_localDescription_Getter";
+
+  MediaStreamList get localStreams() native "RTCPeerConnection_localStreams_Getter";
+
+  String get readyState() native "RTCPeerConnection_readyState_Getter";
+
+  RTCSessionDescription get remoteDescription() native "RTCPeerConnection_remoteDescription_Getter";
+
+  MediaStreamList get remoteStreams() native "RTCPeerConnection_remoteStreams_Getter";
+
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+
+  void addIceCandidate(RTCIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
+
+  void addStream(MediaStream stream, Map mediaConstraints) native "RTCPeerConnection_addStream_Callback";
+
+  void close() native "RTCPeerConnection_close_Callback";
+
+  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
+
+  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
 
   bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
+
+  void removeStream(MediaStream stream) native "RTCPeerConnection_removeStream_Callback";
+
+  void setLocalDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
+
+  void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
+
+  void updateIce(Map configuration, Map mediaConstraints) native "RTCPeerConnection_updateIce_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _RTCSessionDescriptionFactoryProvider {
+  factory RTCSessionDescription(Map dictionary) => _createRTCSessionDescription(dictionary);
+  static RTCSessionDescription _createRTCSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTCSessionDescription {
+
+  String get sdp() native "RTCSessionDescription_sdp_Getter";
+
+  void set sdp(String) native "RTCSessionDescription_sdp_Setter";
+
+  String get type() native "RTCSessionDescription_type_Getter";
+
+  void set type(String) native "RTCSessionDescription_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18309,6 +18421,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   void set resetStyleInheritance(bool) native "ShadowRoot_resetStyleInheritance_Setter";
 
+  Node clone(bool deep) native "ShadowRoot_cloneNode_Callback";
+
   Element getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
   NodeList getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
@@ -18928,8 +19042,8 @@ class _TextMetricsImpl extends NativeFieldWrapperClass1 implements TextMetrics {
 // BSD-style license that can be found in the LICENSE file.
 
 class _TextTrackCueFactoryProvider {
-  factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]) => _createTextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
-  static TextTrackCue _createTextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]) native "TextTrackCue_constructor_Callback";
+  factory TextTrackCue(num startTime, num endTime, String text) => _createTextTrackCue(startTime, endTime, text);
+  static TextTrackCue _createTextTrackCue(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 }
 
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
@@ -19047,9 +19161,9 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 
   String get language() native "TextTrack_language_Getter";
 
-  int get mode() native "TextTrack_mode_Getter";
+  String get mode() native "TextTrack_mode_Getter";
 
-  void set mode(int) native "TextTrack_mode_Setter";
+  void set mode(String) native "TextTrack_mode_Setter";
 
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
@@ -22256,7 +22370,7 @@ interface BatteryManager extends EventTarget {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName BatteryManager.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event event);
 
   /** @domName BatteryManager.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
@@ -30328,6 +30442,9 @@ interface MediaSource extends EventTarget default _MediaSourceFactoryProvider {
   /** @domName MediaSource.activeSourceBuffers */
   final SourceBufferList activeSourceBuffers;
 
+  /** @domName MediaSource.duration */
+  num duration;
+
   /** @domName MediaSource.readyState */
   final String readyState;
 
@@ -30644,7 +30761,7 @@ interface MessagePort extends EventTarget {
   bool $dom_dispatchEvent(Event evt);
 
   /** @domName MessagePort.postMessage */
-  void postMessage(String message, [List messagePorts]);
+  void postMessage(Object message, [List messagePorts]);
 
   /** @domName MessagePort.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
@@ -30653,7 +30770,7 @@ interface MessagePort extends EventTarget {
   void start();
 
   /** @domName MessagePort.webkitPostMessage */
-  void webkitPostMessage(String message, [List transfer]);
+  void webkitPostMessage(Object message, [List transfer]);
 }
 
 interface MessagePortEvents extends Events {
@@ -32175,20 +32292,148 @@ interface RGBColor {
 
 // WARNING: Do not edit - generated code.
 
+typedef bool RTCErrorCallback(String errorInformation);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCIceCandidate
+interface RTCIceCandidate default _RTCIceCandidateFactoryProvider {
+
+  RTCIceCandidate(Map dictionary);
+
+  /** @domName RTCIceCandidate.candidate */
+  final String candidate;
+
+  /** @domName RTCIceCandidate.sdpMLineIndex */
+  final int sdpMLineIndex;
+
+  /** @domName RTCIceCandidate.sdpMid */
+  final String sdpMid;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCIceCandidateEvent
+interface RTCIceCandidateEvent extends Event {
+
+  /** @domName RTCIceCandidateEvent.candidate */
+  final RTCIceCandidate candidate;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName RTCPeerConnection
 interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactoryProvider {
 
-  RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]);
+  RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  RTCPeerConnectionEvents get on();
+
+  /** @domName RTCPeerConnection.iceState */
+  final String iceState;
+
+  /** @domName RTCPeerConnection.localDescription */
+  final RTCSessionDescription localDescription;
+
+  /** @domName RTCPeerConnection.localStreams */
+  final MediaStreamList localStreams;
+
+  /** @domName RTCPeerConnection.readyState */
+  final String readyState;
+
+  /** @domName RTCPeerConnection.remoteDescription */
+  final RTCSessionDescription remoteDescription;
+
+  /** @domName RTCPeerConnection.remoteStreams */
+  final MediaStreamList remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCPeerConnection.addIceCandidate */
+  void addIceCandidate(RTCIceCandidate candidate);
+
+  /** @domName RTCPeerConnection.addStream */
+  void addStream(MediaStream stream, Map mediaConstraints);
+
+  /** @domName RTCPeerConnection.close */
+  void close();
+
+  /** @domName RTCPeerConnection.createAnswer */
+  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
+
+  /** @domName RTCPeerConnection.createOffer */
+  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
   /** @domName RTCPeerConnection.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCPeerConnection.removeStream */
+  void removeStream(MediaStream stream);
+
+  /** @domName RTCPeerConnection.setLocalDescription */
+  void setLocalDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]);
+
+  /** @domName RTCPeerConnection.setRemoteDescription */
+  void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]);
+
+  /** @domName RTCPeerConnection.updateIce */
+  void updateIce(Map configuration, Map mediaConstraints);
 }
+
+interface RTCPeerConnectionEvents extends Events {
+
+  EventListenerList get addStream();
+
+  EventListenerList get iceCandidate();
+
+  EventListenerList get iceChange();
+
+  EventListenerList get open();
+
+  EventListenerList get removeStream();
+
+  EventListenerList get stateChange();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCSessionDescription
+interface RTCSessionDescription default _RTCSessionDescriptionFactoryProvider {
+
+  RTCSessionDescription(Map dictionary);
+
+  /** @domName RTCSessionDescription.sdp */
+  String sdp;
+
+  /** @domName RTCSessionDescription.type */
+  String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36133,6 +36378,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.resetStyleInheritance */
   bool resetStyleInheritance;
 
+  /** @domName ShadowRoot.cloneNode */
+  Node clone(bool deep);
+
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -37103,12 +37351,6 @@ interface TextTrack extends EventTarget {
    */
   TextTrackEvents get on();
 
-  static const int DISABLED = 0;
-
-  static const int HIDDEN = 1;
-
-  static const int SHOWING = 2;
-
   /** @domName TextTrack.activeCues */
   final TextTrackCueList activeCues;
 
@@ -37125,7 +37367,7 @@ interface TextTrack extends EventTarget {
   final String language;
 
   /** @domName TextTrack.mode */
-  int mode;
+  String mode;
 
   /** @domName TextTrack.addCue */
   void addCue(TextTrackCue cue);
@@ -37156,7 +37398,7 @@ interface TextTrackEvents extends Events {
 /// @domName TextTrackCue
 interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider {
 
-  TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
+  TextTrackCue(num startTime, num endTime, String text);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
