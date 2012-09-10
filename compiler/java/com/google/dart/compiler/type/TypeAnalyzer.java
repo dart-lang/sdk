@@ -185,6 +185,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
     private final boolean typeChecksForInferredTypes;
+    private final boolean reportNoMemberWhenHasInterceptor;
     private final Map<DartBlock, VariableElementsRestorer> restoreOnBlockExit = Maps.newHashMap();
     /**
      * When we see variable assignment, we remember here old {@link Type} (if not done already) and
@@ -255,6 +256,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
       this.typeChecksForInferredTypes = compilerOptions.typeChecksForInferredTypes();
+      this.reportNoMemberWhenHasInterceptor = compilerOptions.reportNoMemberWhenHasInterceptor();
     }
 
     @VisibleForTesting
@@ -630,11 +632,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null && problemTarget != null) {
-        if (typeChecksForInferredTypes || !receiver.isInferred()) {
-          ErrorCode code = receiver.isInferred()
-              ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
-              : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
-          typeError(problemTarget, code, receiver, methodName);
+        if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
+          if (typeChecksForInferredTypes || !receiver.isInferred()) {
+            ErrorCode code = receiver.isInferred()
+                ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
+                : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
+            typeError(problemTarget, code, receiver, methodName);
+          }
         }
         return null;
       }
@@ -2227,10 +2231,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        if (typeChecksForInferredTypes || !receiver.isInferred()) {
-          TypeErrorCode errorCode = receiver.isInferred() ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED
-              : TypeErrorCode.NOT_A_MEMBER_OF;
-          typeError(node.getName(), errorCode, name, cls);
+        if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
+          if (typeChecksForInferredTypes || !receiver.isInferred()) {
+            TypeErrorCode errorCode = receiver.isInferred()
+                ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED : TypeErrorCode.NOT_A_MEMBER_OF;
+            typeError(node.getName(), errorCode, name, cls);
+          }
         }
         return dynamicType;
       }

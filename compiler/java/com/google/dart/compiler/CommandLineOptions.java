@@ -169,6 +169,14 @@ public class CommandLineOptions {
     }
     
     /**
+     * Returns whether "no such member" should be reported for classes which implement
+     * "noSuchMethod" method.
+     */
+    public boolean reportNoMemberWhenHasInterceptor() {
+      return true;
+    }
+    
+    /**
      * Returns the list of files passed to the compiler.
      */
     public List<String> getSourceFiles() {

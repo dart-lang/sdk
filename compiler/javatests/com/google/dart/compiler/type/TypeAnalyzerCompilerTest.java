@@ -4356,6 +4356,88 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertErrors(result.getErrors());
   }
 
+  /**
+   * Don't report "no such member" if class implements "noSuchMethod" method.
+   */
+  public void test_dontReport_ifHas_noSuchMember_method() throws Exception {
+    String[] lines = {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  noSuchMethod(String name, List args) {}",
+        "}",
+        "class B extends A {}",
+        "class C {}",
+        "main() {",
+        "  new A().notExistingMethod();",
+        "  new B().notExistingMethod();",
+        "  new C().notExistingMethod();",
+        "}",
+        "process(x) {}",
+        ""};
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 8, 11, 17),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 9, 11, 17),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 11, 17));
+    }
+    // don't report
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 11, 17));
+    }
+  }
+
+  /**
+   * Don't report "no such member" if class implements "noSuchMethod" method.
+   */
+  public void test_dontReport_ifHas_noSuchMember_getter() throws Exception {
+    String[] lines = {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  noSuchMethod(String name, List args) {}",
+        "}",
+        "class B extends A {}",
+        "class C {}",
+        "main() {",
+        "  process( new A().notExistingGetter );",
+        "  process( new B().notExistingGetter );",
+        "  process( new C().notExistingGetter );",
+        "}",
+        "process(x) {}",
+        ""};
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 8, 20, 17),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 20, 17),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 10, 20, 17));
+    }
+    // don't report
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF, 10, 20, 17));
+    }
+  }
+
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
     assertTrue(index != -1);
