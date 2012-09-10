@@ -1169,6 +1169,22 @@ bool Intrinsifier::Double_isNegative(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Double_toInt(Assembler* assembler) {
+  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ cvttsd2si(EAX, XMM0);
+  // Overflow is signalled with minint.
+  Label fall_through;
+  // Check for overflow and that it fits into Smi.
+  __ cmpl(EAX, Immediate(0xC0000000));
+  __ j(NEGATIVE, &fall_through, Assembler::kNearJump);
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Argument type is not known
 bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;

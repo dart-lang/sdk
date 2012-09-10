@@ -62,16 +62,12 @@ RawICData* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
   return NULL;
 }
 
-RawArray* CodePatcher::GetTypeTestArray(uword instruction_address) {
-  UNIMPLEMENTED();
-  return NULL;
-}
 
 
-void CodePatcher::SetTypeTestArray(uword instruction_address,
-                                   const Array& value) {
+void CodePatcher::InsertCallAt(uword start, uword target) {
   UNIMPLEMENTED();
 }
+
 
 
 }  // namespace dart

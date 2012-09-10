@@ -6,10 +6,9 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
@@ -72,7 +71,7 @@ public class SupertypeResolver {
       }
       if (supertype != null) {
         if (Elements.isTypeNode(superclassNode, BLACK_LISTED_TYPES)
-            && !isCoreLibrarySource(node.getSourceInfo().getSource())) {
+            && !Elements.isCoreLibrarySource(node.getSourceInfo().getSource())) {
           topLevelContext.onError(
               superclassNode,
               ResolverErrorCode.BLACK_LISTED_EXTENDS,
@@ -97,7 +96,7 @@ public class SupertypeResolver {
           Elements.addInterface(classElement, intElement);
           // Dynamic can not be used as interface.
           if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
-              && !isCoreLibrarySource(node.getSourceInfo().getSource())) {
+              && !Elements.isCoreLibrarySource(node.getSourceInfo().getSource())) {
             topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
             continue;
           }
@@ -139,19 +138,4 @@ public class SupertypeResolver {
     }
   }
 
-  /**
-   * @return <code>true</code> if given {@link Source} represents code library declaration or
-   *         implementation.
-   */
-  static boolean isCoreLibrarySource(Source source) {
-    
-    // TODO (danrubel) remove these when dartc libraries are removed
-    // Old core library file names
-    return Elements.isLibrarySource(source, "corelib.dart")
-        || Elements.isLibrarySource(source, "corelib_impl.dart")
-        
-        // New core library file names
-        || Elements.isLibrarySource(source, "core.dart")
-        || Elements.isLibrarySource(source, "coreimpl.dart");
-  }
 }

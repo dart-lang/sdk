@@ -9,6 +9,7 @@
 #import('../tree/tree.dart');
 #import('../scanner/scannerlib.dart');
 #import('../leg.dart');  // TODO(karlklose): we only need type.
+#import('../universe/universe.dart');
 #import('../util/util.dart');
 
 const int STATE_NOT_STARTED = 0;
@@ -158,6 +159,7 @@ class Element implements Hashable {
   bool isTypedef() => kind === ElementKind.TYPEDEF;
   bool isTypeVariable() => kind === ElementKind.TYPE_VARIABLE;
   bool isField() => kind === ElementKind.FIELD;
+  bool isAbstractField() => kind === ElementKind.ABSTRACT_FIELD;
   bool isGetter() => kind === ElementKind.GETTER;
   bool isSetter() => kind === ElementKind.SETTER;
   bool isAccessor() => isGetter() || isSetter();
@@ -294,8 +296,6 @@ class Element implements Hashable {
   }
 
   bool get isPatched => false;
-
-  static bool isInvalid(Element e) => e == null || e.isErroneous();
 }
 
 /**
@@ -317,8 +317,9 @@ class Element implements Hashable {
  */
 class ErroneousElement extends Element {
   final Message errorMessage;
+  final SourceString targetName;
 
-  ErroneousElement(this.errorMessage, Element enclosing)
+  ErroneousElement(this.errorMessage, this.targetName, Element enclosing)
       : super(const SourceString('erroneous element'), null, enclosing);
 
   isErroneous() => true;
@@ -330,12 +331,15 @@ class ErroneousElement extends Element {
   SourceString get name => unsupported();
   ElementKind get kind => unsupported();
   Link<MetadataAnnotation> get metadata => unsupported();
+
+  getLibrary() => enclosingElement.getLibrary();
 }
 
 class ErroneousFunctionElement extends ErroneousElement
                                implements FunctionElement {
-  ErroneousFunctionElement(errorMessage, Element enclosing)
-      : super(errorMessage, enclosing);
+  ErroneousFunctionElement(Message errorMessage, SourceString targetName,
+                           Element enclosing)
+      : super(errorMessage, targetName, enclosing);
 
   get type => unsupported();
   get cachedNode => unsupported();
@@ -348,8 +352,6 @@ class ErroneousFunctionElement extends ErroneousElement
   requiredParameterCount(compiler) => unsupported();
   optionalParameterCount(compiler) => unsupported();
   parameterCount(copmiler) => unsupported();
-
-  getLibrary() => enclosingElement.getLibrary();
 }
 
 class ContainerElement extends Element {
@@ -1413,8 +1415,11 @@ class ClassElement extends ScopeContainerElement
 }
 
 class Elements {
+  static bool isUnresolved(Element e) => e == null || e.isErroneous();
+  static bool isErroneousElement(Element e) => e != null && e.isErroneous();
+
   static bool isLocal(Element element) {
-    return !Element.isInvalid(element)
+    return !Elements.isUnresolved(element)
             && !element.isInstanceMember()
             && !isStaticOrTopLevelField(element)
             && !isStaticOrTopLevelFunction(element)
@@ -1424,7 +1429,7 @@ class Elements {
   }
 
   static bool isInstanceField(Element element) {
-    return !Element.isInvalid(element)
+    return !Elements.isUnresolved(element)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FIELD
                || element.kind === ElementKind.GETTER
@@ -1434,12 +1439,12 @@ class Elements {
   static bool isStaticOrTopLevel(Element element) {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
-    if (!Element.isInvalid(element)
+    if (!Elements.isUnresolved(element)
         && element.modifiers != null
         && element.modifiers.isStatic()) {
       return true;
     }
-    return !Element.isInvalid(element)
+    return !Elements.isUnresolved(element)
            && !element.isInstanceMember()
            && !element.isPrefix()
            && element.enclosingElement !== null
@@ -1461,7 +1466,7 @@ class Elements {
   }
 
   static bool isInstanceMethod(Element element) {
-    return !Element.isInvalid(element)
+    return !Elements.isUnresolved(element)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FUNCTION);
   }
@@ -1547,11 +1552,15 @@ class Elements {
     return new SourceString('operator\$$str');
   }
 
-  static bool isStringSupertype(Element element, Compiler compiler) {
+  static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
     return (element == coreLibrary.find(const SourceString('Comparable')))
-        || (element == coreLibrary.find(const SourceString('Hashable')))
-        || (element == coreLibrary.find(const SourceString('Pattern')));
+        || (element == coreLibrary.find(const SourceString('Hashable')));
+  }
+
+  static bool isStringOnlySupertype(Element element, Compiler compiler) {
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    return element == coreLibrary.find(const SourceString('Pattern'));
   }
 
   static bool isListSupertype(Element element, Compiler compiler) {

@@ -18,19 +18,19 @@ class DurationImplementation implements Duration {
                        seconds * Duration.MILLISECONDS_PER_SECOND +
                        milliseconds;
 
-  int get inDays() {
+  int get inDays {
     return inMilliseconds ~/ Duration.MILLISECONDS_PER_DAY;
   }
 
-  int get inHours() {
+  int get inHours {
     return inMilliseconds ~/ Duration.MILLISECONDS_PER_HOUR;
   }
 
-  int get inMinutes() {
+  int get inMinutes {
     return inMilliseconds ~/ Duration.MILLISECONDS_PER_MINUTE;
   }
 
-  int get inSeconds() {
+  int get inSeconds {
     return inMilliseconds ~/ Duration.MILLISECONDS_PER_SECOND;
   }
 

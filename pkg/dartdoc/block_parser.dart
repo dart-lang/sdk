@@ -52,10 +52,10 @@ class BlockParser {
     : pos = 0;
 
   /// Gets the current line.
-  String get current() => lines[pos];
+  String get current => lines[pos];
 
   /// Gets the line after the current one or `null` if there is none.
-  String get next() {
+  String get next {
     // Don't read past the end.
     if (pos >= lines.length - 1) return null;
     return lines[pos + 1];
@@ -65,7 +65,7 @@ class BlockParser {
     pos++;
   }
 
-  bool get isDone() => pos >= lines.length;
+  bool get isDone => pos >= lines.length;
 
   /// Gets whether or not the current line matches the given pattern.
   bool matches(RegExp regex) {
@@ -83,7 +83,7 @@ class BlockParser {
 class BlockSyntax {
   /// Gets the collection of built-in block parsers. To turn a series of lines
   /// into blocks, each of these will be tried in turn. Order matters here.
-  static List<BlockSyntax> get syntaxes() {
+  static List<BlockSyntax> get syntaxes {
     // Lazy initialize.
     if (_syntaxes == null) {
       _syntaxes = [
@@ -106,9 +106,9 @@ class BlockSyntax {
   static List<BlockSyntax> _syntaxes;
 
   /// Gets the regex used to identify the beginning of this block, if any.
-  RegExp get pattern() => null;
+  RegExp get pattern => null;
 
-  bool get canEndBlock() => true;
+  bool get canEndBlock => true;
 
   bool canParse(BlockParser parser) {
     return pattern.firstMatch(parser.current) != null;
@@ -138,7 +138,7 @@ class BlockSyntax {
 }
 
 class EmptyBlockSyntax extends BlockSyntax {
-  RegExp get pattern() => _RE_EMPTY;
+  RegExp get pattern => _RE_EMPTY;
 
   Node parse(BlockParser parser) {
     parser.advance();
@@ -170,7 +170,7 @@ class SetextHeaderSyntax extends BlockSyntax {
 
 /// Parses atx-style headers: `## Header ##`.
 class HeaderSyntax extends BlockSyntax {
-  RegExp get pattern() => _RE_HEADER;
+  RegExp get pattern => _RE_HEADER;
 
   Node parse(BlockParser parser) {
     final match = pattern.firstMatch(parser.current);
@@ -183,7 +183,7 @@ class HeaderSyntax extends BlockSyntax {
 
 /// Parses email-style blockquotes: `> quote`.
 class BlockquoteSyntax extends BlockSyntax {
-  RegExp get pattern() => _RE_BLOCKQUOTE;
+  RegExp get pattern => _RE_BLOCKQUOTE;
 
   Node parse(BlockParser parser) {
     final childLines = parseChildLines(parser);
@@ -197,7 +197,7 @@ class BlockquoteSyntax extends BlockSyntax {
 
 /// Parses preformatted code blocks that are indented four spaces.
 class CodeBlockSyntax extends BlockSyntax {
-  RegExp get pattern() => _RE_INDENT;
+  RegExp get pattern => _RE_INDENT;
 
   Node parse(BlockParser parser) {
     final childLines = parseChildLines(parser);
@@ -214,7 +214,7 @@ class CodeBlockSyntax extends BlockSyntax {
 
 /// Parses horizontal rules like `---`, `_ _ _`, `*  *  *`, etc.
 class HorizontalRuleSyntax extends BlockSyntax {
-  RegExp get pattern() => _RE_HR;
+  RegExp get pattern => _RE_HR;
 
   Node parse(BlockParser parser) {
     final match = pattern.firstMatch(parser.current);
@@ -234,9 +234,9 @@ class HorizontalRuleSyntax extends BlockSyntax {
 /// 3.  Absolutely no HTML parsing or validation is done. We're a markdown
 ///     parser not an HTML parser!
 class BlockHtmlSyntax extends BlockSyntax {
-  RegExp get pattern() => _RE_HTML;
+  RegExp get pattern => _RE_HTML;
 
-  bool get canEndBlock() => false;
+  bool get canEndBlock => false;
 
   Node parse(BlockParser parser) {
     final childLines = [];
@@ -260,9 +260,9 @@ class ListItem {
 
 /// Base class for both ordered and unordered lists.
 class ListSyntax extends BlockSyntax {
-  bool get canEndBlock() => false;
+  bool get canEndBlock => false;
 
-  abstract String get listTag();
+  abstract String get listTag;
 
   Node parse(BlockParser parser) {
     final items = <ListItem>[];
@@ -404,19 +404,19 @@ class ListSyntax extends BlockSyntax {
 
 /// Parses unordered lists.
 class UnorderedListSyntax extends ListSyntax {
-  RegExp get pattern() => _RE_UL;
-  String get listTag() => 'ul';
+  RegExp get pattern => _RE_UL;
+  String get listTag => 'ul';
 }
 
 /// Parses ordered lists.
 class OrderedListSyntax extends ListSyntax {
-  RegExp get pattern() => _RE_OL;
-  String get listTag() => 'ol';
+  RegExp get pattern => _RE_OL;
+  String get listTag => 'ol';
 }
 
 /// Parses paragraphs of regular text.
 class ParagraphSyntax extends BlockSyntax {
-  bool get canEndBlock() => false;
+  bool get canEndBlock => false;
 
   bool canParse(BlockParser parser) => true;
 

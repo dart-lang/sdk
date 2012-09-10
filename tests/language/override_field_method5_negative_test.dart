@@ -8,7 +8,7 @@ class A {
 }
 
 class B extends A {
-  get foo() { return 123; }  // getter cannot override method
+  get foo { return 123; }  // getter cannot override method
 }
 
 class OverrideFieldMethod5NegativeTest {

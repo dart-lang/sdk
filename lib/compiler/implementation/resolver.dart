@@ -283,6 +283,8 @@ class ResolverTask extends CompilerTask {
   void checkMembers(ClassElement cls) {
     if (cls === compiler.objectClass) return;
     cls.forEachMember((holder, member) {
+      // Perform various checks as side effect of "computing" the type.
+      member.computeType(compiler);
 
       // Check modifiers.
       if (member.isFunction() && member.modifiers.isFinal()) {
@@ -716,7 +718,7 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
 }
 
 interface LabelScope {
-  LabelScope get outer();
+  LabelScope get outer;
   LabelElement lookup(String label);
 }
 
@@ -828,6 +830,8 @@ class TypeResolver {
     }
     if (typeName.source.stringValue === 'void') {
       return compiler.types.voidType.element;
+    } else if (typeName.source.stringValue === 'Dynamic') {
+      return compiler.dynamicClass;
     } else if (send !== null) {
       Element e = scope.lookup(send.receiver.asIdentifier().source);
       if (e !== null && e.kind === ElementKind.PREFIX) {
@@ -955,6 +959,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   bool inCheckContext;
   Scope scope;
   ClassElement currentClass;
+  ExpressionStatement currentExpressionStatement;
   bool typeRequired = false;
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION;
@@ -990,8 +995,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     TargetElement element = mapping[statement];
     if (element === null) {
       element = new TargetElement(statement,
-                                     statementScope.nestingLevel,
-                                     enclosingElement);
+                                  statementScope.nestingLevel,
+                                  enclosingElement);
       mapping[statement] = element;
     }
     return element;
@@ -1015,6 +1020,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitInStaticContext(Node node) {
     inStaticContext(() => visit(node));
+  }
+
+  ErroneousElement warnAndCreateErroneousElement(Node node,
+                                                 SourceString name,
+                                                 MessageKind kind,
+                                                 List<Node> arguments) {
+    ResolutionWarning warning = new ResolutionWarning(kind, arguments);
+    compiler.reportWarning(node, warning);
+    return new ErroneousElement(warning.message, name, enclosingElement);
   }
 
   Element visitIdentifier(Identifier node) {
@@ -1154,7 +1168,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitEmptyStatement(EmptyStatement node) { }
 
   visitExpressionStatement(ExpressionStatement node) {
+    ExpressionStatement oldExpressionStatement = currentExpressionStatement;
+    currentExpressionStatement = node;
     visit(node.expression);
+    currentExpressionStatement = oldExpressionStatement;
   }
 
   visitFor(For node) {
@@ -1208,10 +1225,35 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return (str === '&&' || str == '||' || str == '!');
   }
 
+  /**
+   * Check the lexical scope chain for a declaration with the name "assert".
+   *
+   * This is used to detect whether "assert(x)" is actually an assertion or
+   * just a call expression.
+   * It does not check fields inherited from a superclass.
+   */
+  bool isAssertInLexicalScope() {
+    return scope.lexicalLookup(const SourceString("assert")) !== null;
+  }
+
+  /** Check if [node] is the expression of the current expression statement. */
+  bool isExpressionStatementExpression(Node node) {
+    return currentExpressionStatement !== null &&
+        currentExpressionStatement.expression === node;
+  }
+
   Element resolveSend(Send node) {
     Selector selector = resolveSelector(node);
 
     if (node.receiver === null) {
+      // If this send is the expression of an expression statement, and is on
+      // the form "assert(expr);", and there is no declaration with name
+      // "assert" in the lexical scope, then this is actually an assertion.
+      if (isExpressionStatementExpression(node) &&
+          selector.isAssertSyntax() &&
+          !isAssertInLexicalScope()) {
+        return compiler.assertMethod;
+      }
       return node.selector.accept(this);
     }
 
@@ -1245,13 +1287,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       target = currentClass.lookupSuperMember(name);
       // [target] may be null which means invoking noSuchMethod on
       // super.
-    } else if (Element.isInvalid(resolvedReceiver)) {
+    } else if (Elements.isUnresolved(resolvedReceiver)) {
       return null;
     } else if (resolvedReceiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = resolvedReceiver;
       target = receiverClass.ensureResolved(compiler).lookupLocalMember(name);
       if (target === null) {
-        error(node, MessageKind.METHOD_NOT_FOUND, [receiverClass.name, name]);
+        return warnAndCreateErroneousElement(node, name,
+                                             MessageKind.METHOD_NOT_FOUND,
+                                             [receiverClass.name, name]);
       } else if (target.isInstanceMember()) {
         error(node, MessageKind.MEMBER_NOT_STATIC, [receiverClass.name, name]);
       }
@@ -1348,12 +1392,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitSend(Send node) {
     Element target = resolveSend(node);
-    if (!Element.isInvalid(target)
+    if (!Elements.isUnresolved(target)
         && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
-      if (Element.isInvalid(target) && !inInstanceContext) {
-        // TODO(karlklose): make this a runtime error.
+      if (Elements.isUnresolved(target) && !inInstanceContext) {
         error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
       }
     }
@@ -1391,21 +1434,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // we need to register that fact that we may be calling a closure
     // with the same arguments.
     if (node.isCall &&
-        (Element.isInvalid(target) ||
+        (Elements.isUnresolved(target) ||
          target.isGetter() ||
          Elements.isClosureSend(node, target))) {
       Selector call = new Selector.callClosureFrom(selector);
       world.registerDynamicInvocation(call.name, call);
-    }
-
-    // TODO(ngeoffray): We should do the check in
-    // visitExpressionStatement instead.
-    if (target === compiler.assertMethod && !node.isCall) {
-      // We can only use assert by calling it.
-      if (!inInstanceContext) {
-        error(node, MessageKind.MISSING_ARGUMENTS_TO_ASSERT, [node]);
-      }
-      target = null;
     }
 
     // TODO(ngeoffray): Warn if target is null and the send is
@@ -1421,16 +1454,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element getter = target;
     String source = node.assignmentOperator.source.stringValue;
     bool isComplex = source !== '=';
-    if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
+    if (!Elements.isUnresolved(target)
+        && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       setter = field.setter;
       getter = field.getter;
-      if (Element.isInvalid(setter) && !inInstanceContext) {
-        // TODO(karlklose): make this a runtime error.
+      if (setter == null && !inInstanceContext) {
         error(node.selector, MessageKind.CANNOT_RESOLVE_SETTER);
       }
-      if (isComplex && Element.isInvalid(getter) && !inInstanceContext) {
-        // TODO(karlklose): make this a runtime error.
+      if (isComplex && getter == null && !inInstanceContext) {
         error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
       }
     }
@@ -1560,7 +1592,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     resolveSelector(node.send);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
-    if (Element.isInvalid(constructor)) return constructor;
+    if (Elements.isUnresolved(constructor)) return constructor;
     // TODO(karlklose): handle optional arguments.
     if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
       // TODO(ngeoffray): resolution error with wrong number of
@@ -1596,7 +1628,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     FunctionElement constructor = node.accept(visitor);
     // Try to resolve the type that the new-expression constructs.
     TypeAnnotation annotation = node.send.getTypeAnnotation();
-    if (Element.isInvalid(constructor)) {
+    if (Elements.isUnresolved(constructor)) {
       // Resolve the type arguments. We cannot create a type and check the
       // number of type arguments for this annotation, because we do not know
       // the element.
@@ -1908,7 +1940,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
 
     Scope blockScope = new BlockScope(scope);
-    doInCheckContext(() => visitIn(node.type, blockScope)); 
+    var wasTypeRequired = typeRequired;
+    typeRequired = true;
+    doInCheckContext(() => visitIn(node.type, blockScope));
+    typeRequired = wasTypeRequired;
     visitIn(node.formals, blockScope);
     visitIn(node.block, blockScope);
   }
@@ -2294,7 +2329,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
-    if (node.beginToken.stringValue !== '[') {
+    String value = node.beginToken.stringValue;
+    if ((value !== '[') && (value !== '{')) {
       internalError(node, "expected optional parameters");
     }
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
@@ -2483,13 +2519,15 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 
   failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
-                               MessageKind kind, List arguments) {
+                               SourceString targetName, MessageKind kind,
+                               List arguments) {
     if (inConstContext) {
       error(diagnosticNode, kind, arguments);
     } else {
       ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
       compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousFunctionElement(warning.message, enclosing);
+      return new ErroneousFunctionElement(warning.message, targetName,
+                                          enclosing);
     }
   }
 
@@ -2505,6 +2543,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                               '.${constructorName.slowToString()}';
       }
       return failOrReturnErroneousElement(cls, diagnosticNode,
+                                          new SourceString(fullConstructorName),
                                           MessageKind.CANNOT_FIND_CONSTRUCTOR,
                                           [fullConstructorName]);
     }
@@ -2514,7 +2553,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     Element e = visit(selector);
-    if (!Element.isInvalid(e) && e.kind === ElementKind.CLASS) {
+    if (!Elements.isUnresolved(e) && e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
       if (cls.isInterface() && (cls.defaultClass === null)) {
@@ -2531,7 +2570,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   visitSend(Send node) {
     Element e = visit(node.receiver);
-    if (Element.isInvalid(e)) return e;
+    if (Elements.isUnresolved(e)) return e;
     Identifier name = node.selector.asIdentifier();
     if (name === null) internalError(node.selector, 'unexpected node');
 
@@ -2548,6 +2587,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       e = prefix.lookupLocalMember(name.source);
       if (e === null) {
         return failOrReturnErroneousElement(resolver.enclosingElement, name,
+                                            name.source,
                                             MessageKind.CANNOT_RESOLVE,
                                             [name]);
       } else if (e.kind !== ElementKind.CLASS) {
@@ -2563,7 +2603,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     SourceString name = node.source;
     Element e = resolver.lookup(node, name);
     if (e === null) {
-      return failOrReturnErroneousElement(resolver.enclosingElement, node,
+      return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
                                           MessageKind.CANNOT_RESOLVE, [name]);
     } else if (e.kind === ElementKind.TYPEDEF) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
@@ -2580,7 +2620,20 @@ class Scope {
 
   Scope(this.parent, this.element);
   abstract Element add(Element element);
-  abstract Element lookup(SourceString name);
+
+  Element lookup(SourceString name) {
+    Element result = localLookup(name);
+    if (result != null) return result;
+    return parent.lookup(name);
+  }
+
+  Element lexicalLookup(SourceString name) {
+    Element result = localLookup(name);
+    if (result != null) return result;
+    return parent.lexicalLookup(name);
+  }
+
+  abstract Element localLookup(SourceString name);
 }
 
 class VariableScope extends Scope {
@@ -2614,7 +2667,7 @@ class TypeDeclarationScope extends Scope {
     throw "Cannot add element to TypeDeclarationScope";
   }
 
-  Element lookup(SourceString name) {
+  Element localLookup(SourceString name) {
     Link<DartType> typeVariableLink = element.typeVariables;
     while (!typeVariableLink.isEmpty()) {
       TypeVariableType typeVariable = typeVariableLink.head;
@@ -2623,8 +2676,7 @@ class TypeDeclarationScope extends Scope {
       }
       typeVariableLink = typeVariableLink.tail;
     }
-
-    return parent.lookup(name);
+    return null;
   }
 
   String toString() =>
@@ -2640,11 +2692,7 @@ class MethodScope extends Scope {
     assert(parent !== null);
   }
 
-  Element lookup(SourceString name) {
-    Element found = elements[name];
-    if (found !== null) return found;
-    return parent.lookup(name);
-  }
+  Element localLookup(SourceString name) => elements[name];
 
   Element add(Element newElement) {
     if (elements.containsKey(newElement.name)) {
@@ -2674,7 +2722,7 @@ class ClassScope extends TypeDeclarationScope {
   ClassScope(Scope parentScope, ClassElement element)
       : super(parentScope, element);
 
-  Element lookup(SourceString name) {
+  Element localLookup(SourceString name) {
     ClassElement cls = element;
     Element result = cls.lookupLocalMember(name);
     if (result !== null) return result;
@@ -2682,11 +2730,15 @@ class ClassScope extends TypeDeclarationScope {
       // If not in a static context, we can lookup in the
       // TypeDeclaration scope, which contains the type variables of
       // the class.
-      result = super.lookup(name);
-    } else {
-      result = parent.lookup(name);
+      return super.localLookup(name);
     }
-    if (result != null) return result;
+    return null;
+  }
+
+  Element lookup(SourceString name) {
+    Element result = super.lookup(name);
+    if (result !== null) return result;
+    ClassElement cls = element;
     return cls.lookupSuperMember(name);
   }
 
@@ -2701,9 +2753,10 @@ class TopScope extends Scope {
   LibraryElement get library => element;
 
   TopScope(LibraryElement library) : super(null, library);
-  Element lookup(SourceString name) {
-    return library.find(name);
-  }
+
+  Element localLookup(SourceString name) => library.find(name);
+  Element lookup(SourceString name) => localLookup(name);
+  Element lexicalLookup(SourceString name) => localLookup(name);
 
   Element add(Element newElement) {
     throw "Cannot add an element in the top scope";

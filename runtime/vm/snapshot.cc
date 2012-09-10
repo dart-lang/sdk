@@ -156,6 +156,8 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_(AbstractType::Handle()),
       type_arguments_(AbstractTypeArguments::Handle()),
       tokens_(Array::Handle()),
+      stream_(TokenStream::Handle()),
+      data_(ExternalUint8Array::Handle()),
       backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {
@@ -403,9 +405,24 @@ RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
 
 
 RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(TokenStream,
-                            Object::token_stream_class(),
-                            len);
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = Object::token_stream_class();
+  stream_ = reinterpret_cast<RawTokenStream*>(
+      AllocateUninitialized(cls_, TokenStream::InstanceSize()));
+  cls_ = object_store()->external_int8_array_class();
+  uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
+  ASSERT(array != NULL);
+  Advance(len);
+  ExternalByteArrayData<uint8_t>* external_data =
+      new ExternalByteArrayData<uint8_t>(array, NULL, NULL);
+  ASSERT(external_data != NULL);
+  data_ = reinterpret_cast<RawExternalUint8Array*>(
+      AllocateUninitialized(cls_, ExternalUint8Array::InstanceSize()));
+  data_.SetExternalData(external_data);
+  data_.SetLength(len);
+  stream_.SetStream(data_);
+  return stream_.raw();
 }
 
 

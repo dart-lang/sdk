@@ -148,7 +148,7 @@ String _getOperatorFromOperatorName(String name) {
   return newName;
 }
 
-DiagnosticListener get _diagnosticListener() {
+DiagnosticListener get _diagnosticListener {
   return const Dart2JsDiagnosticListener();
 }
 
@@ -365,7 +365,7 @@ class Dart2JsCompilation implements Compilation {
     _compiler.scanner.loadLibrary(uri, null);
   }
 
-  MirrorSystem get mirrors() => new Dart2JsMirrorSystem(_compiler);
+  MirrorSystem get mirrors => new Dart2JsMirrorSystem(_compiler);
 
   Future<String> compileToJavaScript() =>
       new Future<String>.immediate(_compiler.assembledCode);
@@ -401,9 +401,9 @@ abstract class Dart2JsElementMirror implements Dart2JsMirror {
     assert (_element !== null);
   }
 
-  String get simpleName() => _element.name.slowToString();
+  String get simpleName => _element.name.slowToString();
 
-  Location get location() => new Dart2JsLocation(
+  Location get location => new Dart2JsLocation(
       _element.getCompilationUnit().script,
       system.compiler.spanFromElement(_element));
 
@@ -443,7 +443,7 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
     }
   }
 
-  Map<Object, LibraryMirror> get libraries() {
+  Map<Object, LibraryMirror> get libraries {
     _ensureLibraries();
     return new ImmutableMapWrapper<Object, LibraryMirror>(_libraries);
   }
@@ -452,12 +452,12 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
     return _libraryMap[element];
   }
 
-  Dart2JsMirrorSystem get system() => this;
+  Dart2JsMirrorSystem get system => this;
 
-  String get simpleName() => "mirror";
-  String get qualifiedName() => simpleName;
+  String get simpleName => "mirror";
+  String get qualifiedName => simpleName;
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
   // TODO(johnniwinther): Hack! Dart2JsMirrorSystem need not be a Mirror.
   int hashCode() => qualifiedName.hashCode();
@@ -477,18 +477,18 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   Dart2JsLibraryMirror(Dart2JsMirrorSystem system, LibraryElement library)
       : super(system, library);
 
-  LibraryElement get _library() => _element;
+  LibraryElement get _library => _element;
 
   LibraryMirror library() => this;
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
   /**
    * Returns the library name (for libraries with a #library tag) or the script
    * file name (for scripts without a #library tag). The latter case is used to
    * provide a 'library name' for scripts, to use for instance in dartdoc.
    */
-  String get simpleName() {
+  String get simpleName {
     if (_library.libraryTag !== null) {
       return _library.libraryTag.argument.dartString.slowToString();
     } else {
@@ -498,7 +498,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
     }
   }
 
-  String get qualifiedName() => simpleName;
+  String get qualifiedName => simpleName;
 
   void _ensureTypes() {
     if (_types == null) {
@@ -532,17 +532,17 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
     }
   }
 
-  Map<Object, MemberMirror> get declaredMembers() {
+  Map<Object, MemberMirror> get declaredMembers {
     _ensureMembers();
     return new ImmutableMapWrapper<Object, MemberMirror>(_members);
   }
 
-  Map<Object, InterfaceMirror> get types() {
+  Map<Object, InterfaceMirror> get types {
     _ensureTypes();
     return new ImmutableMapWrapper<Object, InterfaceMirror>(_types);
   }
 
-  Location get location() {
+  Location get location {
     var script = _library.getCompilationUnit().script;
     return new Dart2JsLocation(
         script,
@@ -556,13 +556,13 @@ class Dart2JsLocation implements Location {
 
   Dart2JsLocation(this._script, this._span);
 
-  int get start() => _span.begin;
+  int get start => _span.begin;
 
-  int get end() => _span.end;
+  int get end => _span.end;
 
-  Source get source() => new Dart2JsSource(_script);
+  Source get source => new Dart2JsSource(_script);
 
-  String get text() => _script.text.substring(start, end);
+  String get text => _script.text.substring(start, end);
 }
 
 class Dart2JsSource implements Source {
@@ -570,9 +570,9 @@ class Dart2JsSource implements Source {
 
   Dart2JsSource(this._script);
 
-  Uri get uri() => _script.uri;
+  Uri get uri => _script.uri;
 
-  String get text() => _script.text;
+  String get text => _script.text;
 }
 
 class Dart2JsParameterMirror extends Dart2JsElementMirror
@@ -598,32 +598,32 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
                          this.isOptional)
     : super(system, element);
 
-  VariableElement get _variableElement() => _element;
+  VariableElement get _variableElement => _element;
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
-  String get qualifiedName() => '${_method.qualifiedName}#${simpleName}';
+  String get qualifiedName => '${_method.qualifiedName}#${simpleName}';
 
-  TypeMirror get type() => _convertTypeToTypeMirror(system,
+  TypeMirror get type => _convertTypeToTypeMirror(system,
       _variableElement.computeType(system.compiler),
       system.compiler.types.dynamicType,
       _variableElement.variables.functionSignature);
 
-  String get defaultValue() {
+  String get defaultValue {
     if (hasDefaultValue) {
       SendSet expression = _variableElement.cachedNode.asSendSet();
       return unparse(expression.arguments.head);
     }
     return null;
   }
-  bool get hasDefaultValue() {
+  bool get hasDefaultValue {
     return _variableElement.cachedNode !== null &&
         _variableElement.cachedNode is SendSet;
   }
 
-  bool get isInitializingFormal() => false;
+  bool get isInitializingFormal => false;
 
-  FieldMirror get initializedField() => null;
+  FieldMirror get initializedField => null;
 }
 
 class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
@@ -634,9 +634,9 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
                               bool isOptional)
       : super._normal(system, method, element, isOptional);
 
-  FieldParameterElement get _fieldParameterElement() => _element;
+  FieldParameterElement get _fieldParameterElement => _element;
 
-  TypeMirror get type() {
+  TypeMirror get type {
     if (_fieldParameterElement.variables.cachedNode.type !== null) {
       return super.type;
     }
@@ -646,9 +646,9 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
       _variableElement.variables.functionSignature);
   }
 
-  bool get isInitializingFormal() => true;
+  bool get isInitializingFormal => true;
 
-  FieldMirror get initializedField() => new Dart2JsFieldMirror(
+  FieldMirror get initializedField => new Dart2JsFieldMirror(
       _method.surroundingDeclaration, _fieldParameterElement.fieldElement);
 }
 
@@ -665,7 +665,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
       : this.library = system.getLibrary(_class.getLibrary()),
         super(system, _class);
 
-  ClassElement get _class() => _element;
+  ClassElement get _class => _element;
 
 
   Dart2JsInterfaceMirror.fromLibrary(Dart2JsLibraryMirror library,
@@ -673,11 +673,11 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
       : this.library = library,
         super(library.system, _class);
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
-  String get qualifiedName() => '${library.qualifiedName}.${simpleName}';
+  String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  Location get location() {
+  Location get location {
     if (_class is PartialClassElement) {
       var node = _class.parseNode(_diagnosticListener);
       if (node !== null) {
@@ -700,33 +700,33 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
     }
   }
 
-  Map<Object, MemberMirror> get declaredMembers() {
+  Map<Object, MemberMirror> get declaredMembers {
     _ensureMembers();
     return new ImmutableMapWrapper<Object, MemberMirror>(_members);
   }
 
-  bool get isObject() => _class == system.compiler.objectClass;
+  bool get isObject => _class == system.compiler.objectClass;
 
-  bool get isDynamic() => _class == system.compiler.dynamicClass;
+  bool get isDynamic => _class == system.compiler.dynamicClass;
 
-  bool get isVoid() => false;
+  bool get isVoid => false;
 
-  bool get isTypeVariable() => false;
+  bool get isTypeVariable => false;
 
-  bool get isTypedef() => false;
+  bool get isTypedef => false;
 
-  bool get isFunction() => false;
+  bool get isFunction => false;
 
-  InterfaceMirror get declaration() => this;
+  InterfaceMirror get declaration => this;
 
-  InterfaceMirror get superclass() {
+  InterfaceMirror get superclass {
     if (_class.supertype != null) {
       return new Dart2JsInterfaceTypeMirror(system, _class.supertype);
     }
     return null;
   }
 
-  Map<Object, InterfaceMirror> get interfaces() {
+  Map<Object, InterfaceMirror> get interfaces {
     var map = new Map<String, InterfaceMirror>();
     Link<DartType> link = _class.interfaces;
     while (!link.isEmpty()) {
@@ -738,20 +738,20 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
     return new ImmutableMapWrapper<Object, InterfaceMirror>(map);
   }
 
-  bool get isClass() => !_class.isInterface();
+  bool get isClass => !_class.isInterface();
 
-  bool get isInterface() => _class.isInterface();
+  bool get isInterface => _class.isInterface();
 
-  bool get isPrivate() => _isPrivate(simpleName);
+  bool get isPrivate => _isPrivate(simpleName);
 
-  bool get isDeclaration() => true;
+  bool get isDeclaration => true;
 
-  List<TypeMirror> get typeArguments() {
+  List<TypeMirror> get typeArguments {
     throw new UnsupportedOperationException(
         'Declarations do not have type arguments');
   }
 
-  List<TypeVariableMirror> get typeVariables() {
+  List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
       _typeVariables = <TypeVariableMirror>[];
       _class.ensureResolved(system.compiler);
@@ -763,7 +763,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
     return _typeVariables;
   }
 
-  Map<Object, MethodMirror> get constructors() {
+  Map<Object, MethodMirror> get constructors {
     _ensureMembers();
     return new AsFilteredImmutableMap<Object, MemberMirror, MethodMirror>(
         _members, (m) => m.isConstructor ? m : null);
@@ -772,7 +772,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   /**
    * Returns the default type for this interface.
    */
-  InterfaceMirror get defaultType() {
+  InterfaceMirror get defaultType {
     if (_class.defaultClass != null) {
       return new Dart2JsInterfaceTypeMirror(system, _class.defaultClass);
     }
@@ -811,13 +811,13 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
       : this._library = library,
         super(library.system, _typedef);
 
-  TypedefType get _typedef() => _type;
+  TypedefType get _typedef => _type;
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
-  String get qualifiedName() => '${library.qualifiedName}.${simpleName}';
+  String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  Location get location() {
+  Location get location {
     var node = _typedef.element.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _typedef.element.getCompilationUnit().script;
@@ -827,26 +827,26 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     return super.location;
   }
 
-  LibraryMirror get library() => _library;
+  LibraryMirror get library => _library;
 
-  bool get isObject() => false;
+  bool get isObject => false;
 
-  bool get isDynamic() => false;
+  bool get isDynamic => false;
 
-  bool get isVoid() => false;
+  bool get isVoid => false;
 
-  bool get isTypeVariable() => false;
+  bool get isTypeVariable => false;
 
-  bool get isTypedef() => true;
+  bool get isTypedef => true;
 
-  bool get isFunction() => false;
+  bool get isFunction => false;
 
-  List<TypeMirror> get typeArguments() {
+  List<TypeMirror> get typeArguments {
     throw new UnsupportedOperationException(
         'Declarations do not have type arguments');
   }
 
-  List<TypeVariableMirror> get typeVariables() {
+  List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
       _typeVariables = <TypeVariableMirror>[];
       for (TypeVariableType typeVariable in _typedef.typeArguments) {
@@ -857,7 +857,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     return _typeVariables;
   }
 
-  TypeMirror get definition() {
+  TypeMirror get definition {
     if (_definition === null) {
       // TODO(johnniwinther): Should be [ensureResolved].
       system.compiler.resolveTypedef(_typedef.element);
@@ -870,29 +870,29 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     return _definition;
   }
 
-  Map<Object, MemberMirror> get declaredMembers() =>
+  Map<Object, MemberMirror> get declaredMembers =>
       const <String, MemberMirror>{};
 
-  InterfaceMirror get declaration() => this;
+  InterfaceMirror get declaration => this;
 
   // TODO(johnniwinther): How should a typedef respond to these?
-  InterfaceMirror get superclass() => null;
+  InterfaceMirror get superclass => null;
 
-  Map<Object, InterfaceMirror> get interfaces() =>
+  Map<Object, InterfaceMirror> get interfaces =>
       const <String, InterfaceMirror>{};
 
-  bool get isClass() => false;
+  bool get isClass => false;
 
-  bool get isInterface() => false;
+  bool get isInterface => false;
 
-  bool get isPrivate() => _isPrivate(simpleName);
+  bool get isPrivate => _isPrivate(simpleName);
 
-  bool get isDeclaration() => true;
+  bool get isDeclaration => true;
 
-  Map<Object, MethodMirror> get constructors() =>
+  Map<Object, MethodMirror> get constructors =>
       const <String, MethodMirror>{};
 
-  InterfaceMirror get defaultType() => null;
+  InterfaceMirror get defaultType => null;
 }
 
 class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
@@ -908,9 +908,9 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
   }
 
 
-  String get qualifiedName() => '${declarer.qualifiedName}.${simpleName}';
+  String get qualifiedName => '${declarer.qualifiedName}.${simpleName}';
 
-  InterfaceMirror get declarer() {
+  InterfaceMirror get declarer {
     if (_declarer === null) {
       if (_typeVariableType.element.enclosingElement.isClass()) {
         _declarer = new Dart2JsInterfaceMirror(system,
@@ -924,21 +924,21 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
     return _declarer;
   }
 
-  LibraryMirror get library() => declarer.library;
+  LibraryMirror get library => declarer.library;
 
-  bool get isObject() => false;
+  bool get isObject => false;
 
-  bool get isDynamic() => false;
+  bool get isDynamic => false;
 
-  bool get isVoid() => false;
+  bool get isVoid => false;
 
-  bool get isTypeVariable() => true;
+  bool get isTypeVariable => true;
 
-  bool get isTypedef() => false;
+  bool get isTypedef => false;
 
-  bool get isFunction() => false;
+  bool get isFunction => false;
 
-  TypeMirror get bound() => _convertTypeToTypeMirror(
+  TypeMirror get bound => _convertTypeToTypeMirror(
       system,
       _typeVariableType.element.bound,
       system.compiler.objectClass.computeType(system.compiler));
@@ -969,17 +969,17 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
   Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, this._type)
     : super(system);
 
-  String get simpleName() => _type.name.slowToString();
+  String get simpleName => _type.name.slowToString();
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
-  Location get location() {
+  Location get location {
     var script = _type.element.getCompilationUnit().script;
     return new Dart2JsLocation(script,
                                system.compiler.spanFromElement(_type.element));
   }
 
-  LibraryMirror get library() {
+  LibraryMirror get library {
     return system.getLibrary(_type.element.getLibrary());
   }
 
@@ -994,43 +994,43 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
                              InterfaceType interfaceType)
       : super(system, interfaceType);
 
-  InterfaceType get _interfaceType() => _type;
+  InterfaceType get _interfaceType => _type;
 
-  String get qualifiedName() => declaration.qualifiedName;
+  String get qualifiedName => declaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, MemberMirror> get declaredMembers() => declaration.declaredMembers;
+  Map<Object, MemberMirror> get declaredMembers => declaration.declaredMembers;
 
-  bool get isObject() => system.compiler.objectClass == _type.element;
+  bool get isObject => system.compiler.objectClass == _type.element;
 
-  bool get isDynamic() => system.compiler.dynamicClass == _type.element;
+  bool get isDynamic => system.compiler.dynamicClass == _type.element;
 
-  bool get isTypeVariable() => false;
+  bool get isTypeVariable => false;
 
-  bool get isVoid() => false;
+  bool get isVoid => false;
 
-  bool get isTypedef() => false;
+  bool get isTypedef => false;
 
-  bool get isFunction() => false;
+  bool get isFunction => false;
 
-  InterfaceMirror get declaration()
+  InterfaceMirror get declaration
       => new Dart2JsInterfaceMirror(system, _type.element);
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  InterfaceMirror get superclass() => declaration.superclass;
+  InterfaceMirror get superclass => declaration.superclass;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, InterfaceMirror> get interfaces() => declaration.interfaces;
+  Map<Object, InterfaceMirror> get interfaces => declaration.interfaces;
 
-  bool get isClass() => declaration.isClass;
+  bool get isClass => declaration.isClass;
 
-  bool get isInterface() => declaration.isInterface;
+  bool get isInterface => declaration.isInterface;
 
-  bool get isPrivate() => declaration.isPrivate;
+  bool get isPrivate => declaration.isPrivate;
 
-  bool get isDeclaration() => false;
+  bool get isDeclaration => false;
 
-  List<TypeMirror> get typeArguments() {
+  List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
       _typeArguments = <TypeMirror>[];
       Link<DartType> type = _interfaceType.arguments;
@@ -1043,13 +1043,13 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
     return _typeArguments;
   }
 
-  List<TypeVariableMirror> get typeVariables() => declaration.typeVariables;
+  List<TypeVariableMirror> get typeVariables => declaration.typeVariables;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, MethodMirror> get constructors() => declaration.constructors;
+  Map<Object, MethodMirror> get constructors => declaration.constructors;
 
   // TODO(johnniwinther): Substitute type arguments for type variables?
-  InterfaceMirror get defaultType() => declaration.defaultType;
+  InterfaceMirror get defaultType => declaration.defaultType;
 
   bool operator ==(Object other) {
     if (this === other) {
@@ -1087,13 +1087,13 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
     assert (_functionSignature !== null);
   }
 
-  FunctionType get _functionType() => _type;
+  FunctionType get _functionType => _type;
 
   // TODO(johnniwinther): Is this the qualified name of a function type?
-  String get qualifiedName() => declaration.qualifiedName;
+  String get qualifiedName => declaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, MemberMirror> get declaredMembers() {
+  Map<Object, MemberMirror> get declaredMembers {
     var method = callMethod;
     if (method !== null) {
       var map = new Map<String, MemberMirror>.from(
@@ -1106,54 +1106,54 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
     return declaration.declaredMembers;
   }
 
-  bool get isObject() => system.compiler.objectClass == _type.element;
+  bool get isObject => system.compiler.objectClass == _type.element;
 
-  bool get isDynamic() => system.compiler.dynamicClass == _type.element;
+  bool get isDynamic => system.compiler.dynamicClass == _type.element;
 
-  bool get isVoid() => false;
+  bool get isVoid => false;
 
-  bool get isTypeVariable() => false;
+  bool get isTypeVariable => false;
 
-  bool get isTypedef() => false;
+  bool get isTypedef => false;
 
-  bool get isFunction() => true;
+  bool get isFunction => true;
 
-  MethodMirror get callMethod() => _convertElementMethodToMethodMirror(
+  MethodMirror get callMethod => _convertElementMethodToMethodMirror(
       system.getLibrary(_functionType.element.getLibrary()),
       _functionType.element);
 
-  InterfaceMirror get declaration()
+  InterfaceMirror get declaration
       => new Dart2JsInterfaceMirror(system, system.compiler.functionClass);
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  InterfaceMirror get superclass() => declaration.superclass;
+  InterfaceMirror get superclass => declaration.superclass;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, InterfaceMirror> get interfaces() => declaration.interfaces;
+  Map<Object, InterfaceMirror> get interfaces => declaration.interfaces;
 
-  bool get isClass() => declaration.isClass;
+  bool get isClass => declaration.isClass;
 
-  bool get isInterface() => declaration.isInterface;
+  bool get isInterface => declaration.isInterface;
 
-  bool get isPrivate() => declaration.isPrivate;
+  bool get isPrivate => declaration.isPrivate;
 
-  bool get isDeclaration() => false;
+  bool get isDeclaration => false;
 
-  List<TypeMirror> get typeArguments() => const <TypeMirror>[];
+  List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
-  List<TypeVariableMirror> get typeVariables() => declaration.typeVariables;
+  List<TypeVariableMirror> get typeVariables => declaration.typeVariables;
 
-  Map<Object, MethodMirror> get constructors() =>
+  Map<Object, MethodMirror> get constructors =>
       <String, MethodMirror>{};
 
-  InterfaceMirror get defaultType() => null;
+  InterfaceMirror get defaultType => null;
 
-  TypeMirror get returnType() {
+  TypeMirror get returnType {
     return _convertTypeToTypeMirror(system, _functionType.returnType,
                                     system.compiler.types.dynamicType);
   }
 
-  List<ParameterMirror> get parameters() {
+  List<ParameterMirror> get parameters {
     if (_parameters === null) {
       _parameters = _parametersFromFunctionSignature(system, callMethod,
                                                      _functionSignature);
@@ -1167,31 +1167,31 @@ class Dart2JsVoidMirror extends Dart2JsTypeElementMirror {
   Dart2JsVoidMirror(Dart2JsMirrorSystem system, VoidType voidType)
       : super(system, voidType);
 
-  VoidType get _voidType() => _type;
+  VoidType get _voidType => _type;
 
-  String get qualifiedName() => simpleName;
+  String get qualifiedName => simpleName;
 
   /**
    * The void type has no location.
    */
-  Location get location() => null;
+  Location get location => null;
 
   /**
    * The void type has no library.
    */
-  LibraryMirror get library() => null;
+  LibraryMirror get library => null;
 
-  bool get isObject() => false;
+  bool get isObject => false;
 
-  bool get isVoid() => true;
+  bool get isVoid => true;
 
-  bool get isDynamic() => false;
+  bool get isDynamic => false;
 
-  bool get isTypeVariable() => false;
+  bool get isTypeVariable => false;
 
-  bool get isTypedef() => false;
+  bool get isTypedef => false;
 
-  bool get isFunction() => false;
+  bool get isFunction => false;
 
   bool operator ==(Object other) {
     if (this === other) {
@@ -1275,55 +1275,55 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
     }
   }
 
-  FunctionElement get _function() => _element;
+  FunctionElement get _function => _element;
 
-  String get simpleName() => _name;
+  String get simpleName => _name;
 
-  String get qualifiedName()
+  String get qualifiedName
       => '${surroundingDeclaration.qualifiedName}.$canonicalName';
 
-  String get canonicalName() => _canonicalName;
+  String get canonicalName => _canonicalName;
 
-  ObjectMirror get surroundingDeclaration() => _objectMirror;
+  ObjectMirror get surroundingDeclaration => _objectMirror;
 
-  bool get isTopLevel() => _objectMirror is LibraryMirror;
+  bool get isTopLevel => _objectMirror is LibraryMirror;
 
-  bool get isConstructor()
+  bool get isConstructor
       => _kind == Dart2JsMethodKind.CONSTRUCTOR || isConst || isFactory;
 
-  bool get isField() => false;
+  bool get isField => false;
 
-  bool get isMethod() => !isConstructor;
+  bool get isMethod => !isConstructor;
 
-  bool get isPrivate() => _isPrivate(simpleName);
+  bool get isPrivate => _isPrivate(simpleName);
 
-  bool get isStatic() =>
+  bool get isStatic =>
       _function.modifiers !== null && _function.modifiers.isStatic();
 
-  List<ParameterMirror> get parameters() {
+  List<ParameterMirror> get parameters {
     return _parametersFromFunctionSignature(system, this,
         _function.computeSignature(system.compiler));
   }
 
-  TypeMirror get returnType() => _convertTypeToTypeMirror(
+  TypeMirror get returnType => _convertTypeToTypeMirror(
       system, _function.computeSignature(system.compiler).returnType,
       system.compiler.types.dynamicType);
 
-  bool get isConst() => _kind == Dart2JsMethodKind.CONST;
+  bool get isConst => _kind == Dart2JsMethodKind.CONST;
 
-  bool get isFactory() => _kind == Dart2JsMethodKind.FACTORY;
+  bool get isFactory => _kind == Dart2JsMethodKind.FACTORY;
 
-  String get constructorName() => _constructorName;
+  String get constructorName => _constructorName;
 
-  bool get isGetter() => _kind == Dart2JsMethodKind.GETTER;
+  bool get isGetter => _kind == Dart2JsMethodKind.GETTER;
 
-  bool get isSetter() => _kind == Dart2JsMethodKind.SETTER;
+  bool get isSetter => _kind == Dart2JsMethodKind.SETTER;
 
-  bool get isOperator() => _kind == Dart2JsMethodKind.OPERATOR;
+  bool get isOperator => _kind == Dart2JsMethodKind.OPERATOR;
 
-  String get operatorName() => _operatorName;
+  String get operatorName => _operatorName;
 
-  Location get location() {
+  Location get location {
     var node = _function.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _function.getCompilationUnit().script;
@@ -1351,33 +1351,33 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
         this._variable = variable,
         super(objectMirror.system, variable);
 
-  String get qualifiedName()
+  String get qualifiedName
       => '${surroundingDeclaration.qualifiedName}.$canonicalName';
 
-  String get canonicalName() => simpleName;
+  String get canonicalName => simpleName;
 
-  ObjectMirror get surroundingDeclaration() => _objectMirror;
+  ObjectMirror get surroundingDeclaration => _objectMirror;
 
-  bool get isTopLevel() => _objectMirror is LibraryMirror;
+  bool get isTopLevel => _objectMirror is LibraryMirror;
 
-  bool get isConstructor() => false;
+  bool get isConstructor => false;
 
-  bool get isField() => true;
+  bool get isField => true;
 
-  bool get isMethod() => false;
+  bool get isMethod => false;
 
-  bool get isPrivate() => _isPrivate(simpleName);
+  bool get isPrivate => _isPrivate(simpleName);
 
-  bool get isStatic() => _variable.modifiers.isStatic();
+  bool get isStatic => _variable.modifiers.isStatic();
 
   // TODO(johnniwinther): Should this return true on const as well?
-  bool get isFinal() => _variable.modifiers.isFinal();
+  bool get isFinal => _variable.modifiers.isFinal();
 
-  TypeMirror get type() => _convertTypeToTypeMirror(system,
+  TypeMirror get type => _convertTypeToTypeMirror(system,
       _variable.computeType(system.compiler),
       system.compiler.types.dynamicType);
 
-  Location get location() {
+  Location get location {
     var script = _variable.getCompilationUnit().script;
     var node = _variable.variables.parseNode(_diagnosticListener);
     if (node !== null) {

@@ -6,3 +6,5 @@ description: >
 dependencies:
   unittest:
     sdk: unittest
+  htmlescape
+    sdk: htmlescape

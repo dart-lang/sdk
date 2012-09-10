@@ -59,7 +59,7 @@ class ArchiveInputStream {
   }
 
   /** Whether this stream has finished reading entries. */
-  bool get closed() => _id.value == null;
+  bool get closed => _id.value == null;
 
   /**
    * Reads the entire contents of the archive at once.

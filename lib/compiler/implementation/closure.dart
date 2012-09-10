@@ -319,9 +319,7 @@ class ClosureTranslator extends AbstractVisitor {
       useLocal(closureData.thisElement);
     } else if (node.isSuperCall) {
       useLocal(closureData.thisElement);
-    } else if (node.isOperator
-               && node.argumentsNode is Prefix
-               && node.selector.source.stringValue == '?') {
+    } else if (node.isParameterCheck) {
       Element parameter = elements[node.receiver];
       FunctionElement enclosing = parameter.enclosingElement;
       FunctionExpression function = enclosing.parseNode(compiler);
@@ -376,7 +374,7 @@ class ClosureTranslator extends AbstractVisitor {
       }
     }
 
-    if (outermostFunctionElement.isInstanceMember() 
+    if (outermostFunctionElement.isInstanceMember()
         || outermostFunctionElement.isGenerativeConstructor()) {
       if (hasTypeVariable(type)) useLocal(closureData.thisElement);
     } else if (outermostFunctionElement.isFactoryConstructor()) {
@@ -548,7 +546,7 @@ class ClosureTranslator extends AbstractVisitor {
       if (insideClosure) {
         declareLocal(element);
       }
-      
+
       if (currentFunctionElement.isFactoryConstructor()) {
         // Declare the type parameters in the scope. Generative
         // constructors just use 'this'.

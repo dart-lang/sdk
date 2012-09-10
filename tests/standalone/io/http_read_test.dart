@@ -61,9 +61,9 @@ class TestServerCommand {
   TestServerCommand.stop() : _command = STOP;
   TestServerCommand.chunkedEncoding() : _command = CHUNKED_ENCODING;
 
-  bool get isStart() => _command == START;
-  bool get isStop() => _command == STOP;
-  bool get isChunkedEncoding() => _command == CHUNKED_ENCODING;
+  bool get isStart => _command == START;
+  bool get isStop => _command == STOP;
+  bool get isChunkedEncoding => _command == CHUNKED_ENCODING;
 
   int _command;
 }
@@ -78,11 +78,11 @@ class TestServerStatus {
   TestServerStatus.stopped() : _state = STOPPED;
   TestServerStatus.error() : _state = ERROR;
 
-  bool get isStarted() => _state == STARTED;
-  bool get isStopped() => _state == STOPPED;
-  bool get isError() => _state == ERROR;
+  bool get isStarted => _state == STARTED;
+  bool get isStopped => _state == STOPPED;
+  bool get isError => _state == ERROR;
 
-  int get port() => _port;
+  int get port => _port;
 
   int _state;
   int _port;

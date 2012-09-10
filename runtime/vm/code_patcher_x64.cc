@@ -242,15 +242,10 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-RawArray* CodePatcher::GetTypeTestArray(uword instruction_address) {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void CodePatcher::SetTypeTestArray(uword instruction_address,
-                                   const Array& value) {
-  UNIMPLEMENTED();
+void CodePatcher::InsertCallAt(uword start, uword target) {
+  *reinterpret_cast<uint8_t*>(start) = 0xE8;
+  ShortCallPattern call(start);
+  call.SetTargetAddress(target);
 }
 
 

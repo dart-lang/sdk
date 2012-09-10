@@ -57,12 +57,12 @@ class TestSuite {
 }
 
 interface TestResult {
-  String get testDescription();
+  String get testDescription;
 }
 
 class PassedTest implements TestResult {
   const PassedTest(String this._testDescription);
-  String get testDescription() => _testDescription;
+  String get testDescription => _testDescription;
   final String _testDescription;
   String toString() => _testDescription;
 }
@@ -70,10 +70,10 @@ class PassedTest implements TestResult {
 class _ExceptionResult {
   const _ExceptionResult(String this._testDescription, var this._exception);
 
-  String get testDescription() => _testDescription;
+  String get testDescription => _testDescription;
   final String _testDescription;
 
-  Object get exception() => _exception;
+  Object get exception => _exception;
   final _exception;
 }
 

@@ -185,9 +185,9 @@ patch class JSSyntaxRegExp {
     return new _AllMatchesIterable(this, str);
   }
 
-  patch String get pattern() => _pattern;
-  patch bool get multiLine() => _multiLine;
-  patch bool get ignoreCase() => _ignoreCase;
+  patch String get pattern => _pattern;
+  patch bool get multiLine => _multiLine;
+  patch bool get ignoreCase => _ignoreCase;
 
   static JSSyntaxRegExp _globalVersionOf(JSSyntaxRegExp other) {
     JSSyntaxRegExp re = new JSSyntaxRegExp(other.pattern,

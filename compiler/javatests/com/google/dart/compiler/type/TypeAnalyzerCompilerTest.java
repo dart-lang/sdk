@@ -1117,13 +1117,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 13, 3, 6),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 14, 3, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
         errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
         errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
         errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12),
-        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 13, 3, 19),
-        errEx(TypeErrorCode.ASSERT_NUMBER_ARGUMENTS, 14, 3, 7),
         errEx(TypeErrorCode.ASSERT_IS_STATEMENT, 16, 10, 12));
   }
 
@@ -1146,6 +1146,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "main() {",
         "  bool assert;",
         "  assert;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_assert_asInheritedGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get assert() {}",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    assert;",
+        "  }",
         "}",
         "");
     assertErrors(libraryResult.getErrors());
@@ -2575,6 +2590,42 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+  }
+
+  public void test_typesPropagation_ifIsNotType_hasThenContinue() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for (var v in <Object>[1, 'two', 3]) {",
+        "    var v1 = v;",
+        "    if (v is! String) {",
+        "      continue;",
+        "    }",
+        "    var v2 = v;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v1", "Object");
+    assertInferredElementTypeString(testUnit, "v2", "String");
+  }
+
+  public void test_typesPropagation_ifIsNotType_hasThenBreak() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for (var v in <Object>[1, 'two', 3]) {",
+        "    var v1 = v;",
+        "    if (v is! String) {",
+        "      break;",
+        "    }",
+        "    var v2 = v;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v1", "Object");
+    assertInferredElementTypeString(testUnit, "v2", "String");
   }
 
   public void test_typesPropagation_ifIsNotType_or() throws Exception {
@@ -4339,6 +4390,88 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "process(x) {}",
           "");
       assertErrors(result.getErrors());
+  }
+
+  /**
+   * Don't report "no such member" if class implements "noSuchMethod" method.
+   */
+  public void test_dontReport_ifHas_noSuchMember_method() throws Exception {
+    String[] lines = {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  noSuchMethod(String name, List args) {}",
+        "}",
+        "class B extends A {}",
+        "class C {}",
+        "main() {",
+        "  new A().notExistingMethod();",
+        "  new B().notExistingMethod();",
+        "  new C().notExistingMethod();",
+        "}",
+        "process(x) {}",
+        ""};
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 8, 11, 17),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 9, 11, 17),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 11, 17));
+    }
+    // don't report
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 11, 17));
+    }
+  }
+
+  /**
+   * Don't report "no such member" if class implements "noSuchMethod" method.
+   */
+  public void test_dontReport_ifHas_noSuchMember_getter() throws Exception {
+    String[] lines = {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  noSuchMethod(String name, List args) {}",
+        "}",
+        "class B extends A {}",
+        "class C {}",
+        "main() {",
+        "  process( new A().notExistingGetter );",
+        "  process( new B().notExistingGetter );",
+        "  process( new C().notExistingGetter );",
+        "}",
+        "process(x) {}",
+        ""};
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 8, 20, 17),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 20, 17),
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF, 10, 20, 17));
+    }
+    // don't report
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF, 10, 20, 17));
+    }
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {

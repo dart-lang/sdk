@@ -9,7 +9,6 @@
     'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
     'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
     'utf_cc_file': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.cc',
-    'web_cc_file': '<(SHARED_INTERMEDIATE_DIR)/web_gen.cc',
     'builtin_in_cc_file': 'builtin_in.cc',
     'builtin_cc_file': '<(SHARED_INTERMEDIATE_DIR)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
@@ -217,36 +216,6 @@
       ]
     },
     {
-      'target_name': 'generate_web_cc_file',
-      'type': 'none',
-      'includes': [
-        'web_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_web_cc',
-          'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(web_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_string_literal.py',
-            '--output', '<(web_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
-            '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::web_source_',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(web_cc_file)'' file.'
-        },
-      ]
-    },
-    {
       'target_name': 'libdart_builtin',
       'type': 'static_library',
       'dependencies': [
@@ -256,7 +225,6 @@
         'generate_json_cc_file',
         'generate_uri_cc_file',
         'generate_utf_cc_file',
-        'generate_web_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -339,7 +307,6 @@
         '<(json_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
-        '<(web_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -422,7 +389,6 @@
         'main.cc',
         'builtin_nolib.cc',
         '<(snapshot_cc_file)',
-        '<(web_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -460,7 +426,6 @@
         '<(json_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
-        '<(web_cc_file)',
         'snapshot_empty.cc',
       ],
       'conditions': [
@@ -499,7 +464,6 @@
         '<(json_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
-        '<(web_cc_file)',
       ],
       'includes': [
         'builtin_impl_sources.gypi',

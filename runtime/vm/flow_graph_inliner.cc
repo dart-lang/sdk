@@ -31,8 +31,8 @@ class CallSiteInliner : public FlowGraphVisitor {
                    StaticCallInstr* call) {
     // TODO(zerny): Generalize to all calls.
 
-    // Abort if the callee has named parameters.
-    if (function.num_optional_parameters() > 0) {
+    // Abort if the callee has optional parameters.
+    if (function.HasOptionalParameters()) {
       if (FLAG_trace_inlining) {
         OS::Print("Inline aborted %s\nReason: optional parameters\n",
                   function.ToFullyQualifiedCString());

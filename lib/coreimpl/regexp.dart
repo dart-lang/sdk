@@ -9,7 +9,7 @@ class JSSyntaxRegExp implements RegExp {
   external Iterable<Match> allMatches(String str);
   external bool hasMatch(String str);
   external String stringMatch(String str);
-  external String get pattern();
-  external bool get multiLine();
-  external bool get ignoreCase();
+  external String get pattern;
+  external bool get multiLine;
+  external bool get ignoreCase;
 }

@@ -73,12 +73,12 @@ testPatchGetter() {
   var compiler = applyPatch(
       """
       class Class {
-        external int get field();
+        external int get field;
       }
       """,
       """
       patch class Class {
-        patch int get field() => 5;
+        patch int get field => 5;
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find);

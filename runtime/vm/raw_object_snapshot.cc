@@ -485,7 +485,8 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_token_pos(reader->ReadIntptrValue());
   func.set_end_token_pos(reader->ReadIntptrValue());
   func.set_num_fixed_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_parameters(reader->ReadIntptrValue());
+  func.set_num_optional_positional_parameters(reader->ReadIntptrValue());
+  func.set_num_optional_named_parameters(reader->ReadIntptrValue());
   func.set_usage_counter(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
   func.set_kind_tag(reader->ReadIntptrValue());
@@ -520,7 +521,8 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->WriteIntptrValue(ptr()->end_token_pos_);
   writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_parameters_);
+  writer->WriteIntptrValue(ptr()->num_optional_positional_parameters_);
+  writer->WriteIntptrValue(ptr()->num_optional_named_parameters_);
   writer->WriteIntptrValue(ptr()->usage_counter_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
   writer->WriteIntptrValue(ptr()->kind_tag_);
@@ -654,11 +656,12 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   token_stream.set_tags(tags);
 
-  // Read the stream of tokens into the TokenStream object.
-  {
+  // Read the stream of tokens into the TokenStream object for script
+  // snapshots as we made a copy of token stream.
+  if (kind == Snapshot::kScript) {
     NoGCScope no_gc;
-    reader->ReadBytes(reinterpret_cast<uint8_t*>(token_stream.EntryAddr(0)),
-                      len);
+    RawExternalUint8Array* stream = token_stream.GetStream();
+    reader->ReadBytes(stream->ptr()->external_data_->data(), len);
   }
 
   // Read in the literal/identifier token array.
@@ -687,9 +690,10 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the length field and the token stream.
-  intptr_t len = Smi::Value(ptr()->length_);
-  writer->Write<RawObject*>(ptr()->length_);
-  writer->WriteBytes(reinterpret_cast<uint8_t*>(ptr()->data_), len);
+  RawExternalUint8Array* stream = ptr()->stream_;
+  intptr_t len = Smi::Value(stream->ptr()->length_);
+  writer->Write<RawObject*>(stream->ptr()->length_);
+  writer->WriteBytes(stream->ptr()->external_data_->data(), len);
 
   // Write out the literal/identifier token array.
   writer->WriteObjectImpl(ptr()->token_objects_);

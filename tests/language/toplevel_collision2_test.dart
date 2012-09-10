@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-get x() => 200;
+get x => 200;
 
 // Ok: can have a setter named x when getter x is defined.
 set x(var i) { print(i); }

@@ -13,12 +13,18 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+url_test: Fail   # createObjectURL not implemented.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
+websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
+indexeddb_3_test: Fail
+indexeddb_4_test: Fail
 
 [ $compiler == dart2js && $runtime == drt && $system == windows]
 audiocontext_test: Fail # Issue 4517
@@ -54,7 +60,6 @@ typed_arrays_5_test: Skip
 typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
 typed_arrays_range_checks_test: Fail
-cssstyledeclaration_test: Fail
 element_test: Fail
 localstorage_test: Fail
 node_test: Fail
@@ -84,10 +89,6 @@ js_interop_1_test: Fail
 js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
-js_interop_func_passing_test: Fail
-js_interop_obj_passing_test: Fail
-js_interop_obj_invoke_test: Fail
-js_interop_element_test: Fail
 measurement_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
@@ -96,6 +97,7 @@ shadow_dom_layout_test: Fail
 shadow_dom_test: Fail
 storage_test: Fail
 svg_3_test: Fail
+url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test: Fail
 window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
@@ -107,7 +109,6 @@ js_interop_1_test: Pass, Fail # BUG(4631)
 
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
-cssstyledeclaration_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
@@ -115,7 +116,6 @@ svgelement2_test: Fail
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
-cssstyledeclaration_test: Fail
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
@@ -132,10 +132,6 @@ indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 inner_frame_test: Skip
 js_interop_3_test: Fail
 js_interop_4_test: Fail
-js_interop_func_passing_test: Fail
-js_interop_obj_passing_test: Fail
-js_interop_obj_invoke_test: Fail
-js_interop_element_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
@@ -191,9 +187,6 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
-[ $compiler == dart2js && $runtime == chrome ]
-cssstyledeclaration_test: Fail # Issue 4777
-
 [ $compiler == dart2js && $runtime == ff ]
 cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
 xhr_test: Skip # Timeout
@@ -208,6 +201,6 @@ css_test: Pass, Fail # Issue #2823
 js_interop_2_test: Fail # Issue 4658.
 
 [ $compiler == dart2js && $checked && $browser]
-typed_arrays_range_checks_test: Fail # Issue 3720
-events_test: Fail # Issue 3720
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'
+cross_frame_test: Fail # Caught NoSuchMethodException : method not found: 'is$_WindowImpl'
+window_open_test: Fail # Caught NoSuchMethodException : method not found: 'is$_WindowImpl'

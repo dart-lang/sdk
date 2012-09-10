@@ -11,8 +11,8 @@ class Class {
   Class() => null;
   Class.namedConstructor() => null;
   method(param) => null;
-  get getterOnly() => null;
-  get getterAndSetter() => null;
+  get getterOnly => null;
+  get getterAndSetter => null;
   set getterAndSetter(val) => null;
   set setterOnly(val) => null;
 }

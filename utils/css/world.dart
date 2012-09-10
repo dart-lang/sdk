@@ -151,7 +151,7 @@ class World {
     }
   }
 
-  bool get hasErrors() => errors > 0;
+  bool get hasErrors => errors > 0;
 
   withTiming(String name, f()) {
     final sw = new Stopwatch();

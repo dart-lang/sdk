@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 interface OptimizationPhase {
-  String get name();
+  String get name;
   void visitGraph(HGraph graph);
 }
 
@@ -37,7 +37,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler, types),
-          new SsaCheckInserter(backend, types),
+          new SsaCheckInserter(backend, types, context.boundsChecked),
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
@@ -76,7 +76,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
-          new SsaCheckInserter(backend, types)];
+          new SsaCheckInserter(backend, types, context.boundsChecked)];
       runPhases(graph, phases);
       return !work.guards.isEmpty();
     });
@@ -96,9 +96,9 @@ class SsaOptimizerTask extends CompilerTask {
       // accesses) and need to be checked.
       // Also run the type propagator, to please the codegen in case
       // no other optimization is run.
-      runPhases(graph,
-        <OptimizationPhase>[new SsaCheckInserter(backend, types),
-                            new SsaTypePropagator(compiler, types)]);
+      runPhases(graph, <OptimizationPhase>[
+          new SsaCheckInserter(backend, types, context.boundsChecked),
+          new SsaTypePropagator(compiler, types)]);
     });
   }
 }
@@ -512,7 +512,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         || element === compiler.dynamicClass) {
       return graph.addConstantBool(true, constantSystem);
     } else if (expressionType.isInteger()) {
-      if (element === compiler.intClass || element === compiler.numClass) {
+      if (element === compiler.intClass
+          || element === compiler.numClass
+          || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else if (element === compiler.doubleClass) {
         // We let the JS semantics decide for that check. Currently
@@ -522,7 +524,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false, constantSystem);
       }
     } else if (expressionType.isDouble()) {
-      if (element === compiler.doubleClass || element === compiler.numClass) {
+      if (element === compiler.doubleClass
+          || element === compiler.numClass
+          || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else if (element === compiler.intClass) {
         // We let the JS semantics decide for that check. Currently
@@ -540,7 +544,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       // type int or double.
     } else if (expressionType.isString()) {
       if (element === compiler.stringClass
-               || Elements.isStringSupertype(element, compiler)) {
+               || Elements.isStringOnlySupertype(element, compiler)
+               || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else {
         return graph.addConstantBool(false, constantSystem);
@@ -655,16 +660,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final HTypeMap types;
+  final ConstantSystem constantSystem;
+  final Set<HInstruction> boundsChecked;
   final String name = "SsaCheckInserter";
+  HGraph graph;
   Element lengthInterceptor;
 
-  SsaCheckInserter(JavaScriptBackend backend, this.types) {
+  SsaCheckInserter(JavaScriptBackend backend, this.types, this.boundsChecked)
+      : constantSystem = backend.constantSystem {
     SourceString lengthString = const SourceString('length');
     lengthInterceptor =
         backend.builder.interceptors.getStaticGetInterceptor(lengthString);
   }
 
   void visitGraph(HGraph graph) {
+    this.graph = graph;
     visitDominatorTree(graph);
   }
 
@@ -692,6 +702,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
     HBoundsCheck check = new HBoundsCheck(index, length);
     node.block.addBefore(node, check);
+    boundsChecked.add(node);
     return check;
   }
 
@@ -707,8 +718,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitIndex(HIndex node) {
     if (!node.receiver.isIndexablePrimitive(types)) return;
+    if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (index is HBoundsCheck) return;
     if (!node.index.isInteger(types)) {
       index = insertIntegerCheck(node, index);
     }
@@ -718,13 +729,20 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitIndexAssign(HIndexAssign node) {
     if (!node.receiver.isMutableArray(types)) return;
+    if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (index is HBoundsCheck) return;
     if (!node.index.isInteger(types)) {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
+  }
+
+  void visitInvokeInterceptor(HInvokeInterceptor node) {
+    if (!node.isPopCall(types)) return;
+    if (boundsChecked.contains(node)) return;
+    HInstruction receiver = node.inputs[1];
+    insertBoundsCheck(node, receiver, graph.addConstantInt(0, constantSystem));
   }
 }
 

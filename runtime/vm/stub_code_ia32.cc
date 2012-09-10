@@ -9,6 +9,7 @@
 #include "vm/assembler_macros.h"
 #include "vm/compiler.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/pages.h"
 #include "vm/resolver.h"
@@ -481,6 +482,8 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
 DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
+
+// Used by eager and lazy deoptimization. Preserve result in EAX if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
 // frame contains all values on stack.
@@ -493,17 +496,22 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // GC can occur only after frame is fully rewritten.
 // Stack:
 //   +------------------+
-//   | 0 as PC marker   | <- TOS
-//   +------------------+
-//   | Saved FP         |
+//   | Saved FP         | <- TOS
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
 //   | optimized frame  |
 //   |  ...             |
 //
-void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
+// Parts of the code cannot GC, part of the code can GC.
+static void GenerateDeoptimizationSequence(Assembler* assembler,
+                                           bool preserve_eax) {
   __ EnterFrame(0);
+  // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
+  // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
+  const intptr_t saved_eax_offset_from_ebp = -(kNumberOfCpuRegisters - EAX);
+  // Result in EAX is preserved as part of pushing all registers below.
+
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
@@ -523,6 +531,12 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), ECX);  // Start of register block.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (EAX) is stack-size (FP - SP) in bytes, incl. the return address.
+
+  if (preserve_eax) {
+    // Restore result into EBX temporarily.
+    __ movl(EBX, Address(EBP, saved_eax_offset_from_ebp * kWordSize));
+  }
+
   __ LeaveFrame();
   __ popl(EDX);  // Preserve return address.
   __ movl(ESP, EBP);
@@ -531,18 +545,49 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
   __ EnterFrame(0);
   __ movl(ECX, ESP);  // Get last FP address.
+  if (preserve_eax) {
+    __ pushl(EBX);  // Preserve result.
+  }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), ECX);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
+
+  if (preserve_eax) {
+    // Restore result into EAX.
+    __ movl(EAX, Address(EBP, -1 * kWordSize));
+  }
+  // Code above cannot cause GC.
   __ LeaveFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterFrame(0);
+  if (preserve_eax) {
+    __ pushl(EAX);  // Preserve result, it will be GC-d here.
+  }
   __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  if (preserve_eax) {
+    __ popl(EAX);  // Restore result.
+  }
   __ LeaveFrame();
   __ ret();
+}
+
+// TOS: return address + call-instruction-size (5 bytes).
+// EAX: result, must be preserved
+void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ popl(EBX);
+  __ subl(EBX, Immediate(CallPattern::InstructionLength()));
+  __ pushl(EBX);
+  GenerateDeoptimizationSequence(assembler, true);  // Preserve EAX.
+}
+
+
+void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
+  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve EAX.
 }
 
 

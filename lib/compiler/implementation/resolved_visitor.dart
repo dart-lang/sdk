@@ -18,10 +18,14 @@ class ResolvedVisitor<R> extends AbstractVisitor<R> {
       return visitClosureSend(node);
     } else {
       Element element = elements[node];
-      if (Element.isInvalid(element)) {
-        // Example: f() with 'f' unbound.
-        // This can only happen inside an instance method.
-        return visitDynamicSend(node);
+      if (Elements.isUnresolved(element)) {
+        if (element == null) {
+          // Example: f() with 'f' unbound.
+          // This can only happen inside an instance method.
+          return visitDynamicSend(node);
+        } else {
+          return visitStaticSend(node);
+        }
       } else if (element.kind == ElementKind.CLASS) {
         internalError("Cannot generate code for send", node: node);
       } else if (element.isInstanceMember()) {

@@ -381,6 +381,22 @@ void Isolate::PrintInvokedFunctions() {
 }
 
 
+class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
+ public:
+  FinalizeWeakPersistentHandlesVisitor() {
+  }
+
+  void VisitHandle(uword addr) {
+    FinalizablePersistentHandle* handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+    FinalizablePersistentHandle::Finalize(handle);
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
+};
+
+
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   ASSERT(top_resource() == NULL);
@@ -401,6 +417,10 @@ void Isolate::Shutdown() {
   // Fail fast if anybody tries to post any more messsages to this isolate.
   delete message_handler();
   set_message_handler(NULL);
+
+  // Finalize any weak persistent handles with a non-null referent.
+  FinalizeWeakPersistentHandlesVisitor visitor;
+  api_state()->weak_persistent_handles().VisitHandles(&visitor);
 
   // Dump all accumalated timer data for the isolate.
   timer_list_.ReportTimers();

@@ -21,7 +21,7 @@ class Element implements Node {
     : children = null,
       attributes = <String, String>{};
 
-  Element.tag(this.tag)
+  Element.withTag(this.tag)
     : children = [],
       attributes = <String, String>{};
 
@@ -29,7 +29,7 @@ class Element implements Node {
     : children = [new Text(text)],
       attributes = <String, String>{};
 
-  bool get isEmpty() => children == null;
+  bool get isEmpty => children == null;
 
   void accept(NodeVisitor visitor) {
     if (visitor.visitElementBefore(this)) {

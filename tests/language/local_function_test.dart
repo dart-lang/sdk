@@ -55,7 +55,7 @@ class LocalFunctionTest {
   }
   int field1;
   int field2_;
-  int get field2() { return field2_; }
+  int get field2 { return field2_; }
   void set field2(int value) { field2_ = value; }
 
   int method(int n) {

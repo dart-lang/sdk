@@ -428,7 +428,17 @@ public class DartCompiler {
         for (LibraryNode libNode : lib.getImportPaths()) {
           LibrarySource dep = getImportSource(libSrc, libNode);
           if (dep != null) {
-            lib.addImport(updateLibraries(dep), libNode);
+            LibraryUnit importedLib = updateLibraries(dep);
+            lib.addImport(importedLib, libNode);
+            if (libNode.isExported()) {
+              lib.addExport(importedLib, libNode);
+            }
+          }
+        }
+        for (LibraryNode libNode : lib.getExportPaths()) {
+          LibrarySource dep = getImportSource(libSrc, libNode);
+          if (dep != null) {
+            lib.addExport(updateLibraries(dep), libNode);
           }
         }
         return lib;
@@ -849,9 +859,9 @@ public class DartCompiler {
           Closeables.close(r, failed);
         }
         
-        // auto-magically define "assert" function
+        // auto-magically define function to use instead of "assert" statement
         if (dartSrc.getUri().toString().equals("dart://core/object.dart")) {
-          srcCode += "\nvoid assert(x) {}";
+          srcCode += "\nvoid " + Elements.ASSERT_FUNCTION_NAME + "(x) {}";
         }
 
         // inject "Type" type from 1.0 M1 specification

@@ -5,8 +5,8 @@
 class _WeakProperty {
   factory _WeakProperty(key, value) => _new(key, value);
 
-  get key() => _getKey();
-  get value() => _getValue();
+  get key => _getKey();
+  get value => _getValue();
   set value(value) => _setValue(value);
 
   static _WeakProperty _new(key, value) native "WeakProperty_new";

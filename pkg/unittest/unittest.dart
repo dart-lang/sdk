@@ -169,7 +169,7 @@ Configuration configure(Configuration config) {
   return _oldConfig;
 }
 
-void logMessage(String message) => _config.log(message);
+void logMessage(String message) => _config.logMessage(message);
 
 /**
  * Description text of the current test group. If multiple groups are nested,
@@ -580,7 +580,8 @@ void group(String description, void body()) {
     _testTeardown = null;
     body();
   } catch (e, trace) {
-    _reportTestError(e.toString(), trace == null ? '' : trace.toString());
+    var stack = (trace == null) ? '' : ': ${trace.toString()}';
+    _uncaughtErrorMessage = "${e.toString()}$stack";
   } finally {
     // Now that the group is over, restore the previous one.
     _currentGroup = parentGroup;

@@ -461,5 +461,5 @@ class NoElementMatchException implements Exception {
   String _tagName;
   NoElementMatchException(this._tagName);
 
-  String get name() => _tagName;
+  String get name => _tagName;
 }

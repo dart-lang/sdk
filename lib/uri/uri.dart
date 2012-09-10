@@ -177,7 +177,7 @@ class Uri {
    * For all other schemes throws IllegalArgumentException.
    * [origin]: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
    */
-  String get origin() {
+  String get origin {
     if (scheme == "") {
       // TODO(aprelev@gmail.com): Use StateException instead
       throw new IllegalArgumentException("Cannot use origin without a scheme");

@@ -6,14 +6,14 @@
 // in the class.
 
 class C {
-  get a() {
+  get a {
     return 1;
   }
   set a(int val) {
     var x = val;
   }
 
-  get b() {
+  get b {
     return 2;
   }
   set b(int val) {

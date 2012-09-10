@@ -97,6 +97,28 @@ class JumpPattern : public CallOrJumpPattern {
 };
 
 
+// 5 byte call instruction.
+class ShortCallPattern : public InstructionPattern {
+ public:
+  explicit ShortCallPattern(uword pc) : InstructionPattern(pc) {}
+  static int InstructionLength() {
+    return kLengthInBytes;
+  }
+
+  virtual int pattern_length_in_bytes() const {
+    return kLengthInBytes;
+  }
+
+  void SetTargetAddress(uword new_target) const;
+
+ private:
+  static const int kLengthInBytes = 5;
+  virtual const int* pattern() const;
+
+  DISALLOW_COPY_AND_ASSIGN(ShortCallPattern);
+};
+
+
 }  // namespace dart
 
 #endif  // VM_INSTRUCTIONS_X64_H_

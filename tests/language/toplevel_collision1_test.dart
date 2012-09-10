@@ -4,7 +4,7 @@
 
 int x = 100;
 
-get x() => 200;                 /// 00: compile-time error
+get x => 200;                 /// 00: compile-time error
 set x(var i) { print(i); }      /// 01: compile-time error
 
 int x(a, b) { print(a + b); }   /// 02: compile-time error

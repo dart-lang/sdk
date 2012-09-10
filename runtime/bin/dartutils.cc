@@ -23,7 +23,6 @@ const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kUtfLibURL = "dart:utf";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
-const char* DartUtils::kWebLibURL = "dart:web";
 
 
 const char* DartUtils::kIdFieldName = "_id";
@@ -166,11 +165,6 @@ bool DartUtils::IsDartUtfLibURL(const char* url_name) {
 }
 
 
-bool DartUtils::IsDartWebLibURL(const char* url_name) {
-  return (strcmp(url_name, kWebLibURL) == 0);
-}
-
-
 Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
                                        Dart_Handle library,
                                        const char* url_str) {
@@ -306,8 +300,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       id = Builtin::kUriLibrary;
     } else if (DartUtils::IsDartUtfLibURL(url_string)) {
       id = Builtin::kUtfLibrary;
-    } else if (DartUtils::IsDartWebLibURL(url_string)) {
-      id = Builtin::kWebLibrary;
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
@@ -412,9 +404,19 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   Dart_Handle result = Dart_SetField(print_impl,
                                      Dart_NewString("_printClosure"), print);
 
-  // Setup the IO library.
+  // Setup the 'timer' factory.
+  Dart_Handle url = Dart_NewString(kIsolateLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(isolate_lib);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  Builtin::SetupIOLibrary(io_lib);
+  Dart_Handle timer_closure =
+      Dart_Invoke(io_lib, Dart_NewString("_getTimerFactoryClosure"), 0, NULL);
+  Dart_Handle args[1];
+  args[0] = timer_closure;
+  DART_CHECK_VALID(Dart_Invoke(isolate_lib,
+                               Dart_NewString("_setTimerFactoryClosure"),
+                               1, args));
 
   // Set up package root if specified.
   if (package_root != NULL) {

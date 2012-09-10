@@ -116,7 +116,7 @@ _getPortInternal() native "isolate_getPortInternal";
 
 ReceivePort _portInternal;
 
-patch ReceivePort get port() {
+patch ReceivePort get port {
   if (_portInternal === null) {
     _portInternal = _getPortInternal();
   }

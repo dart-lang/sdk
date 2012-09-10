@@ -40,6 +40,7 @@ import com.google.dart.compiler.ast.DartDefault;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartEmptyStatement;
+import com.google.dart.compiler.ast.DartExportDirective;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -184,6 +185,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
     private final boolean typeChecksForInferredTypes;
+    private final boolean reportNoMemberWhenHasInterceptor;
     private final Map<DartBlock, VariableElementsRestorer> restoreOnBlockExit = Maps.newHashMap();
     /**
      * When we see variable assignment, we remember here old {@link Type} (if not done already) and
@@ -254,6 +256,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
       this.typeChecksForInferredTypes = compilerOptions.typeChecksForInferredTypes();
+      this.reportNoMemberWhenHasInterceptor = compilerOptions.reportNoMemberWhenHasInterceptor();
     }
 
     @VisibleForTesting
@@ -629,11 +632,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null && problemTarget != null) {
-        if (typeChecksForInferredTypes || !receiver.isInferred()) {
-          ErrorCode code = receiver.isInferred()
-              ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
-              : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
-          typeError(problemTarget, code, receiver, methodName);
+        if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
+          if (typeChecksForInferredTypes || !receiver.isInferred()) {
+            ErrorCode code = receiver.isInferred()
+                ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
+                : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
+            typeError(problemTarget, code, receiver, methodName);
+          }
         }
         return null;
       }
@@ -788,6 +793,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
      *         the exit from the enclosing function.
      */
     private static boolean isExitFromFunction(DartStatement statement) {
+      return isExitFromFunction(statement, false);
+    }
+
+    /**
+     * @return <code>true</code> if we can prove that given {@link DartStatement} always leads to
+     *         the exit from the enclosing function, or stops execution of the enclosing loop.
+     */
+    private static boolean isExitFromFunctionOrLoop(DartStatement statement) {
+      return isExitFromFunction(statement, true);
+    }
+
+    /**
+     * @return <code>true</code> if we can prove that given {@link DartStatement} always leads to
+     *         the exit from the enclosing function, or stops enclosing loop execution.
+     */
+    private static boolean isExitFromFunction(DartStatement statement, boolean orLoop) {
       // "return" is always exit
       if (statement instanceof DartReturnStatement) {
         return true;
@@ -809,7 +830,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
         DartBlock block = (DartBlock) statement;
         List<DartStatement> statements = block.getStatements();
         if (!statements.isEmpty()) {
-          return isExitFromFunction(statements.get(statements.size() - 1));
+          return isExitFromFunction(statements.get(statements.size() - 1), orLoop);
+        }
+      }
+      // check also if we stop execution of the loop body
+      if (orLoop) {
+        if (statement instanceof DartContinueStatement) {
+          return true;
+        }
+        if (statement instanceof DartBreakStatement) {
+          return true;
         }
       }
       // can not prove that given statement is always exit
@@ -1632,23 +1662,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     @Override
-    public Type visitExprStmt(DartExprStmt node) {
-      // special support for incomplete "assert"
-      if (node.getExpression() instanceof DartIdentifier) {
-        DartIdentifier identifier = (DartIdentifier) node.getExpression();
-        NodeElement element = identifier.getElement();
-        if (Objects.equal(identifier.getName(), "assert")
-            && Elements.isArtificialAssertMethod(element)) {
-          onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
-          return voidType;
-        }
-      }
-      // normal
-      typeOf(node.getExpression());
-      return voidType;
-    }
-
-    @Override
     public Type visitFieldDefinition(DartFieldDefinition node) {
       node.visitChildren(this);
       return voidType;
@@ -1861,9 +1874,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
           variableRestorer.restore();
           blockOldTypes.removeFirst();
         }
-        // if no "else", then inferred types applied to the end of the method
-        if (elseStatement == null && isExitFromFunction(thenStatement)) {
-          inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+        // if no "else", then inferred types applied to the end of the method/loop
+        if (elseStatement == null) {
+          if (isExitFromFunction(thenStatement)) {
+            inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+          } else if (isExitFromFunctionOrLoop(thenStatement)) {
+            DartBlock restoreBlock = getBlockForLoopTypesInference(node);
+            variableRestorer = restoreOnBlockExit.get(restoreBlock);
+            if (variableRestorer == null) {
+              variableRestorer = new VariableElementsRestorer();
+              restoreOnBlockExit.put(restoreBlock, variableRestorer);
+            }
+            restoreOnBlockExit.put(restoreBlock, variableRestorer);
+            inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+          }
         }
       }
       Map<VariableElement, Type> elseVariableTypes = elseTypeContext.getNewTypesAndRestoreOld();
@@ -2243,10 +2267,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        if (typeChecksForInferredTypes || !receiver.isInferred()) {
-          TypeErrorCode errorCode = receiver.isInferred() ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED
-              : TypeErrorCode.NOT_A_MEMBER_OF;
-          typeError(node.getName(), errorCode, name, cls);
+        if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
+          if (typeChecksForInferredTypes || !receiver.isInferred()) {
+            TypeErrorCode errorCode = receiver.isInferred()
+                ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED : TypeErrorCode.NOT_A_MEMBER_OF;
+            typeError(node.getName(), errorCode, name, cls);
+          }
         }
         return dynamicType;
       }
@@ -2551,10 +2577,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
             restoreOnBlockExit.put(restoreBlock, variableRestorer);
             inferVariableTypesFromIsConditions(condition, variableRestorer);
           }
-        } else {
-          onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
+          // done for "assert"
+          return voidType;
         }
-        return voidType;
       }
       // normal invocation
       Type type;
@@ -2594,6 +2619,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartNode p = block.getParent();
           if (p instanceof DartIfStatement || p instanceof DartForStatement
               || p instanceof DartForInStatement || p instanceof DartWhileStatement) {
+            return block;
+          }
+        }
+        node = node.getParent();
+      }
+      return null;
+    }
+
+    private static DartBlock getBlockForLoopTypesInference(DartNode node) {
+      while (node != null) {
+        if (node instanceof DartBlock) {
+          DartBlock block = (DartBlock) node;
+          DartNode p = block.getParent();
+          if (p instanceof DartForStatement || p instanceof DartForInStatement
+              || p instanceof DartWhileStatement) {
             return block;
           }
         }
@@ -2956,7 +2996,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitImportDirective(DartImportDirective node) {
-      //return typeAsVoid(node);
+      return voidType;
+    }
+    
+    @Override
+    public Type visitExportDirective(DartExportDirective node) {
       return voidType;
     }
 

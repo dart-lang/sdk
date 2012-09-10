@@ -128,7 +128,7 @@ interface Date extends Comparable, Hashable default DateImplementation {
    *
    * Examples: [:"CET":] or [:"CEST":].
    */
-  String get timeZoneName();
+  String get timeZoneName;
 
   /**
    * The time-zone offset is the difference between local time and UTC. That is,
@@ -138,48 +138,48 @@ interface Date extends Comparable, Hashable default DateImplementation {
    * local time. Java, C# and Ruby return the difference between local time and
    * UTC.
    */
-  Duration get timeZoneOffset();
+  Duration get timeZoneOffset;
 
   /**
    * Returns the year.
    */
-  int get year();
+  int get year;
 
   /**
    * Returns the month into the year [1..12].
    */
-  int get month();
+  int get month;
 
   /**
    * Returns the day into the month [1..31].
    */
-  int get day();
+  int get day;
 
   /**
    * Returns the hour into the day [0..23].
    */
-  int get hour();
+  int get hour;
 
   /**
    * Returns the minute into the hour [0...59].
    */
-  int get minute();
+  int get minute;
 
   /**
    * Returns the second into the minute [0...59].
    */
-  int get second();
+  int get second;
 
   /**
    * Returns the millisecond into the second [0...999].
    */
-  int get millisecond();
+  int get millisecond;
 
   /**
    * Returns the week day [MON..SUN]. In accordance with ISO 8601
    * a week starts with Monday which has the value 1.
    */
-  int get weekday();
+  int get weekday;
 
   /**
    * The milliseconds since 1970-01-01T00:00:00Z (UTC). This value is
@@ -187,12 +187,12 @@ interface Date extends Comparable, Hashable default DateImplementation {
    *
    * See [Stopwatch] for means to measure time-spans.
    */
-  int get millisecondsSinceEpoch();
+  int get millisecondsSinceEpoch;
 
   /**
    * True if this [Date] is set to UTC time.
    */
-  bool get isUtc();
+  bool get isUtc;
 
   /**
    * Returns a human readable string for this instance.

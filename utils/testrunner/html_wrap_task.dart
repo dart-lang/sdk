@@ -18,9 +18,10 @@ class HtmlWrapTask extends PipelineTask {
 
   void execute(Path testfile, List stdout, List stderr, bool logging,
               Function exitHandler) {
+    var testname = expandMacros(_testFileTemplate, testfile);
+
     // If the test already has a corresponding HTML file we copy that,
     // else we create a new wrapper.
-    var testname = expandMacros(_testFileTemplate, testfile);
     var htmlSourceName = expandMacros(_htmlSourceFileTemplate, testfile);
     var htmlDestName = expandMacros(_htmlDestFileTemplate, testfile);
     var cssSourceName = expandMacros(_cssSourceFileTemplate, testfile);
@@ -38,6 +39,7 @@ class HtmlWrapTask extends PipelineTask {
       }
       var p = new Path(testname);
       var runtime = config.runtime;
+      var isLayout = isLayoutRenderTest(testname) || config.generateRenders;
       StringBuffer sbuf = new StringBuffer();
       sbuf.add("""
 <!DOCTYPE html>
@@ -48,17 +50,20 @@ class HtmlWrapTask extends PipelineTask {
   <title>$testname</title>
   <link rel="stylesheet" href="${p.filenameWithoutExtension}.css">
   <script type='text/javascript'>
-function handleMessage(m) {
-  if (m.data == 'done') {
-    window.testRunner.notifyDone();
+// We check the search part of the URL for making sure we only do 
+// this in the parent if in layout tests.
+if (window.testRunner && window.location.search == '') {
+  function handleMessage(m) {
+    if (m.data == 'done') {
+      window.testRunner.notifyDone();
+    }
   }
+  window.testRunner.waitUntilDone();
+  if (!$isLayout) {
+    window.testRunner.dumpAsText();
+  }
+  window.addEventListener("message", handleMessage, false);
 }
-
- if (window.testRunner) {
-   window.testRunner.waitUntilDone();
-   window.testRunner.dumpAsText();
-   window.addEventListener("message", handleMessage, false);
- }
 """);
       if (runtime == 'drt-dart') {
         sbuf.add("if (navigator.webkitStartDart) navigator.webkitStartDart();");
@@ -67,10 +72,15 @@ function handleMessage(m) {
   </script>
 </head>
 <body>
+""");
+      if (!isLayout) {
+        sbuf.add("""
   <h1>$testname</h1> 
   <div id="container"></div>
-  <pre id="console"></pre>
-  <script type='""");
+  <pre id='console'></pre>
+""");
+      }
+      sbuf.add("<script type='");
       var prefix = flattenPath(p.directoryPath.toString());
       if (runtime == 'drt-dart') {
         sbuf.add("application/dart' src='${prefix}_${p.filename}'>");

@@ -12,6 +12,12 @@ You will need a reasonably modern node.js installed.
 I needed to add my own "DumpRenderTree_resources/missingImage.gif",
 for some reason.
 
+For the reasons above, we're currently just using the checked-in
+database.json from Feb 2012, but it has some bogus entries.  In
+particular, the one for UnknownElement would inject irrelevant German
+text into our docs.  So a hack in apidoc.dart (_mdnTypeNamesToSkip)
+works around this.
+
 ***** Overview
 
 Here's a rough walkthrough of how this works. The ultimate output file is

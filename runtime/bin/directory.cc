@@ -298,24 +298,18 @@ CObjectArray* DirectoryListing::NewResponse(Response type, char* arg) {
 
 
 bool DirectoryListing::HandleDirectory(char* dir_name) {
-  // TODO(sgjesse): Pass flags to indicate whether directory
-  // responses are needed.
   CObjectArray* response = NewResponse(kListDirectory, dir_name);
   return Dart_PostCObject(response_port_, response->AsApiCObject());
 }
 
 
 bool DirectoryListing::HandleFile(char* file_name) {
-  // TODO(sgjesse): Pass flags to indicate whether file
-  // responses are needed.
   CObjectArray* response = NewResponse(kListFile, file_name);
   return Dart_PostCObject(response_port_, response->AsApiCObject());
 }
 
 
 bool DirectoryListing::HandleError(const char* dir_name) {
-  // TODO(sgjesse): Pass flags to indicate whether error
-  // responses are needed.
   CObject* err = CObject::NewOSError();
   CObjectArray* response = new CObjectArray(CObject::NewArray(3));
   response->SetAt(0, new CObjectInt32(CObject::NewInt32(kListError)));

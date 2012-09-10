@@ -17,24 +17,25 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { DartUtils::kUriLibURL,     NULL,            false },
   { DartUtils::kCryptoLibURL,  NULL,            false },
   { DartUtils::kIOLibURL,      NULL,            true  },
-  { DartUtils::kUtfLibURL,     NULL,            false },
-  { DartUtils::kWebLibURL,     web_source_,     false }
+  { DartUtils::kUtfLibURL,     NULL,            false }
 };
 
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
-  ASSERT(id == kWebLibrary);
-  return Dart_NewString(builtin_libraries_[id].source_);
+  return Dart_NewApiError("Unreachable code in Builtin::Source (%d).", id);
 }
 
 
-void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
+void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
   if (builtin_libraries_[id].has_natives_) {
+    Dart_Handle url = Dart_NewString(builtin_libraries_[id].url_);
+    Dart_Handle library = Dart_LookupLibrary(url);
+    ASSERT(!Dart_IsError(library));
     // Setup the native resolver for built in library functions.
     DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
   }
@@ -48,21 +49,13 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   Dart_Handle url = Dart_NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {
-    ASSERT(id >= kCryptoLibrary && id < kInvalidLibrary);
+    ASSERT(id > kUtfLibrary);
     library = Dart_LoadLibrary(url, Source(id));
-    if (!Dart_IsError(library)) {
-      SetupLibrary(library, id);
+    if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
+      // Setup the native resolver for built in library functions.
+      DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
     }
   }
   DART_CHECK_VALID(library);
   return library;
-}
-
-
-void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
-  Dart_Handle imported_library = LoadAndCheckLibrary(id);
-  // Import the library into current library.
-  DART_CHECK_VALID(Dart_LibraryImportLibrary(library,
-                                             imported_library,
-                                             Dart_Null()));
 }

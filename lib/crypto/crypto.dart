@@ -46,7 +46,7 @@ interface Hash {
   /**
    * Block size of the hash in bytes.
    */
-  int get blockSize();
+  int get blockSize;
 }
 
 /**

@@ -251,7 +251,9 @@ class DirectoryTest {
 
   static void testExistsCreateDeleteSync() {
     Directory d = new Directory("").createTempSync();
+    Directory d2 = new Directory('${d.path}/');
     Expect.isTrue(d.existsSync());
+    Expect.isTrue(d2.existsSync());
     Directory created = new Directory("${d.path}/subdir");
     created.createSync();
     Expect.isTrue(created.existsSync());

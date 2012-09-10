@@ -9,7 +9,7 @@
 #source("process_test_util.dart");
 
 class ProcessWorkingDirectoryTest {
-  static String get fullTestFilePath() {
+  static String get fullTestFilePath {
     // Extract full path, since we run processes from another directory.
     File path = new File(getProcessTestFileName());
     Expect.isTrue(path.existsSync());

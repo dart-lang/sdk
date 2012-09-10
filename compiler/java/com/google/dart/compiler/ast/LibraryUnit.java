@@ -32,11 +32,13 @@ public class LibraryUnit {
   private final LibrarySource libSource;
   private final LibraryNode selfSourcePath;
   private final List<LibraryNode> importPaths = Lists.newArrayList();
+  private final List<LibraryNode> exportPaths = Lists.newArrayList();
   private final List<LibraryNode> sourcePaths = Lists.newArrayList();
   private final List<LibraryNode> nativePaths = Lists.newArrayList();
 
   private final Map<String, DartUnit> units = new ConcurrentSkipListMap<String, DartUnit>();
   private final List<LibraryImport> imports = Lists.newArrayList();
+  private final List<LibraryExport> exports = Lists.newArrayList();
 
   private final LibraryElement element;
 
@@ -79,6 +81,11 @@ public class LibraryUnit {
     assert path != null;
     importPaths.add(path);
   }
+  
+  public void addExportPath(LibraryNode path) {
+    assert path != null;
+    exportPaths.add(path);
+  }
 
   public void addSourcePath(LibraryNode path) {
     assert path != null;
@@ -107,10 +114,17 @@ public class LibraryUnit {
   public void addImport(LibraryUnit unit, LibraryNode node) {
     if (unit != null) {
       if (node != null) {
-        imports.add(new LibraryImport(unit, node.getPrefix(), node.getCombinators(),
-            node.isExported()));
+        imports.add(new LibraryImport(unit, node.getPrefix(), node.getCombinators()));
       } else {
-        imports.add(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of(), false));
+        imports.add(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of()));
+      }
+    }
+  }
+  
+  public void addExport(LibraryUnit unit, LibraryNode node) {
+    if (unit != null) {
+      if (node != null) {
+        exports.add(new LibraryExport(unit, node.getCombinators()));
       }
     }
   }
@@ -136,6 +150,10 @@ public class LibraryUnit {
   public Iterable<LibraryImport> getImports() {
     return imports;
   }
+  
+  public List<LibraryExport> getExports() {
+    return exports;
+  }
 
   public Iterable<LibraryUnit> getImportedLibraries() {
     Set<LibraryUnit> libraries = Sets.newHashSet();
@@ -146,8 +164,7 @@ public class LibraryUnit {
   }
 
   public boolean hasImport(LibraryUnit unit) {
-    return imports.contains(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of(),
-        false));
+    return imports.contains(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of()));
   }
 
   public DartExpression getEntryPoint() {
@@ -174,6 +191,10 @@ public class LibraryUnit {
    */
   public Iterable<LibraryNode> getImportPaths() {
     return importPaths;
+  }
+  
+  public Iterable<LibraryNode> getExportPaths() {
+    return exportPaths;
   }
 
   /**

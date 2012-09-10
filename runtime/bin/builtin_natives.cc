@@ -124,6 +124,7 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
+
 void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
   Dart_EnterScope();
   int64_t status = 0;
@@ -131,19 +132,4 @@ void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Dart_ExitScope();
   exit(status);
-}
-
-
-void Builtin::SetupIOLibrary(Dart_Handle io_lib) {
-  Dart_Handle url = Dart_NewString(DartUtils::kIsolateLibURL);
-  DART_CHECK_VALID(url);
-  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(isolate_lib);
-  Dart_Handle timer_closure =
-      Dart_Invoke(io_lib, Dart_NewString("_getTimerFactoryClosure"), 0, NULL);
-  Dart_Handle args[1];
-  args[0] = timer_closure;
-  DART_CHECK_VALID(Dart_Invoke(isolate_lib,
-                               Dart_NewString("_setTimerFactoryClosure"),
-                               1, args));
 }

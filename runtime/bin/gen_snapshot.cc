@@ -197,9 +197,7 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
   // Load the builtin library to make it available in the snapshot
   // for importing.
   lib = Builtin::LoadAndCheckLibrary(id);
-  if (!Dart_IsError(lib)) {
-    Builtin::SetupLibrary(lib, id);
-  }
+  ASSERT(!Dart_IsError(lib));
   return lib;
 }
 
@@ -260,13 +258,13 @@ static void SetupForGenericSnapshotCreation() {
   Dart_Handle library =
       LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
   VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
-  VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
-  VerifyLoaded(library);
   library = LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
   VerifyLoaded(library);
   library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   VerifyLoaded(library);
   library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
   VerifyLoaded(library);

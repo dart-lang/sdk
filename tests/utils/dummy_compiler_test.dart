@@ -24,7 +24,7 @@ Future<String> provider(Uri uri) {
                   class Function{}
                   class List {}
                   class Closure {}
-                  class Dynamic {}
+                  class Dynamic_ {}
                   class Null {}
                   getRuntimeTypeInfo(o) {}
                   setRuntimeTypeInfo(o, i) {}

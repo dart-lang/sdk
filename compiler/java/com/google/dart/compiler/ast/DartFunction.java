@@ -12,11 +12,13 @@ import java.util.List;
 public class DartFunction extends DartNode {
 
   private final NodeList<DartParameter> parameters = NodeList.create(this);
+  private final int parametersCloseParen;
   private DartBlock body;
   private DartTypeNode returnTypeNode;
 
-  public DartFunction(List<DartParameter> parameters, DartBlock body, DartTypeNode returnTypeNode) {
+  public DartFunction(List<DartParameter> parameters, int parametersCloseParen, DartBlock body, DartTypeNode returnTypeNode) {
     this.parameters.addAll(parameters);
+    this.parametersCloseParen = parametersCloseParen;
     this.body = becomeParentOf(body);
     this.returnTypeNode = becomeParentOf(returnTypeNode);
   }
@@ -27,6 +29,10 @@ public class DartFunction extends DartNode {
 
   public List<DartParameter> getParameters() {
     return parameters;
+  }
+  
+  public int getParametersCloseParen() {
+    return parametersCloseParen;
   }
 
   public DartTypeNode getReturnTypeNode() {

@@ -39,6 +39,13 @@ public class LibraryNode extends AbstractNode {
     this.exported = importDirective.isExported();
   }
 
+  public LibraryNode(DartExportDirective exportDirective) {
+    this.text = exportDirective.getLibraryUri().getValue();
+    this.prefix = null;
+    this.combinators = exportDirective.getCombinators();
+    this.exported = false;
+  }
+
   public String getText() {
     return text;
   }

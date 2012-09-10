@@ -195,7 +195,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
     }
   }
 
-  int get length() {
+  int get length {
     return _count;
   }
 

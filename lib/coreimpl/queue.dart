@@ -52,7 +52,7 @@ class DoubleLinkedQueueEntry<E> {
     return _next._asNonSentinelEntry();
   }
 
-  E get element() {
+  E get element {
     return _element;
   }
 
@@ -86,7 +86,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
     assert(false);
   }
 
-  E get element() {
+  E get element {
     throw const EmptyQueueException();
   }
 }
@@ -152,7 +152,7 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return _sentinel.nextEntry();
   }
 
-  int get length() {
+  int get length {
     int counter = 0;
     forEach(void _(E element) { counter++; });
     return counter;

@@ -434,7 +434,7 @@ class CountTestConfig {
       }
 
   Function _reportHandler;
-  Function get reportHandler() => _reportHandler;
+  Function get reportHandler => _reportHandler;
   int _warmup;
   int _reps;
   int _blocksize;
@@ -451,7 +451,7 @@ class TimedTestConfig {
   }
 
   Function _reportHandler;
-  Function get reportHandler() => _reportHandler;
+  Function get reportHandler => _reportHandler;
   int _warmup;
   int _targetTimeMs;
   int _minSampleTimeMs;

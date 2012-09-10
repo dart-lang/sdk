@@ -23,7 +23,7 @@ interface Options default RuntimeOptions {
    * If the execution environment does not support [arguments] an empty list
    * is returned.
    */
-  List<String> get arguments();
+  List<String> get arguments;
 
   /**
    * Returns the path of the executable used to run the script in this
@@ -32,7 +32,7 @@ interface Options default RuntimeOptions {
    * If the execution environment does not support [executable] an empty
    * string is returned.
    */
-  String get executable();
+  String get executable;
 
   /**
    * Returns the path of the script being run in this isolate.
@@ -40,5 +40,5 @@ interface Options default RuntimeOptions {
    * If the executable environment does not support [script] an empty
    * string is returned.
    */
-  String get script();
+  String get script;
 }

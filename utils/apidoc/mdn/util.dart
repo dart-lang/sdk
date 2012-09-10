@@ -5,7 +5,7 @@
 
 Map<String, Map> _allProps;
 
-Map<String, Map> get allProps() {
+Map<String, Map> get allProps {
   if (_allProps == null) {
     // Database of expected property names for each type in WebKit.
     _allProps = JSON.parse(

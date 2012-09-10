@@ -436,17 +436,24 @@ public class DartParser extends CompletionHooksParserBase {
       DartLibraryDirective libraryDirective = parseLibraryDirective();
       libUnit.setName(libraryDirective.getLibraryName());
     }
-    while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
-      DartImportDirective importDirective = parseImportDirective();
-      LibraryNode importPath;
-      if (importDirective.getPrefix() != null) {
-          importPath =
-              new LibraryNode(importDirective);
-      } else {
-        importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
+    while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
+      if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
+        DartImportDirective importDirective = parseImportDirective();
+        LibraryNode importPath;
+        if (importDirective.getPrefix() != null) {
+          importPath = new LibraryNode(importDirective);
+        } else {
+          importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
+        }
+        importPath.setSourceInfo(importDirective.getSourceInfo());
+        libUnit.addImportPath(importPath);
       }
-      importPath.setSourceInfo(importDirective.getSourceInfo());
-      libUnit.addImportPath(importPath);
+      if (peekPseudoKeyword(0, EXPORT_KEYWORD)) {
+        DartExportDirective exportDirective = parseExportDirective();
+        LibraryNode importPath = new LibraryNode(exportDirective);
+        importPath.setSourceInfo(exportDirective.getSourceInfo());
+        libUnit.addExportPath(importPath);
+      }
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {
@@ -1510,6 +1517,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
     done(name);
     List<DartParameter> formals = parseFormalParameterList();
+    int parametersCloseParen = ctx.getTokenLocation().getBegin();
 
     // Parse redirecting factory
     if (match(Token.ASSIGN)) {
@@ -1524,7 +1532,8 @@ public class DartParser extends CompletionHooksParserBase {
         redirectedConstructorName = parseIdentifier();
       }
       expect(Token.SEMICOLON);
-      DartFunction function = doneWithoutConsuming(new DartFunction(formals, null, null));
+      DartFunction function = doneWithoutConsuming(new DartFunction(formals, parametersCloseParen,
+          null, null));
       return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
                                          redirectedConstructorName);
     }
@@ -1532,9 +1541,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartFunction function;
     if (peekPseudoKeyword(0, NATIVE_KEYWORD)) {
       modifiers = modifiers.makeNative();
-      function = new DartFunction(formals, parseNativeBlock(modifiers), null);
+      function = new DartFunction(formals, parametersCloseParen, parseNativeBlock(modifiers), null);
     } else {
-      function = new DartFunction(formals,
+      function = new DartFunction(formals, parametersCloseParen,
           parseFunctionStatementBody(!modifiers.isExternal(), true), null);
     }
     doneWithoutConsuming(function);
@@ -1670,6 +1679,7 @@ public class DartParser extends CompletionHooksParserBase {
       //reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
       parameters = parseFormalParameterList();
     }
+    int parametersCloseParen = ctx.getTokenLocation().getBegin();
 
     if (arity != -1) {
       if (parameters.size() != arity) {
@@ -1707,7 +1717,8 @@ public class DartParser extends CompletionHooksParserBase {
         redirectedConstructorName = parseIdentifier();
       }
       expect(Token.SEMICOLON);
-      DartFunction function = doneWithoutConsuming(new DartFunction(parameters, null, returnType));
+      DartFunction function = doneWithoutConsuming(new DartFunction(parameters,
+          parametersCloseParen, null, returnType));
       return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
                                          redirectedConstructorName);
     }
@@ -1736,7 +1747,8 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    DartFunction function = doneWithoutConsuming(new DartFunction(parameters, body, returnType));
+    DartFunction function = doneWithoutConsuming(new DartFunction(parameters, parametersCloseParen,
+        body, returnType));
     return DartMethodDefinition.create(name, function, modifiers, initializers);
   }
 
@@ -3431,8 +3443,9 @@ public class DartParser extends CompletionHooksParserBase {
         return null;
     }
     List<DartParameter> params = parseFormalParameterList();
+    int parametersCloseParen = ctx.getTokenLocation().getBegin();
     DartBlock body = parseFunctionStatementBody(true, isDeclaration);
-    DartFunction function = new DartFunction(params, body, returnType);
+    DartFunction function = new DartFunction(params, parametersCloseParen, body, returnType);
     doneWithoutConsuming(function);
     return function;
   }

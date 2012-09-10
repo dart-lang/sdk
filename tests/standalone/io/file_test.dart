@@ -10,7 +10,7 @@
 class MyListOfOneElement implements List {
   int _value;
   MyListOfOneElement(this._value);
-  int get length() => 1;
+  int get length => 1;
   operator [](int index) => _value;
 }
 

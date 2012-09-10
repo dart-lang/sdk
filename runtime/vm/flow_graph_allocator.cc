@@ -531,16 +531,16 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     // Assert that copied and non-copied parameters are mutually exclusive.
     // This might change in the future and, if so, the index will be wrong.
-    ASSERT(flow_graph_.copied_parameter_count() == 0 ||
-           flow_graph_.non_copied_parameter_count() == 0);
+    ASSERT((flow_graph_.num_copied_params() == 0) ||
+           (flow_graph_.num_non_copied_params() == 0));
     // Slot index for the leftmost copied parameter is 0.
     intptr_t slot_index = param->index();
     // Slot index for the rightmost fixed parameter is -1.
-    slot_index -= flow_graph_.non_copied_parameter_count();
+    slot_index -= flow_graph_.num_non_copied_params();
 
     range->set_assigned_location(Location::StackSlot(slot_index));
     range->set_spill_slot(Location::StackSlot(slot_index));
-    if (flow_graph_.copied_parameter_count() > 0) {
+    if (flow_graph_.num_copied_params() > 0) {
       ASSERT(spill_slots_.length() == slot_index);
       spill_slots_.Add(range->End());
     }
@@ -557,7 +557,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
       CompleteRange(tail, Location::kRegister);
     }
     ConvertAllUses(range);
-    if (flow_graph_.copied_parameter_count() > 0) {
+    if (flow_graph_.num_copied_params() > 0) {
       MarkAsObjectAtSafepoints(range);
     }
   }

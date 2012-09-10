@@ -17,6 +17,9 @@ public class SystemLibrary {
   private final String host;
   private final String pathToLib;
   private final File dirOrZip;
+  private String category;
+  private boolean documented;
+  private boolean implementation;
 
   /**
    * Define a new system library such that dart:[shortLibName] will automatically be expanded to
@@ -30,11 +33,27 @@ public class SystemLibrary {
    * "dart://html/dart_html.lib". The dirOrZip argument is either the root directory or a zip file
    * containing all files for this library.
    */
-  public SystemLibrary(String shortName, String host, String pathToLib, File dirOrZip) {
+  public SystemLibrary(String shortName, String host, String pathToLib, File dirOrZip, String category, 
+      boolean documented, boolean implementation) {
     this.shortName = shortName;
     this.host = host;
     this.pathToLib = pathToLib;
     this.dirOrZip = dirOrZip;
+    this.category = category;
+    this.documented = documented;
+    this.implementation = implementation;
+  }
+
+  public String getCategory() {
+    return category;
+  }
+ 
+  public boolean isDocumented() {
+    return documented;
+  }
+ 
+  public boolean isImplementation() {
+    return implementation;
   }
 
   public String getHost() {
@@ -47,6 +66,10 @@ public class SystemLibrary {
 
   public String getShortName() {
     return shortName;
+  }
+
+  public File getLibraryDir() {
+    return dirOrZip;
   }
 
   public URI translateUri(URI dartUri) {

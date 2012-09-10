@@ -50,7 +50,7 @@ class _JSRegExpMatch implements Match {
     return regexp._groupCount;
   }
 
-  String get pattern() => regexp.pattern;
+  String get pattern => regexp.pattern;
 
   final RegExp regexp;
   final String str;
@@ -108,13 +108,13 @@ patch class JSSyntaxRegExp {
     return str._substringUnchecked(match[0], match[1]);
   }
 
-  /* patch */ String get pattern() native "JSSyntaxRegExp_getPattern";
+  /* patch */ String get pattern native "JSSyntaxRegExp_getPattern";
 
-  /* patch */ bool get multiLine() native "JSSyntaxRegExp_multiLine";
+  /* patch */ bool get multiLine native "JSSyntaxRegExp_multiLine";
 
-  /* patch */ bool get ignoreCase() native "JSSyntaxRegExp_ignoreCase";
+  /* patch */ bool get ignoreCase native "JSSyntaxRegExp_ignoreCase";
 
-  int get _groupCount() native "JSSyntaxRegExp_getGroupCount";
+  int get _groupCount native "JSSyntaxRegExp_getGroupCount";
 
   List _ExecuteMatch(String str, int start_index)
       native "JSSyntaxRegExp_ExecuteMatch";

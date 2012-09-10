@@ -5,7 +5,7 @@
 /// Maintains the internal state needed to parse inline span elements in
 /// markdown.
 class InlineParser {
-  static List<InlineSyntax> get syntaxes() {
+  static List<InlineSyntax> get syntaxes {
     // Lazy initialize.
     if (_syntaxes == null) {
       _syntaxes = <InlineSyntax>[
@@ -121,9 +121,9 @@ class InlineParser {
 
   // TODO(rnystrom): Only need this because RegExp doesn't let you start
   // searching from a given offset.
-  String get currentSource() => source.substring(pos, source.length);
+  String get currentSource => source.substring(pos, source.length);
 
-  bool get isDone() => pos == source.length;
+  bool get isDone => pos == source.length;
 
   void advanceBy(int length) {
     pos += length;
@@ -227,7 +227,7 @@ class LinkSyntax extends TagSyntax {
   /// The regex for the end of a link needs to handle both reference style and
   /// inline styles as well as optional titles for inline links. To make that
   /// a bit more palatable, this breaks it into pieces.
-  static get linkPattern() {
+  static get linkPattern {
     final refLink    = @'\s?\[([^\]]*)\]';        // "[id]" reflink id.
     final title      = @'(?:[ ]*"([^"]+)"|)';     // Optional title in quotes.
     final inlineLink = '\\s?\\(([^ )]+)$title\\)'; // "(url "title")" link.

@@ -5,14 +5,13 @@
 class Printer implements NodeVisitor {
   final bool shouldCompressOutput;
   leg.Compiler compiler;
-  var positionElement;
   leg.CodeBuffer outBuffer;
   int indentLevel = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
 
-  Printer(leg.Compiler compiler, this.positionElement)
+  Printer(leg.Compiler compiler)
       : shouldCompressOutput = compiler.enableMinification,
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
@@ -54,7 +53,7 @@ class Printer implements NodeVisitor {
 
   void recordSourcePosition(var position) {
     if (position != null) {
-      outBuffer.setSourceLocation(positionElement, position);
+      outBuffer.setSourceLocation(position);
     }
   }
 
@@ -821,9 +820,8 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
 
 leg.CodeBuffer prettyPrint(Node node,
-                           leg.Compiler compiler,
-                           Dynamic positionElement) {
-  Printer printer = new Printer(compiler, positionElement);
+                           leg.Compiler compiler) {
+  Printer printer = new Printer(compiler);
   printer.visit(node);
   return printer.outBuffer;
 }

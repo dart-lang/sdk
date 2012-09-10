@@ -6,6 +6,7 @@
 
 #import('dart:json');
 
+#import('scanner/scannerlib.dart');
 #import('source_file.dart');
 
 class SourceMapBuilder {
@@ -16,7 +17,7 @@ class SourceMapBuilder {
   static const String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
                                       'opqrstuvwxyz0123456789+/';
 
-  List<_Entry> entries;
+  List<SourceMapEntry> entries;
 
   Map<String, int> sourceUrlMap;
   List<String> sourceUrlList;
@@ -32,7 +33,7 @@ class SourceMapBuilder {
   bool firstEntryInLine;
 
   SourceMapBuilder() {
-    entries = new List<_Entry>();
+    entries = new List<SourceMapEntry>();
 
     sourceUrlMap = new Map<String, int>();
     sourceUrlList = new List<String>();
@@ -48,9 +49,8 @@ class SourceMapBuilder {
     firstEntryInLine = true;
   }
 
-  void addMapping(SourceFile sourceFile, int sourceOffset, String sourceName,
-                  int targetOffset) {
-    entries.add(new _Entry(sourceFile, sourceOffset, sourceName, targetOffset));
+  void addMapping(int targetOffset, SourceFileLocation sourceLocation) {
+    entries.add(new SourceMapEntry(sourceLocation, targetOffset));
   }
 
   String build(SourceFile targetFile) {
@@ -58,7 +58,7 @@ class SourceMapBuilder {
     buffer.add('{\n');
     buffer.add('  "version": 3,\n');
     buffer.add('  "mappings": "');
-    entries.forEach((_Entry entry) => writeEntry(entry, targetFile, buffer));
+    entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile, buffer));
     buffer.add('",\n');
     buffer.add('  "sources": ');
     JSON.printOn(sourceUrlList, buffer);
@@ -69,21 +69,9 @@ class SourceMapBuilder {
     return buffer.toString();
   }
 
-  void writeEntry(_Entry entry, SourceFile targetFile, StringBuffer output) {
+  void writeEntry(SourceMapEntry entry, SourceFile targetFile, StringBuffer output) {
     int targetLine = targetFile.getLine(entry.targetOffset);
     int targetColumn = targetFile.getColumn(targetLine, entry.targetOffset);
-    String sourceUrl;
-    int sourceLine;
-    int sourceColumn;
-    SourceFile sourceFile = entry.sourceFile;
-    // TODO(podivilov): make sure entries are always associated with the right
-    // source file.
-    if (sourceFile != null && entry.sourceOffset < sourceFile.text.length) {
-      sourceUrl = sourceFile.filename;
-      sourceLine = sourceFile.getLine(entry.sourceOffset);
-      sourceColumn = sourceFile.getColumn(sourceLine, entry.sourceOffset);
-    }
-    String sourceName = entry.sourceName;
 
     if (targetLine > previousTargetLine) {
       for (int i = previousTargetLine; i < targetLine; ++i) {
@@ -102,9 +90,12 @@ class SourceMapBuilder {
     encodeVLQ(output, targetColumn - previousTargetColumn);
     previousTargetColumn = targetColumn;
 
-    if (sourceUrl === null) {
-      return;
-    }
+    if (entry.sourceLocation === null) return;
+
+    String sourceUrl = entry.sourceLocation.getSourceUrl();
+    int sourceLine = entry.sourceLocation.getLine();
+    int sourceColumn = entry.sourceLocation.getColumn();
+    String sourceName = entry.sourceLocation.getSourceName();
 
     int sourceUrlIndex = indexOf(sourceUrlList, sourceUrl, sourceUrlMap);
     encodeVLQ(output, sourceUrlIndex - previousSourceUrlIndex);
@@ -151,11 +142,33 @@ class SourceMapBuilder {
   }
 }
 
-class _Entry {
-  SourceFile sourceFile;
-  int sourceOffset;
-  String sourceName;
+class SourceMapEntry {
+  SourceFileLocation sourceLocation;
   int targetOffset;
-  _Entry(this.sourceFile, this.sourceOffset, this.sourceName,
-         this.targetOffset);
+
+  SourceMapEntry(this.sourceLocation, this.targetOffset);
+}
+
+class SourceFileLocation {
+  SourceFile sourceFile;
+  Token token;
+  int line;
+
+  SourceFileLocation(this.sourceFile, this.token) {
+    assert(token.charOffset < sourceFile.text.length);
+  }
+
+  String getSourceUrl() => sourceFile.filename;
+
+  int getLine() {
+    if (line == null) line = sourceFile.getLine(token.charOffset);
+    return line;
+  }
+
+  int getColumn() => sourceFile.getColumn(getLine(), token.charOffset);
+
+  String getSourceName() {
+    if (token.isIdentifier()) return token.slowToString();
+    return null;
+  }
 }

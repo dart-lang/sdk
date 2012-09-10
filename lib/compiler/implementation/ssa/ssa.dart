@@ -14,6 +14,7 @@
 #import('../native_handler.dart', prefix: 'native');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
+#import('../universe/universe.dart');
 #import('../util/util.dart');
 #import('../util/characters.dart');
 

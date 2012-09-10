@@ -111,41 +111,6 @@
 #endif
 
 
-// Printf format specifiers for intptr_t on Windows.
-#if defined(TARGET_OS_WINDOWS)
-#if defined(ARCH_IS_32_BIT)
-#define DART_PRINTF_PTR_PREFIX ""
-#else
-#define DART_PRINTF_PTR_PREFIX "ll"
-#endif
-
-#if !defined(PRIdPTR)
-#define PRIdPTR DART_PRINTF_PTR_PREFIX "d"
-#endif
-
-#if !defined(PRIuPTR)
-#define PRIuPTR DART_PRINTF_PTR_PREFIX "u"
-#endif
-
-#if !defined(PRIxPTR)
-#define PRIxPTR DART_PRINTF_PTR_PREFIX "x"
-#endif
-
-#if !defined(PRId64)
-#define PRId64 "I64d"
-#endif
-
-#if !defined(PRIu64)
-#define PRIu64 "I64u"
-#endif
-
-#if !defined(PRIx64)
-#define PRIx64 "I64x"
-#endif
-
-#endif  // defined(TARGET_OS_WINDOWS)
-
-
 // Short form printf format specifiers
 #define Pd PRIdPTR
 #define Pu PRIuPTR

@@ -47,14 +47,14 @@ class FlowGraphBuilder: public ValueObject {
 
   void AddCatchEntry(TargetEntryInstr* entry);
 
-  intptr_t copied_parameter_count() const {
-    return copied_parameter_count_;
+  intptr_t num_copied_params() const {
+    return num_copied_params_;
   }
-  intptr_t non_copied_parameter_count() const {
-    return non_copied_parameter_count_;
+  intptr_t num_non_copied_params() const {
+    return num_non_copied_params_;
   }
-  intptr_t stack_local_count() const {
-    return stack_local_count_;
+  intptr_t num_stack_locals() const {
+    return num_stack_locals_;
   }
 
   bool InInliningContext() const { return inlining_context_ != kNotInlining; }
@@ -67,17 +67,17 @@ class FlowGraphBuilder: public ValueObject {
 
  private:
   intptr_t parameter_count() const {
-    return copied_parameter_count_ + non_copied_parameter_count_;
+    return num_copied_params_ + num_non_copied_params_;
   }
   intptr_t variable_count() const {
-    return parameter_count() + stack_local_count_;
+    return parameter_count() + num_stack_locals_;
   }
 
   const ParsedFunction& parsed_function_;
 
-  const intptr_t copied_parameter_count_;
-  const intptr_t non_copied_parameter_count_;
-  const intptr_t stack_local_count_;  // Does not include any parameters.
+  const intptr_t num_copied_params_;
+  const intptr_t num_non_copied_params_;
+  const intptr_t num_stack_locals_;  // Does not include any parameters.
 
   intptr_t context_level_;
   intptr_t last_used_try_index_;
@@ -161,8 +161,16 @@ class EffectGraphVisitor : public AstNodeVisitor {
   }
 
  protected:
-  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
+  Definition* BuildStoreTemp(const LocalVariable& local, Value* value);
+  Definition* BuildStoreExprTemp(Value* value);
+  Definition* BuildLoadExprTemp();
+
+  Definition* BuildStoreLocal(const LocalVariable& local,
+                              Value* value,
+                              bool result_is_needed);
   Definition* BuildLoadLocal(const LocalVariable& local);
+
+  void HandleStoreLocal(StoreLocalNode* node, bool result_is_needed);
 
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
@@ -206,10 +214,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                               const AbstractType& dst_type,
                               const String& dst_name);
 
-  enum ResultKind {
-    kResultNotNeeded,
-    kResultNeeded
-  };
+  static const bool kResultNeeded = true;
+  static const bool kResultNotNeeded = false;
 
   Definition* BuildStoreIndexedValues(StoreIndexedNode* node,
                                       bool result_is_needed);
@@ -244,6 +250,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildThrowNode(ThrowNode* node);
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
+  Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
+                                    bool result_is_needed);
 
   ClosureCallInstr* BuildClosureCall(ClosureCallNode* node);
 
@@ -291,12 +299,14 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  virtual void VisitStoreLocalNode(StoreLocalNode* node);
   virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
   virtual void VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
   virtual void VisitStaticSetterNode(StaticSetterNode* node);
+  virtual void VisitStoreStaticFieldNode(StoreStaticFieldNode* node);
 
   Value* value() const { return value_; }
 

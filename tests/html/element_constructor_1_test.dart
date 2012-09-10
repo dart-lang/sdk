@@ -58,4 +58,9 @@ main() {
       var e = new SpanElement();
       Expect.isTrue(e is SpanElement);
     });
+
+  test('select', () {
+      var e = new SelectElement();
+      Expect.isTrue(e is SelectElement);
+    });
 }

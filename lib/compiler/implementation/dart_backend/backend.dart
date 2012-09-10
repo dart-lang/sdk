@@ -7,6 +7,12 @@ class ElementAst {
   final TreeElements treeElements;
 
   ElementAst(this.ast, this.treeElements);
+
+  factory ElementAst.clone(ast, treeElements) {
+    final cloner = new CloningVisitor(treeElements);
+    return new ElementAst(cloner.visit(ast), cloner.cloneTreeElements);
+  }
+
   ElementAst.forClassLike(this.ast)
       : this.treeElements = new TreeElementMapping();
 }
@@ -171,7 +177,7 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst(parse(element), treeElements);
+      var elementAst = new ElementAst.clone(parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
@@ -198,9 +204,9 @@ class DartBackend extends Backend {
 
     // Create all necessary placeholders.
     PlaceholderCollector collector =
-        new PlaceholderCollector(compiler, fixedMemberNames);
+        new PlaceholderCollector(compiler, fixedMemberNames, elementAsts);
     makePlaceholders(element) {
-      collector.collect(element, elementAsts[element].treeElements);
+      collector.collect(element);
       if (element is ClassElement) {
         classMembers[element].forEach(makePlaceholders);
       }

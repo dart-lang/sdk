@@ -72,7 +72,7 @@ class ImmutableMapWrapper<K,V> extends AbstractMap<K,V> {
 
   ImmutableMapWrapper(this._map);
 
-  int get length() => _map.length;
+  int get length => _map.length;
 
   V operator [](K key) {
     if (key is K) {
@@ -99,7 +99,7 @@ class FilteredImmutableMap<K,V> extends ImmutableMapWrapper<K,V> {
 
   FilteredImmutableMap(Map<K,V> map, this._filter) : super(map);
 
-  int get length() {
+  int get length {
     var count = 0;
     forEach((k,v) {
       count++;
@@ -135,7 +135,7 @@ class AsFilteredImmutableMap<K, Vin, Vout> extends AbstractMap<K, Vout> {
 
   AsFilteredImmutableMap(this._map, this._filter);
 
-  int get length() {
+  int get length {
     var count = 0;
     forEach((k,v) {
       count++;

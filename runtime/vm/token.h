@@ -125,6 +125,8 @@ namespace dart {
   TOK(kINTERPOL_START, "${", 0, kNoAttribute)                                  \
   TOK(kINTERPOL_END, "}", 0, kNoAttribute)                                     \
                                                                                \
+  TOK(kAT, "@", 0, kNoAttribute)                                               \
+                                                                               \
   TOK(kWHITESP, "", 0, kNoAttribute)                                           \
   TOK(kERROR, "", 0, kNoAttribute)                                             \
   TOK(kILLEGAL, "", 0, kNoAttribute)                                           \

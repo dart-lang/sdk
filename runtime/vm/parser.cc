@@ -22,6 +22,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, constructor_name_check, false,
+            "Named constructors may not clash with other members");
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -141,34 +143,38 @@ LocalVariable* ParsedFunction::GetSavedArgumentsDescriptorVar() const {
 
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
-  const int fixed_parameter_count = function().num_fixed_parameters();
-  const int optional_parameter_count = function().num_optional_parameters();
-  int parameter_count = fixed_parameter_count + optional_parameter_count;
+  const intptr_t num_fixed_params = function().num_fixed_parameters();
+  const intptr_t num_opt_pos_params =
+      function().num_optional_positional_parameters();
+  const intptr_t num_opt_named_params =
+      function().num_optional_named_parameters();
+  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
+  intptr_t num_params = num_fixed_params + num_opt_params;
   const bool is_native_instance_closure =
       function().is_native() && function().IsImplicitInstanceClosureFunction();
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  if ((optional_parameter_count == 0) && !is_native_instance_closure) {
-    // Parameter i will be at fp[1 + parameter_count - i] and local variable
+  if ((num_opt_params == 0) && !is_native_instance_closure) {
+    // Parameter i will be at fp[1 + num_params - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - j].
     ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
-    first_parameter_index_ = 1 + parameter_count;
+    first_parameter_index_ = 1 + num_params;
     first_stack_local_index_ = kFirstLocalSlotIndex;
-    copied_parameter_count_ = 0;
+    num_copied_params_ = 0;
   } else {
     // Parameter i will be at fp[kFirstLocalSlotIndex - i] and local variable
-    // j will be at fp[kFirstLocalSlotIndex - parameter_count - j].
+    // j will be at fp[kFirstLocalSlotIndex - num_params - j].
     // The saved argument descriptor variable must be allocated similarly to
     // a parameter, so that it gets both a frame slot and a context slot when
     // captured.
     if (GetSavedArgumentsDescriptorVar() != NULL) {
-      parameter_count += 1;
+      num_params += 1;
     }
     first_parameter_index_ = kFirstLocalSlotIndex;
-    first_stack_local_index_ = first_parameter_index_ - parameter_count;
-    copied_parameter_count_ = parameter_count;
+    first_stack_local_index_ = first_parameter_index_ - num_params;
+    num_copied_params_ = num_params;
     if (is_native_instance_closure) {
-      copied_parameter_count_ += 1;
+      num_copied_params_ += 1;
       first_parameter_index_ -= 1;
       first_stack_local_index_ -= 1;
     }
@@ -179,7 +185,7 @@ void ParsedFunction::AllocateVariables() {
   LocalScope* context_owner = NULL;  // No context needed yet.
   int next_free_frame_index =
       scope->AllocateVariables(first_parameter_index_,
-                               parameter_count,
+                               num_params,
                                first_stack_local_index_,
                                scope,
                                &context_owner);
@@ -201,7 +207,7 @@ void ParsedFunction::AllocateVariables() {
 
   // Frame indices are relative to the frame pointer and are decreasing.
   ASSERT(next_free_frame_index <= first_stack_local_index_);
-  stack_local_count_ = first_stack_local_index_ - next_free_frame_index;
+  num_stack_locals_ = first_stack_local_index_ - next_free_frame_index;
 }
 
 
@@ -425,7 +431,8 @@ struct ParamList {
   void Clear() {
     num_fixed_parameters = 0;
     num_optional_parameters = 0;
-    has_named_optional_parameters = false;
+    has_optional_positional_parameters = false;
+    has_optional_named_parameters = false;
     has_field_initializer = false;
     implicitly_final = false;
     this->parameters = new ZoneGrowableArray<ParamDesc>();
@@ -456,7 +463,8 @@ struct ParamList {
 
   int num_fixed_parameters;
   int num_optional_parameters;
-  bool has_named_optional_parameters;  // Indicates use of the new syntax.
+  bool has_optional_positional_parameters;
+  bool has_optional_named_parameters;
   bool has_field_initializer;
   bool implicitly_final;
   ZoneGrowableArray<ParamDesc>* parameters;
@@ -480,6 +488,7 @@ struct MemberDesc {
     name_pos = 0;
     name = NULL;
     redirect_name = NULL;
+    constructor_name = NULL;
     params.Clear();
     kind = RawFunction::kRegularFunction;
   }
@@ -509,7 +518,11 @@ struct MemberDesc {
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
-  String* redirect_name;  // For constructors: NULL or redirected constructor.
+  // For constructors: NULL or redirected constructor.
+  String* redirect_name;
+  // For constructors: NULL for unnamed constructor,
+  // identifier after classname for named constructors.
+  String* constructor_name;
   ParamList params;
   RawFunction::Kind kind;
 };
@@ -766,7 +779,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   TRACE_PARSER("ParseStaticConstGetter");
   ParamList params;
   ASSERT(func.num_fixed_parameters() == 0);  // static.
-  ASSERT(func.num_optional_parameters() == 0);
+  ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
 
   // Build local scope for function and populate with the formal parameters.
@@ -882,7 +895,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(TokenPos()));
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
-  ASSERT(func.num_optional_parameters() == 0);
+  ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
 
   // Build local scope for function and populate with the formal parameters.
@@ -931,7 +944,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
                            &String::ZoneHandle(Symbols::Value()),
                            &field_type);
   ASSERT(func.num_fixed_parameters() == 2);  // receiver, value.
-  ASSERT(func.num_optional_parameters() == 0);
+  ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(func.result_type()).IsVoidType());
 
   // Build local scope for function and populate with the formal parameters.
@@ -1005,6 +1018,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   bool var_seen = false;
   bool this_seen = false;
 
+  SkipMetadata();
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
     parameter.is_final = true;
@@ -1132,12 +1146,17 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     }
   }
 
-  if (CurrentToken() == Token::kASSIGN) {
-    if (!params->has_named_optional_parameters ||
+  if ((CurrentToken() == Token::kASSIGN) || (CurrentToken() == Token::kCOLON)) {
+    if ((!params->has_optional_positional_parameters &&
+         !params->has_optional_named_parameters) ||
         !allow_explicit_default_value) {
       ErrorMsg("parameter must not specify a default value");
     }
-    ConsumeToken();
+    if (params->has_optional_positional_parameters) {
+      ExpectToken(Token::kASSIGN);
+    } else {
+      ExpectToken(Token::kCOLON);
+    }
     params->num_optional_parameters++;
     if (is_top_level_) {
       // Skip default value parsing.
@@ -1147,7 +1166,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       parameter.default_value = &const_value;
     }
   } else {
-    if (params->has_named_optional_parameters) {
+    if (params->has_optional_positional_parameters ||
+        params->has_optional_named_parameters) {
       // Implicit default value is null.
       params->num_optional_parameters++;
       parameter.default_value = &Object::ZoneHandle();
@@ -1163,47 +1183,63 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 }
 
 
+// Parses a sequence of normal or optional formal parameters.
+void Parser::ParseFormalParameters(bool allow_explicit_default_values,
+                                   ParamList* params) {
+  TRACE_PARSER("ParseFormalParameters");
+  do {
+    ConsumeToken();
+    if (!params->has_optional_positional_parameters &&
+        !params->has_optional_named_parameters &&
+        (CurrentToken() == Token::kLBRACK)) {
+      // End of normal parameters, start of optional positional parameters.
+      params->has_optional_positional_parameters = true;
+      return;
+    }
+    if (!params->has_optional_positional_parameters &&
+        !params->has_optional_named_parameters &&
+        (CurrentToken() == Token::kLBRACE)) {
+      // End of normal parameters, start of optional named parameters.
+      params->has_optional_named_parameters = true;
+      return;
+    }
+    ParseFormalParameter(allow_explicit_default_values, params);
+  } while (CurrentToken() == Token::kCOMMA);
+}
+
+
 void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
                                       ParamList* params) {
   TRACE_PARSER("ParseFormalParameterList");
   ASSERT(CurrentToken() == Token::kLPAREN);
 
   if (LookaheadToken(1) != Token::kRPAREN) {
-    // Parse positional parameters.
+    // Parse fixed parameters.
     ParseFormalParameters(allow_explicit_default_values, params);
-    if (params->has_named_optional_parameters) {
-      // Parse named optional parameters.
+    if (params->has_optional_positional_parameters ||
+        params->has_optional_named_parameters) {
+      // Parse optional parameters.
       ParseFormalParameters(allow_explicit_default_values, params);
-      if (CurrentToken() != Token::kRBRACK) {
-        ErrorMsg("',' or ']' expected");
+      if (params->has_optional_positional_parameters) {
+        if (CurrentToken() != Token::kRBRACK) {
+          ErrorMsg("',' or ']' expected");
+        }
+      } else {
+        if (CurrentToken() != Token::kRBRACE) {
+          ErrorMsg("',' or '}' expected");
+        }
       }
-      ExpectToken(Token::kRBRACK);
+      ConsumeToken();  // ']' or '}'.
     }
     if ((CurrentToken() != Token::kRPAREN) &&
-        !params->has_named_optional_parameters) {
+        !params->has_optional_positional_parameters &&
+        !params->has_optional_named_parameters) {
       ErrorMsg("',' or ')' expected");
     }
   } else {
     ConsumeToken();
   }
   ExpectToken(Token::kRPAREN);
-}
-
-
-// Parses a sequence of normal or named formal parameters.
-void Parser::ParseFormalParameters(bool allow_explicit_default_values,
-                                   ParamList* params) {
-  TRACE_PARSER("ParseFormalParameters");
-  do {
-    ConsumeToken();
-    if (!params->has_named_optional_parameters &&
-        (CurrentToken() == Token::kLBRACK)) {
-      // End of normal parameters, start of named parameters.
-      params->has_named_optional_parameters = true;
-      return;
-    }
-    ParseFormalParameter(allow_explicit_default_values, params);
-  } while (CurrentToken() == Token::kCOMMA);
 }
 
 
@@ -1869,7 +1905,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // Special case: implicit constructor.
     // The parser adds an implicit default constructor when a class
     // does not have any explicit constructor or factory (see
-    // Parser::CheckConstructors). The token position of this implicit
+    // Parser::AddImplicitConstructor). The token position of this implicit
     // constructor points to the 'class' keyword, which is followed
     // by the name of the class (which is also the constructor name).
     // There is no source text to parse. We just build the
@@ -2741,7 +2777,8 @@ void Parser::CheckOperatorArity(const MemberDesc& member,
     expected_num_parameters = 2;
   }
   if ((member.params.num_optional_parameters > 0) ||
-      (member.params.has_named_optional_parameters) ||
+      member.params.has_optional_positional_parameters ||
+      member.params.has_optional_named_parameters ||
       (member.params.num_fixed_parameters != expected_num_parameters)) {
     // Subtract receiver when reporting number of expected arguments.
     ErrorMsg(member.name_pos, "operator %s expects %"Pd" argument(s)",
@@ -2865,8 +2902,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor.
       ConsumeToken();
-      const String* name = ExpectIdentifier("identifier expected");
-      ctor_suffix = String::Concat(ctor_suffix, *name);
+      member.constructor_name = ExpectIdentifier("identifier expected");
+      ctor_suffix = String::Concat(ctor_suffix, *member.constructor_name);
     }
     *member.name = String::Concat(*member.name, ctor_suffix);
     // Ensure that names are symbols.
@@ -3082,6 +3119,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   ExpectToken(Token::kLBRACE);
   ClassDesc members(cls, class_name, false, class_pos);
   while (CurrentToken() != Token::kRBRACE) {
+    SkipMetadata();
     ParseClassMemberDefinition(&members);
   }
   ExpectToken(Token::kRBRACE);
@@ -3095,7 +3133,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   if (!members.has_constructor() && !is_patch) {
     AddImplicitConstructor(&members);
   }
-  CheckConstructorCycles(&members);
+  CheckConstructors(&members);
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3153,12 +3191,24 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
 }
 
 
-// Check for cycles in constructor redirection.
-void Parser::CheckConstructorCycles(ClassDesc* class_desc) {
+// Check for cycles in constructor redirection. Also check whether a
+// named constructor collides with the name of another class member.
+void Parser::CheckConstructors(ClassDesc* class_desc) {
   // Check for cycles in constructor redirection.
   const GrowableArray<MemberDesc>& members = class_desc->members();
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
+
+    if (FLAG_constructor_name_check && member->constructor_name != NULL) {
+      if (class_desc->FunctionNameExists(
+          *member->constructor_name, member->kind)) {
+        ErrorMsg(member->name_pos,
+                 "Named constructor '%s' conflicts with method or field '%s'",
+                 member->name->ToCString(),
+                 member->constructor_name->ToCString());
+      }
+    }
+
     GrowableArray<MemberDesc*> ctors;
     while ((member != NULL) && (member->redirect_name != NULL)) {
       ASSERT(member->IsConstructor());
@@ -3433,6 +3483,25 @@ void Parser::ConsumeRightAngleBracket() {
 }
 
 
+void Parser::SkipMetadata() {
+  while (CurrentToken() == Token::kAT) {
+    ConsumeToken();
+    ExpectIdentifier("identifier expected");
+    if (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+      if (CurrentToken() == Token::kPERIOD) {
+        ConsumeToken();
+        ExpectIdentifier("identifier expected");
+      }
+    }
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+    }
+  }
+}
+
+
 void Parser::SkipTypeArguments() {
   if (CurrentToken() == Token::kLT) {
     do {
@@ -3478,6 +3547,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
     AbstractType& type_parameter_bound = Type::Handle();
     do {
       ConsumeToken();
+      SkipMetadata();
       if (CurrentToken() != Token::kIDENT) {
         ErrorMsg("type parameter name expected");
       }
@@ -4131,6 +4201,7 @@ void Parser::ParseTopLevel() {
 
   while (true) {
     set_current_class(Class::Handle());  // No current class.
+    SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
@@ -4260,8 +4331,12 @@ void Parser::SetupDefaultsForOptionalParams(const ParamList* params,
 void Parser::AddFormalParamsToFunction(const ParamList* params,
                                        const Function& func) {
   ASSERT((params != NULL) && (params->parameters != NULL));
-  func.set_num_fixed_parameters(params->num_fixed_parameters);
-  func.set_num_optional_parameters(params->num_optional_parameters);
+  ASSERT((params->num_optional_parameters > 0) ==
+         (params->has_optional_positional_parameters ||
+          params->has_optional_named_parameters));
+  func.SetNumberOfParameters(params->num_fixed_parameters,
+                             params->num_optional_parameters,
+                             params->has_optional_positional_parameters);
   const int num_parameters = params->parameters->length();
   ASSERT(num_parameters == func.NumberOfParameters());
   func.set_parameter_types(Array::Handle(Array::New(num_parameters,
@@ -4489,6 +4564,7 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
 // declared, the individual initializers are collected in a sequence node.
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
+  SkipMetadata();
   bool is_final = (CurrentToken() == Token::kFINAL);
   bool is_const = (CurrentToken() == Token::kCONST);
   const AbstractType& type = AbstractType::ZoneHandle(ParseConstFinalVarOrType(
@@ -4812,7 +4888,8 @@ bool Parser::TryParseReturnType() {
 
 
 // Look ahead to detect whether the next tokens should be parsed as
-// a variable declaration. Returns true if we detect the token pattern:
+// a variable declaration. Ignores optional metadata.
+// Returns true if we detect the token pattern:
 //     'var'
 //   | 'final'
 //   | const [type] ident (';' | '=' | ',')
@@ -4823,8 +4900,16 @@ bool Parser::IsVariableDeclaration() {
       (CurrentToken() == Token::kFINAL)) {
     return true;
   }
+  // Skip optional metadata.
+  if (CurrentToken() == Token::kAT) {
+    const intptr_t saved_pos = TokenPos();
+    SkipMetadata();
+    const bool is_var_decl = IsVariableDeclaration();
+    SetPosition(saved_pos);
+    return is_var_decl;
+  }
   if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kCONST)) {
-    // Not a legal type identifier or const keyword
+    // Not a legal type identifier or const keyword or metadata.
     return false;
   }
   const intptr_t saved_pos = TokenPos();
@@ -6692,7 +6777,9 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
        result->IsInstanceSetterNode() ||
-       result->IsStaticSetterNode())) {
+       result->IsStaticSetterNode() ||
+       result->IsStoreStaticFieldNode() ||
+       result->IsStoreLocalNode())) {
     EnsureExpressionTemp();
   }
   return result;

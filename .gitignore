@@ -1,94 +1,51 @@
-# Generated build files (runhooks)
-Makefile
-*.Makefile
-*.mk
-*.xcodeproj
-xcodebuild
-/compiler/*sources.gypi
-/compiler/*sources.xml
-/client/build.gypi
-/client/dart_server.*
-*.vcproj
-*.sln
-*.ncb
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-.children
-.project
-*.so
-*.o
-
-# Generated files
-/samples/third_party/dromaeo/tests/frog/
-/samples/third_party/dromaeo/index-js.html
-
-# Build output directories
-out/
-war/
-bin/
-client/outcode/
-DebugIA32/
-Debug/
-DebugARM/
-DebugSIMARM/
-DebugX64/
-Release/
-ReleaseARM/
-ReleaseIA32/
-ReleaseSIMARM/
-ReleaseX64/
-
-# Swarm sample app output directory
-/client/outcode
-
-# Generated dom idl database
-/lib/dom/database
-# Generated dom and html classes
-/lib/dom/generated
-/lib/html/generated
-
-# Not sure what creates this
-fixed_length_file_out
-
-# Third party deps from gclient.
-/third_party/gyp/
-/third_party/v8/
-/third_party/closure_compiler_src/
-/tests/co19/src/
-/third_party/cygwin/
-/third_party/android_tools/
-
-# Built by chromebot and downloaded from Google Storage
-client/tests/drt
-
-# Compiled python binaries
-*.pyc
-third_party/gsutil/*/gsutilc
-
-# Temporary vim files
-*.swo
-*.swp
-
-# Emacs backup files
-*~
-
-/compiler/eclipse.workspace/tests/output/
-/compiler/eclipse.workspace/dartc/output/
-/compiler/eclipse.workspace/rhino/output/
-/compiler/eclipse.workspace/tests/output/
-/corelib/tests/corelib/src/generated/
-
-# Fling generated files
-/client/fling/.classpath
-/client/fling/.project
-/client/fling/.settings
-
-# Generated test files.
-/generated_tests/
-
-# Local GDB files.
-.gdb_history
-
-# Default dart2js output.
-out.js
+/api_docs.target.mk
+/benchmarks
+/compiler.target.mk
+/create_sdk.target.mk
+/dart.Makefile
+/dart.xcodeproj
+/dart2js.target.mk
+/frog.target.mk
+/frogsh.target.mk
+/Makefile
+/out
+/runtime.target.mk
+/upload_sdk.target.mk
+/xcodebuild
+/Debug
+/DebugARM
+/DebugIA32
+/DebugSIMARM
+/DebugX64
+/Release
+/ReleaseARM
+/ReleaseIA32
+/ReleaseSIMARM
+/ReleaseX64
+/upload_sdk.vcxproj
+/dart2js.vcxproj.user
+/api_docs.vcproj
+/upload_sdk.vcxproj.filters
+/api_docs.vcxproj.user
+/dart.suo
+/dart2js.vcxproj
+/compiler.vcxproj
+/dart.sdf
+/cached_results.txt
+/chromedriver.log
+/api_docs.vcxproj
+/compiler.vcproj
+/timing_info.txt
+/compiler.vcxproj.user
+/dart.sln
+/runtime.vcproj
+/upload_sdk.vcproj
+/runtime.vcxproj.user
+/upload_sdk.vcxproj.user
+/create_sdk.vcxproj
+/create_sdk.vcxproj.filters
+/create_sdk.vcproj
+/samples.vcproj
+/dart2js.vcproj
+/create_sdk.vcxproj.user
+/runtime.vcxproj

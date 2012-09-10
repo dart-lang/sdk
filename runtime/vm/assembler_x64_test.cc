@@ -1386,9 +1386,27 @@ ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, entry) {
-  typedef double (*IntToDoubleConversionCode)();
-  double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
+  typedef double (*Int64ToDoubleConversionCode)();
+  double res = reinterpret_cast<Int64ToDoubleConversionCode>(entry)();
   EXPECT_FLOAT_EQ(static_cast<double>(12LL << 32), res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
+  __ movq(RAX, Immediate(bit_cast<int64_t, double>(12.3)));
+  __ pushq(RAX);
+  __ movsd(XMM6, Address(RSP, 0));
+  __ popq(RAX);
+  __ cvttsd2siq(RDX, XMM6);
+  __ movq(RAX, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, entry) {
+  typedef int64_t (*DoubleToInt64ConversionCode)();
+  int64_t res = reinterpret_cast<DoubleToInt64ConversionCode>(entry)();
+  EXPECT_EQ(12, res);
 }
 
 

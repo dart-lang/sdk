@@ -25,36 +25,36 @@ patch class DateImplementation {
         millisecondsSinceEpoch = _getCurrentMs() {
   }
 
-  /* patch */ String get timeZoneName() {
+  /* patch */ String get timeZoneName {
     if (isUtc) return "UTC";
     return _timeZoneName(millisecondsSinceEpoch);
   }
 
-  /* patch */ Duration get timeZoneOffset() {
+  /* patch */ Duration get timeZoneOffset {
     if (isUtc) return new Duration(0);
     int offsetInSeconds = _timeZoneOffsetInSeconds(millisecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
   }
 
-  /* patch */ int get year() => _decomposeIntoYearMonthDay(_localDateInUtcMs)[0];
+  /* patch */ int get year => _decomposeIntoYearMonthDay(_localDateInUtcMs)[0];
 
-  /* patch */ int get month() => _decomposeIntoYearMonthDay(_localDateInUtcMs)[1];
+  /* patch */ int get month => _decomposeIntoYearMonthDay(_localDateInUtcMs)[1];
 
-  /* patch */ int get day() => _decomposeIntoYearMonthDay(_localDateInUtcMs)[2];
+  /* patch */ int get day => _decomposeIntoYearMonthDay(_localDateInUtcMs)[2];
 
-  /* patch */ int get hour() {
+  /* patch */ int get hour {
     int valueInHours = _flooredDivision(_localDateInUtcMs,
                                         Duration.MILLISECONDS_PER_HOUR);
     return valueInHours % Duration.HOURS_PER_DAY;
   }
 
-  /* patch */ int get minute() {
+  /* patch */ int get minute {
     int valueInMinutes = _flooredDivision(_localDateInUtcMs,
                                           Duration.MILLISECONDS_PER_MINUTE);
     return valueInMinutes % Duration.MINUTES_PER_HOUR;
   }
 
-  /* patch */ int get second() {
+  /* patch */ int get second {
     // Seconds are unaffected by the timezone the user is in. So we can
     // directly use the millisecondsSinceEpoch and not [_localDateInUtcMs].
     int valueInSeconds =
@@ -63,7 +63,7 @@ patch class DateImplementation {
     return valueInSeconds % Duration.SECONDS_PER_MINUTE;
   }
 
-  /* patch */ int get millisecond() {
+  /* patch */ int get millisecond {
     // Milliseconds are unaffected by the timezone the user is in. So we can
     // directly use the value and not the [_localDateInUtcValue].
     return millisecondsSinceEpoch % Duration.MILLISECONDS_PER_SECOND;
@@ -71,7 +71,7 @@ patch class DateImplementation {
 
   /** Returns the weekday of [this]. In accordance with ISO 8601 a week
     * starts with Monday. Monday has the value 1 up to Sunday with 7. */
-  /* patch */ int get weekday() {
+  /* patch */ int get weekday {
     int daysSince1970 =
         _flooredDivision(_localDateInUtcMs, Duration.MILLISECONDS_PER_DAY);
     // 1970-1-1 was a Thursday.
@@ -150,7 +150,7 @@ patch class DateImplementation {
    * If [this] lies outside this range then it is a year with similar
    * properties (leap year, weekdays) is used instead.
    */
-  int get _localDateInUtcMs() {
+  int get _localDateInUtcMs {
     int ms = millisecondsSinceEpoch;
     if (isUtc) return ms;
     int offset =

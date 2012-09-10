@@ -846,6 +846,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // block is closed.
   HBasicBlock lastOpenedBlock;
 
+  List<Element> sourceElementStack;
+
   LibraryElement get currentLibrary => work.element.getLibrary();
   Element get currentElement => work.element;
   Compiler get compiler => builder.compiler;
@@ -862,6 +864,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
       parameters = new Map<Element, HParameterValue>(),
+      sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
@@ -960,6 +963,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     InliningState state =
         new InliningState(function, returnElement, elements, stack);
     inliningStack.add(state);
+    sourceElementStack.add(function);
     stack = <HInstruction>[];
     returnElement = new Element(const SourceString("result"),
                                 ElementKind.VARIABLE,
@@ -980,6 +984,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void leaveInlinedMethod(InliningState state) {
     InliningState poppedState = inliningStack.removeLast();
     assert(state == poppedState);
+    FunctionElement poppedElement = sourceElementStack.removeLast();
+    assert(poppedElement == poppedState.function);
     elements = state.oldElements;
     stack.add(localsHandler.readLocal(returnElement));
     returnElement = state.oldReturnElement;
@@ -1107,7 +1113,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           SendSet init = link.head;
           Link<Node> arguments = init.arguments;
           assert(!arguments.isEmpty() && arguments.tail.isEmpty());
+          sourceElementStack.add(constructor);
           visit(arguments.head);
+          sourceElementStack.removeLast();
           fieldValues[elements[init]] = pop();
         }
       }
@@ -1441,8 +1449,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {
-    target.sourcePosition = node.getBeginToken();
+    target.sourcePosition = sourceFileLocationForToken(node.getBeginToken());
     return target;
+  }
+
+  SourceFileLocation sourceFileLocationForToken(Token token) {
+    Element element = sourceElementStack.last();
+    // TODO(johnniwinther): remove the 'element.patch' hack.
+    if (element is FunctionElement) {
+      FunctionElement functionElement = element;
+      if (functionElement.patch != null) element = functionElement.patch;
+    }
+    SourceFile sourceFile = element.getCompilationUnit().script.file;
+    return new SourceFileLocation(sourceFile, token);
   }
 
   void visit(Node node) {
@@ -1643,7 +1662,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapExpressionGraph(updateGraph),
             conditionBlock.loopInformation.target,
             conditionBlock.loopInformation.labels,
-            loop);
+            sourceFileLocationForToken(loop.getBeginToken()),
+            sourceFileLocationForToken(loop.getEndToken()));
 
     startBlock.setBlockFlow(info, current);
     loopInfo.loopBlockInformation = info;
@@ -1771,7 +1791,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             null,
             loopEntryBlock.loopInformation.target,
             loopEntryBlock.loopInformation.labels,
-            node);
+            sourceFileLocationForToken(node.getBeginToken()),
+            sourceFileLocationForToken(node.getEndToken()));
     loopEntryBlock.setBlockFlow(loopBlockInfo, current);
     loopInfo.loopBlockInformation = loopBlockInfo;
   }
@@ -1983,6 +2004,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return pop();
   }
 
+  String getTargetName(ErroneousElement error, [String prefix = '']) {
+    return '$prefix${error.targetName.slowToString}';
+  }
+
   void generateInstanceGetterWithCompiledReceiver(Send send,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
@@ -2033,6 +2058,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HStatic(element));
       // TODO(ahe): This should be registered in codegen.
       compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
+    } else if (Elements.isErroneousElement(element)) {
+      // An erroneous element indicates an unresolved static getter.
+      generateThrowNoSuchMethod(send,
+                                getTargetName(element, 'get '),
+                                const EmptyLink<Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
     }
@@ -2074,6 +2104,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (element === null || Elements.isInstanceField(element)) {
       HInstruction receiver = generateInstanceSendReceiver(send);
       generateInstanceSetterWithCompiledReceiver(send, receiver, value);
+    } else if (Elements.isErroneousElement(element)) {
+      // An erroneous element indicates an unresolved static setter.
+      generateThrowNoSuchMethod(send,
+                                getTargetName(element, 'set '),
+                                send.arguments);
     } else {
       stack.add(value);
       // If the value does not already have a name, give it here.
@@ -2641,6 +2676,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitStaticSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (element.isErroneous()) {
+      generateThrowNoSuchMethod(node, getTargetName(element), node.arguments);
+      return;
+    }
     if (element === compiler.assertMethod && !compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(constantSystem));
       return;
@@ -2693,32 +2732,41 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushInvokeHelper1(helper, errorMessage);
   }
 
+  void generateThrowNoSuchMethod(Node diagnosticNode,
+                                 String methodName,
+                                 [Link<Node> argumentNodes,
+                                  List<HInstruction> argumentValues]) {
+    Element helper =
+        compiler.findHelper(const SourceString('throwNoSuchMethod'));
+    Constant receiverConstant =
+        constantSystem.createString(new DartString.empty(), diagnosticNode);
+    HInstruction receiver = graph.addConstant(receiverConstant);
+    DartString dartString = new DartString.literal(methodName);
+    Constant nameConstant =
+        constantSystem.createString(dartString, diagnosticNode);
+    HInstruction name = graph.addConstant(nameConstant);
+    if (argumentValues == null) {
+      argumentValues = <HInstruction>[];
+      argumentNodes.forEach((argumentNode) {
+        visit(argumentNode);
+        HInstruction value = pop();
+        argumentValues.add(value);
+      });
+    }
+    HInstruction arguments = new HLiteralList(argumentValues);
+    add(arguments);
+    pushInvokeHelper3(helper, receiver, name, arguments);
+  }
+
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
-    if (element != null && element.isErroneous()) {
+    if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
       Message message = error.errorMessage;
       if (message.kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
-        Element helper =
-            compiler.findHelper(const SourceString('throwNoSuchMethod'));
-        DartString receiverLiteral = new DartString.literal('');
-        Constant receiverConstant =
-            constantSystem.createString(receiverLiteral, node);
-        HInstruction receiver = graph.addConstant(receiverConstant);
-        String constructorName = 'constructor ${message.arguments[0]}';
-        DartString nameLiteral = new DartString.literal(constructorName);
-        Constant nameConstant =
-            constantSystem.createString(nameLiteral, node.send);
-        HInstruction name = graph.addConstant(nameConstant);
-        List<HInstruction> inputs = <HInstruction>[];
-        node.send.arguments.forEach((argumentNode) {
-          visit(argumentNode);
-          HInstruction value = pop();
-          inputs.add(value);
-        });
-        HInstruction arguments = new HLiteralList(inputs);
-        add(arguments);
-        pushInvokeHelper3(helper, receiver, name, arguments);
+        generateThrowNoSuchMethod(node.send,
+                                  getTargetName(error, 'constructor'),
+                                  node.send.arguments);
       } else if (message.kind == MessageKind.CANNOT_RESOLVE) {
         generateRuntimeError(node.send, message.message);
       } else {
@@ -3088,7 +3136,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         VariableDefinitions variableDefinitions = node.declaredIdentifier;
         variable = elements[variableDefinitions.definitions.nodes.head];
       }
-      localsHandler.updateLocal(variable, pop());
+      HInstruction oldVariable = pop();
+      if (variable.isErroneous()) {
+        generateThrowNoSuchMethod(node,
+                                  getTargetName(variable, 'set '),
+                                  argumentValues: <HInstruction>[oldVariable]);
+        pop();
+      } else {
+        localsHandler.updateLocal(variable, oldVariable);
+      }
 
       visit(node.body);
     }

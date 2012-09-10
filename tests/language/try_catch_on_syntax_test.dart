@@ -27,6 +27,8 @@ class TryCatchTest {
     } on MyException catch (e) {
       foo = 3;
     }
+    on UndefinedClass /// 07: compile-time error
+    catch(e) { foo = 4; }
     Expect.equals(2, foo);
   }
 

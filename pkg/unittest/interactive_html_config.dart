@@ -5,8 +5,8 @@
 /**
  * This configuration can be used to rerun selected tests, as well
  * as see diagnostic output from tests. It runs each test in its own
- * IFrame, so the configuration consists of two parts - a 'master'
- * config that manages all the tests, and a 'slave' config for the
+ * IFrame, so the configuration consists of two parts - a 'parent'
+ * config that manages all the tests, and a 'child' config for the
  * IFrame that runs the individual tests.
  */
 #library('interactive_config');
@@ -18,7 +18,7 @@
 #import('dart:math');
 #import('unittest.dart');
 
-/** The messages exchanged between master and slave. */
+/** The messages exchanged between parent and child. */
 
 class _Message {
   static const START = 'start';
@@ -52,34 +52,34 @@ class _Message {
 }
 
 /**
- * The slave configuration that is used to run individual tests in
- * an IFrame and post the results back to the master. In principle
+ * The child configuration that is used to run individual tests in
+ * an IFrame and post the results back to the parent. In principle
  * this can run more than one test in the IFrame but currently only
  * one is used.
  */
-class SlaveInteractiveHtmlConfiguration extends Configuration {
+class ChildInteractiveHtmlConfiguration extends Configuration {
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
 
   /** The window to which results must be posted. */
-  Window masterWindow;
+  Window parentWindow;
 
   /** The time at which tests start. */
   Map<int,Date> _testStarts;
 
-  SlaveInteractiveHtmlConfiguration() :
+  ChildInteractiveHtmlConfiguration() :
       _testStarts = new Map<int,Date>();
 
   /** Don't start running tests automatically. */
-  get autoStart() => false;
+  get autoStart => false;
 
   void onInit() {
     _onErrorClosure =
         (e) => handleExternalError(e, '(DOM callback has errors)');
 
     /**
-     *  The master posts a 'start' message to kick things off,
-     *  which is handled by this handler. It saves the master
+     *  The parent posts a 'start' message to kick things off,
+     *  which is handled by this handler. It saves the parent
      *  window, gets the test ID from the query parameter in the
      *  IFrame URL, sets that as a solo test and starts test execution.
      */
@@ -87,7 +87,7 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
       // Get the result, do any logging, then do a pass/fail.
       var m = new _Message.fromString(e.data);
       if (m.messageType == _Message.START) {
-        masterWindow = e.source;
+        parentWindow = e.source;
         String search = window.location.search;
         int pos = search.indexOf('t=');
         String ids = search.substring(pos+2);
@@ -110,11 +110,11 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
   }
 
   /**
-   * Tests can call [log] for diagnostic output. These log
+   * Tests can call [logMessage] for diagnostic output. These log
    * messages in turn get passed to this method, which adds
-   * a timestamp and posts them back to the master window.
+   * a timestamp and posts them back to the parent window.
    */
-  void logMessage(TestCase testCase, String message) {
+  void logTestCaseMessage(TestCase testCase, String message) {
     int elapsed;
     if (testCase == null) {
       elapsed = -1;
@@ -122,13 +122,13 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
       Date end = new Date.now();
       elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     }
-    masterWindow.postMessage(
+    parentWindow.postMessage(
       _Message.text(_Message.LOG, elapsed, message).toString(), '*');
   }
 
   /**
    * Get the elapsed time for the test, anbd post the test result
-   * back to the master window. If the test failed due to an exception
+   * back to the parent window. If the test failed due to an exception
    * the stack is posted back too (before the test result).
    */
   void onTestResult(TestCase testCase) {
@@ -136,10 +136,10 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
     Date end = new Date.now();
     int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     if (testCase.stackTrace != null) {
-      masterWindow.postMessage(
+      parentWindow.postMessage(
           _Message.text(_Message.STACK, elapsed, testCase.stackTrace), '*');
     }
-    masterWindow.postMessage(
+    parentWindow.postMessage(
         _Message.text(testCase.result, elapsed, testCase.message), '*');
   }
 
@@ -150,15 +150,15 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
 }
 
 /**
- * The master configuration runs in the top-level window; it wraps the tests
- * in new functions that create slave IFrames and run the real tests.
+ * The parent configuration runs in the top-level window; it wraps the tests
+ * in new functions that create child IFrames and run the real tests.
  */
-class MasterInteractiveHtmlConfiguration extends Configuration {
+class ParentInteractiveHtmlConfiguration extends Configuration {
   Map<int,Date> _testStarts;
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
 
-  /** The stack that was posted back from the slave, if any. */
+  /** The stack that was posted back from the child, if any. */
   String _stack;
 
   int _testTime;
@@ -175,7 +175,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
    */
   Function _messageHandler;
 
-  MasterInteractiveHtmlConfiguration() :
+  ParentInteractiveHtmlConfiguration() :
       _testStarts = new Map<int,Date>();
 
   // We need to block until the test is done, so we make a
@@ -186,17 +186,17 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
     String baseUrl = window.location.toString();
     String url = '${baseUrl}?t=${testCase.id}';
     return () {
-      // Rebuild the slave IFrame.
-      Element slaveDiv = document.query('#slave');
-      slaveDiv.nodes.clear();
-      IFrameElement slave = new Element.html("""
-          <iframe id='slaveFrame${testCase.id}' src='$url' style='display:none'>
+      // Rebuild the child IFrame.
+      Element childDiv = document.query('#child');
+      childDiv.nodes.clear();
+      IFrameElement child = new Element.html("""
+          <iframe id='childFrame${testCase.id}' src='$url' style='display:none'>
           </iframe>""");
-      slaveDiv.nodes.add(slave);
+      childDiv.nodes.add(child);
       completeTest = expectAsync0((){ });
       // Kick off the test when the IFrame is loaded.
-      slave.on.load.add((e) {
-        slave.contentWindow.postMessage(_Message.text(_Message.START), '*');
+      child.on.load.add((e) {
+        child.contentWindow.postMessage(_Message.text(_Message.START), '*');
       });
     };
   }
@@ -205,12 +205,12 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
     // Get the result, do any logging, then do a pass/fail.
     var msg = new _Message.fromString(e.data);
     if (msg.messageType == _Message.LOG) {
-      log(e.data);
+      logMessage(e.data);
     } else if (msg.messageType == _Message.STACK) {
       _stack = msg.body;
     } else {
       _testTime = msg.elapsed;
-      log(_Message.text(_Message.LOG, _testTime, 'Complete'));
+      logMessage(_Message.text(_Message.LOG, _testTime, 'Complete'));
       if (msg.messageType == _Message.PASS) {
         currentTestCase.pass();
       } else if (msg.messageType == _Message.FAIL) {
@@ -286,7 +286,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
         var state = cb.checked;
         var tests = parent.query('.tests');
         for (Element t in tests.elements) {
-          cb = t.query('.testselect');
+          cb = t.query('.testselect') as InputElement;
           cb.checked = state;
           var testId = parseInt(t.id.substring(_testIdPrefix.length));
           if (state) {
@@ -344,10 +344,10 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
     }
   }
 
-  // Actually test logging is handled by the slave, then posted
-  // back to the master. So here we know that the [message] argument
+  // Actually test logging is handled by the child, then posted
+  // back to the parent. So here we know that the [message] argument
   // is in the format used by [_Message].
-  void logMessage(TestCase testCase, String message) {
+  void logTestCaseMessage(TestCase testCase, String message) {
     var msg = new _Message.fromString(message);
     if (msg.elapsed < 0) { // No associated test case.
       document.query('#otherlogs').nodes.add(
@@ -368,7 +368,8 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
     if (!testCase.enabled) return;
     super.onTestResult(testCase);
     if (testCase.message != '') {
-      logMessage(testCase, _Message.text(_Message.LOG, -1, testCase.message));
+      logTestCaseMessage(testCase,
+          _Message.text(_Message.LOG, -1, testCase.message));
     }
     int id = testCase.id;
     var testItem = document.query('#$_testIdPrefix$id');
@@ -404,7 +405,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
 /**
  * Add the divs to the DOM if they are not present. We have a 'controls'
  * div for control, 'specs' div with test results, a 'busy' div for the
- * animated GIF used to indicate tests are running, and a 'slave' div to
+ * animated GIF used to indicate tests are running, and a 'child' div to
  * hold the iframe for the test.
  */
 void _prepareDom() {
@@ -438,21 +439,21 @@ void _prepareDom() {
         "<div id='busy' style='display:none'><img src='googleballs.gif'>"
         "</img></div>"));
   }
-  if (document.query('#slave') == null) {
-    document.body.nodes.add(new Element.html("<div id='slave'></div>"));
+  if (document.query('#child') == null) {
+    document.body.nodes.add(new Element.html("<div id='child'></div>"));
   }
 }
 
 /**
- * Allocate a Configuration. We allocate either a master or
- * slave, depedning on whether the URL has a search part.
+ * Allocate a Configuration. We allocate either a parent or
+ * child, depedning on whether the URL has a search part.
  */
 void useInteractiveHtmlConfiguration() {
-  if (window.location.search == '') { // This is the master.
+  if (window.location.search == '') { // This is the parent.
     _prepareDom();
-    configure(new MasterInteractiveHtmlConfiguration());
+    configure(new ParentInteractiveHtmlConfiguration());
   } else {
-    configure(new SlaveInteractiveHtmlConfiguration());
+    configure(new ChildInteractiveHtmlConfiguration());
   }
 }
 

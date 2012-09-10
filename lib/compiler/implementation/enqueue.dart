@@ -119,17 +119,8 @@ class Enqueuer {
     addToWorkList(element);
   }
 
-  bool canBeRecompiled(Element element) {
-    // Only member functions can be recompiled. An exception to this is members
-    // of closures. They are processed as part of the enclosing function and not
-    // present as a separate element (the call to the closure will be a member
-    // function).
-    return element.isMember() && !element.getEnclosingClass().isClosure();
-  }
-
   void registerRecompilationCandidate(Element element,
                                       [TreeElements elements]) {
-    if (!canBeRecompiled(element)) return;
     if (queueIsClosed) {
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }

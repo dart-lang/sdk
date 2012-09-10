@@ -14,3 +14,4 @@
 #source('emitter.dart');
 #source('renamer.dart');
 #source('placeholder_collector.dart');
+#source('utils.dart');

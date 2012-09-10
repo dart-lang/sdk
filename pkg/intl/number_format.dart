@@ -156,7 +156,7 @@ class NumberFormat {
     // point value, in which case we reduce it until it is small enough
     // to be printed as an integer and pad the remainder with zeros.
     var paddingDigits = new StringBuffer();
-    while (intValue is! int) {
+    while ((intValue & 0x7fffffff) != intValue) {
       paddingDigits.add(symbols.ZERO_DIGIT);
       intValue = (intValue / 10).toInt();
     }

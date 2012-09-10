@@ -18,15 +18,12 @@ public class LibraryImport {
   private final String prefix;
   private final Set<String> showNames;
   private final Set<String> hideNames;
-  private final boolean exported;
 
-  public LibraryImport(LibraryUnit library, String prefix, List<ImportCombinator> combinators,
-      boolean exported) {
+  public LibraryImport(LibraryUnit library, String prefix, List<ImportCombinator> combinators) {
     this.library = library;
     this.prefix = prefix;
     this.showNames = createCombinatorsSet(combinators, true);
     this.hideNames = createCombinatorsSet(combinators, false);
-    this.exported = exported;
   }
 
   @Override
@@ -39,8 +36,7 @@ public class LibraryImport {
     if (obj instanceof LibraryImport) {
       LibraryImport other = (LibraryImport) obj;
       return Objects.equal(library, other.library) && Objects.equal(prefix, other.prefix)
-          && Objects.equal(showNames, other.showNames) && Objects.equal(hideNames, other.hideNames)
-          && exported == other.exported;
+          && Objects.equal(showNames, other.showNames) && Objects.equal(hideNames, other.hideNames);
     }
     return false;
   }
@@ -61,10 +57,6 @@ public class LibraryImport {
       return showNames.contains(name);
     }
     return true;
-  }
-
-  public boolean isExported() {
-    return exported;
   }
 
   private static Set<String> createCombinatorsSet(List<ImportCombinator> combinators, boolean show) {

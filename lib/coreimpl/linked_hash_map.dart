@@ -102,7 +102,7 @@ class LinkedHashMapImplementation<K extends Hashable, V>
     });
   }
 
-  int get length() {
+  int get length {
     return _map.length;
   }
 

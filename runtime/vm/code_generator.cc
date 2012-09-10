@@ -1452,6 +1452,17 @@ void DeoptimizeAll() {
       uword continue_at_pc =
           unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
       ASSERT(continue_at_pc != 0);
+      // The switch to unoptimized code may have already occured.
+      if (function.HasOptimizedCode()) {
+        function.SwitchToUnoptimizedCode();
+      }
+      // Patch call site (lazy deoptimization is quite rare, patching it twice
+      // is not a performance issue).
+      uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
+      ASSERT(lazy_deopt_jump != 0);
+      CodePatcher::InsertCallAt(frame->pc(), lazy_deopt_jump);
+      // Mark code as dead (do not GC its embedded objects).
+      optimized_code.set_is_alive(false);
     }
     frame = iterator.NextFrame();
   }
@@ -1486,8 +1497,8 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
   const Function& function = Function::Handle(optimized_code.function());
   // Do not copy incoming arguments if there are optional arguments (they
   // are copied into local space at method entry).
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   // FP, PC-marker and return-address will be copied as well.
   const intptr_t frame_copy_size =
       1  // Deoptimized function's return address: caller_frame->pc().
@@ -1554,8 +1565,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   // For functions with optional argument deoptimization info does not
   // describe incoming arguments.
   const Function& function = Function::Handle(optimized_code.function());
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t unoptimized_stack_size =
       + deopt_info.Length() - num_args
       - 2;  // Subtract caller FP and PC.
@@ -1577,8 +1588,8 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
 
   intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame.sp() - kWordSize);
   const Function& function = Function::Handle(code.function());
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t to_frame_size =
       1  // Deoptimized function's return address.
       + (caller_frame.fp() - caller_frame.sp()) / kWordSize
@@ -1628,7 +1639,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
                       &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
-  uword continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
+  uword continue_at_pc = 0;
+  if (deopt_reason == kDeoptAtCall) {
+    continue_at_pc = unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
+  } else {
+    continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
+  }
   ASSERT(continue_at_pc != 0);
   if (FLAG_trace_deopt) {
     OS::Print("  -> continue at %#"Px"\n", continue_at_pc);

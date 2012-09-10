@@ -953,7 +953,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertErrors(errors, errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 10));
   }
 
-  public void xtest_newLibrarySyntax_export() throws Exception {
+  public void test_newLibrarySyntax_export() throws Exception {
     appSource.setContent(
         "A.dart",
         makeCode(
@@ -969,7 +969,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "library test.B;",
             "import 'A.dart' as libA hide TypeAC;",
-            "export 'A.dart';",
+            "export 'A.dart' show TypeAA, TypeAB;",
             "class TypeBA {}",
             "class TypeBB {}",
             "class TypeBC {}",
@@ -1050,7 +1050,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4238
    */
-  //TODO(pquitslund): re-enable once dart:dom_deprecated goes away for real
+  //TODO(pquitslund): re-enable (dartbug.com/4925).
   public void Xtest_typesPropagation_html_query() throws Exception {
     appSource.setContent(
         APP,

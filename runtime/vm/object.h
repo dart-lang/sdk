@@ -1470,21 +1470,25 @@ class Function : public Object {
     raw_ptr()->end_token_pos_ = value;
   }
 
-  static intptr_t num_fixed_parameters_offset() {
-    return OFFSET_OF(RawFunction, num_fixed_parameters_);
-  }
   intptr_t num_fixed_parameters() const {
     return raw_ptr()->num_fixed_parameters_;
   }
   void set_num_fixed_parameters(intptr_t value) const;
 
-  static intptr_t num_optional_parameters_offset() {
-    return OFFSET_OF(RawFunction, num_optional_parameters_);
+  bool HasOptionalParameters() const {
+    return (num_optional_positional_parameters() +
+            num_optional_named_parameters()) > 0;
   }
-  intptr_t num_optional_parameters() const {
-    return raw_ptr()->num_optional_parameters_;
+
+  intptr_t num_optional_positional_parameters() const {
+    return raw_ptr()->num_optional_positional_parameters_;
   }
-  void set_num_optional_parameters(intptr_t value) const;
+  void set_num_optional_positional_parameters(intptr_t value) const;
+
+  intptr_t num_optional_named_parameters() const {
+    return raw_ptr()->num_optional_named_parameters_;
+  }
+  void set_num_optional_named_parameters(intptr_t value) const;
 
   static intptr_t usage_counter_offset() {
     return OFFSET_OF(RawFunction, usage_counter_);
@@ -1521,6 +1525,9 @@ class Function : public Object {
 
   intptr_t NumberOfParameters() const;
   intptr_t NumberOfImplicitParameters() const;
+  void SetNumberOfParameters(intptr_t num_fixed_parameters,
+                             intptr_t num_optional_parameters,
+                             bool are_optional_positional) const;
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
@@ -1666,8 +1673,8 @@ class Function : public Object {
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
-  void set_is_static(bool is_static) const;
-  void set_is_const(bool is_const) const;
+  void set_is_static(bool value) const;
+  void set_is_const(bool value) const;
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
@@ -1692,6 +1699,7 @@ class Function : public Object {
   // and the type of the other function.
   bool TestParameterType(TypeTestKind test_kind,
                          intptr_t parameter_position,
+                         intptr_t other_parameter_position,
                          const AbstractTypeArguments& type_arguments,
                          const Function& other,
                          const AbstractTypeArguments& other_type_arguments,
@@ -1822,26 +1830,23 @@ class LiteralToken : public Object {
 
 class TokenStream : public Object {
  public:
-  inline intptr_t Length() const;
-
   RawArray* TokenObjects() const;
   void SetTokenObjects(const Array& value) const;
+
+  RawExternalUint8Array* GetStream() const;
+  void SetStream(const ExternalUint8Array& stream) const;
 
   RawString* GenerateSource() const;
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
   intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
+  RawString* PrivateKey() const;
+
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
-    return 0;
-  }
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawTokenStream) + (len * kBytesPerElement));
+    return RoundedAllocationSize(sizeof(RawTokenStream));
   }
 
   static RawTokenStream* New(intptr_t length);
@@ -1874,28 +1879,27 @@ class TokenStream : public Object {
    private:
     // Read token from the token stream (could be a simple token or an index
     // into the token objects array for IDENT or literal tokens).
-    intptr_t ReadToken();
-    uint8_t ReadByte();
+    intptr_t ReadToken() {
+      int64_t value = stream_.ReadUnsigned();
+      ASSERT((value >= 0) && (value <= kIntptrMax));
+      return value;
+    }
 
     const TokenStream& tokens_;
+    const ExternalUint8Array& data_;
+    ReadStream stream_;
     Array& token_objects_;
     Object& obj_;
     intptr_t cur_token_pos_;
-    intptr_t stream_token_pos_;
     Token::Kind cur_token_kind_;
     intptr_t cur_token_obj_index_;
   };
 
  private:
-  void SetLength(intptr_t value) const;
-
-  RawString* PrivateKey() const;
   void SetPrivateKey(const String& value) const;
 
-  uint8_t* EntryAddr(intptr_t token_pos) const {
-    ASSERT((token_pos >=0) && (token_pos < Length()));
-    return &raw_ptr()->data_[token_pos];
-  }
+  static RawTokenStream* New();
+  static void DataFinalizer(void *peer);
 
   HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
@@ -2272,6 +2276,7 @@ class PcDescriptors : public Object {
     kDeoptAfter,       // Deoptimization continuation point after instruction.
     kDeoptIndex,       // Index into deopt info array.
     kPatchCode,        // Buffer for patching code entry.
+    kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
     kFuncCall,         // Call to known target, e.g. static call, closure call.
     kReturn,           // Return from function.
@@ -2318,6 +2323,9 @@ class PcDescriptors : public Object {
   }
 
   static RawPcDescriptors* New(intptr_t num_descriptors);
+
+  // Returns 0 if not found.
+  uword GetPcForKind(Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(bool check_ids) const;
@@ -2652,8 +2660,9 @@ class Code : public Object {
   }
   intptr_t GetTokenIndexOfPC(uword pc) const;
 
-  // Find pc of patch code buffer. Return 0 if not found.
+  // Find pc, return 0 if not found.
   uword GetPatchCodePc() const;
+  uword GetLazyDeoptPc() const;
 
   uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
   uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
@@ -3521,7 +3530,7 @@ class String : public Instance {
                    intptr_t src_offset,
                    intptr_t len);
 
-  static RawString* EscapeDoubleQuotes(const String& str);
+  static RawString* EscapeSpecialCharacters(const String& str, bool raw_str);
 
   static RawString* Concat(const String& str1,
                            const String& str2,
@@ -3590,7 +3599,7 @@ class OneByteString : public String {
     return kOneByteChar;
   }
 
-  RawOneByteString* EscapeDoubleQuotes() const;
+  RawOneByteString* EscapeSpecialCharacters(bool raw_str) const;
 
   bool EqualsIgnoringPrivateKey(const OneByteString& str) const;
 
@@ -3666,7 +3675,7 @@ class TwoByteString : public String {
     return kTwoByteChar;
   }
 
-  RawTwoByteString* EscapeDoubleQuotes() const;
+  RawTwoByteString* EscapeSpecialCharacters(bool raw_str) const;
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 2;
@@ -3728,7 +3737,7 @@ class FourByteString : public String {
     return kFourByteChar;
   }
 
-  RawFourByteString* EscapeDoubleQuotes() const;
+  RawFourByteString* EscapeSpecialCharacters(bool raw_str) const;
 
   static const intptr_t kBytesPerElement = 4;
   static const intptr_t kMaxElements = String::kMaxElements;
@@ -4834,6 +4843,7 @@ class ExternalUint8Array : public ByteArray {
   HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array, ByteArray);
   friend class ByteArray;
   friend class Class;
+  friend class TokenStream;
 };
 
 
@@ -5531,11 +5541,6 @@ intptr_t Field::Offset() const {
 void Field::SetOffset(intptr_t value) const {
   ASSERT(!is_static());  // SetOffset is valid only for instance fields.
   raw_ptr()->value_ = Smi::New(value);
-}
-
-
-intptr_t TokenStream::Length() const {
-  return Smi::Value(raw_ptr()->length_);
 }
 
 

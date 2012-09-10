@@ -299,7 +299,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
     next = advance();
     if (next === $CLOSE_SQUARE_BRACKET) {
       Token token = previousToken();
-      if (token is KeywordToken && token.value == Keyword.OPERATOR) {
+      if (token is KeywordToken && token.value.stringValue === 'operator') {
         return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
       }
     }
@@ -645,12 +645,38 @@ class AbstractScanner<T extends SourceString> implements Scanner {
 
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
     bool isAscii = true;
+    bool isDynamicBuiltIn = false;
+
+    if (next === $D) {
+      next = advance();
+      if (next === $y) {
+        next = advance();
+        if (next === $n) {
+          next = advance();
+          if (next === $a) {
+            next = advance();
+            if (next === $m) {
+              next = advance();
+              if (next === $i) {
+                next = advance();
+                if (next === $c) {
+                  isDynamicBuiltIn = true;
+                  next = advance();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     while (true) {
       if (($a <= next && next <= $z) ||
           ($A <= next && next <= $Z) ||
           ($0 <= next && next <= $9) ||
           next === $_ ||
           (next === $$ && allowDollar)) {
+        isDynamicBuiltIn = false;
         next = advance();
       } else if (next < 128) {
         // Identifier ends here.
@@ -658,13 +684,16 @@ class AbstractScanner<T extends SourceString> implements Scanner {
           throw new MalformedInputException("expected identifier not found",
                                             charOffset);
         }
-        if (isAscii) {
+        if (isDynamicBuiltIn) {
+          appendKeywordToken(Keyword.DYNAMIC);
+        } else if (isAscii) {
           appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {
           appendByteStringToken(IDENTIFIER_INFO, utf8String(start, -1));
         }
         return next;
       } else {
+        isDynamicBuiltIn = false;
         int nonAsciiStart = byteOffset;
         do {
           next = nextByte();

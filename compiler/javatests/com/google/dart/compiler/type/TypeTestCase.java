@@ -81,7 +81,7 @@ abstract class TypeTestCase extends TestCase {
         Arrays.asList(new DartTypeNode(new DartIdentifier("E"))));
 
     DartMethodDefinition iteratorMethod = DartMethodDefinition.create(
-        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter>emptyList(),
+        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter>emptyList(), 0,
             new DartBlock(Collections.<DartStatement>emptyList()), returnTypeNode),
         Modifiers.NONE,
         Collections.<DartInitializer>emptyList());

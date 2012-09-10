@@ -3,14 +3,98 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
+Language/07_Classes/07_Classes_A01_t20: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t31: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t32: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A02_t34: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A09_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/10_Superinterfaces_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/10_Superinterfaces_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/10_Superinterfaces_A07_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/2_Getters_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/2_Getters_A01_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t06: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t07: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/3_Setters_A04_t08: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A04_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A05_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A05_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A06_t06: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t09: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A21_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/6_Constructors_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/10_Expressions/30_Type_Cast_A01_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(dartc-team): Please triage this failure.
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # TODO(dartc-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t06: Fail # TODO(dartc-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # TODO(dartc-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(dartc-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Instance_Variables_A02_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A18_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
@@ -33,59 +117,21 @@ Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(dartc-team): Please tria
 Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t02: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t05: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t07: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A03_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A06_t02: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t10: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t11: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/08_Switch_A10_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/08_Switch_A10_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/08_Switch_A10_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t02: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t04: Fail # TODO(dartc-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A01_t30: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A01_t31: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A01_t39: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A06_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A07_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/12_Libraries_and_Scripts/2_Imports_A10_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # TODO(dartc-team): Please triage this failure.
 LibTest/core/Futures/wait_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
-LibTest/core/List/List.from_A03_t02: Fail # TODO(dartc-team): Please triage this failure.
-LibTest/core/List/addAll_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
-LibTest/core/List/forEach_A01_t02: Fail # TODO(dartc-team): Please triage this failure.
 
 
 # Rename "BadNumberFormatException" to "FormatException"
@@ -99,24 +145,16 @@ LibTest/core/Math/parseDouble_A02_t01: Fail
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
 Language/03_Overview/2_Privacy_A01_t02: Fail # language change 1031
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t19: Fail # out of date - the operator - is allowed to not have any arguments
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t03: Fail # out of date - getters are not allowed to have parameters
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
-Language/07_Classes/4_Instance_Variables_A01_t01: Skip # co19 issue 165
-Language/07_Classes/4_Instance_Variables_A01_t02: Skip # co19 issue 165
-Language/07_Classes/4_Instance_Variables_A01_t03: Skip # co19 issue 165
-Language/07_Classes/4_Instance_Variables_A01_t04: Skip # co19 issue 165
-Language/07_Classes/4_Instance_Variables_A01_t07: Skip # co19 issue 165
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
-Language/07_Classes/5_Constructors_A02_t03: Fail # language change 1031
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail # Issue 3476
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # Issue 3476
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Issue 3476
-Language/07_Classes/9_Superinterfaces_A04_t01: Fail # Issue 976
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
@@ -229,15 +267,6 @@ Language/11_Statements/08_Switch_A06_t03: Fail # out of date - case can use any 
 Language/11_Statements/08_Switch_A06_t04: Fail # out of date - case can use any constant expression
 Language/11_Statements/09_Try_A01_t14: Fail # out of date - catch parameters are not allowed to be typed
 Language/11_Statements/09_Try_A01_t18: Fail # out of date - catch parameters are not allowed to be typed
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
-Language/12_Libraries_and_Scripts/2_Imports_A02_t04: Fail # language change 1031
-Language/12_Libraries_and_Scripts/3_Includes_A01_t13: Skip # out of date - resource directives have been removed
-Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Skip # out of date - resource directives have been removed
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 148
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # co19 issue 141
 
 
 LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
@@ -503,9 +532,6 @@ LibTest/core/List/length_A04_t01: Fail, Pass
 LibTest/core/List/iterator_next_A02_t01: Fail, Pass
 LibTest/core/List/setRange_A05_t01: Fail, Pass
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, Pass
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t01: Fail, Pass
-Language/12_Libraries_and_Scripts/2_Imports_A02_t04: Fail, Pass
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail, Pass
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, Pass
 Language/06_Functions/06_Functions_A01_t04: Fail, Pass
 Language/08_Interfaces/1_Methods_A02_t03: Fail, Pass
@@ -513,17 +539,10 @@ Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail, Pass
 Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail, Pass
 Language/08_Interfaces/1_Methods_A02_t02: Fail, Pass
 Language/08_Interfaces/1_Methods_A02_t01: Fail, Pass
-Language/13_Types/6_Type_Dynamic_A04_t01: Fail, Pass
-Language/13_Types/2_Dynamic_Type_System_A01_t01: Fail, Pass
-Language/13_Types/8_Parameterized_Types_A02_t01: Fail, Pass
-Language/13_Types/4_Interface_Types_A08_t03: Fail, Pass
-Language/13_Types/6_Type_Dynamic_A03_t01: Fail, Pass
 Language/09_Generics/09_Generics_A04_t05: Fail, Pass
 Language/09_Generics/09_Generics_A03_t01: Fail, Pass
 Language/09_Generics/09_Generics_A04_t06: Fail, Pass
 Language/09_Generics/09_Generics_A04_t04: Fail, Pass
-Language/14_Reference/1_Lexical_Rules/2_Comments_A01_t05: Fail, Pass
-Language/14_Reference/1_Lexical_Rules/2_Comments_A01_t06: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, Pass
 Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail, Pass
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, Pass
@@ -758,20 +777,10 @@ Language/10_Expressions/24_Multiplicative_Expressions_A01_t01: Fail, Pass
 Language/10_Expressions/22_Shift_A01_t12: Fail, Pass
 Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail, Pass
 Language/10_Expressions/03_Numbers_A05_t02: Fail, Pass
-Language/07_Classes/7_Static_Variables_A01_t03: Fail, Pass
-Language/07_Classes/7_Static_Variables_A01_t04: Fail, Pass
 Language/07_Classes/2_Getters_A01_t03: Fail, Pass
 Language/07_Classes/2_Getters_A01_t02: Fail, Pass
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A03_t01: Fail, Pass
-Language/07_Classes/7_Static_Variables_A03_t02: Fail, Pass
 Language/07_Classes/2_Getters_A02_t01: Fail, Pass
-Language/07_Classes/5_Constructors_A02_t03: Fail, Pass
-Language/07_Classes/4_Instance_Variables_A04_t02: Fail, Pass
-Language/07_Classes/4_Instance_Variables_A04_t03: Fail, Pass
-Language/07_Classes/7_Static_Variables_A03_t03: Fail, Pass
-Language/07_Classes/7_Static_Variables_A02_t01: Fail, Pass
-Language/07_Classes/9_Superinterfaces_A04_t01: Fail, Pass
-Language/07_Classes/9_Superinterfaces_A06_t01: Fail, Pass
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail, Pass
 Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail, Pass
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t03: Fail, Pass
@@ -786,21 +795,8 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t02: Fail, Pass
 Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail, Pass
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t01: Fail, Pass
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t06: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t02: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t05: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t01: Fail, Pass
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t07: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t08: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t03: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail, Pass
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t19: Fail, Pass
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail, Pass
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A07_t02: Fail, Pass
-Language/07_Classes/7_Static_Variables_A01_t05: Fail, Pass
 Language/07_Classes/3_Setters_A01_t02: Fail, Pass
 Language/05_Variables/05_Variables_A07_t01: Fail, Pass
 Language/11_Statements/10_Return_A03_t02: Fail, Pass

@@ -21,7 +21,7 @@ class Token {
     : this.source = span.file, this.start = span.start, this.end = span.end;
 
   /** Returns the source text corresponding to this [Token]. */
-  String get text() {
+  String get text {
     return source.text.substring(start, end);
   }
 
@@ -40,7 +40,7 @@ class Token {
   }
 
   /** Returns a [SourceSpan] representing the source location. */
-  SourceSpan get span() {
+  SourceSpan get span {
     return new SourceSpan(source, start, end);
   }
 }

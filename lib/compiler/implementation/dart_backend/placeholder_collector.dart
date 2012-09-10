@@ -31,6 +31,8 @@ class DeclarationTypePlaceholder {
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
+  get compiler => collector.compiler;
+
   SendVisitor(this.collector, TreeElements elements) : super(elements);
 
   visitOperatorSend(Send node) {}
@@ -59,6 +61,8 @@ class SendVisitor extends ResolvedVisitor {
     // element === null means dynamic property access.
     if (element === null) {
       collector.tryMakeMemberPlaceholder(node.selector);
+    } else if (element.isErroneous()) {
+      return;
     } else if (element.isPrefix()) {
       // Node is prefix part in case of source 'lib.somesetter = 5;'
       collector.makeNullPlaceholder(node);
@@ -82,6 +86,9 @@ class SendVisitor extends ResolvedVisitor {
 
   visitStaticSend(Send node) {
     final element = elements[node];
+    if (Elements.isUnresolved(element) || element === compiler.assertMethod) {
+      return;
+    }
     if (element.isConstructor() || element.isFactoryConstructor()) {
       // Rename named constructor in redirection position:
       // class C { C.named(); C.redirecting() : this.named(); }
@@ -133,6 +140,7 @@ class SendVisitor extends ResolvedVisitor {
 class PlaceholderCollector extends AbstractVisitor {
   final Compiler compiler;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
+  final Map<Element, ElementAst> elementAsts;
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
@@ -147,7 +155,7 @@ class PlaceholderCollector extends AbstractVisitor {
   LibraryElement get coreLibrary => compiler.coreLibrary;
   FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
 
-  PlaceholderCollector(this.compiler, this.fixedMemberNames) :
+  PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
@@ -197,8 +205,11 @@ class PlaceholderCollector extends AbstractVisitor {
       if (element.defaultImplementation !== null
           && element.defaultImplementation !== element) {
         FunctionElement implementingFactory = element.defaultImplementation;
-        tryMakeConstructorNamePlaceholder(implementingFactory.cachedNode,
-            element.getEnclosingClass());
+        if (implementingFactory is !SynthesizedConstructorElement) {
+          tryMakeConstructorNamePlaceholder(
+              elementAsts[implementingFactory].ast,
+              element.getEnclosingClass());
+        }
       }
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
@@ -224,16 +235,17 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
-  void collect(Element element, TreeElements elements) {
-    treeElements = elements;
-    currentElement = element;
-    Node elementNode = currentElement.parseNode(compiler);
+  void collect(Element element) {
+    this.currentElement = element;
+    final ElementAst elementAst = elementAsts[element];
+    this.treeElements = elementAst.treeElements;
+    Node elementNode = elementAst.ast;
     if (element is FunctionElement) {
       collectFunctionDeclarationPlaceholders(element, elementNode);
     } else if (element is VariableListElement) {
       VariableDefinitions definitions = elementNode;
       for (Node definition in definitions.definitions) {
-        final definitionElement = elements[definition];
+        final definitionElement = treeElements[definition];
         // definitionElement === null if variable is actually unused.
         if (definitionElement === null) continue;
         collectFieldDeclarationPlaceholders(definitionElement, definition);
@@ -362,7 +374,7 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitSendSet(SendSet send) {
     final element = treeElements[send];
-    if (element !== null) {
+    if (!Elements.isUnresolved(element)) {
       if (Elements.isStaticOrTopLevel(element)) {
         assert(element is VariableElement || element.isSetter());
         makeElementPlaceholder(send.selector, element);

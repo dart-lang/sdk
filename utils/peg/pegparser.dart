@@ -83,7 +83,7 @@ _Rule CHAR([characters]) {
  *
  * END does not generate a value.
  */
-_Rule get END() => new _EndOfInputRule();
+_Rule get END => new _EndOfInputRule();
 
 /**
  * Throws an exception.
@@ -223,7 +223,7 @@ class Grammar {
   /** This rule may be set by the user to define whitespace. */
   _Rule _whitespace;
 
-  _Rule get whitespace() => _whitespace;
+  _Rule get whitespace => _whitespace;
   void set whitespace(rule) { _whitespace = _compile(rule); }
 
   Grammar() {
@@ -379,9 +379,9 @@ class _Rule {
   _match(_ParserState state, int pos) => null;
 
   // Does the rule generate a value (AST) with the match?
-  bool get generatesValue() => false;
+  bool get generatesValue => false;
 
-  get defaultValue() => null;
+  get defaultValue => null;
 }
 
 int _skip_whitespace(state, pos) {
@@ -481,7 +481,7 @@ class _SymbolRule extends _Rule {
     return _symbol._rule.match(state, pos);
   }
 
-  bool get generatesValue() => true;
+  bool get generatesValue => true;
 
   toString() => '<${_symbol.name}>';
 }
@@ -517,7 +517,7 @@ class _StringRule extends _Rule implements _Expectable {
     return [pos + _len, null];
   }
 
-  //get defaultValue() => _string;
+  //get defaultValue => _string;
 
   toString() => '"$_string"';
 
@@ -569,7 +569,7 @@ class _TextValueRule extends _Rule {
     return [endPos, _extract(state._text, pos, endPos)];
   }
 
-  bool get generatesValue() => true;
+  bool get generatesValue => true;
 
   toString() => 'TEXT($_rule)';
 }
@@ -646,7 +646,7 @@ class _SequenceRule extends _Rule {
     }
   }
 
-  bool get generatesValue() => _generatesValue;
+  bool get generatesValue => _generatesValue;
 
   toString() => _formatMultiRule('SEQ', _rules);
 }
@@ -673,7 +673,7 @@ class _ChoiceRule extends _Rule {
     return null;
   }
 
-  bool get generatesValue() => true;
+  bool get generatesValue => true;
 
   toString() => _formatMultiRule('OR', _rules);
 }
@@ -692,7 +692,7 @@ class _OptionalRule extends _Rule {
         : [match[0], true];
   }
 
-  bool get generatesValue() => true;
+  bool get generatesValue => true;
 
   toString() => 'MAYBE($_rule)';
 }
@@ -761,7 +761,7 @@ class _RepeatRule extends _Rule {
     }
   }
 
-  bool get generatesValue() => true;
+  bool get generatesValue => true;
 
   toString() => 'MANY(min:$_min, $_rule${_separator==null?'':", sep: $_separator"})';
 }
@@ -796,7 +796,7 @@ class _MemoRule extends _Rule {
     return match;
   }
 
-  bool get generatesValue() => _rule.generatesValue;
+  bool get generatesValue => _rule.generatesValue;
 
   toString() => 'MEMO($_rule)';
 }

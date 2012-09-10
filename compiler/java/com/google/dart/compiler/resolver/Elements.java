@@ -35,6 +35,7 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
+import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.Paths;
@@ -51,6 +52,10 @@ import java.util.Set;
  * Utility and factory methods for elements.
  */
 public class Elements {
+  /**
+   * Name of the artificial function used for resolution of "assert" statement.
+   */
+  public static final String ASSERT_FUNCTION_NAME = "assert__forStatement" + System.currentTimeMillis();
   private static final ImmutableSet<Token> ASSIGN_OPERATORS =
       Sets.immutableEnumSet(
           Token.ASSIGN,
@@ -699,16 +704,30 @@ static FieldElementImplementation fieldFromNode(DartField node,
   /**
    * @return <code>true</code> if given {@link Source} represents library with given name.
    */
-  public static boolean isLibrarySource(Source source, String name) {
+  private static boolean isLibrarySource(Source source, String name) {
     if (source instanceof DartSource) {
       DartSource dartSource = (DartSource) source;
       LibrarySource library = dartSource.getLibrary();
       if (library != null) {
         String libraryName = library.getName();
-        return libraryName.endsWith("/core/" + name);
+        return libraryName.endsWith(name);
       }
     }
     return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Source} represents code library declaration or
+   *         implementation.
+   */
+  public static boolean isCoreLibrarySource(Source source) {
+    // TODO (danrubel) remove these when dartc libraries are removed
+    // Old core library file names
+    return Elements.isLibrarySource(source, "/core/corelib.dart")
+        || Elements.isLibrarySource(source, "/core/corelib_impl.dart")
+        // New core library file names
+        || Elements.isLibrarySource(source, "/core/core.dart")
+        || Elements.isLibrarySource(source, "/core/coreimpl.dart");
   }
 
   /**
@@ -776,7 +795,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   public static boolean isArtificialAssertMethod(Element element) {
     if (element instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) element;
-      return Objects.equal(methodElement.getName(), "assert")
+      return Objects.equal(methodElement.getName(), ASSERT_FUNCTION_NAME)
           && methodElement.getEnclosingElement() instanceof LibraryElement
           && methodElement.getEnclosingElement().getName().equals("dart://core/core.dart");
     }
@@ -825,5 +844,17 @@ static FieldElementImplementation fieldFromNode(DartField node,
   public static boolean isStaticField(FieldElement field) {
     Modifiers modifiers = field.getModifiers();
     return modifiers.isStatic() || modifiers.isConstant();
+  }
+
+  /**
+   * @return <code>true</code> if given {@link InterfaceType} overrides "noSuchMethod".
+   */
+  public static boolean handlesNoSuchMethod(InterfaceType type) {
+    Member member = type.lookupMember("noSuchMethod");
+    if (member == null) {
+      return false;
+    }
+    Source source = member.getElement().getSourceInfo().getSource();
+    return !isCoreLibrarySource(source);
   }
 }

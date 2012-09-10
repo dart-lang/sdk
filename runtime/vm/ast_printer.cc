@@ -449,8 +449,10 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   }
   OS::Print("llev %d ", scope->loop_level());
   const int num_fixed_params = function.num_fixed_parameters();
-  const int num_opt_params = function.num_optional_parameters();
-  const int num_params = num_fixed_params + num_opt_params;
+  const int num_opt_pos_params = function.num_optional_positional_parameters();
+  const int num_opt_named_params = function.num_optional_named_parameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_params <= scope->num_variables());
   int pos = 0;  // Current position of variable in scope.

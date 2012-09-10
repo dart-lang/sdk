@@ -16,7 +16,7 @@ class ObjectArray<E> implements List<E> {
     return Collections.collectionToString(this);
   }
 
-  int get length() native "ObjectArray_getLength";
+  int get length native "ObjectArray_getLength";
 
   void _copyFromObjectArray(ObjectArray src,
                             int srcStart,
@@ -159,7 +159,7 @@ class ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  int get length() native "ObjectArray_getLength";
+  int get length native "ObjectArray_getLength";
 
   void copyFrom(List src, int srcStart, int dstStart, int count) {
     throw const UnsupportedOperationException(

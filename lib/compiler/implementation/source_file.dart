@@ -39,13 +39,25 @@ class SourceFile {
   }
 
   int getLine(int position) {
-    // TODO(jimhug): Implement as binary search.
-    var starts = lineStarts;
-    for (int i=0; i < starts.length; i++) {
-      if (starts[i] > position) return i-1;
+    List<int> starts = lineStarts;
+    if (position < 0 || starts.last() <= position) {
+      throw 'bad position #$position in file $filename with '
+            'length ${text.length}.';
     }
-    throw 'bad position #$position in file $filename with '
-          'length ${text.length}.';
+    int first = 0;
+    int count = starts.length;
+    while (count > 1) {
+      int step = count ~/ 2;
+      int middle = first + step;
+      int lineStart = starts[middle];
+      if (position < lineStart) {
+        count = step;
+      } else {
+        first = middle;
+        count -= step;
+      }
+    }
+    return first;
   }
 
   int getColumn(int line, int position) {

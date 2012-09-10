@@ -22,6 +22,7 @@ class AbstractTypeArguments;
 class Array;
 class Class;
 class ClassTable;
+class ExternalUint8Array;
 class GrowableObjectArray;
 class Heap;
 class Library;
@@ -56,6 +57,7 @@ class RawTypeArguments;
 class RawTwoByteString;
 class RawUnresolvedClass;
 class String;
+class TokenStream;
 
 // Serialized object header encoding is as follows:
 // - Smi: the Smi value is written as is (last bit is not tagged).
@@ -169,6 +171,14 @@ class BaseReader {
     stream_.ReadBytes(addr, len);
   }
 
+  const uint8_t* CurrentBufferAddress() const {
+    return stream_.AddressOfCurrentPosition();
+  }
+
+  void Advance(intptr_t value) {
+    stream_.Advance(value);
+  }
+
   RawSmi* ReadAsSmi();
   intptr_t ReadSmiValue();
 
@@ -204,6 +214,8 @@ class SnapshotReader : public BaseReader {
   AbstractType* TypeHandle() { return &type_; }
   AbstractTypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   Array* TokensHandle() { return &tokens_; }
+  TokenStream* StreamHandle() { return &stream_; }
+  ExternalUint8Array* DataHandle() { return &data_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -294,6 +306,8 @@ class SnapshotReader : public BaseReader {
   AbstractType& type_;  // Temporary type handle.
   AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
   Array& tokens_;  // Temporary tokens handle.
+  TokenStream& stream_;  // Temporary token stream handle.
+  ExternalUint8Array& data_;  // Temporary stream data handle.
   GrowableArray<BackRefNode*> backward_references_;
 
   friend class ApiError;

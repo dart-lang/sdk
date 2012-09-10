@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryExport;
 import com.google.dart.compiler.ast.LibraryImport;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -131,16 +132,20 @@ public class TopLevelElementBuilder {
       for (Element element : lib.getElement().getExportedElements()) {
         String name = element.getName();
         if (libraryImport.isVisible(name)) {
-          {
-            Element oldElement = scopeForImport.declareElement(name, element);
-            if (shouldReportDuplicateDeclaration(oldElement, element)) {
-              reportDuplicateTopLevelDeclarationImport(listener, library, prefix, oldElement, element);
-            }
+          Element oldElement = scopeForImport.declareElement(name, element);
+          if (shouldReportDuplicateDeclaration(oldElement, element)) {
+            reportDuplicateTopLevelDeclarationImport(listener, library, prefix, oldElement, element);
           }
-          // May re-export.
-          if (libraryImport.isExported()) {
-            Elements.addExportedElement(library.getElement(), element);
-          }
+        }
+      }
+    }
+    // Fill "library" export scope with re-exports.
+    for (LibraryExport export : library.getExports()) {
+      LibraryUnit lib = export.getLibrary();
+      for (Element element : lib.getElement().getExportedElements()) {
+        String name = element.getName();
+        if (export.isVisible(name)) {
+          Elements.addExportedElement(library.getElement(), element);
         }
       }
     }

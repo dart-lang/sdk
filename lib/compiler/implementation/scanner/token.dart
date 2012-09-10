@@ -124,6 +124,8 @@ class Token {
    */
   int get precedence => info.precedence;
 
+  bool isIdentifier() => kind === IDENTIFIER_TOKEN;
+
   /**
    * Returns a textual representation of this token to be used for debugging
    * purposes. The resulting string might contain information about the
@@ -152,6 +154,8 @@ class KeywordToken extends Token {
 
   KeywordToken(Keyword value, int charOffset)
     : this.value = value, super(value.info, charOffset);
+
+  bool isIdentifier() => value.isPseudo || value.isBuiltIn;
 
   String toString() => value.syntax;
 }
@@ -185,7 +189,7 @@ interface SourceString extends Hashable, Iterable<int> default StringWrapper {
    */
   SourceString copyWithoutQuotes(int initial, int terminal);
 
-  String get stringValue();
+  String get stringValue;
 
   String slowToString();
 

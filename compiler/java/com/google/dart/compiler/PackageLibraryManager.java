@@ -223,13 +223,12 @@ public class PackageLibraryManager {
   
   public void setPackageRoots(List<File> roots){
     if (roots == null || roots.isEmpty()){
-      this.packageRoots = DEFAULT_PACKAGE_ROOTS;
-    } else { 
-      packageRoots.clear();
-      for (File file : roots){   
-        packageRoots.add(file.getAbsoluteFile());
-      }   
+      roots = DEFAULT_PACKAGE_ROOTS;
     }
+    packageRoots.clear();
+    for (File file : roots){   
+      packageRoots.add(file.getAbsoluteFile());
+    }   
     packageRootsUri.clear();
     for (File file : roots){
       packageRootsUri.add(file.toURI());
@@ -306,8 +305,11 @@ public class PackageLibraryManager {
   }
   
   protected SystemLibrary[] getDefaultLibraries() {
-    return SDK_LIBRARY_MANAGER.getDefaultLibraries();
-    
+    return SDK_LIBRARY_MANAGER.getDefaultLibraries(); 
+  }
+  
+  public Collection<SystemLibrary> getSystemLibraries(){
+    return SDK_LIBRARY_MANAGER.getAllSystemLibraries();
   }
   
   public File getSdkLibPath() {

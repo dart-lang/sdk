@@ -1558,9 +1558,11 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           default:
             mnem = "???";
         }
-        AppendToBuffer(((regop <= 1) ? "%s%c " : "%s "),
-                       mnem,
-                       operand_size_code());
+        if (regop <= 1) {
+          AppendToBuffer("%s%c ", mnem, operand_size_code());
+        } else {
+          AppendToBuffer("%s ", mnem);
+        }
         data += PrintRightOperand(data);
       }
         break;

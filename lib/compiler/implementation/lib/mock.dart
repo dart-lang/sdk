@@ -6,21 +6,6 @@
 
 // TODO(ahe): Remove this file.
 
-// TODO(ahe): VM specfic exception?
-class InternalError {
-  const InternalError(this._msg);
-  String toString() => "InternalError: '${_msg}'";
-  final String _msg;
-}
-
-// TODO(ahe): VM specfic exception?
-class StaticResolutionException implements Exception {}
-
-void assert(condition) {
-  if (condition is Function) condition = condition();
-  if (!condition) throw new AssertionError();
-}
-
 // TODO(ahe): Not sure ByteArray belongs in the core library.
 interface Uint8List extends List default _InternalByteArray {
   Uint8List(int length);

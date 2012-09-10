@@ -77,6 +77,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   if (instr->lifetime_position() != -1) {
     OS::Print("%3"Pd": ", instr->lifetime_position());
   }
+  if (!instr->IsBlockEntry()) OS::Print("    ");
   OS::Print("%s", str);
 }
 
@@ -128,15 +129,40 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 }
 
 
-void Definition::PrintTo(BufferFormatter* f) const {
-  // Do not access 'deopt_id()' as it asserts that the computation can
-  // deoptimize.
-  if (HasSSATemp()) {
-    f->Print("v%"Pd" <- ", ssa_temp_index());
+static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
+  if (def.HasPropagatedType()) {
+    String& name = String::Handle();
+    name = AbstractType::Handle(def.PropagatedType()).Name();
+    f->Print(" {PT: %s}", name.ToCString());
   }
-  f->Print("%s:%"Pd"(", DebugName(), deopt_id_);
+  if (def.has_propagated_cid()) {
+    const Class& cls = Class::Handle(
+        Isolate::Current()->class_table()->At(def.propagated_cid()));
+    f->Print(" {PCid: %s}", String::Handle(cls.Name()).ToCString());
+  }
+}
+
+
+static void PrintUse(BufferFormatter* f, const Definition& definition) {
+  if (definition.is_used()) {
+    if (definition.HasSSATemp()) {
+      f->Print("v%"Pd, definition.ssa_temp_index());
+    } else if (definition.temp_index() != -1) {
+      f->Print("t%"Pd, definition.temp_index());
+    }
+  }
+}
+
+
+void Definition::PrintTo(BufferFormatter* f) const {
+  PrintUse(f, *this);
+  if (is_used()) {
+    if (HasSSATemp() || (temp_index() != -1)) f->Print(" <- ");
+  }
+  f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
   PrintOperandsTo(f);
   f->Print(")");
+  PrintPropagatedType(f, *this);
 }
 
 
@@ -154,11 +180,7 @@ void Definition::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void Value::PrintTo(BufferFormatter* f) const {
-  if (definition()->HasSSATemp()) {
-    f->Print("v%"Pd"", definition()->ssa_temp_index());
-  } else {
-    f->Print("t%"Pd"", definition()->temp_index());
-  }
+  PrintUse(f, *definition());
 }
 
 
@@ -216,10 +238,8 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void PolymorphicInstanceCallInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s(", DebugName());
+void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance_call()->PrintOperandsTo(f);
-  f->Print(") ");
   PrintICData(f, ic_data());
 }
 
@@ -433,54 +453,47 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%2"Pd": [graph]", block_id());
-  if (start_env_ != NULL) {
-    f->Print("\n{\n");
-    const GrowableArray<Value*>& values = start_env_->values();
-    for (intptr_t i = 0; i < values.length(); i++) {
-      Definition* def = values[i]->definition();
-      f->Print("  ");
-      def->PrintTo(f);
-      f->Print("\n");
+  f->Print("B%"Pd"[graph]", block_id());
+  if ((constant_null() != NULL) || (start_env() != NULL)) {
+    f->Print(" {");
+    if (constant_null() != NULL) {
+      f->Print("\n      ");
+      constant_null()->PrintTo(f);
     }
-    f->Print("} ");
-    start_env_->PrintTo(f);
+    if (start_env() != NULL) {
+      for (intptr_t i = 0; i < start_env()->values().length(); ++i) {
+        Definition* def = start_env()->values()[i]->definition();
+        if (def->IsParameter()) {
+          f->Print("\n      ");
+          def->PrintTo(f);
+        }
+      }
+    }
+    f->Print("\n}");
   }
 }
 
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%2"Pd": [join]", block_id());
+  f->Print("B%"Pd"[join]", block_id());
   if (phis_ != NULL) {
+    f->Print(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
       if ((*phis_)[i] == NULL) continue;
-      f->Print("\n");
+      f->Print("\n      ");
       (*phis_)[i]->PrintTo(f);
     }
+    f->Print("\n}");
   }
   if (HasParallelMove()) {
-    f->Print("\n");
+    f->Print(" ");
     parallel_move()->PrintTo(f);
   }
 }
 
 
-static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
-  if (def.HasPropagatedType()) {
-    String& name = String::Handle();
-    name = AbstractType::Handle(def.PropagatedType()).Name();
-    f->Print(" {PT: %s}", name.ToCString());
-  }
-  if (def.has_propagated_cid()) {
-    const Class& cls = Class::Handle(
-        Isolate::Current()->class_table()->At(def.propagated_cid()));
-    f->Print(" {PCid: %s}", String::Handle(cls.Name()).ToCString());
-  }
-}
-
-
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("     v%"Pd" <- phi(", ssa_temp_index());
+  f->Print("v%"Pd" <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");
@@ -490,62 +503,57 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
-void ParameterInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    v%"Pd" <- parameter(%"Pd")",
-           HasSSATemp() ? ssa_temp_index() : temp_index(),
-           index());
-  PrintPropagatedType(f, *this);
+void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%"Pd, index());
 }
 
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%2"Pd": [target", block_id());
+  f->Print("B%"Pd"[target", block_id());
   if (IsCatchEntry()) {
     f->Print(" catch %"Pd"]", catch_try_index());
   } else {
     f->Print("]");
   }
   if (HasParallelMove()) {
-    f->Print("\n");
+    f->Print(" ");
     parallel_move()->PrintTo(f);
   }
 }
 
 
-void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }
 
 
 void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+  f->Print("%s ", DebugName());
   value()->PrintTo(f);
 }
 
 
 void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s" , DebugName());
+  f->Print("%s" , DebugName());
 }
 
 
 void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+  f->Print("%s ", DebugName());
 }
 
 
 void GotoInstr::PrintTo(BufferFormatter* f) const {
   if (HasParallelMove()) {
     parallel_move()->PrintTo(f);
-  } else {
-    f->Print("    ");
+    f->Print(" ");
   }
-  f->Print(" goto:%"Pd" %"Pd"", GetDeoptId(), successor()->block_id());
+  f->Print("goto:%"Pd" %"Pd"", GetDeoptId(), successor()->block_id());
 }
 
 
 void BranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+  f->Print("%s ", DebugName());
   f->Print("if ");
   comparison()->PrintTo(f);
 
@@ -556,7 +564,7 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+  f->Print("%s ", DebugName());
   for (intptr_t i = 0; i < moves_.length(); i++) {
     if (i != 0) f->Print(", ");
     moves_[i]->dest().PrintTo(f);

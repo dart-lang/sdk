@@ -12,7 +12,7 @@ class Tokenizer extends CSSTokenizerBase {
     cssTokens = new TokenKind();
   }
 
-  int get startIndex() => _startIndex;
+  int get startIndex => _startIndex;
 
   Token next() {
     // keep track of our starting position

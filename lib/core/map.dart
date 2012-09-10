@@ -79,7 +79,7 @@ interface Map<K, V> default HashMapImplementation<K extends Hashable, V> {
   /**
    * The number of {key, value} pairs in the map.
    */
-  int get length();
+  int get length;
 
   /**
    * Returns true if there is no {key, value} pair in the map.

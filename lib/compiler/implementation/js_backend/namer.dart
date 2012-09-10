@@ -18,14 +18,17 @@ class Namer {
     return _jsReserved;
   }
 
-  Map<Element, String> globals;
-  Map<String, int> usedGlobals;
-  Map<String, LibraryElement> shortPrivateNameOwners;
+  final Map<Element, String> globals;
+  final Map<String, int> usedGlobals;
+  final Map<String, LibraryElement> shortPrivateNameOwners;
+
+  final Map<Constant, String> constantNames;
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
         usedGlobals = new Map<String, int>(),
-        shortPrivateNameOwners = new Map<String, LibraryElement>();
+        shortPrivateNameOwners = new Map<String, LibraryElement>(),
+        constantNames = new Map<Constant, String>();
 
   final String CURRENT_ISOLATE = @'$';
   final String ISOLATE = 'Isolate';
@@ -36,6 +39,18 @@ class Namer {
   static const SourceString CLOSURE_INVOCATION_NAME =
       Compiler.CALL_OPERATOR_NAME;
 
+  String constantName(Constant constant) {
+    // In the current implementation it doesn't make sense to give names to
+    // function constants since the function-implementation itself serves as
+    // constant and can be accessed directly.
+    assert(!constant.isFunction());
+    String result = constantNames[constant];
+    if (result === null) {
+      result = getFreshGlobalName("CTC");
+      constantNames[constant] = result;
+    }
+    return result;
+  }
 
   String closureInvocationName(Selector selector) {
     // TODO(floitsch): mangle, while not conflicting with instance names.

@@ -12,7 +12,7 @@ class Tokenizer extends TokenizerBase {
       tmplTokens = new TokenKind();
   }
 
-  int get startIndex() => _startIndex;
+  int get startIndex => _startIndex;
   void set index(int idx) {
     _index = idx;
   }

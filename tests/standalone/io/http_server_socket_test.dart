@@ -107,7 +107,7 @@ class SocketMock implements Socket {
     _onError = callback;
   }
 
-  OutputStream get outputStream() => _outputStream;
+  OutputStream get outputStream => _outputStream;
 
   int hashCode() => _hashCode;
 
@@ -157,7 +157,7 @@ class ServerSocketMock implements ServerSocket {
     _onError = callback;
   }
 
-  int get port() => _port;
+  int get port => _port;
 
   int _port;
   Function _onConnection;

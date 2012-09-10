@@ -78,9 +78,9 @@ class GrowableObjectArray<T> implements List<T> {
   factory GrowableObjectArray.fromObjectArray(ObjectArray<T> data)
     native "GrowableObjectArray_allocate";
 
-  int get length() native "GrowableObjectArray_getLength";
+  int get length native "GrowableObjectArray_getLength";
 
-  int get capacity() native "GrowableObjectArray_getCapacity";
+  int get capacity native "GrowableObjectArray_getCapacity";
 
   void set length(int new_length) {
     if (new_length > capacity) {

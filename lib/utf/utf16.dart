@@ -292,13 +292,13 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
     }
   }
 
-  int get position() => utf16EncodedBytesIterator.position ~/ 2;
+  int get position => utf16EncodedBytesIterator.position ~/ 2;
 
   void backup([int by = 1]) {
     utf16EncodedBytesIterator.backup(2 * by);
   }
 
-  int get remaining() => (utf16EncodedBytesIterator.remaining + 1) ~/ 2;
+  int get remaining => (utf16EncodedBytesIterator.remaining + 1) ~/ 2;
 
   void skip([int count = 1]) {
     utf16EncodedBytesIterator.skip(2 * count);

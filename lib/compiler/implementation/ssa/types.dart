@@ -32,7 +32,9 @@ abstract class HType {
     } else if (element === compiler.listClass
         || Elements.isListSupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveArray(type, canBeNull);
-    } else if (Elements.isStringSupertype(element, compiler)) {
+    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+      return new HBoundedPotentialPrimitiveNumberOrString(type, canBeNull);
+    } else if (Elements.isStringOnlySupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveString(type, canBeNull);
     } else {
       return canBeNull ? new HBoundedType.withNull(type)
@@ -701,6 +703,47 @@ class HBoundedPotentialPrimitiveType extends HBoundedType {
   const HBoundedPotentialPrimitiveType(DartType type, bool canBeNull)
       : super(type, canBeNull, false);
   bool canBePrimitive() => true;
+}
+
+class HBoundedPotentialPrimitiveNumberOrString
+    extends HBoundedPotentialPrimitiveType {
+  const HBoundedPotentialPrimitiveNumberOrString(DartType type, bool canBeNull)
+      : super(type, canBeNull);
+
+  HType union(HType other) {
+    if (other.isNumber()) return this;
+    if (other.isNumberOrNull()) {
+      if (canBeNull()) return this;
+      return new HBoundedPotentialPrimitiveNumberOrString(type, true);
+    }
+
+    if (other.isString()) return this;
+    if (other.isStringOrNull()) {
+      if (canBeNull()) return this;
+      return new HBoundedPotentialPrimitiveNumberOrString(type, true);
+    }
+
+    if (other.isNull()) {
+      if (canBeNull()) return this;
+      return new HBoundedPotentialPrimitiveNumberOrString(type, true);
+    }
+
+    return super.union(other);
+  }
+
+  HType intersection(HType other) {
+    if (other.isNumber()) return other;
+    if (other.isNumberOrNull()) {
+      if (!canBeNull()) return HType.NUMBER;
+      return other;
+    }
+    if (other.isString()) return other;
+    if (other.isStringOrNull()) {
+      if (!canBeNull()) return HType.STRING;
+      return other;
+    }
+    return super.intersection(other);
+  }
 }
 
 class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {

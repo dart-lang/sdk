@@ -12,16 +12,16 @@ class _DOMWindowCrossFrameImpl implements Window {
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
-  bool get closed() => _closed(_window);
+  bool get closed => _closed(_window);
   static bool _closed(win) native "return win.closed;";
 
-  Window get opener() => _createSafe(_opener(_window));
+  Window get opener => _createSafe(_opener(_window));
   static Window _opener(win) native "return win.opener;";
 
-  Window get parent() => _createSafe(_parent(_window));
+  Window get parent => _createSafe(_parent(_window));
   static Window _parent(win) native "return win.parent;";
 
-  Window get top() => _createSafe(_top(_window));
+  Window get top => _createSafe(_top(_window));
   static Window _top(win) native "return win.top;";
 
   // Methods.

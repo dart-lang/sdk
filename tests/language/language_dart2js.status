@@ -34,7 +34,6 @@ closure_type_test: Fail # does not detect type error in checked mode.
 function_type_test: Fail # does not detect type error in checked mode.
 function_malformed_result_type_test: Fail # does not detect type error in checked mode.
 void_type_test: Fail # does not detect type error in checked mode.
-arithmetic_test: Fail
 
 type_parameter_test/01: Fail # Issue 4932
 type_parameter_test/02: Fail # Issue 4932
@@ -44,14 +43,33 @@ type_parameter_test/04: Fail # Issue 4932
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
 
+[ $compiler == dart2js && $host_unchecked ]
+metadata_test: Fail # Metadata on type parameters not supported.
+
+[ $compiler == dart2js && $host_checked ]
+metadata_test: Crash # Metadata on type parameters not supported.
+
 [ $compiler == dart2js ]
+infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
+
+class_literal_test/03: Fail # Calling a nonexistent static is not a compile time error anymore.
+class_literal_test/04: Fail # Calling a nonexistent static is not a compile time error anymore.
+class_literal_test/08: Fail # Calling a nonexistent static is not a compile time error anymore.
+class_literal_test/09: Fail # Calling a nonexistent static is not a compile time error anymore.
+class_literal_test/15: Fail # Calling a nonexistent static is not a compile time error anymore.
+class_literal_test/16: Fail # Calling a nonexistent static is not a compile time error anymore.
 
 getter_declaration_negative_test: Fail # This will be fixed when dart2js reject old getter syntax.
 
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 canonical_const_test: Fail # We don't take the generic type into account yet.
+
+function_type_alias_test: Fail # Support for optional parameters not conform to latest spec.
+function_type_alias2_test: Fail # Support for optional parameters not conform to latest spec.
+named_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
+positional_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
@@ -86,14 +104,28 @@ generic_instanceof_test: Fail # cannot resolve type T
 generic_instanceof2_test: Fail # fails an instance of test at run time
 generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
-get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
+get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/09: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/10: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
 lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
-method_name_test: Fail # Parsing of pseudo keywords.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
 method_override2_test/00: Fail # accepts illegal override
 method_override2_test/01: Fail # accepts illegal override
@@ -210,20 +242,11 @@ prefix16_test: Fail
 prefix18_negative_test: Fail # Negative language test.
 prefix20_negative_test: Fail # Negative language test.
 prefix23_negative_test: Fail # Negative language test.
-pseudo_kw_illegal_test/01: Fail # Negative language test.
 pseudo_kw_illegal_test/03: Fail # Negative language test.
-pseudo_kw_illegal_test/05: Fail # Negative language test.
-pseudo_kw_illegal_test/06: Fail # Negative language test.
-pseudo_kw_illegal_test/07: Fail # Negative language test.
 pseudo_kw_illegal_test/08: Fail # Negative language test.
-pseudo_kw_illegal_test/09: Fail # Negative language test.
 pseudo_kw_illegal_test/10: Fail # Negative language test.
 pseudo_kw_illegal_test/11: Fail # Negative language test.
-pseudo_kw_illegal_test/12: Fail # Negative language test.
-pseudo_kw_illegal_test/13: Fail # Negative language test.
 pseudo_kw_illegal_test/14: Fail # Negative language test.
-pseudo_kw_illegal_test/15: Fail # Negative language test.
-pseudo_kw_illegal_test/16: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
 setter_declaration2_negative_test: Fail # Negative language test.
 setter_declaration_negative_test: Fail # Negative language test.
@@ -300,4 +323,3 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-

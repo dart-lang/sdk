@@ -53,6 +53,17 @@ const int* JumpPattern::pattern() const {
 }
 
 
+void ShortCallPattern::SetTargetAddress(uword target) const {
+  ASSERT(IsValid());
+  *reinterpret_cast<uint32_t*>(start() + 1) = target - start() - kLengthInBytes;
+}
+
+
+const int* ShortCallPattern::pattern() const {
+  static const int kCallPattern[kLengthInBytes] = {0xE8, -1, -1, -1, -1};
+  return kCallPattern;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

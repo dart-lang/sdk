@@ -37,6 +37,9 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
+DEFINE_FLAG(bool, reject_named_argument_as_positional, false,
+    "Enforce new rules for optional parameters and disallow passing of named "
+    "arguments to optional positional formal parameters");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -184,6 +187,40 @@ static RawString* IdentifierPrettyName(const String& name) {
   }
 
   return result.raw();
+}
+
+
+template<typename type>
+static bool IsSpecialCharacter(type value) {
+  return ((value == '"') ||
+          (value == '\n') ||
+          (value == '\f') ||
+          (value == '\b') ||
+          (value == '\t') ||
+          (value == '\v') ||
+          (value == '\r'));
+}
+
+
+template<typename type>
+static type SpecialCharacter(type value) {
+  if (value == '"') {
+    return '"';
+  } else if (value == '\n') {
+    return 'n';
+  } else if (value == '\f') {
+    return 'f';
+  } else if (value == '\b') {
+    return 'b';
+  } else if (value == '\t') {
+    return 't';
+  } else if (value == '\v') {
+    return 'v';
+  } else if (value == '\r') {
+    return 'r';
+  }
+  UNREACHABLE();
+  return '\0';
 }
 
 
@@ -3868,27 +3905,27 @@ void Function::set_kind(RawFunction::Kind value) const {
 }
 
 
-void Function::set_is_static(bool is_static) const {
+void Function::set_is_static(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = StaticBit::update(is_static, bits);
+  raw_ptr()->kind_tag_ = StaticBit::update(value, bits);
 }
 
 
-void Function::set_is_const(bool is_const) const {
+void Function::set_is_const(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = ConstBit::update(is_const, bits);
+  raw_ptr()->kind_tag_ = ConstBit::update(value, bits);
 }
 
 
-void Function::set_is_external(bool is_external) const {
+void Function::set_is_external(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = ExternalBit::update(is_external, bits);
+  raw_ptr()->kind_tag_ = ExternalBit::update(value, bits);
 }
 
 
-void Function::set_token_pos(intptr_t pos) const {
-  ASSERT(pos >= 0);
-  raw_ptr()->token_pos_ = pos;
+void Function::set_token_pos(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->token_pos_ = value;
 }
 
 
@@ -3897,15 +3934,27 @@ void Function::set_kind_tag(intptr_t value) const {
 }
 
 
-void Function::set_num_fixed_parameters(intptr_t n) const {
-  ASSERT(n >= 0);
-  raw_ptr()->num_fixed_parameters_ = n;
+void Function::set_num_fixed_parameters(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->num_fixed_parameters_ = value;
 }
 
 
-void Function::set_num_optional_parameters(intptr_t n) const {
-  ASSERT(n >= 0);
-  raw_ptr()->num_optional_parameters_ = n;
+void Function::set_num_optional_positional_parameters(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->num_optional_positional_parameters_ = value;
+  // Optional positional and optional named parameters are mutually exclusive.
+  ASSERT((num_optional_positional_parameters() == 0) ||
+         (num_optional_named_parameters() == 0));
+}
+
+
+void Function::set_num_optional_named_parameters(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->num_optional_named_parameters_ = value;
+  // Optional positional and optional named parameters are mutually exclusive.
+  ASSERT((num_optional_positional_parameters() == 0) ||
+         (num_optional_named_parameters() == 0));
 }
 
 
@@ -3941,7 +3990,8 @@ void Function::set_is_abstract(bool value) const {
 
 
 intptr_t Function::NumberOfParameters() const {
-  return num_fixed_parameters() + num_optional_parameters();
+  return num_fixed_parameters() +
+      num_optional_positional_parameters() + num_optional_named_parameters();
 }
 
 
@@ -3964,9 +4014,79 @@ intptr_t Function::NumberOfImplicitParameters() const {
 }
 
 
+void Function::SetNumberOfParameters(intptr_t num_fixed_parameters,
+                                     intptr_t num_optional_parameters,
+                                     bool are_optional_positional) const {
+  set_num_fixed_parameters(num_fixed_parameters);
+  if (are_optional_positional) {
+    set_num_optional_positional_parameters(num_optional_parameters);
+    set_num_optional_named_parameters(0);
+  } else {
+    set_num_optional_positional_parameters(0);
+    set_num_optional_named_parameters(num_optional_parameters);
+  }
+}
+
+
 bool Function::AreValidArgumentCounts(int num_arguments,
                                       int num_named_arguments,
                                       String* error_message) const {
+  if (FLAG_reject_named_argument_as_positional) {
+    if (num_named_arguments > num_optional_named_parameters()) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "%d named passed, at most %"Pd" expected",
+                    num_named_arguments,
+                    num_optional_named_parameters());
+        *error_message = String::New(message_buffer);
+      }
+      return false;  // Too many named arguments.
+    }
+    const int num_pos_args = num_arguments - num_named_arguments;
+    const int num_opt_pos_params = num_optional_positional_parameters();
+    const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
+    if (num_pos_args > num_pos_params) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        // Hide implicit parameters to the user.
+        const intptr_t num_hidden_params = NumberOfImplicitParameters();
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "%"Pd"%s passed, %s%"Pd" expected",
+                    num_pos_args - num_hidden_params,
+                    num_opt_pos_params > 0 ? " positional" : "",
+                    num_opt_pos_params > 0 ? "at most " : "",
+                    num_pos_params - num_hidden_params);
+        *error_message = String::New(message_buffer);
+      }
+      return false;  // Too many fixed and/or positional arguments.
+    }
+    if (num_pos_args < num_fixed_parameters()) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        // Hide implicit parameters to the user.
+        const intptr_t num_hidden_params = NumberOfImplicitParameters();
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "%"Pd"%s passed, %s%"Pd" expected",
+                    num_pos_args - num_hidden_params,
+                    num_opt_pos_params > 0 ? " positional" : "",
+                    num_opt_pos_params > 0 ? "at least " : "",
+                    num_fixed_parameters() - num_hidden_params);
+        *error_message = String::New(message_buffer);
+      }
+      return false;  // Too few fixed and/or positional arguments.
+    }
+    return true;
+  }
+
+  // TODO(regis): Remove the following code once the flag is removed.
+
   if (num_arguments > NumberOfParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
@@ -3977,7 +4097,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
                   kMessageBufferSize,
                   "%"Pd" passed, %s%"Pd" expected",
                   num_arguments - num_hidden_params,
-                  num_optional_parameters() > 0 ? "at most " : "",
+                  HasOptionalParameters() ? "at most " : "",
                   NumberOfParameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
@@ -3994,7 +4114,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
                   kMessageBufferSize,
                   "%"Pd" %spassed, %"Pd" expected",
                   num_positional_args - num_hidden_params,
-                  num_optional_parameters() > 0 ? "positional " : "",
+                  HasOptionalParameters() ? "positional " : "",
                   num_fixed_parameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
@@ -4102,11 +4222,56 @@ const char* Function::ToFullyQualifiedCString() const {
 
 
 bool Function::HasCompatibleParametersWith(const Function& other) const {
-  // The default values of optional parameters can differ.
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_params = num_optional_parameters();
+  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
+  const intptr_t num_opt_named_params = num_optional_named_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
-  const intptr_t other_num_opt_params = other.num_optional_parameters();
+  const intptr_t other_num_opt_pos_params =
+      other.num_optional_positional_parameters();
+  const intptr_t other_num_opt_named_params =
+      other.num_optional_named_parameters();
+  if (FLAG_reject_named_argument_as_positional) {
+    // The default values of optional parameters can differ.
+    if ((num_fixed_params != other_num_fixed_params) ||
+        (num_opt_pos_params < other_num_opt_pos_params) ||
+        (num_opt_named_params < other_num_opt_named_params)) {
+      return false;
+    }
+    if (other_num_opt_named_params == 0) {
+      return true;
+    }
+    // Check that for each optional named parameter of the other function there
+    // exists an optional named parameter of this function with an identical
+    // name.
+    // Note that SetParameterNameAt() guarantees that names are symbols, so we
+    // can compare their raw pointers.
+    const int num_params = num_fixed_params + num_opt_named_params;
+    const int other_num_params =
+        other_num_fixed_params + other_num_opt_named_params;
+    bool found_param_name;
+    String& other_param_name = String::Handle();
+    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+      other_param_name = other.ParameterNameAt(i);
+      found_param_name = false;
+      for (intptr_t j = num_fixed_params; j < num_params; j++) {
+        if (ParameterNameAt(j) == other_param_name.raw()) {
+          found_param_name = true;
+          break;
+        }
+      }
+      if (!found_param_name) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // TODO(regis): Remove the following code once the flag is removed.
+
+  // The default values of optional parameters can differ.
+  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
+  const intptr_t other_num_opt_params =
+      other_num_opt_pos_params + other_num_opt_named_params;
   if ((num_fixed_params != other_num_fixed_params) ||
       (num_opt_params < other_num_opt_params)) {
     return false;
@@ -4119,6 +4284,8 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   const int other_num_params = other_num_fixed_params + other_num_opt_params;
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     const String& other_param_name = String::Handle(other.ParameterNameAt(i));
+    ASSERT(other_param_name.IsSymbol());
+    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
     if (ParameterNameAt(i) != other_param_name.raw()) {
       return false;
     }
@@ -4128,22 +4295,23 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
 
 
 // If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
-// of this function is a subtype or a supertype of the type of the corresponding
+// of this function is a subtype or a supertype of the type of the specified
 // parameter of the other function.
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
-// parameter of this function is more specific than the type of the
-// corresponding parameter of the other function.
+// parameter of this function is more specific than the type of the specified
+// parameter of the other function.
 // Note that we do not apply contravariance of parameter types, but covariance
 // of both parameter types and result type.
 bool Function::TestParameterType(
     TypeTestKind test_kind,
     intptr_t parameter_position,
+    intptr_t other_parameter_position,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
   AbstractType& other_param_type =
-      AbstractType::Handle(other.ParameterTypeAt(parameter_position));
+      AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
     other_param_type = other_param_type.InstantiateFrom(other_type_arguments);
   }
@@ -4179,11 +4347,16 @@ bool Function::TypeTest(TypeTestKind test_kind,
                         const AbstractTypeArguments& other_type_arguments,
                         Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_params = num_optional_parameters();
+  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
+  const intptr_t num_opt_named_params = num_optional_named_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
-  const intptr_t other_num_opt_params = other.num_optional_parameters();
+  const intptr_t other_num_opt_pos_params =
+      other.num_optional_positional_parameters();
+  const intptr_t other_num_opt_named_params =
+      other.num_optional_named_parameters();
   if ((num_fixed_params != other_num_fixed_params) ||
-      (num_opt_params < other_num_opt_params)) {
+      (num_opt_pos_params < other_num_opt_pos_params) ||
+      (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
   // Check the result type.
@@ -4211,10 +4384,60 @@ bool Function::TypeTest(TypeTestKind test_kind,
       }
     }
   }
+  if (FLAG_reject_named_argument_as_positional) {
+    // Check the types of fixed and optional positional parameters.
+    for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
+      if (!TestParameterType(test_kind,
+                             i, i, type_arguments, other, other_type_arguments,
+                             malformed_error)) {
+        return false;
+      }
+    }
+    // Check the names and types of optional named parameters.
+    if (other_num_opt_named_params == 0) {
+      return true;
+    }
+    // Check that for each optional named parameter of type T of the other
+    // function type, there exists an optional named parameter of this function
+    // type with an identical name and with a type S that is a either a subtype
+    // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
+    // than T (if test_kind == kIsMoreSpecificThan).
+    // Note that SetParameterNameAt() guarantees that names are symbols, so we
+    // can compare their raw pointers.
+    const int num_params = num_fixed_params + num_opt_named_params;
+    const int other_num_params =
+        other_num_fixed_params + other_num_opt_named_params;
+    bool found_param_name;
+    String& other_param_name = String::Handle();
+    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+      other_param_name = other.ParameterNameAt(i);
+      ASSERT(other_param_name.IsSymbol());
+      found_param_name = false;
+      for (intptr_t j = num_fixed_params; j < num_params; j++) {
+        ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
+        if (ParameterNameAt(j) == other_param_name.raw()) {
+          found_param_name = true;
+          if (!TestParameterType(test_kind,
+                                 j, i,
+                                 type_arguments, other, other_type_arguments,
+                                 malformed_error)) {
+            return false;
+          }
+          break;
+        }
+      }
+      if (!found_param_name) {
+        return false;
+      }
+    }
+  }
+
+  // TODO(regis): Remove the following code once the flag is removed.
+
   // Check the types of fixed parameters.
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     if (!TestParameterType(test_kind,
-                           i, type_arguments, other, other_type_arguments,
+                           i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -4227,14 +4450,16 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // or that is more specific than T (if test_kind == kIsMoreSpecificThan).
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
-  const intptr_t other_num_params =
-      other_num_fixed_params + other_num_opt_params;
+  const intptr_t other_num_params = other_num_fixed_params +
+      other_num_opt_pos_params + other_num_opt_named_params;
   String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
+    ASSERT(other_param_name.IsSymbol());
+    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
         !TestParameterType(test_kind,
-                           i, type_arguments, other, other_type_arguments,
+                           i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -4285,7 +4510,8 @@ RawFunction* Function::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
-  result.set_num_optional_parameters(0);
+  result.set_num_optional_positional_parameters(0);
+  result.set_num_optional_named_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
@@ -4344,10 +4570,13 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // removing the receiver if this is an instance method.
   const int has_receiver = is_static() ? 0 : 1;
   const int num_fixed_params = num_fixed_parameters() - has_receiver;
-  const int num_optional_params = num_optional_parameters();
-  const int num_params = num_fixed_params + num_optional_params;
+  const int num_opt_pos_params = num_optional_positional_parameters();
+  const int num_opt_named_params = num_optional_named_parameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
   closure_function.set_num_fixed_parameters(num_fixed_params);
-  closure_function.set_num_optional_parameters(num_optional_params);
+  closure_function.set_num_optional_positional_parameters(num_opt_pos_params);
+  closure_function.set_num_optional_named_parameters(num_opt_named_params);
   closure_function.set_parameter_types(Array::Handle(Array::New(num_params,
                                                                 Heap::kOld)));
   closure_function.set_parameter_names(Array::Handle(Array::New(num_params,
@@ -4403,6 +4632,8 @@ RawString* Function::BuildSignature(
   const String& kRParen = String::Handle(Symbols::New(") => "));
   const String& kLBracket = String::Handle(Symbols::New("["));
   const String& kRBracket = String::Handle(Symbols::New("]"));
+  const String& kLBrace = String::Handle(Symbols::New("{"));
+  const String& kRBrace = String::Handle(Symbols::New("}"));
   String& name = String::Handle();
   if (!instantiate && !is_static()) {
     // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
@@ -4440,7 +4671,9 @@ RawString* Function::BuildSignature(
   AbstractType& param_type = AbstractType::Handle();
   const intptr_t num_params = NumberOfParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_params = num_optional_parameters();
+  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
+  const intptr_t num_opt_named_params = num_optional_named_parameters();
+  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
   pieces.Add(kLParen);
   for (intptr_t i = 0; i < num_fixed_params; i++) {
@@ -4456,11 +4689,20 @@ RawString* Function::BuildSignature(
     }
   }
   if (num_opt_params > 0) {
-    pieces.Add(kLBracket);
+    if (num_opt_pos_params > 0) {
+      pieces.Add(kLBracket);
+    } else {
+      pieces.Add(kLBrace);
+    }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
-      name = ParameterNameAt(i);
-      pieces.Add(name);
-      pieces.Add(kColonSpace);
+      // The parameter name of an optional positional parameter does not need
+      // to be part of the signature, since it is not used.
+      if (!FLAG_reject_named_argument_as_positional ||
+          (num_opt_named_params > 0)) {
+        name = ParameterNameAt(i);
+        pieces.Add(name);
+        pieces.Add(kColonSpace);
+      }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
         param_type = param_type.InstantiateFrom(instantiator);
@@ -4472,7 +4714,11 @@ RawString* Function::BuildSignature(
         pieces.Add(kCommaSpace);
       }
     }
-    pieces.Add(kRBracket);
+    if (num_opt_pos_params > 0) {
+      pieces.Add(kRBracket);
+    } else {
+      pieces.Add(kRBrace);
+    }
   }
   pieces.Add(kRParen);
   AbstractType& res_type = AbstractType::Handle(result_type());
@@ -4788,8 +5034,19 @@ void TokenStream::SetTokenObjects(const Array& value) const {
 }
 
 
-void TokenStream::SetLength(intptr_t value) const {
-  raw_ptr()->length_ = Smi::New(value);
+RawExternalUint8Array* TokenStream::GetStream() const {
+  return raw_ptr()->stream_;
+}
+
+
+void TokenStream::SetStream(const ExternalUint8Array& value) const {
+  StorePointer(&raw_ptr()->stream_, value.raw());
+}
+
+
+void TokenStream::DataFinalizer(void *peer) {
+  ASSERT(peer != NULL);
+  ::free(peer);
 }
 
 
@@ -4805,8 +5062,9 @@ void TokenStream::SetPrivateKey(const String& value) const {
 
 RawString* TokenStream::GenerateSource() const {
   Iterator iterator(*this, 0);
+  const ExternalUint8Array& data = ExternalUint8Array::Handle(GetStream());
   const GrowableObjectArray& literals =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
+      GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
   const String& private_key = String::Handle(PrivateKey());
   intptr_t private_len = private_key.Length();
 
@@ -4816,6 +5074,7 @@ RawString* TokenStream::GenerateSource() const {
   String& double_quotes = String::Handle(String::New("\""));
   String& dollar = String::Handle(String::New("$"));
   String& two_spaces = String::Handle(String::New("  "));
+  String& raw_string = String::Handle(String::New("@"));
 
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
@@ -4835,18 +5094,34 @@ RawString* TokenStream::GenerateSource() const {
 
     // Handle the current token.
     if (curr == Token::kSTRING) {
-      bool escape_quotes = false;
+      bool is_raw_string = false;
+      bool escape_characters = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
-        if (literal.CharAt(i) == '"') {
-          escape_quotes = true;
-          break;
+        if (IsSpecialCharacter(literal.CharAt(i))) {
+          escape_characters = true;
+        }
+        // TODO(4995): Temp solution for raw strings, this will break
+        // if we saw a string that is not a raw string but has back slashes
+        // in it.
+        if ((literal.CharAt(i) == '\\')) {
+          if ((next != Token::kINTERPOL_VAR) &&
+              (next != Token::kINTERPOL_START) &&
+              (prev != Token::kINTERPOL_VAR) &&
+              (prev != Token::kINTERPOL_END)) {
+            is_raw_string = true;
+          } else {
+            escape_characters = true;
+          }
         }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
+        if (is_raw_string) {
+          literals.Add(raw_string);
+        }
         literals.Add(double_quotes);
       }
-      if (escape_quotes) {
-        literal = String::EscapeDoubleQuotes(literal);
+      if (escape_characters) {
+        literal = String::EscapeSpecialCharacters(literal, is_raw_string);
         literals.Add(literal);
       } else {
         literals.Add(literal);
@@ -4856,6 +5131,9 @@ RawString* TokenStream::GenerateSource() const {
       }
     } else if (curr == Token::kINTERPOL_VAR) {
       literals.Add(dollar);
+      if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+        literal = String::SubString(literal, 0, literal.Length() - private_len);
+      }
       literals.Add(literal);
     } else if (curr == Token::kIDENT) {
       if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
@@ -4970,21 +5248,31 @@ intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
 }
 
 
-RawTokenStream* TokenStream::New(intptr_t len) {
+RawTokenStream* TokenStream::New() {
   ASSERT(Object::token_stream_class() != Class::null());
+  TokenStream& result = TokenStream::Handle();
+  {
+    RawObject* raw = Object::Allocate(TokenStream::kClassId,
+                                      TokenStream::InstanceSize(),
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  return result.raw();
+}
+
+
+RawTokenStream* TokenStream::New(intptr_t len) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in TokenStream::New: invalid len %"Pd"\n", len);
   }
-  TokenStream& result = TokenStream::Handle();
-  {
-    RawObject* raw = Object::Allocate(TokenStream::kClassId,
-                                      TokenStream::InstanceSize(len),
-                                      Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-  }
+  uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
+  ASSERT(data != NULL);
+  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
+      ExternalUint8Array::New(data, len, data, DataFinalizer, Heap::kOld));
+  const TokenStream& result = TokenStream::Handle(TokenStream::New());
+  result.SetStream(stream);
   return result.raw();
 }
 
@@ -5004,7 +5292,6 @@ class CompressedTokenStreamData : public ValueObject {
     token_objects_.Add(empty_literal);
   }
   ~CompressedTokenStreamData() {
-    free(buffer_);
   }
 
   // Add an IDENT token into the stream and the token objects array.
@@ -5154,11 +5441,17 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   data.AddSimpleToken(Token::kEOS);  // End of stream.
 
   // Create and setup the token stream object.
-  const TokenStream& result = TokenStream::Handle(New(data.Length()));
+  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
+      ExternalUint8Array::New(data.GetStream(),
+                              data.Length(),
+                              data.GetStream(),
+                              DataFinalizer,
+                              Heap::kOld));
+  const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
   {
     NoGCScope no_gc;
-    memmove(result.EntryAddr(0), data.GetStream(), data.Length());
+    result.SetStream(stream);
     const Array& tokens = Array::Handle(Array::MakeArray(data.TokenObjects()));
     result.SetTokenObjects(tokens);
   }
@@ -5173,10 +5466,11 @@ const char* TokenStream::ToCString() const {
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
     : tokens_(tokens),
+      data_(ExternalUint8Array::Handle(tokens.GetStream())),
+      stream_(data_.ByteAddr(0), data_.Length()),
       token_objects_(Array::Handle(tokens.TokenObjects())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
-      stream_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1) {
   SetCurrentPosition(token_pos);
@@ -5189,7 +5483,7 @@ bool TokenStream::Iterator::IsValid() const {
 
 
 Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
-  intptr_t saved_position = stream_token_pos_;
+  intptr_t saved_position = stream_.Position();
   Token::Kind kind = Token::kILLEGAL;
   intptr_t value = -1;
   intptr_t count = 0;
@@ -5210,7 +5504,7 @@ Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
       kind = Token::kIDENT;
     }
   }
-  stream_token_pos_ = saved_position;
+  stream_.SetPosition(saved_position);
   return kind;
 }
 
@@ -5221,13 +5515,13 @@ intptr_t TokenStream::Iterator::CurrentPosition() const {
 
 
 void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
-  stream_token_pos_ = value;
+  stream_.SetPosition(value);
   Advance();
 }
 
 
 void TokenStream::Iterator::Advance() {
-  cur_token_pos_ = stream_token_pos_;
+  cur_token_pos_ = stream_.Position();
   intptr_t value = ReadToken();
   if (value < Token::kNumTokens) {
     cur_token_kind_ = static_cast<Token::Kind>(value);
@@ -5285,30 +5579,6 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
     const LiteralToken& literal_token = LiteralToken::Cast(obj);
     return literal_token.literal();
   }
-}
-
-
-intptr_t TokenStream::Iterator::ReadToken() {
-  uint8_t b = ReadByte();
-  if (b > kMaxUnsignedDataPerByte) {
-    return static_cast<intptr_t>(b) - kEndUnsignedByteMarker;
-  }
-  intptr_t value = 0;
-  uint8_t s = 0;
-  do {
-    value |= static_cast<intptr_t>(b) << s;
-    s += kDataBitsPerByte;
-    b = ReadByte();
-  } while (b <= kMaxUnsignedDataPerByte);
-  value |= ((static_cast<intptr_t>(b) - kEndUnsignedByteMarker) << s);
-  ASSERT((value >= 0) && (value <= kIntptrMax));
-  return value;
-}
-
-
-uint8_t TokenStream::Iterator::ReadByte() {
-  ASSERT(stream_token_pos_ < tokens_.Length());
-  return *(tokens_.EntryAddr(stream_token_pos_++));
 }
 
 
@@ -6657,14 +6927,15 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeoptBefore: return "deopt-before ";
-    case PcDescriptors::kDeoptAfter:  return "deopt-after  ";
-    case PcDescriptors::kDeoptIndex:  return "deopt-ix     ";
-    case PcDescriptors::kPatchCode:   return "patch        ";
-    case PcDescriptors::kIcCall:      return "ic-call      ";
-    case PcDescriptors::kFuncCall:    return "fn-call      ";
-    case PcDescriptors::kReturn:      return "return       ";
-    case PcDescriptors::kOther:       return "other        ";
+    case PcDescriptors::kDeoptBefore:   return "deopt-before ";
+    case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
+    case PcDescriptors::kDeoptIndex:    return "deopt-ix     ";
+    case PcDescriptors::kPatchCode:     return "patch        ";
+    case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
+    case PcDescriptors::kIcCall:        return "ic-call      ";
+    case PcDescriptors::kFuncCall:      return "fn-call      ";
+    case PcDescriptors::kReturn:        return "return       ";
+    case PcDescriptors::kOther:         return "other        ";
   }
   UNREACHABLE();
   return "";
@@ -6759,6 +7030,16 @@ void PcDescriptors::Verify(bool check_ids) const {
     }
   }
 #endif  // DEBUG
+}
+
+
+uword PcDescriptors::GetPcForKind(Kind kind) const {
+  for (intptr_t i = 0; i < Length(); i++) {
+    if (DescriptorKind(i) == kind) {
+      return PC(i);
+    }
+  }
+  return 0;
 }
 
 
@@ -7185,7 +7466,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   assembler->FinalizeInstructions(region);
   Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
   if (perf_events_writer != NULL) {
-    const char* format = "%#"Px" %#"Px" %s\n";
+    const char* format = "%"Px" %"Px" %s\n";
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
     intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
@@ -7330,12 +7611,13 @@ const char* Code::ToCString() const {
 
 uword Code::GetPatchCodePc() const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (descriptors.DescriptorKind(i) == PcDescriptors::kPatchCode) {
-      return descriptors.PC(i);
-    }
-  }
-  return 0;
+  return descriptors.GetPcForKind(PcDescriptors::kPatchCode);
+}
+
+
+uword Code::GetLazyDeoptPc() const {
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  return descriptors.GetPcForKind(PcDescriptors::kLazyDeoptJump);
 }
 
 
@@ -9199,18 +9481,18 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 }
 
 
-RawString* String::EscapeDoubleQuotes(const String& str) {
+RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
   if (str.IsOneByteString()) {
     const OneByteString& onestr = OneByteString::Cast(str);
-    return onestr.EscapeDoubleQuotes();
+    return onestr.EscapeSpecialCharacters(raw_str);
   }
   if (str.IsTwoByteString()) {
     const TwoByteString& twostr = TwoByteString::Cast(str);
-    return twostr.EscapeDoubleQuotes();
+    return twostr.EscapeSpecialCharacters(raw_str);
   }
   ASSERT(str.IsFourByteString());
   const FourByteString& fourstr = FourByteString::Cast(str);
-  return fourstr.EscapeDoubleQuotes();
+  return fourstr.EscapeSpecialCharacters(raw_str);
 }
 
 
@@ -9378,22 +9660,27 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 }
 
 
-RawOneByteString* OneByteString::EscapeDoubleQuotes() const {
+RawOneByteString* OneByteString::EscapeSpecialCharacters(bool raw_str) const {
   intptr_t len = Length();
   if (len > 0) {
-    intptr_t num_quotes = 0;
+    intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
-        num_quotes += 1;
+      if (IsSpecialCharacter(*CharAddr(i)) ||
+          (!raw_str && (*CharAddr(i) == '\\'))) {
+        num_escapes += 1;
       }
     }
     const OneByteString& dststr = OneByteString::Handle(
-        OneByteString::New(len + num_quotes, Heap::kNew));
+        OneByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
+      if (IsSpecialCharacter(*CharAddr(i))) {
         *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '"';
+        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(i) == '\\')) {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '\\';
         index += 2;
       } else {
         *(dststr.CharAddr(index)) = *CharAddr(i);
@@ -9576,22 +9863,27 @@ const char* OneByteString::ToCString() const {
 }
 
 
-RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
+RawTwoByteString* TwoByteString::EscapeSpecialCharacters(bool raw_str) const {
   intptr_t len = Length();
   if (len > 0) {
-    intptr_t num_quotes = 0;
+    intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
-        num_quotes += 1;
+      if (IsSpecialCharacter(*CharAddr(i)) ||
+          (!raw_str && (*CharAddr(i) == '\\'))) {
+        num_escapes += 1;
       }
     }
     const TwoByteString& dststr = TwoByteString::Handle(
-        TwoByteString::New(len + num_quotes, Heap::kNew));
+        TwoByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
+      if (IsSpecialCharacter(*CharAddr(i))) {
         *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '"';
+        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(i) == '\\')) {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '\\';
         index += 2;
       } else {
         *(dststr.CharAddr(index)) = *CharAddr(i);
@@ -9708,22 +10000,27 @@ const char* TwoByteString::ToCString() const {
 }
 
 
-RawFourByteString* FourByteString::EscapeDoubleQuotes() const {
+RawFourByteString* FourByteString::EscapeSpecialCharacters(bool raw_str) const {
   intptr_t len = Length();
   if (len > 0) {
-    intptr_t num_quotes = 0;
+    intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
-        num_quotes += 1;
+      if (IsSpecialCharacter(*CharAddr(i)) ||
+          (!raw_str && (*CharAddr(i) == '\\'))) {
+        num_escapes += 1;
       }
     }
     const FourByteString& dststr = FourByteString::Handle(
-        FourByteString::New(len + num_quotes, Heap::kNew));
+        FourByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(i) == '"') {
+      if (IsSpecialCharacter(*CharAddr(i))) {
         *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '"';
+        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(i) == '\\')) {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '\\';
         index += 2;
       } else {
         *(dststr.CharAddr(index)) = *CharAddr(i);

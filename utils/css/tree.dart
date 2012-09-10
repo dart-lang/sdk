@@ -51,7 +51,7 @@ class SelectorGroup extends ASTNode {
 
   SelectorGroup(this._selectors, SourceSpan span): super(span);
 
-  List<Selector> get selectors() => _selectors;
+  List<Selector> get selectors => _selectors;
 
   visit(TreeVisitor visitor) => visitor.visitSelectorGroup(this);
 
@@ -81,15 +81,15 @@ class Selector extends ASTNode {
 
   Selector(this._simpleSelectorSequences, SourceSpan span) : super(span);
 
-  List<SimpleSelectorSequence> get simpleSelectorSequences() =>
+  List<SimpleSelectorSequence> get simpleSelectorSequences =>
       _simpleSelectorSequences;
 
   add(SimpleSelectorSequence seq) => _simpleSelectorSequences.add(seq);
 
-  List<SimpleSelectorSequence> get simpleSelectorSquences() =>
+  List<SimpleSelectorSequence> get simpleSelectorSquences =>
       _simpleSelectorSequences;
 
-  int get length() => _simpleSelectorSequences.length;
+  int get length => _simpleSelectorSequences.length;
 
   String toString() {
     StringBuffer buff = new StringBuffer();
@@ -109,7 +109,7 @@ class SimpleSelectorSequence extends ASTNode {
   SimpleSelectorSequence(this._selector, SourceSpan span,
       [this._combinator = TokenKind.COMBINATOR_NONE]) : super(span);
 
-  get simpleSelector() => _selector;
+  get simpleSelector => _selector;
 
   bool isCombinatorNone() => _combinator == TokenKind.COMBINATOR_NONE;
   bool isCombinatorPlus() => _combinator == TokenKind.COMBINATOR_PLUS;
@@ -138,7 +138,7 @@ class SimpleSelector extends ASTNode {
   SimpleSelector(this._name, SourceSpan span) : super(span);
 
   // Name can be an Identifier or WildCard we'll return either the name or '*'.
-  String get name() => isWildcard() ? '*' : _name.name;
+  String get name => isWildcard() ? '*' : _name.name;
 
   bool isWildcard() => _name is Wildcard;
 
@@ -171,11 +171,11 @@ class NamespaceSelector extends SimpleSelector {
   NamespaceSelector(this._namespace, var name, SourceSpan span) :
       super(name, span);
 
-  String get namespace() => _namespace is Wildcard ? '*' : _namespace.name;
+  String get namespace => _namespace is Wildcard ? '*' : _namespace.name;
 
   bool isNamespaceWildcard() => _namespace is Wildcard;
 
-  SimpleSelector get nameAsSimpleSelector() => _name;
+  SimpleSelector get nameAsSimpleSelector => _name;
 
   visit(TreeVisitor visitor) => visitor.visitNamespaceSelector(this);
 
@@ -296,7 +296,7 @@ class Stylesheet extends ASTNode {
 
   visit(TreeVisitor visitor) => visitor.visitStylesheet(this);
 
-  List<ASTNode> get topLevels() => _topLevels;
+  List<ASTNode> get topLevels => _topLevels;
   
   String toString() {
     StringBuffer buff = new StringBuffer();
@@ -330,8 +330,8 @@ class RuleSet extends TopLevelProduction {
   RuleSet(this._selectorGroup, this._declarationGroup, SourceSpan span) :
       super(span);
 
-  SelectorGroup get selectorGroup() => _selectorGroup;
-  DeclarationGroup get declarationGroup() => _declarationGroup;
+  SelectorGroup get selectorGroup => _selectorGroup;
+  DeclarationGroup get declarationGroup => _declarationGroup;
 
   visit(TreeVisitor visitor) => visitor.visitRuleSet(this);
 
@@ -345,8 +345,8 @@ class Directive extends ASTNode {
 
   String toString() => "Directive";
 
-  bool get isBuiltIn() => true;       // Known CSS directive?
-  bool get isExtension() => false;    // SCSS extension?
+  bool get isBuiltIn => true;       // Known CSS directive?
+  bool get isExtension => false;    // SCSS extension?
 
   visit(TreeVisitor visitor) => visitor.visitDirective(this);
 }
@@ -436,7 +436,7 @@ class KeyFrameDirective extends Directive {
     _blocks.add(block);
   }
 
-  String get name() => _name;
+  String get name => _name;
 
   visit(TreeVisitor visitor) => visitor.visitKeyFrameDirective(this);
 
@@ -491,10 +491,10 @@ class IncludeDirective extends Directive {
 
   visit(TreeVisitor visitor) => visitor.visitIncludeDirective(this);
 
-  bool get isBuiltIn() => false;
-  bool get isExtension() => true;
+  bool get isBuiltIn => false;
+  bool get isExtension => true;
 
-  Stylesheet get styleSheet() => _stylesheet;
+  Stylesheet get styleSheet => _stylesheet;
 
   String toString() {
     StringBuffer buff = new StringBuffer();
@@ -512,11 +512,11 @@ class StyletDirective extends Directive {
   StyletDirective(this._dartClassName, this._rulesets, SourceSpan span) :
       super(span);
 
-  bool get isBuiltIn() => false;
-  bool get isExtension() => true;
+  bool get isBuiltIn => false;
+  bool get isExtension => true;
 
-  String get dartClassName() => _dartClassName;
-  List<RuleSet> get rulesets() => _rulesets;
+  String get dartClassName => _dartClassName;
+  List<RuleSet> get rulesets => _rulesets;
 
   visit(TreeVisitor visitor) => visitor.visitStyletDirective(this);
 
@@ -532,10 +532,10 @@ class Declaration extends ASTNode {
   Declaration(this._property, this._expression, SourceSpan span) :
       _important = false, super(span);
 
-  String get property() => _property.name;
-  Expression get expression() => _expression;
+  String get property => _property.name;
+  Expression get expression => _expression;
 
-  bool get important() => _important;
+  bool get important => _important;
   set important(bool value) => _important = value;
   String importantAsString() => _important ? ' !important' : '';
 
@@ -550,7 +550,7 @@ class DeclarationGroup extends ASTNode {
 
   DeclarationGroup(this._declarations, SourceSpan span) : super(span);
 
-  List<Declaration> get declarations() => _declarations;
+  List<Declaration> get declarations => _declarations;
 
   visit(TreeVisitor visitor) => visitor.visitDeclarationGroup(this);
 
@@ -586,8 +586,8 @@ class LiteralTerm extends Expression {
 
   LiteralTerm(this._value, this._text, SourceSpan span) : super(span);
 
-  get value() => _value;
-  String get text() => _text;
+  get value => _value;
+  String get text => _text;
 
   visit(TreeVisitor visitor) => visitor.visitLiteralTerm(this);
 
@@ -606,7 +606,7 @@ class UnitTerm extends LiteralTerm {
   UnitTerm(var value, String t, SourceSpan span, this._unit) :
       super(value, t, span);
 
-  int get unit() => _unit;
+  int get unit => _unit;
 
   visit(TreeVisitor visitor) => visitor.visitUnitTerm(this);
 
@@ -776,7 +776,7 @@ class Expressions extends Expression {
     _expressions.add(expression);
   }
 
-  List<Expression> get expressions() => _expressions;
+  List<Expression> get expressions => _expressions;
 
   visit(TreeVisitor visitor) => visitor.visitExpressions(this);
 

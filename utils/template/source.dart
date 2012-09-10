@@ -30,7 +30,7 @@ class SourceFile implements Comparable {
 
   SourceFile(this.filename, this._text);
 
-  String get text() => _text;
+  String get text => _text;
 
   set text(String newText) {
     if (newText != _text) {
@@ -40,7 +40,7 @@ class SourceFile implements Comparable {
     }
   }
 
-  List<int> get lineStarts() {
+  List<int> get lineStarts {
     if (_lineStarts == null) {
       var starts = [0];
       var index = 0;
@@ -145,7 +145,7 @@ class SourceSpan implements Comparable {
   SourceSpan(this.file, this.start, this.end);
 
   /** Returns the source text corresponding to this [Span]. */
-  String get text() {
+  String get text {
     return file.text.substring(start, end);
   }
 
@@ -153,23 +153,23 @@ class SourceSpan implements Comparable {
     return file.getLocationMessage(message, start, end: end, includeText: true);
   }
 
-  int get line() {
+  int get line {
     return file.getLine(start);
   }
 
-  int get column() {
+  int get column {
     return file.getColumn(line, start);
   }
 
-  int get endLine() {
+  int get endLine {
     return file.getLine(end);
   }
 
-  int get endColumn() {
+  int get endColumn {
     return file.getColumn(endLine, end);
   }
 
-  String get locationText() {
+  String get locationText {
     var line = file.getLine(start);
     var column = file.getColumn(line, start);
     return '${file.filename}:${line + 1}:${column + 1}';

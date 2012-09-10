@@ -203,10 +203,6 @@ class Compiler implements DiagnosticListener {
     tasks.addAll(backend.tasks);
   }
 
-  // TODO(floitsch): remove once the compile-time constant handler doesn't
-  // depend on it anymore.
-  js_backend.Namer get namer => (backend as js_backend.JavaScriptBackend).namer;
-
   Universe get resolverWorld => enqueuer.resolution.universe;
   Universe get codegenWorld => enqueuer.codegen.universe;
 
@@ -344,7 +340,7 @@ class Compiler implements DiagnosticListener {
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
     closureClass = lookupSpecialClass(const SourceString('Closure'));
-    dynamicClass = lookupSpecialClass(const SourceString('Dynamic'));
+    dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
     types = new Types(this, dynamicClass);
     if (!coreLibValid) {
@@ -363,7 +359,7 @@ class Compiler implements DiagnosticListener {
     libraries['dart:core'] = coreLibrary;
     libraries['dart:coreimpl'] = coreImplLibrary;
 
-    assertMethod = coreLibrary.find(const SourceString('assert'));
+    assertMethod = jsHelperLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
   }
@@ -819,6 +815,9 @@ class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromElement(Element element) {
+    if (Elements.isErroneousElement(element)) {
+      element = element.enclosingElement;
+    }
     if (element.position() === null) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is

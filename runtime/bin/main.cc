@@ -384,11 +384,8 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
 
   if (snapshot_buffer != NULL) {
     // Setup the native resolver as the snapshot does not carry it.
-    Builtin::SetupLibrary(
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary),
-        Builtin::kBuiltinLibrary);
-    Builtin::SetupLibrary(Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary),
-                          Builtin::kIOLibrary);
+    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
+    Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
 
   // Set up the library tag handler for this isolate.

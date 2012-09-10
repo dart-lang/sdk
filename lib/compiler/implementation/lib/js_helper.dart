@@ -146,7 +146,7 @@ sub$slow(var a, var b) {
 mod(var a, var b) {
   if (checkNumbers(a, b)) {
     // Euclidean Modulo.
-    int result = JS('num', @'# % #', a, b);
+    num result = JS('num', @'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', b) < 0) {
@@ -942,7 +942,7 @@ getFallThroughError() => const FallThroughErrorImplementation();
 /**
  * Represents the type Dynamic. The compiler treats this specially.
  */
-interface Dynamic {
+interface Dynamic_ {
 }
 
 /**
@@ -1113,6 +1113,40 @@ callTypeCast(value, property) {
 }
 
 /**
+ * Specialization of the type check for num and String and their
+ * supertype since [value] can be a JS primitive.
+ */
+numberOrStringSuperTypeCheck(value, property) {
+  if (value === null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+numberOrStringSuperTypeCast(value, property) {
+  if (value is String) return value;
+  if (value is num) return value;
+  return propertyTypeCast(value, property);
+}
+
+numberOrStringSuperNativeTypeCheck(value, property) {
+  if (value === null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '#[#]()', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+numberOrStringSuperNativeTypeCast(value, property) {
+  if (value === null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '#[#]()', value, property)) return value;
+  propertyTypeCastError(value, property);
+}
+
+/**
  * Specialization of the type check for String and its supertype
  * since [value] can be a JS primitive.
  */
@@ -1219,6 +1253,14 @@ class CastExceptionImplementation implements CastException {
 class FallThroughErrorImplementation implements FallThroughError {
   const FallThroughErrorImplementation();
   String toString() => "Switch case fall-through.";
+}
+
+/**
+ * Helper function for implementing asserts. The compiler treats this specially.
+ */
+void assert(condition) {
+  if (condition is Function) condition = condition();
+  if (!condition) throw new AssertionError();
 }
 
 /**

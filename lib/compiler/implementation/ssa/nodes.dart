@@ -741,7 +741,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
 class HInstruction implements Hashable {
   Element sourceElement;
-  Token sourcePosition;
+  SourceFileLocation sourcePosition;
 
   final int id;
   static int idCounter;
@@ -1368,6 +1368,13 @@ class HInvokeInterceptor extends HInvokeStatic {
   bool isLengthGetter() {
     return selector.isGetter() &&
         selector.name == const SourceString('length');
+  }
+
+  bool isPopCall(HTypeMap types) {
+    return selector.isCall()
+        && inputs[1].isExtendableArray(types)
+        && selector.name == const SourceString('removeLast')
+        && selector.argumentCount == 0;
   }
 
   bool isLengthGetterOnStringOrArray(HTypeMap types) {
@@ -2613,8 +2620,8 @@ class HBlockFlow {
  * Information about a syntactic-like structure.
  */
 interface HBlockInformation {
-  HBasicBlock get start();
-  HBasicBlock get end();
+  HBasicBlock get start;
+  HBasicBlock get end;
   bool accept(HBlockInformationVisitor visitor);
 }
 
@@ -2632,7 +2639,7 @@ interface HStatementInformation extends HBlockInformation {
  */
 interface HExpressionInformation extends HBlockInformation {
   bool accept(HExpressionInformationVisitor visitor);
-  HInstruction get conditionExpression();
+  HInstruction get conditionExpression;
 }
 
 
@@ -2753,7 +2760,8 @@ class HLoopBlockInformation implements HStatementInformation {
   final HExpressionInformation updates;
   final TargetElement target;
   final List<LabelElement> labels;
-  final Node sourcePosition;
+  final SourceFileLocation sourcePosition;
+  final SourceFileLocation endSourcePosition;
 
   HLoopBlockInformation(this.kind,
                         this.initializer,
@@ -2762,7 +2770,8 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.updates,
                         this.target,
                         this.labels,
-                        this.sourcePosition);
+                        this.sourcePosition,
+                        this.endSourcePosition);
 
   HBasicBlock get start {
     if (initializer !== null) return initializer.start;

@@ -33,7 +33,7 @@ class Process {
   static Process start(String executable,
                        List<String> arguments,
                        [ProcessOptions options]) {
-    return _Process.start(executable, arguments, options);
+    return new _Process.start(executable, arguments, options);
   }
 
   /**
