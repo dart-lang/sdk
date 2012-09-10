@@ -104,7 +104,8 @@ static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
 
 DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
   GET_NATIVE_ARGUMENT(String, value, arguments->At(0));
-  Scanner scanner(value, String::Handle());
+  const String& dummy_key = String::Handle(Symbols::Empty());
+  Scanner scanner(value, dummy_key);
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* int_string;
   bool is_positive;
@@ -128,7 +129,8 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
 
 DEFINE_NATIVE_ENTRY(MathNatives_parseDouble, 1) {
   GET_NATIVE_ARGUMENT(String, value, arguments->At(0));
-  Scanner scanner(value, String::Handle());
+  const String& dummy_key = String::Handle(Symbols::Empty());
+  Scanner scanner(value, dummy_key);
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* number_string;
   bool is_positive;
