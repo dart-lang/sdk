@@ -177,8 +177,18 @@ class ParamInfo(object):
     return '<ParamInfo(%s)>' % content
 
 
-# Given a list of overloaded arguments, render a dart argument.
-def _DartArg(args, interface, constructor=False):
+# Given a list of overloaded arguments, render dart arguments.
+def _BuildArguments(args, interface, constructor=False):
+  def IsOptional(argument):
+    if 'Callback' in argument.ext_attrs:
+      # Callbacks with 'Optional=XXX' are treated as optional arguments.
+      return 'Optional' in argument.ext_attrs
+    if constructor:
+      # FIXME: Constructors with 'Optional=XXX' shouldn't be treated as
+      # optional arguments.
+      return 'Optional' in argument.ext_attrs
+    return False
+
   # Given a list of overloaded arguments, choose a suitable name.
   def OverloadedName(args):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
@@ -195,23 +205,18 @@ def _DartArg(args, interface, constructor=False):
     else:
       return (None, TypeName(type_ids, interface))
 
-  def IsOptional(argument):
-    if not argument:
-      return True
-    if 'Callback' in argument.ext_attrs:
-      # Callbacks with 'Optional=XXX' are treated as optional arguments.
-      return 'Optional' in argument.ext_attrs
-    if constructor:
-      # FIXME: Constructors with 'Optional=XXX' shouldn't be treated as
-      # optional arguments.
-      return 'Optional' in argument.ext_attrs
-    return False
+  result = []
 
-  filtered = filter(None, args)
-  is_optional = any(IsOptional(arg) for arg in args)
-  (type_id, dart_type) = OverloadedType(filtered)
-  name = OverloadedName(filtered)
-  return ParamInfo(name, type_id, dart_type, is_optional)
+  is_optional = False
+  for arg_tuple in map(lambda *x: x, *args):
+    is_optional = is_optional or any(arg is None or IsOptional(arg) for arg in arg_tuple)
+
+    filtered = filter(None, arg_tuple)
+    (type_id, dart_type) = OverloadedType(filtered)
+    name = OverloadedName(filtered)
+    result.append(ParamInfo(name, type_id, dart_type, is_optional))
+
+  return result
 
 def IsOptional(argument):
   return ('Optional' in argument.ext_attrs and
@@ -235,9 +240,6 @@ def AnalyzeOperation(interface, operations):
 
   # Zip together arguments from each overload by position, then convert
   # to a dart argument.
-  args = map(lambda *args: _DartArg(args, interface),
-             *(op.arguments for op in split_operations))
-
   info = OperationInfo()
   info.operations = operations
   info.overloads = split_operations
@@ -246,7 +248,7 @@ def AnalyzeOperation(interface, operations):
   info.constructor_name = None
   info.js_name = info.declared_name
   info.type_name = operations[0].type.id   # TODO: widen.
-  info.param_infos = args
+  info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
   return info
 
 
@@ -255,28 +257,21 @@ def AnalyzeConstructor(interface):
 
   Returns None if the interface has no Constructor.
   """
-  def GetArgs(func_value):
-    return map(lambda arg: _DartArg([arg], interface, True),
-               func_value.arguments)
-
   if 'Constructor' in interface.ext_attrs:
     name = None
     func_value = interface.ext_attrs.get('Constructor')
-    if func_value:
-      # [Constructor(param,...)]
-      args = GetArgs(func_value)
-      idl_args = func_value.arguments
-    else: # [Constructor]
+    if not func_value:
       args = []
       idl_args = []
-  else:
+  elif 'NamedConstructor' in interface.ext_attrs:
     func_value = interface.ext_attrs.get('NamedConstructor')
-    if func_value:
-      name = func_value.id
-      args = GetArgs(func_value)
-      idl_args = func_value.arguments
-    else:
-      return None
+    name = func_value.id
+  else:
+    return None
+
+  if func_value:
+    idl_args = func_value.arguments
+    args =_BuildArguments([idl_args], interface, True)
 
   info = OperationInfo()
   info.overloads = None
