@@ -1,2 +1,9 @@
-docs/
-mdn/output/
+/apidoc.Makefile
+/apidoc.xcodeproj
+/api_docs.target.mk
+/api_docs.vcxproj.filters
+/api_docs.vcproj
+/Debug
+/api_docs.vcxproj.user
+/apidoc.sln
+/DebugIA32
