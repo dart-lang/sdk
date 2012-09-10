@@ -9,8 +9,6 @@ import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
-import com.sun.tools.javac.util.Position;
-
 import junit.framework.TestCase;
 
 import java.io.ByteArrayOutputStream;
@@ -114,7 +112,7 @@ public class PrettyErrorFormatterTest extends TestCase {
   }
 
   /**
-   * {@link Location} with single {@link Position}, underline single character.
+   * {@link Location} with single <code>Position</code>, underline single character.
    */
   public void test_noColor_notMachine_singlePosition() throws Exception {
     Location location = new Location(10);
@@ -133,7 +131,7 @@ public class PrettyErrorFormatterTest extends TestCase {
   }
 
   /**
-   * {@link Location} with single {@link Position}, underline single character.
+   * {@link Location} with single <code>Position</code>, underline single character.
    */
   public void test_withColor_notMachine_singlePosition() throws Exception {
     Location location = new Location(10);
