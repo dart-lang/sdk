@@ -793,6 +793,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
      *         the exit from the enclosing function.
      */
     private static boolean isExitFromFunction(DartStatement statement) {
+      return isExitFromFunction(statement, false);
+    }
+
+    /**
+     * @return <code>true</code> if we can prove that given {@link DartStatement} always leads to
+     *         the exit from the enclosing function, or stops execution of the enclosing loop.
+     */
+    private static boolean isExitFromFunctionOrLoop(DartStatement statement) {
+      return isExitFromFunction(statement, true);
+    }
+
+    /**
+     * @return <code>true</code> if we can prove that given {@link DartStatement} always leads to
+     *         the exit from the enclosing function, or stops enclosing loop execution.
+     */
+    private static boolean isExitFromFunction(DartStatement statement, boolean orLoop) {
       // "return" is always exit
       if (statement instanceof DartReturnStatement) {
         return true;
@@ -814,7 +830,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
         DartBlock block = (DartBlock) statement;
         List<DartStatement> statements = block.getStatements();
         if (!statements.isEmpty()) {
-          return isExitFromFunction(statements.get(statements.size() - 1));
+          return isExitFromFunction(statements.get(statements.size() - 1), orLoop);
+        }
+      }
+      // check also if we stop execution of the loop body
+      if (orLoop) {
+        if (statement instanceof DartContinueStatement) {
+          return true;
+        }
+        if (statement instanceof DartBreakStatement) {
+          return true;
         }
       }
       // can not prove that given statement is always exit
@@ -1849,9 +1874,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
           variableRestorer.restore();
           blockOldTypes.removeFirst();
         }
-        // if no "else", then inferred types applied to the end of the method
-        if (elseStatement == null && isExitFromFunction(thenStatement)) {
-          inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+        // if no "else", then inferred types applied to the end of the method/loop
+        if (elseStatement == null) {
+          if (isExitFromFunction(thenStatement)) {
+            inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+          } else if (isExitFromFunctionOrLoop(thenStatement)) {
+            DartBlock restoreBlock = getBlockForLoopTypesInference(node);
+            variableRestorer = restoreOnBlockExit.get(restoreBlock);
+            if (variableRestorer == null) {
+              variableRestorer = new VariableElementsRestorer();
+              restoreOnBlockExit.put(restoreBlock, variableRestorer);
+            }
+            restoreOnBlockExit.put(restoreBlock, variableRestorer);
+            inferVariableTypesFromIsNotConditions(condition, variableRestorer);
+          }
         }
       }
       Map<VariableElement, Type> elseVariableTypes = elseTypeContext.getNewTypesAndRestoreOld();
@@ -2583,6 +2619,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartNode p = block.getParent();
           if (p instanceof DartIfStatement || p instanceof DartForStatement
               || p instanceof DartForInStatement || p instanceof DartWhileStatement) {
+            return block;
+          }
+        }
+        node = node.getParent();
+      }
+      return null;
+    }
+
+    private static DartBlock getBlockForLoopTypesInference(DartNode node) {
+      while (node != null) {
+        if (node instanceof DartBlock) {
+          DartBlock block = (DartBlock) node;
+          DartNode p = block.getParent();
+          if (p instanceof DartForStatement || p instanceof DartForInStatement
+              || p instanceof DartWhileStatement) {
             return block;
           }
         }

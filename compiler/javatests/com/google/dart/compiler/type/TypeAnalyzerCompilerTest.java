@@ -2592,6 +2592,42 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v1", "Dynamic");
   }
 
+  public void test_typesPropagation_ifIsNotType_hasThenContinue() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for (var v in <Object>[1, 'two', 3]) {",
+        "    var v1 = v;",
+        "    if (v is! String) {",
+        "      continue;",
+        "    }",
+        "    var v2 = v;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v1", "Object");
+    assertInferredElementTypeString(testUnit, "v2", "String");
+  }
+
+  public void test_typesPropagation_ifIsNotType_hasThenBreak() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for (var v in <Object>[1, 'two', 3]) {",
+        "    var v1 = v;",
+        "    if (v is! String) {",
+        "      break;",
+        "    }",
+        "    var v2 = v;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    assertInferredElementTypeString(testUnit, "v1", "Object");
+    assertInferredElementTypeString(testUnit, "v2", "String");
+  }
+
   public void test_typesPropagation_ifIsNotType_or() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
