@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("dart:coreimpl");
+
 #import("dart:math");
+
 #source("arrays.dart");
 #source("collections.dart");
 #source("date.dart");
@@ -22,5 +24,5 @@
 #source("regexp.dart");
 #source("splay_tree.dart");
 #source("stopwatch_implementation.dart");
-#source("string_buffer.dart");
 #source("string.dart");
+#source("string_buffer.dart");

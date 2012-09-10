@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
+#import('js_helper.dart');
 
 // Patch for Object implementation.
 patch class Object {
