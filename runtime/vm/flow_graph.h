@@ -40,7 +40,7 @@ class BlockIterator : public ValueObject {
 
 
 // Class to incapsulate the construction and manipulation of the flow graph.
-class FlowGraph: public ZoneAllocated {
+class FlowGraph : public ZoneAllocated {
  public:
   FlowGraph(const FlowGraphBuilder& builder, GraphEntryInstr* graph_entry);
 

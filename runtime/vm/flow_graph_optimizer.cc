@@ -686,10 +686,35 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     if (TryInlineInstanceMethod(instr)) {
       return;
     }
+    const ICData& unary_checks =
+        ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
+    if (FLAG_use_cha) {
+      // Check if receiver can have only one target, in which case
+      // we emit call without class checks.
+      Definition* receiver = instr->ArgumentAt(0)->value()->definition();
+      ASSERT(receiver != NULL);
+      const Function& function = flow_graph_->parsed_function().function();
+      if (function.IsDynamicFunction() &&
+          receiver->IsParameter() &&
+          (receiver->AsParameter()->index() == 0)) {
+        intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
+        ZoneGrowableArray<intptr_t>* subclass_cids =
+            CHA::GetSubclassIdsOf(static_receiver_cid);
+        ZoneGrowableArray<Function*>* overriding_functions =
+            CHA::GetNamedInstanceFunctionsOf(*subclass_cids,
+                                             instr->function_name());
+        if (overriding_functions->is_empty()) {
+          const bool call_with_checks = false;
+          PolymorphicInstanceCallInstr* call =
+              new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                               call_with_checks);
+          instr->ReplaceWith(call, current_iterator());
+          return;
+        }
+      }
+    }
     const intptr_t kMaxChecks = 4;
     if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
-      const ICData& unary_checks =
-          ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
       bool call_with_checks;
       // TODO(srdjan): Add check class instr for mixed smi/non-smi.
       if (HasOneTarget(unary_checks) &&
