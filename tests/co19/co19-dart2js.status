@@ -573,6 +573,25 @@ LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # co19 issue 188
@@ -752,32 +771,6 @@ Language/10_Expressions/07_Maps_A07_t04: Fail # Is check with generics.
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 
-[ $compiler == dart2js ]
-Language/10_Expressions/28_Identifier_Reference_A06_t*: Fail # http://dartbug.com/5019
-Language/10_Expressions/28_Identifier_Reference_A06_t13: Pass # For the wrong reason, http://dartbug.com/5019
-Language/10_Expressions/28_Identifier_Reference_A06_t14: Pass # For the wrong reason, http://dartbug.com/5019
-Language/10_Expressions/28_Identifier_Reference_A06_t16: Pass # For the wrong reason, http://dartbug.com/5019
-Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # co19 issue 188
-
-
 [ $compiler == dart2dart ]
 *: Skip
 
@@ -939,17 +932,9 @@ Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail # Checks that a 
 Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail # Checks that identifier can't contain letters from the cyrillic alphabet.
 Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail # Checks that identifier can't contain letters from the turkish alphabet.
 Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail # Checks that it is a compile-time error when a built-in identifier "assert" is used as a type annotation of a local variable.
 Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Checks that it is a compile-time error when a built-in identifier "equals" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # Checks that it is a compile-time error when a built-in identifier "factory" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # Checks that it is a compile-time error when a built-in identifier "get" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # Checks that it is a compile-time error when a built-in identifier "implements" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail # Checks that it is a compile-time error when a built-in identifier "interface" is used as a type annotation of a local variable.
 Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Checks that it is a compile-time error when a built-in identifier "negate" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # Checks that it is a compile-time error when a built-in identifier "operator" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # Checks that it is a compile-time error when a built-in identifier "set" is used as a type annotation of a local variable.
 Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # Checks that it is a compile-time error when a built-in identifier "static" is used as a type annotation of a local variable.
-Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail # Checks that it is a compile-time error when a built-in identifier "typedef" is used as a type annotation of a local variable.
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail # Checks that it is a compile-time error when a map literal is used as a statement.
 Language/11_Statements/02_Expression_Statements_A01_t10: Fail # Checks that it is a compile-time error when a map literal is used as a statement.
 Language/11_Statements/02_Expression_Statements_A01_t11: Fail # Checks that it is a compile-time error when a map literal is used as a statement.

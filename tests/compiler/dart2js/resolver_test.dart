@@ -706,7 +706,7 @@ testInitializers() {
          class List {}
          class Closure {}
          class Null {}
-         class Dynamic {}
+         class Dynamic_ {}
          class Object { Object() : super(); }''';
   resolveConstructor(script, "Object o = new Object();", "Object", "Object", 1,
                      [], [MessageKind.SUPER_INITIALIZER_IN_OBJECT],

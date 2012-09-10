@@ -207,7 +207,7 @@ class Parser {
     if (value === 'var') return parseType(token);
     if (value !== 'this') {
       Token peek = peekAfterExpectedType(token);
-      if (isIdentifier(peek) || optional('this', peek)) {
+      if (peek.isIdentifier() || optional('this', peek)) {
         return parseType(token);
       }
     }
@@ -215,7 +215,16 @@ class Parser {
     return token;
   }
 
-  bool isIdentifier(Token token) => token.isIdentifier();
+  bool isValidTypeReference(Token token) {
+    final kind = token.kind;
+    if (kind === IDENTIFIER_TOKEN) return true;
+    if (kind === KEYWORD_TOKEN) {
+      Keyword keyword = token.value;
+      String value = keyword.stringValue;
+      return (keyword.isPseudo) || (value === 'Dynamic') || (value === 'void');
+    }
+    return false;
+  }
 
   Token parseDefaultClauseOpt(Token token) {
     if (isDefaultKeyword(token)) {
@@ -303,7 +312,7 @@ class Parser {
   }
 
   Token parseIdentifier(Token token) {
-    if (isIdentifier(token)) {
+    if (token.isIdentifier()) {
       listener.handleIdentifier(token);
     } else {
       listener.expectedIdentifier(token);
@@ -341,7 +350,7 @@ class Parser {
 
   Token parseType(Token token) {
     Token begin = token;
-    if (isIdentifier(token)) {
+    if (isValidTypeReference(token)) {
       token = parseIdentifier(token);
       token = parseQualifiedRestOpt(token);
     } else {
@@ -403,7 +412,7 @@ class Parser {
     Token getOrSet = findGetOrSet(token);
     if (token === getOrSet) token = token.next;
     Token peek = peekAfterExpectedType(token);
-    if (isIdentifier(peek)) {
+    if (peek.isIdentifier()) {
       // Skip type.
       token = peek;
     }
@@ -547,7 +556,7 @@ class Parser {
     // We are looking at "identifier ...".
     Token peek = token.next;
     if (peek.kind === PERIOD_TOKEN) {
-      if (isIdentifier(peek.next)) {
+      if (peek.next.isIdentifier()) {
         // Look past a library prefix.
         peek = peek.next.next;
       }
@@ -571,7 +580,7 @@ class Parser {
    * If [token] is not the start of a type, [Listener.unexpectedType] is called.
    */
   Token peekAfterExpectedType(Token token) {
-    if ('void' !== token.stringValue && !isIdentifier(token)) {
+    if ('void' !== token.stringValue && !token.isIdentifier()) {
       return listener.expectedType(token);
     }
     return peekAfterType(token);
@@ -603,13 +612,13 @@ class Parser {
       if (optional('<', token.next)) {
         // For example: get<T> ...
         final Token peek = peekAfterExpectedType(token);
-        if (isGetOrSet(peek) && isIdentifier(peek.next)) {
+        if (isGetOrSet(peek) && peek.next.isIdentifier()) {
           // For example: get<T> get identifier
           return peek;
         }
       } else {
         // For example: get ...
-        if (isGetOrSet(token.next) && isIdentifier(token.next.next)) {
+        if (isGetOrSet(token.next) && token.next.next.isIdentifier()) {
           // For example: get get identifier
           return token.next;
         } else {
@@ -619,7 +628,7 @@ class Parser {
       }
     } else if (token.stringValue !== 'operator') {
       final Token peek = peekAfterExpectedType(token);
-      if (isGetOrSet(peek) && isIdentifier(peek.next)) {
+      if (isGetOrSet(peek) && peek.next.isIdentifier()) {
         // type? get identifier
         return peek;
       }
@@ -640,7 +649,7 @@ class Parser {
     Token getOrSet = findGetOrSet(token);
     if (token === getOrSet) token = token.next;
     Token peek = peekAfterExpectedType(token);
-    if (isIdentifier(peek) && token.stringValue !== 'operator') {
+    if (peek.isIdentifier() && token.stringValue !== 'operator') {
       // Skip type.
       token = peek;
     }
@@ -865,7 +874,7 @@ class Parser {
       return parseEmptyStatement(token);
     } else if (value === 'const') {
       return parseExpressionStatementOrConstDeclaration(token);
-    } else if (isIdentifier(token)) {
+    } else if (token.isIdentifier()) {
       return parseExpressionStatementOrDeclaration(token);
     } else {
       return parseExpressionStatement(token);
@@ -888,7 +897,7 @@ class Parser {
 
   Token peekIdentifierAfterType(Token token) {
     Token peek = peekAfterType(token);
-    if (peek !== null && isIdentifier(peek)) {
+    if (peek !== null && peek.isIdentifier()) {
       // We are looking at "type identifier".
       return peek;
     } else {
@@ -901,7 +910,7 @@ class Parser {
     if (peek !== null) {
       // We are looking at "type identifier".
       return peek;
-    } else if (isIdentifier(token)) {
+    } else if (token.isIdentifier()) {
       // We are looking at "identifier".
       return token;
     } else {
@@ -910,10 +919,10 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
-    assert(isIdentifier(token) || token.stringValue === 'void');
+    assert(token.isIdentifier() || token.stringValue === 'void');
     Token identifier = peekIdentifierAfterType(token);
     if (identifier !== null) {
-      assert(isIdentifier(identifier));
+      assert(identifier.isIdentifier());
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (afterIdKind === EQ_TOKEN ||
@@ -954,7 +963,7 @@ class Parser {
     }
     Token identifier = peekIdentifierAfterOptionalType(token.next);
     if (identifier !== null) {
-      assert(isIdentifier(identifier));
+      assert(identifier.isIdentifier());
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (afterIdKind === EQ_TOKEN ||
@@ -982,7 +991,7 @@ class Parser {
     do {
       token = parseLabel(token);
       labelCount++;
-    } while (isIdentifier(token) && optional(':', token.next));
+    } while (token.isIdentifier() && optional(':', token.next));
     listener.beginLabeledStatement(token, labelCount);
     token = parseStatement(token);
     listener.endLabeledStatement(labelCount);
@@ -1082,7 +1091,7 @@ class Parser {
     token = token.next;
     if (optional('[', token)) {
       token = parseArgumentOrIndexStar(token);
-    } else if (isIdentifier(token)) {
+    } else if (token.isIdentifier()) {
       token = parseSend(token);
       listener.handleBinaryExpression(cascadeOperator);
     } else {
@@ -1198,7 +1207,7 @@ class Parser {
         return parseConstExpression(token);
       } else if (value === 'void') {
         return parseFunctionExpression(token);
-      } else if (isIdentifier(token)) {
+      } else if (token.isIdentifier()) {
         return parseSendOrFunctionLiteral(token);
       } else {
         return listener.expectedExpression(token);
@@ -1599,7 +1608,7 @@ class Parser {
     }
     Token identifier = peekIdentifierAfterType(token);
     if (identifier !== null) {
-      assert(isIdentifier(identifier));
+      assert(identifier.isIdentifier());
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN ||
@@ -1764,7 +1773,7 @@ class Parser {
    * switch case.
    */
   Token peekPastLabels(Token token) {
-    while (isIdentifier(token) && optional(':', token.next)) {
+    while (token.isIdentifier() && optional(':', token.next)) {
       token = token.next.next;
     }
     return token;
@@ -1836,7 +1845,7 @@ class Parser {
     Token breakKeyword = token;
     token = token.next;
     bool hasTarget = false;
-    if (isIdentifier(token)) {
+    if (token.isIdentifier()) {
       token = parseIdentifier(token);
       hasTarget = true;
     }
@@ -1849,7 +1858,7 @@ class Parser {
     Token continueKeyword = token;
     token = token.next;
     bool hasTarget = false;
-    if (isIdentifier(token)) {
+    if (token.isIdentifier()) {
       token = parseIdentifier(token);
       hasTarget = true;
     }

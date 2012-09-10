@@ -706,8 +706,8 @@ class LiteralBool extends Literal<bool> {
   LiteralBool asLiteralBool() => this;
 
   bool get value {
-    if (token.value == Keyword.TRUE) return true;
-    if (token.value == Keyword.FALSE) return false;
+    if (token.stringValue === 'true') return true;
+    if (token.stringValue === 'false') return false;
     (this.handler)(token, "not a bool ${token.value}");
   }
 

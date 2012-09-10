@@ -942,7 +942,7 @@ getFallThroughError() => const FallThroughErrorImplementation();
 /**
  * Represents the type Dynamic. The compiler treats this specially.
  */
-interface Dynamic {
+interface Dynamic_ {
 }
 
 /**

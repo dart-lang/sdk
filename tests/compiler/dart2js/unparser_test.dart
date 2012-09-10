@@ -33,7 +33,7 @@ interface Function {}
 interface List {}
 interface Map {}
 interface Closure {}
-interface Dynamic {}
+interface Dynamic_ {}
 interface Null {}
 class Math {
   static double parseDouble(String s) => 1.0;

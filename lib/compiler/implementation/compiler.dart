@@ -340,7 +340,7 @@ class Compiler implements DiagnosticListener {
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
     closureClass = lookupSpecialClass(const SourceString('Closure'));
-    dynamicClass = lookupSpecialClass(const SourceString('Dynamic'));
+    dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
     types = new Types(this, dynamicClass);
     if (!coreLibValid) {

@@ -608,6 +608,16 @@ class ElementListener extends Listener {
         name.source, beginToken, endToken, compilationUnitElement, id);
     element.nativeName = nativeName;
     pushElement(element);
+    rejectBuiltInIdentifier(name);
+  }
+
+  void rejectBuiltInIdentifier(Identifier name) {
+    if (name.source is Keyword) {
+      Keyword keyword = name.source;
+      if (!keyword.isPseudo) {
+        recoverableError('illegal name ${keyword.syntax}', node: name);
+      }
+    }
   }
 
   void endDefaultClause(Token defaultKeyword) {
@@ -631,6 +641,7 @@ class ElementListener extends Listener {
     int id = idGenerator();
     pushElement(new PartialClassElement(
         name.source, interfaceKeyword, endToken, compilationUnitElement, id));
+    rejectBuiltInIdentifier(name);
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -639,6 +650,7 @@ class ElementListener extends Listener {
     TypeAnnotation returnType = popNode();
     pushElement(new PartialTypedefElement(name.source, compilationUnitElement,
                                           typedefKeyword));
+    rejectBuiltInIdentifier(name);
   }
 
   void handleVoidKeyword(Token token) {

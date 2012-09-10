@@ -63,7 +63,7 @@ const String DEFAULT_CORELIB = @'''
   class List {}
   class Closure {}
   class Null {}
-  class Dynamic {}''';
+  class Dynamic_ {}''';
 
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;

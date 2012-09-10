@@ -828,6 +828,8 @@ class TypeResolver {
     }
     if (typeName.source.stringValue === 'void') {
       return compiler.types.voidType.element;
+    } else if (typeName.source.stringValue === 'Dynamic') {
+      return compiler.dynamicClass;
     } else if (send !== null) {
       Element e = scope.lookup(send.receiver.asIdentifier().source);
       if (e !== null && e.kind === ElementKind.PREFIX) {

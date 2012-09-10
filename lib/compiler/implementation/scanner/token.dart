@@ -124,11 +124,7 @@ class Token {
    */
   int get precedence => info.precedence;
 
-  bool isIdentifier() {
-    if (kind === IDENTIFIER_TOKEN) return true;
-    if (kind === KEYWORD_TOKEN) return value.isPseudo;
-    return false;
-  }
+  bool isIdentifier() => kind === IDENTIFIER_TOKEN;
 
   /**
    * Returns a textual representation of this token to be used for debugging
@@ -158,6 +154,8 @@ class KeywordToken extends Token {
 
   KeywordToken(Keyword value, int charOffset)
     : this.value = value, super(value.info, charOffset);
+
+  bool isIdentifier() => value.isPseudo || value.isBuiltIn;
 
   String toString() => value.syntax;
 }
