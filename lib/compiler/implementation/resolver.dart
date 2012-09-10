@@ -2325,7 +2325,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
-    if (node.beginToken.stringValue !== '[') {
+    String value = node.beginToken.stringValue;
+    if ((value !== '[') && (value !== '{')) {
       internalError(node, "expected optional parameters");
     }
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);

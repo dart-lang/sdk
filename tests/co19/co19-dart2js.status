@@ -435,6 +435,14 @@ LibTest/core/Math/atan_A01_t01: Fail, OK
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
+
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
@@ -1033,11 +1041,6 @@ Language/14_Types/5_Function_Types_A01_t20: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t21: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
-
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Fail # http://dartbug.com/4291
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t01: Fail # http://dartbug.com/4291
-Language/06_Functions/2_Formal_Parameters_A01_t01: Fail # http://dartbug.com/4291
-Language/06_Functions/2_Formal_Parameters_A02_t02: Fail # http://dartbug.com/4291
 
 Language/06_Functions/06_Functions_A01_t03: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # http://dartbug.com/4050

@@ -142,8 +142,12 @@ class Parser {
     do {
       ++parameterCount;
       token = token.next;
-      if (optional('[', token)) {
-        token = parseOptionalFormalParameters(token);
+      String value = token.stringValue;
+      if (value === '[') {
+        token = parseOptionalFormalParameters(token, false);
+        break;
+      } else if (value === '{') {
+        token = parseOptionalFormalParameters(token, true);
         break;
       }
       token = parseFormalParameter(token);
@@ -169,7 +173,8 @@ class Parser {
       token = parseFormalParameters(token);
       listener.handleFunctionTypedFormalParameter(token);
     }
-    if (optional('=', token)) {
+    String value = token.stringValue;
+    if (('=' === value) || (':' === value)) {
       // TODO(ahe): Validate that these are only used for optional parameters.
       Token equal = token;
       token = parseExpression(token.next);
@@ -179,10 +184,10 @@ class Parser {
     return token;
   }
 
-  Token parseOptionalFormalParameters(Token token) {
+  Token parseOptionalFormalParameters(Token token, bool isNamed) {
     Token begin = token;
     listener.beginOptionalFormalParameters(begin);
-    assert(optional('[', token));
+    assert((isNamed && optional('{', token)) || optional('[', token));
     int parameterCount = 0;
     do {
       token = token.next;
@@ -190,7 +195,11 @@ class Parser {
       ++parameterCount;
     } while (optional(',', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
-    return expect(']', token);
+    if (isNamed) {
+      return expect('}', token);
+    } else {
+      return expect(']', token);
+    }
   }
 
   Token parseTypeOpt(Token token) {
