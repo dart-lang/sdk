@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -145,17 +145,17 @@ interface Future<T> default FutureImpl<T> {
  * A service that provides values to callers, and wants to return [Future]s can
  * use a [Completer] as follows:
  *
- *   Completer completer = new Completer();
- *   // send future object back to client...
- *   return completer.future;
- *   ...
+ *     Completer completer = new Completer();
+ *     // send future object back to client...
+ *     return completer.future;
+ *     ...
  *
- *   // later when value is available, call:
- *   completer.complete(value);
+ *     // later when value is available, call:
+ *     completer.complete(value);
  *
- *   // alternatively, if the service cannot produce the value, it
- *   // can provide an exception:
- *   completer.completeException(exception);
+ *     // alternatively, if the service cannot produce the value, it
+ *     // can provide an exception:
+ *     completer.completeException(exception);
  *
  */
 interface Completer<T> default CompleterImpl<T> {
