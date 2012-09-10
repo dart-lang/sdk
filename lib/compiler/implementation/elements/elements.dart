@@ -9,6 +9,7 @@
 #import('../tree/tree.dart');
 #import('../scanner/scannerlib.dart');
 #import('../leg.dart');  // TODO(karlklose): we only need type.
+#import('../universe/universe.dart');
 #import('../util/util.dart');
 
 const int STATE_NOT_STARTED = 0;
