@@ -222,6 +222,8 @@ static bool DeleteFile(char* file_name,
       return DeleteFile(path) != 0;
     }
   }
+
+  return false;
 }
 
 
@@ -318,29 +320,21 @@ bool Directory::List(const char* dir_name,
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  struct stat entry_info;
-  int stat_success = stat(dir_name, &entry_info);
-  if (stat_success == 0) {
-    if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
-      return EXISTS;
-    } else {
+  DWORD attributes = GetFileAttributes(dir_name);
+  if (attributes == INVALID_FILE_ATTRIBUTES) {
+    DWORD last_error = GetLastError();
+    if (last_error == ERROR_FILE_NOT_FOUND ||
+        last_error == ERROR_PATH_NOT_FOUND) {
       return DOES_NOT_EXIST;
-    }
-  } else {
-    if (errno == EACCES ||
-        errno == EBADF ||
-        errno == EFAULT ||
-        errno == ENOMEM) {
-      // Search permissions denied for one of the directories in the
-      // path or a low level error occured. We do not know if the
-      // directory exists.
+    } else {
+      // We might not be able to get the file attributes for other
+      // reasons such as lack of permissions. In that case we do
+      // not know if the directory exists.
       return UNKNOWN;
     }
-    ASSERT(errno == ENAMETOOLONG ||
-           errno == ENOENT ||
-           errno == ENOTDIR);
-    return DOES_NOT_EXIST;
   }
+  bool exists = (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+  return exists ? EXISTS : DOES_NOT_EXIST;
 }
 
 
