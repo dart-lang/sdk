@@ -60,12 +60,6 @@ Document get _document() => _window.document;
 Element query(String selector) => _document.query(selector);
 ElementList queryAll(String selector) => _document.queryAll(selector);
 
-class _Null {
-  const _Null();
-}
-
-final _null = const _Null();
-
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 
 bool _callPortInitialized = false;

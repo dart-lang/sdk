@@ -357,8 +357,7 @@ class OperationInfo(object):
         self.param_infos, None,
         lambda param: TypeOrNothing(rename_type(param.dart_type), param.type_id))
 
-  def ParametersImplementationDeclaration(
-      self, rename_type, default_value='null'):
+  def ParametersImplementationDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the
     implementation.
 
@@ -367,7 +366,7 @@ class OperationInfo(object):
         The function is applied to the parameter's dart_type.
     """
     return self._FormatParams(
-        self.param_infos, default_value,
+        self.param_infos, 'null',
         lambda param: TypeOrNothing(rename_type(param.dart_type)))
 
   def ParametersAsArgumentList(self):
