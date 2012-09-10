@@ -1033,7 +1033,8 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
+  locs->set_out(is_used() ? Location::SameAsFirstInput()
+                          : Location::NoLocation());
   return locs;
 }
 
@@ -1041,7 +1042,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary() const {
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  ASSERT(locs()->out().reg() == value);
+  ASSERT(!is_used() || (locs()->out().reg() == value));
 
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {

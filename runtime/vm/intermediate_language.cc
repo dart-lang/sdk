@@ -1534,16 +1534,17 @@ void ChainContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreVMFieldInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(2,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
+  return LocationSummary::Make(
+      2,
+      is_used() ? Location::SameAsFirstInput() : Location::NoLocation(),
+      LocationSummary::kNoCall);
 }
 
 
 void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value_reg = locs()->in(0).reg();
   Register dest_reg = locs()->in(1).reg();
-  ASSERT(value_reg == locs()->out().reg());
+  ASSERT(!is_used() || (value_reg == locs()->out().reg()));
 
   if (value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
