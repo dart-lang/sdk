@@ -15,11 +15,6 @@ LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/7_Type_Void_A01_t02: Crash # http://dartbug.com/5018
 
 
-[ $compiler == dart2js && $unchecked ]
-Language/07_Classes/3_Setters_A01_t03: Fail # Missing error on parameter-less setter.
-Language/07_Classes/07_Classes_A04_t18: Fail, OK # co19 issue 190
-
-
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
@@ -623,6 +618,8 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
 
 Language/11_Statements/09_Try_A01_t14: Fail, OK # co19 issue 168
+
+Language/07_Classes/3_Setters_A01_t02: Fail, OK # co19 issue 189
 
 Language/03_Overview/2_Privacy_A01_t12: Fail, OK # co19 issue 191
 

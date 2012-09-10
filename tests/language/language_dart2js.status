@@ -104,14 +104,28 @@ generic_instanceof_test: Fail # cannot resolve type T
 generic_instanceof2_test: Fail # fails an instance of test at run time
 generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
-get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
+get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/09: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/10: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
 lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
-method_name_test: Fail # Parsing of pseudo keywords.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
 method_override2_test/00: Fail # accepts illegal override
 method_override2_test/01: Fail # accepts illegal override
@@ -309,4 +323,3 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-

@@ -283,6 +283,8 @@ class ResolverTask extends CompilerTask {
   void checkMembers(ClassElement cls) {
     if (cls === compiler.objectClass) return;
     cls.forEachMember((holder, member) {
+      // Perform various checks as side effect of "computing" the type.
+      member.computeType(compiler);
 
       // Check modifiers.
       if (member.isFunction() && member.modifiers.isFinal()) {

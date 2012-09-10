@@ -204,7 +204,6 @@ class Parser {
 
   Token parseTypeOpt(Token token) {
     String value = token.stringValue;
-    if (value === 'var') return parseType(token);
     if (value !== 'this') {
       Token peek = peekAfterExpectedType(token);
       if (peek.isIdentifier() || optional('this', peek)) {
@@ -408,16 +407,36 @@ class Parser {
   Token parseTopLevelMember(Token token) {
     Token start = token;
     listener.beginTopLevelMember(token);
-    token = parseModifiers(token);
-    Token getOrSet = findGetOrSet(token);
-    if (token === getOrSet) token = token.next;
-    Token peek = peekAfterExpectedType(token);
-    if (peek.isIdentifier()) {
-      // Skip type.
-      token = peek;
+
+    Link<Token> identifiers = findMemberName(token);
+    if (identifiers.isEmpty()) {
+      return listener.unexpected(start);
     }
-    if (token === getOrSet) token = token.next;
-    token = parseIdentifier(token);
+    Token name = identifiers.head;
+    identifiers = identifiers.tail;
+    Token getOrSet;
+    if (!identifiers.isEmpty()) {
+      String value = identifiers.head.stringValue;
+      if ((value === 'get') || (value === 'set')) {
+        getOrSet = identifiers.head;
+        identifiers = identifiers.tail;
+      }
+    }
+    Token type;
+    if (!identifiers.isEmpty()) {
+      if (isValidTypeReference(identifiers.head)) {
+        type = identifiers.head;
+        identifiers = identifiers.tail;
+      }
+    }
+    parseModifierList(identifiers.reverse());
+    if (type === null) {
+      listener.handleNoType(token);
+    } else {
+      parseReturnTypeOpt(type);
+    }
+    token = parseIdentifier(name);
+
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
@@ -455,6 +474,39 @@ class Parser {
       listener.endTopLevelMethod(start, getOrSet, token);
     }
     return token.next;
+  }
+
+  Link<Token> findMemberName(Token token) {
+    Link<Token> identifiers = const EmptyLink<Token>();
+    while (token.kind !== EOF_TOKEN) {
+      String value = token.stringValue;
+      if ((value === '(') || (value === '{') || (value === '=>')) {
+        // A method.
+        return identifiers;
+      } else if ((value === '=') || (value === ';') || (value === ',')) {
+        // A field or abstract getter.
+        return identifiers;
+      }
+      identifiers = identifiers.prepend(token);
+      if (isValidTypeReference(token)) {
+        // type ...
+        if (optional('.', token.next)) {
+          // type '.' ...
+          if (token.next.next.isIdentifier()) {
+            // type '.' identifier
+            token = token.next.next;
+          }
+        }
+        if (optional('<', token.next)) {
+          if (token.next is BeginGroupToken) {
+            BeginGroupToken beginGroup = token.next;
+            token = beginGroup.endGroup;
+          }
+        }
+      }
+      token = token.next;
+    }
+    return listener.unexpected(token);
   }
 
   Token parseVariableInitializerOpt(Token token) {
@@ -539,6 +591,20 @@ class Parser {
     return token.next;
   }
 
+  void parseModifierList(Link<Token> tokens) {
+    int count = 0;
+    for (; !tokens.isEmpty(); tokens = tokens.tail) {
+      Token token = tokens.head;
+      if (isModifier(token)) {
+        parseModifier(token);
+      } else {
+        listener.unexpected(token);
+      }
+      count++;
+    }
+    listener.handleModifiers(count);
+  }
+
   Token parseModifiers(Token token) {
     int count = 0;
     while (token.kind === KEYWORD_TOKEN) {
@@ -607,35 +673,6 @@ class Parser {
     return (value === 'get') || (value === 'set');
   }
 
-  Token findGetOrSet(Token token) {
-    if (isGetOrSet(token)) {
-      if (optional('<', token.next)) {
-        // For example: get<T> ...
-        final Token peek = peekAfterExpectedType(token);
-        if (isGetOrSet(peek) && peek.next.isIdentifier()) {
-          // For example: get<T> get identifier
-          return peek;
-        }
-      } else {
-        // For example: get ...
-        if (isGetOrSet(token.next) && token.next.next.isIdentifier()) {
-          // For example: get get identifier
-          return token.next;
-        } else {
-          // For example: get identifier
-          return token;
-        }
-      }
-    } else if (token.stringValue !== 'operator') {
-      final Token peek = peekAfterExpectedType(token);
-      if (isGetOrSet(peek) && peek.next.isIdentifier()) {
-        // type? get identifier
-        return peek;
-      }
-    }
-    return null;
-  }
-
   Token parseMember(Token token) {
     token = parseMetadataStar(token);
     String value = token.stringValue;
@@ -645,19 +682,44 @@ class Parser {
     }
     Token start = token;
     listener.beginMember(token);
-    token = parseModifiers(token);
-    Token getOrSet = findGetOrSet(token);
-    if (token === getOrSet) token = token.next;
-    Token peek = peekAfterExpectedType(token);
-    if (peek.isIdentifier() && token.stringValue !== 'operator') {
-      // Skip type.
-      token = peek;
+
+    Link<Token> identifiers = findMemberName(token);
+    if (identifiers.isEmpty()) {
+      return listener.unexpected(start);
     }
-    if (token === getOrSet) token = token.next;
-    if (optional('operator', token)) {
-      token = parseOperatorName(token);
+    Token name = identifiers.head;
+    identifiers = identifiers.tail;
+    if (!identifiers.isEmpty()) {
+      if (optional('operator', identifiers.head)) {
+        name = identifiers.head;
+        identifiers = identifiers.tail;
+      }
+    }
+    Token getOrSet;
+    if (!identifiers.isEmpty()) {
+      if (isGetOrSet(identifiers.head)) {
+        getOrSet = identifiers.head;
+        identifiers = identifiers.tail;
+      }
+    }
+    Token type;
+    if (!identifiers.isEmpty()) {
+      if (isValidTypeReference(identifiers.head)) {
+        type = identifiers.head;
+        identifiers = identifiers.tail;
+      }
+    }
+    parseModifierList(identifiers.reverse());
+    if (type === null) {
+      listener.handleNoType(token);
     } else {
-      token = parseIdentifier(token);
+      parseReturnTypeOpt(type);
+    }
+
+    if (optional('operator', name)) {
+      token = parseOperatorName(name);
+    } else {
+      token = parseIdentifier(name);
     }
     bool isField;
     while (true) {
