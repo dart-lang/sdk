@@ -1370,6 +1370,13 @@ class HInvokeInterceptor extends HInvokeStatic {
         selector.name == const SourceString('length');
   }
 
+  bool isPopCall(HTypeMap types) {
+    return selector.isCall()
+        && inputs[1].isExtendableArray(types)
+        && selector.name == const SourceString('removeLast')
+        && selector.argumentCount == 0;
+  }
+
   bool isLengthGetterOnStringOrArray(HTypeMap types) {
     return isLengthGetter() && inputs[1].isIndexablePrimitive(types);
   }

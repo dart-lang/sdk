@@ -391,8 +391,11 @@ class ArgumentTypesRegistry {
 
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final HTypeMap types;
+  final Set<HInstruction> boundsChecked;
 
-  JavaScriptItemCompilationContext() : types = new HTypeMap();
+  JavaScriptItemCompilationContext()
+      : types = new HTypeMap(),
+        boundsChecked = new Set<HInstruction>();
 }
 
 class JavaScriptBackend extends Backend {

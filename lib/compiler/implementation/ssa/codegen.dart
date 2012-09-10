@@ -2095,12 +2095,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (interceptor.isLengthGetterOnStringOrArray(types)) {
       return 'length';
+    } else if (interceptor.isPopCall(types)) {
+      return 'pop';
     } else if (receiver.isExtendableArray(types) && isCall) {
       if (name == const SourceString('add') && arity == 1) {
         return 'push';
-      }
-      if (name == const SourceString('removeLast') && arity == 0) {
-        return 'pop';
       }
     } else if (receiver.isString(types) && isCall) {
       if (name == const SourceString('concat') &&
