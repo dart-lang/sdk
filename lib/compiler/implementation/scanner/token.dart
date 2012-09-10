@@ -124,6 +124,12 @@ class Token {
    */
   int get precedence => info.precedence;
 
+  bool isIdentifier() {
+    if (kind === IDENTIFIER_TOKEN) return true;
+    if (kind === KEYWORD_TOKEN) return value.isPseudo;
+    return false;
+  }
+
   /**
    * Returns a textual representation of this token to be used for debugging
    * purposes. The resulting string might contain information about the

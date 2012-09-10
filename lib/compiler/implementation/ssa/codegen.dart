@@ -18,13 +18,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
                                  js.Block body) {
     FunctionExpression expression = element.cachedNode;
     js.Fun result = new js.Fun(parameters, body);
-    result.sourcePosition = expression.getBeginToken();
-    result.endSourcePosition = expression.getEndToken();
+    // TODO(johnniwinther): remove the 'element.patch' hack.
+    Element sourceElement = element.patch == null ? element : element.patch;
+    SourceFile sourceFile = sourceElement.getCompilationUnit().script.file;
+    result.sourcePosition = new SourceFileLocation(
+        sourceFile, expression.getBeginToken());
+    result.endSourcePosition = new SourceFileLocation(
+        sourceFile, expression.getEndToken());
     return result;
   }
 
-  CodeBuffer prettyPrint(js.Node node, Element positionElement) {
-    return js.prettyPrint(node, compiler, positionElement);
+  CodeBuffer prettyPrint(js.Node node) {
+    return js.prettyPrint(node, compiler);
   }
 
   CodeBuffer generateCode(WorkItem work, HGraph graph) {
@@ -43,9 +48,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend, work, parameters, new Map<Element, String>());
       codegen.visitGraph(graph);
       js.Block body = codegen.body;
-      Element element = work.element;
       js.Fun fun = new js.Fun(parameters, body);
-      return prettyPrint(fun, element);
+      return prettyPrint(fun);
     });
   }
 
@@ -88,7 +92,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         // and needs to know if the method is overridden.
         nativeEmitter.overriddenMethods.add(element);
         StringBuffer buffer = new StringBuffer();
-        String codeString = prettyPrint(codegen.body, work.element).toString();
+        String codeString = prettyPrint(codegen.body).toString();
         native.generateMethodWithPrototypeCheckForElement(
             compiler, buffer, element, codeString, parametersString);
         js.Node nativeCode = new js.LiteralStatement(buffer.toString());
@@ -97,7 +101,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         body = codegen.body;
       }
       js.Fun fun = buildJavaScriptFunction(element, parameters, body);
-      return prettyPrint(fun, work.element);
+      return prettyPrint(fun);
     });
   }
 
@@ -140,7 +144,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       body.statements.add(codegen.body);
       js.Fun fun =
           buildJavaScriptFunction(work.element, codegen.newParameters, body);
-      return prettyPrint(fun, work.element);
+      return prettyPrint(fun);
     });
   }
 
@@ -338,15 +342,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
-    if (instruction.sourcePosition !== null) {
-      jsNode.sourcePosition = instruction.sourcePosition;
-    }
+    jsNode.sourcePosition = instruction.sourcePosition;
     return jsNode;
   }
 
-  js.Node attachLocationRange(js.Node jsNode, Node node) {
-    jsNode.sourcePosition = node.getBeginToken();
-    jsNode.endSourcePosition = node.getEndToken();
+  js.Node attachLocationRange(js.Node jsNode,
+                              SourceFileLocation sourcePosition,
+                              SourceFileLocation endSourcePosition) {
+    jsNode.sourcePosition = sourcePosition;
+    jsNode.endSourcePosition = endSourcePosition;
     return jsNode;
   }
 
@@ -930,7 +934,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           'Unexpected loop kind: ${info.kind}',
           instruction: condition.conditionExpression);
     }
-    attachLocationRange(loop, info.sourcePosition);
+    attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
     pushStatement(wrapIntoLabels(loop, info.labels));
     return true;
   }
@@ -2619,7 +2623,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     js.While loop = new js.While(new js.LiteralBool(true), body);
 
     HLoopInformation info = block.loopInformation;
-    attachLocationRange(loop, info.loopBlockInformation.sourcePosition);
+    attachLocationRange(loop,
+                        info.loopBlockInformation.sourcePosition,
+                        info.loopBlockInformation.endSourcePosition);
     pushStatement(wrapIntoLabels(loop, info.labels));
   }
 
@@ -2873,7 +2879,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     currentContainer = oldContainerStack.removeLast();
 
     js.Statement result = new js.While(new js.LiteralBool(true), body);
-    attachLocationRange(result, info.loopBlockInformation.sourcePosition);
+    attachLocationRange(result,
+                        info.loopBlockInformation.sourcePosition,
+                        info.loopBlockInformation.endSourcePosition);
     result = new js.LabeledStatement(loopLabel, result);
     result = wrapIntoLabels(result, info.labels);
     pushStatement(result);

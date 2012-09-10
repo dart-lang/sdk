@@ -206,12 +206,7 @@ class Parser {
     return token;
   }
 
-  bool isIdentifier(Token token) {
-    final kind = token.kind;
-    if (kind === IDENTIFIER_TOKEN) return true;
-    if (kind === KEYWORD_TOKEN) return token.value.isPseudo;
-    return false;
-  }
+  bool isIdentifier(Token token) => token.isIdentifier();
 
   Token parseDefaultClauseOpt(Token token) {
     if (isDefaultKeyword(token)) {

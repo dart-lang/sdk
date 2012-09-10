@@ -1302,19 +1302,7 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
 
   String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {
     SourceMapBuilder sourceMapBuilder = new SourceMapBuilder();
-    buffer.forEachSourceLocation((Element element, Token token, int offset) {
-      if (element == null) {
-        sourceMapBuilder.addMapping(null, null, null, offset);
-        return;
-      }
-      SourceFile sourceFile = element.getCompilationUnit().script.file;
-      String sourceName = null;
-      if (token.kind === IDENTIFIER_TOKEN) {
-        sourceName = token.slowToString();
-      }
-      sourceMapBuilder.addMapping(
-          sourceFile, token.charOffset, sourceName, offset);
-    });
+    buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
     return sourceMapBuilder.build(compiledFile);
   }
 }

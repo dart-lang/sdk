@@ -4,13 +4,13 @@
 
 class CodeBuffer implements StringBuffer {
   StringBuffer buffer;
-  List<SourceLocation> sourceLocations;
+  List<CodeBufferMarker> markers;
   int lastBufferOffset = 0;
   int mappedRangeCounter = 0;
 
   CodeBuffer()
       : buffer = new StringBuffer(),
-        sourceLocations = new List<SourceLocation>();
+        markers = new List<CodeBufferMarker>();
 
   int get length => buffer.length;
 
@@ -20,27 +20,26 @@ class CodeBuffer implements StringBuffer {
 
   /**
    * Converts [object] to a string and adds it to the buffer. If [object] is a
-   * [CodeBuffer], adds its source locations to [sourceLocations].
+   * [CodeBuffer], adds its markers to [markers].
    */
   CodeBuffer add(var object) {
     if (object is CodeBuffer) {
       return addBuffer(object);
     }
-    if (mappedRangeCounter == 0) setSourceLocation(null, null);
+    if (mappedRangeCounter == 0) setSourceLocation(null);
     buffer.add(object.toString());
     return this;
   }
 
   CodeBuffer addBuffer(CodeBuffer other) {
-    if (other.sourceLocations.length > 0) {
-      SourceLocation firstMapping = other.sourceLocations[0];
+    if (other.markers.length > 0) {
+      CodeBufferMarker firstMarker = other.markers[0];
       int offsetDelta =
-          buffer.length + firstMapping.offsetDelta - lastBufferOffset;
-      sourceLocations.add(new SourceLocation(firstMapping.element,
-                                             firstMapping.token,
-                                             offsetDelta));
-      for (int i = 1; i < other.sourceLocations.length; ++i) {
-        sourceLocations.add(other.sourceLocations[i]);
+          buffer.length + firstMarker.offsetDelta - lastBufferOffset;
+      markers.add(new CodeBufferMarker(offsetDelta,
+                                       firstMarker.sourcePosition));
+      for (int i = 1; i < other.markers.length; ++i) {
+        markers.add(other.markers[i]);
       }
       lastBufferOffset = buffer.length + other.lastBufferOffset;
     }
@@ -60,7 +59,7 @@ class CodeBuffer implements StringBuffer {
 
   CodeBuffer clear() {
     buffer.clear();
-    sourceLocations.clear();
+    markers.clear();
     lastBufferOffset = 0;
     return this;
   }
@@ -78,24 +77,24 @@ class CodeBuffer implements StringBuffer {
     --mappedRangeCounter;
   }
 
-  void setSourceLocation(Element element, Token token) {
+  void setSourceLocation(var sourcePosition) {
     int offsetDelta = buffer.length - lastBufferOffset;
-    sourceLocations.add(new SourceLocation(element, token, offsetDelta));
+    markers.add(new CodeBufferMarker(offsetDelta, sourcePosition));
     lastBufferOffset = buffer.length;
   }
 
-  void forEachSourceLocation(void f(Element element, Token token, int offset)) {
-    int offset = 0;
-    sourceLocations.forEach((sourceLocation) {
-      offset += sourceLocation.offsetDelta;
-      f(sourceLocation.element, sourceLocation.token, offset);
+  void forEachSourceLocation(void f(int targetOffset, var sourcePosition)) {
+    int targetOffset = 0;
+    markers.forEach((marker) {
+      targetOffset += marker.offsetDelta;
+      f(targetOffset, marker.sourcePosition);
     });
   }
 }
 
-class SourceLocation {
-  final Element element;
-  final Token token;
+class CodeBufferMarker {
   final int offsetDelta;
-  SourceLocation(this.element, this.token, this.offsetDelta);
+  final sourcePosition;
+
+  CodeBufferMarker(this.offsetDelta, this.sourcePosition);
 }

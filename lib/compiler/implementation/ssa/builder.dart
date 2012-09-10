@@ -846,6 +846,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // block is closed.
   HBasicBlock lastOpenedBlock;
 
+  List<Element> sourceElementStack;
+
   LibraryElement get currentLibrary => work.element.getLibrary();
   Element get currentElement => work.element;
   Compiler get compiler => builder.compiler;
@@ -862,6 +864,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
       parameters = new Map<Element, HParameterValue>(),
+      sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
@@ -960,6 +963,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     InliningState state =
         new InliningState(function, returnElement, elements, stack);
     inliningStack.add(state);
+    sourceElementStack.add(function);
     stack = <HInstruction>[];
     returnElement = new Element(const SourceString("result"),
                                 ElementKind.VARIABLE,
@@ -980,6 +984,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void leaveInlinedMethod(InliningState state) {
     InliningState poppedState = inliningStack.removeLast();
     assert(state == poppedState);
+    FunctionElement poppedElement = sourceElementStack.removeLast();
+    assert(poppedElement == poppedState.function);
     elements = state.oldElements;
     stack.add(localsHandler.readLocal(returnElement));
     returnElement = state.oldReturnElement;
@@ -1107,7 +1113,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           SendSet init = link.head;
           Link<Node> arguments = init.arguments;
           assert(!arguments.isEmpty() && arguments.tail.isEmpty());
+          sourceElementStack.add(constructor);
           visit(arguments.head);
+          sourceElementStack.removeLast();
           fieldValues[elements[init]] = pop();
         }
       }
@@ -1441,8 +1449,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {
-    target.sourcePosition = node.getBeginToken();
+    target.sourcePosition = sourceFileLocationForToken(node.getBeginToken());
     return target;
+  }
+
+  SourceFileLocation sourceFileLocationForToken(Token token) {
+    Element element = sourceElementStack.last();
+    // TODO(johnniwinther): remove the 'element.patch' hack.
+    if (element is FunctionElement) {
+      FunctionElement functionElement = element;
+      if (functionElement.patch != null) element = functionElement.patch;
+    }
+    SourceFile sourceFile = element.getCompilationUnit().script.file;
+    return new SourceFileLocation(sourceFile, token);
   }
 
   void visit(Node node) {
@@ -1643,7 +1662,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapExpressionGraph(updateGraph),
             conditionBlock.loopInformation.target,
             conditionBlock.loopInformation.labels,
-            loop);
+            sourceFileLocationForToken(loop.getBeginToken()),
+            sourceFileLocationForToken(loop.getEndToken()));
 
     startBlock.setBlockFlow(info, current);
     loopInfo.loopBlockInformation = info;
@@ -1771,7 +1791,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             null,
             loopEntryBlock.loopInformation.target,
             loopEntryBlock.loopInformation.labels,
-            node);
+            sourceFileLocationForToken(node.getBeginToken()),
+            sourceFileLocationForToken(node.getEndToken()));
     loopEntryBlock.setBlockFlow(loopBlockInfo, current);
     loopInfo.loopBlockInformation = loopBlockInfo;
   }
@@ -2717,7 +2738,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                   List<HInstruction> argumentValues]) {
     Element helper =
         compiler.findHelper(const SourceString('throwNoSuchMethod'));
-    Constant receiverConstant = 
+    Constant receiverConstant =
         constantSystem.createString(new DartString.empty(), diagnosticNode);
     HInstruction receiver = graph.addConstant(receiverConstant);
     DartString dartString = new DartString.literal(methodName);

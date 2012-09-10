@@ -741,7 +741,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
 class HInstruction implements Hashable {
   Element sourceElement;
-  Token sourcePosition;
+  SourceFileLocation sourcePosition;
 
   final int id;
   static int idCounter;
@@ -2753,7 +2753,8 @@ class HLoopBlockInformation implements HStatementInformation {
   final HExpressionInformation updates;
   final TargetElement target;
   final List<LabelElement> labels;
-  final Node sourcePosition;
+  final SourceFileLocation sourcePosition;
+  final SourceFileLocation endSourcePosition;
 
   HLoopBlockInformation(this.kind,
                         this.initializer,
@@ -2762,7 +2763,8 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.updates,
                         this.target,
                         this.labels,
-                        this.sourcePosition);
+                        this.sourcePosition,
+                        this.endSourcePosition);
 
   HBasicBlock get start {
     if (initializer !== null) return initializer.start;
