@@ -230,7 +230,6 @@ string_escape1_negative_test: Skip
 
 [ $compiler == dart2dart ]
 metadata_test: Fail
-pseudo_kw_illegal_test/02: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail
@@ -258,19 +257,10 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 abstract_syntax_test/02: Fail
-pseudo_kw_illegal_test/01: Fail
-pseudo_kw_illegal_test/05: Fail
-pseudo_kw_illegal_test/06: Fail
-pseudo_kw_illegal_test/07: Fail
 pseudo_kw_illegal_test/08: Fail
-pseudo_kw_illegal_test/09: Fail
 pseudo_kw_illegal_test/10: Fail
 pseudo_kw_illegal_test/11: Fail
-pseudo_kw_illegal_test/12: Fail
-pseudo_kw_illegal_test/13: Fail
 pseudo_kw_illegal_test/14: Fail
-pseudo_kw_illegal_test/15: Fail
-pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
@@ -323,11 +313,9 @@ function_type_alias5_test/02: Fail
 function_type_alias7_test/00: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
-get_set_syntax_test/none: Fail
 implicit_scope_test: Fail
 instanceof3_test: Fail
 library_prefixes_test: Fail
-method_name_test: Fail
 numbers_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
@@ -356,3 +344,20 @@ many_overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of inv
 no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
+
+get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/09: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/10: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
