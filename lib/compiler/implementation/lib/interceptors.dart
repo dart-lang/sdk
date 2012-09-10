@@ -4,7 +4,7 @@
 
 #library('dart:_interceptors');
 
-#import('dart:coreimpl');
+#import('coreimpl.dart');
 #import('js_helper.dart');
 
 add$1(var receiver, var value) {
@@ -605,7 +605,7 @@ trim(receiver) {
 
 /**
  * This is the [Jenkins hash function][1] but using masking to keep
- * values in SMI range.
+ * values in SMI range. 
  *
  * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
  */
