@@ -8,6 +8,7 @@
 #library('io');
 
 #import('dart:io');
+#import('dart:isolate');
 #import('dart:uri');
 
 /** Gets the current working directory. */
@@ -285,41 +286,27 @@ Future<File> createSymlink(from, to) {
 // TODO(rnystrom): Should this be async?
 String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
 
+// TODO(nweiz): make this configurable
+/**
+ * The amount of time in milliseconds to allow HTTP requests before assuming
+ * they've failed.
+ */
+final HTTP_TIMEOUT = 30 * 1000;
+
 /**
  * Opens an input stream for a HTTP GET request to [uri], which may be a
  * [String] or [Uri].
+ *
+ * Callers should be sure to use [timeout] to make sure that the HTTP request
+ * doesn't last indefinitely
  */
-InputStream httpGet(uri) {
-  var resultStream = new ListInputStream();
-  var client = new HttpClient();
-  var connection = client.getUrl(_getUri(uri));
-
-  // TODO(nweiz): propagate this error to the return value. See issue 3657.
-  connection.onError = (e) { throw e; };
-  connection.onResponse = (response) {
-    if (response.statusCode >= 400) {
-      // TODO(nweiz): propagate this error to the return value. See issue 3657.
-      throw new Exception(
-          "HTTP request for $uri failed with status ${response.statusCode}");
-    }
-
-    pipeInputToInput(response.inputStream, resultStream, client.shutdown);
-  };
-
-  return resultStream;
-}
-
-/**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri]. Completes with the result of the request as a String.
- */
-Future<String> httpGetString(uri) {
-  // TODO(rnystrom): This code is very similar to httpGet() and
-  // consumeInputStream() (but this one propagates errors). Merge them when
-  // #3657 is fixed.
+Future<InputStream> httpGet(uri) {
+  // TODO(nweiz): This could return an InputStream synchronously if issue 3657
+  // were fixed and errors could be propagated through it. Then we could also
+  // automatically attach a timeout to that stream.
   uri = _getUri(uri);
 
-  var completer = new Completer<String>();
+  var completer = new Completer<InputStream>();
   var client = new HttpClient();
   var connection = client.getUrl(uri);
 
@@ -344,25 +331,23 @@ Future<String> httpGetString(uri) {
       return;
     }
 
-    var resultStream = new ListInputStream();
-    var buffer = <int>[];
-
-    response.inputStream.onClosed = () {
-      client.shutdown();
-      completer.complete(new String.fromCharCodes(buffer));
-    };
-
-    response.inputStream.onData = () {
-      buffer.addAll(response.inputStream.read());
-    };
-
-    response.inputStream.onError = (e) {
-      client.shutdown();
-      completer.completeException(e);
-    };
+    // TODO(nweiz): remove this extra pipe when issue 4974 is fixed.
+    var sink = new ListInputStream();
+    pipeInputToInput(response.inputStream, sink);
+    completer.complete(sink);
   };
 
   return completer.future;
+}
+
+/**
+ * Opens an input stream for a HTTP GET request to [uri], which may be a
+ * [String] or [Uri]. Completes with the result of the request as a String.
+ */
+Future<String> httpGetString(uri) {
+  var future = httpGet(uri).chain((stream) => consumeInputStream(stream))
+      .transform((bytes) => new String.fromCharCodes(bytes));
+  return timeout(future, HTTP_TIMEOUT, 'Timed out while fetching URL "$uri".');
 }
 
 /**
@@ -460,6 +445,35 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 }
 
 /**
+ * Wraps [input] to provide a timeout. If [input] completes before
+ * [milliSeconds] have passed, then the return value completes in the same way.
+ * However, if [milliSeconds] pass before [input] has completed, it completes
+ * with a [TimeoutException] with [message].
+ *
+ * Note that timing out will not cancel the asynchronous operation behind
+ * [input].
+ */
+Future timeout(Future input, int milliSeconds, String message) {
+  var completer = new Completer();
+  var timer = new Timer(milliSeconds, (_) {
+    if (completer.future.isComplete) return;
+    completer.completeException(new TimeoutException(message));
+  });
+  input.handleException((e) {
+    if (completer.future.isComplete) return false;
+    timer.cancel();
+    completer.completeException(e);
+    return true;
+  });
+  input.then((value) {
+    if (completer.future.isComplete) return;
+    timer.cancel();
+    completer.complete(value);
+  });
+  return completer.future;
+}
+
+/**
  * Tests whether or not the git command-line app is available for use.
  */
 Future<bool> get isGitInstalled {
@@ -515,6 +529,15 @@ class HttpException implements Exception {
   final String reason;
 
   const HttpException(this.statusCode, this.reason);
+}
+
+/**
+ * Exception thrown when an operation times out.
+ */
+class TimeoutException implements Exception {
+  final String message;
+
+  const TimeoutException(this.message);
 }
 
 /**

@@ -56,9 +56,8 @@ class HostedSource extends Source {
     var parsed = _parseDescription(id.description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
       "${id.version}.yaml";
-    return consumeInputStream(httpGet(fullUrl)).transform((data) {
-      return new Pubspec.parse(
-          new String.fromCharCodes(data), systemCache.sources);
+    return httpGetString(fullUrl).transform((yaml) {
+      return new Pubspec.parse(yaml, systemCache.sources);
     });
   }
 
@@ -70,9 +69,10 @@ class HostedSource extends Source {
     var name = parsedDescription.first;
     var url = parsedDescription.last;
 
-    return ensureDir(destPath).chain((destDir) {
-      var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
-      return extractTarGz(httpGet(fullUrl), destDir);
+    var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
+    return Futures.wait([httpGet(fullUrl), ensureDir(destPath)]).chain((args) {
+      return timeout(extractTarGz(args[0], args[1]), HTTP_TIMEOUT,
+          'Timed out while fetching URL "$fullUrl".');
     });
   }
 
