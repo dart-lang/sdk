@@ -10,10 +10,15 @@ Language/03_Overview/2_Privacy_A01_t01: Fail # TODO(vm-team): Please triage this
 Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/06_Functions/2_Formal_Parameters_A01_t01: Fail # co19 issue 205
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # co19 issue 205
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Fail # co19 issue 205
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t01: Fail # co19 issue 205
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t02: Fail # co19 issue 205
 Language/06_Functions/4_External_Functions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A01_t20: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A02_t01: Fail # TODO(vm-team): Please triage this failure.

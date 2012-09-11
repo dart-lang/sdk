@@ -632,8 +632,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
   const int min_num_pos_args = num_fixed_params;
-  const int max_num_pos_args = num_fixed_params + num_opt_pos_params +
-      (FLAG_reject_named_argument_as_positional ? 0 : num_opt_named_params);
+  const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
   // Number of positional args is the second Smi in descriptor array (EDX).
   __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
