@@ -13,6 +13,7 @@
     'date_patch.dart',
     'double.cc',
     'double.dart',
+    'expando_patch.dart',
     'growable_array.cc',
     'growable_array.dart',
     'immutable_map.dart',

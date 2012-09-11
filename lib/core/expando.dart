@@ -5,7 +5,7 @@
 /**
  * An [Expando] allows adding new properties to objects.
  */
-class Expando<T> {
+interface Expando<T> default ExpandoImplementation<T> {
 
   /**
    * The name of the this [Expando] as passed to the constructor. If
@@ -19,25 +19,20 @@ class Expando<T> {
    * [Expando]s with the same name yields two [Expando]s that work on
    * different properties of the objects they are used on.
    */
-  const Expando([String this.name]);
-
-  /**
-   * Expando toString method override.
-   */
-  String toString() => "Expando:$name";
+  const Expando([String name]);
 
   /**
    * Gets the value of this [Expando]'s property on the given
    * object. If the object hasn't been expanded, the method returns
    * [null].
    */
-  external T operator [](Object object);
+  T operator [](Object object);
 
   /**
    * Sets the value of this [Expando]'s property on the given
    * object. Properties can effectively be removed again by setting
    * their value to null.
    */
-  external void operator []=(Object object, T value);
+  void operator []=(Object object, T value);
 
 }

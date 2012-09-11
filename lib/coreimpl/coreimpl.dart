@@ -10,6 +10,7 @@
 #source("dual_pivot_quicksort.dart");
 #source("duration_implementation.dart");
 #source("exceptions.dart");
+#source("expando.dart");
 #source("future_implementation.dart");
 #source("hash_map_set.dart");
 #source("linked_hash_map.dart");

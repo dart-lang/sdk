@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class Expando<T> {
+patch class ExpandoImplementation<T> {
   /* patch */ T operator[](Object object) {
     _checkType(object);
     var weakProperty = _find(this);
