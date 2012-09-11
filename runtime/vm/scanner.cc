@@ -831,6 +831,16 @@ void Scanner::Scan() {
           ScanLiteralString(true);
         }
         break;
+
+      case 'r':
+        if ((LookaheadChar(1) == '"') || (LookaheadChar(1) == '\'')) {
+          ReadChar();
+          ScanLiteralString(true);
+        } else {
+          ScanIdent();
+        }
+        break;
+
       case '"':
       case '\'':
         ScanLiteralString(false);
