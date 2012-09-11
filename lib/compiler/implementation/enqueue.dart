@@ -220,11 +220,11 @@ class Enqueuer {
         if (isResolutionQueue) {
           compiler.resolver.checkMembers(cls);
         }
-       
+
         if (compiler.enableTypeAssertions) {
           // We need to register is checks and helpers for checking
           // assignments to fields.
-          // TODO(ngeoffray): This should really move to the backend. 
+          // TODO(ngeoffray): This should really move to the backend.
           cls.localMembers.forEach((Element member) {
             if (!member.isInstanceMember() && !member.isField()) return;
             DartType type = member.computeType(compiler);

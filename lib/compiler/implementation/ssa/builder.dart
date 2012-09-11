@@ -3291,7 +3291,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   bool tryBuildConstantSwitch(SwitchStatement node) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
-    // First check whether all case expressions are compile-time constants.
+    // First check whether all case expressions are compile-time constants,
+    // and all have the same type that doesn't override operator==.
+    // TODO(lrn): Move the constant resolution to the resolver, so
+    // we can report an error before reaching the backend.
+    DartType firstConstantType = null;
+    bool failure = false;
     for (SwitchCase switchCase in node.cases) {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is CaseMatch) {
@@ -3299,14 +3304,39 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Constant constant =
             compiler.constantHandler.tryCompileNodeWithDefinitions(
                 match.expression, elements);
-          if (constant === null) return false;
+          if (constant === null) {
+            compiler.reportWarning(match.expression,
+                MessageKind.NOT_A_COMPILE_TIME_CONSTANT.error());
+            failure = true;
+            continue;
+          }
+          if (firstConstantType == null) {
+            firstConstantType = constant.computeType(compiler);
+            if (nonPrimitiveTypeOverridesEquals(constant)) {
+              compiler.reportWarning(match.expression,
+                  MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS.error());
+              failure = true;
+            }
+          } else {
+            DartType constantType =
+                constant.computeType(compiler);
+            if (constantType != firstConstantType) {
+              compiler.reportWarning(match.expression,
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL.error());
+              failure = true;
+            }
+          }
           constants[labelOrCase] = constant;
         } else {
-          // We don't handle labels yet.
-          return false;
+          compiler.reportWarning(node, "Unsupported: Labels on cases");
+          failure = true;
         }
       }
     }
+    if (failure) {
+      return false;
+    }
+
     // TODO(ngeoffray): Handle switch-instruction in bailout code.
     work.allowSpeculativeOptimization = false;
     // Then build a switch structure.
@@ -3418,6 +3448,41 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return true;
   }
 
+  bool nonPrimitiveTypeOverridesEquals(Constant constant) {
+    // Function values override equals. Even static ones, since
+    // they inherit from [Function].
+    if (constant.isFunction()) return true;
+
+    // [Map] and [List] do not override equals.
+    // If constant is primitive, just return false. We know
+    // about the equals methods of num/String classes.
+    if (!constant.isConstructedObject()) return false;
+
+    ConstructedConstant constructedConstant = constant;
+    DartType type = constructedConstant.type;
+    assert(type !== null);
+    Element element = type.element;
+    // If the type is not a class, we'll just assume it overrides
+    // operator==. Typedefs do, since [Function] does.
+    if (!element.isClass()) return true;
+    ClassElement classElement = element;
+    return typeOverridesObjectEquals(classElement);
+  }
+
+  bool typeOverridesObjectEquals(ClassElement classElement) {
+    Element operatorEq =
+        lookupOperator(classElement, const SourceString('=='));
+    if (operatorEq == null) return false;
+    // If the operator== declaration is in Object, it's not overridden.
+    return (operatorEq.getEnclosingClass() != compiler.objectClass);
+  }
+
+  Element lookupOperator(ClassElement classElement, SourceString operatorName) {
+    SourceString dartMethodName =
+        Elements.constructOperatorName(operatorName, false);
+    return classElement.lookupMember(dartMethodName);
+  }
+
 
   // Recursively build an if/else structure to match the cases.
   void buildSwitchCases(Link<Node> cases, HInstruction expression,
@@ -3478,33 +3543,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             compiler.constantHandler.tryCompileNodeWithDefinitions(
                 match.expression, elements);
         if (constant !== null) {
-          if (constant.isInt()) {
-            // Report the first mixed-string/int type error only.
-            if (encounteredCaseTypes == STRING_TYPE) {
-              compiler.reportWarning(
-                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
-            }
-            encounteredCaseTypes = combine(encounteredCaseTypes, INT_TYPE);
-          } else if (constant.isString()) {
-            if (encounteredCaseTypes == INT_TYPE) {
-              compiler.reportWarning(
-                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
-            }
-            encounteredCaseTypes = combine(encounteredCaseTypes, STRING_TYPE);
-          } else {
-            compiler.reportWarning(match,
-                                   MessageKind.INVALID_CASE_EXPRESSION);
-            encounteredCaseTypes = CONFLICT_TYPE;
-          }
           stack.add(graph.addConstant(constant));
         } else {
-          // TODO(lrn): Remove this else branch, and make the constant
-          // evaluation mandatory when we are ready to break existing code using
-          // non constant-int-or-string expressions.
-          compiler.reportWarning(match,
-              'case expressions not compile-time constant int or string.');
           visit(match.expression);
-          encounteredCaseTypes = CONFLICT_TYPE;
         }
         push(new HEquals(target, pop(), expression));
       }
