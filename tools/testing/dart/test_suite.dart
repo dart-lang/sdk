@@ -395,8 +395,7 @@ class StandardTestSuite implements TestSuite {
     if (expectations.contains(SKIP)) return;
 
     if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
-      enqueueBrowserTest(info, testName, expectations,
-                         configuration['compiler'] != 'dart2js');
+      enqueueBrowserTest(info, testName, expectations);
     } else {
       enqueueStandardTest(info, testName, expectations);
     }
@@ -530,26 +529,24 @@ class StandardTestSuite implements TestSuite {
 
   /**
    * The [StandardTestSuite] has support for tests that
-   * compile a test from Dart to JavaScript, and then run the resulting
-   * JavaScript.  This function creates a working directory to hold the
-   * JavaScript version of the test, and copies the appropriate framework
+   * compile a test from Dart to Javascript, and then run the resulting
+   * Javascript.  This function creates a working directory to hold the
+   * Javascript version of the test, and copies the appropriate framework
    * files to that directory.  It creates a [BrowserTestCase], which has
-   * two sequential steps to be run by the [ProcessQueue] when the test is
+   * two sequential steps to be run by the [ProcessQueue when] the test is
    * executed: a compilation
    * step and an execution step, both with the appropriate executable and
    * arguments.
    */
   void enqueueBrowserTest(TestInformation info,
                           String testName,
-                          Set<String> expectations,
-                          bool isWrappingRequired) {
+                          Set<String> expectations) {
     Map optionsFromFile = info.optionsFromFile;
     Path filePath = info.filePath;
     String filename = filePath.toString();
     bool isWebTest = optionsFromFile['containsDomImport'];
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
-    if (isWrappingRequired
-        && !isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
+    if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
       print('Warning for $filename: Browser tests require #library '
             'in any file that uses #import, #source, or #resource');
     }
@@ -573,7 +570,7 @@ class StandardTestSuite implements TestSuite {
       String compiledDartWrapperFilename = '$tempDir/test.js';
 
       String htmlPath = '$tempDir/test.html';
-      if (isWrappingRequired && !isWebTest) {
+      if (!isWebTest) {
         // test.dart will import the dart test directly, if it is a library,
         // or indirectly through test_as_library.dart, if it is not.
         Path dartLibraryFilename = filePath;

@@ -37,9 +37,7 @@ class Configuration {
    * tell the vm or browser that tests are still running and the process should
    * wait until they are done.
    */
-  void onStart() {
-    _postMessage('unittest-suite-wait-for-done');
-  }
+  void onStart() {}
 
   /**
    * Called when each test starts. Useful to show intermediate progress on
@@ -123,11 +121,8 @@ class Configuration {
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
 
-    if (success) {
-      _postMessage('unittest-suite-success');
-    } else {
-      throw new Exception('Some tests failed.');
-    }
+    // An exception is used by the test infrastructure to detect failure.
+    if (!success) throw new Exception("Some tests failed.");
   }
 
   String _indent(String str) {
@@ -142,10 +137,4 @@ class Configuration {
   // Currently e.message works in dartium, but not in dartc.
   handleExternalError(e, String message) =>
       _reportTestError('$message\nCaught $e', '');
-
-  _postMessage(String message) {
-    // In dart2js browser tests, the JavaScript-based test controller
-    // intercepts calls to print and listens for "secret" messages.
-    print(message);
-  }
 }
