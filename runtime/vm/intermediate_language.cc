@@ -1059,6 +1059,11 @@ RawAbstractType* UnboxedDoubleBinaryOpInstr::CompileType() const {
 }
 
 
+RawAbstractType* MathSqrtInstr::CompileType() const {
+  return Type::Double();
+}
+
+
 RawAbstractType* UnboxDoubleInstr::CompileType() const {
   return Type::null();
 }
@@ -1468,18 +1473,12 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label done;
-  if (recognized() == MethodRecognizer::kMathSqrt) {
-    compiler->GenerateInlinedMathSqrt(&done);
-    // Falls through to static call when operand type is not double or smi.
-  }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                function(),
                                ArgumentCount(),
                                argument_names(),
                                locs());
-  __ Bind(&done);
 }
 
 

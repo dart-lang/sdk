@@ -2006,6 +2006,22 @@ void UnboxedDoubleBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_out(Location::RequiresXmmRegister());
+  return summary;
+}
+
+
+void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ sqrtsd(locs()->out().xmm_reg(), locs()->in(0).xmm_reg());
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

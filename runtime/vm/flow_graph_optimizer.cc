@@ -274,6 +274,16 @@ static void RemovePushArguments(InstanceCallInstr* call) {
 }
 
 
+static void RemovePushArguments(StaticCallInstr* call) {
+  // Remove original push arguments.
+  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = call->ArgumentAt(i);
+    push->ReplaceUsesWith(push->value()->definition());
+    push->RemoveFromGraph();
+  }
+}
+
+
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
 static bool HasOneTarget(const ICData& ic_data) {
@@ -774,11 +784,13 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 }
 
 
-void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* instr) {
+void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(instr->function());
+      MethodRecognizer::RecognizeKind(call->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    instr->set_recognized(MethodRecognizer::kMathSqrt);
+    MathSqrtInstr* sqrt = new MathSqrtInstr(call->ArgumentAt(0)->value(), call);
+    call->ReplaceWith(sqrt, current_iterator());
+    RemovePushArguments(call);
   }
 }
 

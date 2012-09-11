@@ -239,6 +239,7 @@ class EmbeddedArray<T, 0> {
   M(Constant)                                                                  \
   M(CheckEitherNonSmi)                                                         \
   M(UnboxedDoubleBinaryOp)                                                     \
+  M(MathSqrt)                                                                  \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
   M(CheckArrayBound)                                                           \
@@ -436,6 +437,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Classes that set deopt_id_.
   friend class UnboxDoubleInstr;
   friend class UnboxedDoubleBinaryOpInstr;
+  friend class MathSqrtInstr;
   friend class CheckClassInstr;
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
@@ -1984,8 +1986,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         function_(function),
         argument_names_(argument_names),
-        arguments_(arguments),
-        recognized_(MethodRecognizer::kUnknown) {
+        arguments_(arguments) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2003,9 +2004,6 @@ class StaticCallInstr : public TemplateDefinition<0> {
     return (*arguments_)[index];
   }
 
-  MethodRecognizer::Kind recognized() const { return recognized_; }
-  void set_recognized(MethodRecognizer::Kind kind) { recognized_ = kind; }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
@@ -2016,7 +2014,6 @@ class StaticCallInstr : public TemplateDefinition<0> {
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-  MethodRecognizer::Kind recognized_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -2851,6 +2848,49 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
+};
+
+
+class MathSqrtInstr : public TemplateDefinition<1> {
+ public:
+  MathSqrtInstr(Value* value, StaticCallInstr* instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Definition* other) const {
+    return true;
+  }
+
+  // The output is not an instance but when it is boxed it becomes double.
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instuction cannot deoptimize, and the deopt-id
+    // was inherited from another instuction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(MathSqrt)
+  virtual RawAbstractType* CompileType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
 };
 
 
