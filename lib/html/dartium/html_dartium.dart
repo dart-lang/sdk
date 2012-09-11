@@ -7244,7 +7244,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   noSuchMethod(String name, List args) {
     if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodException(this, name, args);
+      throw new NoSuchMethodError(this, name, args);
     } else {
       return dynamicUnknownElementDispatcher(this, name, args);
     }

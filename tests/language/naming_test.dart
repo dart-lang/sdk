@@ -515,8 +515,8 @@ class Naming2Test {
         // We check for both exceptions because the exact exception to
         // throw is hard to compute on some browsers.
         // Also, ObjectNotClosureException should probably implement
-        // NoSuchMethodException.
-        (e) => e is ObjectNotClosureException || e is NoSuchMethodException);
+        // NoSuchMethodError.
+        (e) => e is ObjectNotClosureException || e is NoSuchMethodError);
   }
 }
 

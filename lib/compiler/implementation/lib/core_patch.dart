@@ -11,6 +11,6 @@ patch class Object {
   }
 
   patch void noSuchMethod(String name, List args) {
-    throw new NoSuchMethodException(this, name, args);
+    throw new NoSuchMethodError(this, name, args);
   }
 }

@@ -125,14 +125,14 @@ void main() {
             "IndexOutOfRangeException.");
     });
 
-    test('throwsNoSuchMethodException', () {
-      shouldPass(() { throw new NoSuchMethodException(null, '', null); },
-          throwsNoSuchMethodException);
+    test('throwsNoSuchMethodError', () {
+      shouldPass(() { throw new NoSuchMethodError(null, '', null); },
+          throwsNoSuchMethodError);
       shouldFail(() { throw new Exception(); },
-          throwsNoSuchMethodException,
-        "Expected: throws an exception which matches NoSuchMethodException "
+          throwsNoSuchMethodError,
+        "Expected: throws an exception which matches NoSuchMethodError "
         "but:  exception <Exception> does not match "
-            "NoSuchMethodException.");
+            "NoSuchMethodError.");
     });
 
     test('throwsNotImplementedException', () {

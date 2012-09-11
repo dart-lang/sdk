@@ -20,5 +20,5 @@ main() {
   // on it.
   var win = new Win();
   Expect.throws(() => win.document,
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
 }

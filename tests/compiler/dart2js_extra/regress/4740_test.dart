@@ -5,5 +5,5 @@
 #import('4740_library.dart');
 
 main() {
-  Expect.throws(() => new Foo._internal(), (e) => e is NoSuchMethodException);
+  Expect.throws(() => new Foo._internal(), (e) => e is NoSuchMethodError);
 }

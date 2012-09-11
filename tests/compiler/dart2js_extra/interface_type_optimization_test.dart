@@ -15,7 +15,7 @@ main() {
 
   // Passing b to test should lead to an exception because the string
   // we end up passing to B.foo does not implement the - operator.
-  Expect.throws(() => test(b), (e) => e is NoSuchMethodException);
+  Expect.throws(() => test(b), (e) => e is NoSuchMethodError);
 }
 
 // TODO(kasperl): Make sure this does not get inlined.

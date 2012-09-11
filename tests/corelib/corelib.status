@@ -37,7 +37,7 @@ math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0
 math_test: Fail # issue 3333
 
 # Bad test, assumes RegExp.allMatches returns a Collection.
-reg_exp_all_matches_test: Fail, OK # NoSuchMethodException : method not found: 'forEach'
+reg_exp_all_matches_test: Fail, OK # NoSuchMethodError : method not found: 'forEach'
 
 reg_exp4_test: Fail, OK # Expects exception from const constructor.
 

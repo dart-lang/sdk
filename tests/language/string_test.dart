@@ -33,7 +33,7 @@ class StringTest {
     bool exception_caught = false;
     try {
       a[1] = 12;  // Throw exception.
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

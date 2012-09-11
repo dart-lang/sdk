@@ -792,7 +792,7 @@ unwrapException(ex) {
       if (name is String && name.startsWith(@'call$')) {
         return new ObjectNotClosureException();
       } else {
-        return new NoSuchMethodException('', name, []);
+        return new NoSuchMethodError('', name, []);
       }
     }
 
@@ -814,7 +814,7 @@ unwrapException(ex) {
         // Object doesn't support property or method 'foo' which sets the error
         // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
-        return new NoSuchMethodException('', '<unknown>', []);
+        return new NoSuchMethodError('', '<unknown>', []);
       }
     }
 
@@ -1268,7 +1268,7 @@ void assert(condition) {
  * resolved cannot be found.
  */
 void throwNoSuchMethod(obj, name, arguments) {
-  throw new NoSuchMethodException(obj, name, arguments);
+  throw new NoSuchMethodError(obj, name, arguments);
 }
 
 /**

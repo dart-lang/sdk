@@ -156,7 +156,7 @@ class LocalFunctionTest {
     exception_caught = false;
     try {
       f.xyz(0);
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

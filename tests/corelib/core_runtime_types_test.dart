@@ -49,7 +49,7 @@ class CoreRuntimeTypesTest {
       f();
     } catch (exception) {
       Expect.equals(true, (exception is TypeError) ||
-                          (exception is NoSuchMethodException) ||
+                          (exception is NoSuchMethodError) ||
                           (exception is NullPointerException) ||
                           (exception is IllegalArgumentException));
       return;

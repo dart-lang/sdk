@@ -11,7 +11,7 @@ class Foo {
 class Bar {
 }
 
-noMethod(e) => e is NoSuchMethodException;
+noMethod(e) => e is NoSuchMethodError;
 
 checkIt(f) {
   Expect.throws(() { f.i = 'hi'; }, noMethod);

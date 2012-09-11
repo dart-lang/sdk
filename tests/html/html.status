@@ -188,7 +188,7 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == ff ]
-cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
+cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodError : method not found: 'get$status'
 xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
@@ -202,5 +202,5 @@ js_interop_2_test: Fail # Issue 4658.
 
 [ $compiler == dart2js && $checked && $browser]
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'
-cross_frame_test: Fail # Caught NoSuchMethodException : method not found: 'is$_WindowImpl'
-window_open_test: Fail # Caught NoSuchMethodException : method not found: 'is$_WindowImpl'
+cross_frame_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
+window_open_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'

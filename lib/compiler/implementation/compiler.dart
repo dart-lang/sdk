@@ -155,8 +155,6 @@ class Compiler implements DiagnosticListener {
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
-  static const SourceString NO_SUCH_METHOD_EXCEPTION =
-      const SourceString('NoSuchMethodException');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;

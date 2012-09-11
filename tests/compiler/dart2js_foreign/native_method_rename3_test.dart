@@ -90,9 +90,9 @@ expectNoSuchMethod(action, note) {
   bool caught = false;
   try {
     action();
-  } on NoSuchMethodException catch (ex) {
+  } on NoSuchMethodError catch (ex) {
     caught = true;
-    Expect.isTrue(ex is NoSuchMethodException, note);
+    Expect.isTrue(ex is NoSuchMethodError, note);
   }
   Expect.isTrue(caught, note);
 }

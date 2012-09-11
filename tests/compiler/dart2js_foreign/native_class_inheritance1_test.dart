@@ -90,7 +90,7 @@ main() {
     a1.foo(20);
   } catch (ex) {
     caught = true;
-    Expect.isTrue(ex is NoSuchMethodException);
+    Expect.isTrue(ex is NoSuchMethodError);
   }
   Expect.isTrue(caught, 'a1.foo(20) should throw');
 
@@ -100,7 +100,7 @@ main() {
     x.foo(20);
   } catch (ex) {
     caught = true;
-    Expect.isTrue(ex is NoSuchMethodException);
+    Expect.isTrue(ex is NoSuchMethodError);
   }
   Expect.isTrue(caught, "x.foo(20) should throw");
 }
