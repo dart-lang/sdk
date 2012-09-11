@@ -13,7 +13,6 @@
 #source('../../../../lib/coreimpl/dual_pivot_quicksort.dart');
 #source('../../../../lib/coreimpl/duration_implementation.dart');
 #source('../../../../lib/coreimpl/exceptions.dart');
-#source('../../../../lib/coreimpl/expando.dart');
 #source('../../../../lib/coreimpl/future_implementation.dart');
 #source('../../../../lib/coreimpl/hash_map_set.dart');
 #source('../../../../lib/coreimpl/linked_hash_map.dart');
