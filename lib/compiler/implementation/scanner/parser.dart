@@ -264,8 +264,12 @@ class Parser {
       return listener.expectedBlockToSkip(token);
     }
     BeginGroupToken beginGroupToken = token;
-    assert(beginGroupToken.endGroup === null ||
-           beginGroupToken.endGroup.kind === $CLOSE_CURLY_BRACKET);
+    Token endGroup = beginGroupToken.endGroup;
+    if (endGroup === null) {
+      return listener.unmatched(beginGroupToken);
+    } else if (endGroup.kind !== $CLOSE_CURLY_BRACKET) {
+      return listener.unmatched(beginGroupToken);
+    }
     return beginGroupToken.endGroup;
   }
 

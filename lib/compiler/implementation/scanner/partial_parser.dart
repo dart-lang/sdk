@@ -80,9 +80,13 @@ class PartialParser extends Parser {
       return listener.expectedClassBodyToSkip(token);
     }
     BeginGroupToken beginGroupToken = token;
-    assert(beginGroupToken.endGroup === null ||
-           beginGroupToken.endGroup.kind === $CLOSE_CURLY_BRACKET);
-    return beginGroupToken.endGroup;
+    Token endGroup = beginGroupToken.endGroup;
+    if (endGroup === null) {
+      return listener.unmatched(beginGroupToken);
+    } else if (endGroup.kind !== $CLOSE_CURLY_BRACKET) {
+      return listener.unmatched(beginGroupToken);
+    }
+    return endGroup;
   }
 
   Token parseFunctionBody(Token token, bool isExpression) {
