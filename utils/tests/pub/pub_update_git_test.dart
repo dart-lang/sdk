@@ -14,11 +14,11 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     git('bar.git', [
-      file('bar.dart', 'main() => "bar";')
+      libDir('bar')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
@@ -36,11 +36,11 @@ main() {
     ]).scheduleValidate();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 2";')
+      libDir('foo', 'foo 2')
     ]).scheduleCommit();
 
     git('bar.git', [
-      file('bar.dart', 'main() => "bar 2";')
+      libDir('bar', 'bar 2')
     ]).scheduleCommit();
 
     schedulePub(args: ['update'],
@@ -63,11 +63,11 @@ main() {
       ensureGit();
 
       git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
+        libDir('foo')
       ]).scheduleCreate();
 
       git('bar.git', [
-        file('bar.dart', 'main() => "bar";')
+        libDir('bar')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
@@ -85,11 +85,11 @@ main() {
       ]).scheduleValidate();
 
       git('foo.git', [
-        file('foo.dart', 'main() => "foo 2";')
+        libDir('foo', 'foo 2')
       ]).scheduleCommit();
 
       git('bar.git', [
-        file('bar.dart', 'main() => "bar 2";')
+        libDir('bar', 'bar 2')
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],
@@ -112,12 +112,12 @@ main() {
       ensureGit();
 
       git('foo.git', [
-        file('foo.dart', 'main() => "foo";'),
+        libDir('foo'),
         libPubspec("foo", "1.0.0", [{"git": "../foo-dep.git"}])
       ]).scheduleCreate();
 
       git('foo-dep.git', [
-        file('foo-dep.dart', 'main() => "foo-dep";'),
+        libDir('foo-dep')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -127,8 +127,7 @@ main() {
 
       dir(packagesPath, [
         dir('foo', [
-          file('foo.dart', 'main() => "foo";'),
-          libPubspec("foo", "1.0.0", [{"git": "../foo-dep.git"}])
+          file('foo.dart', 'main() => "foo";')
         ]),
         dir('foo-dep', [
           file('foo-dep.dart', 'main() => "foo-dep";')
@@ -136,12 +135,12 @@ main() {
       ]).scheduleValidate();
 
       git('foo.git', [
-        file('foo.dart', 'main() => "foo 2";'),
+        libDir('foo', 'foo 2'),
         libPubspec("foo", "1.0.0", [{"git": "../foo-dep.git"}])
       ]).scheduleCreate();
 
       git('foo-dep.git', [
-        file('foo-dep.dart', 'main() => "foo-dep 2";')
+        libDir('foo-dep', 'foo-dep 2')
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],
@@ -149,8 +148,7 @@ main() {
 
       dir(packagesPath, [
         dir('foo', [
-          file('foo.dart', 'main() => "foo 2";'),
-          libPubspec("foo", "1.0.0", [{"git": "../foo-dep.git"}])
+          file('foo.dart', 'main() => "foo 2";')
         ]),
         dir('foo-dep', [
           file('foo-dep.dart', 'main() => "foo-dep";')

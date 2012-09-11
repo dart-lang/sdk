@@ -15,10 +15,9 @@ final USAGE_STRING = """
     Usage: pub command [arguments]
 
     Global options:
-    -h, --help              Prints this usage information
-        --version           Prints the version of Pub
-        --[no-]trace        Prints a stack trace when an error occurs
-        --[no-]self-link    Temporary flag, do not use.
+    -h, --help          Prints this usage information
+        --version       Prints the version of Pub
+        --[no-]trace    Prints a stack trace when an error occurs
 
     The commands are:
       help      display help information for Pub

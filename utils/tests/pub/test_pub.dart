@@ -203,7 +203,7 @@ void servePackages(List<Map> pubspecs) {
                 file('$version.yaml', _servedPackages[name][version]),
                 tar('$version.tar.gz', [
                   file('pubspec.yaml', _servedPackages[name][version]),
-                  file('$name.dart', 'main() => print("$name $version");')
+                  libDir(name, '$name $version')
                 ])
               ];
             })))
@@ -248,6 +248,21 @@ Descriptor libPubspec(String name, String version, [List dependencies]) =>
   pubspec(package(name, version, dependencies));
 
 /**
+ * Describes a directory named `lib` containing a single dart file named
+ * `<name>.dart` that contains a line of Dart code.
+ */
+Descriptor libDir(String name, [String code]) {
+  // Default to printing the name if no other code was given.
+  if (code == null) {
+    code = name;
+  }
+
+  return dir("lib", [
+    file("$name.dart", 'main() => "$code";')
+  ]);
+}
+
+/**
  * Describes a map representing a library package with the given [name],
  * [version], and [dependencies].
  */
@@ -271,22 +286,12 @@ Map dependency(String name, [String versionConstraint]) {
 }
 
 /**
- * Describes a directory for a package installed from the mock package repo.
- * This directory is of the form found in the `packages/` directory.
- */
-DirectoryDescriptor packageDir(String name, String version) {
-  return dir(name, [
-    file("$name.dart", 'main() => print("$name $version");')
-  ]);
-}
-
-/**
  * Describes a directory for a package installed from the mock package server.
  * This directory is of the form found in the global package cache.
  */
 DirectoryDescriptor packageCacheDir(String name, String version) {
   return dir("$name-$version", [
-    file("$name.dart", 'main() => print("$name $version");')
+    libDir(name, '$name $version')
   ]);
 }
 
@@ -298,7 +303,7 @@ DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
   var value = name;
   if (modifier != null) value = "$name $modifier";
   return dir(new RegExp("$name${@'-[a-f0-9]+'}"), [
-    file('$name.dart', 'main() => "$value";')
+    libDir(name, value)
   ]);
 }
 
@@ -329,7 +334,9 @@ DirectoryDescriptor packagesDir(Map<String, String> packages) {
     if (version == null) {
       contents.add(nothing(name));
     } else {
-      contents.add(packageDir(name, version));
+      contents.add(dir(name, [
+        file("$name.dart", 'main() => "$name $version";')
+      ]));
     }
   });
   return dir(packagesPath, contents);

@@ -58,10 +58,13 @@ class SdkSource extends Source {
         sourcePath = join(rootDir, "lib", id.description);
         return exists(sourcePath).chain((found) {
           if (!found) return new Future<bool>.immediate(false);
-          return createSymlink(sourcePath, destPath).transform((_) => true);
+          return createPackageSymlink(id.name, sourcePath, destPath).transform(
+              (_) => true);
         });
       }
-      return createSymlink(sourcePath, destPath).transform((_) => true);
+
+      return createPackageSymlink(id.name, sourcePath, destPath).transform(
+          (_) => true);
     });
   }
 }

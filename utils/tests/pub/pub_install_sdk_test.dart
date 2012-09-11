@@ -13,7 +13,11 @@ main() {
   test('checks out a package from the SDK', () {
     dir(sdkPath, [
       file('revision', '1234'),
-      dir('pkg', [packageDir("foo", "0.0.1234")])
+      dir('pkg', [
+        dir('foo', [
+          libDir('foo', 'foo 0.0.1234')
+        ])
+      ])
     ]).scheduleCreate();
 
     dir(appPath, [
