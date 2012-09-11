@@ -46,6 +46,18 @@ class FunctionSet extends PartialTypeTree {
         : filterHierarchyBySelector(selector);
   }
 
+  /**
+   * Returns whether the set has any element matching the given
+   * [selector].
+   */
+  bool hasAnyElementMatchingSelector(Selector selector) {
+    // TODO(kasperl): For now, we use a different implementation for
+    // filtering if the tree contains interface subtypes.
+    return containsInterfaceSubtypes
+        ? hasAnyInAll(selector)
+        : hasAnyInHierarchy(selector);
+  }
+
   Set<Element> filterAllBySelector(Selector selector) {
     Set<Element> result = new Set<Element>();
     if (root === null) return result;
@@ -68,6 +80,38 @@ class FunctionSet extends PartialTypeTree {
       Element member = node.membersByName[selector.name];
       if (member !== null && selector.appliesUntyped(member, compiler)) {
         result.add(member);
+      }
+      return true;
+    });
+    return result;
+  }
+
+  bool hasAnyInAll(Selector selector) {
+    bool result = false;
+    if (root === null) return result;
+    root.visitRecursively((FunctionSetNode node) {
+      Element member = node.membersByName[selector.name];
+      // Since we're running through the entire tree we have to use
+      // the applies method that takes types into account.
+      if (member !== null && selector.applies(member, compiler)) {
+        result = true;
+        // End the traversal.
+        return false;
+      }
+      return true;
+    });
+    return result;
+  }
+
+  bool hasAnyInHierarchy(Selector selector) {
+    bool result = false;
+    if (root === null) return result;
+    visitHierarchy(selectorType(selector), (FunctionSetNode node) {
+      Element member = node.membersByName[selector.name];
+      if (member !== null && selector.appliesUntyped(member, compiler)) {
+        result = true;
+        // End the traversal.
+        return false;
       }
       return true;
     });

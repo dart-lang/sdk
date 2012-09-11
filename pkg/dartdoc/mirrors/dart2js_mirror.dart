@@ -232,7 +232,7 @@ class LibraryCompiler extends api.Compiler {
       maybeEnableJSHelper(library);
     });
 
-    world.populate(this);
+    world.populate();
 
     log('Resolving...');
     phase = Compiler.PHASE_RESOLVING;

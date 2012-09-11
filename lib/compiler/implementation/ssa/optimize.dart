@@ -696,7 +696,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
         const SourceString('length'),
         lengthInterceptor.getLibrary());  // TODO(kasperl): Wrong.
     HInvokeInterceptor length = new HInvokeInterceptor(
-        selector, <HInstruction>[interceptor, receiver]);
+        selector, <HInstruction>[interceptor, receiver], true);
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
 
@@ -755,6 +755,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   bool isDeadCode(HInstruction instruction) {
     return !instruction.hasSideEffects(types)
            && instruction.usedBy.isEmpty()
+           // A dynamic getter that has no side effect can still throw
+           // a NoSuchMethodError or a NullPointerException.
+           && instruction is !HInvokeDynamicGetter
            && instruction is !HCheck
            && instruction is !HTypeGuard
            && !instruction.isControlFlow();

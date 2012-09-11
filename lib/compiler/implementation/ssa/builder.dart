@@ -2023,13 +2023,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
     }
+    bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
     if (staticInterceptor != null) {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
-      push(new HInvokeInterceptor(selector, inputs));
+      push(new HInvokeInterceptor(selector, inputs, !hasGetter));
     } else {
-      push(new HInvokeDynamicGetter(selector, null, receiver));
+      push(new HInvokeDynamicGetter(selector, null, receiver, !hasGetter));
     }
   }
 

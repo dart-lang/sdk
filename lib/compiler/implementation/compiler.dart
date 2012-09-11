@@ -179,9 +179,9 @@ class Compiler implements DiagnosticListener {
             bool generateSourceMap = true,
             bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
-        world = new World(),
         progress = new Stopwatch() {
     progress.start();
+    world = new World(this);
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
@@ -552,7 +552,7 @@ class Compiler implements DiagnosticListener {
 
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.
-    world.populate(this);
+    world.populate();
 
     log('Compiling...');
     phase = PHASE_COMPILING;

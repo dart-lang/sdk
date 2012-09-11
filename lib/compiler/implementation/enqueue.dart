@@ -101,6 +101,9 @@ class Enqueuer {
     if (elements === null) {
       elements = getCachedElements(element);
     }
+    if (isResolutionQueue) {
+      compiler.world.registerUsedElement(element);
+    }
 
     queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
 
