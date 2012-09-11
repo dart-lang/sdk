@@ -1360,7 +1360,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getParent() instanceof DartBinaryExpression) {
         DartBinaryExpression binaryExpression = (DartBinaryExpression) node.getParent();
         if (binaryExpression.getArg1() == node
-            && binaryExpression.getOperator().isAssignmentOperator()) {
+            && binaryExpression.getOperator() == Token.ASSIGN) {
           DartExpression argValue = binaryExpression.getArg2();
           analyzeTernaryOperator(node, target, Token.ASSIGN_INDEX, node, argKey, argValue);
           binaryExpression.setElement(node.getElement());

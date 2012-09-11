@@ -21,6 +21,8 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartArrayAccess;
+import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -37,6 +39,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.common.SourceInfo;
@@ -45,6 +48,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -3709,6 +3713,112 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors());
+  }
+
+  /**
+   * Test for resolving variants of array access and unary/binary expressions.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5042
+   */
+  public void test_opAssignArrayElement() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  B operator [](k) => new B();",
+        "    operator []=(k, v) { }",
+        "}",
+        "class B {",
+        "  B operator +(x) => new B();",
+        "}",
+        "main () {",
+        "  var a = new A();",
+        "  process( a[2] );",
+        "  a[0]++;",
+        "  ++a[0];",
+        "  a[0] += 1;",
+        "  a[0] = 1;",
+        "}",
+        "process(x) {}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // print( a[2] )
+    {
+      DartArrayAccess access = findNode(DartArrayAccess.class, "a[2]");
+      // a[2] is invocation of method "[]"
+      {
+        MethodElement element = access.getElement();
+        assertEquals("[]", element.getName());
+        assertEquals("A", element.getEnclosingElement().getName());
+      }
+    }
+    // a[0]++
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "a[0]++");
+      // a[0]++ is invocation of method "+"
+      {
+        MethodElement element = unary.getElement();
+        assertEquals("+", element.getName());
+        assertEquals("B", element.getEnclosingElement().getName());
+      }
+      // a[0] is invocation of method []
+      {
+        DartArrayAccess access = (DartArrayAccess) unary.getArg();
+        MethodNodeElement element = access.getElement();
+        assertEquals("[]", element.getName());
+        assertEquals("A", element.getEnclosingElement().getName());
+      }
+    }
+    // ++a[0]
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++a[0]");
+      // ++a[0] is invocation of method "+"
+      {
+        MethodElement element = unary.getElement();
+        assertEquals("+", element.getName());
+        assertEquals("B", element.getEnclosingElement().getName());
+      }
+      // a[0] is invocation of method []
+      {
+        DartArrayAccess access = (DartArrayAccess) unary.getArg();
+        MethodNodeElement element = access.getElement();
+        assertEquals("[]", element.getName());
+        assertEquals("A", element.getEnclosingElement().getName());
+      }
+    }
+    // a[0] += 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a[0] += 1");
+      // a[0] += 1 is invocation of method "+"
+      {
+        MethodElement element = binary.getElement();
+        assertEquals("+", element.getName());
+        assertEquals("B", element.getEnclosingElement().getName());
+      }
+      // a[0] is invocation of method []
+      {
+        DartArrayAccess access = (DartArrayAccess) binary.getArg1();
+        MethodNodeElement element = access.getElement();
+        assertEquals("[]", element.getName());
+        assertEquals("A", element.getEnclosingElement().getName());
+      }
+    }
+    // a[0] = 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a[0] = 1");
+      // a[0] = 1 is invocation of method "[]="
+      {
+        MethodElement element = binary.getElement();
+        assertEquals("[]=", element.getName());
+        assertEquals("A", element.getEnclosingElement().getName());
+      }
+      // a[0] is invocation of method []=
+      {
+        DartArrayAccess access = (DartArrayAccess) binary.getArg1();
+        MethodNodeElement element = access.getElement();
+        assertEquals("[]=", element.getName());
+        assertEquals("A", element.getEnclosingElement().getName());
+      }
+    }
   }
 
   public void test_invokeStaticFieldAsMethod() throws Exception {
