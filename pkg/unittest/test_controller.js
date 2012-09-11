@@ -113,6 +113,7 @@ function dartMainRunner(main) {
     main();
   } catch (e) {
     showErrorAndExit(String(e));
+    return; // Posting 'dart-main-done' signals success.
   }
   window.postMessage('dart-main-done', '*');
 }
