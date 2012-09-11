@@ -3219,53 +3219,150 @@ class CheckArrayBoundInstr : public TemplateDefinition<2> {
 
 #undef DECLARE_INSTRUCTION
 
-
 class Environment : public ZoneAllocated {
  public:
+  // Iterate the non-NULL values in the innermost level of an environment.
+  class ShallowIterator : public ValueObject {
+   public:
+    explicit ShallowIterator(Environment* environment)
+        : environment_(environment), index_(0) { }
+
+    Environment* environment() const { return environment_; }
+
+    void Advance() {
+      ASSERT(!Done());
+      ++index_;
+    }
+
+    bool Done() const {
+      return (environment_ == NULL) || (index_ >= environment_->Length());
+    }
+
+    Value* CurrentValue() const {
+      ASSERT(!Done());
+      ASSERT(environment_->values_[index_] != NULL);
+      return environment_->values_[index_];
+    }
+
+    void SetCurrentValue(Value* value) {
+      ASSERT(!Done());
+      ASSERT(value != NULL);
+      environment_->values_[index_] = value;
+    }
+
+   private:
+    Environment* environment_;
+    intptr_t index_;
+  };
+
+  // Iterate all non-NULL values in an environment, including outer
+  // environments.  Note that the iterator skips empty environments.
+  class DeepIterator : public ValueObject {
+   public:
+    explicit DeepIterator(Environment* environment) : iterator_(environment) {
+      SkipDone();
+    }
+
+    void Advance() {
+      ASSERT(!Done());
+      iterator_.Advance();
+      SkipDone();
+    }
+
+    bool Done() const { return iterator_.environment() == NULL; }
+
+    Value* CurrentValue() const {
+      ASSERT(!Done());
+      return iterator_.CurrentValue();
+    }
+
+    void SetCurrentValue(Value* value) {
+      ASSERT(!Done());
+      iterator_.SetCurrentValue(value);
+    }
+
+   private:
+    void SkipDone() {
+      while (!Done() && iterator_.Done()) {
+        iterator_ = ShallowIterator(iterator_.environment()->outer());
+      }
+    }
+
+    ShallowIterator iterator_;
+  };
+
   // Construct an environment by constructing uses from an array of definitions.
-  Environment(const GrowableArray<Definition*>& definitions,
-              intptr_t fixed_parameter_count);
+  static Environment* From(const GrowableArray<Definition*>& definitions,
+                           intptr_t fixed_parameter_count,
+                           const Environment* outer);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);
     locations_ = locations;
   }
 
-  const GrowableArray<Value*>& values() const {
-    return values_;
+  void set_deopt_id(intptr_t deopt_id) { deopt_id_ = deopt_id; }
+  intptr_t deopt_id() const { return deopt_id_; }
+
+  Environment* outer() const { return outer_; }
+
+  Value* ValueAt(intptr_t ix) const {
+    return values_[ix];
   }
 
-  GrowableArray<Value*>* values_ptr() {
-    return &values_;
+  intptr_t Length() const {
+    return values_.length();
   }
 
-  Location LocationAt(intptr_t ix) const {
-    ASSERT((ix >= 0) && (ix < values_.length()));
-    return locations_[ix];
+  Location LocationAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index < values_.length()));
+    return locations_[index];
   }
 
-  Location* LocationSlotAt(intptr_t ix) const {
-    ASSERT((ix >= 0) && (ix < values_.length()));
-    return &locations_[ix];
+  Location* LocationSlotAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index < values_.length()));
+    return &locations_[index];
+  }
+
+  // The use index is the index in the flattened environment.
+  Value* ValueAtUseIndex(intptr_t index) const {
+    const Environment* env = this;
+    while (index >= env->Length()) {
+      ASSERT(env->outer_ != NULL);
+      index -= env->Length();
+      env = env->outer_;
+    }
+    return env->ValueAt(index);
   }
 
   intptr_t fixed_parameter_count() const {
     return fixed_parameter_count_;
   }
 
-  void CopyTo(Instruction* instr) const;
+  void DeepCopyTo(Instruction* instr) const;
 
   void PrintTo(BufferFormatter* f) const;
 
  private:
-  Environment(intptr_t length, intptr_t fixed_parameter_count)
+  friend class ShallowIterator;
+
+  Environment(intptr_t length,
+              intptr_t fixed_parameter_count,
+              intptr_t deopt_id,
+              Environment* outer)
       : values_(length),
         locations_(NULL),
-        fixed_parameter_count_(fixed_parameter_count) { }
+        fixed_parameter_count_(fixed_parameter_count),
+        deopt_id_(deopt_id),
+        outer_(outer) { }
+
+  Environment* DeepCopy() const;
 
   GrowableArray<Value*> values_;
   Location* locations_;
   const intptr_t fixed_parameter_count_;
+  intptr_t deopt_id_;
+  Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };

@@ -95,19 +95,20 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
       Instruction* current = it.Current();
       if (current->CanDeoptimize()) {
         ASSERT(current->env() != NULL);
-        GrowableArray<Value*>* values = current->env()->values_ptr();
-        for (intptr_t i = 0; i < values->length(); i++) {
-          Value* use = (*values)[i];
+        for (Environment::DeepIterator it(current->env());
+             !it.Done();
+             it.Advance()) {
+          Value* use = it.CurrentValue();
           Definition* def = use->definition();
           PushArgumentInstr* push_argument = def->AsPushArgument();
           if ((push_argument != NULL) && push_argument->WasEliminated()) {
-            (*values)[i] = push_argument->value()->Copy();
+            it.SetCurrentValue(push_argument->value()->Copy());
             continue;
           }
 
           PhiInstr* phi = def->AsPhi();
           if ((phi != NULL) && !phi->is_alive()) {
-            (*values)[i] = new Value(constant_null);
+            it.SetCurrentValue(new Value(constant_null));
             continue;
           }
         }
@@ -145,11 +146,11 @@ void FlowGraphAllocator::ComputeInitialSets() {
         live_in->Add(use);
       }
 
-      // Add uses from the deoptimization environment.
+      // Add non-argument uses from the deoptimization environment (pushed
+      // arguments are not allocated by the register allocator).
       if (current->env() != NULL) {
-        const GrowableArray<Value*>& values = current->env()->values();
-        for (intptr_t j = 0; j < values.length(); j++) {
-          Value* value = values[j];
+        for (intptr_t i = 0; i < current->env()->Length(); ++i) {
+          Value* value = current->env()->ValueAt(i);
           if (!value->definition()->IsPushArgument()) {
             live_in->Add(value->definition()->ssa_temp_index());
           }
@@ -185,8 +186,8 @@ void FlowGraphAllocator::ComputeInitialSets() {
 
   // Process incoming parameters.
   GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
-  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
-    Value* val = graph_entry->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
+    Value* val = graph_entry->start_env()->ValueAt(i);
     intptr_t vreg = val->definition()->ssa_temp_index();
     kill_[graph_entry->postorder_number()]->Add(vreg);
     live_in_[graph_entry->postorder_number()]->Remove(vreg);
@@ -519,8 +520,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
   // Process incoming parameters.  Do this after all other instructions so
   // that safepoints for all calls have already been found.
   GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
-  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
-    Value* val = graph_entry->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
+    Value* val = graph_entry->start_env()->ValueAt(i);
     ParameterInstr* param = val->definition()->AsParameter();
     if (param == NULL) continue;
 
@@ -748,17 +749,16 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
   //      value    -----*
   //
 
-  const GrowableArray<Value*>& values = env->values();
-  if (values.length() == 0) return;
+  if (env->Length() == 0) return;
 
   const intptr_t block_start_pos = block->start_pos();
   const intptr_t use_pos = current->lifetime_position() + 1;
 
   Location* locations =
-      Isolate::Current()->current_zone()->Alloc<Location>(values.length());
+      Isolate::Current()->current_zone()->Alloc<Location>(env->Length());
 
-  for (intptr_t i = 0; i < values.length(); ++i) {
-    Value* value = values[i];
+  for (intptr_t i = 0; i < env->Length(); ++i) {
+    Value* value = env->ValueAt(i);
     locations[i] = Location::Any();
     Definition* def = value->definition();
 

@@ -103,7 +103,7 @@ class CallSiteInliner : public FlowGraphVisitor {
 
       // Replace all the formal parameters with the actuals.
       for (intptr_t i = 0; i < arguments->length(); ++i) {
-        Value* val = callee_graph->graph_entry()->start_env()->values()[i];
+        Value* val = callee_graph->graph_entry()->start_env()->ValueAt(i);
         ParameterInstr* param = val->definition()->AsParameter();
         ASSERT(param != NULL);
         param->ReplaceUsesWith((*arguments)[i]->definition());

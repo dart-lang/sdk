@@ -126,8 +126,8 @@ void FlowGraphOptimizer::SelectRepresentations() {
   GraphEntryInstr* graph_entry = block_order_[0]->AsGraphEntry();
 
   // Visit incoming parameters.
-  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
-    Value* val = graph_entry->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
+    Value* val = graph_entry->start_env()->ValueAt(i);
     InsertConversionsFor(val->definition());
   }
 
@@ -369,7 +369,7 @@ void FlowGraphOptimizer::InsertBefore(Instruction* instr,
                                       Definition* defn,
                                       Environment* env,
                                       Definition::UseKind use_kind) {
-  if (env != NULL) env->CopyTo(defn);
+  if (env != NULL) env->DeepCopyTo(defn);
   if (use_kind == Definition::kValue) {
     defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
@@ -381,7 +381,7 @@ void FlowGraphOptimizer::InsertAfter(Instruction* instr,
                                      Definition* defn,
                                      Environment* env,
                                      Definition::UseKind use_kind) {
-  if (env != NULL) env->CopyTo(defn);
+  if (env != NULL) env->DeepCopyTo(defn);
   if (use_kind == Definition::kValue) {
     defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
@@ -1085,8 +1085,8 @@ void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
     return;
   }
   // Visit incoming parameters.
-  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
-    Value* val = graph_entry->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
+    Value* val = graph_entry->start_env()->ValueAt(i);
     ParameterInstr* param = val->definition()->AsParameter();
     if (param != NULL) {
       ASSERT(param->index() == i);
@@ -1240,7 +1240,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   // Attach the environment of the Goto instruction to the hoisted
   // instruction and set the correct deopt_id.
   ASSERT(last->env() != NULL);
-  last->env()->CopyTo(current);
+  last->env()->DeepCopyTo(current);
   current->deopt_id_ = last->GetDeoptId();
 }
 

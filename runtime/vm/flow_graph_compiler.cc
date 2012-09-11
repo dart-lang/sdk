@@ -59,20 +59,21 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   intptr_t slot_ix = 0;
   BuildReturnAddress(&builder, function, slot_ix++);
 
-  // All locals between TOS and PC-marker.
-  const GrowableArray<Value*>& values = deoptimization_env_->values();
-
   // Assign locations to values pushed above spill slots with PushArgument.
   intptr_t height = compiler->StackSize();
-  for (intptr_t i = 0; i < values.length(); i++) {
+  for (intptr_t i = 0; i < deoptimization_env_->Length(); i++) {
     if (deoptimization_env_->LocationAt(i).IsInvalid()) {
-      ASSERT(values[i]->definition()->IsPushArgument());
+      ASSERT(deoptimization_env_->ValueAt(i)->definition()->IsPushArgument());
       *deoptimization_env_->LocationSlotAt(i) = Location::StackSlot(height++);
     }
   }
 
-  for (intptr_t i = values.length() - 1; i >= fixed_parameter_count; i--) {
-    builder.AddCopy(deoptimization_env_->LocationAt(i), *values[i], slot_ix++);
+  for (intptr_t i = deoptimization_env_->Length() - 1;
+       i >= fixed_parameter_count;
+       i--) {
+    builder.AddCopy(deoptimization_env_->LocationAt(i),
+                    *deoptimization_env_->ValueAt(i),
+                    slot_ix++);
   }
 
   // PC marker, caller-fp, caller-pc.
@@ -81,7 +82,9 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   builder.AddCallerPc(slot_ix++);
   // Incoming arguments.
   for (intptr_t i = fixed_parameter_count - 1; i >= 0; i--) {
-    builder.AddCopy(deoptimization_env_->LocationAt(i), *values[i], slot_ix++);
+    builder.AddCopy(deoptimization_env_->LocationAt(i),
+                    *deoptimization_env_->ValueAt(i),
+                    slot_ix++);
   }
 
   const DeoptInfo& deopt_info = DeoptInfo::Handle(builder.CreateDeoptInfo());
