@@ -105,8 +105,6 @@ void parseFile(String filename, MyOptions options) {
     } else {
       print(ex);
     }
-  } on MalformedInputException catch (ex) {
-    // Already diagnosed.
   } catch (ex) {
     print('Error in file: $filename');
     throw;
@@ -124,17 +122,7 @@ void parseFile(String filename, MyOptions options) {
 
 Token scan(MySourceFile source) {
   Scanner scanner = new ByteArrayScanner(source.rawText);
-  try {
-    return scanner.tokenize();
-  } on MalformedInputException catch (ex) {
-    if (ex.position is Token) {
-      print(formatError(ex.message, ex.position, ex.position, source));
-    } else {
-      Token fakeToken = new Token(QUESTION_INFO, ex.position);
-      print(formatError(ex.message, fakeToken, fakeToken, source));
-    }
-    throw;
-  }
+  return scanner.tokenize();
 }
 
 var filesWithCrashes;

@@ -256,7 +256,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
       return $EOF;
     }
     if (next < 0x1f) {
-      throw new MalformedInputException("illegal character $next", charOffset);
+      return error(new SourceString("unexpected character $next"));
     }
 
     // The following are non-ASCII characters.
@@ -492,7 +492,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          throw new MalformedInputException("hex digit expected", charOffset);
+          return error(const SourceString("hex digit expected"));
         }
         appendByteStringToken(HEXADECIMAL_INFO, asciiString(start, 0));
         return next;
@@ -556,7 +556,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          throw new MalformedInputException("digit expected", charOffset);
+          return error(const SourceString("digit expected"));
         }
         return next;
       }
@@ -678,18 +678,16 @@ class AbstractScanner<T extends SourceString> implements Scanner {
           (next === $$ && allowDollar)) {
         isDynamicBuiltIn = false;
         next = advance();
-      } else if (next < 128) {
+      } else if ((next < 128) || (next === $NBSP)) {
         // Identifier ends here.
         if (start == byteOffset) {
-          throw new MalformedInputException("expected identifier not found",
-                                            charOffset);
-        }
-        if (isDynamicBuiltIn) {
+          return error(const SourceString("expected identifier"));
+        } else if (isDynamicBuiltIn) {
           appendKeywordToken(Keyword.DYNAMIC);
         } else if (isAscii) {
           appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {
-          appendByteStringToken(IDENTIFIER_INFO, utf8String(start, -1));
+          appendByteStringToken(BAD_INPUT_INFO, utf8String(start, -1));
         }
         return next;
       } else {
@@ -697,6 +695,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         int nonAsciiStart = byteOffset;
         do {
           next = nextByte();
+          if (next === $NBSP) break;
         } while (next > 127);
         String string = utf8String(nonAsciiStart, -1).slowToString();
         isAscii = false;
@@ -754,8 +753,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         continue;
       }
       if (next <= $CR && (next === $LF || next === $CR || next === $EOF)) {
-        throw new MalformedInputException("unterminated string literal",
-                                          charOffset);
+        return error(const SourceString("unterminated string literal"));
       }
       next = advance();
     }
@@ -802,13 +800,11 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         appendByteStringToken(STRING_INFO, utf8String(start, 0));
         return advance();
       } else if (next === $LF || next === $CR) {
-        throw new MalformedInputException("unterminated string literal",
-                                          charOffset);
+        return error(const SourceString("unterminated string literal"));
       }
       next = advance();
     }
-    throw new MalformedInputException("unterminated string literal",
-                                      charOffset);
+    return error(const SourceString("unterminated string literal"));
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
@@ -827,8 +823,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         }
       }
     }
-    throw new MalformedInputException("unterminated string literal",
-                                      charOffset);
+    return error(const SourceString("unterminated string literal"));
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
@@ -857,14 +852,11 @@ class AbstractScanner<T extends SourceString> implements Scanner {
       }
       next = advance();
     }
-    throw new MalformedInputException("unterminated string literal",
-                                      charOffset);
+    return error(const SourceString("unterminated string literal"));
   }
-}
 
-class MalformedInputException {
-  final String message;
-  final position;
-  MalformedInputException(this.message, this.position);
-  toString() => message;
+  int error(SourceString message) {
+    appendByteStringToken(BAD_INPUT_INFO, message);
+    return advance(); // Ensure progress.
+  }
 }

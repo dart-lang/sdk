@@ -6,6 +6,7 @@ const int EOF_TOKEN = 0;
 
 const int KEYWORD_TOKEN = $k;
 const int IDENTIFIER_TOKEN = $a;
+const int BAD_INPUT_TOKEN = $X;
 const int DOUBLE_TOKEN = $d;
 const int INT_TOKEN = $i;
 const int HEXADECIMAL_TOKEN = $x;
@@ -458,6 +459,10 @@ const PrecedenceInfo EOF_INFO =
 
 const PrecedenceInfo IDENTIFIER_INFO =
   const PrecedenceInfo(const SourceString('identifier'), 0, IDENTIFIER_TOKEN);
+
+const PrecedenceInfo BAD_INPUT_INFO =
+  const PrecedenceInfo(const SourceString('malformed input'), 0,
+                       BAD_INPUT_TOKEN);
 
 const PrecedenceInfo OPEN_PAREN_INFO =
   const PrecedenceInfo(const SourceString('('), POSTFIX_PRECEDENCE,

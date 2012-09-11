@@ -112,20 +112,7 @@ class ScannerTask extends CompilerTask {
 
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
-    Token tokens;
-    try {
-      tokens = new StringScanner(script.text).tokenize();
-    } on MalformedInputException catch (ex) {
-      Token token;
-      var message;
-      if (ex.position is num) {
-        // TODO(ahe): Always use tokens in MalformedInputException.
-        token = new Token(EOF_INFO, ex.position);
-      } else {
-        token = ex.position;
-      }
-      compiler.cancel(ex.message, token: token);
-    }
+    Token tokens = new StringScanner(script.text).tokenize();
     compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 

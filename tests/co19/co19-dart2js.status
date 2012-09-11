@@ -979,8 +979,6 @@ Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail # Checks that a 
 Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail # Checks that a relational expression cannot be the operand of another relational expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail # Checks that a relational expression cannot be the operand of another relational expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail # Checks that a relational expression cannot be the operand of another relational expression.
-Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail # Checks that identifier can't contain letters from the cyrillic alphabet.
-Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail # Checks that identifier can't contain letters from the turkish alphabet.
 Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # Checks that it is a compile-time error when a built-in identifier "equals" is used as a type annotation of a local variable.
 Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # Checks that it is a compile-time error when a built-in identifier "negate" is used as a type annotation of a local variable.
