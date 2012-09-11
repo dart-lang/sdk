@@ -63,6 +63,8 @@ main() {
     element.style.transform = 'translateX(10px)';
     document.body.elements.add(element);
 
+    var style = new CSSStyleDeclaration();
+
     element.getComputedStyle('').then(expectAsync1(
       (CSSStyleDeclaration style) {
         // Some browsers will normalize this, so it'll be a matrix rather than
@@ -70,21 +72,5 @@ main() {
         expect(style.transform.length, greaterThan(3));
       }
     ));
-  });
-
-  // IE9 requires an extra poke for some properties to get applied.
-  test('IE9 Invalidation', () {
-    var element = new DivElement();
-    document.body.elements.add(element);
-
-    // Need to wait one tick after the element has been added to the page.
-    window.setTimeout(expectAsync0(() {
-      element.style.textDecoration = 'underline';
-      element.getComputedStyle('').then(expectAsync1(
-        (CSSStyleDeclaration style) {
-          expect(style.textDecoration, equals('underline'));
-        }
-      ));
-    }), 10);
   });
 }

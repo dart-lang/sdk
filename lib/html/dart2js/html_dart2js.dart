@@ -944,6 +944,8 @@ class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleD
 
   String removeProperty(String propertyName) native;
 
+  void setProperty(String propertyName, String value, [String priority]) native;
+
 
   // TODO(jacobr): generate this list of properties using the existing script.
     /** Gets the value of "animation" */
@@ -3708,13 +3710,6 @@ class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleD
   void set zoom(var value) {
     setProperty('zoom', value, '');
   }
-
-  void setProperty(String propertyName, String value, [String priority]) native '''
-    this.setProperty(propertyName, value, priority);
-    if (this.setAttribute) {
-      this.setAttribute(propertyName, value);
-    }
-  ''';
 }
 
 class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CSSStyleRule" {

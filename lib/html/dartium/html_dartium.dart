@@ -3632,8 +3632,6 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   void set zoom(var value) {
     setProperty('zoom', value, '');
   }
-
-  void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
