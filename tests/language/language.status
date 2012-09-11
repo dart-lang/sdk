@@ -92,6 +92,7 @@ compile_time_constant_checked_test/02: Fail, OK
 
 [ $compiler == dartc ]
 metadata_test: Fail
+prefix_new_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member
 bad_constructor_test/05: Fail # Constructor name clashes with other member
 bad_constructor_test/06: Fail # Constructor name clashes with other member
@@ -234,6 +235,7 @@ string_escape1_negative_test: Skip
 
 [ $compiler == dart2dart ]
 metadata_test: Fail
+prefix_new_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail

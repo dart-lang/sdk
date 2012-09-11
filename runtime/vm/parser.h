@@ -293,9 +293,12 @@ class Parser : public ValueObject {
                                     const String& url);
   void ParseLibraryDefinition();
   void ParseLibraryName();
-  void ParseLibraryImport();
-  void ParseLibraryInclude();
-  void ParseLibraryResource();
+  void ParseLibraryImportExport();
+  void ParseLibraryPart();
+  void ParseLibraryNameObsoleteSyntax();
+  void ParseLibraryImportObsoleteSyntax();
+  void ParseLibraryIncludeObsoleteSyntax();
+  void ParseLibraryResourceObsoleteSyntax();
 
   void ResolveTypeFromClass(const Class& cls,
                             ClassFinalizer::FinalizationKind finalization,

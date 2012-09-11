@@ -4018,8 +4018,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 }
 
 
-void Parser::ParseLibraryName() {
-  TRACE_PARSER("ParseLibraryName");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryNameObsoleteSyntax() {
   if ((script_.kind() == RawScript::kLibraryTag) &&
       (CurrentToken() != Token::kLIBRARY)) {
     // Handle error case early to get consistent error message.
@@ -4060,8 +4060,8 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-void Parser::ParseLibraryImport() {
-  TRACE_PARSER("ParseLibraryImport");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryImportObsoleteSyntax() {
   while (CurrentToken() == Token::kIMPORT) {
     const intptr_t import_pos = TokenPos();
     ConsumeToken();
@@ -4125,8 +4125,8 @@ void Parser::ParseLibraryImport() {
 }
 
 
-void Parser::ParseLibraryInclude() {
-  TRACE_PARSER("ParseLibraryInclude");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryIncludeObsoleteSyntax() {
   while (CurrentToken() == Token::kSOURCE) {
     const intptr_t source_pos = TokenPos();
     ConsumeToken();
@@ -4147,8 +4147,8 @@ void Parser::ParseLibraryInclude() {
 }
 
 
-void Parser::ParseLibraryResource() {
-  TRACE_PARSER("ParseLibraryResource");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryResourceObsoleteSyntax() {
   while (CurrentToken() == Token::kRESOURCE) {
     // Currently the VM does ignore #resource library tags. They are only used
     // by the IDE.
@@ -4164,18 +4164,134 @@ void Parser::ParseLibraryResource() {
 }
 
 
+void Parser::ParseLibraryName() {
+  ASSERT(IsLiteral("library"));
+  ConsumeToken();
+  // TODO(hausner): Exact syntax of library name still unclear: identifier,
+  // qualified identifier or even multiple dots allowed? For now we just
+  // accept simple identifiers.
+  const String& lib_name = *ExpectIdentifier("library name expected");
+  library_.SetName(lib_name);
+  ExpectSemicolon();
+}
+
+
+void Parser::ParseLibraryImportExport() {
+  if (IsLiteral("import")) {
+    const intptr_t import_pos = TokenPos();
+    ConsumeToken();
+    if (CurrentToken() != Token::kSTRING) {
+      ErrorMsg("library url expected");
+    }
+    const String& url = *CurrentLiteral();
+    if (url.Length() == 0) {
+      ErrorMsg("library url expected");
+    }
+    ConsumeToken();
+    String& prefix = String::Handle();
+    if (IsLiteral("as")) {
+      ConsumeToken();
+      prefix = ExpectIdentifier("prefix expected")->raw();
+    }
+    if (IsLiteral("show")) {
+      ErrorMsg("show combinator not yet supported");
+    } else if (IsLiteral("hide")) {
+      ErrorMsg("hide combinator not yet supported");
+    }
+    ExpectSemicolon();
+
+    // Canonicalize library URL.
+    Dart_Handle handle =
+        CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url);
+    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+    // Lookup the library URL.
+    Library& library = Library::Handle(Library::LookupLibrary(canon_url));
+    if (library.IsNull()) {
+      // Call the library tag handler to load the library.
+      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+      // If the library tag handler succeded without registering the
+      // library we create an empty library to import.
+      library = Library::LookupLibrary(canon_url);
+      if (library.IsNull()) {
+        library = Library::New(canon_url);
+        library.Register();
+      }
+    }
+    // Add the import to the library.
+    if (prefix.IsNull() || (prefix.Length() == 0)) {
+      library_.AddImport(library);
+    } else {
+      LibraryPrefix& library_prefix = LibraryPrefix::Handle();
+      library_prefix = library_.LookupLocalLibraryPrefix(prefix);
+      if (!library_prefix.IsNull()) {
+        library_prefix.AddLibrary(library);
+      } else {
+        library_prefix = LibraryPrefix::New(prefix, library);
+        library_.AddObject(library_prefix, prefix);
+      }
+    }
+  } else if (IsLiteral("export")) {
+    ErrorMsg("export clause not yet supported");
+  } else {
+    ErrorMsg("unreachable");
+    UNREACHABLE();
+  }
+}
+
+
+void Parser::ParseLibraryPart() {
+  ErrorMsg("library part definitions not implemented");
+}
+
+
 void Parser::ParseLibraryDefinition() {
   TRACE_PARSER("ParseLibraryDefinition");
+
   // Handle the script tag.
   if (CurrentToken() == Token::kSCRIPTTAG) {
     // Nothing to do for script tags except to skip them.
     ConsumeToken();
   }
 
-  ParseLibraryName();
-  ParseLibraryImport();
-  ParseLibraryInclude();
-  ParseLibraryResource();
+  // TODO(hausner): Remove support for old library definition syntax.
+  if ((CurrentToken() == Token::kLIBRARY) ||
+      (CurrentToken() == Token::kIMPORT) ||
+      (CurrentToken() == Token::kSOURCE) ||
+      (CurrentToken() == Token::kRESOURCE)) {
+    ParseLibraryNameObsoleteSyntax();
+    ParseLibraryImportObsoleteSyntax();
+    ParseLibraryIncludeObsoleteSyntax();
+    ParseLibraryResourceObsoleteSyntax();
+    return;
+  }
+
+  // We may read metadata tokens that are part of the toplevel
+  // declaration that follows the library definitions. Therefore, we
+  // need to remember the position of the last token that was
+  // successfully consumed.
+  intptr_t metadata_pos = TokenPos();
+  SkipMetadata();
+  if (IsLiteral("library")) {
+    ParseLibraryName();
+    metadata_pos = TokenPos();
+    SkipMetadata();
+  } else if (script_.kind() == RawScript::kLibraryTag) {
+    ErrorMsg("library name definition expected");
+  }
+  while (IsLiteral("import") || IsLiteral("export")) {
+    ParseLibraryImportExport();
+    metadata_pos = TokenPos();
+    SkipMetadata();
+  }
+  while (IsLiteral("part")) {
+    ParseLibraryPart();
+    metadata_pos = TokenPos();
+    SkipMetadata();
+  }
+  if (IsLiteral("library") || IsLiteral("import") || IsLiteral("export")) {
+    ErrorMsg("unexpected token '%s'", CurrentLiteral()->ToCString());
+  }
+  SetPosition(metadata_pos);
 }
 
 
