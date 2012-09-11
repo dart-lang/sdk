@@ -112,10 +112,6 @@ function dartMainRunner(main) {
   try {
     main();
   } catch (e) {
-    showErrorAndExit(String(e));
-    // Calling showErrorAndExit will not call testRunner.notifyDone()
-    // at this point. This is because of the async nature of this framework.
-    // testRunner.startedDartTest is not true yet. So post a message.
     window.postMessage('unittest-suite-fail', '*');
     return; // Posting 'dart-main-done' signals success.
   }
