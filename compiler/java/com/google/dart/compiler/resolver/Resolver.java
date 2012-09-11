@@ -192,6 +192,7 @@ public class Resolver {
     private Set<LabelElement> referencedLabels = Sets.newHashSet();
     private Set<LabelElement> labelsInScopes = Sets.newHashSet();
     private Set<FieldElement> finalsNeedingInitializing = Sets.newHashSet();
+    private Set<FieldElement> resolvedFields = Sets.newHashSet();
 
     @VisibleForTesting
     public ResolveElementsVisitor(ResolutionContext context,
@@ -735,12 +736,16 @@ public class Resolver {
       }
 
       // If field is an accessor, both getter and setter need to be visited (if present).
+      // We check for duplicates because top-level fields are visited twice - for each accessor.
       FieldNodeElement field = node.getElement();
-      if (field.getGetter() != null) {
-        resolve(field.getGetter().getNode());
-      }
-      if (field.getSetter() != null) {
-        resolve(field.getSetter().getNode());
+      if (!resolvedFields.contains(field)) {
+        resolvedFields.add(field);
+        if (field.getGetter() != null) {
+          resolve(field.getGetter().getNode());
+        }
+        if (field.getSetter() != null) {
+          resolve(field.getSetter().getNode());
+        }
       }
       return null;
     }
