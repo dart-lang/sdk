@@ -14,7 +14,6 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 url_test: Fail   # createObjectURL not implemented.
-unknownelement_test: Fail # In work by antonm.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip

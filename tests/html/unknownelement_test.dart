@@ -24,9 +24,9 @@ main() {
     });
 
   test('dispatch-fail', () {
-      expect(() => foo.method1(), throwsException);
-      expect(() => foo.field1, throwsException);
-      expect(() { foo.field1 = 42; }, throwsException);
+      expect(() => foo.method1(), throwsNoSuchMethodError);
+      expect(() => foo.field1, throwsNoSuchMethodError);
+      expect(() { foo.field1 = 42; }, throwsNoSuchMethodError);
     });
 
   test('dispatch', () {
@@ -62,9 +62,9 @@ main() {
       dynamicUnknownElementDispatcher = dispatch;
 
       expect(foo.x, equals(42));
-      expect(() { foo.x = 7; }, throwsException);
+      expect(() { foo.x = 7; }, throwsNoSuchMethodError);
       expect(foo.id, equals('foo'));
-      expect(() => bar.x, throwsException);
+      expect(() => bar.x, throwsNoSuchMethodError);
       bar.y = 11;
       expect(bar.y, equals(11));
       expect(foo.baz('hello'), equals('foo - hello'));
