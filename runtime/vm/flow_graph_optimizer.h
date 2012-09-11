@@ -60,6 +60,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InsertConversionsFor(Definition* def);
 
+  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
+
   FlowGraph* flow_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);

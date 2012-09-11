@@ -535,6 +535,35 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 }
 
 
+// Use CHA to determine if the call needs a class check: if the callee's
+// receiver is the same as the caller's receiver and there are no overriden
+// callee functions, then no class check is needed.
+bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
+    InstanceCallInstr* call) const {
+  if (!FLAG_use_cha) return true;
+  Definition* callee_receiver = call->ArgumentAt(0)->value()->definition();
+  ASSERT(callee_receiver != NULL);
+  const Function& function = flow_graph_->parsed_function().function();
+  if (function.IsDynamicFunction() &&
+      callee_receiver->IsParameter() &&
+      (callee_receiver->AsParameter()->index() == 0)) {
+    const intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
+    ZoneGrowableArray<intptr_t>* subclass_cids =
+        CHA::GetSubclassIdsOf(static_receiver_cid);
+    if (subclass_cids->is_empty()) {
+      // No subclasses, no check needed.
+      return false;
+    }
+    ZoneGrowableArray<Function*>* overriding_functions =
+        CHA::GetNamedInstanceFunctionsOf(*subclass_cids, call->function_name());
+    if (overriding_functions->is_empty()) {
+      // No overriding functions.
+      return false;
+    }
+  }
+  return true;
+}
+
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -559,7 +588,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
 
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    if (InstanceCallNeedsClassCheck(call)) {
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    }
     // Detach environment from the original instruction because it can't
     // deoptimize.
     call->set_env(NULL);
@@ -603,6 +634,29 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
         Type::ZoneHandle(Type::SmiType()));
     load->set_result_cid(kSmiCid);
     call->ReplaceWith(load, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
+
+  if (recognized_kind == MethodRecognizer::kGrowableArrayCapacity) {
+    // Check receiver class.
+    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+
+    // TODO(srdjan): type of load should be GrowableObjectArrayType.
+    LoadVMFieldInstr* data_load = new LoadVMFieldInstr(
+        call->ArgumentAt(0)->value(),
+        Array::data_offset(),
+        Type::ZoneHandle(Type::DynamicType()));
+    data_load->set_result_cid(kGrowableObjectArrayCid);
+    InsertBefore(call, data_load, NULL, Definition::kValue);
+
+    LoadVMFieldInstr* length_load = new LoadVMFieldInstr(
+        new Value(data_load),
+        Array::length_offset(),
+        Type::ZoneHandle(Type::SmiType()));
+    length_load->set_result_cid(kSmiCid);
+
+    call->ReplaceWith(length_load, current_iterator());
     RemovePushArguments(call);
     return true;
   }
@@ -688,30 +742,13 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
     const ICData& unary_checks =
         ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
-    if (FLAG_use_cha) {
-      // Check if receiver can have only one target, in which case
-      // we emit call without class checks.
-      Definition* receiver = instr->ArgumentAt(0)->value()->definition();
-      ASSERT(receiver != NULL);
-      const Function& function = flow_graph_->parsed_function().function();
-      if (function.IsDynamicFunction() &&
-          receiver->IsParameter() &&
-          (receiver->AsParameter()->index() == 0)) {
-        intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
-        ZoneGrowableArray<intptr_t>* subclass_cids =
-            CHA::GetSubclassIdsOf(static_receiver_cid);
-        ZoneGrowableArray<Function*>* overriding_functions =
-            CHA::GetNamedInstanceFunctionsOf(*subclass_cids,
-                                             instr->function_name());
-        if (overriding_functions->is_empty()) {
-          const bool call_with_checks = false;
-          PolymorphicInstanceCallInstr* call =
-              new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                               call_with_checks);
-          instr->ReplaceWith(call, current_iterator());
-          return;
-        }
-      }
+    if (!InstanceCallNeedsClassCheck(instr)) {
+      const bool call_with_checks = false;
+      PolymorphicInstanceCallInstr* call =
+          new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                           call_with_checks);
+      instr->ReplaceWith(call, current_iterator());
+      return;
     }
     const intptr_t kMaxChecks = 4;
     if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
@@ -776,7 +813,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+  if (InstanceCallNeedsClassCheck(instr)) {
+    AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+  }
   // Detach environment from the original instruction because it can't
   // deoptimize.
   instr->set_env(NULL);

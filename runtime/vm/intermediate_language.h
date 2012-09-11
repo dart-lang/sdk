@@ -33,6 +33,7 @@ class LocalVariable;
   V(ObjectArray, get:length, ObjectArrayLength)                                \
   V(ImmutableArray, get:length, ImmutableArrayLength)                          \
   V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
+  V(GrowableObjectArray, get:capacity, GrowableArrayCapacity)                  \
   V(StringBase, get:length, StringBaseLength)                                  \
   V(IntegerImplementation, toDouble, IntegerToDouble)                          \
   V(Double, toDouble, DoubleToDouble)                                          \
