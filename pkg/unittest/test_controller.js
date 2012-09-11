@@ -109,6 +109,10 @@ function dartPrint(msg) {
 // Dart [main] directly. The argument is a closure that invokes main.
 function dartMainRunner(main) {
   window.postMessage('dart-calling-main', '*');
-  main();
+  try {
+    main();
+  } catch (e) {
+    showErrorAndExit(String(e));
+  }
   window.postMessage('dart-main-done', '*');
 }
