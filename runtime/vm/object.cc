@@ -5073,7 +5073,7 @@ RawString* TokenStream::GenerateSource() const {
   String& double_quotes = String::Handle(String::New("\""));
   String& dollar = String::Handle(String::New("$"));
   String& two_spaces = String::Handle(String::New("  "));
-  String& raw_string = String::Handle(String::New("@"));
+  String& raw_string = String::Handle(String::New("r"));
 
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
