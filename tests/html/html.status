@@ -112,6 +112,7 @@ svgelement_test: Fail
 svgelement2_test: Fail
 
 [ $runtime == ff ]
+js_interop_1_test: Fail, Pass # http://dartbug.com/5083
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
