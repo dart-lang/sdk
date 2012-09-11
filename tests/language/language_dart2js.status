@@ -9,8 +9,6 @@
 
 [ $compiler == dart2js && $checked ]
 assert_with_type_test_or_cast_test: Fail # Issue 4929
-assign_static_type_test/01: Fail
-assign_static_type_test/02: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
@@ -42,6 +40,10 @@ type_parameter_test/04: Fail # Issue 4932
 
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
+
+# Only checked mode reports an error on type assignment
+# problems in compile time constants.
+compile_time_constant_checked_test/02: Fail, OK
 
 [ $compiler == dart2js && $host_unchecked ]
 metadata_test: Fail # Metadata on type parameters not supported.
@@ -75,7 +77,6 @@ positional_parameters_type_test: Fail # Support for optional parameters not conf
 # Crash infinite loop on Mac and dart2js checked mode on linux.
 function_type_alias6_test: Crash, Fail
 
-static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
 const_var_test: Fail # Map literals take 2 type arguments.

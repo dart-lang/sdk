@@ -901,7 +901,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Link<Node> link = node.arguments;
     assert(!link.isEmpty() && link.tail.isEmpty());
     visit(link.head);
-    close(new HReturn(pop())).addSuccessor(graph.exit);
+    HInstruction value = pop();
+    value = potentiallyCheckType(value, variable);
+    close(new HReturn(value)).addSuccessor(graph.exit);
     graph.finalize();
     return graph;
   }
@@ -2099,6 +2101,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         add(target);
         addWithPosition(new HInvokeStatic(<HInstruction>[target, value]), send);
       } else {
+        value = potentiallyCheckType(value, element);
         addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);

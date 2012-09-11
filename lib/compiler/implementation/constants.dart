@@ -40,6 +40,8 @@ class Constant implements Hashable {
   bool isNaN() => false;
   bool isMinusZero() => false;
 
+  abstract DartType computeType(Compiler compiler);
+
   abstract List<Constant> getDependencies();
 
   abstract accept(ConstantVisitor);
@@ -77,6 +79,10 @@ class FunctionConstant extends Constant {
     return new DartString.literal(element.name.slowToString());
   }
 
+  DartType computeType(Compiler compiler) {
+    return compiler.functionClass.computeType(compiler);
+  }
+
   int hashCode() => (17 * element.hashCode()) & 0x7fffffff;
 
   accept(ConstantVisitor visitor) => visitor.visitFunction(this);
@@ -108,6 +114,10 @@ class NullConstant extends PrimitiveConstant {
   const NullConstant._internal();
   bool isNull() => true;
   get value => null;
+
+  DartType computeType(Compiler compiler) {
+    return compiler.nullClass.computeType(compiler);
+  }
 
   void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add(JsNull);
@@ -149,6 +159,10 @@ class IntConstant extends NumConstant {
   const IntConstant._internal(this.value);
   bool isInt() => true;
 
+  DartType computeType(Compiler compiler) {
+    return compiler.intClass.computeType(compiler);
+  }
+
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
   // The is [:!IntConstant:] check at the beginning of the function makes sure
@@ -188,6 +202,10 @@ class DoubleConstant extends NumConstant {
   // We need to check for the negative sign since -0.0 == 0.0.
   bool isMinusZero() => value == 0.0 && value.isNegative();
 
+  DartType computeType(Compiler compiler) {
+    return compiler.doubleClass.computeType(compiler);
+  }
+
   bool operator ==(var other) {
     if (other is !DoubleConstant) return false;
     DoubleConstant otherDouble = other;
@@ -213,6 +231,10 @@ class BoolConstant extends PrimitiveConstant {
   }
   const BoolConstant._internal();
   bool isBool() => true;
+
+  DartType computeType(Compiler compiler) {
+    return compiler.boolClass.computeType(compiler);
+  }
 
   abstract BoolConstant negate();
 }
@@ -266,6 +288,10 @@ class StringConstant extends PrimitiveConstant {
   }
   bool isString() => true;
 
+  DartType computeType(Compiler compiler) {
+    return compiler.stringClass.computeType(compiler);
+  }
+
   bool operator ==(var other) {
     if (other is !StringConstant) return false;
     StringConstant otherString = other;
@@ -284,6 +310,8 @@ class ObjectConstant extends Constant {
 
   ObjectConstant(this.type);
   bool isObject() => true;
+
+  DartType computeType(Compiler compiler) => type;
 
   // TODO(1603): The class should be marked as abstract, but the VM doesn't
   // currently allow this.

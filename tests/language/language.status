@@ -86,6 +86,10 @@ type_parameter_test/04: Fail # Issue 4932
 [ $compiler == none && $unchecked ]
 field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 
+# Only checked mode reports an error on type assignment
+# problems in compile time constants.
+compile_time_constant_checked_test/02: Fail, OK
+
 [ $compiler == dartc ]
 metadata_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member

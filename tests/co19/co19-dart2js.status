@@ -119,8 +119,6 @@ Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Pl
 Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t06: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t07: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Conditional_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
