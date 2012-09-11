@@ -179,7 +179,14 @@ class _SocketOutputStream
       List<int> buffer = _pendingWrites.first;
       int offset = _pendingWrites.index;
       int bytesToWrite = buffer.length - offset;
-      int bytesWritten = _socket.writeList(buffer, offset, bytesToWrite);
+      int bytesWritten;
+      try {
+        bytesWritten = _socket.writeList(buffer, offset, bytesToWrite);
+      } catch (e) {
+        _pendingWrites.clear();
+        _onSocketError(e);
+        return;
+      }
       _pendingWrites.removeBytes(bytesWritten);
       if (bytesWritten < bytesToWrite) {
         _socket._onWrite = _onWrite;
