@@ -328,14 +328,17 @@ class ArgumentTypesRegistry {
   HTypeList parameterTypes(FunctionElement element,
                            OptionalParameterTypes defaultValueTypes) {
     // Handle static functions separately.
-    HTypeList types = staticTypeMap[element];
-    if (types !== null) {
-      if (!optimizedStaticFunctions.contains(element)) {
-        optimizedStaticFunctions.add(element);
+    if (Elements.isStaticOrTopLevelFunction(element) ||
+        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      HTypeList types = staticTypeMap[element];
+      if (types !== null) {
+        if (!optimizedStaticFunctions.contains(element)) {
+          optimizedStaticFunctions.add(element);
+        }
+        return types;
+      } else {
+        return HTypeList.ALL_UNKNOWN;
       }
-      return types;
-    } else {
-      return HTypeList.ALL_UNKNOWN;
     }
 
     // Getters have no parameters.

@@ -197,8 +197,7 @@ class SsaBuilderTask extends CompilerTask {
         }
         HTypeList parameterTypes =
             backend.optimisticParameterTypes(element, defaultValueTypes);
-        if (!parameterTypes.allUnknown &&
-            !(element.isSetter() && signature.parameterCount != 1)) {
+        if (!parameterTypes.allUnknown) {
           int i = 0;
           signature.forEachParameter((Element param) {
             builder.parameters[param].guaranteedType = parameterTypes[i++];
