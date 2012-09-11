@@ -5,8 +5,62 @@
 [ $compiler == dart2js ]
 Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
 Language/03_Overview/03_Overview_A01_t02: Crash # http://dartbug.com/5016
-Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
+Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
 
+Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A04_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A04_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A04_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A04_t04: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A04_t05: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/1_Methods_A05_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A01_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t05: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t07: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t08: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t09: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t10: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A03_t05: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A03_t06: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t04: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t05: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t06: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t07: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A06_t08: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A10_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A10_t03: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A10_t04: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A10_t05: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/4_Factories_and_Constructors_A10_t06: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/Interfaces_A01_t02: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/Interfaces_A01_t06: Fail # TODO(ahe): Please triage this failure.
+Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
@@ -16,13 +70,13 @@ Language/14_Types/7_Type_Void_A01_t02: Crash # http://dartbug.com/5018
 
 
 [ $compiler == dart2js && $checked ]
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A06_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A04_t05: Fail # TODO(ahe): Please triage this failure.
@@ -192,13 +246,7 @@ LibTest/core/Clock/now_A01_t01: Fail, OK
 Language/03_Overview/1_Scoping_A02_t30: Fail, OK
 Language/03_Overview/2_Privacy_A01_t08: Fail, OK
 Language/03_Overview/2_Privacy_A01_t21: Fail, OK
-Language/07_Classes/5_Constructors/2_Factories_A06_t03: Fail, OK
-Language/08_Interfaces/1_Methods_A02_t01: Fail, OK
-Language/08_Interfaces/1_Methods_A02_t02: Fail, OK
-Language/08_Interfaces/1_Methods_A02_t03: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
@@ -627,21 +675,9 @@ Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail, OK # co19 issue 192
 
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # co19 issue 193
 Language/07_Classes/07_Classes_A02_t34: Fail, OK # co19 issue 193
-Language/07_Classes/07_Classes_A03_t10: Fail, OK # co19 issue 193
 
 Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail, OK # co19 issue 194
-Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK # co19 issue 194
 Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail, OK # co19 issue 194
-Language/08_Interfaces/5_Superinterfaces_A03_t02: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A06_t01: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A06_t02: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A06_t03: Fail, OK # co19 issue 194
@@ -713,7 +749,7 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects n
 # may sometime be out of date.
 #
 [ $compiler == dart2js ]
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # compiler cancelled: internal error: super property store not implemented
 Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
@@ -838,11 +874,6 @@ Language/07_Classes/07_Classes_A02_t11: Fail # Checks that it is a compile-time 
 Language/07_Classes/07_Classes_A02_t31: Fail # Checks that it is a compile-time error when a constant constructor is declared abstract.
 Language/07_Classes/07_Classes_A02_t32: Fail # Checks that it is a compile-time error when a constant constructor is declared abstract.
 Language/07_Classes/07_Classes_A03_t02: Fail # Checks that it is a compile-time error if a factory constructor method definition does not include a body.
-Language/07_Classes/07_Classes_A03_t03: Fail # Checks that it is a compile-time error if a function method definition does not include a body.
-Language/07_Classes/07_Classes_A03_t04: Fail # Checks that it is a compile-time error if a getter method definition does not include a body.
-Language/07_Classes/07_Classes_A03_t05: Fail # Checks that it is a compile-time error if a setter method definition does not include a body.
-Language/07_Classes/07_Classes_A03_t06: Fail # Checks that it is a compile-time error if an operator definition does not include a body.
-Language/07_Classes/07_Classes_A03_t07: Fail # Checks that it is a compile-time error if a static getter method definition does not include a body.
 Language/07_Classes/07_Classes_A03_t08: Fail # Checks that it is a compile-time error if a static setter method definition does not include a body.
 Language/07_Classes/07_Classes_A03_t09: Fail # Checks that it is a compile-time error if a static function method definition does not include a body.
 Language/07_Classes/07_Classes_A04_t19: Fail # Checks that an abstract static method can't be used in place of a class member definition./
@@ -883,13 +914,13 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Checks that a co
 Language/07_Classes/4_Abstract_Instance_Members_A04_t04: Fail # Checks that a compile-time error is produced when the overriding abstract method has the same set of named parameters as the non-abstract instance method being overriden, but in a different order.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has the same set of named parameters as the abstract method being overriden,  but in a different order.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # Checks that redirecting constructor can not have initializing formals.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A21_t01: Fail # Checks that a compile-time error occur if k’s initializer list contains an initializer for a ﬁnal variable whose declaration includes an initialization expression.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail # Checks that it is a compile-time error when a constant constructor  declaration has a body.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail # Checks that it is a compile-time error if a named constant constructor has a body.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # Checks that redirecting constructor can not have initializing formals.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # Checks that a compile-time error occur if k’s initializer list contains an initializer for a ﬁnal variable whose declaration includes an initialization expression.
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A02_t01: Fail # Checks that it is a compile-time error when a constant constructor  declaration has a body.
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A02_t03: Fail # Checks that it is a compile-time error if a named constant constructor has a body.
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
 Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.
 Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
 Language/07_Classes/6_Constructors_A03_t03: Fail # Checks that 'default' constructor is not generated if the class  declares a named constructor.
@@ -1072,7 +1103,7 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # http://dartbug.com/4
 Language/03_Overview/1_Scoping_A03_t02: Fail # http://dartbug.com/4050
 Language/03_Overview/2_Privacy_A01_t01: Fail # http://dartbug.com/4050
 Language/03_Overview/2_Privacy_A01_t16: Fail # http://dartbug.com/4050
-Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # http://dartbug.com/4050
+Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # http://dartbug.com/4050
 
 
 #
