@@ -365,3 +365,7 @@ get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+
+# Only checked mode reports an error on type assignment
+# problems in compile time constants.
+compile_time_constant_checked_test/02: Fail, OK
