@@ -1500,10 +1500,10 @@ class Function : public Object {
     raw_ptr()->usage_counter_ = value;
   }
 
-  intptr_t deoptimization_counter() const {
+  int16_t deoptimization_counter() const {
     return raw_ptr()->deoptimization_counter_;
   }
-  void set_deoptimization_counter(intptr_t value) const {
+  void set_deoptimization_counter(int16_t value) const {
     raw_ptr()->deoptimization_counter_ = value;
   }
 
