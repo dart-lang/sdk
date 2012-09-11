@@ -1269,18 +1269,25 @@ public class Resolver {
           switch (ElementKind.of(element)) {
             case FIELD:
               FieldElement field = (FieldElement) element;
+              x.setType(field.getType());
               if (!field.getModifiers().isStatic()) {
                 onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_FIELD,
                     x.getPropertyName());
               }
               if (Elements.inGetterContext(x)) {
-                if (field.getGetter() == null  && field.getSetter() != null) {
-                  onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+                if (field.getSetter() != null) {
+                  element = field.getGetter();
+                  if (element == null) {
+                    onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+                  }
                 }
               }
               if (Elements.inSetterContext(x)) {
-                if (field.getSetter() == null && field.getGetter() != null) {
-                  onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+                if (field.getGetter() != null) {
+                  element = field.getSetter();
+                  if (element == null) {
+                    onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+                  }
                 }
               }
               break;
@@ -1372,9 +1379,6 @@ public class Resolver {
 
         default:
           break;
-      }
-      if (x.getName() != null) {
-        recordElement(x.getName(), element);
       }
       return recordElement(x, element);
     }
@@ -1955,8 +1959,10 @@ public class Resolver {
            }
            break;
          case METHOD:
-           topLevelContext.onError(node.getArg1(),  ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
-                                   lhs.getName());
+            if (!lhs.getModifiers().isSetter()) {
+              topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
+                  lhs.getName());
+            }
            break;
         }
       }

@@ -1792,6 +1792,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getType() != null) {
         return node.getType();
       }
+      if (node.getParent() instanceof DartDeclaration<?>
+          && ((DartDeclaration<?>) node.getParent()).getName() == node) {
+        return node.getType();
+      }
       Element element = node.getElement();
       Type type;
       switch (ElementKind.of(element)) {
