@@ -189,11 +189,11 @@ void testSocketClose() {
 
       if (expectError) {
         ReceivePort port = new ReceivePort();
-        server.onError = (Exception error) {
+        server.onError = (var error) {
           port.close();
         };
       } else {
-        server.onError = (Exception error) {
+        server.onError = (var error) {
           Expect.fail("An error was not expected: $error");
         };
       }
