@@ -92,7 +92,6 @@ compile_time_constant_checked_test/02: Fail, OK
 
 [ $compiler == dartc ]
 metadata_test: Fail
-prefix_new_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member
 bad_constructor_test/05: Fail # Constructor name clashes with other member
 bad_constructor_test/06: Fail # Constructor name clashes with other member
