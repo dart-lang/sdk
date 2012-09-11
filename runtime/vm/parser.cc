@@ -6220,13 +6220,9 @@ RawError* Parser::FormatErrorWithAppend(const Error& prev_error,
                                         const char* message_header,
                                         const char* format,
                                         va_list args) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
   const String& msg1 = String::Handle(String::New(prev_error.ToErrorCString()));
-  const String& msg2 = String::Handle(String::New(message_buffer));
+  const String& msg2 = String::Handle(
+      FormatMessage(script, token_pos, message_header, format, args));
   return LanguageError::New(String::Handle(String::Concat(msg1, msg2)));
 }
 
@@ -6236,76 +6232,54 @@ RawError* Parser::FormatError(const Script& script,
                               const char* message_header,
                               const char* format,
                               va_list args) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
-  const String& msg = String::Handle(String::New(message_buffer));
+  const String& msg = String::Handle(
+      FormatMessage(script, token_pos, message_header, format, args));
   return LanguageError::New(msg);
 }
 
 
-void Parser::FormatMessage(const Script& script,
-                           intptr_t token_pos,
-                           const char* message_header,
-                           char* message_buffer,
-                           intptr_t message_buffer_size,
-                           const char* format, va_list args) {
-  intptr_t msg_len = 0;
+RawString* Parser::FormatMessage(const Script& script,
+                                 intptr_t token_pos,
+                                 const char* message_header,
+                                 const char* format, va_list args) {
+  String& result = String::Handle();
+  const String& msg = String::Handle(String::NewFormattedV(format, args));
   if (!script.IsNull()) {
     const String& script_url = String::CheckedHandle(script.url());
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
-      msg_len += OS::SNPrint(message_buffer + msg_len,
-                             message_buffer_size - msg_len,
-                             "'%s': %s: line %"Pd" pos %"Pd": ",
-                             script_url.ToCString(),
-                             message_header,
-                             line,
-                             column);
-      if (msg_len < message_buffer_size) {
-        // Append the formatted error or warning message.
-        msg_len += OS::VSNPrint(message_buffer + msg_len,
-                                message_buffer_size - msg_len,
-                                format,
-                                args);
-        if (msg_len < message_buffer_size) {
-          // Append the source line.
-          const String& script_line = String::Handle(script.GetLine(line));
-          ASSERT(!script_line.IsNull());
-          msg_len += OS::SNPrint(message_buffer + msg_len,
-                                 message_buffer_size - msg_len,
-                                 "\n%s\n%*s\n",
-                                 script_line.ToCString(),
-                                 static_cast<int>(column),
-                                 "^");
-        }
-      }
+      result = String::NewFormatted("'%s': %s: line %"Pd" pos %"Pd": ",
+                                    script_url.ToCString(),
+                                    message_header,
+                                    line,
+                                    column);
+      // Append the formatted error or warning message.
+      result = String::Concat(result, msg);
+      const String& new_line = String::Handle(String::New("\n"));
+      // Append the source line.
+      const String& script_line = String::Handle(script.GetLine(line));
+      ASSERT(!script_line.IsNull());
+      result = String::Concat(result, new_line);
+      result = String::Concat(result, script_line);
+      result = String::Concat(result, new_line);
+      // Append the column marker.
+      const String& column_line = String::Handle(
+          String::NewFormatted("%*s\n", static_cast<int>(column), "^"));
+      result = String::Concat(result, column_line);
     } else {
       // Token position is unknown.
-      msg_len += OS::SNPrint(message_buffer + msg_len,
-                             message_buffer_size - msg_len,
-                             "'%s': %s: ",
-                             script_url.ToCString(),
-                             message_header);
-      if (msg_len < message_buffer_size) {
-        // Append the formatted error or warning message.
-        msg_len += OS::VSNPrint(message_buffer + msg_len,
-                                message_buffer_size - msg_len,
-                                format,
-                                args);
-      }
+      result = String::NewFormatted("'%s': %s: ",
+                                    script_url.ToCString(),
+                                    message_header);
+      result = String::Concat(result, msg);
     }
   } else {
     // Script is unknown.
     // Append the formatted error or warning message.
-    msg_len += OS::VSNPrint(message_buffer + msg_len,
-                            message_buffer_size - msg_len,
-                            format,
-                            args);
+    result = msg.raw();
   }
+  return result.raw();
 }
 
 
@@ -6315,13 +6289,10 @@ void Parser::PrintMessage(const Script& script,
                           const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
+  const String& buf = String::Handle(
+      FormatMessage(script, token_pos, message_header, format, args));
   va_end(args);
-  OS::Print("%s", message_buffer);
+  OS::Print("%s", buf.ToCString());
 }
 
 

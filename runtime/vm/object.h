@@ -3557,6 +3557,7 @@ class String : public Instance {
 
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
+  static RawString* NewFormattedV(const char* format, va_list args);
 
  protected:
   bool HasHash() const {

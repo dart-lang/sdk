@@ -9499,15 +9499,22 @@ RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
 RawString* String::NewFormatted(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  RawString* result = NewFormattedV(format, args);
+  NoGCScope no_gc;
   va_end(args);
+  return result;
+}
+
+
+RawString* String::NewFormattedV(const char* format, va_list args) {
+  va_list args_copy;
+  va_copy(args_copy, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  va_end(args_copy);
 
   Zone* zone = Isolate::Current()->current_zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
+  OS::VSNPrint(buffer, (len + 1), format, args);
 
   return String::New(buffer);
 }
