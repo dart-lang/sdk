@@ -198,6 +198,7 @@ type_variable_static_context_negative_test: Fail # language change 1031
 [ $compiler == none && $runtime == drt ]
 gc_test: Skip # Issue 1487
 import_core_no_prefix_test: Fail # Issue 4607
+prefix_new_test: Fail
 
 [ $runtime == dartium ]
 import_core_no_prefix_test: Fail # Issue 4607
