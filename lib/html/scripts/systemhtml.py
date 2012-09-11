@@ -965,7 +965,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
-        '\n  $TYPE get $HTML_NAME native "return this.$NAME;";\n',
+        '\n  $TYPE get $HTML_NAME() native "return this.$NAME;";\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=return_type)
