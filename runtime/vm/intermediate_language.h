@@ -1986,7 +1986,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         function_(function),
         argument_names_(argument_names),
-        arguments_(arguments) {
+        arguments_(arguments),
+        result_cid_(kDynamicCid) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2007,13 +2008,15 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return result_cid_; }
+  void set_result_cid(intptr_t value) { result_cid_ = value; }
 
  private:
   const intptr_t token_pos_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
+  intptr_t result_cid_;  // For some library functions we know the result.
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };

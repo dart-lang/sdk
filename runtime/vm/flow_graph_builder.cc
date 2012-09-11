@@ -1662,6 +1662,29 @@ void EffectGraphVisitor::BuildConstructorCall(
 }
 
 
+static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
+  if (node->constructor().IsFactory()) {
+    const Function& function = node->constructor();
+    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    const Class& function_class = Class::Handle(function.Owner());
+
+    if (function_class.library() == core_impl_lib.raw()) {
+      if (function_class.Name() == Symbols::ListImplementation()) {
+        if (function.name() == Symbols::ListFactory()) {
+          if (node->arguments()->length() == 0) {
+            return kGrowableObjectArrayCid;
+          } else {
+            ASSERT(node->arguments()->length() == 1);
+            return kArrayCid;
+          }
+        }
+      }
+    }
+  }
+  return kDynamicCid;   // Result cid not known.
+}
+
+
 void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   InlineBailout("EffectGraphVisitor::VisitConstructorCallNode");
   if (node->constructor().IsFactory()) {
@@ -1678,6 +1701,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
                             node->constructor(),
                             node->arguments()->names(),
                             arguments);
+    // List factories return kArrayCid or kGrowableObjectArrayCid.
+    call->set_result_cid(GetResultCidOfConstructor(node));
     ReturnDefinition(call);
     return;
   }

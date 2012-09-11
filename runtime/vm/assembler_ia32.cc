@@ -1357,7 +1357,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  if (object.IsSmi()) {
+  if (object.IsSmi() || object.IsNull()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsZoneHandle());
@@ -1369,7 +1369,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
-  if (object.IsSmi()) {
+  if (object.IsSmi() || object.IsNull()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsZoneHandle());
@@ -1381,7 +1381,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  if (object.IsSmi()) {
+  if (object.IsSmi() || object.IsNull()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsZoneHandle());

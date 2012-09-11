@@ -1351,10 +1351,14 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   // TODO(vegorov): allocate temporary register for such moves.
-  __ pushl(EAX);
-  __ LoadObject(EAX, obj);
-  __ movl(dst, EAX);
-  __ popl(EAX);
+  if (obj.IsSmi() || obj.IsNull()) {
+    __ movl(dst, Immediate(reinterpret_cast<int32_t>(obj.raw())));
+  } else {
+    __ pushl(EAX);
+    __ LoadObject(EAX, obj);
+    __ movl(dst, EAX);
+    __ popl(EAX);
+  }
 }
 
 
