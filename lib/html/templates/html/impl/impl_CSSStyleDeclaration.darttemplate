@@ -4,7 +4,7 @@
 
 String _cachedBrowserPrefix;
 
-String get _browserPrefix() {
+String get _browserPrefix {
   if (_cachedBrowserPrefix === null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
@@ -25,7 +25,7 @@ $!MEMBERS
 
   // TODO(jacobr): generate this list of properties using the existing script.
     /** Gets the value of "animation" */
-  String get animation() =>
+  String get animation =>
     getPropertyValue('${_browserPrefix}animation');
 
   /** Sets the value of "animation" */
@@ -34,7 +34,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-delay" */
-  String get animationDelay() =>
+  String get animationDelay =>
     getPropertyValue('${_browserPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
@@ -43,7 +43,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-direction" */
-  String get animationDirection() =>
+  String get animationDirection =>
     getPropertyValue('${_browserPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
@@ -52,7 +52,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-duration" */
-  String get animationDuration() =>
+  String get animationDuration =>
     getPropertyValue('${_browserPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
@@ -61,7 +61,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-fill-mode" */
-  String get animationFillMode() =>
+  String get animationFillMode =>
     getPropertyValue('${_browserPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
@@ -70,7 +70,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-iteration-count" */
-  String get animationIterationCount() =>
+  String get animationIterationCount =>
     getPropertyValue('${_browserPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
@@ -79,7 +79,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-name" */
-  String get animationName() =>
+  String get animationName =>
     getPropertyValue('${_browserPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
@@ -88,7 +88,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-play-state" */
-  String get animationPlayState() =>
+  String get animationPlayState =>
     getPropertyValue('${_browserPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
@@ -97,7 +97,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "animation-timing-function" */
-  String get animationTimingFunction() =>
+  String get animationTimingFunction =>
     getPropertyValue('${_browserPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
@@ -106,7 +106,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "appearance" */
-  String get appearance() =>
+  String get appearance =>
     getPropertyValue('${_browserPrefix}appearance');
 
   /** Sets the value of "appearance" */
@@ -115,7 +115,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "backface-visibility" */
-  String get backfaceVisibility() =>
+  String get backfaceVisibility =>
     getPropertyValue('${_browserPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
@@ -124,7 +124,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background" */
-  String get background() =>
+  String get background =>
     getPropertyValue('background');
 
   /** Sets the value of "background" */
@@ -133,7 +133,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-attachment" */
-  String get backgroundAttachment() =>
+  String get backgroundAttachment =>
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
@@ -142,7 +142,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-clip" */
-  String get backgroundClip() =>
+  String get backgroundClip =>
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
@@ -151,7 +151,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-color" */
-  String get backgroundColor() =>
+  String get backgroundColor =>
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
@@ -160,7 +160,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-composite" */
-  String get backgroundComposite() =>
+  String get backgroundComposite =>
     getPropertyValue('${_browserPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
@@ -169,7 +169,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-image" */
-  String get backgroundImage() =>
+  String get backgroundImage =>
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
@@ -178,7 +178,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-origin" */
-  String get backgroundOrigin() =>
+  String get backgroundOrigin =>
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
@@ -187,7 +187,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-position" */
-  String get backgroundPosition() =>
+  String get backgroundPosition =>
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
@@ -196,7 +196,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-position-x" */
-  String get backgroundPositionX() =>
+  String get backgroundPositionX =>
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
@@ -205,7 +205,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-position-y" */
-  String get backgroundPositionY() =>
+  String get backgroundPositionY =>
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
@@ -214,7 +214,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-repeat" */
-  String get backgroundRepeat() =>
+  String get backgroundRepeat =>
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
@@ -223,7 +223,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-repeat-x" */
-  String get backgroundRepeatX() =>
+  String get backgroundRepeatX =>
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
@@ -232,7 +232,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-repeat-y" */
-  String get backgroundRepeatY() =>
+  String get backgroundRepeatY =>
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
@@ -241,7 +241,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "background-size" */
-  String get backgroundSize() =>
+  String get backgroundSize =>
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
@@ -250,7 +250,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border" */
-  String get border() =>
+  String get border =>
     getPropertyValue('border');
 
   /** Sets the value of "border" */
@@ -259,7 +259,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-after" */
-  String get borderAfter() =>
+  String get borderAfter =>
     getPropertyValue('${_browserPrefix}border-after');
 
   /** Sets the value of "border-after" */
@@ -268,7 +268,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-after-color" */
-  String get borderAfterColor() =>
+  String get borderAfterColor =>
     getPropertyValue('${_browserPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
@@ -277,7 +277,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-after-style" */
-  String get borderAfterStyle() =>
+  String get borderAfterStyle =>
     getPropertyValue('${_browserPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
@@ -286,7 +286,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-after-width" */
-  String get borderAfterWidth() =>
+  String get borderAfterWidth =>
     getPropertyValue('${_browserPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
@@ -295,7 +295,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-before" */
-  String get borderBefore() =>
+  String get borderBefore =>
     getPropertyValue('${_browserPrefix}border-before');
 
   /** Sets the value of "border-before" */
@@ -304,7 +304,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-before-color" */
-  String get borderBeforeColor() =>
+  String get borderBeforeColor =>
     getPropertyValue('${_browserPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
@@ -313,7 +313,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-before-style" */
-  String get borderBeforeStyle() =>
+  String get borderBeforeStyle =>
     getPropertyValue('${_browserPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
@@ -322,7 +322,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-before-width" */
-  String get borderBeforeWidth() =>
+  String get borderBeforeWidth =>
     getPropertyValue('${_browserPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
@@ -331,7 +331,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-bottom" */
-  String get borderBottom() =>
+  String get borderBottom =>
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
@@ -340,7 +340,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-bottom-color" */
-  String get borderBottomColor() =>
+  String get borderBottomColor =>
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
@@ -349,7 +349,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-bottom-left-radius" */
-  String get borderBottomLeftRadius() =>
+  String get borderBottomLeftRadius =>
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
@@ -358,7 +358,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-bottom-right-radius" */
-  String get borderBottomRightRadius() =>
+  String get borderBottomRightRadius =>
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
@@ -367,7 +367,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-bottom-style" */
-  String get borderBottomStyle() =>
+  String get borderBottomStyle =>
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
@@ -376,7 +376,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-bottom-width" */
-  String get borderBottomWidth() =>
+  String get borderBottomWidth =>
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
@@ -385,7 +385,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-collapse" */
-  String get borderCollapse() =>
+  String get borderCollapse =>
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
@@ -394,7 +394,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-color" */
-  String get borderColor() =>
+  String get borderColor =>
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
@@ -403,7 +403,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-end" */
-  String get borderEnd() =>
+  String get borderEnd =>
     getPropertyValue('${_browserPrefix}border-end');
 
   /** Sets the value of "border-end" */
@@ -412,7 +412,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-end-color" */
-  String get borderEndColor() =>
+  String get borderEndColor =>
     getPropertyValue('${_browserPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
@@ -421,7 +421,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-end-style" */
-  String get borderEndStyle() =>
+  String get borderEndStyle =>
     getPropertyValue('${_browserPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
@@ -430,7 +430,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-end-width" */
-  String get borderEndWidth() =>
+  String get borderEndWidth =>
     getPropertyValue('${_browserPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
@@ -439,7 +439,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-fit" */
-  String get borderFit() =>
+  String get borderFit =>
     getPropertyValue('${_browserPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
@@ -448,7 +448,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-horizontal-spacing" */
-  String get borderHorizontalSpacing() =>
+  String get borderHorizontalSpacing =>
     getPropertyValue('${_browserPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
@@ -457,7 +457,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-image" */
-  String get borderImage() =>
+  String get borderImage =>
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
@@ -466,7 +466,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-image-outset" */
-  String get borderImageOutset() =>
+  String get borderImageOutset =>
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
@@ -475,7 +475,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-image-repeat" */
-  String get borderImageRepeat() =>
+  String get borderImageRepeat =>
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
@@ -484,7 +484,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-image-slice" */
-  String get borderImageSlice() =>
+  String get borderImageSlice =>
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
@@ -493,7 +493,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-image-source" */
-  String get borderImageSource() =>
+  String get borderImageSource =>
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
@@ -502,7 +502,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-image-width" */
-  String get borderImageWidth() =>
+  String get borderImageWidth =>
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
@@ -511,7 +511,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-left" */
-  String get borderLeft() =>
+  String get borderLeft =>
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
@@ -520,7 +520,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-left-color" */
-  String get borderLeftColor() =>
+  String get borderLeftColor =>
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
@@ -529,7 +529,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-left-style" */
-  String get borderLeftStyle() =>
+  String get borderLeftStyle =>
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
@@ -538,7 +538,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-left-width" */
-  String get borderLeftWidth() =>
+  String get borderLeftWidth =>
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
@@ -547,7 +547,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-radius" */
-  String get borderRadius() =>
+  String get borderRadius =>
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
@@ -556,7 +556,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-right" */
-  String get borderRight() =>
+  String get borderRight =>
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
@@ -565,7 +565,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-right-color" */
-  String get borderRightColor() =>
+  String get borderRightColor =>
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
@@ -574,7 +574,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-right-style" */
-  String get borderRightStyle() =>
+  String get borderRightStyle =>
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
@@ -583,7 +583,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-right-width" */
-  String get borderRightWidth() =>
+  String get borderRightWidth =>
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
@@ -592,7 +592,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-spacing" */
-  String get borderSpacing() =>
+  String get borderSpacing =>
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
@@ -601,7 +601,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-start" */
-  String get borderStart() =>
+  String get borderStart =>
     getPropertyValue('${_browserPrefix}border-start');
 
   /** Sets the value of "border-start" */
@@ -610,7 +610,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-start-color" */
-  String get borderStartColor() =>
+  String get borderStartColor =>
     getPropertyValue('${_browserPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
@@ -619,7 +619,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-start-style" */
-  String get borderStartStyle() =>
+  String get borderStartStyle =>
     getPropertyValue('${_browserPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
@@ -628,7 +628,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-start-width" */
-  String get borderStartWidth() =>
+  String get borderStartWidth =>
     getPropertyValue('${_browserPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
@@ -637,7 +637,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-style" */
-  String get borderStyle() =>
+  String get borderStyle =>
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
@@ -646,7 +646,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-top" */
-  String get borderTop() =>
+  String get borderTop =>
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
@@ -655,7 +655,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-top-color" */
-  String get borderTopColor() =>
+  String get borderTopColor =>
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
@@ -664,7 +664,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-top-left-radius" */
-  String get borderTopLeftRadius() =>
+  String get borderTopLeftRadius =>
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
@@ -673,7 +673,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-top-right-radius" */
-  String get borderTopRightRadius() =>
+  String get borderTopRightRadius =>
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
@@ -682,7 +682,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-top-style" */
-  String get borderTopStyle() =>
+  String get borderTopStyle =>
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
@@ -691,7 +691,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-top-width" */
-  String get borderTopWidth() =>
+  String get borderTopWidth =>
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
@@ -700,7 +700,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-vertical-spacing" */
-  String get borderVerticalSpacing() =>
+  String get borderVerticalSpacing =>
     getPropertyValue('${_browserPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
@@ -709,7 +709,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "border-width" */
-  String get borderWidth() =>
+  String get borderWidth =>
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
@@ -718,7 +718,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "bottom" */
-  String get bottom() =>
+  String get bottom =>
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
@@ -727,7 +727,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-align" */
-  String get boxAlign() =>
+  String get boxAlign =>
     getPropertyValue('${_browserPrefix}box-align');
 
   /** Sets the value of "box-align" */
@@ -736,7 +736,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-direction" */
-  String get boxDirection() =>
+  String get boxDirection =>
     getPropertyValue('${_browserPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
@@ -745,7 +745,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-flex" */
-  String get boxFlex() =>
+  String get boxFlex =>
     getPropertyValue('${_browserPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
@@ -754,7 +754,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-flex-group" */
-  String get boxFlexGroup() =>
+  String get boxFlexGroup =>
     getPropertyValue('${_browserPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
@@ -763,7 +763,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-lines" */
-  String get boxLines() =>
+  String get boxLines =>
     getPropertyValue('${_browserPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
@@ -772,7 +772,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-ordinal-group" */
-  String get boxOrdinalGroup() =>
+  String get boxOrdinalGroup =>
     getPropertyValue('${_browserPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
@@ -781,7 +781,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-orient" */
-  String get boxOrient() =>
+  String get boxOrient =>
     getPropertyValue('${_browserPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
@@ -790,7 +790,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-pack" */
-  String get boxPack() =>
+  String get boxPack =>
     getPropertyValue('${_browserPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
@@ -799,7 +799,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-reflect" */
-  String get boxReflect() =>
+  String get boxReflect =>
     getPropertyValue('${_browserPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
@@ -808,7 +808,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-shadow" */
-  String get boxShadow() =>
+  String get boxShadow =>
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
@@ -817,7 +817,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing() =>
+  String get boxSizing =>
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
@@ -826,7 +826,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "caption-side" */
-  String get captionSide() =>
+  String get captionSide =>
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
@@ -835,7 +835,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "clear" */
-  String get clear() =>
+  String get clear =>
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
@@ -844,7 +844,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "clip" */
-  String get clip() =>
+  String get clip =>
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
@@ -853,7 +853,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "color" */
-  String get color() =>
+  String get color =>
     getPropertyValue('color');
 
   /** Sets the value of "color" */
@@ -862,7 +862,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "color-correction" */
-  String get colorCorrection() =>
+  String get colorCorrection =>
     getPropertyValue('${_browserPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
@@ -871,7 +871,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-break-after" */
-  String get columnBreakAfter() =>
+  String get columnBreakAfter =>
     getPropertyValue('${_browserPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
@@ -880,7 +880,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-break-before" */
-  String get columnBreakBefore() =>
+  String get columnBreakBefore =>
     getPropertyValue('${_browserPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
@@ -889,7 +889,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-break-inside" */
-  String get columnBreakInside() =>
+  String get columnBreakInside =>
     getPropertyValue('${_browserPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
@@ -898,7 +898,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-count" */
-  String get columnCount() =>
+  String get columnCount =>
     getPropertyValue('${_browserPrefix}column-count');
 
   /** Sets the value of "column-count" */
@@ -907,7 +907,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-gap" */
-  String get columnGap() =>
+  String get columnGap =>
     getPropertyValue('${_browserPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
@@ -916,7 +916,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-rule" */
-  String get columnRule() =>
+  String get columnRule =>
     getPropertyValue('${_browserPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
@@ -925,7 +925,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-rule-color" */
-  String get columnRuleColor() =>
+  String get columnRuleColor =>
     getPropertyValue('${_browserPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
@@ -934,7 +934,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-rule-style" */
-  String get columnRuleStyle() =>
+  String get columnRuleStyle =>
     getPropertyValue('${_browserPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
@@ -943,7 +943,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-rule-width" */
-  String get columnRuleWidth() =>
+  String get columnRuleWidth =>
     getPropertyValue('${_browserPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
@@ -952,7 +952,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-span" */
-  String get columnSpan() =>
+  String get columnSpan =>
     getPropertyValue('${_browserPrefix}column-span');
 
   /** Sets the value of "column-span" */
@@ -961,7 +961,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "column-width" */
-  String get columnWidth() =>
+  String get columnWidth =>
     getPropertyValue('${_browserPrefix}column-width');
 
   /** Sets the value of "column-width" */
@@ -970,7 +970,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "columns" */
-  String get columns() =>
+  String get columns =>
     getPropertyValue('${_browserPrefix}columns');
 
   /** Sets the value of "columns" */
@@ -979,7 +979,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "content" */
-  String get content() =>
+  String get content =>
     getPropertyValue('content');
 
   /** Sets the value of "content" */
@@ -988,7 +988,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "counter-increment" */
-  String get counterIncrement() =>
+  String get counterIncrement =>
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
@@ -997,7 +997,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "counter-reset" */
-  String get counterReset() =>
+  String get counterReset =>
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
@@ -1006,7 +1006,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "cursor" */
-  String get cursor() =>
+  String get cursor =>
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
@@ -1015,7 +1015,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "direction" */
-  String get direction() =>
+  String get direction =>
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
@@ -1024,7 +1024,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "display" */
-  String get display() =>
+  String get display =>
     getPropertyValue('display');
 
   /** Sets the value of "display" */
@@ -1033,7 +1033,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "empty-cells" */
-  String get emptyCells() =>
+  String get emptyCells =>
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
@@ -1042,7 +1042,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "filter" */
-  String get filter() =>
+  String get filter =>
     getPropertyValue('${_browserPrefix}filter');
 
   /** Sets the value of "filter" */
@@ -1051,7 +1051,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "flex-align" */
-  String get flexAlign() =>
+  String get flexAlign =>
     getPropertyValue('${_browserPrefix}flex-align');
 
   /** Sets the value of "flex-align" */
@@ -1060,7 +1060,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "flex-flow" */
-  String get flexFlow() =>
+  String get flexFlow =>
     getPropertyValue('${_browserPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
@@ -1069,7 +1069,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "flex-order" */
-  String get flexOrder() =>
+  String get flexOrder =>
     getPropertyValue('${_browserPrefix}flex-order');
 
   /** Sets the value of "flex-order" */
@@ -1078,7 +1078,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "flex-pack" */
-  String get flexPack() =>
+  String get flexPack =>
     getPropertyValue('${_browserPrefix}flex-pack');
 
   /** Sets the value of "flex-pack" */
@@ -1087,7 +1087,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "float" */
-  String get float() =>
+  String get float =>
     getPropertyValue('float');
 
   /** Sets the value of "float" */
@@ -1096,7 +1096,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "flow-from" */
-  String get flowFrom() =>
+  String get flowFrom =>
     getPropertyValue('${_browserPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
@@ -1105,7 +1105,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "flow-into" */
-  String get flowInto() =>
+  String get flowInto =>
     getPropertyValue('${_browserPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
@@ -1114,7 +1114,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font" */
-  String get font() =>
+  String get font =>
     getPropertyValue('font');
 
   /** Sets the value of "font" */
@@ -1123,7 +1123,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-family" */
-  String get fontFamily() =>
+  String get fontFamily =>
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
@@ -1132,7 +1132,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-feature-settings" */
-  String get fontFeatureSettings() =>
+  String get fontFeatureSettings =>
     getPropertyValue('${_browserPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
@@ -1141,7 +1141,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-size" */
-  String get fontSize() =>
+  String get fontSize =>
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
@@ -1150,7 +1150,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-size-delta" */
-  String get fontSizeDelta() =>
+  String get fontSizeDelta =>
     getPropertyValue('${_browserPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
@@ -1159,7 +1159,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-smoothing" */
-  String get fontSmoothing() =>
+  String get fontSmoothing =>
     getPropertyValue('${_browserPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
@@ -1168,7 +1168,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-stretch" */
-  String get fontStretch() =>
+  String get fontStretch =>
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
@@ -1177,7 +1177,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-style" */
-  String get fontStyle() =>
+  String get fontStyle =>
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
@@ -1186,7 +1186,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-variant" */
-  String get fontVariant() =>
+  String get fontVariant =>
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
@@ -1195,7 +1195,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "font-weight" */
-  String get fontWeight() =>
+  String get fontWeight =>
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
@@ -1204,7 +1204,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "height" */
-  String get height() =>
+  String get height =>
     getPropertyValue('height');
 
   /** Sets the value of "height" */
@@ -1213,7 +1213,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "highlight" */
-  String get highlight() =>
+  String get highlight =>
     getPropertyValue('${_browserPrefix}highlight');
 
   /** Sets the value of "highlight" */
@@ -1222,7 +1222,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "hyphenate-character" */
-  String get hyphenateCharacter() =>
+  String get hyphenateCharacter =>
     getPropertyValue('${_browserPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
@@ -1231,7 +1231,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "hyphenate-limit-after" */
-  String get hyphenateLimitAfter() =>
+  String get hyphenateLimitAfter =>
     getPropertyValue('${_browserPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
@@ -1240,7 +1240,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "hyphenate-limit-before" */
-  String get hyphenateLimitBefore() =>
+  String get hyphenateLimitBefore =>
     getPropertyValue('${_browserPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
@@ -1249,7 +1249,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "hyphenate-limit-lines" */
-  String get hyphenateLimitLines() =>
+  String get hyphenateLimitLines =>
     getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
@@ -1258,7 +1258,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "hyphens" */
-  String get hyphens() =>
+  String get hyphens =>
     getPropertyValue('${_browserPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
@@ -1267,7 +1267,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "image-rendering" */
-  String get imageRendering() =>
+  String get imageRendering =>
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
@@ -1276,7 +1276,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "left" */
-  String get left() =>
+  String get left =>
     getPropertyValue('left');
 
   /** Sets the value of "left" */
@@ -1285,7 +1285,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "letter-spacing" */
-  String get letterSpacing() =>
+  String get letterSpacing =>
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
@@ -1294,7 +1294,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "line-box-contain" */
-  String get lineBoxContain() =>
+  String get lineBoxContain =>
     getPropertyValue('${_browserPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
@@ -1303,7 +1303,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "line-break" */
-  String get lineBreak() =>
+  String get lineBreak =>
     getPropertyValue('${_browserPrefix}line-break');
 
   /** Sets the value of "line-break" */
@@ -1312,7 +1312,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "line-clamp" */
-  String get lineClamp() =>
+  String get lineClamp =>
     getPropertyValue('${_browserPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
@@ -1321,7 +1321,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "line-height" */
-  String get lineHeight() =>
+  String get lineHeight =>
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
@@ -1330,7 +1330,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "list-style" */
-  String get listStyle() =>
+  String get listStyle =>
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
@@ -1339,7 +1339,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "list-style-image" */
-  String get listStyleImage() =>
+  String get listStyleImage =>
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
@@ -1348,7 +1348,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "list-style-position" */
-  String get listStylePosition() =>
+  String get listStylePosition =>
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
@@ -1357,7 +1357,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "list-style-type" */
-  String get listStyleType() =>
+  String get listStyleType =>
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
@@ -1366,7 +1366,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "locale" */
-  String get locale() =>
+  String get locale =>
     getPropertyValue('${_browserPrefix}locale');
 
   /** Sets the value of "locale" */
@@ -1375,7 +1375,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "logical-height" */
-  String get logicalHeight() =>
+  String get logicalHeight =>
     getPropertyValue('${_browserPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
@@ -1384,7 +1384,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "logical-width" */
-  String get logicalWidth() =>
+  String get logicalWidth =>
     getPropertyValue('${_browserPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
@@ -1393,7 +1393,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin" */
-  String get margin() =>
+  String get margin =>
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
@@ -1402,7 +1402,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-after" */
-  String get marginAfter() =>
+  String get marginAfter =>
     getPropertyValue('${_browserPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
@@ -1411,7 +1411,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-after-collapse" */
-  String get marginAfterCollapse() =>
+  String get marginAfterCollapse =>
     getPropertyValue('${_browserPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
@@ -1420,7 +1420,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-before" */
-  String get marginBefore() =>
+  String get marginBefore =>
     getPropertyValue('${_browserPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
@@ -1429,7 +1429,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-before-collapse" */
-  String get marginBeforeCollapse() =>
+  String get marginBeforeCollapse =>
     getPropertyValue('${_browserPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
@@ -1438,7 +1438,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-bottom" */
-  String get marginBottom() =>
+  String get marginBottom =>
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
@@ -1447,7 +1447,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-bottom-collapse" */
-  String get marginBottomCollapse() =>
+  String get marginBottomCollapse =>
     getPropertyValue('${_browserPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
@@ -1456,7 +1456,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-collapse" */
-  String get marginCollapse() =>
+  String get marginCollapse =>
     getPropertyValue('${_browserPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
@@ -1465,7 +1465,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-end" */
-  String get marginEnd() =>
+  String get marginEnd =>
     getPropertyValue('${_browserPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
@@ -1474,7 +1474,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-left" */
-  String get marginLeft() =>
+  String get marginLeft =>
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
@@ -1483,7 +1483,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-right" */
-  String get marginRight() =>
+  String get marginRight =>
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
@@ -1492,7 +1492,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-start" */
-  String get marginStart() =>
+  String get marginStart =>
     getPropertyValue('${_browserPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
@@ -1501,7 +1501,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-top" */
-  String get marginTop() =>
+  String get marginTop =>
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
@@ -1510,7 +1510,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "margin-top-collapse" */
-  String get marginTopCollapse() =>
+  String get marginTopCollapse =>
     getPropertyValue('${_browserPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
@@ -1519,7 +1519,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "marquee" */
-  String get marquee() =>
+  String get marquee =>
     getPropertyValue('${_browserPrefix}marquee');
 
   /** Sets the value of "marquee" */
@@ -1528,7 +1528,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "marquee-direction" */
-  String get marqueeDirection() =>
+  String get marqueeDirection =>
     getPropertyValue('${_browserPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
@@ -1537,7 +1537,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "marquee-increment" */
-  String get marqueeIncrement() =>
+  String get marqueeIncrement =>
     getPropertyValue('${_browserPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
@@ -1546,7 +1546,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "marquee-repetition" */
-  String get marqueeRepetition() =>
+  String get marqueeRepetition =>
     getPropertyValue('${_browserPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
@@ -1555,7 +1555,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "marquee-speed" */
-  String get marqueeSpeed() =>
+  String get marqueeSpeed =>
     getPropertyValue('${_browserPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
@@ -1564,7 +1564,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "marquee-style" */
-  String get marqueeStyle() =>
+  String get marqueeStyle =>
     getPropertyValue('${_browserPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
@@ -1573,7 +1573,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask" */
-  String get mask() =>
+  String get mask =>
     getPropertyValue('${_browserPrefix}mask');
 
   /** Sets the value of "mask" */
@@ -1582,7 +1582,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-attachment" */
-  String get maskAttachment() =>
+  String get maskAttachment =>
     getPropertyValue('${_browserPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
@@ -1591,7 +1591,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-box-image" */
-  String get maskBoxImage() =>
+  String get maskBoxImage =>
     getPropertyValue('${_browserPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
@@ -1600,7 +1600,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-box-image-outset" */
-  String get maskBoxImageOutset() =>
+  String get maskBoxImageOutset =>
     getPropertyValue('${_browserPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
@@ -1609,7 +1609,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-box-image-repeat" */
-  String get maskBoxImageRepeat() =>
+  String get maskBoxImageRepeat =>
     getPropertyValue('${_browserPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
@@ -1618,7 +1618,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-box-image-slice" */
-  String get maskBoxImageSlice() =>
+  String get maskBoxImageSlice =>
     getPropertyValue('${_browserPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
@@ -1627,7 +1627,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-box-image-source" */
-  String get maskBoxImageSource() =>
+  String get maskBoxImageSource =>
     getPropertyValue('${_browserPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
@@ -1636,7 +1636,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-box-image-width" */
-  String get maskBoxImageWidth() =>
+  String get maskBoxImageWidth =>
     getPropertyValue('${_browserPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
@@ -1645,7 +1645,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-clip" */
-  String get maskClip() =>
+  String get maskClip =>
     getPropertyValue('${_browserPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
@@ -1654,7 +1654,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-composite" */
-  String get maskComposite() =>
+  String get maskComposite =>
     getPropertyValue('${_browserPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
@@ -1663,7 +1663,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-image" */
-  String get maskImage() =>
+  String get maskImage =>
     getPropertyValue('${_browserPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
@@ -1672,7 +1672,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-origin" */
-  String get maskOrigin() =>
+  String get maskOrigin =>
     getPropertyValue('${_browserPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
@@ -1681,7 +1681,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-position" */
-  String get maskPosition() =>
+  String get maskPosition =>
     getPropertyValue('${_browserPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
@@ -1690,7 +1690,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-position-x" */
-  String get maskPositionX() =>
+  String get maskPositionX =>
     getPropertyValue('${_browserPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
@@ -1699,7 +1699,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-position-y" */
-  String get maskPositionY() =>
+  String get maskPositionY =>
     getPropertyValue('${_browserPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
@@ -1708,7 +1708,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-repeat" */
-  String get maskRepeat() =>
+  String get maskRepeat =>
     getPropertyValue('${_browserPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
@@ -1717,7 +1717,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-repeat-x" */
-  String get maskRepeatX() =>
+  String get maskRepeatX =>
     getPropertyValue('${_browserPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
@@ -1726,7 +1726,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-repeat-y" */
-  String get maskRepeatY() =>
+  String get maskRepeatY =>
     getPropertyValue('${_browserPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
@@ -1735,7 +1735,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "mask-size" */
-  String get maskSize() =>
+  String get maskSize =>
     getPropertyValue('${_browserPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
@@ -1744,7 +1744,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "match-nearest-mail-blockquote-color" */
-  String get matchNearestMailBlockquoteColor() =>
+  String get matchNearestMailBlockquoteColor =>
     getPropertyValue('${_browserPrefix}match-nearest-mail-blockquote-color');
 
   /** Sets the value of "match-nearest-mail-blockquote-color" */
@@ -1753,7 +1753,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "max-height" */
-  String get maxHeight() =>
+  String get maxHeight =>
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
@@ -1762,7 +1762,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "max-logical-height" */
-  String get maxLogicalHeight() =>
+  String get maxLogicalHeight =>
     getPropertyValue('${_browserPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
@@ -1771,7 +1771,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "max-logical-width" */
-  String get maxLogicalWidth() =>
+  String get maxLogicalWidth =>
     getPropertyValue('${_browserPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
@@ -1780,7 +1780,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "max-width" */
-  String get maxWidth() =>
+  String get maxWidth =>
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
@@ -1789,7 +1789,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "min-height" */
-  String get minHeight() =>
+  String get minHeight =>
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
@@ -1798,7 +1798,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "min-logical-height" */
-  String get minLogicalHeight() =>
+  String get minLogicalHeight =>
     getPropertyValue('${_browserPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
@@ -1807,7 +1807,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "min-logical-width" */
-  String get minLogicalWidth() =>
+  String get minLogicalWidth =>
     getPropertyValue('${_browserPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
@@ -1816,7 +1816,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "min-width" */
-  String get minWidth() =>
+  String get minWidth =>
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
@@ -1825,7 +1825,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "nbsp-mode" */
-  String get nbspMode() =>
+  String get nbspMode =>
     getPropertyValue('${_browserPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
@@ -1834,7 +1834,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "opacity" */
-  String get opacity() =>
+  String get opacity =>
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
@@ -1843,7 +1843,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "orphans" */
-  String get orphans() =>
+  String get orphans =>
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
@@ -1852,7 +1852,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "outline" */
-  String get outline() =>
+  String get outline =>
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
@@ -1861,7 +1861,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "outline-color" */
-  String get outlineColor() =>
+  String get outlineColor =>
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
@@ -1870,7 +1870,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "outline-offset" */
-  String get outlineOffset() =>
+  String get outlineOffset =>
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
@@ -1879,7 +1879,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "outline-style" */
-  String get outlineStyle() =>
+  String get outlineStyle =>
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
@@ -1888,7 +1888,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "outline-width" */
-  String get outlineWidth() =>
+  String get outlineWidth =>
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
@@ -1897,7 +1897,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "overflow" */
-  String get overflow() =>
+  String get overflow =>
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
@@ -1906,7 +1906,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "overflow-x" */
-  String get overflowX() =>
+  String get overflowX =>
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
@@ -1915,7 +1915,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "overflow-y" */
-  String get overflowY() =>
+  String get overflowY =>
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
@@ -1924,7 +1924,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding" */
-  String get padding() =>
+  String get padding =>
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
@@ -1933,7 +1933,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-after" */
-  String get paddingAfter() =>
+  String get paddingAfter =>
     getPropertyValue('${_browserPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
@@ -1942,7 +1942,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-before" */
-  String get paddingBefore() =>
+  String get paddingBefore =>
     getPropertyValue('${_browserPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
@@ -1951,7 +1951,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-bottom" */
-  String get paddingBottom() =>
+  String get paddingBottom =>
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
@@ -1960,7 +1960,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-end" */
-  String get paddingEnd() =>
+  String get paddingEnd =>
     getPropertyValue('${_browserPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
@@ -1969,7 +1969,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-left" */
-  String get paddingLeft() =>
+  String get paddingLeft =>
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
@@ -1978,7 +1978,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-right" */
-  String get paddingRight() =>
+  String get paddingRight =>
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
@@ -1987,7 +1987,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-start" */
-  String get paddingStart() =>
+  String get paddingStart =>
     getPropertyValue('${_browserPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
@@ -1996,7 +1996,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "padding-top" */
-  String get paddingTop() =>
+  String get paddingTop =>
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
@@ -2005,7 +2005,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "page" */
-  String get page() =>
+  String get page =>
     getPropertyValue('page');
 
   /** Sets the value of "page" */
@@ -2014,7 +2014,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "page-break-after" */
-  String get pageBreakAfter() =>
+  String get pageBreakAfter =>
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
@@ -2023,7 +2023,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "page-break-before" */
-  String get pageBreakBefore() =>
+  String get pageBreakBefore =>
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
@@ -2032,7 +2032,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "page-break-inside" */
-  String get pageBreakInside() =>
+  String get pageBreakInside =>
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
@@ -2041,7 +2041,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "perspective" */
-  String get perspective() =>
+  String get perspective =>
     getPropertyValue('${_browserPrefix}perspective');
 
   /** Sets the value of "perspective" */
@@ -2050,7 +2050,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "perspective-origin" */
-  String get perspectiveOrigin() =>
+  String get perspectiveOrigin =>
     getPropertyValue('${_browserPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
@@ -2059,7 +2059,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "perspective-origin-x" */
-  String get perspectiveOriginX() =>
+  String get perspectiveOriginX =>
     getPropertyValue('${_browserPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
@@ -2068,7 +2068,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "perspective-origin-y" */
-  String get perspectiveOriginY() =>
+  String get perspectiveOriginY =>
     getPropertyValue('${_browserPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
@@ -2077,7 +2077,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "pointer-events" */
-  String get pointerEvents() =>
+  String get pointerEvents =>
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
@@ -2086,7 +2086,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "position" */
-  String get position() =>
+  String get position =>
     getPropertyValue('position');
 
   /** Sets the value of "position" */
@@ -2095,7 +2095,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "quotes" */
-  String get quotes() =>
+  String get quotes =>
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
@@ -2104,7 +2104,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "region-break-after" */
-  String get regionBreakAfter() =>
+  String get regionBreakAfter =>
     getPropertyValue('${_browserPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
@@ -2113,7 +2113,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "region-break-before" */
-  String get regionBreakBefore() =>
+  String get regionBreakBefore =>
     getPropertyValue('${_browserPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
@@ -2122,7 +2122,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "region-break-inside" */
-  String get regionBreakInside() =>
+  String get regionBreakInside =>
     getPropertyValue('${_browserPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
@@ -2131,7 +2131,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "region-overflow" */
-  String get regionOverflow() =>
+  String get regionOverflow =>
     getPropertyValue('${_browserPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
@@ -2140,7 +2140,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "resize" */
-  String get resize() =>
+  String get resize =>
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
@@ -2149,7 +2149,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "right" */
-  String get right() =>
+  String get right =>
     getPropertyValue('right');
 
   /** Sets the value of "right" */
@@ -2158,7 +2158,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "rtl-ordering" */
-  String get rtlOrdering() =>
+  String get rtlOrdering =>
     getPropertyValue('${_browserPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
@@ -2167,7 +2167,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "size" */
-  String get size() =>
+  String get size =>
     getPropertyValue('size');
 
   /** Sets the value of "size" */
@@ -2176,7 +2176,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "speak" */
-  String get speak() =>
+  String get speak =>
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
@@ -2185,7 +2185,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "src" */
-  String get src() =>
+  String get src =>
     getPropertyValue('src');
 
   /** Sets the value of "src" */
@@ -2194,7 +2194,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "table-layout" */
-  String get tableLayout() =>
+  String get tableLayout =>
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
@@ -2203,7 +2203,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "tap-highlight-color" */
-  String get tapHighlightColor() =>
+  String get tapHighlightColor =>
     getPropertyValue('${_browserPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
@@ -2212,7 +2212,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-align" */
-  String get textAlign() =>
+  String get textAlign =>
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
@@ -2221,7 +2221,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-combine" */
-  String get textCombine() =>
+  String get textCombine =>
     getPropertyValue('${_browserPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
@@ -2230,7 +2230,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-decoration" */
-  String get textDecoration() =>
+  String get textDecoration =>
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
@@ -2239,7 +2239,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-decorations-in-effect" */
-  String get textDecorationsInEffect() =>
+  String get textDecorationsInEffect =>
     getPropertyValue('${_browserPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
@@ -2248,7 +2248,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-emphasis" */
-  String get textEmphasis() =>
+  String get textEmphasis =>
     getPropertyValue('${_browserPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
@@ -2257,7 +2257,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-emphasis-color" */
-  String get textEmphasisColor() =>
+  String get textEmphasisColor =>
     getPropertyValue('${_browserPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
@@ -2266,7 +2266,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-emphasis-position" */
-  String get textEmphasisPosition() =>
+  String get textEmphasisPosition =>
     getPropertyValue('${_browserPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
@@ -2275,7 +2275,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-emphasis-style" */
-  String get textEmphasisStyle() =>
+  String get textEmphasisStyle =>
     getPropertyValue('${_browserPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
@@ -2284,7 +2284,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-fill-color" */
-  String get textFillColor() =>
+  String get textFillColor =>
     getPropertyValue('${_browserPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
@@ -2293,7 +2293,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-indent" */
-  String get textIndent() =>
+  String get textIndent =>
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
@@ -2302,7 +2302,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-line-through" */
-  String get textLineThrough() =>
+  String get textLineThrough =>
     getPropertyValue('text-line-through');
 
   /** Sets the value of "text-line-through" */
@@ -2311,7 +2311,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-line-through-color" */
-  String get textLineThroughColor() =>
+  String get textLineThroughColor =>
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
@@ -2320,7 +2320,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-line-through-mode" */
-  String get textLineThroughMode() =>
+  String get textLineThroughMode =>
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
@@ -2329,7 +2329,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-line-through-style" */
-  String get textLineThroughStyle() =>
+  String get textLineThroughStyle =>
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
@@ -2338,7 +2338,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-line-through-width" */
-  String get textLineThroughWidth() =>
+  String get textLineThroughWidth =>
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
@@ -2347,7 +2347,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-orientation" */
-  String get textOrientation() =>
+  String get textOrientation =>
     getPropertyValue('${_browserPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
@@ -2356,7 +2356,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-overflow" */
-  String get textOverflow() =>
+  String get textOverflow =>
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
@@ -2365,7 +2365,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-overline" */
-  String get textOverline() =>
+  String get textOverline =>
     getPropertyValue('text-overline');
 
   /** Sets the value of "text-overline" */
@@ -2374,7 +2374,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-overline-color" */
-  String get textOverlineColor() =>
+  String get textOverlineColor =>
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
@@ -2383,7 +2383,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-overline-mode" */
-  String get textOverlineMode() =>
+  String get textOverlineMode =>
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
@@ -2392,7 +2392,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-overline-style" */
-  String get textOverlineStyle() =>
+  String get textOverlineStyle =>
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
@@ -2401,7 +2401,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-overline-width" */
-  String get textOverlineWidth() =>
+  String get textOverlineWidth =>
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
@@ -2410,7 +2410,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-rendering" */
-  String get textRendering() =>
+  String get textRendering =>
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
@@ -2419,7 +2419,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-security" */
-  String get textSecurity() =>
+  String get textSecurity =>
     getPropertyValue('${_browserPrefix}text-security');
 
   /** Sets the value of "text-security" */
@@ -2428,7 +2428,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-shadow" */
-  String get textShadow() =>
+  String get textShadow =>
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
@@ -2437,7 +2437,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-size-adjust" */
-  String get textSizeAdjust() =>
+  String get textSizeAdjust =>
     getPropertyValue('${_browserPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
@@ -2446,7 +2446,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-stroke" */
-  String get textStroke() =>
+  String get textStroke =>
     getPropertyValue('${_browserPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
@@ -2455,7 +2455,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-stroke-color" */
-  String get textStrokeColor() =>
+  String get textStrokeColor =>
     getPropertyValue('${_browserPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
@@ -2464,7 +2464,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-stroke-width" */
-  String get textStrokeWidth() =>
+  String get textStrokeWidth =>
     getPropertyValue('${_browserPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
@@ -2473,7 +2473,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-transform" */
-  String get textTransform() =>
+  String get textTransform =>
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
@@ -2482,7 +2482,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-underline" */
-  String get textUnderline() =>
+  String get textUnderline =>
     getPropertyValue('text-underline');
 
   /** Sets the value of "text-underline" */
@@ -2491,7 +2491,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-underline-color" */
-  String get textUnderlineColor() =>
+  String get textUnderlineColor =>
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
@@ -2500,7 +2500,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-underline-mode" */
-  String get textUnderlineMode() =>
+  String get textUnderlineMode =>
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
@@ -2509,7 +2509,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-underline-style" */
-  String get textUnderlineStyle() =>
+  String get textUnderlineStyle =>
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
@@ -2518,7 +2518,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "text-underline-width" */
-  String get textUnderlineWidth() =>
+  String get textUnderlineWidth =>
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
@@ -2527,7 +2527,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "top" */
-  String get top() =>
+  String get top =>
     getPropertyValue('top');
 
   /** Sets the value of "top" */
@@ -2536,7 +2536,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transform" */
-  String get transform() =>
+  String get transform =>
     getPropertyValue('${_browserPrefix}transform');
 
   /** Sets the value of "transform" */
@@ -2545,7 +2545,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transform-origin" */
-  String get transformOrigin() =>
+  String get transformOrigin =>
     getPropertyValue('${_browserPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
@@ -2554,7 +2554,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transform-origin-x" */
-  String get transformOriginX() =>
+  String get transformOriginX =>
     getPropertyValue('${_browserPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
@@ -2563,7 +2563,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transform-origin-y" */
-  String get transformOriginY() =>
+  String get transformOriginY =>
     getPropertyValue('${_browserPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
@@ -2572,7 +2572,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transform-origin-z" */
-  String get transformOriginZ() =>
+  String get transformOriginZ =>
     getPropertyValue('${_browserPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
@@ -2581,7 +2581,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transform-style" */
-  String get transformStyle() =>
+  String get transformStyle =>
     getPropertyValue('${_browserPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
@@ -2590,7 +2590,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transition" */
-  String get transition() =>
+  String get transition =>
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
@@ -2599,7 +2599,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transition-delay" */
-  String get transitionDelay() =>
+  String get transitionDelay =>
     getPropertyValue('${_browserPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
@@ -2608,7 +2608,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transition-duration" */
-  String get transitionDuration() =>
+  String get transitionDuration =>
     getPropertyValue('${_browserPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
@@ -2617,7 +2617,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transition-property" */
-  String get transitionProperty() =>
+  String get transitionProperty =>
     getPropertyValue('${_browserPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
@@ -2626,7 +2626,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "transition-timing-function" */
-  String get transitionTimingFunction() =>
+  String get transitionTimingFunction =>
     getPropertyValue('${_browserPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
@@ -2635,7 +2635,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "unicode-bidi" */
-  String get unicodeBidi() =>
+  String get unicodeBidi =>
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
@@ -2644,7 +2644,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "unicode-range" */
-  String get unicodeRange() =>
+  String get unicodeRange =>
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
@@ -2653,7 +2653,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "user-drag" */
-  String get userDrag() =>
+  String get userDrag =>
     getPropertyValue('${_browserPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
@@ -2662,7 +2662,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "user-modify" */
-  String get userModify() =>
+  String get userModify =>
     getPropertyValue('${_browserPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
@@ -2671,7 +2671,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "user-select" */
-  String get userSelect() =>
+  String get userSelect =>
     getPropertyValue('${_browserPrefix}user-select');
 
   /** Sets the value of "user-select" */
@@ -2680,7 +2680,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "vertical-align" */
-  String get verticalAlign() =>
+  String get verticalAlign =>
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
@@ -2689,7 +2689,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "visibility" */
-  String get visibility() =>
+  String get visibility =>
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
@@ -2698,7 +2698,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "white-space" */
-  String get whiteSpace() =>
+  String get whiteSpace =>
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
@@ -2707,7 +2707,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "widows" */
-  String get widows() =>
+  String get widows =>
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
@@ -2716,7 +2716,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "width" */
-  String get width() =>
+  String get width =>
     getPropertyValue('width');
 
   /** Sets the value of "width" */
@@ -2725,7 +2725,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "word-break" */
-  String get wordBreak() =>
+  String get wordBreak =>
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
@@ -2734,7 +2734,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "word-spacing" */
-  String get wordSpacing() =>
+  String get wordSpacing =>
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
@@ -2743,7 +2743,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "word-wrap" */
-  String get wordWrap() =>
+  String get wordWrap =>
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
@@ -2752,7 +2752,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "wrap-shape" */
-  String get wrapShape() =>
+  String get wrapShape =>
     getPropertyValue('${_browserPrefix}wrap-shape');
 
   /** Sets the value of "wrap-shape" */
@@ -2761,7 +2761,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "writing-mode" */
-  String get writingMode() =>
+  String get writingMode =>
     getPropertyValue('${_browserPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
@@ -2770,7 +2770,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "z-index" */
-  String get zIndex() =>
+  String get zIndex =>
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
@@ -2779,7 +2779,7 @@ $!MEMBERS
   }
 
   /** Gets the value of "zoom" */
-  String get zoom() =>
+  String get zoom =>
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */

@@ -5,5 +5,5 @@
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
-  CanvasRenderingContext2D get context2d() => getContext('2d');
+  CanvasRenderingContext2D get context2d => getContext('2d');
 }
