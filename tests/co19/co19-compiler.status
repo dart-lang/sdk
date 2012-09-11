@@ -144,6 +144,7 @@ LibTest/core/Math/parseDouble_A02_t01: Fail
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
 Language/03_Overview/2_Privacy_A01_t02: Fail # language change 1031
+Language/06_Functions/06_Functions_A01_t22: Fail # c019 issue 204
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t03: Fail # out of date - getters are not allowed to have parameters

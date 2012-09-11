@@ -539,8 +539,8 @@ public class ParserEventsTest extends AbstractParserTest {
     }
 
     @Override
-    protected void beginThrowStatement() {
-      super.beginThrowStatement();
+    protected void beginThrowExpression() {
+      super.beginThrowExpression();
       recordMark(ThrowStatement);
     }
 

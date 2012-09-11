@@ -575,14 +575,12 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitThrowStatement(DartThrowStatement x) {
+  public Void visitThrowExpression(DartThrowExpression x) {
     p("throw");
     if (x.getException() != null) {
       p(" ");
       accept(x.getException());
     }
-    p(";");
-    nl();
     return null;
   }
 

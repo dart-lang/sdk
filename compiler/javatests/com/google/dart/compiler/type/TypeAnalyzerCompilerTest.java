@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -52,6 +49,9 @@ import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -3946,7 +3946,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 6));
+        errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 5));
   }
 
   public void test_externalKeyword_OK() throws Exception {

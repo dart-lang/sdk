@@ -329,8 +329,8 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
-  public R visitThrowStatement(DartThrowStatement node) {
-    return visitStatement(node);
+  public R visitThrowExpression(DartThrowExpression node) {
+    return visitExpression(node);
   }
 
   public R visitCatchBlock(DartCatchBlock node) {

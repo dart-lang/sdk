@@ -365,7 +365,7 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
     begin();
   }
 
-  protected void beginThrowStatement() {
+  protected void beginThrowExpression() {
     begin();
   }
 

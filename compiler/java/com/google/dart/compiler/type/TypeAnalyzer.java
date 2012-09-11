@@ -89,7 +89,7 @@ import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -814,7 +814,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return true;
       }
       // "throw" is exit if no enclosing "try"
-      if (statement instanceof DartThrowStatement) {
+      if (statement instanceof DartExprStmt && (((DartExprStmt) statement).getExpression() instanceof DartThrowExpression)) {
         for (DartNode p = statement; p != null && !(p instanceof DartFunction); p = p.getParent()) {
           // TODO(scheglov) Can be enhanced:
           // 1. check if there is "catch" block which can catch this exception;
@@ -2451,7 +2451,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     @Override
-    public Type visitThrowStatement(DartThrowStatement node) {
+    public Type visitThrowExpression(DartThrowExpression node) {
       if (catchDepth == 0 && node.getException() == null) {
         context.onError(new DartCompilationError(node,
             ResolverErrorCode.RETHROW_NOT_IN_CATCH));

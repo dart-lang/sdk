@@ -20,6 +20,11 @@ public class DartExprStmt extends DartStatement {
   }
 
   @Override
+  public boolean isAbruptCompletingStatement() {
+    return expr instanceof DartThrowExpression;
+  }
+
+  @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(expr, visitor);
   }
