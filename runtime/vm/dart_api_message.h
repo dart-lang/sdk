@@ -112,8 +112,9 @@ class ApiMessageReader : public BaseReader {
 
 class ApiMessageWriter : public BaseWriter {
  public:
+  static const intptr_t kIncrementSize = 512;
   ApiMessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc), object_id_(0),
+      : BaseWriter(buffer, alloc, kIncrementSize), object_id_(0),
         forward_list_(NULL), forward_list_length_(0), forward_id_(0) {
     ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
   }

@@ -663,8 +663,9 @@ TEST_CASE(SerializeEmptyByteArray) {
 
 class TestSnapshotWriter : public SnapshotWriter {
  public:
+  static const intptr_t kIncrementSize = 64 * KB;
   TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript, buffer, alloc) {
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kIncrementSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
