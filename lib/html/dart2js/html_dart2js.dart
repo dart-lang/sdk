@@ -7804,10 +7804,10 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
   final String direction;
 
   Dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  Dynamic get _key native "return this.key;";
+  Dynamic get _key() native "return this.key;";
 
   Dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  Dynamic get _primaryKey native "return this.primaryKey;";
+  Dynamic get _primaryKey() native "return this.primaryKey;";
 
   final Dynamic source;
 
@@ -7837,7 +7837,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
   Dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  Dynamic get _value native "return this.value;";
+  Dynamic get _value() native "return this.value;";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8151,12 +8151,12 @@ class _IDBKeyImpl implements IDBKey native "*IDBKey" {
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
   Dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  Dynamic get _lower native "return this.lower;";
+  Dynamic get _lower() native "return this.lower;";
 
   final bool lowerOpen;
 
   Dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  Dynamic get _upper native "return this.upper;";
+  Dynamic get _upper() native "return this.upper;";
 
   final bool upperOpen;
 }
@@ -8361,7 +8361,7 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
   final String readyState;
 
   Dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  Dynamic get _result native "return this.result;";
+  Dynamic get _result() native "return this.result;";
 
   final Dynamic source;
 
