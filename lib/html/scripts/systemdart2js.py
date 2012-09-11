@@ -255,7 +255,7 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
   def _AddGetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n  $(OPT_TYPE)get $NAME() native "return this.$NATIVE_NAME;";\n',
+        '\n  $(OPT_TYPE)get $NAME native "return this.$NATIVE_NAME;";\n',
         NAME=DartDomNameOfAttribute(attr),
         NATIVE_NAME=attr.id,
         OPT_TYPE=TypeOrNothing(self._NarrowOutputType(attr.type.id)))
@@ -324,7 +324,7 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
-    # get length(), [], and maybe []=.  It is possible to extend from a base
+    # length, [], and maybe []=.  It is possible to extend from a base
     # array implementation class only when there is no other implementation
     # inheritance.  There might be no implementation inheritance other than
     # DOMBaseWrapper for many classes, but there might be some where the

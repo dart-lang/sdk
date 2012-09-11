@@ -63,13 +63,13 @@ def generate_code(input_path):
 
 interface CSSStyleDeclaration {
 
-  String get cssText();
+  String get cssText;
 
   void set cssText(String value);
 
-  int get length();
+  int get length;
 
-  CSSRule get parentRule();
+  CSSRule get parentRule;
 
   CSSValue getPropertyCSSValue(String propertyName);
 
@@ -108,7 +108,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
 
   CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  static String get _browserPrefix() {
+  static String get _browserPrefix {
     if (_cachedBrowserPrefix === null) {
       if (_Device.isFirefox) {
         _cachedBrowserPrefix = '-moz-';
@@ -120,13 +120,13 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     return _cachedBrowserPrefix;
   }
 
-  String get cssText() { return _ptr.cssText; }
+  String get cssText { return _ptr.cssText; }
 
   void set cssText(String value) { _ptr.cssText = value; }
 
-  int get length() { return _ptr.length; }
+  int get length { return _ptr.length; }
 
-  CSSRule get parentRule() { return LevelDom.wrapCSSRule(_ptr.parentRule); }
+  CSSRule get parentRule { return LevelDom.wrapCSSRule(_ptr.parentRule); }
 
   CSSValue getPropertyCSSValue(String propertyName) {
     return LevelDom.wrapCSSValue(_ptr.getPropertyCSSValue(propertyName));
@@ -160,7 +160,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     _ptr.setProperty(propertyName, value, priority);
   }
 
-  String get typeName() { return "CSSStyleDeclaration"; }
+  String get typeName { return "CSSStyleDeclaration"; }
 
 """.lstrip() % SOURCE_PATH)
 
@@ -182,7 +182,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
 
     interface_lines.append(comment % 'Gets')
     interface_lines.append("""
-  String get %s();
+  String get %s;
 
 """ % camel_case_name)
 
@@ -195,7 +195,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     class_lines.append('\n');
     class_lines.append(comment % 'Gets')
     class_lines.append("""
-  String get %s() =>
+  String get %s =>
     getPropertyValue('%s');
 
 """ % (camel_case_name, css_name))

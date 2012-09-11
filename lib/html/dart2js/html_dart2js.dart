@@ -48,7 +48,7 @@ spawnDomFunction(f) => spawnFunction(f);
 
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
 
-  _AbstractWorkerEventsImpl get on() =>
+  _AbstractWorkerEventsImpl get on =>
     new _AbstractWorkerEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
@@ -61,7 +61,7 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker nat
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
   _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 }
 
 class _AnchorElementImpl extends _ElementImpl implements AnchorElement native "*HTMLAnchorElement" {
@@ -297,7 +297,7 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 
 class _AudioContextImpl extends _EventTargetImpl implements AudioContext native "*AudioContext" {
 
-  _AudioContextEventsImpl get on() =>
+  _AudioContextEventsImpl get on =>
     new _AudioContextEventsImpl(this);
 
   final int activeSourceCount;
@@ -352,7 +352,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
   _AudioContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get complete() => this['complete'];
+  EventListenerList get complete => this['complete'];
 }
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode native "*AudioDestinationNode" {
@@ -503,7 +503,7 @@ class _BaseFontElementImpl extends _ElementImpl implements BaseFontElement nativ
 
 class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager native "*BatteryManager" {
 
-  _BatteryManagerEventsImpl get on() =>
+  _BatteryManagerEventsImpl get on =>
     new _BatteryManagerEventsImpl(this);
 
   final bool charging;
@@ -524,13 +524,13 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager nat
 class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
   _BatteryManagerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get chargingChange() => this['chargingchange'];
+  EventListenerList get chargingChange => this['chargingchange'];
 
-  EventListenerList get chargingTimeChange() => this['chargingtimechange'];
+  EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
-  EventListenerList get dischargingTimeChange() => this['dischargingtimechange'];
+  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
-  EventListenerList get levelChange() => this['levelchange'];
+  EventListenerList get levelChange => this['levelchange'];
 }
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent native "*BeforeLoadEvent" {
@@ -580,7 +580,7 @@ class _BlobImpl implements Blob native "*Blob" {
 
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
-  _BodyElementEventsImpl get on() =>
+  _BodyElementEventsImpl get on =>
     new _BodyElementEventsImpl(this);
 
   String aLink;
@@ -597,31 +597,31 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTML
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
   _BodyElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get beforeUnload() => this['beforeunload'];
+  EventListenerList get beforeUnload => this['beforeunload'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get hashChange() => this['hashchange'];
+  EventListenerList get hashChange => this['hashchange'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get offline() => this['offline'];
+  EventListenerList get offline => this['offline'];
 
-  EventListenerList get online() => this['online'];
+  EventListenerList get online => this['online'];
 
-  EventListenerList get popState() => this['popstate'];
+  EventListenerList get popState => this['popstate'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get storage() => this['storage'];
+  EventListenerList get storage => this['storage'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 }
 
 class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*HTMLButtonElement" {
@@ -4218,7 +4218,7 @@ class _DListElementImpl extends _ElementImpl implements DListElement native "*HT
 
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache native "*DOMApplicationCache" {
 
-  _DOMApplicationCacheEventsImpl get on() =>
+  _DOMApplicationCacheEventsImpl get on =>
     new _DOMApplicationCacheEventsImpl(this);
 
   static const int CHECKING = 2;
@@ -4251,21 +4251,21 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
   _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get cached() => this['cached'];
+  EventListenerList get cached => this['cached'];
 
-  EventListenerList get checking() => this['checking'];
+  EventListenerList get checking => this['checking'];
 
-  EventListenerList get downloading() => this['downloading'];
+  EventListenerList get downloading => this['downloading'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get noUpdate() => this['noupdate'];
+  EventListenerList get noUpdate => this['noupdate'];
 
-  EventListenerList get obsolete() => this['obsolete'];
+  EventListenerList get obsolete => this['obsolete'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get updateReady() => this['updateready'];
+  EventListenerList get updateReady => this['updateready'];
 }
 
 class _DOMErrorImpl implements DOMError native "*DOMError" {
@@ -4673,7 +4673,7 @@ class _DatabaseSyncImpl implements DatabaseSync native "*DatabaseSync" {
 
 class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements DedicatedWorkerContext native "*DedicatedWorkerContext" {
 
-  _DedicatedWorkerContextEventsImpl get on() =>
+  _DedicatedWorkerContextEventsImpl get on =>
     new _DedicatedWorkerContextEventsImpl(this);
 
   void postMessage(Object message, [List messagePorts]) native;
@@ -4684,7 +4684,7 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
   _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 }
 
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayNode" {
@@ -4817,7 +4817,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 {
 
 
-  _DocumentEventsImpl get on() =>
+  _DocumentEventsImpl get on =>
     new _DocumentEventsImpl(this);
 
   final _ElementImpl activeElement;
@@ -4828,7 +4828,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   String cookie;
 
-  _WindowImpl get window() native "return this.defaultView;";
+  _WindowImpl get window native "return this.defaultView;";
 
   final _ElementImpl documentElement;
 
@@ -4958,103 +4958,103 @@ class _DocumentImpl extends _NodeImpl implements Document
 class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   _DocumentEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get beforeCopy() => this['beforecopy'];
+  EventListenerList get beforeCopy => this['beforecopy'];
 
-  EventListenerList get beforeCut() => this['beforecut'];
+  EventListenerList get beforeCut => this['beforecut'];
 
-  EventListenerList get beforePaste() => this['beforepaste'];
+  EventListenerList get beforePaste => this['beforepaste'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get copy() => this['copy'];
+  EventListenerList get copy => this['copy'];
 
-  EventListenerList get cut() => this['cut'];
+  EventListenerList get cut => this['cut'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange() => this['webkitfullscreenchange'];
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  EventListenerList get fullscreenError() => this['webkitfullscreenerror'];
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get invalid() => this['invalid'];
+  EventListenerList get invalid => this['invalid'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get paste() => this['paste'];
+  EventListenerList get paste => this['paste'];
 
-  EventListenerList get pointerLockChange() => this['webkitpointerlockchange'];
+  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
-  EventListenerList get pointerLockError() => this['webkitpointerlockerror'];
+  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 
-  EventListenerList get readyStateChange() => this['readystatechange'];
+  EventListenerList get readyStateChange => this['readystatechange'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart() => this['selectstart'];
+  EventListenerList get selectStart => this['selectstart'];
 
-  EventListenerList get selectionChange() => this['selectionchange'];
+  EventListenerList get selectionChange => this['selectionchange'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get touchCancel() => this['touchcancel'];
+  EventListenerList get touchCancel => this['touchcancel'];
 
-  EventListenerList get touchEnd() => this['touchend'];
+  EventListenerList get touchEnd => this['touchend'];
 
-  EventListenerList get touchMove() => this['touchmove'];
+  EventListenerList get touchMove => this['touchmove'];
 
-  EventListenerList get touchStart() => this['touchstart'];
+  EventListenerList get touchStart => this['touchstart'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5416,7 +5416,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   }
 
 
-  _ElementEventsImpl get on() =>
+  _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
   _ElementImpl $dom_querySelector(String selectors) native "querySelector";
@@ -6264,10 +6264,10 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   }
 
 
-  _ElementEventsImpl get on() =>
+  _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
-  _HTMLCollectionImpl get $dom_children() native "return this.children;";
+  _HTMLCollectionImpl get $dom_children native "return this.children;";
 
   String contentEditable;
 
@@ -6301,51 +6301,51 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
-  int get $dom_childElementCount() native "return this.childElementCount;";
+  int get $dom_childElementCount native "return this.childElementCount;";
 
-  String get $dom_className() native "return this.className;";
+  String get $dom_className native "return this.className;";
 
   void set $dom_className(String value) native "this.className = value;";
 
-  int get $dom_clientHeight() native "return this.clientHeight;";
+  int get $dom_clientHeight native "return this.clientHeight;";
 
-  int get $dom_clientLeft() native "return this.clientLeft;";
+  int get $dom_clientLeft native "return this.clientLeft;";
 
-  int get $dom_clientTop() native "return this.clientTop;";
+  int get $dom_clientTop native "return this.clientTop;";
 
-  int get $dom_clientWidth() native "return this.clientWidth;";
+  int get $dom_clientWidth native "return this.clientWidth;";
 
   final Map<String, String> dataset;
 
-  _ElementImpl get $dom_firstElementChild() native "return this.firstElementChild;";
+  _ElementImpl get $dom_firstElementChild native "return this.firstElementChild;";
 
-  _ElementImpl get $dom_lastElementChild() native "return this.lastElementChild;";
+  _ElementImpl get $dom_lastElementChild native "return this.lastElementChild;";
 
   final _ElementImpl nextElementSibling;
 
-  int get $dom_offsetHeight() native "return this.offsetHeight;";
+  int get $dom_offsetHeight native "return this.offsetHeight;";
 
-  int get $dom_offsetLeft() native "return this.offsetLeft;";
+  int get $dom_offsetLeft native "return this.offsetLeft;";
 
   final _ElementImpl offsetParent;
 
-  int get $dom_offsetTop() native "return this.offsetTop;";
+  int get $dom_offsetTop native "return this.offsetTop;";
 
-  int get $dom_offsetWidth() native "return this.offsetWidth;";
+  int get $dom_offsetWidth native "return this.offsetWidth;";
 
   final _ElementImpl previousElementSibling;
 
-  int get $dom_scrollHeight() native "return this.scrollHeight;";
+  int get $dom_scrollHeight native "return this.scrollHeight;";
 
-  int get $dom_scrollLeft() native "return this.scrollLeft;";
+  int get $dom_scrollLeft native "return this.scrollLeft;";
 
   void set $dom_scrollLeft(int value) native "this.scrollLeft = value;";
 
-  int get $dom_scrollTop() native "return this.scrollTop;";
+  int get $dom_scrollTop native "return this.scrollTop;";
 
   void set $dom_scrollTop(int value) native "this.scrollTop = value;";
 
-  int get $dom_scrollWidth() native "return this.scrollWidth;";
+  int get $dom_scrollWidth native "return this.scrollWidth;";
 
   final _CSSStyleDeclarationImpl style;
 
@@ -6457,101 +6457,101 @@ class _ElementFactoryProvider {
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   _ElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get beforeCopy() => this['beforecopy'];
+  EventListenerList get beforeCopy => this['beforecopy'];
 
-  EventListenerList get beforeCut() => this['beforecut'];
+  EventListenerList get beforeCut => this['beforecut'];
 
-  EventListenerList get beforePaste() => this['beforepaste'];
+  EventListenerList get beforePaste => this['beforepaste'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get copy() => this['copy'];
+  EventListenerList get copy => this['copy'];
 
-  EventListenerList get cut() => this['cut'];
+  EventListenerList get cut => this['cut'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange() => this['webkitfullscreenchange'];
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  EventListenerList get fullscreenError() => this['webkitfullscreenerror'];
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get invalid() => this['invalid'];
+  EventListenerList get invalid => this['invalid'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get paste() => this['paste'];
+  EventListenerList get paste => this['paste'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart() => this['selectstart'];
+  EventListenerList get selectStart => this['selectstart'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get touchCancel() => this['touchcancel'];
+  EventListenerList get touchCancel => this['touchcancel'];
 
-  EventListenerList get touchEnd() => this['touchend'];
+  EventListenerList get touchEnd => this['touchend'];
 
-  EventListenerList get touchEnter() => this['touchenter'];
+  EventListenerList get touchEnter => this['touchenter'];
 
-  EventListenerList get touchLeave() => this['touchleave'];
+  EventListenerList get touchLeave => this['touchleave'];
 
-  EventListenerList get touchMove() => this['touchmove'];
+  EventListenerList get touchMove => this['touchmove'];
 
-  EventListenerList get touchStart() => this['touchstart'];
+  EventListenerList get touchStart => this['touchstart'];
 
-  EventListenerList get transitionEnd() => this['webkitTransitionEnd'];
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 
 class _EmbedElementImpl extends _ElementImpl implements EmbedElement native "*HTMLEmbedElement" {
@@ -6746,7 +6746,7 @@ class _EventExceptionImpl implements EventException native "*EventException" {
 
 class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*EventSource" {
 
-  _EventSourceEventsImpl get on() =>
+  _EventSourceEventsImpl get on =>
     new _EventSourceEventsImpl(this);
 
   static const int CLOSED = 2;
@@ -6773,11 +6773,11 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
   _EventSourceEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7048,7 +7048,7 @@ class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*Fil
 
 class _FileReaderImpl extends _EventTargetImpl implements FileReader native "*FileReader" {
 
-  _FileReaderEventsImpl get on() =>
+  _FileReaderEventsImpl get on =>
     new _FileReaderEventsImpl(this);
 
   static const int DONE = 2;
@@ -7083,17 +7083,17 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader native "*Fi
 class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
   _FileReaderEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadEnd() => this['loadend'];
+  EventListenerList get loadEnd => this['loadend'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 }
 
 class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
@@ -7109,7 +7109,7 @@ class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
 
 class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*FileWriter" {
 
-  _FileWriterEventsImpl get on() =>
+  _FileWriterEventsImpl get on =>
     new _FileWriterEventsImpl(this);
 
   static const int DONE = 2;
@@ -7144,17 +7144,17 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*Fi
 class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
   _FileWriterEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get write() => this['write'];
+  EventListenerList get write => this['write'];
 
-  EventListenerList get writeEnd() => this['writeend'];
+  EventListenerList get writeEnd => this['writeend'];
 
-  EventListenerList get writeStart() => this['writestart'];
+  EventListenerList get writeStart => this['writestart'];
 }
 
 class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
@@ -7428,7 +7428,7 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
 
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement native "*HTMLFrameSetElement" {
 
-  _FrameSetElementEventsImpl get on() =>
+  _FrameSetElementEventsImpl get on =>
     new _FrameSetElementEventsImpl(this);
 
   String cols;
@@ -7439,31 +7439,31 @@ class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement nativ
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
   _FrameSetElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get beforeUnload() => this['beforeunload'];
+  EventListenerList get beforeUnload => this['beforeunload'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get hashChange() => this['hashchange'];
+  EventListenerList get hashChange => this['hashchange'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get offline() => this['offline'];
+  EventListenerList get offline => this['offline'];
 
-  EventListenerList get online() => this['online'];
+  EventListenerList get online => this['online'];
 
-  EventListenerList get popState() => this['popstate'];
+  EventListenerList get popState => this['popstate'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get storage() => this['storage'];
+  EventListenerList get storage => this['storage'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 }
 
 class _GamepadImpl implements Gamepad native "*Gamepad" {
@@ -7618,7 +7618,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
 class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
-  int get length() native "return this.length;";
+  int get length native "return this.length;";
 
   void set length(int value) native "this.length = value;";
 
@@ -7668,7 +7668,7 @@ class _HtmlElementImpl extends _ElementImpl implements HtmlElement native "*HTML
 
 class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest native "*XMLHttpRequest" {
 
-  _HttpRequestEventsImpl get on() =>
+  _HttpRequestEventsImpl get on =>
     new _HttpRequestEventsImpl(this);
 
   static const int DONE = 4;
@@ -7723,19 +7723,19 @@ class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest native "*
 class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
   _HttpRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadEnd() => this['loadend'];
+  EventListenerList get loadEnd => this['loadend'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get readyStateChange() => this['readystatechange'];
+  EventListenerList get readyStateChange => this['readystatechange'];
 }
 
 class _HttpRequestExceptionImpl implements HttpRequestException native "*XMLHttpRequestException" {
@@ -7762,7 +7762,7 @@ class _HttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRe
 
 class _HttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUpload native "*XMLHttpRequestUpload" {
 
-  _HttpRequestUploadEventsImpl get on() =>
+  _HttpRequestUploadEventsImpl get on =>
     new _HttpRequestUploadEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
@@ -7775,17 +7775,17 @@ class _HttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUplo
 class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUploadEvents {
   _HttpRequestUploadEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadEnd() => this['loadend'];
+  EventListenerList get loadEnd => this['loadend'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 }
 
 class _IDBAnyImpl implements IDBAny native "*IDBAny" {
@@ -7803,11 +7803,11 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final String direction;
 
-  Dynamic get key() => _convertNativeToDart_IDBKey(this._key);
-  Dynamic get _key() native "return this.key;";
+  Dynamic get key => _convertNativeToDart_IDBKey(this._key);
+  Dynamic get _key native "return this.key;";
 
-  Dynamic get primaryKey() => _convertNativeToDart_IDBKey(this._primaryKey);
-  Dynamic get _primaryKey() native "return this.primaryKey;";
+  Dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
+  Dynamic get _primaryKey native "return this.primaryKey;";
 
   final Dynamic source;
 
@@ -7836,8 +7836,8 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  Dynamic get value() => _convertNativeToDart_IDBAny(this._value);
-  Dynamic get _value() native "return this.value;";
+  Dynamic get value => _convertNativeToDart_IDBAny(this._value);
+  Dynamic get _value native "return this.value;";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7886,7 +7886,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
   static bool _hasNumericMode(txn) native 'return typeof(txn.mode) === "number"';
 
 
-  _IDBDatabaseEventsImpl get on() =>
+  _IDBDatabaseEventsImpl get on =>
     new _IDBDatabaseEventsImpl(this);
 
   final String name;
@@ -7925,11 +7925,11 @@ var _transaction_fn;  // Assigned one of the static methods.
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
   _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get versionChange() => this['versionchange'];
+  EventListenerList get versionChange => this['versionchange'];
 }
 
 class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBDatabaseException" {
@@ -8150,13 +8150,13 @@ class _IDBKeyImpl implements IDBKey native "*IDBKey" {
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
-  Dynamic get lower() => _convertNativeToDart_IDBKey(this._lower);
-  Dynamic get _lower() native "return this.lower;";
+  Dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
+  Dynamic get _lower native "return this.lower;";
 
   final bool lowerOpen;
 
-  Dynamic get upper() => _convertNativeToDart_IDBKey(this._upper);
-  Dynamic get _upper() native "return this.upper;";
+  Dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
+  Dynamic get _upper native "return this.upper;";
 
   final bool upperOpen;
 }
@@ -8329,7 +8329,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
 class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest native "*IDBOpenDBRequest" {
 
-  _IDBOpenDBRequestEventsImpl get on() =>
+  _IDBOpenDBRequestEventsImpl get on =>
     new _IDBOpenDBRequestEventsImpl(this);
 
   // From EventTarget
@@ -8344,14 +8344,14 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
   _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get blocked() => this['blocked'];
+  EventListenerList get blocked => this['blocked'];
 
-  EventListenerList get upgradeNeeded() => this['upgradeneeded'];
+  EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*IDBRequest" {
 
-  _IDBRequestEventsImpl get on() =>
+  _IDBRequestEventsImpl get on =>
     new _IDBRequestEventsImpl(this);
 
   final _DOMErrorImpl error;
@@ -8360,8 +8360,8 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 
   final String readyState;
 
-  Dynamic get result() => _convertNativeToDart_IDBAny(this._result);
-  Dynamic get _result() native "return this.result;";
+  Dynamic get result => _convertNativeToDart_IDBAny(this._result);
+  Dynamic get _result native "return this.result;";
 
   final Dynamic source;
 
@@ -8379,14 +8379,14 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
   _IDBRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get success() => this['success'];
+  EventListenerList get success => this['success'];
 }
 
 class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction native "*IDBTransaction" {
 
-  _IDBTransactionEventsImpl get on() =>
+  _IDBTransactionEventsImpl get on =>
     new _IDBTransactionEventsImpl(this);
 
   static const int READ_ONLY = 0;
@@ -8415,11 +8415,11 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction nat
 class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
   _IDBTransactionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get complete() => this['complete'];
+  EventListenerList get complete => this['complete'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 }
 
 class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededEvent native "*IDBUpgradeNeededEvent" {
@@ -8436,7 +8436,7 @@ class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeE
 
 class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersionChangeRequest native "*IDBVersionChangeRequest" {
 
-  _IDBVersionChangeRequestEventsImpl get on() =>
+  _IDBVersionChangeRequestEventsImpl get on =>
     new _IDBVersionChangeRequestEventsImpl(this);
 
   // From EventTarget
@@ -8451,7 +8451,7 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
   _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get blocked() => this['blocked'];
+  EventListenerList get blocked => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8553,7 +8553,7 @@ class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HT
 
 class _InputElementImpl extends _ElementImpl implements InputElement native "*HTMLInputElement" {
 
-  _InputElementEventsImpl get on() =>
+  _InputElementEventsImpl get on =>
     new _InputElementEventsImpl(this);
 
   String accept;
@@ -8670,7 +8670,7 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
   _InputElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get speechChange() => this['webkitSpeechChange'];
+  EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int>, JavaScriptIndexingBehavior native "*Int16Array" {
@@ -8948,7 +8948,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
 class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
 
-  _JavaScriptAudioNodeEventsImpl get on() =>
+  _JavaScriptAudioNodeEventsImpl get on =>
     new _JavaScriptAudioNodeEventsImpl(this);
 
   final int bufferSize;
@@ -8965,7 +8965,7 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
   _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get audioProcess() => this['audioprocess'];
+  EventListenerList get audioProcess => this['audioprocess'];
 }
 
 class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -9214,7 +9214,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController n
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HTMLMediaElement" {
 
-  _MediaElementEventsImpl get on() =>
+  _MediaElementEventsImpl get on =>
     new _MediaElementEventsImpl(this);
 
   static const int HAVE_CURRENT_DATA = 2;
@@ -9319,55 +9319,55 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
   _MediaElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get canPlay() => this['canplay'];
+  EventListenerList get canPlay => this['canplay'];
 
-  EventListenerList get canPlayThrough() => this['canplaythrough'];
+  EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  EventListenerList get durationChange() => this['durationchange'];
+  EventListenerList get durationChange => this['durationchange'];
 
-  EventListenerList get emptied() => this['emptied'];
+  EventListenerList get emptied => this['emptied'];
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 
-  EventListenerList get keyAdded() => this['webkitkeyadded'];
+  EventListenerList get keyAdded => this['webkitkeyadded'];
 
-  EventListenerList get keyError() => this['webkitkeyerror'];
+  EventListenerList get keyError => this['webkitkeyerror'];
 
-  EventListenerList get keyMessage() => this['webkitkeymessage'];
+  EventListenerList get keyMessage => this['webkitkeymessage'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get loadedData() => this['loadeddata'];
+  EventListenerList get loadedData => this['loadeddata'];
 
-  EventListenerList get loadedMetadata() => this['loadedmetadata'];
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  EventListenerList get needKey() => this['webkitneedkey'];
+  EventListenerList get needKey => this['webkitneedkey'];
 
-  EventListenerList get pause() => this['pause'];
+  EventListenerList get pause => this['pause'];
 
-  EventListenerList get play() => this['play'];
+  EventListenerList get play => this['play'];
 
-  EventListenerList get playing() => this['playing'];
+  EventListenerList get playing => this['playing'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get rateChange() => this['ratechange'];
+  EventListenerList get rateChange => this['ratechange'];
 
-  EventListenerList get seeked() => this['seeked'];
+  EventListenerList get seeked => this['seeked'];
 
-  EventListenerList get seeking() => this['seeking'];
+  EventListenerList get seeking => this['seeking'];
 
-  EventListenerList get show() => this['show'];
+  EventListenerList get show => this['show'];
 
-  EventListenerList get stalled() => this['stalled'];
+  EventListenerList get stalled => this['stalled'];
 
-  EventListenerList get suspend() => this['suspend'];
+  EventListenerList get suspend => this['suspend'];
 
-  EventListenerList get timeUpdate() => this['timeupdate'];
+  EventListenerList get timeUpdate => this['timeupdate'];
 
-  EventListenerList get volumeChange() => this['volumechange'];
+  EventListenerList get volumeChange => this['volumechange'];
 
-  EventListenerList get waiting() => this['waiting'];
+  EventListenerList get waiting => this['waiting'];
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -9555,7 +9555,7 @@ class _MediaSourceImpl extends _EventTargetImpl implements MediaSource native "*
 
 class _MediaStreamImpl extends _EventTargetImpl implements MediaStream native "*MediaStream" {
 
-  _MediaStreamEventsImpl get on() =>
+  _MediaStreamEventsImpl get on =>
     new _MediaStreamEventsImpl(this);
 
   static const int ENDED = 2;
@@ -9580,7 +9580,7 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream native "*
 class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
   _MediaStreamEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 }
 
 class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaStreamAudioSourceNode native "*MediaStreamAudioSourceNode" {
@@ -9602,7 +9602,7 @@ class _MediaStreamListImpl implements MediaStreamList native "*MediaStreamList" 
 
 class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack native "*MediaStreamTrack" {
 
-  _MediaStreamTrackEventsImpl get on() =>
+  _MediaStreamTrackEventsImpl get on =>
     new _MediaStreamTrackEventsImpl(this);
 
   static const int ENDED = 2;
@@ -9629,11 +9629,11 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
   _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 
-  EventListenerList get mute() => this['mute'];
+  EventListenerList get mute => this['mute'];
 
-  EventListenerList get unmute() => this['unmute'];
+  EventListenerList get unmute => this['unmute'];
 }
 
 class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent native "*MediaStreamTrackEvent" {
@@ -9643,7 +9643,7 @@ class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackE
 
 class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamTrackList native "*MediaStreamTrackList" {
 
-  _MediaStreamTrackListEventsImpl get on() =>
+  _MediaStreamTrackListEventsImpl get on =>
     new _MediaStreamTrackListEventsImpl(this);
 
   final int length;
@@ -9664,9 +9664,9 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
   _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addTrack() => this['addtrack'];
+  EventListenerList get addTrack => this['addtrack'];
 
-  EventListenerList get removeTrack() => this['removetrack'];
+  EventListenerList get removeTrack => this['removetrack'];
 }
 
 class _MemoryInfoImpl implements MemoryInfo native "*MemoryInfo" {
@@ -9709,7 +9709,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent native "*Mess
 
 class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*MessagePort" {
 
-  _MessagePortEventsImpl get on() =>
+  _MessagePortEventsImpl get on =>
     new _MessagePortEventsImpl(this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
@@ -9730,7 +9730,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
 class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
   _MessagePortEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 }
 
 class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTMLMetaElement" {
@@ -10306,25 +10306,25 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   static const int TEXT_NODE = 3;
 
-  _NamedNodeMapImpl get $dom_attributes() native "return this.attributes;";
+  _NamedNodeMapImpl get $dom_attributes native "return this.attributes;";
 
-  _NodeListImpl get $dom_childNodes() native "return this.childNodes;";
+  _NodeListImpl get $dom_childNodes native "return this.childNodes;";
 
-  _NodeImpl get $dom_firstChild() native "return this.firstChild;";
+  _NodeImpl get $dom_firstChild native "return this.firstChild;";
 
-  _NodeImpl get $dom_lastChild() native "return this.lastChild;";
+  _NodeImpl get $dom_lastChild native "return this.lastChild;";
 
-  _NodeImpl get nextNode() native "return this.nextSibling;";
+  _NodeImpl get nextNode native "return this.nextSibling;";
 
-  int get $dom_nodeType() native "return this.nodeType;";
+  int get $dom_nodeType native "return this.nodeType;";
 
-  _DocumentImpl get document() native "return this.ownerDocument;";
+  _DocumentImpl get document native "return this.ownerDocument;";
 
-  _NodeImpl get parent() native "return this.parentNode;";
+  _NodeImpl get parent native "return this.parentNode;";
 
-  _NodeImpl get previousNode() native "return this.previousSibling;";
+  _NodeImpl get previousNode native "return this.previousSibling;";
 
-  String get text() native "return this.textContent;";
+  String get text native "return this.textContent;";
 
   void set text(String value) native "this.textContent = value;";
 
@@ -10596,7 +10596,7 @@ class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
 
 class _NotificationImpl extends _EventTargetImpl implements Notification native "*Notification" {
 
-  _NotificationEventsImpl get on() =>
+  _NotificationEventsImpl get on =>
     new _NotificationEventsImpl(this);
 
   String dir;
@@ -10623,15 +10623,15 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
   _NotificationEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get close() => this['close'];
+  EventListenerList get close => this['close'];
 
-  EventListenerList get display() => this['display'];
+  EventListenerList get display => this['display'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get show() => this['show'];
+  EventListenerList get show => this['show'];
 }
 
 class _NotificationCenterImpl implements NotificationCenter native "*NotificationCenter" {
@@ -10862,7 +10862,7 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement native "*HT
 
 class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00 native "*PeerConnection00" {
 
-  _PeerConnection00EventsImpl get on() =>
+  _PeerConnection00EventsImpl get on =>
     new _PeerConnection00EventsImpl(this);
 
   static const int ACTIVE = 2;
@@ -10969,15 +10969,15 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
   _PeerConnection00EventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addStream() => this['addstream'];
+  EventListenerList get addStream => this['addstream'];
 
-  EventListenerList get connecting() => this['connecting'];
+  EventListenerList get connecting => this['connecting'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 
-  EventListenerList get removeStream() => this['removestream'];
+  EventListenerList get removeStream => this['removestream'];
 
-  EventListenerList get stateChange() => this['statechange'];
+  EventListenerList get stateChange => this['statechange'];
 }
 
 class _PerformanceImpl extends _EventTargetImpl implements Performance native "*Performance" {
@@ -11142,7 +11142,7 @@ class _RTCIceCandidateEventImpl extends _EventImpl implements RTCIceCandidateEve
 
 class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnection native "*RTCPeerConnection" {
 
-  _RTCPeerConnectionEventsImpl get on() =>
+  _RTCPeerConnectionEventsImpl get on =>
     new _RTCPeerConnectionEventsImpl(this);
 
   final String iceState;
@@ -11206,17 +11206,17 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
   _RTCPeerConnectionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addStream() => this['addstream'];
+  EventListenerList get addStream => this['addstream'];
 
-  EventListenerList get iceCandidate() => this['icecandidate'];
+  EventListenerList get iceCandidate => this['icecandidate'];
 
-  EventListenerList get iceChange() => this['icechange'];
+  EventListenerList get iceChange => this['icechange'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 
-  EventListenerList get removeStream() => this['removestream'];
+  EventListenerList get removeStream => this['removestream'];
 
-  EventListenerList get stateChange() => this['statechange'];
+  EventListenerList get stateChange => this['statechange'];
 }
 
 class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSessionDescription" {
@@ -11462,7 +11462,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11691,7 +11691,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11743,7 +11743,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11868,7 +11868,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11904,7 +11904,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11972,7 +11972,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
 
   // Shadowing definition.
-  String get id() native "return this.id;";
+  String get id native "return this.id;";
 
   void set id(String value) native "this.id = value;";
 
@@ -11986,7 +11986,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance native "*SVGElementInstance" {
 
-  _SVGElementInstanceEventsImpl get on() =>
+  _SVGElementInstanceEventsImpl get on =>
     new _SVGElementInstanceEventsImpl(this);
 
   final _SVGElementInstanceListImpl childNodes;
@@ -12009,85 +12009,85 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
   _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get beforeCopy() => this['beforecopy'];
+  EventListenerList get beforeCopy => this['beforecopy'];
 
-  EventListenerList get beforeCut() => this['beforecut'];
+  EventListenerList get beforeCut => this['beforecut'];
 
-  EventListenerList get beforePaste() => this['beforepaste'];
+  EventListenerList get beforePaste => this['beforepaste'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get copy() => this['copy'];
+  EventListenerList get copy => this['copy'];
 
-  EventListenerList get cut() => this['cut'];
+  EventListenerList get cut => this['cut'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get paste() => this['paste'];
+  EventListenerList get paste => this['paste'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart() => this['selectstart'];
+  EventListenerList get selectStart => this['selectstart'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 }
 
 class _SVGElementInstanceListImpl implements SVGElementInstanceList native "*SVGElementInstanceList" {
@@ -12129,7 +12129,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12206,7 +12206,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12246,7 +12246,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12272,7 +12272,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12324,7 +12324,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12380,7 +12380,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12414,7 +12414,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12458,7 +12458,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12501,7 +12501,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12525,7 +12525,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12569,7 +12569,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12609,7 +12609,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12633,7 +12633,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12678,7 +12678,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12708,7 +12708,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12749,7 +12749,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12794,7 +12794,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12842,7 +12842,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12886,7 +12886,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12944,7 +12944,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12994,7 +12994,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13043,7 +13043,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13077,7 +13077,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13126,7 +13126,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13240,7 +13240,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13332,7 +13332,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13382,7 +13382,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13566,7 +13566,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13873,7 +13873,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13943,7 +13943,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -13997,7 +13997,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14118,7 +14118,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14259,7 +14259,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14313,7 +14313,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14347,7 +14347,7 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
   String media;
 
   // Shadowing definition.
-  String get title() native "return this.title;";
+  String get title native "return this.title;";
 
   void set title(String value) native "this.title = value;";
 
@@ -14384,7 +14384,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14424,7 +14424,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14500,7 +14500,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14577,7 +14577,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14692,7 +14692,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -14927,7 +14927,7 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker nati
 
 class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorkerContext native "*SharedWorkerContext" {
 
-  _SharedWorkerContextEventsImpl get on() =>
+  _SharedWorkerContextEventsImpl get on =>
     new _SharedWorkerContextEventsImpl(this);
 
   final String name;
@@ -14936,7 +14936,7 @@ class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorke
 class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
   _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get connect() => this['connect'];
+  EventListenerList get connect => this['connect'];
 }
 
 class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
@@ -15014,7 +15014,7 @@ class _SpeechInputResultListImpl implements SpeechInputResultList native "*Speec
 
 class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecognition native "*SpeechRecognition" {
 
-  _SpeechRecognitionEventsImpl get on() =>
+  _SpeechRecognitionEventsImpl get on =>
     new _SpeechRecognitionEventsImpl(this);
 
   bool continuous;
@@ -15041,29 +15041,29 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
   _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get audioEnd() => this['audioend'];
+  EventListenerList get audioEnd => this['audioend'];
 
-  EventListenerList get audioStart() => this['audiostart'];
+  EventListenerList get audioStart => this['audiostart'];
 
-  EventListenerList get end() => this['end'];
+  EventListenerList get end => this['end'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get noMatch() => this['nomatch'];
+  EventListenerList get noMatch => this['nomatch'];
 
-  EventListenerList get result() => this['result'];
+  EventListenerList get result => this['result'];
 
-  EventListenerList get resultDeleted() => this['resultdeleted'];
+  EventListenerList get resultDeleted => this['resultdeleted'];
 
-  EventListenerList get soundEnd() => this['soundend'];
+  EventListenerList get soundEnd => this['soundend'];
 
-  EventListenerList get soundStart() => this['soundstart'];
+  EventListenerList get soundStart => this['soundstart'];
 
-  EventListenerList get speechEnd() => this['speechend'];
+  EventListenerList get speechEnd => this['speechend'];
 
-  EventListenerList get speechStart() => this['speechstart'];
+  EventListenerList get speechStart => this['speechstart'];
 
-  EventListenerList get start() => this['start'];
+  EventListenerList get start => this['start'];
 }
 
 class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -15111,7 +15111,7 @@ class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*S
 
   final _DocumentImpl emma;
 
-  bool get finalValue() native "return this.final;";
+  bool get finalValue native "return this.final;";
 
   final int length;
 
@@ -15177,7 +15177,7 @@ class _StorageImpl implements Storage native "*Storage" {
 
   bool isEmpty() => $dom_key(0) == null;
 
-  int get $dom_length() native "return this.length;";
+  int get $dom_length native "return this.length;";
 
   void $dom_clear() native "clear";
 
@@ -15563,7 +15563,7 @@ class _TextMetricsImpl implements TextMetrics native "*TextMetrics" {
 
 class _TextTrackImpl extends _EventTargetImpl implements TextTrack native "*TextTrack" {
 
-  _TextTrackEventsImpl get on() =>
+  _TextTrackEventsImpl get on =>
     new _TextTrackEventsImpl(this);
 
   final _TextTrackCueListImpl activeCues;
@@ -15592,12 +15592,12 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack native "*Text
 class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
   _TextTrackEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get cueChange() => this['cuechange'];
+  EventListenerList get cueChange => this['cuechange'];
 }
 
 class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue native "*TextTrackCue" {
 
-  _TextTrackCueEventsImpl get on() =>
+  _TextTrackCueEventsImpl get on =>
     new _TextTrackCueEventsImpl(this);
 
   String align;
@@ -15636,9 +15636,9 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue native 
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
   _TextTrackCueEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get enter() => this['enter'];
+  EventListenerList get enter => this['enter'];
 
-  EventListenerList get exit() => this['exit'];
+  EventListenerList get exit => this['exit'];
 }
 
 class _TextTrackCueListImpl implements TextTrackCueList native "*TextTrackCueList" {
@@ -15652,7 +15652,7 @@ class _TextTrackCueListImpl implements TextTrackCueList native "*TextTrackCueLis
 
 class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList native "*TextTrackList" {
 
-  _TextTrackListEventsImpl get on() =>
+  _TextTrackListEventsImpl get on =>
     new _TextTrackListEventsImpl(this);
 
   final int length;
@@ -15669,7 +15669,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList nativ
 class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
   _TextTrackListEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addTrack() => this['addtrack'];
+  EventListenerList get addTrack => this['addtrack'];
 }
 
 class _TimeRangesImpl implements TimeRanges native "*TimeRanges" {
@@ -15829,7 +15829,7 @@ class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HT
 
   static const int NONE = 0;
 
-  bool get defaultValue() native "return this.default;";
+  bool get defaultValue native "return this.default;";
 
   void set defaultValue(bool value) native "this.default = value;";
 
@@ -17360,7 +17360,7 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow n
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
 
-  _WebSocketEventsImpl get on() =>
+  _WebSocketEventsImpl get on =>
     new _WebSocketEventsImpl(this);
 
   static const int CLOSED = 3;
@@ -17399,13 +17399,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
   _WebSocketEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get close() => this['close'];
+  EventListenerList get close => this['close'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get open() => this['open'];
+  EventListenerList get open => this['open'];
 }
 
 class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*WheelEvent" {
@@ -17559,7 +17559,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
   ''';
 
-  _WindowEventsImpl get on() =>
+  _WindowEventsImpl get on =>
     new _WindowEventsImpl(this);
 
   static const int PERSISTENT = 1;
@@ -17749,158 +17749,158 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
   _WindowEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => this['abort'];
+  EventListenerList get abort => this['abort'];
 
-  EventListenerList get animationEnd() => this['webkitAnimationEnd'];
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
-  EventListenerList get animationIteration() => this['webkitAnimationIteration'];
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
-  EventListenerList get animationStart() => this['webkitAnimationStart'];
+  EventListenerList get animationStart => this['webkitAnimationStart'];
 
-  EventListenerList get beforeUnload() => this['beforeunload'];
+  EventListenerList get beforeUnload => this['beforeunload'];
 
-  EventListenerList get blur() => this['blur'];
+  EventListenerList get blur => this['blur'];
 
-  EventListenerList get canPlay() => this['canplay'];
+  EventListenerList get canPlay => this['canplay'];
 
-  EventListenerList get canPlayThrough() => this['canplaythrough'];
+  EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  EventListenerList get change() => this['change'];
+  EventListenerList get change => this['change'];
 
-  EventListenerList get click() => this['click'];
+  EventListenerList get click => this['click'];
 
-  EventListenerList get contentLoaded() => this['DOMContentLoaded'];
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
 
-  EventListenerList get contextMenu() => this['contextmenu'];
+  EventListenerList get contextMenu => this['contextmenu'];
 
-  EventListenerList get deviceMotion() => this['devicemotion'];
+  EventListenerList get deviceMotion => this['devicemotion'];
 
-  EventListenerList get deviceOrientation() => this['deviceorientation'];
+  EventListenerList get deviceOrientation => this['deviceorientation'];
 
-  EventListenerList get doubleClick() => this['dblclick'];
+  EventListenerList get doubleClick => this['dblclick'];
 
-  EventListenerList get drag() => this['drag'];
+  EventListenerList get drag => this['drag'];
 
-  EventListenerList get dragEnd() => this['dragend'];
+  EventListenerList get dragEnd => this['dragend'];
 
-  EventListenerList get dragEnter() => this['dragenter'];
+  EventListenerList get dragEnter => this['dragenter'];
 
-  EventListenerList get dragLeave() => this['dragleave'];
+  EventListenerList get dragLeave => this['dragleave'];
 
-  EventListenerList get dragOver() => this['dragover'];
+  EventListenerList get dragOver => this['dragover'];
 
-  EventListenerList get dragStart() => this['dragstart'];
+  EventListenerList get dragStart => this['dragstart'];
 
-  EventListenerList get drop() => this['drop'];
+  EventListenerList get drop => this['drop'];
 
-  EventListenerList get durationChange() => this['durationchange'];
+  EventListenerList get durationChange => this['durationchange'];
 
-  EventListenerList get emptied() => this['emptied'];
+  EventListenerList get emptied => this['emptied'];
 
-  EventListenerList get ended() => this['ended'];
+  EventListenerList get ended => this['ended'];
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 
-  EventListenerList get focus() => this['focus'];
+  EventListenerList get focus => this['focus'];
 
-  EventListenerList get hashChange() => this['hashchange'];
+  EventListenerList get hashChange => this['hashchange'];
 
-  EventListenerList get input() => this['input'];
+  EventListenerList get input => this['input'];
 
-  EventListenerList get invalid() => this['invalid'];
+  EventListenerList get invalid => this['invalid'];
 
-  EventListenerList get keyDown() => this['keydown'];
+  EventListenerList get keyDown => this['keydown'];
 
-  EventListenerList get keyPress() => this['keypress'];
+  EventListenerList get keyPress => this['keypress'];
 
-  EventListenerList get keyUp() => this['keyup'];
+  EventListenerList get keyUp => this['keyup'];
 
-  EventListenerList get load() => this['load'];
+  EventListenerList get load => this['load'];
 
-  EventListenerList get loadStart() => this['loadstart'];
+  EventListenerList get loadStart => this['loadstart'];
 
-  EventListenerList get loadedData() => this['loadeddata'];
+  EventListenerList get loadedData => this['loadeddata'];
 
-  EventListenerList get loadedMetadata() => this['loadedmetadata'];
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 
-  EventListenerList get mouseDown() => this['mousedown'];
+  EventListenerList get mouseDown => this['mousedown'];
 
-  EventListenerList get mouseMove() => this['mousemove'];
+  EventListenerList get mouseMove => this['mousemove'];
 
-  EventListenerList get mouseOut() => this['mouseout'];
+  EventListenerList get mouseOut => this['mouseout'];
 
-  EventListenerList get mouseOver() => this['mouseover'];
+  EventListenerList get mouseOver => this['mouseover'];
 
-  EventListenerList get mouseUp() => this['mouseup'];
+  EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel() => this['mousewheel'];
+  EventListenerList get mouseWheel => this['mousewheel'];
 
-  EventListenerList get offline() => this['offline'];
+  EventListenerList get offline => this['offline'];
 
-  EventListenerList get online() => this['online'];
+  EventListenerList get online => this['online'];
 
-  EventListenerList get pageHide() => this['pagehide'];
+  EventListenerList get pageHide => this['pagehide'];
 
-  EventListenerList get pageShow() => this['pageshow'];
+  EventListenerList get pageShow => this['pageshow'];
 
-  EventListenerList get pause() => this['pause'];
+  EventListenerList get pause => this['pause'];
 
-  EventListenerList get play() => this['play'];
+  EventListenerList get play => this['play'];
 
-  EventListenerList get playing() => this['playing'];
+  EventListenerList get playing => this['playing'];
 
-  EventListenerList get popState() => this['popstate'];
+  EventListenerList get popState => this['popstate'];
 
-  EventListenerList get progress() => this['progress'];
+  EventListenerList get progress => this['progress'];
 
-  EventListenerList get rateChange() => this['ratechange'];
+  EventListenerList get rateChange => this['ratechange'];
 
-  EventListenerList get reset() => this['reset'];
+  EventListenerList get reset => this['reset'];
 
-  EventListenerList get resize() => this['resize'];
+  EventListenerList get resize => this['resize'];
 
-  EventListenerList get scroll() => this['scroll'];
+  EventListenerList get scroll => this['scroll'];
 
-  EventListenerList get search() => this['search'];
+  EventListenerList get search => this['search'];
 
-  EventListenerList get seeked() => this['seeked'];
+  EventListenerList get seeked => this['seeked'];
 
-  EventListenerList get seeking() => this['seeking'];
+  EventListenerList get seeking => this['seeking'];
 
-  EventListenerList get select() => this['select'];
+  EventListenerList get select => this['select'];
 
-  EventListenerList get stalled() => this['stalled'];
+  EventListenerList get stalled => this['stalled'];
 
-  EventListenerList get storage() => this['storage'];
+  EventListenerList get storage => this['storage'];
 
-  EventListenerList get submit() => this['submit'];
+  EventListenerList get submit => this['submit'];
 
-  EventListenerList get suspend() => this['suspend'];
+  EventListenerList get suspend => this['suspend'];
 
-  EventListenerList get timeUpdate() => this['timeupdate'];
+  EventListenerList get timeUpdate => this['timeupdate'];
 
-  EventListenerList get touchCancel() => this['touchcancel'];
+  EventListenerList get touchCancel => this['touchcancel'];
 
-  EventListenerList get touchEnd() => this['touchend'];
+  EventListenerList get touchEnd => this['touchend'];
 
-  EventListenerList get touchMove() => this['touchmove'];
+  EventListenerList get touchMove => this['touchmove'];
 
-  EventListenerList get touchStart() => this['touchstart'];
+  EventListenerList get touchStart => this['touchstart'];
 
-  EventListenerList get transitionEnd() => this['webkitTransitionEnd'];
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
-  EventListenerList get unload() => this['unload'];
+  EventListenerList get unload => this['unload'];
 
-  EventListenerList get volumeChange() => this['volumechange'];
+  EventListenerList get volumeChange => this['volumechange'];
 
-  EventListenerList get waiting() => this['waiting'];
+  EventListenerList get waiting => this['waiting'];
 }
 
 class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker" {
 
-  _WorkerEventsImpl get on() =>
+  _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
   void postMessage(message, [List messagePorts]) native;
@@ -17913,12 +17913,12 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
 class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
   _WorkerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => this['message'];
+  EventListenerList get message => this['message'];
 }
 
 class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext native "*WorkerContext" {
 
-  _WorkerContextEventsImpl get on() =>
+  _WorkerContextEventsImpl get on =>
     new _WorkerContextEventsImpl(this);
 
   static const int PERSISTENT = 1;
@@ -17969,7 +17969,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext nativ
 class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
   _WorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => this['error'];
+  EventListenerList get error => this['error'];
 }
 
 class _WorkerLocationImpl implements WorkerLocation native "*WorkerLocation" {
@@ -18747,7 +18747,7 @@ interface AbstractWorker extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  AbstractWorkerEvents get on();
+  AbstractWorkerEvents get on;
 
   /** @domName AbstractWorker.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -18761,7 +18761,7 @@ interface AbstractWorker extends EventTarget {
 
 interface AbstractWorkerEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19184,7 +19184,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  AudioContextEvents get on();
+  AudioContextEvents get on;
 
   /** @domName AudioContext.activeSourceCount */
   final int activeSourceCount;
@@ -19261,7 +19261,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
 interface AudioContextEvents extends Events {
 
-  EventListenerList get complete();
+  EventListenerList get complete;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19557,7 +19557,7 @@ interface BatteryManager extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  BatteryManagerEvents get on();
+  BatteryManagerEvents get on;
 
   /** @domName BatteryManager.charging */
   final bool charging;
@@ -19583,13 +19583,13 @@ interface BatteryManager extends EventTarget {
 
 interface BatteryManagerEvents extends Events {
 
-  EventListenerList get chargingChange();
+  EventListenerList get chargingChange;
 
-  EventListenerList get chargingTimeChange();
+  EventListenerList get chargingTimeChange;
 
-  EventListenerList get dischargingTimeChange();
+  EventListenerList get dischargingTimeChange;
 
-  EventListenerList get levelChange();
+  EventListenerList get levelChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19680,7 +19680,7 @@ interface BodyElement extends Element default _Elements {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  BodyElementEvents get on();
+  BodyElementEvents get on;
 
   /** @domName HTMLBodyElement.aLink */
   String aLink;
@@ -19700,31 +19700,31 @@ interface BodyElement extends Element default _Elements {
 
 interface BodyElementEvents extends ElementEvents {
 
-  EventListenerList get beforeUnload();
+  EventListenerList get beforeUnload;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get hashChange();
+  EventListenerList get hashChange;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get offline();
+  EventListenerList get offline;
 
-  EventListenerList get online();
+  EventListenerList get online;
 
-  EventListenerList get popState();
+  EventListenerList get popState;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get storage();
+  EventListenerList get storage;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22812,7 +22812,7 @@ interface DOMApplicationCache extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  DOMApplicationCacheEvents get on();
+  DOMApplicationCacheEvents get on;
 
   static const int CHECKING = 2;
 
@@ -22850,21 +22850,21 @@ interface DOMApplicationCache extends EventTarget {
 
 interface DOMApplicationCacheEvents extends Events {
 
-  EventListenerList get cached();
+  EventListenerList get cached;
 
-  EventListenerList get checking();
+  EventListenerList get checking;
 
-  EventListenerList get downloading();
+  EventListenerList get downloading;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get noUpdate();
+  EventListenerList get noUpdate;
 
-  EventListenerList get obsolete();
+  EventListenerList get obsolete;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get updateReady();
+  EventListenerList get updateReady;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23453,7 +23453,7 @@ interface DedicatedWorkerContext extends WorkerContext {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  DedicatedWorkerContextEvents get on();
+  DedicatedWorkerContextEvents get on;
 
   /** @domName DedicatedWorkerContext.postMessage */
   void postMessage(Object message, [List messagePorts]);
@@ -23464,7 +23464,7 @@ interface DedicatedWorkerContext extends WorkerContext {
 
 interface DedicatedWorkerContextEvents extends WorkerContextEvents {
 
-  EventListenerList get message();
+  EventListenerList get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23631,7 +23631,7 @@ interface Document extends HtmlElement {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  DocumentEvents get on();
+  DocumentEvents get on;
 
   /** @domName HTMLDocument.activeElement */
   final Element activeElement;
@@ -23787,103 +23787,103 @@ interface Document extends HtmlElement {
 
 interface DocumentEvents extends ElementEvents {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get fullscreenChange();
+  EventListenerList get fullscreenChange;
 
-  EventListenerList get fullscreenError();
+  EventListenerList get fullscreenError;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get invalid();
+  EventListenerList get invalid;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get paste();
+  EventListenerList get paste;
 
-  EventListenerList get pointerLockChange();
+  EventListenerList get pointerLockChange;
 
-  EventListenerList get pointerLockError();
+  EventListenerList get pointerLockError;
 
-  EventListenerList get readyStateChange();
+  EventListenerList get readyStateChange;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get selectStart();
+  EventListenerList get selectStart;
 
-  EventListenerList get selectionChange();
+  EventListenerList get selectionChange;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchCancel;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchMove();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchStart();
+  EventListenerList get touchStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23908,7 +23908,7 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  ElementEvents get on();
+  ElementEvents get on;
 
   /** @domName DocumentFragment.querySelector */
   Element $dom_querySelector(String selectors);
@@ -24103,7 +24103,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  ElementEvents get on();
+  ElementEvents get on;
 
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
@@ -24294,101 +24294,101 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
 interface ElementEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get fullscreenChange();
+  EventListenerList get fullscreenChange;
 
-  EventListenerList get fullscreenError();
+  EventListenerList get fullscreenError;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get invalid();
+  EventListenerList get invalid;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get paste();
+  EventListenerList get paste;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get selectStart();
+  EventListenerList get selectStart;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchCancel;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchEnter();
+  EventListenerList get touchEnter;
 
-  EventListenerList get touchLeave();
+  EventListenerList get touchLeave;
 
-  EventListenerList get touchMove();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchStart();
+  EventListenerList get touchStart;
 
-  EventListenerList get transitionEnd();
+  EventListenerList get transitionEnd;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24788,7 +24788,7 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  EventSourceEvents get on();
+  EventSourceEvents get on;
 
   static const int CLOSED = 2;
 
@@ -24820,11 +24820,11 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
 interface EventSourceEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get open();
+  EventListenerList get open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25066,7 +25066,7 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  FileReaderEvents get on();
+  FileReaderEvents get on;
 
   static const int DONE = 2;
 
@@ -25110,17 +25110,17 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
 
 interface FileReaderEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25164,7 +25164,7 @@ interface FileWriter extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  FileWriterEvents get on();
+  FileWriterEvents get on;
 
   static const int DONE = 2;
 
@@ -25208,17 +25208,17 @@ interface FileWriter extends EventTarget {
 
 interface FileWriterEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get write();
+  EventListenerList get write;
 
-  EventListenerList get writeEnd();
+  EventListenerList get writeEnd;
 
-  EventListenerList get writeStart();
+  EventListenerList get writeStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25448,7 +25448,7 @@ interface FrameSetElement extends Element {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  FrameSetElementEvents get on();
+  FrameSetElementEvents get on;
 
   /** @domName HTMLFrameSetElement.cols */
   String cols;
@@ -25459,31 +25459,31 @@ interface FrameSetElement extends Element {
 
 interface FrameSetElementEvents extends ElementEvents {
 
-  EventListenerList get beforeUnload();
+  EventListenerList get beforeUnload;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get hashChange();
+  EventListenerList get hashChange;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get offline();
+  EventListenerList get offline;
 
-  EventListenerList get online();
+  EventListenerList get online;
 
-  EventListenerList get popState();
+  EventListenerList get popState;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get storage();
+  EventListenerList get storage;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25751,7 +25751,7 @@ interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  HttpRequestEvents get on();
+  HttpRequestEvents get on;
 
   static const int DONE = 4;
 
@@ -25823,19 +25823,19 @@ interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
 
 interface HttpRequestEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get readyStateChange();
+  EventListenerList get readyStateChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25889,7 +25889,7 @@ interface HttpRequestUpload extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  HttpRequestUploadEvents get on();
+  HttpRequestUploadEvents get on;
 
   /** @domName XMLHttpRequestUpload.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -25903,17 +25903,17 @@ interface HttpRequestUpload extends EventTarget {
 
 interface HttpRequestUploadEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25989,7 +25989,7 @@ interface IDBDatabase extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBDatabaseEvents get on();
+  IDBDatabaseEvents get on;
 
   /** @domName IDBDatabase.name */
   final String name;
@@ -26027,11 +26027,11 @@ interface IDBDatabase extends EventTarget {
 
 interface IDBDatabaseEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get versionChange();
+  EventListenerList get versionChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26258,14 +26258,14 @@ interface IDBOpenDBRequest extends IDBRequest, EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBOpenDBRequestEvents get on();
+  IDBOpenDBRequestEvents get on;
 }
 
 interface IDBOpenDBRequestEvents extends IDBRequestEvents {
 
-  EventListenerList get blocked();
+  EventListenerList get blocked;
 
-  EventListenerList get upgradeNeeded();
+  EventListenerList get upgradeNeeded;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26279,7 +26279,7 @@ interface IDBRequest extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBRequestEvents get on();
+  IDBRequestEvents get on;
 
   /** @domName IDBRequest.error */
   final DOMError error;
@@ -26314,9 +26314,9 @@ interface IDBRequest extends EventTarget {
 
 interface IDBRequestEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get success();
+  EventListenerList get success;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26330,7 +26330,7 @@ interface IDBTransaction extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBTransactionEvents get on();
+  IDBTransactionEvents get on;
 
   static const int READ_ONLY = 0;
 
@@ -26365,11 +26365,11 @@ interface IDBTransaction extends EventTarget {
 
 interface IDBTransactionEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get complete();
+  EventListenerList get complete;
 
-  EventListenerList get error();
+  EventListenerList get error;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26410,12 +26410,12 @@ interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  IDBVersionChangeRequestEvents get on();
+  IDBVersionChangeRequestEvents get on;
 }
 
 interface IDBVersionChangeRequestEvents extends IDBRequestEvents {
 
-  EventListenerList get blocked();
+  EventListenerList get blocked;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26594,7 +26594,7 @@ interface InputElement extends Element default _Elements {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  InputElementEvents get on();
+  InputElementEvents get on;
 
   /** @domName HTMLInputElement.accept */
   String accept;
@@ -26764,7 +26764,7 @@ interface InputElement extends Element default _Elements {
 
 interface InputElementEvents extends ElementEvents {
 
-  EventListenerList get speechChange();
+  EventListenerList get speechChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26856,7 +26856,7 @@ interface JavaScriptAudioNode extends AudioNode, EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  JavaScriptAudioNodeEvents get on();
+  JavaScriptAudioNodeEvents get on;
 
   /** @domName JavaScriptAudioNode.bufferSize */
   final int bufferSize;
@@ -26864,7 +26864,7 @@ interface JavaScriptAudioNode extends AudioNode, EventTarget {
 
 interface JavaScriptAudioNodeEvents extends Events {
 
-  EventListenerList get audioProcess();
+  EventListenerList get audioProcess;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27295,7 +27295,7 @@ interface MediaElement extends Element {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaElementEvents get on();
+  MediaElementEvents get on;
 
   static const int HAVE_CURRENT_DATA = 2;
 
@@ -27438,55 +27438,55 @@ interface MediaElement extends Element {
 
 interface MediaElementEvents extends ElementEvents {
 
-  EventListenerList get canPlay();
+  EventListenerList get canPlay;
 
-  EventListenerList get canPlayThrough();
+  EventListenerList get canPlayThrough;
 
-  EventListenerList get durationChange();
+  EventListenerList get durationChange;
 
-  EventListenerList get emptied();
+  EventListenerList get emptied;
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 
-  EventListenerList get keyAdded();
+  EventListenerList get keyAdded;
 
-  EventListenerList get keyError();
+  EventListenerList get keyError;
 
-  EventListenerList get keyMessage();
+  EventListenerList get keyMessage;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get loadedData();
+  EventListenerList get loadedData;
 
-  EventListenerList get loadedMetadata();
+  EventListenerList get loadedMetadata;
 
-  EventListenerList get needKey();
+  EventListenerList get needKey;
 
-  EventListenerList get pause();
+  EventListenerList get pause;
 
-  EventListenerList get play();
+  EventListenerList get play;
 
-  EventListenerList get playing();
+  EventListenerList get playing;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get rateChange();
+  EventListenerList get rateChange;
 
-  EventListenerList get seeked();
+  EventListenerList get seeked;
 
-  EventListenerList get seeking();
+  EventListenerList get seeking;
 
-  EventListenerList get show();
+  EventListenerList get show;
 
-  EventListenerList get stalled();
+  EventListenerList get stalled;
 
-  EventListenerList get suspend();
+  EventListenerList get suspend;
 
-  EventListenerList get timeUpdate();
+  EventListenerList get timeUpdate;
 
-  EventListenerList get volumeChange();
+  EventListenerList get volumeChange;
 
-  EventListenerList get waiting();
+  EventListenerList get waiting;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27688,7 +27688,7 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaStreamEvents get on();
+  MediaStreamEvents get on;
 
   static const int ENDED = 2;
 
@@ -27718,7 +27718,7 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
 interface MediaStreamEvents extends Events {
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27771,7 +27771,7 @@ interface MediaStreamTrack extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaStreamTrackEvents get on();
+  MediaStreamTrackEvents get on;
 
   static const int ENDED = 2;
 
@@ -27803,11 +27803,11 @@ interface MediaStreamTrack extends EventTarget {
 
 interface MediaStreamTrackEvents extends Events {
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 
-  EventListenerList get mute();
+  EventListenerList get mute;
 
-  EventListenerList get unmute();
+  EventListenerList get unmute;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27833,7 +27833,7 @@ interface MediaStreamTrackList extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MediaStreamTrackListEvents get on();
+  MediaStreamTrackListEvents get on;
 
   /** @domName MediaStreamTrackList.length */
   final int length;
@@ -27859,9 +27859,9 @@ interface MediaStreamTrackList extends EventTarget {
 
 interface MediaStreamTrackListEvents extends Events {
 
-  EventListenerList get addTrack();
+  EventListenerList get addTrack;
 
-  EventListenerList get removeTrack();
+  EventListenerList get removeTrack;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27954,7 +27954,7 @@ interface MessagePort extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  MessagePortEvents get on();
+  MessagePortEvents get on;
 
   /** @domName MessagePort.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -27980,7 +27980,7 @@ interface MessagePort extends EventTarget {
 
 interface MessagePortEvents extends Events {
 
-  EventListenerList get message();
+  EventListenerList get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28631,7 +28631,7 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  NotificationEvents get on();
+  NotificationEvents get on;
 
   /** @domName Notification.dir */
   String dir;
@@ -28666,15 +28666,15 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
 
 interface NotificationEvents extends Events {
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get close();
+  EventListenerList get close;
 
-  EventListenerList get display();
+  EventListenerList get display;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get show();
+  EventListenerList get show;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29108,7 +29108,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  PeerConnection00Events get on();
+  PeerConnection00Events get on;
 
   static const int ACTIVE = 2;
 
@@ -29195,15 +29195,15 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
 interface PeerConnection00Events extends Events {
 
-  EventListenerList get addStream();
+  EventListenerList get addStream;
 
-  EventListenerList get connecting();
+  EventListenerList get connecting;
 
-  EventListenerList get open();
+  EventListenerList get open;
 
-  EventListenerList get removeStream();
+  EventListenerList get removeStream;
 
-  EventListenerList get stateChange();
+  EventListenerList get stateChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29544,7 +29544,7 @@ interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactor
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  RTCPeerConnectionEvents get on();
+  RTCPeerConnectionEvents get on;
 
   /** @domName RTCPeerConnection.iceState */
   final String iceState;
@@ -29603,17 +29603,17 @@ interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactor
 
 interface RTCPeerConnectionEvents extends Events {
 
-  EventListenerList get addStream();
+  EventListenerList get addStream;
 
-  EventListenerList get iceCandidate();
+  EventListenerList get iceCandidate;
 
-  EventListenerList get iceChange();
+  EventListenerList get iceChange;
 
-  EventListenerList get open();
+  EventListenerList get open;
 
-  EventListenerList get removeStream();
+  EventListenerList get removeStream;
 
-  EventListenerList get stateChange();
+  EventListenerList get stateChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30518,7 +30518,7 @@ interface SVGElementInstance extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SVGElementInstanceEvents get on();
+  SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
   final SVGElementInstanceList childNodes;
@@ -30547,85 +30547,85 @@ interface SVGElementInstance extends EventTarget {
 
 interface SVGElementInstanceEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get paste();
+  EventListenerList get paste;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get selectStart();
+  EventListenerList get selectStart;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33627,7 +33627,7 @@ interface SharedWorkerContext extends WorkerContext {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SharedWorkerContextEvents get on();
+  SharedWorkerContextEvents get on;
 
   /** @domName SharedWorkerContext.name */
   final String name;
@@ -33635,7 +33635,7 @@ interface SharedWorkerContext extends WorkerContext {
 
 interface SharedWorkerContextEvents extends WorkerContextEvents {
 
-  EventListenerList get connect();
+  EventListenerList get connect;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33809,7 +33809,7 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SpeechRecognitionEvents get on();
+  SpeechRecognitionEvents get on;
 
   /** @domName SpeechRecognition.continuous */
   bool continuous;
@@ -33844,29 +33844,29 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
 
 interface SpeechRecognitionEvents extends Events {
 
-  EventListenerList get audioEnd();
+  EventListenerList get audioEnd;
 
-  EventListenerList get audioStart();
+  EventListenerList get audioStart;
 
-  EventListenerList get end();
+  EventListenerList get end;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get noMatch();
+  EventListenerList get noMatch;
 
-  EventListenerList get result();
+  EventListenerList get result;
 
-  EventListenerList get resultDeleted();
+  EventListenerList get resultDeleted;
 
-  EventListenerList get soundEnd();
+  EventListenerList get soundEnd;
 
-  EventListenerList get soundStart();
+  EventListenerList get soundStart;
 
-  EventListenerList get speechEnd();
+  EventListenerList get speechEnd;
 
-  EventListenerList get speechStart();
+  EventListenerList get speechStart;
 
-  EventListenerList get start();
+  EventListenerList get start;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34554,7 +34554,7 @@ interface TextTrack extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  TextTrackEvents get on();
+  TextTrackEvents get on;
 
   /** @domName TextTrack.activeCues */
   final TextTrackCueList activeCues;
@@ -34592,7 +34592,7 @@ interface TextTrack extends EventTarget {
 
 interface TextTrackEvents extends Events {
 
-  EventListenerList get cueChange();
+  EventListenerList get cueChange;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34608,7 +34608,7 @@ interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  TextTrackCueEvents get on();
+  TextTrackCueEvents get on;
 
   /** @domName TextTrackCue.align */
   String align;
@@ -34661,9 +34661,9 @@ interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider 
 
 interface TextTrackCueEvents extends Events {
 
-  EventListenerList get enter();
+  EventListenerList get enter;
 
-  EventListenerList get exit();
+  EventListenerList get exit;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34695,7 +34695,7 @@ interface TextTrackList extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  TextTrackListEvents get on();
+  TextTrackListEvents get on;
 
   /** @domName TextTrackList.length */
   final int length;
@@ -34715,7 +34715,7 @@ interface TextTrackList extends EventTarget {
 
 interface TextTrackListEvents extends Events {
 
-  EventListenerList get addTrack();
+  EventListenerList get addTrack;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36556,7 +36556,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WebSocketEvents get on();
+  WebSocketEvents get on;
 
   static const int CLOSED = 3;
 
@@ -36605,13 +36605,13 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
 interface WebSocketEvents extends Events {
 
-  EventListenerList get close();
+  EventListenerList get close;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get open();
+  EventListenerList get open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36688,7 +36688,7 @@ interface Window extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WindowEvents get on();
+  WindowEvents get on;
 
   static const int PERSISTENT = 1;
 
@@ -36977,153 +36977,153 @@ interface Window extends EventTarget {
 
 interface WindowEvents extends Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get animationEnd();
+  EventListenerList get animationEnd;
 
-  EventListenerList get animationIteration();
+  EventListenerList get animationIteration;
 
-  EventListenerList get animationStart();
+  EventListenerList get animationStart;
 
-  EventListenerList get beforeUnload();
+  EventListenerList get beforeUnload;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get canPlay();
+  EventListenerList get canPlay;
 
-  EventListenerList get canPlayThrough();
+  EventListenerList get canPlayThrough;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contentLoaded();
+  EventListenerList get contentLoaded;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get deviceMotion();
+  EventListenerList get deviceMotion;
 
-  EventListenerList get deviceOrientation();
+  EventListenerList get deviceOrientation;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get durationChange();
+  EventListenerList get durationChange;
 
-  EventListenerList get emptied();
+  EventListenerList get emptied;
 
-  EventListenerList get ended();
+  EventListenerList get ended;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get hashChange();
+  EventListenerList get hashChange;
 
-  EventListenerList get input();
+  EventListenerList get input;
 
-  EventListenerList get invalid();
+  EventListenerList get invalid;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyDown;
 
-  EventListenerList get keyPress();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyUp();
+  EventListenerList get keyUp;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get loadedData();
+  EventListenerList get loadedData;
 
-  EventListenerList get loadedMetadata();
+  EventListenerList get loadedMetadata;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseDown;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseUp();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get offline();
+  EventListenerList get offline;
 
-  EventListenerList get online();
+  EventListenerList get online;
 
-  EventListenerList get pageHide();
+  EventListenerList get pageHide;
 
-  EventListenerList get pageShow();
+  EventListenerList get pageShow;
 
-  EventListenerList get pause();
+  EventListenerList get pause;
 
-  EventListenerList get play();
+  EventListenerList get play;
 
-  EventListenerList get playing();
+  EventListenerList get playing;
 
-  EventListenerList get popState();
+  EventListenerList get popState;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get rateChange();
+  EventListenerList get rateChange;
 
-  EventListenerList get reset();
+  EventListenerList get reset;
 
-  EventListenerList get resize();
+  EventListenerList get resize;
 
-  EventListenerList get scroll();
+  EventListenerList get scroll;
 
-  EventListenerList get search();
+  EventListenerList get search;
 
-  EventListenerList get seeked();
+  EventListenerList get seeked;
 
-  EventListenerList get seeking();
+  EventListenerList get seeking;
 
-  EventListenerList get select();
+  EventListenerList get select;
 
-  EventListenerList get stalled();
+  EventListenerList get stalled;
 
-  EventListenerList get storage();
+  EventListenerList get storage;
 
-  EventListenerList get submit();
+  EventListenerList get submit;
 
-  EventListenerList get suspend();
+  EventListenerList get suspend;
 
-  EventListenerList get timeUpdate();
+  EventListenerList get timeUpdate;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchCancel;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchMove();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchStart();
+  EventListenerList get touchStart;
 
-  EventListenerList get transitionEnd();
+  EventListenerList get transitionEnd;
 
-  EventListenerList get unload();
+  EventListenerList get unload;
 
-  EventListenerList get volumeChange();
+  EventListenerList get volumeChange;
 
-  EventListenerList get waiting();
+  EventListenerList get waiting;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37139,7 +37139,7 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WorkerEvents get on();
+  WorkerEvents get on;
 
   /** @domName Worker.postMessage */
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
@@ -37153,7 +37153,7 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
 interface WorkerEvents extends AbstractWorkerEvents {
 
-  EventListenerList get message();
+  EventListenerList get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37167,7 +37167,7 @@ interface WorkerContext extends EventTarget {
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WorkerContextEvents get on();
+  WorkerContextEvents get on;
 
   static const int PERSISTENT = 1;
 
@@ -37236,7 +37236,7 @@ interface WorkerContext extends EventTarget {
 
 interface WorkerContextEvents extends Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
