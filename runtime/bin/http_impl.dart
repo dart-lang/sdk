@@ -690,7 +690,11 @@ class _HttpRequestResponseBase {
       }
       assert(_headResponse || _bodyBytesWritten == _contentLength);
     }
-    if (!persistentConnection) _httpConnection._close();
+    // If we are done writing the response and the client has closed
+    // or the connection is not persistent we can close.
+    if (!persistentConnection || _httpConnection._closing) {
+      _httpConnection._close();
+    }
     return allWritten;
   }
 
@@ -1349,7 +1353,8 @@ class _HttpConnection extends _HttpConnectionBase {
       }
     }
 
-    // If currently not processing any request just close the socket.
+    // If currently not processing any request close the socket when
+    // we are done writing the response.
     if (_httpParser.isIdle) {
       _socket.outputStream.onClosed = () {
         _destroy();
@@ -1358,6 +1363,9 @@ class _HttpConnection extends _HttpConnectionBase {
           onClosed();
         }
       };
+      // If the client closes and we are done writing the response
+      // the connection should be closed.
+      if (_response == null) _close();
       return;
     }
 
