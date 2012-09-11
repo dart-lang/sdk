@@ -12,6 +12,7 @@ from systemdart2js import *
 from systeminterface import *
 
 _js_custom_members = set([
+    'CSSStyleDeclaration.setProperty',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
