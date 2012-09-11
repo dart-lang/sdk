@@ -16,8 +16,6 @@ Language/07_Classes/07_Classes_A02_t32: Fail # TODO(dartc-team): Please triage t
 Language/07_Classes/07_Classes_A02_t34: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/07_Classes_A09_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/10_Superinterfaces_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/10_Superinterfaces_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/10_Superinterfaces_A07_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t05: Fail # TODO(dartc-team): Please triage this failure.
 Language/07_Classes/3_Setters_A04_t01: Fail # TODO(dartc-team): Please triage this failure.

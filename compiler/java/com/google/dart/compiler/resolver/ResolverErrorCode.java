@@ -150,7 +150,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONSTRUCTOR_WITH_NAME_OF_MEMBER(
       ErrorSeverity.WARNING,
       "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
-  METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
+  METHOD_MUST_HAVE_BODY("Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR(

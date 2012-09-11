@@ -14,7 +14,7 @@
  * A user-defined class that implements the [Iterable] interface can
  * be used as the right-hand side of a for-in construct.
  */
-interface Iterable<E> {
+abstract class Iterable<E> {
   /**
    * Returns an [Iterator] that iterates over this [Iterable] object.
    */

@@ -647,16 +647,19 @@ public class Resolver {
 
       DartBlock body = functionNode.getBody();
       boolean isInterface = false;
-      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)
-          && ((ClassElement) member.getEnclosingElement()).isInterface()) {
-        isInterface =true;
+      boolean isAbstractClass = false;
+      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)) {
+        ClassElement cl = (ClassElement) member.getEnclosingElement();
+        isInterface = cl.isInterface();
+        isAbstractClass = cl.getModifiers().isAbstract();
       }
+
       if (body == null
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
           && !member.getModifiers().isExternal()
           && node.getRedirectedTypeName() == null
-          && !isInterface) {
+          && !(isInterface || isAbstractClass)) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
       resolve(functionNode.getBody());
@@ -778,7 +781,7 @@ public class Resolver {
       node.getMetadata().accept(this);
       return super.visitVariable(node);
     }
-    
+
     public VariableElement resolveVariable(DartVariable x, Modifiers modifiers) {
       // Visit the initializer first.
       resolve(x.getValue());
