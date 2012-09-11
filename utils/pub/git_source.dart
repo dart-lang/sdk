@@ -124,8 +124,7 @@ class GitSource extends Source {
     return exists(path).chain((exists) {
       if (!exists) return _clone(_getUrl(id), path, mirror: true);
 
-      return runProcess("git", ["fetch"], workingDir: path)
-          .transform((result) {
+      return runGit(["fetch"], workingDir: path).transform((result) {
         if (!result.success) throw 'Git failed.';
         return null;
       });
@@ -136,7 +135,7 @@ class GitSource extends Source {
    * Returns a future that completes to the revision hash of [id].
    */
   Future<String> _revisionAt(PackageId id) {
-    return runProcess("git", ["rev-parse", _getEffectiveRef(id)],
+    return runGit(["rev-parse", _getEffectiveRef(id)],
         workingDir: _repoCachePath(id)).transform((result) {
       if (!result.success) throw 'Git failed.';
       return result.stdout[0];
@@ -163,7 +162,7 @@ class GitSource extends Source {
   Future _clone(String from, String to, [bool mirror=false]) {
     var args = ["clone", from, to];
     if (mirror) args.insertRange(1, 1, "--mirror");
-    return runProcess("git", args).transform((result) {
+    return runGit(args).transform((result) {
       if (!result.success) throw 'Git failed.';
       return null;
     });
@@ -173,8 +172,7 @@ class GitSource extends Source {
    * Checks out the reference [ref] in [repoPath].
    */
   Future _checkOut(String repoPath, String ref) {
-    return runProcess("git", ["checkout", ref], workingDir: repoPath)
-        .transform((result) {
+    return runGit(["checkout", ref], workingDir: repoPath).transform((result) {
       if (!result.success) throw 'Git failed.';
       return null;
     });

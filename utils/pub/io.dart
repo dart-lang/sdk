@@ -10,6 +10,7 @@
 #import('dart:io');
 #import('dart:isolate');
 #import('dart:uri');
+#import('utils.dart');
 
 /** Gets the current working directory. */
 String get workingDir => new File('.').fullPathSync();
@@ -473,20 +474,44 @@ Future timeout(Future input, int milliSeconds, String message) {
   return completer.future;
 }
 
-/**
- * Tests whether or not the git command-line app is available for use.
- */
-Future<bool> get isGitInstalled {
-  // TODO(rnystrom): We could cache this after the first check. We aren't right
-  // now because Future.immediate() will invoke its callback synchronously.
-  // That does bad things in cases where the caller expects futures to always
-  // be async. In particular, withGit() in the pub tests which calls
-  // expectAsync() will fail horribly if the test isn't actually async.
+/// The cached Git command.
+String _gitCommandCache;
 
+/// Tests whether or not the git command-line app is available for use.
+Future<bool> get isGitInstalled => _gitCommand.transform((git) => git != null);
+
+/// Run a git process with [args] from [workingDir].
+Future<PubProcessResult> runGit(List<String> args, [String workingDir]) =>
+  _gitCommand.chain((git) => runProcess(git, args, workingDir));
+
+/// Returns the name of the git command-line app, or null if Git could not be
+/// found on the user's PATH.
+Future<String> get _gitCommand {
+  // TODO(nweiz): Just use Future.immediate once issue 3356 is fixed.
+  if (_gitCommandCache != null) {
+    return sleep(0).transform((_) => _gitCommandCache);
+  }
+
+  return _tryGitCommand("git").chain((success) {
+    if (success) return new Future.immediate("git");
+
+    // Git is sometimes installed on Windows as `git.cmd`
+    return _tryGitCommand("git.cmd").transform((success) {
+      if (success) return "git.cmd";
+      return null;
+    });
+  }).transform((command) {
+    _gitCommandCache = command;
+    return command;
+  });
+}
+
+/// Checks whether [command] is the Git command for this computer.
+Future<bool> _tryGitCommand(String command) {
   var completer = new Completer<bool>();
 
   // If "git --version" prints something familiar, git is working.
-  var future = runProcess("git", ["--version"]);
+  var future = runProcess(command, ["--version"]);
 
   future.then((results) {
     var regex = new RegExp("^git version");

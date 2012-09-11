@@ -983,11 +983,10 @@ class GitRepoDescriptor extends DirectoryDescriptor {
   }
 
   Future<String> _runGit(List<String> args, Directory workingDir) {
-    return runProcess('git', args, workingDir: workingDir.path).
-      transform((result) {
-        if (!result.success) throw "Error running git: ${result.stderr}";
-        return result.stdout;
-      });
+    return runGit(args, workingDir: workingDir.path).transform((result) {
+      if (!result.success) throw "Error running git: ${result.stderr}";
+      return result.stdout;
+    });
   }
 }
 
