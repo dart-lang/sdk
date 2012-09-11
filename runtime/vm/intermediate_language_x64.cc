@@ -932,21 +932,18 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps =
+      (receiver_type() == kGrowableObjectArrayCid) ? 1 : 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  locs->set_in(2, value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                              : Location::RequiresRegister());
   if (receiver_type() == kGrowableObjectArrayCid) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_in(2, Location::RequiresRegister());
     locs->set_temp(0, Location::RequiresRegister());
-    return locs;
-  } else  {
-    ASSERT(receiver_type() == kArrayCid);
-    return LocationSummary::Make(kNumInputs,
-                                 Location::NoLocation(),
-                                 LocationSummary::kNoCall);
   }
+  return locs;
 }
 
 
@@ -1019,7 +1016,9 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1,
+      value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                  : Location::RequiresRegister());
   return summary;
 }
 
@@ -1053,10 +1052,9 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                              : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
-  locs->set_out(is_used() ? Location::SameAsFirstInput()
-                          : Location::NoLocation());
   return locs;
 }
 
@@ -1064,7 +1062,6 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary() const {
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  ASSERT(!is_used() || (locs()->out().reg() == value));
 
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {

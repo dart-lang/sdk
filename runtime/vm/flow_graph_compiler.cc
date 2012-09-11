@@ -658,7 +658,8 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     if (loc.IsRegister()) {
       reg = loc.reg();
     } else if (loc.IsUnallocated()) {
-      ASSERT(loc.policy() == Location::kRequiresRegister);
+      ASSERT((loc.policy() == Location::kRequiresRegister) ||
+             (loc.policy() == Location::kWritableRegister));
       reg = AllocateFreeRegister(blocked_registers);
       locs->set_in(i, Location::RegisterLocation(reg));
     }
@@ -687,6 +688,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       case Location::kAny:
       case Location::kPrefersRegister:
       case Location::kRequiresRegister:
+      case Location::kWritableRegister:
         result_location = Location::RegisterLocation(
             AllocateFreeRegister(blocked_registers));
         break;

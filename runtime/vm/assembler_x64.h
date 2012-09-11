@@ -537,6 +537,7 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
 
+  // Destroys value.
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const FieldAddress& dest,  // Where we are storing into.
                        Register value);  // Value we are storing.

@@ -1422,10 +1422,9 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
-  // TODO(kmillikin): pass temp registers to avoid pushing registers.
+  ASSERT(object != value);
   movl(dest, value);
   Label done;
-  pushl(value);
   StoreIntoObjectFilter(object, value, &done);
   // A store buffer update is required.
   if (value != EAX) pushl(EAX);  // Preserve EAX.
@@ -1433,7 +1432,6 @@ void Assembler::StoreIntoObject(Register object,
   call(&StubCode::UpdateStoreBufferLabel());
   if (value != EAX) popl(EAX);  // Restore EAX.
   Bind(&done);
-  popl(value);
 }
 
 

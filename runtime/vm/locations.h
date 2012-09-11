@@ -96,12 +96,12 @@ class Location : public ValueObject {
   }
 
   // Unallocated locations.
-  // TODO(vegorov): writable register policy?
   enum Policy {
     kAny,
     kPrefersRegister,
     kRequiresRegister,
     kRequiresXmmRegister,
+    kWritableRegister,
     kSameAsFirstInput,
   };
 
@@ -132,6 +132,10 @@ class Location : public ValueObject {
 
   static Location RequiresXmmRegister() {
     return UnallocatedLocation(kRequiresXmmRegister);
+  }
+
+  static Location WritableRegister() {
+    return UnallocatedLocation(kWritableRegister);
   }
 
   // The location of the first input to the instruction will be

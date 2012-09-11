@@ -1594,11 +1594,9 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
-  // TODO(kmillikin): pass temp registers to avoid pushing registers.
+  ASSERT(object != value);
   movq(dest, value);
-
   Label done;
-  pushq(value);
   StoreIntoObjectFilter(object, value, &done);
   // A store buffer update is required.
   if (value != RAX) pushq(RAX);
@@ -1606,7 +1604,6 @@ void Assembler::StoreIntoObject(Register object,
   call(&StubCode::UpdateStoreBufferLabel());
   if (value != RAX) popq(RAX);
   Bind(&done);
-  popq(value);
 }
 
 

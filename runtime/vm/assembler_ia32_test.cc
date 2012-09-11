@@ -1856,9 +1856,11 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ movl(CTX, Address(ESP, 2 * kWordSize));
   __ movl(EAX, Address(ESP, 3 * kWordSize));
   __ movl(ECX, Address(ESP, 4 * kWordSize));
+  __ pushl(EAX);
   __ StoreIntoObject(ECX,
                      FieldAddress(ECX, GrowableObjectArray::data_offset()),
                      EAX);
+  __ popl(EAX);
   __ popl(CTX);
   __ ret();
 }

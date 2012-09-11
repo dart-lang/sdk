@@ -78,6 +78,8 @@ const char* Location::Name() const {
           return "R";
         case kRequiresXmmRegister:
           return "DR";
+        case kWritableRegister:
+          return "WR";
         case kSameAsFirstInput:
           return "0";
       }

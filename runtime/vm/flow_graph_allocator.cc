@@ -846,15 +846,38 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       range->AddUseInterval(block->start_pos(), pos - 1);
       range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
     } else if (in_ref->IsUnallocated()) {
-      // Normal unallocated input. Expected shape of
-      // live ranges:
-      //
-      //                 i  i'
-      //      value    -----*
-      //
-      ASSERT(in_ref->IsUnallocated());
-      range->AddUseInterval(block->start_pos(), pos + 1);
-      range->AddUse(pos + 1, in_ref);
+      if (in_ref->policy() == Location::kWritableRegister) {
+        // Writable unallocated input. Expected shape of
+        // live ranges:
+        //
+        //                 i  i'
+        //      value    --*
+        //      temp       [--)
+        MoveOperands* move = AddMoveAt(pos,
+                                       Location::RequiresRegister(),
+                                       Location::PrefersRegister());
+
+        // Add uses to the live range of the input.
+        range->AddUseInterval(block->start_pos(), pos);
+        range->AddUse(pos, move->src_slot());
+
+        // Create live range for the temporary.
+        LiveRange* temp = MakeLiveRangeForTemporary();
+        temp->AddUseInterval(pos, pos + 1);
+        temp->AddHintedUse(pos, in_ref, move->src_slot());
+        temp->AddUse(pos, move->dest_slot());
+        *in_ref = Location::RequiresRegister();
+        CompleteRange(temp, RegisterKindFromPolicy(*in_ref));
+      } else {
+        // Normal unallocated input. Expected shape of
+        // live ranges:
+        //
+        //                 i  i'
+        //      value    -----*
+        //
+        range->AddUseInterval(block->start_pos(), pos + 1);
+        range->AddUse(pos + 1, in_ref);
+      }
     } else {
       ASSERT(in_ref->IsConstant());
     }
