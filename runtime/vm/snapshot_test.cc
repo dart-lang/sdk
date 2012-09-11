@@ -1321,6 +1321,112 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
 }
 
 
+UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
+  const int kArrayLength = 10;
+  static const char* kScriptChars =
+      "final int kArrayLength = 10;\n"
+      "getList() {\n"
+      "  return [null, null, null, null, null, null, null, null, null, null];\n"
+      "}\n"
+      "getIntList() {\n"
+      "  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];\n"
+      "}\n"
+      "getStringList() {\n"
+      "  return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];\n"
+      "}\n"
+      "getMixedList() {\n"
+      "  var list = [];\n"
+      "  list.add(0);\n"
+      "  list.add('1');\n"
+      "  list.add(2.2);\n"
+      "  list.add(true);\n"
+      "  list.add(null);\n"
+      "  list.add(null);\n"
+      "  list.add(null);\n"
+      "  list.add(null);\n"
+      "  list.add(null);\n"
+      "  list.add(null);\n"
+      "  return list;\n"
+      "}\n";
+
+  TestCase::CreateTestIsolate();
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    {
+      // Generate a list of nulls from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        EXPECT_EQ(Dart_CObject::kNull, root->value.as_array.values[i]->type);
+      }
+      CheckEncodeDecodeMessage(root);
+    }
+    {
+      // Generate a list of ints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getIntList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        EXPECT_EQ(Dart_CObject::kInt32, root->value.as_array.values[i]->type);
+        EXPECT_EQ(i, root->value.as_array.values[i]->value.as_int32);
+      }
+      CheckEncodeDecodeMessage(root);
+    }
+    {
+      // Generate a list of strings from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        EXPECT_EQ(Dart_CObject::kString, root->value.as_array.values[i]->type);
+        char buffer[3];
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        EXPECT_STREQ(buffer, root->value.as_array.values[i]->value.as_string);
+      }
+    }
+    {
+      // Generate a list of objects of different types from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+
+      EXPECT_EQ(Dart_CObject::kInt32, root->value.as_array.values[0]->type);
+      EXPECT_EQ(0, root->value.as_array.values[0]->value.as_int32);
+      EXPECT_EQ(Dart_CObject::kString, root->value.as_array.values[1]->type);
+      EXPECT_STREQ("1", root->value.as_array.values[1]->value.as_string);
+      EXPECT_EQ(Dart_CObject::kDouble, root->value.as_array.values[2]->type);
+      EXPECT_EQ(2.2, root->value.as_array.values[2]->value.as_double);
+      EXPECT_EQ(Dart_CObject::kBool, root->value.as_array.values[3]->type);
+      EXPECT_EQ(true, root->value.as_array.values[3]->value.as_bool);
+
+      for (int i = 0; i < kArrayLength; i++) {
+        if (i > 3) {
+          EXPECT_EQ(Dart_CObject::kNull, root->value.as_array.values[i]->type);
+        }
+      }
+    }
+  }
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
@@ -1406,6 +1512,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kInt64, element->type);
+        EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
       }
     }
     {
@@ -1419,6 +1526,182 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kBigint, element->type);
+        EXPECT_STREQ("1234567890123456789012345678901234567890",
+                     element->value.as_bigint);
+      }
+    }
+    {
+      // Generate a list of doubles from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getDoubleList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kDouble, element->type);
+        EXPECT_EQ(3.14, element->value.as_double);
+      }
+    }
+    {
+      // Generate a list of doubles from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getByteArrayList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kUint8Array, element->type);
+        EXPECT_EQ(256, element->value.as_byte_array.length);
+      }
+    }
+    {
+      // Generate a list of objects of different types from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        if ((i % 2) == 0) {
+          EXPECT_EQ(root->value.as_array.values[0], element);
+          EXPECT_EQ(Dart_CObject::kString, element->type);
+          EXPECT_STREQ("A", element->value.as_string);
+        } else {
+          EXPECT_EQ(root->value.as_array.values[1], element);
+          EXPECT_EQ(Dart_CObject::kDouble, element->type);
+          EXPECT_STREQ(2.72, element->value.as_double);
+        }
+      }
+    }
+    {
+      // Generate a list of objects of different types from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getSelfRefList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(Dart_CObject::kArray, element->type);
+        EXPECT_EQ(root, element);
+      }
+    }
+  }
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
+  const int kArrayLength = 10;
+  static const char* kScriptChars =
+      "final int kArrayLength = 10;\n"
+      "getStringList() {\n"
+      "  var s = 'Hello, world!';\n"
+      "  var list = [s, s, s, s, s, s, s, s, s, s];\n"
+      "  return list;\n"
+      "}\n"
+      "getMintList() {\n"
+      "  var mint = 0x7FFFFFFFFFFFFFFF;\n"
+      "  var list = [mint, mint, mint, mint, mint,\n"
+      "              mint, mint, mint, mint, mint];\n"
+      "  return list;\n"
+      "}\n"
+      "getBigintList() {\n"
+      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
+      "  var list = [bigint, bigint, bigint, bigint, bigint,\n"
+      "              bigint, bigint, bigint, bigint, bigint];\n"
+      "  return list;\n"
+      "}\n"
+      "getDoubleList() {\n"
+      "  var d = 3.14;\n"
+      "  var list = [3.14, 3.14, 3.14, 3.14, 3.14, 3.14];\n"
+      "  list.add(3.14);;\n"
+      "  list.add(3.14);;\n"
+      "  list.add(3.14);;\n"
+      "  list.add(3.14);;\n"
+      "  return list;\n"
+      "}\n"
+      "getByteArrayList() {\n"
+      "  var byte_array = new Uint8List(256);\n"
+      "  var list = [];\n"
+      "  for (var i = 0; i < kArrayLength; i++) {\n"
+      "    list.add(byte_array);\n"
+      "  }\n"
+      "  return list;\n"
+      "}\n"
+      "getMixedList() {\n"
+      "  var list = [];\n"
+      "  for (var i = 0; i < kArrayLength; i++) {\n"
+      "    list.add(((i % 2) == 0) ? 'A' : 2.72);\n"
+      "  }\n"
+      "  return list;\n"
+      "}\n"
+      "getSelfRefList() {\n"
+      "  var list = [];\n"
+      "  for (var i = 0; i < kArrayLength; i++) {\n"
+      "    list.add(list);\n"
+      "  }\n"
+      "  return list;\n"
+      "}\n";
+
+  TestCase::CreateTestIsolate();
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+
+    {
+      // Generate a list of strings from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kString, element->type);
+        EXPECT_STREQ("Hello, world!", element->value.as_string);
+      }
+    }
+    {
+      // Generate a list of medium ints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kInt64, element->type);
+        EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
+      }
+    }
+    {
+      // Generate a list of bigints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kBigint, element->type);
+        EXPECT_STREQ("1234567890123456789012345678901234567890",
+                     element->value.as_bigint);
       }
     }
     {
