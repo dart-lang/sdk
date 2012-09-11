@@ -698,6 +698,16 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         generateTypeTest(element);
       }
       generateInterfacesIsTests(element, generateTypeTest, alreadyGenerated);
+
+      // Since [element] is implemented by [cls], we need to also emit
+      // is checks for the superclass and its supertypes.
+      ClassElement superclass = element.superclass;
+      if (!alreadyGenerated.contains(superclass) &&
+          compiler.codegenWorld.checkedClasses.contains(superclass)) {
+        alreadyGenerated.add(superclass);
+        generateTypeTest(superclass);
+      }
+      generateInterfacesIsTests(superclass, generateTypeTest, alreadyGenerated);
     }
   }
 
