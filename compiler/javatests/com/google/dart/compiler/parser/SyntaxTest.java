@@ -647,6 +647,18 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());
   }
 
+  public void test_string_raw() {
+    String expectedValue = "abc${d}efg";
+    DartUnit unit = parseUnit("test.dart", "var s = r'" + expectedValue + "';");
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+    DartFieldDefinition definition = (DartFieldDefinition) nodes.get(0);
+    DartField field = definition.getFields().get(0);
+    DartExpression expression = field.getValue();
+    assertTrue(expression instanceof DartStringLiteral);
+    assertEquals(expectedValue, ((DartStringLiteral) expression).getValue());
+  }
+
   public void test_super_operator() {
     DartUnit unit = parseUnit("phony_super.dart", Joiner.on("\n").join(
         "class A {",
