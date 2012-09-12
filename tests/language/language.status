@@ -139,6 +139,7 @@ constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, r
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
+final_is_not_const_test/01: Fail # Issue 3476
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
@@ -272,6 +273,7 @@ pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
+final_is_not_const_test/01: Fail, OK # Issue 3558
 final_syntax_test/none: Fail, OK # Issue 3558
 lazy_static_test: Fail, OK # Issue 3558
 lazy_static2_test: Fail, OK # Issue 3558
