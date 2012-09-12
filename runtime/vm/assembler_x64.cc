@@ -1543,6 +1543,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
   if (object.IsSmi() || object.IsNull()) {
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
+    ASSERT(object.IsOld());
     LoadObject(TMP, object);
     movq(dst, TMP);
   }
