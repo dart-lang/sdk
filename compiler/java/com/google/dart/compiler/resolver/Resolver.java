@@ -1274,19 +1274,19 @@ public class Resolver {
                 onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_FIELD,
                     x.getPropertyName());
               }
-              if (Elements.inGetterContext(x)) {
-                if (field.getSetter() != null) {
-                  element = field.getGetter();
-                  if (element == null) {
-                    onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
-                  }
-                }
-              }
               if (Elements.inSetterContext(x)) {
                 if (field.getGetter() != null) {
                   element = field.getSetter();
                   if (element == null) {
                     onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+                  }
+                }
+              }
+              if (Elements.inGetterContext(x)) {
+                if (field.getSetter() != null) {
+                  element = field.getGetter();
+                  if (element == null) {
+                    onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
                   }
                 }
               }
@@ -1959,9 +1959,12 @@ public class Resolver {
            }
            break;
          case METHOD:
-            if (!lhs.getModifiers().isSetter()) {
+            if (!lhs.getModifiers().isSetter() && !lhs.getModifiers().isGetter()) {
               topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
                   lhs.getName());
+            }
+            if (lhs.getModifiers().isSetter()) {
+              node.setElement(lhs);
             }
            break;
         }

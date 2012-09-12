@@ -28,6 +28,7 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -779,6 +780,12 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * expression. Other types of assignments also read the value and require a getter access.
    */
   public static boolean inSetterContext(DartNode node) {
+    if (node.getParent() instanceof DartUnaryExpression) {
+      DartUnaryExpression expr = (DartUnaryExpression) node.getParent();
+      if (expr.getArg() == node && expr.getOperator().isCountOperator()) {
+        return true;
+      }
+    }
     if (node.getParent() instanceof DartBinaryExpression) {
       DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
       if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {

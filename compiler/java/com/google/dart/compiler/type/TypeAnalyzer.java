@@ -1358,12 +1358,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression argKey = node.getKey();
       // t[k] = v
       if (node.getParent() instanceof DartBinaryExpression) {
-        DartBinaryExpression binaryExpression = (DartBinaryExpression) node.getParent();
-        if (binaryExpression.getArg1() == node
-            && binaryExpression.getOperator() == Token.ASSIGN) {
-          DartExpression argValue = binaryExpression.getArg2();
+        DartBinaryExpression binary = (DartBinaryExpression) node.getParent();
+        if (binary.getArg1() == node && binary.getOperator() == Token.ASSIGN) {
+          DartExpression argValue = binary.getArg2();
           analyzeTernaryOperator(node, target, Token.ASSIGN_INDEX, node, argKey, argValue);
-          binaryExpression.setElement(node.getElement());
+          binary.setElement(node.getElement());
           return argValue.getType();
         }
       }
@@ -1826,6 +1825,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (setter != null) {
               if (setter.getParameters().size() > 0) {
                 node.setElement(setter);
+                node.getParent().setElement(setter);
                 type = setter.getParameters().get(0).getType();
                 node.setType(type);
               }
@@ -2322,6 +2322,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
           // Check for cases when property has no setter or getter.
           if (fieldModifiers.isAbstractField() && enclosingClass != null) {
+            // Check for using field without setter in some assignment variant.
+            if (inSetterContext) {
+              if (setter == null) {
+                setter = Elements.lookupFieldElementSetter(enclosingClass, name);
+                if (setter == null) {
+                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
+                }
+              }
+              node.setElement(setter);
+              node.getParent().setElement(setter);
+            }
             // Check for using field without getter in other operation that assignment.
             if (inGetterContext) {
               if (getter == null) {
@@ -2331,16 +2342,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                 }
               }
               node.setElement(getter);
-            }
-            // Check for using field without setter in some assignment variant.
-            if (inSetterContext) {
-                if (setter == null) {
-                  setter = Elements.lookupFieldElementSetter(enclosingClass, name);
-                  if (setter == null) {
-                    return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
-                  }
-                }
-                node.setElement(setter);
             }
           }
 
