@@ -240,7 +240,6 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance_call()->PrintOperandsTo(f);
-  PrintICData(f, ic_data());
 }
 
 

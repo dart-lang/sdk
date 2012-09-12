@@ -2176,9 +2176,14 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Address(ESP, (instance_call()->ArgumentCount() - 1) * kWordSize));
 
   Label done;
-  __ movl(EDI, Immediate(kSmiCid));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, &done);
+  if (ic_data().GetReceiverClassIdAt(0) == kSmiCid) {
+    __ movl(EDI, Immediate(kSmiCid));
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(ZERO, &done, Assembler::kNearJump);
+  } else {
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+  }
   __ LoadClassId(EDI, EAX);
   __ Bind(&done);
 

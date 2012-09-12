@@ -2202,9 +2202,14 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(RAX,
       Address(RSP, (instance_call()->ArgumentCount() - 1) * kWordSize));
   Label done;
-  __ movq(RDI, Immediate(kSmiCid));
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(ZERO, &done);
+  if (ic_data().GetReceiverClassIdAt(0) == kSmiCid) {
+    __ movq(RDI, Immediate(kSmiCid));
+    __ testq(RAX, Immediate(kSmiTagMask));
+    __ j(ZERO, &done, Assembler::kNearJump);
+  } else {
+    __ testq(RAX, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+  }
   __ LoadClassId(RDI, RAX);
   __ Bind(&done);
   compiler->EmitTestAndCall(ic_data(),
