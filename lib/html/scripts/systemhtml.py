@@ -139,6 +139,7 @@ _html_event_names = {
   'mouseup': 'mouseUp',
   'mousewheel': 'mouseWheel',
   'mute': 'mute',
+  'negotationneeded': 'negotationNeeded',
   'nomatch': 'noMatch',
   'noupdate': 'noUpdate',
   'obsolete': 'obsolete',
