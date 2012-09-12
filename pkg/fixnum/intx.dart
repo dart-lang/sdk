@@ -5,7 +5,7 @@
 /**
  * A fixed-precision integer.
  */
-interface intx extends Comparable, Hashable {
+abstract class intx implements Comparable, Hashable {
 
   // Arithmetic operations.
   intx operator +(other);

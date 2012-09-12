@@ -376,19 +376,19 @@ class Dart2JsCompilation implements Compilation {
 // Dart2Js specific extensions of mirror interfaces
 //------------------------------------------------------------------------------
 
-interface Dart2JsMirror extends Mirror {
+abstract class Dart2JsMirror implements Mirror {
   /**
    * A unique name used as the key in maps.
    */
-  final String canonicalName;
-  final Dart2JsMirrorSystem system;
+  String get canonicalName;
+  Dart2JsMirrorSystem get system;
 }
 
-interface Dart2JsMemberMirror extends Dart2JsMirror, MemberMirror {
+abstract class Dart2JsMemberMirror implements Dart2JsMirror, MemberMirror {
 
 }
 
-interface Dart2JsTypeMirror extends Dart2JsMirror, TypeMirror {
+abstract class Dart2JsTypeMirror implements Dart2JsMirror, TypeMirror {
 
 }
 

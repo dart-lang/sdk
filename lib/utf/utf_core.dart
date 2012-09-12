@@ -240,7 +240,7 @@ class _ListRange implements Iterable {
  * including the ability to get the current position, count remaining items,
  * and move forward/backward within the iterator.
  */
-interface _ListRangeIterator extends Iterator<int> {
+abstract class _ListRangeIterator implements Iterator<int> {
   bool hasNext();
   int next();
   int get position;

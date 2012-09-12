@@ -23,7 +23,7 @@ typedef String ErrorFormatter(actual, Matcher matcher, String reason,
  * other implementations, but could be useful to replace in
  * some cases - e.g. language conversion.
  */
-interface Description {
+abstract class Description {
   /** Change the value of the description. */
   Description replace(String text);
 
@@ -38,18 +38,18 @@ interface Description {
    * with appropriate [start] and [end] markers and inter-element [separator].
    */
   Description addAll(String start, String separator, String end,
-                       Iterable list);
+                     Iterable list);
 }
 
 /**
- * [expect] Matchers must implement the Matcher interface.
+ * [expect] Matchers must implement the Matcher class.
  * The base Matcher class that implements this interface has
  * a generic implementation of [describeMismatch] so this does
  * not need to be provided unless a more clear description is
  * required. The other two methods ([matches] and [describe])
  * must always be provided as they are highly matcher-specific.
  */
-interface Matcher {
+abstract class Matcher {
   /**
    * This does the matching of the actual vs expected values.
    * [item] is the actual value. [matchState] can be supplied
@@ -81,7 +81,7 @@ interface Matcher {
  * this can be replaced by some other implementation of
  * IFailureHandler by calling configureExpectHandler.
  */
-interface FailureHandler {
+abstract class FailureHandler {
   /** This handles failures given a textual decription */
   void fail(String reason);
 

@@ -50,7 +50,7 @@ external SendPort spawnUri(String uri);
  *
  * [SendPort]s can be transmitted to other isolates.
  */
-interface SendPort extends Hashable {
+abstract class SendPort implements Hashable {
 
   /**
    * Sends an asynchronous [message] to this send port. The message is copied to
@@ -137,7 +137,7 @@ interface ReceivePort default _ReceivePortFactory {
 }
 
 // TODO(kasperl): Make this hashable and document it.
-interface SendPortSync {
+abstract class SendPortSync {
 
   callSync(var message);
 
