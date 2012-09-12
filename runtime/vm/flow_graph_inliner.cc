@@ -18,6 +18,12 @@ DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 DECLARE_FLAG(bool, print_flow_graph);
 
+#define TRACE_INLINING(statement)                                              \
+  do {                                                                         \
+    if (FLAG_trace_inlining) statement;                                        \
+  } while (false)
+
+
 class CallSiteInliner : public FlowGraphVisitor {
  public:
   explicit CallSiteInliner(FlowGraph* flow_graph)
@@ -26,18 +32,15 @@ class CallSiteInliner : public FlowGraphVisitor {
         next_ssa_temp_index_(flow_graph->max_virtual_register_number()),
         inlined_(false) { }
 
-  void TryInlining(const Function& function,
+  bool TryInlining(const Function& function,
                    GrowableArray<Value*>* arguments,
-                   StaticCallInstr* call) {
-    // TODO(zerny): Generalize to all calls.
+                   Definition* call) {
+    TRACE_INLINING(OS::Print("  => %s\n", function.ToCString()));
 
     // Abort if the callee has optional parameters.
     if (function.HasOptionalParameters()) {
-      if (FLAG_trace_inlining) {
-        OS::Print("Inline aborted %s\nReason: optional parameters\n",
-                  function.ToFullyQualifiedCString());
-      }
-      return;
+      TRACE_INLINING(OS::Print("     Bailout: optional parameters\n"));
+      return false;
     }
 
     // Assuming no optional parameters the actual/formal count should match.
@@ -55,21 +58,19 @@ class CallSiteInliner : public FlowGraphVisitor {
       // Parse the callee function.
       ParsedFunction parsed_function(function);
       Parser::ParseFunction(&parsed_function);
+      parsed_function.AllocateVariables();
       FlowGraphBuilder builder(parsed_function);
 
       // Build the callee graph.
       FlowGraph* callee_graph =
-          builder.BuildGraphForInlining(FlowGraphBuilder::kValueContext);
+          builder.BuildGraph(FlowGraphBuilder::kValueContext);
 
       // Abort if the callee graph contains control flow.
       if (callee_graph->preorder().length() != 2) {
         isolate->set_long_jump_base(base);
         isolate->set_ic_data_array(old_ic_data.raw());
-        if (FLAG_trace_inlining) {
-          OS::Print("Inline aborted %s\nReason: control flow\n",
-                    parsed_function.function().ToFullyQualifiedCString());
-        }
-        return;
+        TRACE_INLINING(OS::Print("     Bailout: control flow\n"));
+        return false;
       }
 
       if (FLAG_trace_inlining && FLAG_print_flow_graph) {
@@ -101,6 +102,13 @@ class CallSiteInliner : public FlowGraphVisitor {
       caller_graph_->InlineCall(call, callee_graph);
       next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
+      // Remove (all) push arguments of the call.
+      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+        PushArgumentInstr* push = call->ArgumentAt(i);
+        push->ReplaceUsesWith(push->value()->definition());
+        push->RemoveFromGraph();
+      }
+
       // Replace all the formal parameters with the actuals.
       for (intptr_t i = 0; i < arguments->length(); ++i) {
         Value* val = callee_graph->graph_entry()->start_env()->ValueAt(i);
@@ -109,38 +117,72 @@ class CallSiteInliner : public FlowGraphVisitor {
         param->ReplaceUsesWith((*arguments)[i]->definition());
       }
 
-      if (FLAG_trace_inlining) {
-        OS::Print("Inlined %s\n", function.ToFullyQualifiedCString());
-      }
+      // Replace callee's null constant with caller's null constant.
+      callee_graph->graph_entry()->constant_null()->ReplaceUsesWith(
+          caller_graph_->graph_entry()->constant_null());
+
+      TRACE_INLINING(OS::Print("     Success\n"));
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
       isolate->set_long_jump_base(base);
       isolate->set_ic_data_array(old_ic_data.raw());
+      return true;
     } else {
       Error& error = Error::Handle();
       error = isolate->object_store()->sticky_error();
       isolate->object_store()->clear_sticky_error();
       isolate->set_long_jump_base(base);
       isolate->set_ic_data_array(old_ic_data.raw());
-      if (FLAG_trace_inlining) {
-        OS::Print("Inline aborted for %s\nReason: %s\n",
-                  function.ToFullyQualifiedCString(),
-                  error.ToErrorCString());
-      }
+      TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
+      return false;
     }
   }
 
-  void VisitStaticCall(StaticCallInstr* instr) {
-    if (FLAG_trace_inlining) OS::Print("Static call\n");
+  void VisitClosureCall(ClosureCallInstr* call) {
+    TRACE_INLINING(OS::Print("  ClosureCall\n"));
+    // Find the closure of the callee.
+    ASSERT(call->ArgumentCount() > 0);
+    const CreateClosureInstr* closure =
+        call->ArgumentAt(0)->value()->definition()->AsCreateClosure();
+    if (closure == NULL) {
+      TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
+      return;
+    }
+    GrowableArray<Value*> arguments(call->ArgumentCount() - 1);
+    for (int i = 1; i < call->ArgumentCount(); ++i) {
+      arguments.Add(call->ArgumentAt(i)->value());
+    }
+    TryInlining(closure->function(), &arguments, call);
+  }
+
+  void VisitPolymorphicInstanceCall(PolymorphicInstanceCallInstr* instr) {
+    TRACE_INLINING(OS::Print("  PolymorphicInstanceCall\n"));
+    if (instr->with_checks()) {
+      TRACE_INLINING(OS::Print("     Bailout: checks\n"));
+      return;
+    }
+    const ICData& ic_data = instr->ic_data();
+    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+
     GrowableArray<Value*> arguments(instr->ArgumentCount());
     for (int i = 0; i < instr->ArgumentCount(); ++i) {
       arguments.Add(instr->ArgumentAt(i)->value());
     }
-    TryInlining(instr->function(), &arguments, instr);
+
+    TryInlining(target, &arguments, instr);
   }
 
-  bool preformed_inlining() const { return inlined_; }
+  void VisitStaticCall(StaticCallInstr* call) {
+    TRACE_INLINING(OS::Print("  StaticCall\n"));
+    GrowableArray<Value*> arguments(call->ArgumentCount());
+    for (int i = 0; i < call->ArgumentCount(); ++i) {
+      arguments.Add(call->ArgumentAt(i)->value());
+    }
+    TryInlining(call->function(), &arguments, call);
+  }
+
+  bool inlined() const { return inlined_; }
 
  private:
   FlowGraph* caller_graph_;
@@ -164,10 +206,13 @@ void FlowGraphInliner::Inline() {
     printer.PrintBlocks();
   }
 
+  TRACE_INLINING(OS::Print(
+      "Inlining calls in %s\n",
+      flow_graph_->parsed_function().function().ToCString()));
   CallSiteInliner inliner(flow_graph_);
   inliner.VisitBlocks();
 
-  if (inliner.preformed_inlining()) {
+  if (inliner.inlined()) {
     if (FLAG_trace_inlining && FLAG_print_flow_graph) {
       OS::Print("After Inlining of %s\n", flow_graph_->
                 parsed_function().function().ToFullyQualifiedCString());

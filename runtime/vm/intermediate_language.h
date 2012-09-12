@@ -298,6 +298,10 @@ class Instruction : public ZoneAllocated {
   // Call instructions override this function and return the number of
   // pushed arguments.
   virtual intptr_t ArgumentCount() const = 0;
+  virtual PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    UNREACHABLE();
+    return NULL;
+  };
 
   // Returns true, if this instruction can deoptimize.
   virtual bool CanDeoptimize() const = 0;
@@ -1739,6 +1743,9 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
   virtual intptr_t ArgumentCount() const {
     return instance_call()->ArgumentCount();
+  }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return instance_call()->ArgumentAt(index);
   }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
