@@ -639,6 +639,9 @@ LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
+Language/03_Overview/1_Scoping_A01_t39: Fail, OK # co19 issue 188
+Language/03_Overview/1_Scoping_A01_t40: Fail, OK # co19 issue 188
+Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
@@ -847,9 +850,6 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 # Missing compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A01_t39: Fail # Checks that it is a compile-time error if a typedef declaration declares two identically named optional parameters.
-Language/03_Overview/1_Scoping_A01_t40: Fail # Checks that it is a compile-time error if a typedef declaration declares a positional and an optional parameter using the same name.
-Language/03_Overview/1_Scoping_A01_t41: Fail # Checks that it is a compile-time error if a typedef declaration declares two identically named parameters.
 Language/05_Variables/05_Variables_A01_t04: Fail # Checks that a variable declaration cannot contain both 'final' and 'var'.
 Language/05_Variables/05_Variables_A01_t05: Fail # Checks that a variable declaration cannot contain both 'var' and 'type'.
 Language/05_Variables/05_Variables_A01_t08: Fail # Checks different variables in a single variable declaration must be delimited by commas.
