@@ -220,7 +220,7 @@ class VersionSolver {
  * in a queue lets us handle asynchrony (resolving versions requires information
  * from servers) as well as avoid deeply nested recursion.
 */
-interface WorkItem {
+abstract class WorkItem {
   /**
    * Processes this work item. Returns a future that completes when the work is
    * done. If `null` is returned, that means the work has completed

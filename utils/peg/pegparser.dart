@@ -337,7 +337,7 @@ class _ParserState {
  * An interface tag for rules. If this tag is on a rule, then the description()
  * of the rule is something sensible to put in a message.
  */
-interface _Expectable {
+abstract class _Expectable {
   String description();
 }
 

@@ -13,8 +13,8 @@
 
 // TODO(nweiz): Remove this when 3071 is fixed.
 /** An error raised by the archive library. */
-interface ArchiveException {
-  /** A description of the error that occurred. */   
+abstract class ArchiveException {
+  /** A description of the error that occurred. */
   final String message;
 
   /** The error code for the error, or null. */

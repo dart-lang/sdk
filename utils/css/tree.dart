@@ -224,7 +224,7 @@ class AttributeSelector extends SimpleSelector {
       return 'SUBSTRING_MATCH';
     }
   }
- 
+
   String valueToString() {
     if (_value is Identifier) {
       return _value.name;
@@ -297,7 +297,7 @@ class Stylesheet extends ASTNode {
   visit(TreeVisitor visitor) => visitor.visitStylesheet(this);
 
   List<ASTNode> get topLevels => _topLevels;
-  
+
   String toString() {
     StringBuffer buff = new StringBuffer();
     for (final topLevel in _topLevels) {
@@ -700,7 +700,7 @@ class UriTerm extends LiteralTerm {
   UriTerm(String value, SourceSpan span) : super(value, value, span);
 
   visit(TreeVisitor visitor) => visitor.visitUriTerm(this);
-  
+
   String toString() => 'url(${text})';
 }
 
@@ -709,7 +709,7 @@ class HexColorTerm extends LiteralTerm {
       super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitHexColorTerm(this);
-  
+
   String toString() => '#${text}';
 }
 
@@ -816,7 +816,7 @@ class UnaryExpression extends Expression {
   visit(TreeVisitor visitor) => visitor.visitUnaryExpression(this);
 }
 
-interface TreeVisitor {
+abstract class TreeVisitor {
   void visitCssComment(CssComment node);
   void visitCommentDefinition(CommentDefinition node);
   void visitStylesheet(Stylesheet node);
@@ -830,7 +830,7 @@ interface TreeVisitor {
   void visitFontFaceDirective(FontFaceDirective node);
   void visitIncludeDirective(IncludeDirective node);
   void visitStyletDirective(StyletDirective node);
-  
+
   void visitRuleSet(RuleSet node);
   void visitDeclarationGroup(DeclarationGroup node);
   void visitDeclaration(Declaration node);
@@ -846,7 +846,7 @@ interface TreeVisitor {
   void visitPseudoClassSelector(PseudoClassSelector node);
   void visitPseudoElementSelector(PseudoElementSelector node);
   void visitNotSelector(NotSelector node);
-  
+
   void visitLiteralTerm(LiteralTerm node);
   void visitHexColorTerm(HexColorTerm node);
   void visitNumberTerm(NumberTerm node);
@@ -946,7 +946,7 @@ class TreePrinter implements TreeVisitor {
     output.heading('KeyFrameBlock', node.span);
     output.depth++;
     visitExpressions(node._blockSelectors);
-    visitDeclarationGroup(node._declarations);    
+    visitDeclarationGroup(node._declarations);
     output.depth--;
   }
 
@@ -1175,7 +1175,7 @@ class TreePrinter implements TreeVisitor {
     visitLiteralTerm(node);
     output.depth--;
   }
-  
+
   void visitEmTerm(EmTerm node) {
     output.heading('EmTerm', node.span);
     output.depth++;
