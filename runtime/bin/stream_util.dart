@@ -82,10 +82,8 @@ class _BaseDataInputStream {
     // close callback now if all data has been delivered.
     _streamMarkedClosed = true;
     if (available() == 0) {
-      if (_clientCloseHandler !== null) {
-        _clientCloseHandler();
-        _closeCallbackCalled = true;
-      }
+      _closeCallbackCalled = true;
+      if (_clientCloseHandler !== null) _clientCloseHandler();
     } else {
       _checkScheduleCallbacks();
     }
