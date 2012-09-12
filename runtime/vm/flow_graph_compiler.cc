@@ -452,6 +452,9 @@ void FlowGraphCompiler::GenerateInstanceCall(
     case 2:
       label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
       break;
+    case 3:
+      label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
+      break;
     default:
       UNIMPLEMENTED();
   }

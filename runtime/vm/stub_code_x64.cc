@@ -1597,25 +1597,24 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ addq(R12, Immediate(kWordSize * 2));  // Next element (class + target).
     __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  } else if (num_args == 2) {
+  } else {
     Label no_match;
     __ Bind(&loop);
-    // Get receiver.
-    __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-    __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
-    __ call(&get_class_id_as_smi);
-    __ movq(R13, Address(R12, 0));  // Get class id from IC data to check.
-    __ cmpq(RAX, R13);  // Class id match?
-    __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
-    // Check second.
-    // Get next argument.
-    __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-    __ movq(RAX, Address(RSP, RAX, TIMES_4, -kWordSize));  // RAX is Smi.
-    __ call(&get_class_id_as_smi);
-    __ movq(R13, Address(R12, kWordSize));  // Get class id from IC data.
-    __ cmpq(RAX, R13);  //  Class id match?
-    __ j(EQUAL, &found);
+    for (int i = 0; i < num_args; i++) {
+      __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+      __ movq(RAX, Address(RSP, RAX, TIMES_4, - i * kWordSize));
+      __ call(&get_class_id_as_smi);
+      __ movq(R13, Address(R12, i * kWordSize));
+      __ cmpq(RAX, R13);  // Class id match?
+      if (i < (num_args - 1)) {
+        __ j(NOT_EQUAL, &no_match);
+      } else {
+        // Last check, all checks before matched.
+        __ j(EQUAL, &found);
+      }
+    }
     __ Bind(&no_match);
+    // Each test entry has (1 + num_args) array elements.
     __ addq(R12, Immediate(kWordSize * (1 + num_args)));  // Next element.
     __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -1639,6 +1638,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
     __ CallRuntime(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+  } else if (num_args == 3) {
+    __ CallRuntime(kInlineCacheMissHandlerThreeArgsRuntimeEntry);
   } else {
     UNIMPLEMENTED();
   }
@@ -1703,6 +1704,11 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
+  return GenerateNArgsCheckInlineCacheStub(assembler, 3);
+}
+
+
 //  RBX: Function object.
 //  R10: Arguments array.
 //  TOS(0): return address (Dart code).
@@ -1751,13 +1757,21 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ LeaveFrame();
 
   // Find out which dispatch stub to call.
-  Label ic_cache_one_arg;
+  Label test_two, test_three, test_four;
   __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
   __ cmpq(RCX, Immediate(1));
-  __ j(EQUAL, &ic_cache_one_arg, Assembler::kNearJump);
-  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&ic_cache_one_arg);
+  __ j(NOT_EQUAL, &test_two, Assembler::kNearJump);
   __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
+  __ Bind(&test_two);
+  __ cmpl(RCX, Immediate(2));
+  __ j(NOT_EQUAL, &test_three, Assembler::kNearJump);
+  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
+  __ Bind(&test_three);
+  __ cmpl(RCX, Immediate(3));
+  __ j(NOT_EQUAL, &test_four, Assembler::kNearJump);
+  __ jmp(&StubCode::ThreeArgsCheckInlineCacheLabel());
+  __ Bind(&test_four);
+  __ Stop("Unsupported number of arguments tested.");
 }
 
 

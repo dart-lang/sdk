@@ -2265,7 +2265,11 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
 class StoreIndexedInstr : public TemplateDefinition<3> {
  public:
-  StoreIndexedInstr(Value* array, Value* index, Value* value) {
+  StoreIndexedInstr(Value* array,
+                    Value* index,
+                    Value* value,
+                    bool emit_store_barrier)
+      : emit_store_barrier_(emit_store_barrier) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -2281,10 +2285,14 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
+  bool emit_store_barrier() const { return emit_store_barrier_; }
+
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
+  const bool emit_store_barrier_;
+
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
 

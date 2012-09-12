@@ -2269,7 +2269,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   }
   arguments->Add(PushArgument(value));
 
-  const intptr_t checked_argument_count = 1;
+  const intptr_t checked_argument_count = 3;
   const String& name =
       String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
   InstanceCallInstr* store = new InstanceCallInstr(node->token_pos(),

@@ -327,6 +327,19 @@ void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
 }
 
 
+static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
+  ASSERT(ic_data.num_args_tested() > arg_n);
+  if (ic_data.NumberOfChecks() == 0) return false;
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (class_ids[arg_n] != kSmiCid) return false;
+  }
+  return true;
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                                                Token::Kind op_kind) {
   // TODO(fschneider): Optimize []= operator in checked mode as well.
@@ -372,8 +385,18 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
       if (op_kind == Token::kINDEX) {
         array_op = new LoadIndexedInstr(array, index);
       } else {
+        bool needs_store_barrier = true;
+        if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
+          InsertBefore(call,
+                       new CheckSmiInstr(call->ArgumentAt(2)->value()->Copy(),
+                                         call->deopt_id()),
+                       call->env(),
+                       Definition::kEffect);
+          needs_store_barrier = false;
+        }
         Value* value = call->ArgumentAt(2)->value();
-        array_op = new StoreIndexedInstr(array, index, value);
+        array_op =
+            new StoreIndexedInstr(array, index, value, needs_store_barrier);
       }
       call->ReplaceWith(array_op, current_iterator());
       RemovePushArguments(call);
@@ -807,19 +830,6 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     call->ReplaceWith(sqrt, current_iterator());
     RemovePushArguments(call);
   }
-}
-
-
-static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
-  ASSERT(ic_data.num_args_tested() > arg_n);
-  if (ic_data.NumberOfChecks() == 0) return false;
-  GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    if (class_ids[arg_n] != kSmiCid) return false;
-  }
-  return true;
 }
 
 

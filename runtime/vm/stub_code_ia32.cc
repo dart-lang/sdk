@@ -1555,7 +1555,6 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Check if 'num_args' (including receiver) match any IC data group.
 // - Match found -> jump to target.
 // - Match not found -> jump to IC miss.
-// TODO(srdjan): Change IC data to keep class ids as integers not as Smi-s.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
   const Immediate raw_null =
@@ -1619,28 +1618,22 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ addl(EBX, Immediate(kWordSize * 2));  // Next element (class + target).
     __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  } else if (num_args == 2) {
-    // EDI: class to check.
+  } else {
     Label no_match;
     __ Bind(&loop);
-    // Get class id from IC data to check.
-    // Get receiver using argument descriptor in EDX.
-    __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (arg. count) is Smi.
-    __ call(&get_class_id_as_smi);
-    __ movl(EDI, Address(EBX, 0));
-    __ cmpl(EAX, EDI);  // Class id match?
-    __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
-    // Check second class/argument.
-    // Get class id from IC data to check.
-    // Get next argument.
-    __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-    __ movl(EAX, Address(ESP, EAX, TIMES_2, -kWordSize));
-    // EAX (argument count) is Smi.
-    __ call(&get_class_id_as_smi);
-    __ movl(EDI, Address(EBX, kWordSize));
-    __ cmpl(EAX, EDI);  // Class id match?
-    __ j(EQUAL, &found, Assembler::kNearJump);
+    for (int i = 0; i < num_args; i++) {
+      __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+      __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
+      __ call(&get_class_id_as_smi);
+      __ movl(EDI, Address(EBX, i * kWordSize));
+      __ cmpl(EAX, EDI);  // Class id match?
+      if (i < (num_args - 1)) {
+        __ j(NOT_EQUAL, &no_match);
+      } else {
+        // Last check, all checks before matched.
+        __ j(EQUAL, &found, Assembler::kNearJump);
+      }
+    }
     __ Bind(&no_match);
     // Each test entry has (1 + num_args) array elements.
     __ addl(EBX, Immediate(kWordSize * (1 + num_args)));  // Next element.
@@ -1668,6 +1661,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
     __ CallRuntime(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+  } else if (num_args == 3) {
+    __ CallRuntime(kInlineCacheMissHandlerThreeArgsRuntimeEntry);
   } else {
     UNIMPLEMENTED();
   }
@@ -1696,6 +1691,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EAX);
 
+  // Instance in EAX, return its class-id in EAX as Smi.
   __ Bind(&get_class_id_as_smi);
   Label not_smi;
   // Test if Smi -> load Smi class for comparison.
@@ -1730,6 +1726,12 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   return GenerateNArgsCheckInlineCacheStub(assembler, 2);
 }
+
+
+void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
+  return GenerateNArgsCheckInlineCacheStub(assembler, 3);
+}
+
 
 //  ECX: Function object.
 //  EDX: Arguments array.
@@ -1788,13 +1790,21 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ LeaveFrame();
 
   // Find out which dispatch stub to call.
-  Label ic_cache_one_arg;
+  Label test_two, test_three, test_four;
   __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
   __ cmpl(EBX, Immediate(1));
-  __ j(EQUAL, &ic_cache_one_arg, Assembler::kNearJump);
-  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&ic_cache_one_arg);
+  __ j(NOT_EQUAL, &test_two, Assembler::kNearJump);
   __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
+  __ Bind(&test_two);
+  __ cmpl(EBX, Immediate(2));
+  __ j(NOT_EQUAL, &test_three, Assembler::kNearJump);
+  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
+  __ Bind(&test_three);
+  __ cmpl(EBX, Immediate(3));
+  __ j(NOT_EQUAL, &test_four, Assembler::kNearJump);
+  __ jmp(&StubCode::ThreeArgsCheckInlineCacheLabel());
+  __ Bind(&test_four);
+  __ Stop("Unsupported number of arguments tested.");
 }
 
 

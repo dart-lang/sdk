@@ -54,6 +54,7 @@ class RawCode;
   V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
+  V(ThreeArgsCheckInlineCache)                                                 \
   V(BreakpointDynamic)                                                         \
 
 

@@ -932,7 +932,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray))
       : FieldAddress(array, index.reg(), TIMES_2, sizeof(RawArray));
 
-  if (this->value()->NeedsStoreBuffer()) {
+  if (this->value()->NeedsStoreBuffer() && emit_store_barrier()) {
     Register value = locs()->in(2).reg();
     __ StoreIntoObject(array, field_address, value);
   } else {
