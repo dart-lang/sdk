@@ -8,9 +8,9 @@ class ElementAst {
 
   ElementAst(this.ast, this.treeElements);
 
-  factory ElementAst.clone(ast, treeElements) {
-    final cloner = new CloningVisitor(treeElements);
-    return new ElementAst(cloner.visit(ast), cloner.cloneTreeElements);
+  factory ElementAst.rewrite(ast, treeElements) {
+    final rewriter = new FunctionBodyRewriter(treeElements);
+    return new ElementAst(rewriter.visit(ast), rewriter.cloneTreeElements);
   }
 
   ElementAst.forClassLike(this.ast)
@@ -56,6 +56,27 @@ class VariableListAst extends ElementAst {
     AggregatedTreeElements e = this.treeElements;
     e[element.cachedNode] = element;
     e.treeElements.add(treeElements);
+  }
+}
+
+class FunctionBodyRewriter extends CloningVisitor {
+  FunctionBodyRewriter(originalTreeElements) : super(originalTreeElements);
+
+  visitFunctionExpression(FunctionExpression node) {
+    shouldOmit(Statement statement) => statement is EmptyStatement;
+
+    rewriteBody(Statement body) {
+      if (body is !Block) return visit(body);
+      Block block = body;
+      NodeList statements = block.statements;
+      LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
+      for (Statement statement in statements.nodes) {
+        if (!shouldOmit(statement)) builder.addLast(visit(statement));
+      }
+      return new Block(rewriteNodeList(statements, builder.toLink()));
+    }
+
+    return rewriteFunctionExpression(node, rewriteBody(node.body));
   }
 }
 
@@ -177,7 +198,7 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst.clone(parse(element), treeElements);
+      var elementAst = new ElementAst.rewrite(parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(

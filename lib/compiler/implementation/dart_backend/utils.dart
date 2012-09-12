@@ -76,11 +76,14 @@ class CloningVisitor implements Visitor<Node> {
   visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(
       visit(node.function));
 
-  visitFunctionExpression(FunctionExpression node) => new FunctionExpression(
-      visit(node.name), visit(node.parameters),
-      visit(node.body),
-      visit(node.returnType), visit(node.modifiers), visit(node.initializers),
-      node.getOrSet);
+  rewriteFunctionExpression(FunctionExpression node, Statement body) =>
+      new FunctionExpression(
+          visit(node.name), visit(node.parameters), body,
+          visit(node.returnType), visit(node.modifiers),
+          visit(node.initializers), node.getOrSet);
+
+  visitFunctionExpression(FunctionExpression node) =>
+      rewriteFunctionExpression(node, visit(node.body));
 
   visitIdentifier(Identifier node) => new Identifier(node.token);
 
@@ -123,6 +126,9 @@ class CloningVisitor implements Visitor<Node> {
   visitNewExpression(NewExpression node) => new NewExpression(
       node.newToken, visit(node.send));
 
+  rewriteNodeList(NodeList node, Link link) =>
+      new NodeList(node.beginToken, link, node.endToken, node.delimiter);
+
   visitNodeList(NodeList node) {
     // Special case for classes which exist in hierarchy, but not
     // in the visitor.
@@ -138,8 +144,7 @@ class CloningVisitor implements Visitor<Node> {
     for (Node n in node.nodes) {
       builder.addLast(visit(n));
     }
-    return new NodeList(
-      node.beginToken, builder.toLink(), node.endToken, node.delimiter);
+    return rewriteNodeList(node, builder.toLink());
   }
 
   visitOperator(Operator node) => new Operator(node.token);
