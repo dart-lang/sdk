@@ -81,10 +81,9 @@ abstract class TypeTestCase extends TestCase {
         Arrays.asList(new DartTypeNode(new DartIdentifier("E"))));
 
     DartMethodDefinition iteratorMethod = DartMethodDefinition.create(
-        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter>emptyList(), 0,
-            new DartBlock(Collections.<DartStatement>emptyList()), returnTypeNode),
-        Modifiers.NONE,
-        Collections.<DartInitializer>emptyList());
+        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter> emptyList(),
+            -1, -1, 0, new DartBlock(Collections.<DartStatement> emptyList()), returnTypeNode),
+        Modifiers.NONE, Collections.<DartInitializer> emptyList());
     MethodNodeElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
     Type returnType = Types.interfaceType(iterElement, Arrays.<Type>asList(typeVar));
     FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(),
