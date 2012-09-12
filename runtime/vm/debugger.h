@@ -252,6 +252,7 @@ class Debugger {
   void SetStepOut() { resume_action_ = kStepOut; }
 
   void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
+  Dart_ExceptionPauseInfo GetExceptionPauseInfo();
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 

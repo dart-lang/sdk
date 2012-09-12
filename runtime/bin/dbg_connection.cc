@@ -433,7 +433,21 @@ static void FormatTextualValue(dart::TextBuffer* buf, Dart_Handle object) {
   if (Dart_IsNull(object)) {
     text = Dart_Null();
   } else {
+    Dart_ExceptionPauseInfo savedState = Dart_GetExceptionPauseInfo();
+
+    // TODO(hausner): Check whether recursive/reentrant pauses on exceptions
+    // should be prevented in Debugger::SignalExceptionThrown() instead.
+    if (savedState != kNoPauseOnExceptions) {
+      Dart_Handle res = Dart_SetExceptionPauseInfo(kNoPauseOnExceptions);
+      ASSERT_NOT_ERROR(res);
+    }
+
     text = Dart_ToString(object);
+
+    if (savedState != kNoPauseOnExceptions) {
+      Dart_Handle res = Dart_SetExceptionPauseInfo(savedState);
+      ASSERT_NOT_ERROR(res);
+    }
   }
   buf->Printf("\"text\":");
   if (Dart_IsNull(text)) {
