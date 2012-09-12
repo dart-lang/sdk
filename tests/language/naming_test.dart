@@ -177,8 +177,7 @@ class Hoisting {
     f_ = () { return x; };
   }
 
-  // TODO(hausner): Rename to operator -.
-  operator negate() {
+  operator -() {
     var x = 3;
     return () { return x + 1; };
   }
@@ -483,7 +482,7 @@ class DartQuery {
   $negate() => wrapped;
 
   operator +(Object other) => 123;
-  operator negate() => 444;
+  operator -() => 444;
 }
 
 $add(Object first, Object second) => second;

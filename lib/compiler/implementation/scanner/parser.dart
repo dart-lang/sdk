@@ -804,9 +804,7 @@ class Parser {
 
   Token parseOperatorName(Token token) {
     assert(optional('operator', token));
-    if (isUserDefinableOperator(token.next.stringValue)
-        // TODO(ahe): Remove negate.
-        || token.next.value == const SourceString("negate")) {
+    if (isUserDefinableOperator(token.next.stringValue)) {
       Token operator = token;
       token = token.next;
       listener.handleOperatorName(operator, token);

@@ -464,10 +464,12 @@ LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460, Issue co19 - 114
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460, Issue co19 - 113
 
 # co19 issue 169: obsolete operator and instance method 'negate'
-LibTest/core/int/operator_negate_A01_t01: Fail # co19 issue 169
-LibTest/core/double/operator_negate_A01_t04: Fail # issue 169
-LibTest/core/double/operator_negate_A01_t02: Fail # issue 169
-LibTest/core/double/operator_negate_A01_t01: Fail # issue 169
+LibTest/core/int/operator_negate_A01_t01: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t04: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t02: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t01: Fail, OK # co19 issue 169
+Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, OK # co19 issue 169
+Language/10_Expressions/25_Unary_Expressions_A05_t01: Fail, OK # co19 issue 169
 
 [ $runtime == vm ]
 LibTest/core/Math/acos_A01_t01: Fail, OK # Issue co19 - 44

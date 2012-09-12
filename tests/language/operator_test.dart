@@ -127,7 +127,7 @@ class Operator {
     return value ~/ other.value;
   }
 
-  operator negate() {
+  operator -() {
     return -value;
   }
 }

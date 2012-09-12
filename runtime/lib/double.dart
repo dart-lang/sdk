@@ -47,7 +47,7 @@ class Double implements double {
   }
   double remainder_(double other) native "Double_remainder";
 
-  double operator negate() {
+  double operator -() {
     if (this == 0.0) {
       // -0.0 is canonicalized by the VM's parser, therefore no cycles.
       return isNegative() ? 0.0 : -0.0;

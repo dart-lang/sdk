@@ -2423,8 +2423,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Now that we know the parameter list, we can distinguish between the
   // unary and binary operator -.
   if (method->has_operator &&
-      ((method->name->Equals(Token::Str(Token::kNEGATE))) ||
-      method->name->Equals("-")) &&
+      method->name->Equals("-") &&
       (method->params.num_fixed_parameters == 1)) {
     // Patch up name for unary operator - so it does not clash with the
     // name for binary operator -.
@@ -2769,9 +2768,7 @@ void Parser::CheckOperatorArity(const MemberDesc& member,
     } else {
       expected_num_parameters = 2;
     }
-  } else if ((operator_token == Token::kNEGATE) ||
-      (operator_token == Token::kBIT_NOT)) {
-    // TODO(hausner): Remove support for keyword 'negate'.
+  } else if (operator_token == Token::kBIT_NOT) {
     expected_num_parameters = 1;
   } else {
     expected_num_parameters = 2;

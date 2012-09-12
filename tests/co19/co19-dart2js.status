@@ -685,6 +685,15 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # co19 
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
 
+Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, OK # co19 issue 169
+Language/10_Expressions/25_Unary_Expressions_A05_t01: Fail, OK # co19 issue 169
+Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t01: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t02: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t03: Fail, OK # co19 issue 169
+LibTest/core/double/operator_negate_A01_t04: Fail, OK # co19 issue 169
+LibTest/core/int/operator_negate_A01_t01: Fail, OK # co19 issue 169
+
 Language/11_Statements/09_Try_A01_t14: Fail, OK # co19 issue 168
 
 Language/07_Classes/3_Setters_A01_t02: Fail, OK # co19 issue 189

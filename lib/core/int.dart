@@ -18,7 +18,7 @@ interface int extends num {
   bool isOdd();
 
   // Specializations of super-interface.
-  int operator negate();
+  int operator -();
   int abs();
   int round();
   int floor();

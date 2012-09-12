@@ -273,7 +273,7 @@ class int64 implements intx {
     return result;
   }
 
-  int64 operator negate() {
+  int64 operator -() {
     // Like 0 - this.
     int sum0 = -_l;
     int sum1 = -_m + _shiftRight(sum0, _BITS);

@@ -12,7 +12,7 @@ interface intx extends Comparable, Hashable {
   intx operator -(other);
   // The unary '-' operator.  Note that -MIN_VALUE will be equal
   // to MIN_VALUE due to overflow.
-  intx operator negate();
+  intx operator -();
   intx operator *(other);
   intx operator %(other);
   // Truncating division.

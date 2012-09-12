@@ -14,7 +14,7 @@ abstract class num implements Comparable, Hashable {
   // Truncating division.
   abstract num operator ~/(num other);
   // The unary '-' operator.
-  abstract num operator negate();
+  abstract num operator -();
   abstract num remainder(num other);
 
   // Relational operations.
