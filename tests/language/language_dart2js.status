@@ -305,6 +305,7 @@ assign_top_method_negative_test: Crash
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
+raw_string_test: Fail
 
 
 [ $compiler == dart2js && $runtime == ie ]
