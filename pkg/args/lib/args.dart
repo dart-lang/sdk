@@ -187,7 +187,8 @@
 
 #import('dart:math');
 
-#import('utils.dart');
+// TODO(rnystrom): Use "package:" URL here when test.dart can handle pub.
+#import('src/utils.dart');
 
 /**
  * A class for taking a list of raw command line arguments and parsing out
