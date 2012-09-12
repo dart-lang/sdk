@@ -215,6 +215,43 @@ class Selector implements Hashable {
     int optionalParameterCount = parameters.optionalParameterCount;
     if (positionalArgumentCount < requiredParameterCount) return false;
 
+    if (!parameters.optionalParametersAreNamed) {
+      if (!Compiler.REJECT_NAMED_ARGUMENT_AS_POSITIONAL) {
+        return optionalParametersAppliesDEPRECATED(element, compiler);
+      } else {
+        // We have already checked that the number of arguments are
+        // not greater than the number of parameters. Therefore the
+        // number of positional arguments are not greater than the
+        // number of parameters.
+        assert(positionalArgumentCount <= parameters.parameterCount);
+        return namedArguments.isEmpty();
+      }
+    } else {
+      if (positionalArgumentCount > requiredParameterCount) return false;
+      if (namedArgumentCount > optionalParameterCount) return false;
+      Set<SourceString> nameSet = new Set<SourceString>();
+      parameters.optionalParameters.forEach((Element element) {
+        nameSet.add(element.name);
+      });
+      for (SourceString name in namedArguments) {
+        if (!nameSet.contains(name)) return false;
+        // TODO(ngeoffray): By removing from the set we are checking
+        // that we are not passing the name twice. We should have this
+        // check in the resolver instead.
+        nameSet.remove(name);
+      }
+      return true;
+    }
+  }
+
+  // TODO(5074): Remove this method once we don't accept the
+  // deprecated parameter specification.
+  bool optionalParametersAppliesDEPRECATED(FunctionElement function,
+                                           Compiler compiler) {
+    FunctionSignature parameters = function.computeSignature(compiler);
+    int requiredParameterCount = parameters.requiredParameterCount;
+    int optionalParameterCount = parameters.optionalParameterCount;
+
     bool hasOptionalParameters = !parameters.optionalParameters.isEmpty();
     if (namedArguments.isEmpty()) {
       if (!hasOptionalParameters) {
@@ -246,34 +283,20 @@ class Selector implements Hashable {
     }
   }
 
-  /**
-   * Returns [:true:] if the selector and the [element] match; [:false:]
-   * otherwise.
-   */
-  bool addArgumentsToList(Link<Node> arguments,
-                          List list,
-                          FunctionElement element,
-                          compileArgument(Node argument),
-                          compileConstant(Element element),
-                          Compiler compiler) {
-    if (!this.applies(element, compiler)) return false;
-
-    void addMatchingArgumentsToList(Link<Node> link) {}
-
-    FunctionSignature parameters = element.computeSignature(compiler);
-    if (this.positionalArgumentCount == parameters.parameterCount) {
-      for (Link<Node> link = arguments; !link.isEmpty(); link = link.tail) {
-        list.add(compileArgument(link.head));
-      }
-      return true;
-    }
-
+  // TODO(5074): Remove this method once we don't accept the
+  // deprecated parameter specification.
+  bool addOptionalArgumentsToListDEPRECATED(Link<Node> arguments,
+                                            List list,
+                                            FunctionElement element,
+                                            compileArgument(Node argument),
+                                            compileConstant(Element element),
+                                            Compiler compiler) {
     // If there are named arguments, provide them in the order
     // expected by the called function, which is the source order.
+    FunctionSignature parameters = element.computeSignature(compiler);
 
     // Visit positional arguments and add them to the list.
-    int positionalArgumentCount = this.positionalArgumentCount;
-    for (int i = 0;
+    for (int i = parameters.requiredParameterCount;
          i < positionalArgumentCount;
          arguments = arguments.tail, i++) {
       list.add(compileArgument(arguments.head));
@@ -302,19 +325,67 @@ class Selector implements Hashable {
          !remainingNamedParameters.isEmpty();
          remainingNamedParameters = remainingNamedParameters.tail) {
       Element parameter = remainingNamedParameters.head;
-      int foundIndex = -1;
-      for (int i = 0; i < namedArguments.length; i++) {
-        SourceString name = namedArguments[i];
-        if (name == parameter.name) {
-          foundIndex = i;
-          break;
-        }
-      }
+      int foundIndex = namedArguments.indexOf(parameter.name);
       if (foundIndex != -1) {
         list.add(compiledNamedArguments[foundIndex]);
       } else {
         list.add(compileConstant(parameter));
       }
+    }
+  }
+
+
+  /**
+   * Returns [:true:] if the selector and the [element] match; [:false:]
+   * otherwise.
+   */
+  bool addArgumentsToList(Link<Node> arguments,
+                          List list,
+                          FunctionElement element,
+                          compileArgument(Node argument),
+                          compileConstant(Element element),
+                          Compiler compiler) {
+    if (!this.applies(element, compiler)) return false;
+
+    FunctionSignature parameters = element.computeSignature(compiler);
+    parameters.forEachRequiredParameter((element) {
+      list.add(compileArgument(arguments.head));
+      arguments = arguments.tail;
+    });
+
+    if (!parameters.optionalParametersAreNamed) {
+      if (!Compiler.REJECT_NAMED_ARGUMENT_AS_POSITIONAL) {
+        addOptionalArgumentsToListDEPRECATED(
+            arguments, list, element, compileArgument, compileConstant,
+            compiler);
+      } else {
+        parameters.forEachOptionalParameter((element) {
+          if (!arguments.isEmpty()) {
+            list.add(compileArgument(arguments.head));
+            arguments = arguments.tail;
+          } else {
+            list.add(compileConstant(element));
+          }
+        });
+      }
+    } else {
+      // Visit named arguments and add them into a temporary list.
+      List compiledNamedArguments = [];
+      for (; !arguments.isEmpty(); arguments = arguments.tail) {
+        NamedArgument namedArgument = arguments.head;
+        compiledNamedArguments.add(compileArgument(namedArgument.expression));
+      }
+      // Iterate over the optional parameters of the signature, and try to
+      // find them in [compiledNamedArguments]. If found, we use the
+      // value in the temporary list, otherwise the default value.
+      parameters.forEachOptionalParameter((element) {
+        int foundIndex = namedArguments.indexOf(element.name);
+        if (foundIndex != -1) {
+          list.add(compiledNamedArguments[foundIndex]);
+        } else {
+          list.add(compileConstant(element));
+        }
+      });
     }
     return true;
   }

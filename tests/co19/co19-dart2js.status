@@ -506,9 +506,10 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TOD
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
+
+Language/06_Functions/2_Formal_Parameters_A01_t01: Fail, OK # co19 issue 205
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Fail, OK # co19 issue 205
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t01: Fail, OK # co19 issue 205
 
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call

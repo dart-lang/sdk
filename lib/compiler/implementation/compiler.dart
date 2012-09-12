@@ -95,6 +95,10 @@ class Compiler implements DiagnosticListener {
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
 
+  // TODO(5074): Remove this field once we don't accept the
+  // deprecated parameter specification.
+  static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = false;
+
   final Tracer tracer;
 
   CompilerTask measuredTask;

@@ -847,15 +847,17 @@ class AbstractFieldElement extends Element {
 // TODO(johnniwinther): [FunctionSignature] should be merged with
 // [FunctionType].
 class FunctionSignature {
-  Link<Element> requiredParameters;
-  Link<Element> optionalParameters;
-  DartType returnType;
-  int requiredParameterCount;
-  int optionalParameterCount;
+  final Link<Element> requiredParameters;
+  final Link<Element> optionalParameters;
+  final DartType returnType;
+  final int requiredParameterCount;
+  final int optionalParameterCount;
+  final bool optionalParametersAreNamed;
   FunctionSignature(this.requiredParameters,
                     this.optionalParameters,
                     this.requiredParameterCount,
                     this.optionalParameterCount,
+                    this.optionalParametersAreNamed,
                     this.returnType);
 
   void forEachRequiredParameter(void function(Element parameter)) {

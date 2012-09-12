@@ -98,8 +98,30 @@ class Namer {
     }
   }
 
-  String instanceMethodName(LibraryElement lib, SourceString name, int arity) {
-    return '${privateName(lib, name)}\$$arity';
+  String instanceMethodName(FunctionElement element) {
+    SourceString name = element.name;
+    LibraryElement lib = element.getLibrary();
+    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      ConstructorBodyElement bodyElement = element;
+      name = bodyElement.constructor.name;
+    }
+    FunctionSignature signature = element.computeSignature(compiler);
+    String methodName =
+        '${privateName(lib, name)}\$${signature.parameterCount}';
+    if (!signature.optionalParametersAreNamed) {
+      return methodName;
+    } else {
+      StringBuffer suffix = new StringBuffer();
+      signature.forEachOptionalParameter((Element element) {
+        String jsName = JsNames.getValid(element.name.slowToString());        
+        suffix.add('\$$jsName');
+      });
+      return '$methodName$suffix';
+    }
+  }
+
+  String instanceMethodNameByArity(SourceString name, int arity) {
+    return '${name.slowToString()}\$$arity';
   }
 
   String instanceMethodInvocationName(LibraryElement lib, SourceString name,
@@ -207,16 +229,9 @@ class Namer {
    */
   String getName(Element element) {
     if (element.isInstanceMember()) {
-      if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-        ConstructorBodyElement bodyElement = element;
-        SourceString name = bodyElement.constructor.name;
-        return instanceMethodName(element.getLibrary(),
-                                  name, bodyElement.parameterCount(compiler));
-      } else if (element.kind == ElementKind.FUNCTION) {
-        FunctionElement functionElement = element;
-        return instanceMethodName(element.getLibrary(),
-                                  element.name,
-                                  functionElement.parameterCount(compiler));
+      if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY
+          || element.kind == ElementKind.FUNCTION) {
+        return instanceMethodName(element);
       } else if (element.kind == ElementKind.GETTER) {
         return getterName(element.getLibrary(), element.name);
       } else if (element.kind == ElementKind.SETTER) {

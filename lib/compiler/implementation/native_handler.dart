@@ -302,9 +302,7 @@ void generateMethodWithPrototypeCheckForElement(Compiler compiler,
   JavaScriptBackend backend = compiler.backend;
   Namer namer = backend.namer;
   if (element.kind == ElementKind.FUNCTION) {
-    FunctionSignature signature = element.computeSignature(compiler);
-    methodName = namer.instanceMethodName(
-        element.getLibrary(), element.name, signature.parameterCount);
+    methodName = namer.instanceMethodName(element);
   } else if (element.kind == ElementKind.GETTER) {
     methodName = namer.getterName(element.getLibrary(), element.name);
   } else if (element.kind == ElementKind.SETTER) {

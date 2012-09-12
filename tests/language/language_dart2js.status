@@ -74,7 +74,6 @@ function_type_alias_test: Fail # Support for optional parameters not conform to 
 function_type_alias2_test: Fail # Support for optional parameters not conform to latest spec.
 named_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
 positional_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
-optional_named_parameters_test/0*: Fail # Support for optional parameters not conform to latest spec.
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.

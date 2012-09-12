@@ -2327,6 +2327,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
   Link<Element> optionalParameters = const EmptyLink<Element>();
   int optionalParameterCount = 0;
+  bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler, this.enclosingElement) : super(compiler);
@@ -2337,6 +2338,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if ((value !== '[') && (value !== '{')) {
       internalError(node, "expected optional parameters");
     }
+    optionalParametersAreNamed = (value === '{');
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
     optionalParameters = elements.toLink();
@@ -2494,6 +2496,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                  visitor.optionalParameters,
                                  requiredParameterCount,
                                  visitor.optionalParameterCount,
+                                 visitor.optionalParametersAreNamed,
                                  returnType);
   }
 
