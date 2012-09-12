@@ -5481,6 +5481,19 @@ TEST_CASE(LoadSource_LateLoad) {
 }
 
 
+static void PatchNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_Null());
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction PatchNativeResolver(Dart_Handle name,
+                                               int arg_count) {
+  return &PatchNativeFunction;
+}
+
+
 TEST_CASE(ParsePatchLibrary) {
   const char* kLibraryChars =
   "#library('patched_library');\n"
@@ -5490,6 +5503,11 @@ TEST_CASE(ParsePatchLibrary) {
   "  callFunc(x, y) => x(y);\n"
   "  external method(var value);\n"
   "  get field => _field;\n"
+  "}\n"
+  "class B {\n"
+  "  var val;\n"
+  "  external B.named(x);\n"
+  "  external B(v);\n"
   "}\n"
   "external int unpatched();\n"
   "external int topLevel(var value);\n"
@@ -5506,6 +5524,11 @@ TEST_CASE(ParsePatchLibrary) {
   "    value = callFunc(closeYourEyes, value);\n"
   "    _g = value * 5;\n"
   "  }\n"
+  "}\n"
+  "patch class B {\n"
+  "  B._internal(x) : val = x;\n"
+  "  /*patch*/ factory B.named(x) { return new B._internal(x); }\n"
+  "  /*patch*/ factory B(v) native \"const_B_factory\";\n"
   "}\n"
   "var _topLevelValue = -1;\n"
   "patch int topLevel(var value) => value * value;\n"
@@ -5527,7 +5550,13 @@ TEST_CASE(ParsePatchLibrary) {
   "  var a = new A();\n"
   "  a.method(5);\n"
   "  return a.field;\n"
-  "}\n";
+  "}\n"
+  "m5() => new B(3);\n"
+  "m6() {\n"
+  "  var b = new B.named(8);\n"
+  "  return b.val;\n"
+  "}\n"
+  ;  // NOLINT
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
@@ -5549,6 +5578,8 @@ TEST_CASE(ParsePatchLibrary) {
     OS::Print("Patching error: %s\n", err.ToErrorCString());
     EXPECT(false);
   }
+  result = Dart_SetNativeResolver(result, &PatchNativeResolver);
+  EXPECT_VALID(result);
 
   Dart_Handle script_url = Dart_NewString("theScript");
   source = Dart_NewString(kScriptChars);
@@ -5589,6 +5620,17 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT(Dart_IsInteger(result));
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(-25, value);
+
+  result = Dart_Invoke(test_script, Dart_NewString("m5"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsNull(result));
+
+  value = 0;
+  result = Dart_Invoke(test_script, Dart_NewString("m6"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(8, value);
 }
 
 

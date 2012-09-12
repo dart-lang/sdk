@@ -3065,6 +3065,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       patch = String::Concat(patch, class_name);
       patch = Symbols::New(patch);
       cls = Class::New(patch, script_, classname_pos);
+      cls.set_library(library_);
     } else {
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
