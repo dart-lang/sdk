@@ -3,39 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 pub_install_hosted_test: Fail, Pass # http://dartbug.com/5065
+pub_update_hosted_test: Fail, Pass # http://dartbug.com/5065
 
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
-pub_test: Skip
-pub_install_test: Skip
-pub_install_git_test: Skip
-pub_install_hosted_test: Skip
-pub_install_sdk_test: Skip
-pub_update_test: Skip
-pub_update_git_test: Skip
-pub_update_hosted_test: Skip
-version_test: Skip
-pubspec_test: Skip
-lock_file_test: Skip
-version_solver_test: Skip
-
-[ $compiler == dartc ]
-version_solver_test: Fail # dart:io is using private named parameters
+*: Skip
 
 # Pub only runs on the standalone VM, not the browser.
-[ $runtime == drt || $runtime == dartium ]
-pub_test: Skip
-pub_install_test: Skip
-pub_install_git_test: Skip
-pub_install_hosted_test: Skip
-pub_install_sdk_test: Skip
-pub_update_test: Skip
-pub_update_git_test: Skip
-pub_update_hosted_test: Skip
-version_test: Skip
-pubspec_test: Skip
-lock_file_test: Skip
-version_solver_test: Skip
+[ $runtime == drt || $runtime == dartium || $runtime == opera]
+*: Skip
 
 # Right now, Pub update creates symlinks which aren't supported on Windows.
 [ $system == windows ]
@@ -48,5 +24,3 @@ pub_update_test: Skip
 pub_update_git_test: Skip
 pub_update_hosted_test: Skip
 
-[ $runtime == opera ]
-*: Skip
