@@ -8,7 +8,8 @@
  */
 #library('intl');
 
-#import('../../pkg/htmlescape/htmlescape.dart');
+// TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
+#import('../../pkg/htmlescape/lib/htmlescape.dart');
 
 #import('date_format.dart');
 #source('intl_message.dart');
