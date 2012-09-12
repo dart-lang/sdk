@@ -1233,22 +1233,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // If the class has type variables, create the runtime type
     // information with the type parameters provided.
     if (!classElement.typeVariables.isEmpty()) {
-      List<String> typeVariables = <String>[];
       List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        typeVariables.add("'$typeVariable': #");
         rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
       });
-      String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
-      HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
-                                           new LiteralDartString('Object'),
-                                           rtiInputs);
-      add(typeInfo);
-      Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
-      HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
-      add(typeInfoSetter);
-      add(new HInvokeStatic(
-          <HInstruction>[typeInfoSetter, newObject, typeInfo]));
+      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
     }
 
     // Generate calls to the constructor bodies.
@@ -2627,10 +2616,42 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void handleListConstructor(InterfaceType type,
+                             Node currentNode,
+                             HInstruction newObject) {
+    if (type.arguments.isEmpty()) return;
+    List<HInstruction> inputs = <HInstruction>[];
+    type.arguments.forEach((DartType argument) {
+      inputs.add(analyzeTypeArgument(argument, currentNode));
+    });
+    callSetRuntimeTypeInfo(type.element, inputs, newObject);
+  }
+
+  void callSetRuntimeTypeInfo(ClassElement element,
+                              List<HInstruction> inputs,
+                              HInstruction newObject) {
+    List<String> typeVariables = <String>[];
+    element.typeVariables.forEach((TypeVariableType typeVariable) {
+      typeVariables.add("'$typeVariable': #");
+    });
+
+    String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
+    HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
+                                         new LiteralDartString('Object'),
+                                         inputs);
+    add(typeInfo);
+    Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
+    HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
+    add(typeInfoSetter);
+    add(new HInvokeStatic(<HInstruction>[typeInfoSetter, newObject, typeInfo]));
+  }
+
   visitNewSend(Send node) {
+    bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
       if (originalElement.getEnclosingClass() === compiler.listClass) {
+        isListConstructor = true;
         if (node.arguments.isEmpty()) {
           return HType.EXTENDABLE_ARRAY;
         } else {
@@ -2675,6 +2696,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HType elementType = computeType(constructor);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);
+
+    // The List constructor forwards to a Dart static method that does
+    // not know about the type argument. Therefore we special case
+    // this constructor to have the setRuntimeTypeInfo called where
+    // the 'new' is done.
+    if (isListConstructor) {
+      handleListConstructor(type, node, newInstance);
+    }
   }
 
   visitStaticSend(Send node) {

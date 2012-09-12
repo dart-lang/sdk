@@ -2374,7 +2374,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             new js.PropertyAccess.field(pop(), typeVariable.toString());
         js.Expression genericName = new js.LiteralString("'${arguments.head}'");
         js.Binary eqTest = new js.Binary('===', field, genericName);
-        result = new js.Binary('&&', result, eqTest);
+        // Also test for 'undefined' in case the object does not have
+        // any type variable.
+        js.Prefix undefinedTest = new js.Prefix('!', field);
+        result = new js.Binary(
+            '&&', result, new js.Binary('||', undefinedTest, eqTest));
       }
       push(result, node);
     }

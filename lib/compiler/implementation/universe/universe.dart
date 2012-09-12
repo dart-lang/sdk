@@ -88,6 +88,8 @@ class Universe {
   bool hasFieldSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(fieldSetters[member.name], member, compiler);
   }
+
+  bool hasIsCheck(DartType type) => isChecks.contains(type);
 }
 
 class SelectorKind {
