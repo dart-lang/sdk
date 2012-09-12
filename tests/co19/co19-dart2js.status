@@ -251,6 +251,10 @@ LibTest/core/int/toDouble_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
 LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
 
+Language/06_Functions/2_Formal_Parameters_A02_t02: Fail, OK # co19 issue 207
+LibTest/core/double/operator_remainder_A01_t03: Fail, OK # co19 issue 207
+LibTest/core/double/remainder_A01_t03: Fail, OK # co19 issue 207
+
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
 LibTest/core/Queue/addLast_A01_t01: Slow, Pass
@@ -599,7 +603,6 @@ LibTest/isolate/Isolate/spawn_A01_t04: Fail, OK
 LibTest/isolate/Isolate/spawn_A01_t05: Fail, OK
 LibTest/isolate/Isolate/spawn_A01_t06: Fail, OK
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
-
 
 # The following tests use the deprecated Date interface.
 # Issue co19 - 125
@@ -953,7 +956,6 @@ Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error i
 Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
 Language/07_Classes/6_Constructors_A03_t03: Fail # Checks that 'default' constructor is not generated if the class  declares a named constructor.
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # Checks that it is a compile-time error when a superclass's static method is being accessed using a subclass's name.
-Language/10_Expressions/01_Constants_A15_t38: Fail # Checks that a reference to a final variable cannot be assigned to a constant variable.
 Language/10_Expressions/01_Constants_A16_t01: Fail # Checks that an IntegerDivisionByZeroException raised during evaluation  of a compile-time constant causes a compile-time error.
 Language/10_Expressions/01_Constants_A16_t02: Fail # Checks that an OutOfMemoryException raised during evaluation of a compile-time constant causes a compile-time error.
 Language/10_Expressions/05_Strings_A02_t39: Fail # Checks that unbalanced string cause compile-time erros.

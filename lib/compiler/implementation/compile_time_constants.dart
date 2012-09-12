@@ -367,7 +367,9 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     for (StringInterpolationPart part in node.parts) {
       Constant expression = evaluate(part.expression);
       DartString expressionString;
-      if (expression.isNum() || expression.isBool()) {
+      if (expression === null) {
+        return signalNotCompileTimeConstant(part.expression);
+      } else if (expression.isNum() || expression.isBool()) {
         PrimitiveConstant primitive = expression;
         expressionString = new DartString.literal(primitive.value.toString());
       } else if (expression.isString()) {
@@ -392,9 +394,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       if (element.modifiers !== null) {
         if (element.modifiers.isConst()) {
           result = compiler.compileConstant(element);
-        } else if (element.modifiers.isFinal()) {
-          // TODO(4516): remove support for final compile-time constants: if
-          // isCompilingConstant is true don't compile the variable.
+        } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
           result = compiler.compileVariable(element);
         }
       }
