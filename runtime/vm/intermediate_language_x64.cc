@@ -2272,38 +2272,6 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CheckBoundInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RegisterOrConstant(index()));
-  return locs;
-}
-
-
-void CheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register length = locs()->in(0).reg();
-
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptLoadIndexedFixedArray);
-
-  if (locs()->in(1).IsConstant()) {
-    const Object& constant = locs()->in(1).constant();
-    ASSERT(constant.IsSmi());
-    const int64_t imm =
-        reinterpret_cast<int64_t>(constant.raw());
-    __ cmpq(length, Immediate(imm));
-    __ j(BELOW_EQUAL, deopt);
-  } else {
-    Register index = locs()->in(1).reg();
-    __ cmpq(index, length);
-    __ j(ABOVE_EQUAL, deopt);
-  }
-}
-
-
 }  // namespace dart
 
 #undef __

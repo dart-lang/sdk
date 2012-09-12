@@ -1125,11 +1125,6 @@ RawAbstractType* CheckArrayBoundInstr::CompileType() const {
 }
 
 
-RawAbstractType* CheckBoundInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
 RawAbstractType* CheckEitherNonSmiInstr::CompileType() const {
   return AbstractType::null();
 }
@@ -1181,28 +1176,6 @@ Definition* CheckEitherNonSmiInstr::Canonicalize() {
   if ((left()->ResultCid() == kDoubleCid) ||
       (right()->ResultCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.
-  }
-  return this;
-}
-
-
-Definition* CheckArrayBoundInstr::Canonicalize() {
-  if (array_type() == kArrayCid) {
-    // For fixed length arrays check if array is the result of a constructor
-    // call. In this case we can use the length passed to the constructor
-    // instead of loading it from array itself.
-    StaticCallInstr* allocation = array()->definition()->AsStaticCall();
-    if ((allocation != NULL) &&
-        allocation->is_known_constructor() &&
-        (allocation->ResultCid() == kArrayCid)) {
-      CheckBoundInstr* check =
-          new CheckBoundInstr(allocation->ArgumentAt(0)->value()->Copy(),
-                              index(),
-                              deopt_id_);
-      check->set_env(env());
-      set_env(NULL);
-      return check;
-    }
   }
   return this;
 }
