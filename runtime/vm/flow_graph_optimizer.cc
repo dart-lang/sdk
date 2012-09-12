@@ -657,7 +657,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
         call->ArgumentAt(0)->value(),
         Array::data_offset(),
         Type::ZoneHandle(Type::DynamicType()));
-    data_load->set_result_cid(kGrowableObjectArrayCid);
+    data_load->set_result_cid(kArrayCid);
     InsertBefore(call, data_load, NULL, Definition::kValue);
 
     LoadVMFieldInstr* length_load = new LoadVMFieldInstr(
