@@ -99,13 +99,20 @@ bad_constructor_test/06: Fail # Constructor name clashes with other member
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_negative_test: Fail # instantiation of abstract class
-argument_definition_test/*: Skip # Not implemented.
+argument_definition_test/01: Fail # Issue 5082
+argument_definition_test/02: Fail # Issue 5082
+argument_definition_test/03: Fail # Issue 5082
+argument_definition_test/04: Fail # Issue 5082
+argument_definition_test/05: Fail # Issue 5082
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
-assign_instance_method_negative_test: Fail  # Runtime only test, rewrite as multitest
-body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
+assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
+body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite as multitest
 call_nonexistent_static_test/03: Fail # Unresolved static calls are no longer errors.
 call_operator_test: Pass # Issue 1355
-cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
+cascade_test/01: Pass # Issue 3729 - an earlier comment claims that this passes for the wrong reason
+cascade_test/02: Pass # Issue 3729 - an earlier comment claims that this passes for the wrong reason
+cascade_test/02: Fail # Issue 3729
+cascade_test/none: Fail # Issue 3729
 char_escape_test: Pass # Issue 1654
 class_literal_test/01 : Fail # language change 3368
 class_literal_test/03 : Fail # language change 1031
@@ -136,8 +143,11 @@ class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
-duplicate_implements_test: Skip # Issue 976
+disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
+duplicate_implements_test/01: Fail # Issue 5084
+duplicate_implements_test/02: Fail # Issue 5084
+duplicate_implements_test/03: Fail # Issue 5084
+duplicate_implements_test/04: Fail # Issue 5084
 factory5_test/00: Fail # issue 3079
 final_is_not_const_test/01: Fail # Issue 3476
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
@@ -156,8 +166,8 @@ lazy_static4_test: Fail # Issue 3476
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650
-list_literal4_test: Fail       # Issue 1343
-map_literal4_test: Fail        # Issue 1343
+list_literal4_test: Fail # Issue 1343
+map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
 new_expression_type_args_test/01: Fail # language change 1031
 new_expression_type_args_test/02: Fail # language change 1031
@@ -176,14 +186,10 @@ private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
-resource_test: Skip # out of date - resource directives have been removed
+resource_test: Fail # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-syntax_test: Skip              # Bug 2107  Static type warnings in none case
-throw7_negative_test: Fail     # Issue 3654
-# try_catch_syntax_test/09: Fail # BUG(4905)
-# try_catch_syntax_test/10: Fail # BUG(4905)
-# try_catch_syntax_test/11: Fail # BUG(4905)
-# try_catch_syntax_test/12: Fail # BUG(4905)
+syntax_test/none: Fail # Bug 2107  Static type warnings in none case (INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS)
+throw7_negative_test: Fail # Issue 3654
 type_variable_bounds_test/00: Fail # issue 3079
 type_variable_bounds_test/07: Fail # language change 1031
 type_variable_static_context_negative_test: Fail # language change 1031
