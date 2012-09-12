@@ -121,7 +121,7 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 
 
 LocalVariable* ParsedFunction::GetSavedArgumentsDescriptorVar() const {
-  const int num_parameters = function().NumberOfParameters();
+  const int num_parameters = function().NumParameters();
   LocalScope* scope = node_sequence()->scope();
   if (scope->num_variables() > num_parameters) {
     LocalVariable* saved_args_desc_var = scope->VariableAt(num_parameters);
@@ -144,11 +144,7 @@ LocalVariable* ParsedFunction::GetSavedArgumentsDescriptorVar() const {
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
-  const intptr_t num_opt_pos_params =
-      function().num_optional_positional_parameters();
-  const intptr_t num_opt_named_params =
-      function().num_optional_named_parameters();
-  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
+  const intptr_t num_opt_params = function().NumOptionalParameters();
   intptr_t num_params = num_fixed_params + num_opt_params;
   const bool is_native_instance_closure =
       function().is_native() && function().IsImplicitInstanceClosureFunction();
@@ -1936,7 +1932,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-  ASSERT(func.NumberOfParameters() == params.parameters->length());
+  ASSERT(func.NumParameters() == params.parameters->length());
 
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
@@ -2201,7 +2197,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-  ASSERT(func.NumberOfParameters() == params.parameters->length());
+  ASSERT(func.NumParameters() == params.parameters->length());
 
   // Check whether the function has any field initializer formal parameters,
   // which are not allowed in non-constructor functions.
@@ -4448,11 +4444,15 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
   ASSERT((params->num_optional_parameters > 0) ==
          (params->has_optional_positional_parameters ||
           params->has_optional_named_parameters));
-  func.SetNumberOfParameters(params->num_fixed_parameters,
-                             params->num_optional_parameters,
-                             params->has_optional_positional_parameters);
+  if (!Utils::IsInt(16, params->num_fixed_parameters) ||
+      !Utils::IsInt(16, params->num_optional_parameters)) {
+    ErrorMsg("too many formal parameters");
+  }
+  func.set_num_fixed_parameters(params->num_fixed_parameters);
+  func.SetNumOptionalParameters(params->num_optional_parameters,
+                                params->has_optional_positional_parameters);
   const int num_parameters = params->parameters->length();
-  ASSERT(num_parameters == func.NumberOfParameters());
+  ASSERT(num_parameters == func.NumParameters());
   func.set_parameter_types(Array::Handle(Array::New(num_parameters,
                                                     Heap::kOld)));
   func.set_parameter_names(Array::Handle(Array::New(num_parameters,
@@ -7630,7 +7630,7 @@ bool Parser::IsFormalParameter(const String& ident,
     Function& function = Function::Handle(innermost_function().raw());
     String& param_name = String::Handle();
     do {
-      const int num_parameters = function.NumberOfParameters();
+      const int num_parameters = function.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         param_name = function.ParameterNameAt(i);
         if (ident.Equals(param_name)) {
@@ -7658,7 +7658,7 @@ bool Parser::IsFormalParameter(const String& ident,
     }
     if (scope == local->owner()) {
       // Scope contains 'local' and the formal parameters of 'function'.
-      const int num_parameters = function.NumberOfParameters();
+      const int num_parameters = function.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         if (scope->VariableAt(i) == local) {
           *owner_function = function.raw();
@@ -9115,7 +9115,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     // formal parameters. This simplifies the 2-step saving of a captured
     // arguments descriptor.
     // At this time, the owner scope should only contain formal parameters.
-    ASSERT(owner_scope->num_variables() == owner_function.NumberOfParameters());
+    ASSERT(owner_scope->num_variables() == owner_function.NumParameters());
     bool success = owner_scope->AddVariable(saved_args_desc_var);
     ASSERT(success);
     // Capture the saved argument descriptor variable if necessary.

@@ -782,7 +782,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   }
   function.set_result_type(type);
   // Resolve formal parameter types.
-  const intptr_t num_parameters = function.NumberOfParameters();
+  const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);
@@ -1157,7 +1157,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
     }
   }
   // Check classes of formal parameter types.
-  const intptr_t num_parameters = function.NumberOfParameters();
+  const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);

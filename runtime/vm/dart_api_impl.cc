@@ -2837,11 +2837,10 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
   // We hide implicit parameters, such as a method's receiver. This is
   // consistent with Invoke or New, which don't expect their callers to
   // provide them in the argument lists they are handed.
-  *fixed_param_count = (func.num_fixed_parameters() -
-                        func.NumberOfImplicitParameters());
+  *fixed_param_count = func.num_fixed_parameters() -
+                       func.NumImplicitParameters();
   // TODO(regis): Separately report named and positional optional param counts.
-  *opt_param_count = (func.num_optional_positional_parameters() +
-                      func.num_optional_named_parameters());
+  *opt_param_count = func.NumOptionalParameters();
 
   ASSERT(*fixed_param_count >= 0);
   ASSERT(*opt_param_count >= 0);

@@ -612,10 +612,9 @@ class RawFunction : public RawObject {
 
   intptr_t token_pos_;
   intptr_t end_token_pos_;
-  intptr_t num_fixed_parameters_;
-  intptr_t num_optional_positional_parameters_;
-  intptr_t num_optional_named_parameters_;
   intptr_t usage_counter_;  // Incremented while function is running.
+  int16_t num_fixed_parameters_;
+  int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   uint16_t deoptimization_counter_;
   uint16_t kind_tag_;
 };

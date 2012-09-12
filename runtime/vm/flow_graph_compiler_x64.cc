@@ -625,8 +625,8 @@ void FlowGraphCompiler::CopyParameters() {
       function.is_native() && function.IsImplicitInstanceClosureFunction();
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
-  const int num_opt_pos_params = function.num_optional_positional_parameters();
-  int num_opt_named_params = function.num_optional_named_parameters();
+  const int num_opt_pos_params = function.NumOptionalPositionalParameters();
+  int num_opt_named_params = function.NumOptionalNamedParameters();
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
   int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;

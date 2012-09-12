@@ -547,8 +547,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
     func.set_result_type(Type::Handle(Type::DynamicType()));
     func.set_num_fixed_parameters(0);
-    func.set_num_optional_positional_parameters(0);
-    func.set_num_optional_named_parameters(0);
+    func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.
     func.set_is_optimizable(false);
 

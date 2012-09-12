@@ -2353,7 +2353,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (node == owner()->parsed_function().node_sequence()) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function().function();
-      int num_params = function.NumberOfParameters();
+      int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (1 + num_params) : ParsedFunction::kFirstLocalSlotIndex;
       // Handle the saved arguments descriptor as an additional parameter.
@@ -2391,7 +2391,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (FLAG_enable_type_checks &&
       (node == owner()->parsed_function().node_sequence())) {
     const Function& function = owner()->parsed_function().function();
-    const int num_params = function.NumberOfParameters();
+    const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsConstructor()) {
       // Skip type checking of receiver and phase for constructor functions.

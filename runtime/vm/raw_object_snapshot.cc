@@ -484,10 +484,9 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // Set all the non object fields.
   func.set_token_pos(reader->ReadIntptrValue());
   func.set_end_token_pos(reader->ReadIntptrValue());
-  func.set_num_fixed_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_positional_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_named_parameters(reader->ReadIntptrValue());
   func.set_usage_counter(reader->ReadIntptrValue());
+  func.set_num_fixed_parameters(reader->ReadIntptrValue());
+  func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
   func.set_kind_tag(reader->ReadIntptrValue());
 
@@ -520,10 +519,9 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->WriteIntptrValue(ptr()->end_token_pos_);
-  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_positional_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_named_parameters_);
   writer->WriteIntptrValue(ptr()->usage_counter_);
+  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
+  writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
   writer->WriteIntptrValue(ptr()->kind_tag_);
 

@@ -1476,19 +1476,33 @@ class Function : public Object {
   void set_num_fixed_parameters(intptr_t value) const;
 
   bool HasOptionalParameters() const {
-    return (num_optional_positional_parameters() +
-            num_optional_named_parameters()) > 0;
+    return raw_ptr()->num_optional_parameters_ != 0;
+  }
+  bool HasOptionalPositionalParameters() const {
+    return raw_ptr()->num_optional_parameters_ > 0;
+  }
+  bool HasOptionalNamedParameters() const {
+    return raw_ptr()->num_optional_parameters_ < 0;
+  }
+  intptr_t NumOptionalParameters() const {
+    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
+    return (num_opt_params >= 0) ? num_opt_params : -num_opt_params;
+  }
+  void SetNumOptionalParameters(intptr_t num_optional_parameters,
+                                bool are_optional_positional) const;
+
+  intptr_t NumOptionalPositionalParameters() const {
+    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
+    return (num_opt_params > 0) ? num_opt_params : 0;
+  }
+  intptr_t NumOptionalNamedParameters() const {
+    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
+    return (num_opt_params < 0) ? -num_opt_params : 0;
   }
 
-  intptr_t num_optional_positional_parameters() const {
-    return raw_ptr()->num_optional_positional_parameters_;
-  }
-  void set_num_optional_positional_parameters(intptr_t value) const;
+  intptr_t NumParameters() const;
 
-  intptr_t num_optional_named_parameters() const {
-    return raw_ptr()->num_optional_named_parameters_;
-  }
-  void set_num_optional_named_parameters(intptr_t value) const;
+  intptr_t NumImplicitParameters() const;
 
   static intptr_t usage_counter_offset() {
     return OFFSET_OF(RawFunction, usage_counter_);
@@ -1522,12 +1536,6 @@ class Function : public Object {
   void set_is_abstract(bool value) const;
 
   bool HasOptimizedCode() const;
-
-  intptr_t NumberOfParameters() const;
-  intptr_t NumberOfImplicitParameters() const;
-  void SetNumberOfParameters(intptr_t num_fixed_parameters,
-                             intptr_t num_optional_parameters,
-                             bool are_optional_positional) const;
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
@@ -1680,6 +1688,7 @@ class Function : public Object {
   void set_owner(const Object& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
+  void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   static RawFunction* New();
 
