@@ -364,7 +364,7 @@ class _IsolateEvent {
 }
 
 /** An interface for a stub used to interact with a manager. */
-interface _ManagerStub {
+abstract class _ManagerStub {
   get id;
   void set id(int i);
   void set onmessage(Function f);

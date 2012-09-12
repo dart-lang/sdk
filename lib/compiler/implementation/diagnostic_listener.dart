@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DiagnosticListener {
+abstract class DiagnosticListener {
   // TODO(karlklose): replace cancel with better error reporting mechanism.
   void cancel([String reason, node, token, instruction, element]);
   // TODO(karlklose): rename log to something like reportInfo.

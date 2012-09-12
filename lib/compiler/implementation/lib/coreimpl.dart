@@ -26,5 +26,3 @@
 #source('../../../../lib/coreimpl/stopwatch_implementation.dart');
 #source('../../../../lib/coreimpl/string.dart');
 #source('../../../../lib/coreimpl/string_buffer.dart');
-
-#source('mockimpl.dart');

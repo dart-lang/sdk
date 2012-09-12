@@ -709,8 +709,10 @@ class JumpHandlerEntry {
 }
 
 
-interface JumpHandler default JumpHandlerImpl {
-  JumpHandler(SsaBuilder builder, TargetElement target);
+abstract class JumpHandler {
+  factory JumpHandler(SsaBuilder builder, TargetElement target) {
+    return new TargetJumpHandler(builder, target);
+  }
   void generateBreak([LabelElement label]);
   void generateContinue([LabelElement label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
@@ -726,37 +728,35 @@ interface JumpHandler default JumpHandlerImpl {
 // handler associated with it.
 class NullJumpHandler implements JumpHandler {
   final Compiler compiler;
+
   NullJumpHandler(this.compiler);
 
   void generateBreak([LabelElement label]) {
-    // TODO(lrn): Need a compiler object and a location. Since label
-    // is optional, it may be null so we also need a position.
     compiler.internalError('generateBreak should not be called');
   }
 
   void generateContinue([LabelElement label]) {
-    // TODO(lrn): Need a compiler object and a location. Since label
-    // is optional, it may be null so we also need a position.
     compiler.internalError('generateContinue should not be called');
   }
 
   void forEachBreak(Function ignored) { }
   void forEachContinue(Function ignored) { }
   void close() { }
-  final TargetElement target = null;
+
   List<LabelElement> labels() => const <LabelElement>[];
+  TargetElement get target => null;
 }
 
 // Records breaks until a target block is available.
 // Breaks are always forward jumps.
 // Continues in loops are implemented as breaks of the body.
 // Continues in switches is currently not handled.
-class JumpHandlerImpl implements JumpHandler {
+class TargetJumpHandler implements JumpHandler {
   final SsaBuilder builder;
   final TargetElement target;
   final List<JumpHandlerEntry> jumps;
 
-  JumpHandlerImpl(SsaBuilder builder, this.target)
+  TargetJumpHandler(SsaBuilder builder, this.target)
       : this.builder = builder,
         jumps = <JumpHandlerEntry>[] {
     assert(builder.jumpTargets[target] === null);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface HVisitor<R> {
+abstract class HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBailoutTarget(HBailoutTarget node);
   R visitBitAnd(HBitAnd node);
@@ -2641,7 +2641,7 @@ class HBlockFlow {
 /**
  * Information about a syntactic-like structure.
  */
-interface HBlockInformation {
+abstract class HBlockInformation {
   HBasicBlock get start;
   HBasicBlock get end;
   bool accept(HBlockInformationVisitor visitor);
@@ -2651,7 +2651,7 @@ interface HBlockInformation {
 /**
  * Information about a statement-like structure.
  */
-interface HStatementInformation extends HBlockInformation {
+abstract class HStatementInformation extends HBlockInformation {
   bool accept(HStatementInformationVisitor visitor);
 }
 
@@ -2659,13 +2659,13 @@ interface HStatementInformation extends HBlockInformation {
 /**
  * Information about an expression-like structure.
  */
-interface HExpressionInformation extends HBlockInformation {
+abstract class HExpressionInformation extends HBlockInformation {
   bool accept(HExpressionInformationVisitor visitor);
   HInstruction get conditionExpression;
 }
 
 
-interface HStatementInformationVisitor {
+abstract class HStatementInformationVisitor {
   bool visitLabeledBlockInfo(HLabeledBlockInformation info);
   bool visitLoopInfo(HLoopBlockInformation info);
   bool visitIfInfo(HIfBlockInformation info);
@@ -2678,14 +2678,14 @@ interface HStatementInformationVisitor {
 }
 
 
-interface HExpressionInformationVisitor {
+abstract class HExpressionInformationVisitor {
   bool visitAndOrInfo(HAndOrBlockInformation info);
   bool visitSubExpressionInfo(HSubExpressionBlockInformation info);
 }
 
 
-interface HBlockInformationVisitor extends HStatementInformationVisitor,
-                                           HExpressionInformationVisitor {
+abstract class HBlockInformationVisitor
+    implements HStatementInformationVisitor, HExpressionInformationVisitor {
 }
 
 

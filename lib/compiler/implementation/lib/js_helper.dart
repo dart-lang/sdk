@@ -942,7 +942,7 @@ getFallThroughError() => const FallThroughErrorImplementation();
 /**
  * Represents the type Dynamic. The compiler treats this specially.
  */
-interface Dynamic_ {
+abstract class Dynamic_ {
 }
 
 /**
@@ -1221,7 +1221,7 @@ listSuperNativeTypeCast(value, property) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-interface JavaScriptIndexingBehavior {
+abstract class JavaScriptIndexingBehavior {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.

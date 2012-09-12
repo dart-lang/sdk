@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface ConstantVisitor<R> {
+abstract class ConstantVisitor<R> {
   R visitSentinel(SentinelConstant constant);
   R visitFunction(FunctionConstant constant);
   R visitNull(NullConstant constant);

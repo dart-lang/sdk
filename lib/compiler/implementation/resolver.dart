@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface TreeElements {
+abstract class TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
   DartType getType(TypeAnnotation annotation);
@@ -717,7 +717,7 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
   }
 }
 
-interface LabelScope {
+abstract class LabelScope {
   LabelScope get outer;
   LabelElement lookup(String label);
 }
