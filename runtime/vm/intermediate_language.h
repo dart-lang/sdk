@@ -973,10 +973,12 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  // Returns true if the definition may have side effects.
+  // Returns true if the definition is affected by side effects.
+  // Only instructions that are not affected by side effects can participate
+  // in redundancy elimination or loop invariant code motion.
   // TODO(fschneider): Make this abstract and implement for all definitions
   // instead of returning the safe default (true).
-  virtual bool HasSideEffect() const { return true; }
+  virtual bool AffectedBySideEffect() const { return true; }
 
   Value* input_use_list() { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
@@ -2233,8 +2235,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 
 class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
-  LoadIndexedInstr(Value* array, Value* index, intptr_t receiver_type)
-      : receiver_type_(receiver_type) {
+  LoadIndexedInstr(Value* array, Value* index) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -2247,25 +2248,17 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
 
-  intptr_t receiver_type() const { return receiver_type_; }
-
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
-  intptr_t receiver_type_;
-
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };
 
 
 class StoreIndexedInstr : public TemplateDefinition<3> {
  public:
-  StoreIndexedInstr(Value* array,
-                    Value* index,
-                    Value* value,
-                    intptr_t receiver_type)
-        : receiver_type_(receiver_type) {
+  StoreIndexedInstr(Value* array, Value* index, Value* value) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -2281,14 +2274,10 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  intptr_t receiver_type() const { return receiver_type_; }
-
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
-  intptr_t receiver_type_;
-
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
 
@@ -2505,10 +2494,12 @@ class LoadVMFieldInstr : public TemplateDefinition<1> {
  public:
   LoadVMFieldInstr(Value* value,
                    intptr_t offset_in_bytes,
-                   const AbstractType& type)
+                   const AbstractType& type,
+                   bool immutable = false)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
-        result_cid_(kDynamicCid) {
+        result_cid_(kDynamicCid),
+        immutable_(immutable) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
@@ -2527,10 +2518,15 @@ class LoadVMFieldInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return result_cid_; }
 
+  bool AttributesEqual(Definition* other) const;
+
+  virtual bool AffectedBySideEffect() const { return !immutable_; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
   intptr_t result_cid_;
+  const bool immutable_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadVMFieldInstr);
 };
@@ -2783,7 +2779,7 @@ class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
 
   virtual bool AttributesEqual(Definition* other) const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
 
   Value* left() const { return inputs_[0]; }
 
@@ -2809,7 +2805,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   intptr_t token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Definition* other) const { return true; }
 
   virtual intptr_t ResultCid() const;
@@ -2850,7 +2846,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Definition* other) const { return true; }
 
   DECLARE_INSTRUCTION(UnboxDouble)
@@ -2926,7 +2922,7 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Definition* other) const {
     return op_kind() == other->AsUnboxedDoubleBinaryOp()->op_kind();
@@ -3186,7 +3182,7 @@ class CheckClassInstr : public TemplateDefinition<1> {
 
   virtual bool AttributesEqual(Definition* other) const;
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
 
   Value* value() const { return inputs_[0]; }
 
@@ -3220,7 +3216,7 @@ class CheckSmiInstr : public TemplateDefinition<1> {
 
   virtual bool AttributesEqual(Definition* other) const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
 
   virtual Definition* Canonicalize();
 
@@ -3253,7 +3249,7 @@ class CheckArrayBoundInstr : public TemplateDefinition<2> {
 
   virtual bool AttributesEqual(Definition* other) const;
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }

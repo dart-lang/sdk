@@ -358,12 +358,22 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                                             call),
                    call->env(),
                    Definition::kEffect);
+      if (class_id == kGrowableObjectArrayCid) {
+        // Insert data elements load.
+        LoadVMFieldInstr* elements =
+            new LoadVMFieldInstr(array->Copy(),
+                                 GrowableObjectArray::data_offset(),
+                                 Type::ZoneHandle(Type::DynamicType()));
+        elements->set_result_cid(kArrayCid);
+        InsertBefore(call, elements, NULL, Definition::kValue);
+        array = new Value(elements);
+      }
       Definition* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedInstr(array, index, class_id);
+        array_op = new LoadIndexedInstr(array, index);
       } else {
         Value* value = call->ArgumentAt(2)->value();
-        array_op = new StoreIndexedInstr(array, index, value, class_id);
+        array_op = new StoreIndexedInstr(array, index, value);
       }
       call->ReplaceWith(array_op, current_iterator());
       RemovePushArguments(call);
@@ -624,10 +634,12 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       return false;
     }
     intptr_t length_offset = -1;
+    bool is_immutable = false;
     switch (recognized_kind) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
         length_offset = Array::length_offset();
+        is_immutable = true;
         break;
       case MethodRecognizer::kGrowableArrayLength:
         length_offset = GrowableObjectArray::length_offset();
@@ -641,7 +653,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     LoadVMFieldInstr* load = new LoadVMFieldInstr(
         call->ArgumentAt(0)->value(),
         length_offset,
-        Type::ZoneHandle(Type::SmiType()));
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
     load->set_result_cid(kSmiCid);
     call->ReplaceWith(load, current_iterator());
     RemovePushArguments(call);
@@ -679,10 +692,12 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // Check receiver class.
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
+    const bool is_immutable = true;  // String length is immutable.
     LoadVMFieldInstr* load = new LoadVMFieldInstr(
         call->ArgumentAt(0)->value(),
         String::length_offset(),
-        Type::ZoneHandle(Type::SmiType()));
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
     load->set_result_cid(kSmiCid);
     call->ReplaceWith(load, current_iterator());
     RemovePushArguments(call);
@@ -1320,7 +1335,7 @@ void LICM::Optimize(FlowGraph* flow_graph) {
         Definition* current = it.Current()->AsDefinition();
         if (current != NULL &&
             !current->IsPushArgument() &&
-            !current->HasSideEffect()) {
+            !current->AffectedBySideEffect()) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -1354,7 +1369,7 @@ void DominatorBasedCSE::OptimizeRecursive(
     DirectChainedHashMap<Definition*>* map) {
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Definition* defn = it.Current()->AsDefinition();
-    if ((defn == NULL) || defn->HasSideEffect()) continue;
+    if ((defn == NULL) || defn->AffectedBySideEffect()) continue;
     Definition* result = map->Lookup(defn);
     if (result == NULL) {
       map->Insert(defn);

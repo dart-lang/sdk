@@ -72,6 +72,16 @@ bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
 }
 
 
+bool LoadVMFieldInstr::AttributesEqual(Definition* other) const {
+  LoadVMFieldInstr* other_load = other->AsLoadVMField();
+  ASSERT(other_load != NULL);
+  ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
+         ((immutable_ == other_load->immutable_) &&
+          (ResultCid() == other_load->ResultCid())));
+  return offset_in_bytes() == other_load->offset_in_bytes();
+}
+
+
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();

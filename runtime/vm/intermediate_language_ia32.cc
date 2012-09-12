@@ -865,111 +865,52 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
-  ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
-         (receiver_type() == kArrayCid) ||
-         (receiver_type() == kImmutableArrayCid));
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = receiver_type() == kGrowableObjectArrayCid ? 1 : 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  if (receiver_type() == kGrowableObjectArrayCid) {
-    locs->set_temp(0, Location::RequiresRegister());
-  }
-  locs->set_out(Location::RequiresRegister());
-  return locs;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
+  Register array = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register result = locs()->out().reg();
 
-  switch (receiver_type()) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      __ movl(result, FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)));
-      break;
-
-    case kGrowableObjectArrayCid: {
-      Register temp = locs()->temp(0).reg();
-      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      __ movl(result, FieldAddress(temp, index, TIMES_2, sizeof(RawArray)));
-      break;
-    }
-
-    default:
-      UNREACHABLE();
-      break;
-  }
+  // Note that index is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  __ movl(result, FieldAddress(array, index, TIMES_2, sizeof(RawArray)));
 }
 
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
-  ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
-         (receiver_type() == kArrayCid));
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = receiver_type() == kGrowableObjectArrayCid ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, Location::RequiresRegister());
   locs->set_in(2, value()->NeedsStoreBuffer() ? Location::WritableRegister()
                                               : Location::RequiresRegister());
-  if (receiver_type() == kGrowableObjectArrayCid) {
-    locs->set_temp(0, Location::RequiresRegister());
-  }
   return locs;
 }
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
+  Register array = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register value = locs()->in(2).reg();
 
-  switch (receiver_type()) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      if (this->value()->NeedsStoreBuffer()) {
-        __ StoreIntoObject(receiver,
-            FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
-            value);
-      } else {
-        __ StoreIntoObjectNoBarrier(receiver,
-            FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
-            value);
-      }
-      break;
-
-    case kGrowableObjectArrayCid: {
-      Register temp = locs()->temp(0).reg();
-      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      if (this->value()->NeedsStoreBuffer()) {
-        __ StoreIntoObject(temp,
-            FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
-            value);
-      } else {
-        __ StoreIntoObjectNoBarrier(temp,
-            FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
-            value);
-      }
-      break;
-    }
-
-    default:
-      UNREACHABLE();
-      break;
+  // Note that index is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  if (this->value()->NeedsStoreBuffer()) {
+    __ StoreIntoObject(array,
+        FieldAddress(array, index, TIMES_2, sizeof(RawArray)),
+        value);
+  } else {
+    __ StoreIntoObjectNoBarrier(array,
+        FieldAddress(array, index, TIMES_2, sizeof(RawArray)),
+        value);
   }
 }
 

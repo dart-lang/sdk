@@ -377,7 +377,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void LoadVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %"Pd"", offset_in_bytes());
+  f->Print(", %"Pd", immutable=%d", offset_in_bytes(), immutable_);
 }
 
 
