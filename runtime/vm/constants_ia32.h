@@ -94,7 +94,9 @@ enum Condition {
   ZERO          = EQUAL,
   NOT_ZERO      = NOT_EQUAL,
   NEGATIVE      = SIGN,
-  POSITIVE      = NOT_SIGN
+  POSITIVE      = NOT_SIGN,
+  CARRY         = BELOW,
+  NOT_CARRY     = ABOVE_EQUAL
 };
 
 

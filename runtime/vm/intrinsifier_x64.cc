@@ -57,10 +57,13 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 
-  // RDI: allocation size.
   __ movq(RAX, Immediate(heap->TopAddress()));
   __ movq(RAX, Address(RAX, 0));
-  __ leaq(RCX, Address(RAX, RDI, TIMES_1, 0));
+
+  // RDI: allocation size.
+  __ movq(RCX, RAX);
+  __ addq(RCX, RDI);
+  __ j(CARRY, &fall_through);
 
   // Check if the allocation fits into the remaining space.
   // RAX: potential new object start.

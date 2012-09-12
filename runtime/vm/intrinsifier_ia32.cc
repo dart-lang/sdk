@@ -58,9 +58,12 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 
-  // EDI: allocation size.
   __ movl(EAX, Address::Absolute(heap->TopAddress()));
-  __ leal(EBX, Address(EAX, EDI, TIMES_1, 0));
+  __ movl(EBX, EAX);
+
+  // EDI: allocation size.
+  __ addl(EBX, EDI);
+  __ j(CARRY, &fall_through);
 
   // Check if the allocation fits into the remaining space.
   // EAX: potential new object start.
