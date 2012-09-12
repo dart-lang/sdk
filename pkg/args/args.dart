@@ -23,6 +23,11 @@
  *
  *     parser.addFlag('name');
  *
+ * Flag options will, by default, accept a 'no-' prefix to negate the option.
+ * This can be disabled like so:
+ *
+ *     parser.addFlag('name', negatable: false);
+ *
  * (From here on out "option" will refer to both "regular" options and flags.
  * In cases where the distinction matters, we'll use "non-flag option".)
  *
