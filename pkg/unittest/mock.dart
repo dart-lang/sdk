@@ -110,25 +110,25 @@ class CallMatcher {
       nameFilter = wrapMatcher(name);
     }
     argMatchers = new List<Matcher>();
-    if (arg0 == _noArg) return;
+    if (arg0 === _noArg) return;
     argMatchers.add(wrapMatcher(arg0));
-    if (arg1 == _noArg) return;
+    if (arg1 === _noArg) return;
     argMatchers.add(wrapMatcher(arg1));
-    if (arg2 == _noArg) return;
+    if (arg2 === _noArg) return;
     argMatchers.add(wrapMatcher(arg2));
-    if (arg3 == _noArg) return;
+    if (arg3 === _noArg) return;
     argMatchers.add(wrapMatcher(arg3));
-    if (arg4 == _noArg) return;
+    if (arg4 === _noArg) return;
     argMatchers.add(wrapMatcher(arg4));
-    if (arg5 == _noArg) return;
+    if (arg5 === _noArg) return;
     argMatchers.add(wrapMatcher(arg5));
-    if (arg6 == _noArg) return;
+    if (arg6 === _noArg) return;
     argMatchers.add(wrapMatcher(arg6));
-    if (arg7 == _noArg) return;
+    if (arg7 === _noArg) return;
     argMatchers.add(wrapMatcher(arg7));
-    if (arg8 == _noArg) return;
+    if (arg8 === _noArg) return;
     argMatchers.add(wrapMatcher(arg8));
-    if (arg9 == _noArg) return;
+    if (arg9 === _noArg) return;
     argMatchers.add(wrapMatcher(arg9));
   }
 
