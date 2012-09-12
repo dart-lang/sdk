@@ -11,7 +11,7 @@
 
 CodeBuffer compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
-  Uri uri = new Uri.fromComponents(sourceFile.filename);
+  Uri uri = new Uri.fromComponents(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   compiler.runCompiler(uri);
   return compiler.backend.emitter.mainBuffer;
