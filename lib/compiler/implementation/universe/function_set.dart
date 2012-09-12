@@ -118,6 +118,14 @@ class FunctionSet extends PartialTypeTree {
     return result;
   }
 
+  void forEach(Function f) {
+    if (root === null) return;
+    root.visitRecursively((FunctionSetNode node) {
+      node.membersByName.forEach(
+          (SourceString _, Element element) => f(element));
+        return true;
+    });
+  }
 }
 
 class FunctionSetNode extends PartialTypeTreeNode {

@@ -15,6 +15,11 @@ const bool REPORT_EXCESS_RESOLUTION = false;
 const bool REPORT_PASS2_OPTIMIZATIONS = false;
 
 /**
+ * If true, dump the inferred types after compilation.
+ */
+const bool DUMP_INFERRED_TYPES = false;
+
+/**
  * A string to identify the revision or build.
  *
  * This ID is displayed if the compiler crashes and in verbose mode, and is
@@ -585,6 +590,15 @@ class Compiler implements DiagnosticListener {
     world.queueIsClosed = true;
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
+    if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
+      print("Inferred argument types:");
+      print("------------------------");
+      backend.argumentTypes.dump();
+      print("");
+      print("Inferred return types:");
+      print("----------------------");
+      backend.dumpReturnTypes();
+    }
   }
 
   void processRecompilationQueue(Enqueuer world) {
