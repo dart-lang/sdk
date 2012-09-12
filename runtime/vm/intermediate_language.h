@@ -2167,8 +2167,11 @@ class LoadInstanceFieldInstr : public TemplateDefinition<1> {
 
 class StoreInstanceFieldInstr : public TemplateDefinition<2> {
  public:
-  StoreInstanceFieldInstr(const Field& field, Value* instance, Value* value)
-      : field_(field) {
+  StoreInstanceFieldInstr(const Field& field,
+                          Value* instance,
+                          Value* value,
+                          bool emit_store_barrier)
+      : field_(field), emit_store_barrier_(emit_store_barrier) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
     inputs_[0] = instance;
@@ -2182,6 +2185,9 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
+  bool emit_store_barrier() const {
+    return emit_store_barrier_;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2190,6 +2196,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
  private:
   const Field& field_;
+  const bool emit_store_barrier_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };

@@ -949,7 +949,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register value_reg = locs()->in(1).reg();
-  if (this->value()->NeedsStoreBuffer()) {
+  if (this->value()->NeedsStoreBuffer() && emit_store_barrier()) {
     __ StoreIntoObject(instance_reg,
         FieldAddress(instance_reg, field().Offset()), value_reg);
   } else {

@@ -303,7 +303,7 @@ static bool HasOneTarget(const ICData& ic_data) {
 static intptr_t ReceiverClassId(InstanceCallInstr* call) {
   if (!call->HasICData()) return kIllegalCid;
 
-  const ICData& ic_data = *call->ic_data();
+  const ICData& ic_data = ICData::Handle(call->ic_data()->AsUnaryClassChecks());
 
   if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
   // TODO(vegorov): Add multiple receiver type support.
@@ -810,6 +810,19 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
+static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
+  ASSERT(ic_data.num_args_tested() > arg_n);
+  if (ic_data.NumberOfChecks() == 0) return false;
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (class_ids[arg_n] != kSmiCid) return false;
+  }
+  return true;
+}
+
+
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   if (FLAG_enable_type_checks) {
     // TODO(srdjan): Add assignable check node if --enable_type_checks.
@@ -817,18 +830,19 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   }
 
   ASSERT(instr->HasICData());
-  const ICData& ic_data = *instr->ic_data();
-  if (ic_data.NumberOfChecks() == 0) {
+  const ICData& unary_ic_data =
+      ICData::Handle(instr->ic_data()->AsUnaryClassChecks());
+  if (unary_ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     return false;
   }
-  if (!HasOneTarget(ic_data)) {
+  if (!HasOneTarget(unary_ic_data)) {
     // TODO(srdjan): Implement when not all targets are the same.
     return false;
   }
   Function& target = Function::Handle();
   intptr_t class_id;
-  ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  unary_ic_data.GetOneClassCheckAt(0, &class_id, &target);
   if (target.kind() != RawFunction::kImplicitSetter) {
     // Not an implicit setter.
     // TODO(srdjan): Inline special setters.
@@ -843,13 +857,23 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   if (InstanceCallNeedsClassCheck(instr)) {
     AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
   }
+  bool needs_store_barrier = true;
+  if (ArgIsAlwaysSmi(*instr->ic_data(), 1)) {
+    InsertBefore(instr,
+                 new CheckSmiInstr(instr->ArgumentAt(1)->value()->Copy(),
+                                   instr->deopt_id()),
+                 instr->env(),
+                 Definition::kEffect);
+    needs_store_barrier = false;
+  }
   // Detach environment from the original instruction because it can't
   // deoptimize.
   instr->set_env(NULL);
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       field,
       instr->ArgumentAt(0)->value(),
-      instr->ArgumentAt(1)->value());
+      instr->ArgumentAt(1)->value(),
+      needs_store_barrier);
   instr->ReplaceWith(store, current_iterator());
   RemovePushArguments(instr);
   return true;

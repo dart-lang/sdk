@@ -1958,7 +1958,7 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                                                   Token::kSET,
                                                   arguments,
                                                   Array::ZoneHandle(),
-                                                  1);  // Checked arg count.
+                                                  2);  // Checked arg count.
   ReturnDefinition(call);
 }
 
@@ -1975,7 +1975,7 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                            Token::kSET,
                            arguments,
                            Array::ZoneHandle(),
-                           1));  // Checked argument count.
+                           2));  // Checked argument count.
   ReturnDefinition(BuildLoadExprTemp());
 }
 
@@ -2156,8 +2156,9 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        type,
                                        dst_name);
   }
+  const bool kEmitStoreBarrier = true;
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
-      node->field(), for_instance.value(), store_value);
+      node->field(), for_instance.value(), store_value, kEmitStoreBarrier);
   ReturnDefinition(store);
 }
 
