@@ -947,24 +947,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* LoadInstanceFieldInstr::MakeLocationSummary() const {
-  // TODO(fschneider): For this instruction the input register may be
-  // reused for the result (but is not required to) because the input
-  // is not used after the result is defined.  We should consider adding
-  // this information to the input policy.
-  return LocationSummary::Make(1,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void LoadInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
-  __ movl(result_reg, FieldAddress(instance_reg, field().Offset()));
-}
-
-
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t num_temps =  0;
@@ -1118,14 +1100,14 @@ void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
 }
 
 
-LocationSummary* LoadVMFieldInstr::MakeLocationSummary() const {
+LocationSummary* LoadFieldInstr::MakeLocationSummary() const {
   return LocationSummary::Make(1,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
-void LoadVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 

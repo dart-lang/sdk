@@ -287,12 +287,6 @@ void NativeCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void LoadInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", String::Handle(field().name()).ToCString());
-  instance()->PrintTo(f);
-}
-
-
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", String::Handle(field().name()).ToCString());
   instance()->PrintTo(f);
@@ -375,7 +369,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void LoadVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %"Pd", immutable=%d", offset_in_bytes(), immutable_);
 }

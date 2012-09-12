@@ -241,7 +241,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
     ASSERT(delta >= 0);
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
-      context = Bind(new LoadVMFieldInstr(
+      context = Bind(new LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle()));
     }
 
@@ -270,12 +270,12 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     ASSERT(delta >= 0);
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
-      context = Bind(new LoadVMFieldInstr(
+      context = Bind(new LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle()));
     }
-    return new LoadVMFieldInstr(context,
-                                Context::variable_offset(local.index()),
-                                local.type());
+    return new LoadFieldInstr(context,
+                              Context::variable_offset(local.index()),
+                              local.type());
   } else {
     return new LoadLocalInstr(local, owner()->context_level());
   }
@@ -1771,7 +1771,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
 
   InlineBailout("EffectGraphVisitor::BuildInstantiatorTypeArguments (deopt)");
-  return Bind(new LoadVMFieldInstr(
+  return Bind(new LoadFieldInstr(
       instantiator,
       type_arguments_instance_field_offset,
       Type::ZoneHandle()));  // Not an instance, no type.
@@ -2131,8 +2131,10 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   ValueGraphVisitor for_instance(owner(), temp_index());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
-  LoadInstanceFieldInstr* load = new LoadInstanceFieldInstr(
-      node->field(), for_instance.value());
+  LoadFieldInstr* load = new LoadFieldInstr(
+      for_instance.value(),
+      node->field().Offset(),
+      AbstractType::ZoneHandle(node->field().type()));
   ReturnDefinition(load);
 }
 
@@ -2307,9 +2309,9 @@ void EffectGraphVisitor::UnchainContext() {
   InlineBailout("EffectGraphVisitor::UnchainContext (deopt)");
   Value* context = Bind(new CurrentContextInstr());
   Value* parent = Bind(
-      new LoadVMFieldInstr(context,
-                           Context::parent_offset(),
-                           Type::ZoneHandle()));  // Not an instance, no type.
+      new LoadFieldInstr(context,
+                         Context::parent_offset(),
+                         Type::ZoneHandle()));  // Not an instance, no type.
   Do(new StoreContextInstr(parent));
 }
 

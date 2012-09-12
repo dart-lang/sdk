@@ -373,10 +373,10 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                    Definition::kEffect);
       if (class_id == kGrowableObjectArrayCid) {
         // Insert data elements load.
-        LoadVMFieldInstr* elements =
-            new LoadVMFieldInstr(array->Copy(),
-                                 GrowableObjectArray::data_offset(),
-                                 Type::ZoneHandle(Type::DynamicType()));
+        LoadFieldInstr* elements =
+            new LoadFieldInstr(array->Copy(),
+                               GrowableObjectArray::data_offset(),
+                               Type::ZoneHandle(Type::DynamicType()));
         elements->set_result_cid(kArrayCid);
         InsertBefore(call, elements, NULL, Definition::kValue);
         array = new Value(elements);
@@ -637,8 +637,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // Detach environment from the original instruction because it can't
     // deoptimize.
     call->set_env(NULL);
-    LoadInstanceFieldInstr* load =
-        new LoadInstanceFieldInstr(field, call->ArgumentAt(0)->value());
+    LoadFieldInstr* load = new LoadFieldInstr(
+        call->ArgumentAt(0)->value(),
+        field.Offset(),
+        AbstractType::ZoneHandle(field.type()));
     call->ReplaceWith(load, current_iterator());
     RemovePushArguments(call);
     return true;
@@ -673,7 +675,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // Check receiver class.
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
-    LoadVMFieldInstr* load = new LoadVMFieldInstr(
+    LoadFieldInstr* load = new LoadFieldInstr(
         call->ArgumentAt(0)->value(),
         length_offset,
         Type::ZoneHandle(Type::SmiType()),
@@ -689,14 +691,14 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
     // TODO(srdjan): type of load should be GrowableObjectArrayType.
-    LoadVMFieldInstr* data_load = new LoadVMFieldInstr(
+    LoadFieldInstr* data_load = new LoadFieldInstr(
         call->ArgumentAt(0)->value(),
         Array::data_offset(),
         Type::ZoneHandle(Type::DynamicType()));
     data_load->set_result_cid(kArrayCid);
     InsertBefore(call, data_load, NULL, Definition::kValue);
 
-    LoadVMFieldInstr* length_load = new LoadVMFieldInstr(
+    LoadFieldInstr* length_load = new LoadFieldInstr(
         new Value(data_load),
         Array::length_offset(),
         Type::ZoneHandle(Type::SmiType()));
@@ -716,7 +718,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
     const bool is_immutable = true;  // String length is immutable.
-    LoadVMFieldInstr* load = new LoadVMFieldInstr(
+    LoadFieldInstr* load = new LoadFieldInstr(
         call->ArgumentAt(0)->value(),
         String::length_offset(),
         Type::ZoneHandle(Type::SmiType()),

@@ -214,7 +214,6 @@ class EmbeddedArray<T, 0> {
   M(NativeCall)                                                                \
   M(LoadIndexed)                                                               \
   M(StoreIndexed)                                                              \
-  M(LoadInstanceField)                                                         \
   M(StoreInstanceField)                                                        \
   M(LoadStaticField)                                                           \
   M(StoreStaticField)                                                          \
@@ -224,7 +223,7 @@ class EmbeddedArray<T, 0> {
   M(CreateClosure)                                                             \
   M(AllocateObject)                                                            \
   M(AllocateObjectWithBoundsCheck)                                             \
-  M(LoadVMField)                                                               \
+  M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
@@ -2136,31 +2135,6 @@ class NativeCallInstr : public TemplateDefinition<0> {
 };
 
 
-class LoadInstanceFieldInstr : public TemplateDefinition<1> {
- public:
-  LoadInstanceFieldInstr(const Field& field, Value* instance) : field_(field) {
-    ASSERT(instance != NULL);
-    inputs_[0] = instance;
-  }
-
-  DECLARE_INSTRUCTION(LoadInstanceField)
-  virtual RawAbstractType* CompileType() const;
-
-  const Field& field() const { return field_; }
-  Value* instance() const { return inputs_[0]; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
-
- private:
-  const Field& field_;
-
-  DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldInstr);
-};
-
-
 class StoreInstanceFieldInstr : public TemplateDefinition<2> {
  public:
   StoreInstanceFieldInstr(const Field& field,
@@ -2511,12 +2485,12 @@ class CreateClosureInstr : public TemplateDefinition<0> {
 };
 
 
-class LoadVMFieldInstr : public TemplateDefinition<1> {
+class LoadFieldInstr : public TemplateDefinition<1> {
  public:
-  LoadVMFieldInstr(Value* value,
-                   intptr_t offset_in_bytes,
-                   const AbstractType& type,
-                   bool immutable = false)
+  LoadFieldInstr(Value* value,
+                 intptr_t offset_in_bytes,
+                 const AbstractType& type,
+                 bool immutable = false)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
         result_cid_(kDynamicCid),
@@ -2526,7 +2500,7 @@ class LoadVMFieldInstr : public TemplateDefinition<1> {
     inputs_[0] = value;
   }
 
-  DECLARE_INSTRUCTION(LoadVMField)
+  DECLARE_INSTRUCTION(LoadField)
   virtual RawAbstractType* CompileType() const;
 
   Value* value() const { return inputs_[0]; }
@@ -2549,7 +2523,7 @@ class LoadVMFieldInstr : public TemplateDefinition<1> {
   intptr_t result_cid_;
   const bool immutable_;
 
-  DISALLOW_COPY_AND_ASSIGN(LoadVMFieldInstr);
+  DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
 
 

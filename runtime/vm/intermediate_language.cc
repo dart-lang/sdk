@@ -72,8 +72,8 @@ bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool LoadVMFieldInstr::AttributesEqual(Definition* other) const {
-  LoadVMFieldInstr* other_load = other->AsLoadVMField();
+bool LoadFieldInstr::AttributesEqual(Definition* other) const {
+  LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
          ((immutable_ == other_load->immutable_) &&
@@ -916,14 +916,6 @@ RawAbstractType* StoreIndexedInstr::CompileType() const {
 }
 
 
-RawAbstractType* LoadInstanceFieldInstr::CompileType() const {
-  if (FLAG_enable_type_checks) {
-    return field().type();
-  }
-  return Type::DynamicType();
-}
-
-
 RawAbstractType* StoreInstanceFieldInstr::CompileType() const {
   return value()->CompileType();
 }
@@ -976,7 +968,7 @@ RawAbstractType* AllocateObjectWithBoundsCheckInstr::CompileType() const {
 }
 
 
-RawAbstractType* LoadVMFieldInstr::CompileType() const {
+RawAbstractType* LoadFieldInstr::CompileType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
   // Keep it as null for debug purposes and do not return Dynamic in production
   // mode, since misuse of the type would remain undetected.
