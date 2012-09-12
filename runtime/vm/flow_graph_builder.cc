@@ -1687,7 +1687,9 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
                             node->arguments()->names(),
                             arguments);
     // List factories return kArrayCid or kGrowableObjectArrayCid.
-    call->set_result_cid(GetResultCidOfConstructor(node));
+    const intptr_t result_cid = GetResultCidOfConstructor(node);
+    call->set_result_cid(result_cid);
+    call->set_is_known_constructor(result_cid != kDynamicCid);
     ReturnDefinition(call);
     return;
   }

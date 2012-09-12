@@ -243,7 +243,7 @@ class EmbeddedArray<T, 0> {
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
   M(CheckArrayBound)                                                           \
-
+  M(CheckBound)                                                                \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -445,6 +445,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckClassInstr;
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
+  friend class CheckBoundInstr;
   friend class CheckEitherNonSmiInstr;
   friend class LICM;
 
@@ -1996,7 +1997,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments),
-        result_cid_(kDynamicCid) {
+        result_cid_(kDynamicCid),
+        is_known_constructor_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2020,12 +2022,20 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return result_cid_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
+  bool is_known_constructor() const { return is_known_constructor_; }
+  void set_is_known_constructor(bool is_known_constructor) {
+    is_known_constructor_ = is_known_constructor;
+  }
+
  private:
   const intptr_t token_pos_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
+
+  // Some library constructors have known semantics.
+  bool is_known_constructor_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -2868,7 +2878,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Definition* other) const {
     return true;
@@ -3256,10 +3266,44 @@ class CheckArrayBoundInstr : public TemplateDefinition<2> {
 
   intptr_t array_type() const { return array_type_; }
 
+  virtual Definition* Canonicalize();
+
  private:
   intptr_t array_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
+};
+
+
+class CheckBoundInstr : public TemplateDefinition<2> {
+ public:
+  CheckBoundInstr(Value* length,
+                  Value* index,
+                  intptr_t deopt_id) {
+    ASSERT(length != NULL);
+    ASSERT(index != NULL);
+    inputs_[0] = length;
+    inputs_[1] = index;
+    deopt_id_ = deopt_id;
+  }
+
+  DECLARE_INSTRUCTION(CheckBound)
+  virtual RawAbstractType* CompileType() const;
+
+  virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kIllegalCid; }
+
+  virtual bool AttributesEqual(Definition* other) const {
+    return true;
+  }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  Value* length() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckBoundInstr);
 };
 
 
