@@ -993,6 +993,144 @@ void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
 }
 
 
+// SminessPropagator ensures that CheckSmis are eliminated across phis.
+class SminessPropagator {
+ public:
+  explicit SminessPropagator(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        known_smis_(new BitVector(flow_graph_->current_ssa_temp_index())),
+        rollback_checks_(10),
+        in_worklist_(NULL),
+        worklist_(0) { }
+
+  void Propagate();
+
+ private:
+  void PropagateSminessRecursive(BlockEntryInstr* block);
+  void AddToWorklist(PhiInstr* phi);
+  PhiInstr* RemoveLastFromWorklist();
+  void ProcessPhis();
+
+  FlowGraph* flow_graph_;
+
+  BitVector* known_smis_;
+  GrowableArray<intptr_t> rollback_checks_;
+
+  BitVector* in_worklist_;
+  GrowableArray<PhiInstr*> worklist_;
+};
+
+
+void SminessPropagator::AddToWorklist(PhiInstr* phi) {
+  if (in_worklist_ == NULL) {
+    in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
+  }
+  if (!in_worklist_->Contains(phi->ssa_temp_index())) {
+    in_worklist_->Add(phi->ssa_temp_index());
+    worklist_.Add(phi);
+  }
+}
+
+
+PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
+  PhiInstr* phi = worklist_.Last();
+  ASSERT(in_worklist_->Contains(phi->ssa_temp_index()));
+  worklist_.RemoveLast();
+  in_worklist_->Remove(phi->ssa_temp_index());
+  return phi;
+}
+
+
+static bool IsSmiPhi(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    Value* input = phi->InputAt(i);
+    if ((input->definition() != phi) &&
+        (input->ResultCid() != kSmiCid)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+void SminessPropagator::ProcessPhis() {
+  while (!worklist_.is_empty()) {
+    PhiInstr* phi = RemoveLastFromWorklist();
+    if (IsSmiPhi(phi)) {
+      ASSERT(phi->GetPropagatedCid() != kSmiCid);
+      phi->SetPropagatedCid(kSmiCid);
+      for (Value* use = phi->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        if (use->definition()->IsPhi() &&
+            (use->definition()->GetPropagatedCid() != kSmiCid)) {
+          AddToWorklist(use->definition()->AsPhi());
+        }
+      }
+    }
+  }
+}
+
+
+void SminessPropagator::PropagateSminessRecursive(BlockEntryInstr* block) {
+  const intptr_t rollback_point = rollback_checks_.length();
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->IsCheckSmi()) {
+      const intptr_t value_ssa_index =
+          instr->InputAt(0)->definition()->ssa_temp_index();
+      if (!known_smis_->Contains(value_ssa_index)) {
+        known_smis_->Add(value_ssa_index);
+        rollback_checks_.Add(value_ssa_index);
+      }
+    }
+  }
+
+  for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
+    PropagateSminessRecursive(block->dominated_blocks()[i]);
+  }
+
+  if (block->last_instruction()->SuccessorCount() == 1 &&
+      block->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* join =
+        block->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = join->IndexOfPredecessor(block);
+    ASSERT(pred_index >= 0);
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi == NULL) continue;
+        Value* use = phi->InputAt(pred_index);
+        const intptr_t value_ssa_index = use->definition()->ssa_temp_index();
+        if (known_smis_->Contains(value_ssa_index) &&
+            (phi->GetPropagatedCid() != kSmiCid)) {
+          use->set_reaching_cid(kSmiCid);
+          AddToWorklist(phi);
+        }
+      }
+    }
+  }
+
+  for (intptr_t i = rollback_point; i < rollback_checks_.length(); i++) {
+    known_smis_->Remove(rollback_checks_[i]);
+  }
+  rollback_checks_.TruncateTo(rollback_point);
+}
+
+
+void SminessPropagator::Propagate() {
+  PropagateSminessRecursive(flow_graph_->graph_entry());
+  ProcessPhis();
+}
+
+
+void FlowGraphOptimizer::PropagateSminess() {
+  SminessPropagator propagator(flow_graph_);
+  propagator.Propagate();
+}
+
+
 void FlowGraphTypePropagator::VisitBlocks() {
   ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {

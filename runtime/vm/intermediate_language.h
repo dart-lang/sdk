@@ -62,7 +62,8 @@ class Value : public ZoneAllocated {
       : definition_(definition),
         next_use_(NULL),
         instruction_(NULL),
-        use_index_(-1) { }
+        use_index_(-1),
+        reaching_cid_(kIllegalCid) { }
 
   Definition* definition() const { return definition_; }
   void set_definition(Definition* definition) { definition_ = definition; }
@@ -107,11 +108,16 @@ class Value : public ZoneAllocated {
 
   bool Equals(Value* other) const;
 
+  void set_reaching_cid(intptr_t cid) { reaching_cid_ = cid; }
+  intptr_t reaching_cid() const { return reaching_cid_; }
+
  private:
   Definition* definition_;
   Value* next_use_;
   Instruction* instruction_;
   intptr_t use_index_;
+
+  intptr_t reaching_cid_;
 
   DISALLOW_COPY_AND_ASSIGN(Value);
 };

@@ -203,6 +203,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // Verify that the use lists are still valid.
         DEBUG_ASSERT(flow_graph->ValidateUseLists());
 
+        // Propagate sminess from CheckSmi to phis.
+        optimizer.PropagateSminess();
+
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();
 

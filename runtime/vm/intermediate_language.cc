@@ -742,7 +742,10 @@ RawAbstractType* Value::CompileType() const {
 
 
 intptr_t Value::ResultCid() const {
-  return definition()->GetPropagatedCid();
+  if (reaching_cid() == kIllegalCid) {
+    return definition()->GetPropagatedCid();
+  }
+  return reaching_cid();
 }
 
 
