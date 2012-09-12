@@ -1429,8 +1429,8 @@ class NodeListener extends ElementListener {
 
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Block block = popNode();
-    NodeList formals = popNode();
-    TypeAnnotation type = onKeyword != null ? popNode() : null;
+    NodeList formals = catchKeyword !== null? popNode(): null;
+    TypeAnnotation type = onKeyword !== null ? popNode() : null;
     pushNode(new CatchBlock(type, formals, block, onKeyword, catchKeyword));
   }
 

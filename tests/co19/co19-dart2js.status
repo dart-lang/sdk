@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js ]
 Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
-Language/03_Overview/03_Overview_A01_t02: Crash # http://dartbug.com/5016
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
 
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.

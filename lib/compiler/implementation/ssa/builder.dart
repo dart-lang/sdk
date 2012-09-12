@@ -3672,8 +3672,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
-        localsHandler.updateLocal(elements[catchBlock.exception],
-                                  unwrappedException);
+        if (catchBlock.exception !== null) {
+          localsHandler.updateLocal(elements[catchBlock.exception],
+                                    unwrappedException);
+        }
         Node trace = catchBlock.trace;
         if (trace != null) {
           pushInvokeHelper1(interceptors.getTraceFromException(), exception);

@@ -473,7 +473,7 @@ class Unparser implements Visitor {
   }
 
   visitTryStatement(TryStatement node) {
-    add(node.tryKeyword.value);
+    addToken(node.tryKeyword);
     visit(node.tryBlock);
     visit(node.catchBlocks);
     if (node.finallyKeyword !== null) {
@@ -495,7 +495,7 @@ class Unparser implements Visitor {
       visit(node.type);
       sb.add(' ');
     }
-    add(node.catchKeyword.value);
+    addToken(node.catchKeyword);
     visit(node.formals);
     visit(node.block);
   }

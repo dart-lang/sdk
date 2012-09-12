@@ -1702,13 +1702,13 @@ class CatchBlock extends Node {
   accept(Visitor visitor) => visitor.visitCatchBlock(this);
 
   Node get exception {
-    if (formals.nodes.isEmpty()) return null;
+    if (formals === null || formals.nodes.isEmpty()) return null;
     VariableDefinitions declarations = formals.nodes.head;
     return declarations.definitions.nodes.head;
   }
 
   Node get trace {
-    if (formals.nodes.isEmpty()) return null;
+    if (formals === null || formals.nodes.isEmpty()) return null;
     Link<Node> declarations = formals.nodes.tail;
     if (declarations.isEmpty()) return null;
     VariableDefinitions head = declarations.head;
@@ -1716,8 +1716,8 @@ class CatchBlock extends Node {
   }
 
   visitChildren(Visitor visitor) {
-    if (type != null) type.accept(visitor);
-    formals.accept(visitor);
+    if (type !== null) type.accept(visitor);
+    if (formals !== null) formals.accept(visitor);
     block.accept(visitor);
   }
 
