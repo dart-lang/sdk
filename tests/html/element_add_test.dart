@@ -12,7 +12,7 @@ main() {
   useHtmlConfiguration();
 
   void expectNoSuchMethod(void fn()) =>
-    Expect.throws(fn, (e) => e is NoSuchMethodException);
+    Expect.throws(fn, (e) => e is NoSuchMethodError);
 
   group('addHTML', () {
     test('htmlelement', () {

@@ -33,52 +33,6 @@ class IllegalAccessException implements Exception {
 }
 
 
-/**
- * Exception thrown because of non-existing receiver's method.
- */
-class NoSuchMethodException implements Exception {
-  const NoSuchMethodException(Object this._receiver,
-                              String this._functionName,
-                              List this._arguments,
-                              [List existingArgumentNames = null])
-      : this._existingArgumentNames = existingArgumentNames;
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    for (int i = 0; i < _arguments.length; i++) {
-      if (i > 0) {
-        sb.add(", ");
-      }
-      sb.add(_arguments[i]);
-    }
-    if (_existingArgumentNames === null) {
-      return "NoSuchMethodException : method not found: '$_functionName'\n"
-          "Receiver: $_receiver\n"
-          "Arguments: [$sb]";
-    } else {
-      String actualParameters = sb.toString();
-      sb = new StringBuffer();
-      for (int i = 0; i < _existingArgumentNames.length; i++) {
-        if (i > 0) {
-          sb.add(", ");
-        }
-        sb.add(_existingArgumentNames[i]);
-      }
-      String formalParameters = sb.toString();
-      return "NoSuchMethodException: incorrect number of arguments passed to "
-          "method named '$_functionName'\nReceiver: $_receiver\n"
-          "Tried calling: $_functionName($actualParameters)\n"
-          "Found: $_functionName($formalParameters)";
-    }
-  }
-
-  final Object _receiver;
-  final String _functionName;
-  final List _arguments;
-  final List _existingArgumentNames;
-}
-
-
 class ClosureArgumentMismatchException implements Exception {
   const ClosureArgumentMismatchException();
   String toString() => "Closure argument mismatch";

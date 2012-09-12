@@ -332,6 +332,14 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     buffer.add("$isolate = $finishIsolateConstructorName($isolate);\n");
   }
 
+  /**
+   * Generate stubs to handle invocation of methods with optional
+   * arguments.
+   *
+   * A method like [: foo([x]) :] may be invoked by the following
+   * calls: [: foo(), foo(1), foo(x: 1) :]. See the sources of this
+   * function for detailed examples.
+   */
   void addParameterStub(FunctionElement member,
                         Selector selector,
                         DefineMemberFunction defineInstanceMember) {
@@ -339,6 +347,13 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
       assert(selector.namedArgumentCount == 0);
+      return;
+    }
+    if (parameters.optionalParametersAreNamed
+        && selector.namedArgumentCount == parameters.optionalParameterCount) {
+      // If the selector has the same number of named arguments than
+      // the element, we don't need to add a stub. The call site will
+      // hit the method directly.
       return;
     }
     ConstantHandler handler = compiler.constantHandler;
@@ -355,6 +370,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     // The arguments that will be passed to the real method.
     List<String> argumentsBuffer = new List<String>(parameters.parameterCount);
 
+    // TODO(5074): Update this comment once we remove support for
+    // the deprecated parameter specification.
     // We fill the lists depending on the selector. For example,
     // take method foo:
     //    foo(a, b, [c, d]);
@@ -690,6 +707,16 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         generateTypeTest(element);
       }
       generateInterfacesIsTests(element, generateTypeTest, alreadyGenerated);
+
+      // Since [element] is implemented by [cls], we need to also emit
+      // is checks for the superclass and its supertypes.
+      ClassElement superclass = element.superclass;
+      if (!alreadyGenerated.contains(superclass) &&
+          compiler.codegenWorld.checkedClasses.contains(superclass)) {
+        alreadyGenerated.add(superclass);
+        generateTypeTest(superclass);
+      }
+      generateInterfacesIsTests(superclass, generateTypeTest, alreadyGenerated);
     }
   }
 
@@ -792,10 +819,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       FunctionElement callElement =
           new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.getName(element);
-      int parameterCount = element.parameterCount(compiler);
-      String invocationName =
-          namer.instanceMethodName(element.getLibrary(), callElement.name,
-                                   parameterCount);
+      String invocationName = namer.instanceMethodName(callElement);
       String fieldAccess = '$isolateProperties.$staticName';
       buffer.add("$fieldAccess.$invocationName = $fieldAccess;\n");
       addParameterStubs(callElement, (String name, CodeBuffer value) {
@@ -860,9 +884,7 @@ $classesCollector.$mangledName = {'':
       FunctionElement callElement =
           new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
 
-      String invocationName =
-          namer.instanceMethodName(member.getLibrary(),
-                                   callElement.name, parameterCount);
+      String invocationName = namer.instanceMethodName(callElement);
       List<String> arguments = new List<String>(parameterCount);
       for (int i = 0; i < parameterCount; i++) {
         arguments[i] = "p$i";
@@ -887,8 +909,7 @@ $classesCollector.$mangledName = {'':
 
     // And finally the getter.
     String getterName = namer.getterName(member.getLibrary(), member.name);
-    String targetName = namer.instanceMethodName(member.getLibrary(),
-                                                 member.name, parameterCount);
+    String targetName = namer.instanceMethodName(member);
     CodeBuffer getterBuffer = new CodeBuffer();
     getterBuffer.add(
         "function() { return new $closureClass(this, '$targetName'); }");
@@ -1023,7 +1044,7 @@ $classesCollector.$mangledName = {'':
     if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
     String noSuchMethodName =
-        namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
+        namer.instanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
@@ -1226,20 +1247,37 @@ $mainEnsureGetter
       mainCall = '${namer.isolateAccess(main)}()';
     }
     buffer.add("""
+
+//
+// BEGIN invoke [main].
+//
 if (typeof document != 'undefined' && document.readyState != 'complete') {
   document.addEventListener('readystatechange', function () {
     if (document.readyState == 'complete') {
-      ${mainCall};
+      if (typeof dartMainRunner == 'function') {
+        dartMainRunner(function() { ${mainCall}; });
+      } else {
+        ${mainCall};
+      }
     }
   }, false);
 } else {
-  ${mainCall};
+  if (typeof dartMainRunner == 'function') {
+    dartMainRunner(function() { ${mainCall}; });
+  } else {
+    ${mainCall};
+  }
 }
+//
+// END invoke [main].
+//
+
 """);
   }
 
   String assembleProgram() {
     measure(() {
+      mainBuffer.add(HOOKS_API_USAGE);
       mainBuffer.add('function ${namer.ISOLATE}() {}\n');
       mainBuffer.add('init();\n\n');
       // Shorten the code by using "$$" as temporary.
@@ -1308,3 +1346,14 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
 }
 
 typedef void DefineMemberFunction(String invocationName, CodeBuffer definition);
+
+const String HOOKS_API_USAGE = """
+// Generated by dart2js, the Dart to JavaScript compiler.
+// The code supports the following hooks:
+// dartPrint(message)   - if this function is defined it is called
+//                        instead of the Dart [print] method.
+// dartMainRunner(main) - if this function is defined, the Dart [main]
+//                        method will not be invoked directly.
+//                        Instead, a closure that will invoke [main] is
+//                        passed to [dartMainRunner].
+""";

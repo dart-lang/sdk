@@ -35,23 +35,63 @@ main() {
     });
   });
 
-  // TODO(rnystrom): Re-enable this when #4820 is fixed.
-  /*
-  test('creates a self-referential symlink', () {
+  test('adds itself to the packages', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
     dir(appPath, [
-      pubspec({"name": "myapp_name"})
+      pubspec({"name": "myapp_name"}),
+      libDir('myapp_name')
     ]).scheduleCreate();
 
     schedulePub(args: ['update'],
         output: const RegExp(@"Dependencies updated!$"));
 
     dir(packagesPath, [
-      dir("myapp_name", [pubspec({"name": "myapp_name"})])
+      dir("myapp_name", [
+        file('myapp_name.dart', 'main() => "myapp_name";')
+      ])
     ]).scheduleValidate();
 
     run();
   });
-  */
+
+  test('does not adds itself to the packages if it has no "lib" directory', () {
+    // The symlink should use the name in the pubspec, not the name of the
+    // directory.
+    dir(appPath, [
+      pubspec({"name": "myapp_name"}),
+    ]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    dir(packagesPath, [
+      nothing("myapp_name")
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('does not add a package if it does not have a "lib" directory', () {
+    // Using an SDK source, but this should be true of all sources.
+    dir(sdkPath, [
+      file('revision', '1234'),
+      dir('pkg', [
+        dir('foo', [])
+      ])
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      pubspec({"name": "myapp", "dependencies": {"foo": {"sdk": "foo"}}})
+    ]).scheduleCreate();
+
+    schedulePub(args: ['update'],
+        output: '''
+        Dependencies updated!
+        ''');
+
+    packagesDir({"foo": null}).scheduleValidate();
+
+    run();
+  });
 }

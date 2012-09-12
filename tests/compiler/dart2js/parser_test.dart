@@ -255,12 +255,11 @@ void testPostfix() {
 }
 
 void testOperatorParse() {
-  FunctionDeclaration node = parseStatement('operator negate() => null;');
-  FunctionExpression function = node.function;
+  FunctionExpression function = parseMember('operator -() => null;');
   Send name = function.name.asSend();
   Expect.isNotNull(name);
   Expect.stringEquals('operator', name.receiver.source.stringValue);
-  Expect.equals(buildSourceString('negate'), name.selector.source);
+  Expect.stringEquals('-', name.selector.source.stringValue);
   Expect.isTrue(function.parameters.isEmpty());
   Expect.isNull(function.returnType);
   Expect.isNull(function.getOrSet);

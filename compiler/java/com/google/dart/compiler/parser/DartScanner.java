@@ -1214,6 +1214,13 @@ public class DartScanner {
       case '#':
         return scanDirective();
 
+      case 'r':
+        if (lookahead(1) == '\'' || lookahead(1) == '"') {
+          advance();
+          return scanString(true);
+        }
+        return scanIdentifier(true);
+
       default:
         if (isIdentifierStart(lookahead(0))) {
           boolean allowDollars = true;

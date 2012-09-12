@@ -2423,8 +2423,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Now that we know the parameter list, we can distinguish between the
   // unary and binary operator -.
   if (method->has_operator &&
-      ((method->name->Equals(Token::Str(Token::kNEGATE))) ||
-      method->name->Equals("-")) &&
+      method->name->Equals("-") &&
       (method->params.num_fixed_parameters == 1)) {
     // Patch up name for unary operator - so it does not clash with the
     // name for binary operator -.
@@ -2769,9 +2768,7 @@ void Parser::CheckOperatorArity(const MemberDesc& member,
     } else {
       expected_num_parameters = 2;
     }
-  } else if ((operator_token == Token::kNEGATE) ||
-      (operator_token == Token::kBIT_NOT)) {
-    // TODO(hausner): Remove support for keyword 'negate'.
+  } else if (operator_token == Token::kBIT_NOT) {
     expected_num_parameters = 1;
   } else {
     expected_num_parameters = 2;
@@ -4018,8 +4015,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 }
 
 
-void Parser::ParseLibraryName() {
-  TRACE_PARSER("ParseLibraryName");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryNameObsoleteSyntax() {
   if ((script_.kind() == RawScript::kLibraryTag) &&
       (CurrentToken() != Token::kLIBRARY)) {
     // Handle error case early to get consistent error message.
@@ -4060,8 +4057,8 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-void Parser::ParseLibraryImport() {
-  TRACE_PARSER("ParseLibraryImport");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryImportObsoleteSyntax() {
   while (CurrentToken() == Token::kIMPORT) {
     const intptr_t import_pos = TokenPos();
     ConsumeToken();
@@ -4125,8 +4122,8 @@ void Parser::ParseLibraryImport() {
 }
 
 
-void Parser::ParseLibraryInclude() {
-  TRACE_PARSER("ParseLibraryInclude");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryIncludeObsoleteSyntax() {
   while (CurrentToken() == Token::kSOURCE) {
     const intptr_t source_pos = TokenPos();
     ConsumeToken();
@@ -4147,8 +4144,8 @@ void Parser::ParseLibraryInclude() {
 }
 
 
-void Parser::ParseLibraryResource() {
-  TRACE_PARSER("ParseLibraryResource");
+// TODO(hausner): Remove support for old library definition syntax.
+void Parser::ParseLibraryResourceObsoleteSyntax() {
   while (CurrentToken() == Token::kRESOURCE) {
     // Currently the VM does ignore #resource library tags. They are only used
     // by the IDE.
@@ -4164,18 +4161,134 @@ void Parser::ParseLibraryResource() {
 }
 
 
+void Parser::ParseLibraryName() {
+  ASSERT(IsLiteral("library"));
+  ConsumeToken();
+  // TODO(hausner): Exact syntax of library name still unclear: identifier,
+  // qualified identifier or even multiple dots allowed? For now we just
+  // accept simple identifiers.
+  const String& lib_name = *ExpectIdentifier("library name expected");
+  library_.SetName(lib_name);
+  ExpectSemicolon();
+}
+
+
+void Parser::ParseLibraryImportExport() {
+  if (IsLiteral("import")) {
+    const intptr_t import_pos = TokenPos();
+    ConsumeToken();
+    if (CurrentToken() != Token::kSTRING) {
+      ErrorMsg("library url expected");
+    }
+    const String& url = *CurrentLiteral();
+    if (url.Length() == 0) {
+      ErrorMsg("library url expected");
+    }
+    ConsumeToken();
+    String& prefix = String::Handle();
+    if (IsLiteral("as")) {
+      ConsumeToken();
+      prefix = ExpectIdentifier("prefix expected")->raw();
+    }
+    if (IsLiteral("show")) {
+      ErrorMsg("show combinator not yet supported");
+    } else if (IsLiteral("hide")) {
+      ErrorMsg("hide combinator not yet supported");
+    }
+    ExpectSemicolon();
+
+    // Canonicalize library URL.
+    Dart_Handle handle =
+        CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url);
+    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+    // Lookup the library URL.
+    Library& library = Library::Handle(Library::LookupLibrary(canon_url));
+    if (library.IsNull()) {
+      // Call the library tag handler to load the library.
+      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+      // If the library tag handler succeded without registering the
+      // library we create an empty library to import.
+      library = Library::LookupLibrary(canon_url);
+      if (library.IsNull()) {
+        library = Library::New(canon_url);
+        library.Register();
+      }
+    }
+    // Add the import to the library.
+    if (prefix.IsNull() || (prefix.Length() == 0)) {
+      library_.AddImport(library);
+    } else {
+      LibraryPrefix& library_prefix = LibraryPrefix::Handle();
+      library_prefix = library_.LookupLocalLibraryPrefix(prefix);
+      if (!library_prefix.IsNull()) {
+        library_prefix.AddLibrary(library);
+      } else {
+        library_prefix = LibraryPrefix::New(prefix, library);
+        library_.AddObject(library_prefix, prefix);
+      }
+    }
+  } else if (IsLiteral("export")) {
+    ErrorMsg("export clause not yet supported");
+  } else {
+    ErrorMsg("unreachable");
+    UNREACHABLE();
+  }
+}
+
+
+void Parser::ParseLibraryPart() {
+  ErrorMsg("library part definitions not implemented");
+}
+
+
 void Parser::ParseLibraryDefinition() {
   TRACE_PARSER("ParseLibraryDefinition");
+
   // Handle the script tag.
   if (CurrentToken() == Token::kSCRIPTTAG) {
     // Nothing to do for script tags except to skip them.
     ConsumeToken();
   }
 
-  ParseLibraryName();
-  ParseLibraryImport();
-  ParseLibraryInclude();
-  ParseLibraryResource();
+  // TODO(hausner): Remove support for old library definition syntax.
+  if ((CurrentToken() == Token::kLIBRARY) ||
+      (CurrentToken() == Token::kIMPORT) ||
+      (CurrentToken() == Token::kSOURCE) ||
+      (CurrentToken() == Token::kRESOURCE)) {
+    ParseLibraryNameObsoleteSyntax();
+    ParseLibraryImportObsoleteSyntax();
+    ParseLibraryIncludeObsoleteSyntax();
+    ParseLibraryResourceObsoleteSyntax();
+    return;
+  }
+
+  // We may read metadata tokens that are part of the toplevel
+  // declaration that follows the library definitions. Therefore, we
+  // need to remember the position of the last token that was
+  // successfully consumed.
+  intptr_t metadata_pos = TokenPos();
+  SkipMetadata();
+  if (IsLiteral("library")) {
+    ParseLibraryName();
+    metadata_pos = TokenPos();
+    SkipMetadata();
+  } else if (script_.kind() == RawScript::kLibraryTag) {
+    ErrorMsg("library name definition expected");
+  }
+  while (IsLiteral("import") || IsLiteral("export")) {
+    ParseLibraryImportExport();
+    metadata_pos = TokenPos();
+    SkipMetadata();
+  }
+  while (IsLiteral("part")) {
+    ParseLibraryPart();
+    metadata_pos = TokenPos();
+    SkipMetadata();
+  }
+  if (IsLiteral("library") || IsLiteral("import") || IsLiteral("export")) {
+    ErrorMsg("unexpected token '%s'", CurrentLiteral()->ToCString());
+  }
+  SetPosition(metadata_pos);
 }
 
 
@@ -6220,13 +6333,9 @@ RawError* Parser::FormatErrorWithAppend(const Error& prev_error,
                                         const char* message_header,
                                         const char* format,
                                         va_list args) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
   const String& msg1 = String::Handle(String::New(prev_error.ToErrorCString()));
-  const String& msg2 = String::Handle(String::New(message_buffer));
+  const String& msg2 = String::Handle(
+      FormatMessage(script, token_pos, message_header, format, args));
   return LanguageError::New(String::Handle(String::Concat(msg1, msg2)));
 }
 
@@ -6236,76 +6345,54 @@ RawError* Parser::FormatError(const Script& script,
                               const char* message_header,
                               const char* format,
                               va_list args) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
-  const String& msg = String::Handle(String::New(message_buffer));
+  const String& msg = String::Handle(
+      FormatMessage(script, token_pos, message_header, format, args));
   return LanguageError::New(msg);
 }
 
 
-void Parser::FormatMessage(const Script& script,
-                           intptr_t token_pos,
-                           const char* message_header,
-                           char* message_buffer,
-                           intptr_t message_buffer_size,
-                           const char* format, va_list args) {
-  intptr_t msg_len = 0;
+RawString* Parser::FormatMessage(const Script& script,
+                                 intptr_t token_pos,
+                                 const char* message_header,
+                                 const char* format, va_list args) {
+  String& result = String::Handle();
+  const String& msg = String::Handle(String::NewFormattedV(format, args));
   if (!script.IsNull()) {
     const String& script_url = String::CheckedHandle(script.url());
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
-      msg_len += OS::SNPrint(message_buffer + msg_len,
-                             message_buffer_size - msg_len,
-                             "'%s': %s: line %"Pd" pos %"Pd": ",
-                             script_url.ToCString(),
-                             message_header,
-                             line,
-                             column);
-      if (msg_len < message_buffer_size) {
-        // Append the formatted error or warning message.
-        msg_len += OS::VSNPrint(message_buffer + msg_len,
-                                message_buffer_size - msg_len,
-                                format,
-                                args);
-        if (msg_len < message_buffer_size) {
-          // Append the source line.
-          const String& script_line = String::Handle(script.GetLine(line));
-          ASSERT(!script_line.IsNull());
-          msg_len += OS::SNPrint(message_buffer + msg_len,
-                                 message_buffer_size - msg_len,
-                                 "\n%s\n%*s\n",
-                                 script_line.ToCString(),
-                                 static_cast<int>(column),
-                                 "^");
-        }
-      }
+      result = String::NewFormatted("'%s': %s: line %"Pd" pos %"Pd": ",
+                                    script_url.ToCString(),
+                                    message_header,
+                                    line,
+                                    column);
+      // Append the formatted error or warning message.
+      result = String::Concat(result, msg);
+      const String& new_line = String::Handle(String::New("\n"));
+      // Append the source line.
+      const String& script_line = String::Handle(script.GetLine(line));
+      ASSERT(!script_line.IsNull());
+      result = String::Concat(result, new_line);
+      result = String::Concat(result, script_line);
+      result = String::Concat(result, new_line);
+      // Append the column marker.
+      const String& column_line = String::Handle(
+          String::NewFormatted("%*s\n", static_cast<int>(column), "^"));
+      result = String::Concat(result, column_line);
     } else {
       // Token position is unknown.
-      msg_len += OS::SNPrint(message_buffer + msg_len,
-                             message_buffer_size - msg_len,
-                             "'%s': %s: ",
-                             script_url.ToCString(),
-                             message_header);
-      if (msg_len < message_buffer_size) {
-        // Append the formatted error or warning message.
-        msg_len += OS::VSNPrint(message_buffer + msg_len,
-                                message_buffer_size - msg_len,
-                                format,
-                                args);
-      }
+      result = String::NewFormatted("'%s': %s: ",
+                                    script_url.ToCString(),
+                                    message_header);
+      result = String::Concat(result, msg);
     }
   } else {
     // Script is unknown.
     // Append the formatted error or warning message.
-    msg_len += OS::VSNPrint(message_buffer + msg_len,
-                            message_buffer_size - msg_len,
-                            format,
-                            args);
+    result = msg.raw();
   }
+  return result.raw();
 }
 
 
@@ -6315,13 +6402,10 @@ void Parser::PrintMessage(const Script& script,
                           const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
+  const String& buf = String::Handle(
+      FormatMessage(script, token_pos, message_header, format, args));
   va_end(args);
-  OS::Print("%s", message_buffer);
+  OS::Print("%s", buf.ToCString());
 }
 
 

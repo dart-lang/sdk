@@ -130,23 +130,22 @@ class ReadStream : public ValueObject {
 // Stream for writing various types into a buffer.
 class WriteStream : public ValueObject {
  public:
-  static const intptr_t kBufferIncrementSize = 64 * KB;
-
-  WriteStream(uint8_t** buffer, ReAlloc alloc) :
+  WriteStream(uint8_t** buffer, ReAlloc alloc, intptr_t increment_size) :
       buffer_(buffer),
       end_(NULL),
       current_(NULL),
       current_size_(0),
-      alloc_(alloc) {
+      alloc_(alloc),
+      increment_size_(increment_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
     *buffer_ = reinterpret_cast<uint8_t*>(alloc_(NULL,
                                                  0,
-                                                 kBufferIncrementSize));
+                                                 increment_size_));
     ASSERT(*buffer_ != NULL);
     current_ = *buffer_;
-    current_size_ = kBufferIncrementSize;
-    end_ = *buffer_ + kBufferIncrementSize;
+    current_size_ = increment_size_;
+    end_ = *buffer_ + increment_size_;
   }
 
   uint8_t* buffer() const { return *buffer_; }
@@ -230,7 +229,7 @@ class WriteStream : public ValueObject {
   void Resize(intptr_t size_needed) {
     intptr_t position = current_ - *buffer_;
     intptr_t new_size = current_size_ +
-        Utils::RoundUp(size_needed, kBufferIncrementSize);
+        Utils::RoundUp(size_needed, increment_size_);
     *buffer_ = reinterpret_cast<uint8_t*>(alloc_(*buffer_,
                                                  current_size_,
                                                  new_size));
@@ -247,6 +246,7 @@ class WriteStream : public ValueObject {
   uint8_t* current_;
   intptr_t current_size_;
   ReAlloc alloc_;
+  intptr_t increment_size_;
 
   DISALLOW_COPY_AND_ASSIGN(WriteStream);
 };

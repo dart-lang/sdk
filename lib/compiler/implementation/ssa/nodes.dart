@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface HVisitor<R> {
+abstract class HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBailoutTarget(HBailoutTarget node);
   R visitBitAnd(HBitAnd node);
@@ -797,6 +797,7 @@ class HInstruction implements Hashable {
   static const int TYPE_CONVERSION_TYPECODE = 28;
   static const int BAILOUT_TARGET_TYPECODE = 29;
   static const int INVOKE_STATIC_TYPECODE = 30;
+  static const int INVOKE_DYNAMIC_GETTER_TYPECODE = 31;
 
   HInstruction(this.inputs)
       : id = idCounter++,
@@ -1304,10 +1305,26 @@ class HInvokeDynamicField extends HInvokeDynamic {
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, receiver)
+  final bool isSideEffectFree;
+  HInvokeDynamicGetter(
+      selector, element, receiver, this.isSideEffectFree)
     : super(selector, element,[receiver]);
   toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
+
+  void prepareGvn(HTypeMap types) {
+    if (isSideEffectFree) {
+      setUseGvn();
+      clearAllSideEffects();
+      setDependsOnSomething();
+    } else {
+      setAllSideEffects();
+    }
+  }
+
+  int typeCode() => HInstruction.INVOKE_DYNAMIC_GETTER_TYPECODE;
+  bool typeEquals(other) => other is HInvokeDynamicGetter;
+  bool dataEquals(HInvokeDynamicGetter other) => selector == other.selector;
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
@@ -1356,11 +1373,12 @@ class HInvokeSuper extends HInvokeStatic {
 
 class HInvokeInterceptor extends HInvokeStatic {
   final Selector selector;
+  final bool isSideEffectFree;
 
   HInvokeInterceptor(this.selector,
                      List<HInstruction> inputs,
-                     [HType knownType = HType.UNKNOWN])
-      : super(inputs, knownType);
+                     [bool this.isSideEffectFree = false])
+      : super(inputs);
 
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
@@ -1416,6 +1434,10 @@ class HInvokeInterceptor extends HInvokeStatic {
       // we don't express that type yet: a mutable array might be
       // extendable.
       if (!inputs[1].isString(types)) setDependsOnSomething();
+    } else if (isSideEffectFree) {
+      setUseGvn();
+      clearAllSideEffects();
+      setDependsOnSomething();
     } else {
       setAllSideEffects();
     }
@@ -2619,7 +2641,7 @@ class HBlockFlow {
 /**
  * Information about a syntactic-like structure.
  */
-interface HBlockInformation {
+abstract class HBlockInformation {
   HBasicBlock get start;
   HBasicBlock get end;
   bool accept(HBlockInformationVisitor visitor);
@@ -2629,7 +2651,7 @@ interface HBlockInformation {
 /**
  * Information about a statement-like structure.
  */
-interface HStatementInformation extends HBlockInformation {
+abstract class HStatementInformation extends HBlockInformation {
   bool accept(HStatementInformationVisitor visitor);
 }
 
@@ -2637,13 +2659,13 @@ interface HStatementInformation extends HBlockInformation {
 /**
  * Information about an expression-like structure.
  */
-interface HExpressionInformation extends HBlockInformation {
+abstract class HExpressionInformation extends HBlockInformation {
   bool accept(HExpressionInformationVisitor visitor);
   HInstruction get conditionExpression;
 }
 
 
-interface HStatementInformationVisitor {
+abstract class HStatementInformationVisitor {
   bool visitLabeledBlockInfo(HLabeledBlockInformation info);
   bool visitLoopInfo(HLoopBlockInformation info);
   bool visitIfInfo(HIfBlockInformation info);
@@ -2656,14 +2678,14 @@ interface HStatementInformationVisitor {
 }
 
 
-interface HExpressionInformationVisitor {
+abstract class HExpressionInformationVisitor {
   bool visitAndOrInfo(HAndOrBlockInformation info);
   bool visitSubExpressionInfo(HSubExpressionBlockInformation info);
 }
 
 
-interface HBlockInformationVisitor extends HStatementInformationVisitor,
-                                           HExpressionInformationVisitor {
+abstract class HBlockInformationVisitor
+    implements HStatementInformationVisitor, HExpressionInformationVisitor {
 }
 
 

@@ -11,4 +11,4 @@ class A {
 }
 
 main() => Expect.throws(() => new A().x(1, 2),
-                        (e) => e is NoSuchMethodException);
+                        (e) => e is NoSuchMethodError);

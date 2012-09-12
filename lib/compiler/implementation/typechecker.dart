@@ -253,7 +253,8 @@ class Types {
     if (t === s ||
         t === dynamicType ||
         s === dynamicType ||
-        s.element === compiler.objectClass) {
+        s.element === compiler.objectClass ||
+        t.element === compiler.nullClass) {
       return true;
     }
     t = t.unalias(compiler);

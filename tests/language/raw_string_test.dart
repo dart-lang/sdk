@@ -4,35 +4,35 @@
 
 class RawStringTest {
   static testMain() {
-    Expect.equals("abcd", @"abcd");
-    Expect.equals("", @"");
-    Expect.equals("", @'');
-    Expect.equals("", @"""""");
-    Expect.equals("", @'''''');
-    Expect.equals("''''", @"''''");
-    Expect.equals('""""', @'""""');
-    Expect.equals("1\n2\n3", @"""1
+    Expect.equals("abcd", r"abcd");
+    Expect.equals("", r"");
+    Expect.equals("", r'');
+    Expect.equals("", r"""""");
+    Expect.equals("", r'''''');
+    Expect.equals("''''", r"''''");
+    Expect.equals('""""', r'""""');
+    Expect.equals("1\n2\n3", r"""1
 2
 3""");
-    Expect.equals("1\n2\n3", @'''1
+    Expect.equals("1\n2\n3", r'''1
 2
 3''');
-    Expect.equals("1", @"""
+    Expect.equals("1", r"""
 1""");
-    Expect.equals("1", @'''
+    Expect.equals("1", r'''
 1''');
-    Expect.equals("'", @"'");
-    Expect.equals('"', @'"');
-    Expect.equals("1", @"1");
-    Expect.equals("1", @"1");
-    Expect.equals("\$", @"$");
-    Expect.equals("\\", @"\");
-    Expect.equals("\\", @'\');
-    Expect.equals("\${12}", @"${12}");
+    Expect.equals("'", r"'");
+    Expect.equals('"', r'"');
+    Expect.equals("1", r"1");
+    Expect.equals("1", r"1");
+    Expect.equals("\$", r"$");
+    Expect.equals("\\", r"\");
+    Expect.equals("\\", r'\');
+    Expect.equals("\${12}", r"${12}");
     Expect.equals("\\a\\b\\c\\d\\e\\f\\g\\h\\i\\j\\k\\l\\m",
-                  @"\a\b\c\d\e\f\g\h\i\j\k\l\m");
+                  r"\a\b\c\d\e\f\g\h\i\j\k\l\m");
     Expect.equals("\\n\\o\\p\\q\\r\\s\\t\\u\\v\\w\\x\\y\\z",
-                  @"\n\o\p\q\r\s\t\u\v\w\x\y\z");
+                  r"\n\o\p\q\r\s\t\u\v\w\x\y\z");
   }
 }
 main() {

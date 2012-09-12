@@ -4,7 +4,7 @@
 
 /// Base class for any AST item. Roughly corresponds to Node in the DOM. Will
 /// be either an Element or Text.
-interface Node {
+abstract class Node {
   void accept(NodeVisitor visitor);
 }
 
@@ -49,7 +49,7 @@ class Text implements Node {
 
 /// Visitor pattern for the AST. Renderers or other AST transformers should
 /// implement this.
-interface NodeVisitor {
+abstract class NodeVisitor {
   /// Called when a Text node has been reached.
   void visitText(Text text);
 

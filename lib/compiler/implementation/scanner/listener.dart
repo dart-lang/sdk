@@ -493,6 +493,11 @@ class Listener {
     return skipToEof(token);
   }
 
+  Token unmatched(Token token) {
+    error("unmatched '${token.slowToString()}'", token);
+    return skipToEof(token);
+  }
+
   skipToEof(Token token) {
     while (token.info !== EOF_INFO) {
       token = token.next;
@@ -824,6 +829,11 @@ class ElementListener extends Listener {
     } else {
       return unexpected(token);
     }
+  }
+
+  Token unmatched(Token token) {
+    listener.cancel("unmatched '${token.slowToString()}'", token: token);
+    return skipToEof(token);
   }
 
   void recoverableError(String message, [Token token, Node node]) {
@@ -1419,8 +1429,8 @@ class NodeListener extends ElementListener {
 
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Block block = popNode();
-    NodeList formals = popNode();
-    TypeAnnotation type = onKeyword != null ? popNode() : null;
+    NodeList formals = catchKeyword !== null? popNode(): null;
+    TypeAnnotation type = onKeyword !== null ? popNode() : null;
     pushNode(new CatchBlock(type, formals, block, onKeyword, catchKeyword));
   }
 

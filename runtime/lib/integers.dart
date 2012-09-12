@@ -33,7 +33,7 @@ class IntegerImplementation {
     }
     return other.moduloFromInteger(this);
   }
-  int operator negate() {
+  int operator -() {
     return 0 - this;
   }
   int operator &(int other) {

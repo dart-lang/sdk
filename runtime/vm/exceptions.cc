@@ -391,7 +391,7 @@ RawObject* Exceptions::Create(
       break;
     case kNoSuchMethod:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("NoSuchMethodException");
+      class_name = Symbols::New("NoSuchMethodError");
       break;
     case kClosureArgumentMismatch:
       library = Library::CoreLibrary();

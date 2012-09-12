@@ -125,6 +125,23 @@ class ConstantHandler extends CompilerTask {
         Node right = assignment.arguments.head;
         value =
             compileNodeWithDefinitions(right, definitions, isConst: isConst);
+        if (compiler.enableTypeAssertions
+            && value != null
+            && element.isField()) {
+          DartType elementType = element.computeType(compiler);
+          DartType constantType = value.computeType(compiler);
+          if (!compiler.types.isSubtype(constantType, elementType)) {
+            if (isConst) {
+              MessageKind kind = MessageKind.NOT_ASSIGNABLE;
+              compiler.reportError(node, new CompileTimeConstantError(
+                  kind, [elementType, constantType]));
+            } else {
+              // If the field can be lazily initialized, we will throw
+              // the exception at runtime.
+              value = null;
+            }
+          }
+        }
       }
       if (value != null) {
         initialVariableValues[element] = value;
@@ -273,8 +290,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
          link = link.tail) {
       arguments.add(evaluateConstant(link.head));
     }
-    // TODO(floitsch): get type from somewhere.
-    DartType type = null;
+    // TODO(floitsch): get type parameters.
+    DartType type = new InterfaceType(compiler.listClass);
     Constant constant = new ListConstant(type, arguments);
     compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
@@ -311,7 +328,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     }
     bool hasProtoKey = (protoValue !== null);
     // TODO(floitsch): this should be a List<String> type.
-    DartType keysType = null;
+    DartType keysType = new InterfaceType(compiler.listClass);
     ListConstant keysList = new ListConstant(keysType, keys);
     compiler.constantHandler.registerCompileTimeConstant(keysList);
     SourceString className = hasProtoKey
@@ -350,7 +367,9 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     for (StringInterpolationPart part in node.parts) {
       Constant expression = evaluate(part.expression);
       DartString expressionString;
-      if (expression.isNum() || expression.isBool()) {
+      if (expression === null) {
+        return signalNotCompileTimeConstant(part.expression);
+      } else if (expression.isNum() || expression.isBool()) {
         PrimitiveConstant primitive = expression;
         expressionString = new DartString.literal(primitive.value.toString());
       } else if (expression.isString()) {
@@ -375,9 +394,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       if (element.modifiers !== null) {
         if (element.modifiers.isConst()) {
           result = compiler.compileConstant(element);
-        } else if (element.modifiers.isFinal()) {
-          // TODO(4516): remove support for final compile-time constants: if
-          // isCompilingConstant is true don't compile the variable.
+        } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
           result = compiler.compileVariable(element);
         }
       }

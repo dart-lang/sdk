@@ -225,7 +225,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 //   Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
 //
 //   bool operator==(Object other) => false;
-//   int operator negate() => 0;
+//   int operator -() => 0;
 // }
 void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
              Map<Object,TypeMirror> types) {
@@ -603,7 +603,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected operatorName");
 
   ////////////////////////////////////////////////////////////////////////////
-  // int operator negate() => 0;
+  // int operator -() => 0;
   ////////////////////////////////////////////////////////////////////////////
   var operator_negate = findMirror(bazClassMembers, "operator",
                            operatorName: 'negate');

@@ -6,7 +6,7 @@
  * The [Collection] interface is the public interface of all
  * collections.
  */
-interface Collection<E> extends Iterable<E> {
+abstract class Collection<E> extends Iterable<E> {
   /**
    * Applies the function [f] to each element of this collection.
    */

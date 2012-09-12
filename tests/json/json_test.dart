@@ -53,7 +53,7 @@ main() {
 
     expect(JSON.parse('{ " hi bob " :3, "": 4.5}'),
         equals({ " hi bob " :3, "": 4.5}));
-  
+
     expect(JSON.parse(' { "x" : { } } '), equals({ 'x' : {}}));
     expect(JSON.parse('{"x":{}}'), equals({ 'x' : {}}));
 
@@ -112,6 +112,20 @@ main() {
     validateRoundTrip(
         {'x':{'a':3, 'b':-4.5}, 'y':[{}], 'z':'hi', 'w':{'c':null, 'd':true},
                   'v':null});
+
+    expect(JSON.stringify(new ToJson(4)), "4");
+    expect(JSON.stringify(new ToJson([4, "a"])), '[4,"a"]');
+    expect(JSON.stringify(new ToJson([4, new ToJson({"x":42})])),
+           '[4,{"x":42}]');
+
+    Expect.throws(() {
+      JSON.stringify([new ToJson(new ToJson(4))]);
+    });
+
+    Expect.throws(() {
+      JSON.stringify([new Object()]);
+    });
+
   });
 
   test('stringify throws if argument cannot be converted', () {
@@ -129,6 +143,12 @@ class TestClass {
   String y;
 
   TestClass() : x = 3, y = 'joe' { }
+}
+
+class ToJson {
+  final object;
+  const ToJson(this.object);
+  toJson() => object;
 }
 
 /**

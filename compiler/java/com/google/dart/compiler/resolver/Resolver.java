@@ -192,6 +192,7 @@ public class Resolver {
     private Set<LabelElement> referencedLabels = Sets.newHashSet();
     private Set<LabelElement> labelsInScopes = Sets.newHashSet();
     private Set<FieldElement> finalsNeedingInitializing = Sets.newHashSet();
+    private Set<FieldElement> resolvedFields = Sets.newHashSet();
 
     @VisibleForTesting
     public ResolveElementsVisitor(ResolutionContext context,
@@ -646,16 +647,19 @@ public class Resolver {
 
       DartBlock body = functionNode.getBody();
       boolean isInterface = false;
-      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)
-          && ((ClassElement) member.getEnclosingElement()).isInterface()) {
-        isInterface =true;
+      boolean isAbstractClass = false;
+      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)) {
+        ClassElement cl = (ClassElement) member.getEnclosingElement();
+        isInterface = cl.isInterface();
+        isAbstractClass = cl.getModifiers().isAbstract();
       }
+
       if (body == null
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
           && !member.getModifiers().isExternal()
           && node.getRedirectedTypeName() == null
-          && !isInterface) {
+          && !(isInterface || isAbstractClass)) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
       resolve(functionNode.getBody());
@@ -735,12 +739,16 @@ public class Resolver {
       }
 
       // If field is an accessor, both getter and setter need to be visited (if present).
+      // We check for duplicates because top-level fields are visited twice - for each accessor.
       FieldNodeElement field = node.getElement();
-      if (field.getGetter() != null) {
-        resolve(field.getGetter().getNode());
-      }
-      if (field.getSetter() != null) {
-        resolve(field.getSetter().getNode());
+      if (!resolvedFields.contains(field)) {
+        resolvedFields.add(field);
+        if (field.getGetter() != null) {
+          resolve(field.getGetter().getNode());
+        }
+        if (field.getSetter() != null) {
+          resolve(field.getSetter().getNode());
+        }
       }
       return null;
     }
@@ -773,7 +781,7 @@ public class Resolver {
       node.getMetadata().accept(this);
       return super.visitVariable(node);
     }
-    
+
     public VariableElement resolveVariable(DartVariable x, Modifiers modifiers) {
       // Visit the initializer first.
       resolve(x.getValue());
@@ -1261,18 +1269,25 @@ public class Resolver {
           switch (ElementKind.of(element)) {
             case FIELD:
               FieldElement field = (FieldElement) element;
+              x.setType(field.getType());
               if (!field.getModifiers().isStatic()) {
                 onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_FIELD,
                     x.getPropertyName());
               }
-              if (Elements.inGetterContext(x)) {
-                if (field.getGetter() == null  && field.getSetter() != null) {
-                  onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+              if (Elements.inSetterContext(x)) {
+                if (field.getGetter() != null) {
+                  element = field.getSetter();
+                  if (element == null) {
+                    onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+                  }
                 }
               }
-              if (Elements.inSetterContext(x)) {
-                if (field.getSetter() == null && field.getGetter() != null) {
-                  onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+              if (Elements.inGetterContext(x)) {
+                if (field.getSetter() != null) {
+                  element = field.getGetter();
+                  if (element == null) {
+                    onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+                  }
                 }
               }
               break;
@@ -1364,9 +1379,6 @@ public class Resolver {
 
         default:
           break;
-      }
-      if (x.getName() != null) {
-        recordElement(x.getName(), element);
       }
       return recordElement(x, element);
     }
@@ -1947,8 +1959,13 @@ public class Resolver {
            }
            break;
          case METHOD:
-           topLevelContext.onError(node.getArg1(),  ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
-                                   lhs.getName());
+            if (!lhs.getModifiers().isSetter() && !lhs.getModifiers().isGetter()) {
+              topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
+                  lhs.getName());
+            }
+            if (lhs.getModifiers().isSetter()) {
+              node.setElement(lhs);
+            }
            break;
         }
       }

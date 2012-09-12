@@ -264,6 +264,7 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
   *reinterpret_cast<uint8_t*>(start) = 0xE8;
   CallPattern call(start);
   call.SetTargetAddress(target);
+  CPU::FlushICache(start, CallPattern::InstructionLength());
 }
 
 

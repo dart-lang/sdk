@@ -22,7 +22,7 @@ abstract class double implements num {
   abstract double operator %(num other);
   abstract double operator /(num other);
   abstract double operator ~/(num other);
-  abstract double operator negate();
+  abstract double operator -();
   abstract double abs();
   abstract double round();
   abstract double floor();

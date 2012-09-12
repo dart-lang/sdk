@@ -11,7 +11,7 @@
  * Abstraction around file system access to work in a variety of different
  * environments.
  */
-interface FileSystem {
+abstract class FileSystem {
   String readAll(String filename);
 
   void writeString(String outfile, String text);
@@ -22,8 +22,8 @@ interface FileSystem {
   void removeDirectory(String path, [bool recursive]);
 }
 
-/** 
- * Replaces all back slashes (\) with forward slashes (/) in [path] and 
+/**
+ * Replaces all back slashes (\) with forward slashes (/) in [path] and
  * return the result.
  */
 String canonicalizePath(String path) {

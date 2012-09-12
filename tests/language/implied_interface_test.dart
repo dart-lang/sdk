@@ -33,14 +33,14 @@ main() {
   ImplementsExtendsClass c2 = new ImplementsExtendsClass();
   try {
     c1.foo;
-    Expect.fail('expected a NoSuchMethodException');
-  } on NoSuchMethodException catch (ex) {
+    Expect.fail('expected a NoSuchMethodError');
+  } on NoSuchMethodError catch (ex) {
     // Expected error.
   }
   try {
     c2.foo;
-    Expect.fail('expected a NoSuchMethodException');
-  } on NoSuchMethodException catch (ex) {
+    Expect.fail('expected a NoSuchMethodError');
+  } on NoSuchMethodError catch (ex) {
     // Expected error.
   }
   Expect.equals(true, c1 is BaseClass);

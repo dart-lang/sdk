@@ -89,7 +89,7 @@ import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -814,7 +814,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return true;
       }
       // "throw" is exit if no enclosing "try"
-      if (statement instanceof DartThrowStatement) {
+      if (statement instanceof DartExprStmt && (((DartExprStmt) statement).getExpression() instanceof DartThrowExpression)) {
         for (DartNode p = statement; p != null && !(p instanceof DartFunction); p = p.getParent()) {
           // TODO(scheglov) Can be enhanced:
           // 1. check if there is "catch" block which can catch this exception;
@@ -1358,12 +1358,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartExpression argKey = node.getKey();
       // t[k] = v
       if (node.getParent() instanceof DartBinaryExpression) {
-        DartBinaryExpression binaryExpression = (DartBinaryExpression) node.getParent();
-        if (binaryExpression.getArg1() == node
-            && binaryExpression.getOperator().isAssignmentOperator()) {
-          DartExpression argValue = binaryExpression.getArg2();
+        DartBinaryExpression binary = (DartBinaryExpression) node.getParent();
+        if (binary.getArg1() == node && binary.getOperator() == Token.ASSIGN) {
+          DartExpression argValue = binary.getArg2();
           analyzeTernaryOperator(node, target, Token.ASSIGN_INDEX, node, argKey, argValue);
-          binaryExpression.setElement(node.getElement());
+          binary.setElement(node.getElement());
           return argValue.getType();
         }
       }
@@ -1792,6 +1791,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getType() != null) {
         return node.getType();
       }
+      if (node.getParent() instanceof DartDeclaration<?>
+          && ((DartDeclaration<?>) node.getParent()).getName() == node) {
+        return node.getType();
+      }
       Element element = node.getElement();
       Type type;
       switch (ElementKind.of(element)) {
@@ -1822,6 +1825,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (setter != null) {
               if (setter.getParameters().size() > 0) {
                 node.setElement(setter);
+                node.getParent().setElement(setter);
                 type = setter.getParameters().get(0).getType();
                 node.setType(type);
               }
@@ -2318,6 +2322,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
           // Check for cases when property has no setter or getter.
           if (fieldModifiers.isAbstractField() && enclosingClass != null) {
+            // Check for using field without setter in some assignment variant.
+            if (inSetterContext) {
+              if (setter == null) {
+                setter = Elements.lookupFieldElementSetter(enclosingClass, name);
+                if (setter == null) {
+                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
+                }
+              }
+              node.setElement(setter);
+              node.getParent().setElement(setter);
+            }
             // Check for using field without getter in other operation that assignment.
             if (inGetterContext) {
               if (getter == null) {
@@ -2327,16 +2342,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                 }
               }
               node.setElement(getter);
-            }
-            // Check for using field without setter in some assignment variant.
-            if (inSetterContext) {
-                if (setter == null) {
-                  setter = Elements.lookupFieldElementSetter(enclosingClass, name);
-                  if (setter == null) {
-                    return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
-                  }
-                }
-                node.setElement(setter);
             }
           }
 
@@ -2447,7 +2452,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     @Override
-    public Type visitThrowStatement(DartThrowStatement node) {
+    public Type visitThrowExpression(DartThrowExpression node) {
       if (catchDepth == 0 && node.getException() == null) {
         context.onError(new DartCompilationError(node,
             ResolverErrorCode.RETHROW_NOT_IN_CATCH));

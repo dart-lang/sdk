@@ -93,12 +93,22 @@ main() {
           false);
   Expect.stringEquals("http://user@example.com:80/a/b/c?query#fragment",
                       const Uri.fromComponents(
-                          "http", "user", "example.com", 80, "/a/b/c",
-                          "query", "fragment").toString());
+                          scheme: "http",
+                          userInfo: "user",
+                          domain: "example.com",
+                          port: 80,
+                          path: "/a/b/c",
+                          query: "query",
+                          fragment: "fragment").toString());
   Expect.stringEquals("null://null@null/a/b/c/?null#null",
                       const Uri.fromComponents(
-                          null, null, null, 0, "/a/b/c/",
-                          null, null).toString());
+                          scheme: null,
+                          userInfo: null,
+                          domain: null,
+                          port: 0,
+                          path: "/a/b/c/",
+                          query: null,
+                          fragment: null).toString());
   Expect.stringEquals("file://", new Uri.fromString("file:").toString());
   Expect.stringEquals("file://", new Uri("file:").toString());
   Expect.stringEquals("/a/g", removeDotSegments("/a/b/c/./../../g"));
@@ -135,18 +145,36 @@ main() {
       (e) { return e is IllegalArgumentException; },
       "origin for uri with empty domain should fail");
   Expect.throws(
-      () => const Uri.fromComponents("http", null, "", 80, "/a/b/c",
-                       "query", "fragment").origin,
+      () => const Uri.fromComponents(
+          scheme: "http",
+          userInfo: null,
+          domain: "",
+          port: 80,
+          path: "/a/b/c",
+          query: "query",
+          fragment: "fragment").origin,
       (e) { return e is IllegalArgumentException; },
       "origin for uri with empty domain should fail");
   Expect.throws(
-      () => const Uri.fromComponents(null, null, "", 80, "/a/b/c",
-                       "query", "fragment").origin,
+      () => const Uri.fromComponents(
+          scheme: null,
+          userInfo: null,
+          domain: "",
+          port: 80,
+          path: "/a/b/c",
+          query: "query",
+          fragment: "fragment").origin,
       (e) { return e is IllegalArgumentException; },
       "origin for uri with empty scheme should fail");
   Expect.throws(
-      () => const Uri.fromComponents("http", null, null, 80, "/a/b/c",
-                       "query", "fragment").origin,
+      () => const Uri.fromComponents(
+          scheme: "http",
+          userInfo: null,
+          domain: null,
+          port: 80,
+          path: "/a/b/c",
+          query: "query",
+          fragment: "fragment").origin,
       (e) { return e is IllegalArgumentException; },
       "origin for uri with empty domain should fail");
   Expect.throws(
@@ -162,7 +190,7 @@ main() {
   // Note: dart2js won't handle '\ud800\udc00' and frog
   // won't handle '\u{10000}'. So we cons this up synthetically...
   var s = decodeUtf8([0xf0, 0x90, 0x80, 0x80]);
-  
+
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
   testEncodeDecode("\uFFFF", "%EF%BF%BF");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");

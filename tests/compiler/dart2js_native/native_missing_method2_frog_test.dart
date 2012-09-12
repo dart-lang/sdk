@@ -27,22 +27,22 @@ typedContext() {
   var things = [ makeA(), new B() ];
   A a = things[0];
   Expect.throws(() => a.foo(),
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo,
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4,
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
 }
 
 untypedContext() {
   var things = [ makeA(), new B() ];
   var a = things[0];
   Expect.throws(() => a.foo(),
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo,
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4,
-                (e) => e is NoSuchMethodException);
+                (e) => e is NoSuchMethodError);
 }
 
 main() {

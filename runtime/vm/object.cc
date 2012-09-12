@@ -666,12 +666,6 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<WeakProperty>();
-  object_store->set_weak_property_class(cls);
-  name = Symbols::_WeakProperty();
-  RegisterPrivateClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
@@ -787,6 +781,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
   name = Symbols::_ExternalFloat64Array();
+  RegisterPrivateClass(cls, name, core_lib);
+
+  cls = Class::New<WeakProperty>();
+  object_store->set_weak_property_class(cls);
+  name = Symbols::_WeakProperty();
   RegisterPrivateClass(cls, name, core_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
@@ -5074,7 +5073,7 @@ RawString* TokenStream::GenerateSource() const {
   String& double_quotes = String::Handle(String::New("\""));
   String& dollar = String::Handle(String::New("$"));
   String& two_spaces = String::Handle(String::New("  "));
-  String& raw_string = String::Handle(String::New("@"));
+  String& raw_string = String::Handle(String::New("r"));
 
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
@@ -5280,9 +5279,10 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 // Helper class for creation of compressed token stream data.
 class CompressedTokenStreamData : public ValueObject {
  public:
+  static const intptr_t kIncrementSize = 16 * KB;
   CompressedTokenStreamData() :
       buffer_(NULL),
-      stream_(&buffer_, Reallocate),
+      stream_(&buffer_, Reallocate, kIncrementSize),
       token_objects_(GrowableObjectArray::Handle(
           GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
       token_obj_(Object::Handle()),
@@ -9499,15 +9499,22 @@ RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
 RawString* String::NewFormatted(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  RawString* result = NewFormattedV(format, args);
+  NoGCScope no_gc;
   va_end(args);
+  return result;
+}
+
+
+RawString* String::NewFormattedV(const char* format, va_list args) {
+  va_list args_copy;
+  va_copy(args_copy, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  va_end(args_copy);
 
   Zone* zone = Isolate::Current()->current_zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
+  OS::VSNPrint(buffer, (len + 1), format, args);
 
   return String::New(buffer);
 }

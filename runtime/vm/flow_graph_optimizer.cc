@@ -126,8 +126,8 @@ void FlowGraphOptimizer::SelectRepresentations() {
   GraphEntryInstr* graph_entry = block_order_[0]->AsGraphEntry();
 
   // Visit incoming parameters.
-  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
-    Value* val = graph_entry->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
+    Value* val = graph_entry->start_env()->ValueAt(i);
     InsertConversionsFor(val->definition());
   }
 
@@ -274,6 +274,16 @@ static void RemovePushArguments(InstanceCallInstr* call) {
 }
 
 
+static void RemovePushArguments(StaticCallInstr* call) {
+  // Remove original push arguments.
+  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = call->ArgumentAt(i);
+    push->ReplaceUsesWith(push->value()->definition());
+    push->RemoveFromGraph();
+  }
+}
+
+
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
 static bool HasOneTarget(const ICData& ic_data) {
@@ -293,7 +303,7 @@ static bool HasOneTarget(const ICData& ic_data) {
 static intptr_t ReceiverClassId(InstanceCallInstr* call) {
   if (!call->HasICData()) return kIllegalCid;
 
-  const ICData& ic_data = *call->ic_data();
+  const ICData& ic_data = ICData::Handle(call->ic_data()->AsUnaryClassChecks());
 
   if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
   // TODO(vegorov): Add multiple receiver type support.
@@ -348,12 +358,22 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                                             call),
                    call->env(),
                    Definition::kEffect);
+      if (class_id == kGrowableObjectArrayCid) {
+        // Insert data elements load.
+        LoadVMFieldInstr* elements =
+            new LoadVMFieldInstr(array->Copy(),
+                                 GrowableObjectArray::data_offset(),
+                                 Type::ZoneHandle(Type::DynamicType()));
+        elements->set_result_cid(kArrayCid);
+        InsertBefore(call, elements, NULL, Definition::kValue);
+        array = new Value(elements);
+      }
       Definition* array_op = NULL;
       if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedInstr(array, index, class_id);
+        array_op = new LoadIndexedInstr(array, index);
       } else {
         Value* value = call->ArgumentAt(2)->value();
-        array_op = new StoreIndexedInstr(array, index, value, class_id);
+        array_op = new StoreIndexedInstr(array, index, value);
       }
       call->ReplaceWith(array_op, current_iterator());
       RemovePushArguments(call);
@@ -369,7 +389,7 @@ void FlowGraphOptimizer::InsertBefore(Instruction* instr,
                                       Definition* defn,
                                       Environment* env,
                                       Definition::UseKind use_kind) {
-  if (env != NULL) env->CopyTo(defn);
+  if (env != NULL) env->DeepCopyTo(defn);
   if (use_kind == Definition::kValue) {
     defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
@@ -381,7 +401,7 @@ void FlowGraphOptimizer::InsertAfter(Instruction* instr,
                                      Definition* defn,
                                      Environment* env,
                                      Definition::UseKind use_kind) {
-  if (env != NULL) env->CopyTo(defn);
+  if (env != NULL) env->DeepCopyTo(defn);
   if (use_kind == Definition::kValue) {
     defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   }
@@ -535,6 +555,35 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 }
 
 
+// Use CHA to determine if the call needs a class check: if the callee's
+// receiver is the same as the caller's receiver and there are no overriden
+// callee functions, then no class check is needed.
+bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
+    InstanceCallInstr* call) const {
+  if (!FLAG_use_cha) return true;
+  Definition* callee_receiver = call->ArgumentAt(0)->value()->definition();
+  ASSERT(callee_receiver != NULL);
+  const Function& function = flow_graph_->parsed_function().function();
+  if (function.IsDynamicFunction() &&
+      callee_receiver->IsParameter() &&
+      (callee_receiver->AsParameter()->index() == 0)) {
+    const intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
+    ZoneGrowableArray<intptr_t>* subclass_cids =
+        CHA::GetSubclassIdsOf(static_receiver_cid);
+    if (subclass_cids->is_empty()) {
+      // No subclasses, no check needed.
+      return false;
+    }
+    ZoneGrowableArray<Function*>* overriding_functions =
+        CHA::GetNamedInstanceFunctionsOf(*subclass_cids, call->function_name());
+    if (overriding_functions->is_empty()) {
+      // No overriding functions.
+      return false;
+    }
+  }
+  return true;
+}
+
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -559,7 +608,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
 
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    if (InstanceCallNeedsClassCheck(call)) {
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    }
     // Detach environment from the original instruction because it can't
     // deoptimize.
     call->set_env(NULL);
@@ -583,10 +634,12 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       return false;
     }
     intptr_t length_offset = -1;
+    bool is_immutable = false;
     switch (recognized_kind) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
         length_offset = Array::length_offset();
+        is_immutable = true;
         break;
       case MethodRecognizer::kGrowableArrayLength:
         length_offset = GrowableObjectArray::length_offset();
@@ -600,9 +653,33 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     LoadVMFieldInstr* load = new LoadVMFieldInstr(
         call->ArgumentAt(0)->value(),
         length_offset,
-        Type::ZoneHandle(Type::SmiType()));
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
     load->set_result_cid(kSmiCid);
     call->ReplaceWith(load, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
+
+  if (recognized_kind == MethodRecognizer::kGrowableArrayCapacity) {
+    // Check receiver class.
+    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+
+    // TODO(srdjan): type of load should be GrowableObjectArrayType.
+    LoadVMFieldInstr* data_load = new LoadVMFieldInstr(
+        call->ArgumentAt(0)->value(),
+        Array::data_offset(),
+        Type::ZoneHandle(Type::DynamicType()));
+    data_load->set_result_cid(kArrayCid);
+    InsertBefore(call, data_load, NULL, Definition::kValue);
+
+    LoadVMFieldInstr* length_load = new LoadVMFieldInstr(
+        new Value(data_load),
+        Array::length_offset(),
+        Type::ZoneHandle(Type::SmiType()));
+    length_load->set_result_cid(kSmiCid);
+
+    call->ReplaceWith(length_load, current_iterator());
     RemovePushArguments(call);
     return true;
   }
@@ -615,10 +692,12 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // Check receiver class.
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
+    const bool is_immutable = true;  // String length is immutable.
     LoadVMFieldInstr* load = new LoadVMFieldInstr(
         call->ArgumentAt(0)->value(),
         String::length_offset(),
-        Type::ZoneHandle(Type::SmiType()));
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
     load->set_result_cid(kSmiCid);
     call->ReplaceWith(load, current_iterator());
     RemovePushArguments(call);
@@ -688,30 +767,13 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
     const ICData& unary_checks =
         ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
-    if (FLAG_use_cha) {
-      // Check if receiver can have only one target, in which case
-      // we emit call without class checks.
-      Definition* receiver = instr->ArgumentAt(0)->value()->definition();
-      ASSERT(receiver != NULL);
-      const Function& function = flow_graph_->parsed_function().function();
-      if (function.IsDynamicFunction() &&
-          receiver->IsParameter() &&
-          (receiver->AsParameter()->index() == 0)) {
-        intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
-        ZoneGrowableArray<intptr_t>* subclass_cids =
-            CHA::GetSubclassIdsOf(static_receiver_cid);
-        ZoneGrowableArray<Function*>* overriding_functions =
-            CHA::GetNamedInstanceFunctionsOf(*subclass_cids,
-                                             instr->function_name());
-        if (overriding_functions->is_empty()) {
-          const bool call_with_checks = false;
-          PolymorphicInstanceCallInstr* call =
-              new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                               call_with_checks);
-          instr->ReplaceWith(call, current_iterator());
-          return;
-        }
-      }
+    if (!InstanceCallNeedsClassCheck(instr)) {
+      const bool call_with_checks = false;
+      PolymorphicInstanceCallInstr* call =
+          new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                           call_with_checks);
+      instr->ReplaceWith(call, current_iterator());
+      return;
     }
     const intptr_t kMaxChecks = 4;
     if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
@@ -737,12 +799,27 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 }
 
 
-void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* instr) {
+void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(instr->function());
+      MethodRecognizer::RecognizeKind(call->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    instr->set_recognized(MethodRecognizer::kMathSqrt);
+    MathSqrtInstr* sqrt = new MathSqrtInstr(call->ArgumentAt(0)->value(), call);
+    call->ReplaceWith(sqrt, current_iterator());
+    RemovePushArguments(call);
   }
+}
+
+
+static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
+  ASSERT(ic_data.num_args_tested() > arg_n);
+  if (ic_data.NumberOfChecks() == 0) return false;
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (class_ids[arg_n] != kSmiCid) return false;
+  }
+  return true;
 }
 
 
@@ -753,18 +830,19 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   }
 
   ASSERT(instr->HasICData());
-  const ICData& ic_data = *instr->ic_data();
-  if (ic_data.NumberOfChecks() == 0) {
+  const ICData& unary_ic_data =
+      ICData::Handle(instr->ic_data()->AsUnaryClassChecks());
+  if (unary_ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     return false;
   }
-  if (!HasOneTarget(ic_data)) {
+  if (!HasOneTarget(unary_ic_data)) {
     // TODO(srdjan): Implement when not all targets are the same.
     return false;
   }
   Function& target = Function::Handle();
   intptr_t class_id;
-  ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  unary_ic_data.GetOneClassCheckAt(0, &class_id, &target);
   if (target.kind() != RawFunction::kImplicitSetter) {
     // Not an implicit setter.
     // TODO(srdjan): Inline special setters.
@@ -776,14 +854,26 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+  if (InstanceCallNeedsClassCheck(instr)) {
+    AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+  }
+  bool needs_store_barrier = true;
+  if (ArgIsAlwaysSmi(*instr->ic_data(), 1)) {
+    InsertBefore(instr,
+                 new CheckSmiInstr(instr->ArgumentAt(1)->value()->Copy(),
+                                   instr->deopt_id()),
+                 instr->env(),
+                 Definition::kEffect);
+    needs_store_barrier = false;
+  }
   // Detach environment from the original instruction because it can't
   // deoptimize.
   instr->set_env(NULL);
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       field,
       instr->ArgumentAt(0)->value(),
-      instr->ArgumentAt(1)->value());
+      instr->ArgumentAt(1)->value(),
+      needs_store_barrier);
   instr->ReplaceWith(store, current_iterator());
   RemovePushArguments(instr);
   return true;
@@ -1046,8 +1136,8 @@ void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
     return;
   }
   // Visit incoming parameters.
-  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
-    Value* val = graph_entry->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
+    Value* val = graph_entry->start_env()->ValueAt(i);
     ParameterInstr* param = val->definition()->AsParameter();
     if (param != NULL) {
       ASSERT(param->index() == i);
@@ -1201,7 +1291,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   // Attach the environment of the Goto instruction to the hoisted
   // instruction and set the correct deopt_id.
   ASSERT(last->env() != NULL);
-  last->env()->CopyTo(current);
+  last->env()->DeepCopyTo(current);
   current->deopt_id_ = last->GetDeoptId();
 }
 
@@ -1269,7 +1359,7 @@ void LICM::Optimize(FlowGraph* flow_graph) {
         Definition* current = it.Current()->AsDefinition();
         if (current != NULL &&
             !current->IsPushArgument() &&
-            !current->HasSideEffect()) {
+            !current->AffectedBySideEffect()) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -1303,7 +1393,7 @@ void DominatorBasedCSE::OptimizeRecursive(
     DirectChainedHashMap<Definition*>* map) {
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Definition* defn = it.Current()->AsDefinition();
-    if ((defn == NULL) || defn->HasSideEffect()) continue;
+    if ((defn == NULL) || defn->AffectedBySideEffect()) continue;
     Definition* result = map->Lookup(defn);
     if (result == NULL) {
       map->Insert(defn);

@@ -163,10 +163,10 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
       // Build the flow graph.
       FlowGraphBuilder builder(parsed_function);
-      flow_graph = builder.BuildGraph();
+      flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining);
 
       // Transform to SSA.
-      if (optimized) flow_graph->ComputeSSA();
+      if (optimized) flow_graph->ComputeSSA(0);  // Start at virtual register 0.
 
       if (FLAG_print_flow_graph) {
         OS::Print("Before Optimizations\n");

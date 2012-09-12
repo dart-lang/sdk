@@ -15,7 +15,7 @@ interface ElementList extends List {
 
   ElementList getRange(int start, int length);
 
-  Element get first();
+  Element get first;
   // TODO(jacobr): add insertAt
 }
 
@@ -33,13 +33,13 @@ interface AttributeMap extends Map<String, String> {
  */
 interface ElementRect {
   // Relative to offsetParent
-  ClientRect get client();
-  ClientRect get offset();
-  ClientRect get scroll();
+  ClientRect get client;
+  ClientRect get offset;
+  ClientRect get scroll;
   // In global coords
-  ClientRect get bounding();
+  ClientRect get bounding;
   // In global coords
-  List<ClientRect> get clientRects();
+  List<ClientRect> get clientRects;
 }
 
 interface NodeSelector {
@@ -58,7 +58,7 @@ interface CSSClassSet extends Set<String> {
    * Returns [:true:] classes cannot be added or removed from this
    * [:CSSClassSet:].
    */
-  bool get isFrozen();
+  bool get isFrozen;
 }
 
 $!COMMENT
@@ -66,23 +66,23 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   Element.html(String html);
   Element.tag(String tag);
 
-  AttributeMap get attributes();
+  AttributeMap get attributes;
   void set attributes(Map<String, String> value);
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  ElementList get elements();
+  ElementList get elements;
 
   void set elements(Collection<Element> value);
 
   /** @domName className, classList */
-  CSSClassSet get classes();
+  CSSClassSet get classes;
 
   void set classes(Collection<String> value);
 
-  AttributeMap get dataAttributes();
+  AttributeMap get dataAttributes;
   void set dataAttributes(Map<String, String> value);
 
   /**
@@ -101,17 +101,17 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
    * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
    * scrollHeight, scrollWidth, scrollTop, scrollLeft
    */
-  Future<ElementRect> get rect();
+  Future<ElementRect> get rect;
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> get computedStyle();
+  Future<CSSStyleDeclaration> get computedStyle;
 
   /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   Element clone(bool deep);
 
-  Element get parent();
+  Element get parent;
 
 $!MEMBERS
 }

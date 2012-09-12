@@ -29,7 +29,7 @@ class PrivateMain {
     } catch (e, trace) {
       print(e);
       print(trace);
-      Expect.equals(true, e is NoSuchMethodException);
+      Expect.equals(true, e is NoSuchMethodError);
       value = -1;
     }
     Expect.equals("Another Ring", value);
@@ -43,7 +43,7 @@ class PrivateMain {
     } catch (e, trace) {
       print(e);
       print(trace);
-      Expect.equals(true, e is NoSuchMethodException);
+      Expect.equals(true, e is NoSuchMethodError);
       value = -1;
     }
     Expect.equals(-1, value);

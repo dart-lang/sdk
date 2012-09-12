@@ -23,8 +23,6 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
 
 [ $compiler == dart2js && $runtime == drt && $system == windows]
 audiocontext_test: Fail # Issue 4517
@@ -114,6 +112,7 @@ svgelement_test: Fail
 svgelement2_test: Fail
 
 [ $runtime == ff ]
+js_interop_1_test: Fail, Pass # http://dartbug.com/5083
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
@@ -188,7 +187,7 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == ff ]
-cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
+cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodError : method not found: 'get$status'
 xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
@@ -202,5 +201,5 @@ js_interop_2_test: Fail # Issue 4658.
 
 [ $compiler == dart2js && $checked && $browser]
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'
-cross_frame_test: Fail # Caught NoSuchMethodException : method not found: 'is$_WindowImpl'
-window_open_test: Fail # Caught NoSuchMethodException : method not found: 'is$_WindowImpl'
+cross_frame_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
+window_open_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'

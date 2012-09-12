@@ -214,7 +214,7 @@ class _WebSocketProtocolProcessor {
         index++;
       }
     } catch (e) {
-      if (onClosed !== null) onClosed(1006, "Protocol error");
+      if (onClosed !== null) onClosed(1002, "Protocol error");
       _state = FAILURE;
     }
   }

@@ -16,8 +16,6 @@ class FlowGraphBuilder;
 class GraphEntryInstr;
 class PhiInstr;
 class ReturnInstr;
-class StaticCallInstr;
-
 
 class BlockIterator : public ValueObject {
  public:
@@ -97,14 +95,14 @@ class FlowGraph : public ZoneAllocated {
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   // Operations on the flow graph.
-  void ComputeSSA(intptr_t next_virtual_register_number = 0);
+  void ComputeSSA(intptr_t next_virtual_register_number);
   void ComputeUseLists();
 
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.
   void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
 
-  void InlineCall(StaticCallInstr* call, FlowGraph* callee_graph);
+  void InlineCall(Definition* call, FlowGraph* callee_graph);
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;

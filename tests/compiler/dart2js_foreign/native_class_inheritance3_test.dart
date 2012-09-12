@@ -96,7 +96,7 @@ expectNoSuchMethod(action, note) {
     action();
   } catch (ex) {
     caught = true;
-    Expect.isTrue(ex is NoSuchMethodException, note);
+    Expect.isTrue(ex is NoSuchMethodError, note);
   }
   Expect.isTrue(caught, note);
 }

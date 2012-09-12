@@ -26,7 +26,7 @@
  * If multiple instances of a given Hash is needed the [newInstance]
  * method can provide a new instance.
  */
-interface Hash {
+abstract class Hash {
   /**
    * Add a list of bytes to the hash computation.
    */

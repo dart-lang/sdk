@@ -27,18 +27,21 @@ class Uri {
   Uri.fromString(String uri) : this._fromMatch(_splitRe.firstMatch(uri));
 
   Uri._fromMatch(Match m) :
-    this.fromComponents(_emptyIfNull(m[_COMPONENT_SCHEME]),
-                        _emptyIfNull(m[_COMPONENT_USER_INFO]),
-                        _emptyIfNull(m[_COMPONENT_DOMAIN]),
-                        _parseIntOrZero(m[_COMPONENT_PORT]),
-                        _emptyIfNull(m[_COMPONENT_PATH]),
-                        _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
-                        _emptyIfNull(m[_COMPONENT_FRAGMENT]));
+    this.fromComponents(scheme: _emptyIfNull(m[_COMPONENT_SCHEME]),
+                        userInfo: _emptyIfNull(m[_COMPONENT_USER_INFO]),
+                        domain: _emptyIfNull(m[_COMPONENT_DOMAIN]),
+                        port: _parseIntOrZero(m[_COMPONENT_PORT]),
+                        path: _emptyIfNull(m[_COMPONENT_PATH]),
+                        query: _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
+                        fragment: _emptyIfNull(m[_COMPONENT_FRAGMENT]));
 
-  const Uri.fromComponents([String this.scheme = "", String this.userInfo ="",
-                            String this.domain = "", int this.port = 0,
-                            String this.path = "", String this.query = "",
-                            String this.fragment = ""]);
+  const Uri.fromComponents({this.scheme: "",
+                            this.userInfo: "",
+                            this.domain: "",
+                            this.port: 0,
+                            this.path: "",
+                            this.query: "",
+                            this.fragment: ""});
 
   Uri(String uri) : this.fromString(uri);
 
@@ -163,9 +166,13 @@ class Uri {
       }
       targetScheme = this.scheme;
     }
-    return new Uri.fromComponents(targetScheme, targetUserInfo, targetDomain,
-                                  targetPort, targetPath, targetQuery,
-                                  reference.fragment);
+    return new Uri.fromComponents(scheme: targetScheme,
+                                  userInfo: targetUserInfo,
+                                  domain: targetDomain,
+                                  port: targetPort,
+                                  path: targetPath,
+                                  query: targetQuery,
+                                  fragment: reference.fragment);
   }
 
   bool hasAuthority() {

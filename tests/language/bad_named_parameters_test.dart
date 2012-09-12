@@ -23,7 +23,7 @@ class BadNamedParametersTest {
       caught = false;
       // Parameter b passed twice.
       np.f42(10, 25, b:25);  /// static type warning
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       caught = true;
     }
     Expect.equals(true, caught);
@@ -31,7 +31,7 @@ class BadNamedParametersTest {
       caught = false;
       // Parameter x does not exist.
       np.f42(10, 25, x:99);  /// static type warning
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       caught = true;
     }
     Expect.equals(true, caught);
@@ -39,7 +39,7 @@ class BadNamedParametersTest {
       caught = false;
       // Parameter b1 does not exist.
       np.f52(10, b:25, b1:99, c:35);  /// static type warning
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       caught = true;
     }
     Expect.equals(true, caught);
@@ -47,7 +47,7 @@ class BadNamedParametersTest {
       caught = false;
       // Too many parameters.
       np.f42(10, 20, 30, 40); /// static type warning
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       caught = true;
     }
     Expect.equals(true, caught);
@@ -55,7 +55,7 @@ class BadNamedParametersTest {
       caught = false;
       // Too few parameters.
       np.f42(b:25);  /// static type warning
-    } on NoSuchMethodException catch (e) {
+    } on NoSuchMethodError catch (e) {
       caught = true;
     }
     Expect.equals(true, caught);

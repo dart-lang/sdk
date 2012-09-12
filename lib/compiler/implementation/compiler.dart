@@ -15,6 +15,11 @@ const bool REPORT_EXCESS_RESOLUTION = false;
 const bool REPORT_PASS2_OPTIMIZATIONS = false;
 
 /**
+ * If true, dump the inferred types after compilation.
+ */
+const bool DUMP_INFERRED_TYPES = false;
+
+/**
  * A string to identify the revision or build.
  *
  * This ID is displayed if the compiler crashes and in verbose mode, and is
@@ -90,6 +95,10 @@ class Compiler implements DiagnosticListener {
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
 
+  // TODO(5074): Remove this field once we don't accept the
+  // deprecated parameter specification.
+  static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = false;
+
   final Tracer tracer;
 
   CompilerTask measuredTask;
@@ -155,8 +164,6 @@ class Compiler implements DiagnosticListener {
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
-  static const SourceString NO_SUCH_METHOD_EXCEPTION =
-      const SourceString('NoSuchMethodException');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
@@ -181,9 +188,9 @@ class Compiler implements DiagnosticListener {
             bool generateSourceMap = true,
             bool cutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
-        world = new World(),
         progress = new Stopwatch() {
     progress.start();
+    world = new World(this);
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
@@ -554,7 +561,7 @@ class Compiler implements DiagnosticListener {
 
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.
-    world.populate(this);
+    world.populate();
 
     log('Compiling...');
     phase = PHASE_COMPILING;
@@ -587,6 +594,15 @@ class Compiler implements DiagnosticListener {
     world.queueIsClosed = true;
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
+    if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
+      print("Inferred argument types:");
+      print("------------------------");
+      backend.argumentTypes.dump();
+      print("");
+      print("Inferred return types:");
+      print("----------------------");
+      backend.dumpReturnTypes();
+    }
   }
 
   void processRecompilationQueue(Enqueuer world) {

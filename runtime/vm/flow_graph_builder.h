@@ -28,8 +28,7 @@ class FlowGraphBuilder: public ValueObject {
     kTestContext
   };
 
-  FlowGraph* BuildGraph();
-  FlowGraph* BuildGraphForInlining(InliningContext context);
+  FlowGraph* BuildGraph(InliningContext context);
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 

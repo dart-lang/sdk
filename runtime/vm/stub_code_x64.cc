@@ -1476,7 +1476,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The signature of the "noSuchMethod" method has to change from
   // noSuchMethod(String name, Array arguments) to something like
   // noSuchMethod(InvocationMirror call).
-  // Also, the class NoSuchMethodException has to be modified accordingly.
+  // Also, the class NoSuchMethodError has to be modified accordingly.
   // Total number of args is the first Smi in args descriptor array (R10).
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));

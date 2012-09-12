@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class World {
-  Compiler compiler;  // Set in populate().
+  final Compiler compiler;
   final Map<ClassElement, Set<ClassElement>> subtypes;
+  final FunctionSet userDefinedGetters;
 
-  World() : subtypes = new Map<ClassElement, Set<ClassElement>>();
+  World(Compiler compiler)
+      : subtypes = new Map<ClassElement, Set<ClassElement>>(),
+        userDefinedGetters = new FunctionSet(compiler),
+        this.compiler = compiler;
 
-  void populate(Compiler compiler) {
+  void populate() {
     void addSubtypes(ClassElement cls) {
       if (cls.resolutionState != STATE_DONE) {
         compiler.internalErrorOnElement(
@@ -22,10 +26,23 @@ class World {
     }
 
     compiler.resolverWorld.instantiatedClasses.forEach(addSubtypes);
+  }
 
-    // Mark the world as populated.
-    assert(compiler !== null);
-    this.compiler = compiler;
+  void recordUserDefinedGetter(Element element) {
+    assert(element.isGetter());
+    userDefinedGetters.add(element);
+  }
+
+  bool hasAnyUserDefinedGetter(Selector selector) {
+    return userDefinedGetters.hasAnyElementMatchingSelector(selector);
+  }
+
+  void registerUsedElement(Element element) {
+    if (element.isMember() && element.isGetter()) {
+      // We're collecting user-defined getters to let the codegen know which
+      // field accesses might have side effects.
+      userDefinedGetters.add(element);
+    }
   }
 
   /**

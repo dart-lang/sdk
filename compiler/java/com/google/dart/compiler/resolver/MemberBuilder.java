@@ -483,7 +483,7 @@ public class MemberBuilder {
           fieldElement.setType(type);
         }
       }
-      recordElement(fieldNode.getName(), fieldElement);
+      recordElement(fieldNode.getName(), accessorElement);
       return recordElement(fieldNode, fieldElement);
     }
 

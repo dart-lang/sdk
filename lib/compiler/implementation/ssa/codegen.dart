@@ -1561,8 +1561,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
     Element superClass = superMethod.getEnclosingClass();
-    // Remove the element and 'this'.
-    int argumentCount = node.inputs.length - 2;
     if (superMethod.kind == ElementKind.FIELD) {
       ClassElement currentClass = work.element.getEnclosingClass();
       if (currentClass.isClosure()) {
@@ -1590,8 +1588,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       String methodName;
       if (superMethod.kind == ElementKind.FUNCTION ||
           superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-        methodName = backend.namer.instanceMethodName(
-            currentLibrary, superMethod.name, argumentCount);
+        methodName = backend.namer.instanceMethodName(superMethod);
       } else if (superMethod.kind == ElementKind.GETTER) {
         methodName =
             backend.namer.getterName(currentLibrary, superMethod.name);
@@ -2377,7 +2374,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             new js.PropertyAccess.field(pop(), typeVariable.toString());
         js.Expression genericName = new js.LiteralString("'${arguments.head}'");
         js.Binary eqTest = new js.Binary('===', field, genericName);
-        result = new js.Binary('&&', result, eqTest);
+        // Also test for 'undefined' in case the object does not have
+        // any type variable.
+        js.Prefix undefinedTest = new js.Prefix('!', field);
+        result = new js.Binary(
+            '&&', result, new js.Binary('||', undefinedTest, eqTest));
       }
       push(result, node);
     }

@@ -388,7 +388,9 @@ class BaseWriter {
   }
 
  protected:
-  BaseWriter(uint8_t** buffer, ReAlloc alloc) : stream_(buffer, alloc) {
+  BaseWriter(uint8_t** buffer,
+             ReAlloc alloc,
+             intptr_t increment_size) : stream_(buffer, alloc, increment_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -414,8 +416,11 @@ class BaseWriter {
 
 class SnapshotWriter : public BaseWriter {
  protected:
-  SnapshotWriter(Snapshot::Kind kind, uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc),
+  SnapshotWriter(Snapshot::Kind kind,
+                 uint8_t** buffer,
+                 ReAlloc alloc,
+                 intptr_t increment_size)
+      : BaseWriter(buffer, alloc, increment_size),
         kind_(kind),
         object_store_(Isolate::Current()->object_store()),
         class_table_(Isolate::Current()->class_table()),
@@ -492,8 +497,9 @@ class SnapshotWriter : public BaseWriter {
 
 class FullSnapshotWriter : public SnapshotWriter {
  public:
+  static const intptr_t kIncrementSize = 64 * KB;
   FullSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kFull, buffer, alloc) {
+      : SnapshotWriter(Snapshot::kFull, buffer, alloc, kIncrementSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -509,8 +515,9 @@ class FullSnapshotWriter : public SnapshotWriter {
 
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
+  static const intptr_t kIncrementSize = 64 * KB;
   ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript, buffer, alloc) {
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kIncrementSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -526,8 +533,9 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 
 class MessageWriter : public SnapshotWriter {
  public:
+  static const intptr_t kIncrementSize = 512;
   MessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kMessage, buffer, alloc) {
+      : SnapshotWriter(Snapshot::kMessage, buffer, alloc, kIncrementSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }

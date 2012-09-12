@@ -14,7 +14,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -42,12 +42,12 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";'),
+      libDir('foo'),
       appPubspec([{"git": "../bar.git"}])
     ]).scheduleCreate();
 
     git('bar.git', [
-      file('bar.dart', 'main() => "bar";')
+      libDir('bar')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -82,7 +82,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     dir(appPath, [
@@ -109,7 +109,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -135,7 +135,7 @@ main() {
     file('$appPath/pubspec.lock', '').scheduleDelete();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 2";')
+      libDir('foo', 'foo 2')
     ]).scheduleCommit();
 
     schedulePub(args: ['install'],
@@ -164,7 +164,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -200,13 +200,13 @@ main() {
     ensureGit();
 
     var repo = git('foo.git', [
-      file('foo.dart', 'main() => "foo 1";')
+      libDir('foo', 'foo 1')
     ]);
     repo.scheduleCreate();
     var commit = repo.revParse('HEAD');
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 2";')
+      libDir('foo', 'foo 2')
     ]).scheduleCommit();
 
     appDir([{"git": {"url": "../foo.git", "ref": commit}}]).scheduleCreate();
@@ -227,13 +227,13 @@ main() {
     ensureGit();
 
     var repo = git('foo.git', [
-      file('foo.dart', 'main() => "foo 1";')
+      libDir('foo', 'foo 1')
     ]);
     repo.scheduleCreate();
     repo.scheduleGit(["branch", "old"]);
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 2";')
+      libDir('foo', 'foo 2')
     ]).scheduleCommit();
 
     appDir([{"git": {"url": "../foo.git", "ref": "old"}}]).scheduleCreate();
@@ -254,7 +254,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -273,7 +273,7 @@ main() {
     dir(packagesPath).scheduleDelete();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 2";')
+      libDir('foo', 'foo 2')
     ]).scheduleCommit();
 
     // This install shouldn't update the foo.git dependency due to the lockfile.
@@ -293,7 +293,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo";')
+      libDir('foo')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -308,7 +308,7 @@ main() {
     ]).scheduleValidate();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 1.0.0";'),
+      libDir('foo', 'foo 1.0.0'),
       libPubspec("foo", "1.0.0")
     ]).scheduleCommit();
 
@@ -331,7 +331,7 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 1.0.0";'),
+      libDir('foo', 'foo 1.0.0'),
       libPubspec("foo", "1.0.0")
     ]).scheduleCreate();
 
@@ -347,7 +347,7 @@ main() {
     ]).scheduleValidate();
 
     git('foo.git', [
-      file('foo.dart', 'main() => "foo 1.0.1";'),
+      libDir('foo', 'foo 1.0.1'),
       libPubspec("foo", "1.0.1")
     ]).scheduleCommit();
 
@@ -370,7 +370,7 @@ main() {
       ensureGit();
 
       git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
+        libDir('foo')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git/"}]).scheduleCreate();

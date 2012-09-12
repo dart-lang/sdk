@@ -63,6 +63,7 @@ getter_no_setter2_test/01: Fail # Issue 4898
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
+final_is_not_const_test/01: Fail # Issue 3558
 final_syntax_test/none: Fail # Issue 3558
 lazy_static_test: Fail # Issue 3558
 lazy_static2_test: Fail # Issue 3558
@@ -85,6 +86,10 @@ type_parameter_test/04: Fail # Issue 4932
 
 [ $compiler == none && $unchecked ]
 field_override_test/02: Fail    # Issue 742: field shadowing now allowed
+
+# Only checked mode reports an error on type assignment
+# problems in compile time constants.
+compile_time_constant_checked_test/02: Fail, OK
 
 [ $compiler == dartc ]
 metadata_test: Fail
@@ -134,6 +139,7 @@ constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, r
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
+final_is_not_const_test/01: Fail # Issue 3476
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
@@ -194,6 +200,7 @@ type_variable_static_context_negative_test: Fail # language change 1031
 [ $compiler == none && $runtime == drt ]
 gc_test: Skip # Issue 1487
 import_core_no_prefix_test: Fail # Issue 4607
+prefix_new_test: Fail
 
 [ $runtime == dartium ]
 import_core_no_prefix_test: Fail # Issue 4607
@@ -230,7 +237,8 @@ string_escape1_negative_test: Skip
 
 [ $compiler == dart2dart ]
 metadata_test: Fail
-pseudo_kw_illegal_test/02: Fail
+prefix_new_test: Fail
+raw_string_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail
@@ -258,22 +266,14 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 abstract_syntax_test/02: Fail
-pseudo_kw_illegal_test/01: Fail
-pseudo_kw_illegal_test/05: Fail
-pseudo_kw_illegal_test/06: Fail
-pseudo_kw_illegal_test/07: Fail
 pseudo_kw_illegal_test/08: Fail
-pseudo_kw_illegal_test/09: Fail
 pseudo_kw_illegal_test/10: Fail
 pseudo_kw_illegal_test/11: Fail
-pseudo_kw_illegal_test/12: Fail
-pseudo_kw_illegal_test/13: Fail
 pseudo_kw_illegal_test/14: Fail
-pseudo_kw_illegal_test/15: Fail
-pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
+final_is_not_const_test/01: Fail, OK # Issue 3558
 final_syntax_test/none: Fail, OK # Issue 3558
 lazy_static_test: Fail, OK # Issue 3558
 lazy_static2_test: Fail, OK # Issue 3558
@@ -323,11 +323,9 @@ function_type_alias5_test/02: Fail
 function_type_alias7_test/00: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
-get_set_syntax_test/none: Fail
 implicit_scope_test: Fail
 instanceof3_test: Fail
 library_prefixes_test: Fail
-method_name_test: Fail
 numbers_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
@@ -356,3 +354,24 @@ many_overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of inv
 no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
+
+get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/09: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/10: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+
+# Only checked mode reports an error on type assignment
+# problems in compile time constants.
+compile_time_constant_checked_test/02: Fail, OK

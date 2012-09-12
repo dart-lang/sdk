@@ -49,180 +49,180 @@ class Compilation {
 /**
  * The main interface for the whole mirror system.
  */
-interface MirrorSystem {
+abstract class MirrorSystem {
   /**
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
-  final Map<Object, LibraryMirror> libraries;
+  Map<Object, LibraryMirror> get libraries;
 }
 
 
 /**
  * An entity in the mirror system.
  */
-interface Mirror extends Hashable {
+abstract class Mirror implements Hashable {
   /**
    * The simple name of the entity. The simple name is in most cases the
    * the declared single identifier name of the entity, such as 'method' for
    * a method [:void method() {...}:].
    */
-  final String simpleName;
+  String get simpleName;
 
   /**
    * Returns the name of this entity qualified by is enclosing context. For
    * instance, the qualified name of a method 'method' in class 'Class' in
    * library 'library' is 'library.Class.method'.
    */
-  final String qualifiedName;
+  String get qualifiedName;
 
   /**
    * Returns the mirror system which contains this mirror.
    */
-  final MirrorSystem system;
+  MirrorSystem get system;
 }
 
 /**
  * Common interface for interface types and libraries.
  */
-interface ObjectMirror extends Mirror {
+abstract class ObjectMirror implements Mirror {
 
   /**
    * Returns an unmodifiable map of the members of declared in this type or
    * library.
    */
-  final Map<Object, MemberMirror> declaredMembers;
+  Map<Object, MemberMirror> get declaredMembers;
 }
 
 /**
  * A library.
  */
-interface LibraryMirror extends ObjectMirror {
+abstract class LibraryMirror extends ObjectMirror {
   /**
    * The name of the library, as given in #library().
    */
-  final String simpleName;
+  String get simpleName;
 
   /**
    * Returns an iterable over all types in the library.
    */
-  final Map<Object, InterfaceMirror> types;
+  Map<Object, InterfaceMirror> get types;
 
   /**
    * Returns the source location for this library.
    */
-  final Location location;
+  Location get location;
 }
 
 /**
  * Common interface for classes, interfaces, typedefs and type variables.
  */
-interface TypeMirror extends Mirror {
+abstract class TypeMirror implements Mirror {
   /**
    * Returns the source location for this type.
    */
-  final Location location;
+  Location get location;
 
   /**
    * Returns the library in which this member resides.
    */
-  final LibraryMirror library;
+  LibraryMirror get library;
 
   /**
    * Is [:true:] iff this type is the [:Object:] type.
    */
-  final bool isObject;
+  bool get isObject;
 
   /**
    * Is [:true:] iff this type is the [:Dynamic:] type.
    */
-  final bool isDynamic;
+  bool get isDynamic;
 
   /**
    * Is [:true:] iff this type is the void type.
    */
-  final bool isVoid;
+  bool get isVoid;
 
   /**
    * Is [:true:] iff this type is a type variable.
    */
-  final bool isTypeVariable;
+  bool get isTypeVariable;
 
   /**
    * Is [:true:] iff this type is a typedef.
    */
-  final bool isTypedef;
+  bool get isTypedef;
 
   /**
    * Is [:true:] iff this type is a function type.
    */
-  final bool isFunction;
+  bool get isFunction;
 }
 
 /**
  * A class or interface type.
  */
-interface InterfaceMirror extends TypeMirror, ObjectMirror {
+abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   /**
    * Returns the defining type, i.e. declaration of a type.
    */
-  final InterfaceMirror declaration;
+  InterfaceMirror get declaration;
 
   /**
    * Returns the super class of this type, or null if this type is [Object] or a
    * typedef.
    */
-  final InterfaceMirror superclass;
+  InterfaceMirror get superclass;
 
   /**
    * Returns an iterable over the interfaces directly implemented by this type.
    */
-  final Map<Object, InterfaceMirror> interfaces;
+  Map<Object, InterfaceMirror> get interfaces;
 
   /**
    * Is [:true:] iff this type is a class.
    */
-  final bool isClass;
+  bool get isClass;
 
   /**
    * Is [:true:] iff this type is an interface.
    */
-  final bool isInterface;
+  bool get isInterface;
 
   /**
    * Is [:true:] if this type is private.
    */
-  final bool isPrivate;
+  bool get isPrivate;
 
   /**
    * Is [:true:] if this type is the declaration of a type.
    */
-  final bool isDeclaration;
+  bool get isDeclaration;
 
   /**
    * Returns a list of the type arguments for this type.
    */
-  final List<TypeMirror> typeArguments;
+  List<TypeMirror> get typeArguments;
 
   /**
    * Returns the list of type variables for this type.
    */
-  final List<TypeVariableMirror> typeVariables;
+  List<TypeVariableMirror> get typeVariables;
 
   /**
    * Returns an immutable map of the constructors in this interface.
    */
-  final Map<Object, MethodMirror> constructors;
+  Map<Object, MethodMirror> get constructors;
 
   /**
    * Returns the default type for this interface.
    */
-  final InterfaceMirror defaultType;
+  InterfaceMirror get defaultType;
 }
 
 /**
  * A type parameter as declared on a generic type.
  */
-interface TypeVariableMirror extends TypeMirror {
+abstract class TypeVariableMirror implements TypeMirror {
   /**
    * Return a mirror on the class, interface, or typedef that declared the
    * type variable.
@@ -230,196 +230,196 @@ interface TypeVariableMirror extends TypeMirror {
   // Should not be called [declaration] as we then would have two [TypeMirror]
   // subtypes ([InterfaceMirror] and [TypeVariableMirror]) which have
   // [declaration()] methods but with different semantics.
-  final InterfaceMirror declarer;
+  InterfaceMirror get declarer;
 
   /**
    * Returns the bound of the type parameter.
    */
-  final TypeMirror bound;
+  TypeMirror get bound;
 }
 
 /**
  * A function type.
  */
-interface FunctionTypeMirror extends InterfaceMirror {
+abstract class FunctionTypeMirror implements InterfaceMirror {
   /**
    * Returns the return type of this function type.
    */
-  final TypeMirror returnType;
+  TypeMirror get returnType;
 
   /**
    * Returns the parameters for this function type.
    */
-  final List<ParameterMirror> parameters;
+  List<ParameterMirror> get parameters;
 
   /**
    * Returns the call method for this function type.
    */
-  final MethodMirror callMethod;
+  MethodMirror get callMethod;
 }
 
 /**
  * A typedef.
  */
-interface TypedefMirror extends InterfaceMirror {
+abstract class TypedefMirror implements InterfaceMirror {
   /**
    * Returns the defining type for this typedef. For instance [:void f(int):]
    * for a [:typedef void f(int):].
    */
-  final TypeMirror definition;
+  TypeMirror get definition;
 }
 
 /**
  * A member of a type, i.e. a field, method or constructor.
  */
-interface MemberMirror extends Mirror {
+abstract class MemberMirror implements Mirror {
   /**
    * Returns the source location for this member.
    */
-  final Location location;
+  Location get location;
 
   /**
    * Returns a mirror on the declaration immediately surrounding the reflectee.
    * This could be a class, interface, library or another method or function.
    */
-  final ObjectMirror surroundingDeclaration;
+  ObjectMirror get surroundingDeclaration;
 
   /**
    * Returns true if this is a top level member, i.e. a member not within a
    * type.
    */
-  final bool isTopLevel;
+  bool get isTopLevel;
 
   /**
    * Returns true if this member is a constructor.
    */
-  final bool isConstructor;
+  bool get isConstructor;
 
   /**
    * Returns true if this member is a field.
    */
-  final bool isField;
+  bool get isField;
 
   /**
    * Returns true if this member is a method.
    */
-  final bool isMethod;
+  bool get isMethod;
 
   /**
    * Returns true if this member is private.
    */
-  final bool isPrivate;
+  bool get isPrivate;
 
   /**
    * Returns true if this member is static.
    */
-  final bool isStatic;
+  bool get isStatic;
 }
 
 /**
  * A field.
  */
-interface FieldMirror extends MemberMirror {
+abstract class FieldMirror implements MemberMirror {
 
   /**
    * Returns true if this field is final.
    */
-  final bool isFinal;
+  bool get isFinal;
 
   /**
    * Returns the type of this field.
    */
-  final TypeMirror type;
+  TypeMirror get type;
 }
 
 /**
  * Common interface constructors and methods, including factories, getters and
  * setters.
  */
-interface MethodMirror extends MemberMirror {
+abstract class MethodMirror implements MemberMirror {
   /**
    * Returns the list of parameters for this method.
    */
-  final List<ParameterMirror> parameters;
+  List<ParameterMirror> get parameters;
 
   /**
    * Returns the return type of this method.
    */
-  final TypeMirror returnType;
+  TypeMirror get returnType;
 
   /**
    * Is [:true:] if this method is a constant constructor.
    */
-  final bool isConst;
+  bool get isConst;
 
   /**
    * Is [:true:] if this method is a factory method.
    */
-  final bool isFactory;
+  bool get isFactory;
 
   /**
    * Returns the constructor name for named constructors and factory methods,
    * e.g. [:'bar':] for constructor [:Foo.bar:] of type [:Foo:].
    */
-  final String constructorName;
+  String get constructorName;
 
   /**
    * Is [:true:] if this method is a getter method.
    */
-  final bool isGetter;
+  bool get isGetter;
 
   /**
    * Is [:true:] if this method is a setter method.
    */
-  final bool isSetter;
+  bool get isSetter;
 
   /**
    * Is [:true:] if this method is an operator method.
    */
-  final bool isOperator;
+  bool get isOperator;
 
   /**
    * Returns the operator name for operator methods, e.g. [:'<':] for
    * [:operator <:]
    */
-  final String operatorName;
+  String get operatorName;
 }
 
 /**
  * A formal parameter.
  */
-interface ParameterMirror extends Mirror {
+abstract class ParameterMirror implements Mirror {
   /**
    * Returns the type of this parameter.
    */
-  final TypeMirror type;
+  TypeMirror get type;
 
   /**
    * Returns the default value for this parameter.
    */
-  final String defaultValue;
+  String get defaultValue;
 
   /**
    * Returns true if this parameter has a default value.
    */
-  final bool hasDefaultValue;
+  bool get hasDefaultValue;
 
   /**
    * Returns true if this parameter is optional.
    */
-  final bool isOptional;
+  bool get isOptional;
 
   /**
    * Returns [:true:] iff this parameter is an initializing formal of a
    * constructor. That is, if it is of the form [:this.x:] where [:x:] is a
    * field.
    */
-  final bool isInitializingFormal;
+  bool get isInitializingFormal;
 
   /**
    * Returns the initialized field, if this parameter is an initializing formal.
    */
-  final FieldMirror initializedField;
+  FieldMirror get initializedField;
 }
 
 /**
@@ -427,42 +427,42 @@ interface ParameterMirror extends Mirror {
  * A [Location] should be the minimum span that encloses the declaration of the
  * mirrored entity.
  */
-interface Location {
+abstract class Location {
   /**
    * The character position where the location begins.
    */
-  final int start;
+  int get start;
 
   /**
    * The character position where the location ends.
    */
-  final int end;
+  int get end;
 
   /**
    * Returns the [Source] in which this [Location] indexes.
    * If [:loc:] is a location, [:loc.source().text()[loc.start()] is where it
    * starts, and [:loc.source().text()[loc.end()] is where it ends.
    */
-  final Source source;
+  Source get source;
 
   /**
    * The text of the location span.
    */
-  final String text;
+  String get text;
 }
 
 /**
  * A [Source] describes the source code of a compilation unit in Dart source
  * code.
  */
-interface Source {
+abstract class Source {
   /**
    * Returns the URI where the source originated.
    */
-  final Uri uri;
+  Uri get uri;
 
   /**
    * Returns the text of this source.
    */
-  final String text;
+  String get text;
 }

@@ -27,6 +27,11 @@ struct Dart_CObject_Internal : public Dart_CObject {
 // Reads a message snapshot into a C structure.
 class ApiMessageReader : public BaseReader {
  public:
+  // The allocator passed is used to allocate memory for the C structure used
+  // to represent the message snapshot. This allocator must keep track of the
+  // memory allocated as there is no way to run through the resulting C
+  // structure and free the individual pieces. Using a zone based allocator is
+  // recommended.
   ApiMessageReader(const uint8_t* buffer, intptr_t length, ReAlloc alloc);
   ~ApiMessageReader() { }
 
@@ -112,8 +117,9 @@ class ApiMessageReader : public BaseReader {
 
 class ApiMessageWriter : public BaseWriter {
  public:
+  static const intptr_t kIncrementSize = 512;
   ApiMessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc), object_id_(0),
+      : BaseWriter(buffer, alloc, kIncrementSize), object_id_(0),
         forward_list_(NULL), forward_list_length_(0), forward_id_(0) {
     ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
   }

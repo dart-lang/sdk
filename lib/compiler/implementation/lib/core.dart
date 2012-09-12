@@ -40,4 +40,3 @@
 #source('../../../../lib/core/string.dart');
 #source('../../../../lib/core/string_buffer.dart');
 #source('../../../../lib/core/strings.dart');
-#source('mock.dart');

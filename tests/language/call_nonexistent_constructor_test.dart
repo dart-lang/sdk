@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // When attempting to call a nonexistent constructor, check that a
-// NoSuchMethodException is thrown.
+// NoSuchMethodError is thrown.
 
 foo() {
   throw 'hest';
@@ -24,7 +24,7 @@ main() {
   Expect.equals(1, i);
   try {
     new A();
-  } on NoSuchMethodException catch (e) {
+  } on NoSuchMethodError catch (e) {
     i = 2;
   }
   Expect.equals(2, i);

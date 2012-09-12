@@ -178,7 +178,7 @@ class int32 implements intx {
     return new int32.fromInt(_i - _convert(other));
   }
 
-  int32 operator negate() => new int32.fromInt(-_i);
+  int32 operator -() => new int32.fromInt(-_i);
 
   intx operator *(other) {
     if (other is int64) {

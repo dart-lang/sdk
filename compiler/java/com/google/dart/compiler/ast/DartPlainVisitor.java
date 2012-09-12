@@ -114,7 +114,7 @@ public interface DartPlainVisitor<R> {
 
   R visitThisExpression(DartThisExpression node);
 
-  R visitThrowStatement(DartThrowStatement node);
+  R visitThrowExpression(DartThrowExpression node);
 
   R visitCatchBlock(DartCatchBlock node);
 

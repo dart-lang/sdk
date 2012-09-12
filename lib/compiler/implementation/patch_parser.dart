@@ -78,7 +78,7 @@ class PatchParserTask extends leg.CompilerTask {
  * keyword in patch files.
  * Patch files shouldn't have a type named "patch".
  */
-interface PatchListener extends Listener {
+abstract class PatchListener extends Listener {
   void beginPatch(Token patch);
   void endPatch(Token patch);
 }

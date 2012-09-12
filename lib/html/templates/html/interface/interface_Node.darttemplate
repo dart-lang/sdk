@@ -6,7 +6,7 @@
 
 $!COMMENT
 interface $ID$EXTENDS {
-  NodeList get nodes();
+  NodeList get nodes;
 
   void set nodes(Collection<Node> value);
 

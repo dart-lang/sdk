@@ -6,40 +6,90 @@
 
 #import('dart:math');
 
-// Pure Dart implementation of JSON protocol.
+// JSON parsing and serialization.
+
+/**
+ * Error thrown by JSON serialization if an object cannot be serialized.
+ *
+ * The [unsupportedObject] field holds that object that failed to be serialized.
+ *
+ * If an isn't directly serializable, the serializer calls the 'toJson' method
+ * on the object. If that call fails, the error will be stored in the [cause]
+ * field. If the call returns an object that isn't directly serializable,
+ * the [cause] will be null.
+ */
+class JsonUnsupportedObjectError {
+  // TODO: proper base class.
+  /** The object that could not be serialized. */
+  final unsupportedObject;
+  /** The exception thrown by object's [:toJson:] method, if any. */
+  final cause;
+  JsonUnsupportedObjectError(this.unsupportedObject) : cause = null;
+  JsonUnsupportedObjectError.withCause(this.unsupportedObject, this.cause);
+
+  String toString() {
+    if (cause != null) {
+      return "Calling toJson method on object failed.";
+    } else {
+      return "Object toJson method returns non-serializable value.";
+    }
+  }
+}
+
 
 /**
  * Utility class to parse JSON and serialize objects to JSON.
  */
 class JSON {
   /**
-   * Parses [json] and build the corresponding object.
+   * Parses [json] and build the corresponding parsed JSON value.
+   *
+   * Parsed JSON values are of the types [num], [String], [bool], [Null],
+   * [List]s of parsed JSON values or [Map]s from [String] to parsed
+   * JSON values.
+   *
+   * Throws [JSONParseException] if the input is not valid JSON text.
    */
   static parse(String json) {
     return _JsonParser.parse(json);
   }
 
   /**
-   * Checks validity of JSON source in [str] and returns its text
-   * length. Returns 0 if [str] does not begin with a valid JSON
-   * object.
-   */
-  static int length(String str) {
-    return _JsonParser.objectLength(str);
-  }
-
-  /**
-   * Serializes [object] into JSON string.
+   * Serializes [object] into a JSON string.
+   *
+   * Directly serializable types are [num], [String], [bool], [Null], [List]
+   * and [Map].
+   * For [List], the elements must all be serializable.
+   * For [Map], the keys must be [String] and the values must be serializable.
+   * If a value is any other type is attempted serialized, a "toJson()" method
+   * is invoked on the object and the result, which must be a directly
+   * serializable type, is serialized instead of the original value.
+   * If the object does not support this method, throws, or returns a
+   * value that is not directly serializable, a [JsonUnsupportedObjectError]
+   * exception is thrown. If the call throws (including the case where there
+   * is no nullary "toJson" method, the error is caught and stored in the
+   * [JsonUnsupportedObjectError]'s [:cause:] field.
+   *
+   * Objects should not change during serialization.
+   * If an object is serialized more than once, [stringify] is allowed to cache
+   * the JSON text for it. I.e., if an object changes after it is first
+   * serialized, the new values may or may not be reflected in the result.
    */
   static String stringify(Object object) {
-    return JsonStringifier.stringify(object);
+    return _JsonStringifier.stringify(object);
   }
 
   /**
    * Serializes [object] into [output] stream.
+   *
+   * Performs the same operations as [stringify] but outputs the resulting
+   * string to an existing [StringBuffer] instead of creating a new [String].
+   *
+   * If serialization fails by throwing, some data might have been added to
+   * [output], but it won't contain valid JSON text.
    */
   static void printOn(Object object, StringBuffer output) {
-    return JsonStringifier.printOn(object, output);
+    return _JsonStringifier.printOn(object, output);
   }
 }
 
@@ -109,32 +159,22 @@ class _JsonParser {
   static const String TRUE_STRING = "true";
   static const String FALSE_STRING = "false";
 
+  static List<int> tokens;
+
+  final String json;
+  final int length;
+  int position = 0;
 
   static parse(String json) {
-    return new _JsonParser._internal(json)._parseToplevel();
+    return new _JsonParser(json).parseToplevel();
   }
 
-  static objectLength(String str) {
-    var p = new _JsonParser._internal(str);
-    var firstToken = p._token();
-    if (firstToken != LBRACE) {
-      return 0;
-    }
-    try {
-      p._parseObject();
-      assert(p.position <= p.length);
-      return p.position;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  _JsonParser._internal(String json)
+  _JsonParser(String json)
       : json = json,
         length = json.length {
     if (tokens !== null) return;
 
-    // Use a list as jump-table, faster then switch and if.
+    // Use a list as jump-table. It is faster than switch and if.
     tokens = new List<int>(LAST_ASCII + 1);
     tokens[TAB] = WHITESPACE;
     tokens[NEW_LINE] = WHITESPACE;
@@ -163,93 +203,93 @@ class _JsonParser {
     tokens[CHAR_F] = FALSE_LITERAL;
   }
 
-  _parseToplevel() {
-    final result = _parseValue();
-    if (_token() !== null) {
-      _error('Junk at the end of JSON input');
+  parseToplevel() {
+    final result = parseValue();
+    if (token() !== null) {
+      error('Junk at the end of JSON input');
     }
     return result;
   }
 
-  _parseValue() {
-    final int token = _token();
+  parseValue() {
+    final int token = token();
     if (token === null) {
-      _error('Nothing to parse');
+      error('Nothing to parse');
     }
     switch (token) {
-      case STRING_LITERAL: return _parseString();
-      case NUMBER_LITERAL: return _parseNumber();
-      case NULL_LITERAL: return _expectKeyword(NULL_STRING, null);
-      case FALSE_LITERAL: return _expectKeyword(FALSE_STRING, false);
-      case TRUE_LITERAL: return _expectKeyword(TRUE_STRING, true);
-      case LBRACE: return _parseObject();
-      case LBRACKET: return _parseList();
+      case STRING_LITERAL: return parseString();
+      case NUMBER_LITERAL: return parseNumber();
+      case NULL_LITERAL: return expectKeyword(NULL_STRING, null);
+      case FALSE_LITERAL: return expectKeyword(FALSE_STRING, false);
+      case TRUE_LITERAL: return expectKeyword(TRUE_STRING, true);
+      case LBRACE: return parseObject();
+      case LBRACKET: return parseList();
 
       default:
-        _error('Unexpected token');
+        error('Unexpected token');
     }
   }
 
-  Object _expectKeyword(String word, Object value) {
+  Object expectKeyword(String word, Object value) {
     for (int i = 0; i < word.length; i++) {
-      // Implicit end check in _char().
-      if (_char() != word.charCodeAt(i)) _error("Expected keyword '$word'");
+      // Implicit end check in char().
+      if (char() != word.charCodeAt(i)) error("Expected keyword '$word'");
       position++;
     }
     return value;
   }
 
-  _parseObject() {
+  parseObject() {
     final object = {};
 
     position++;  // Eat '{'.
 
-    if (!_isToken(RBRACE)) {
+    if (!isToken(RBRACE)) {
       while (true) {
-        final String key = _parseString();
-        if (!_isToken(COLON)) _error("Expected ':' when parsing object");
+        final String key = parseString();
+        if (!isToken(COLON)) error("Expected ':' when parsing object");
         position++;
-        object[key] = _parseValue();
+        object[key] = parseValue();
 
-        if (!_isToken(COMMA)) break;
+        if (!isToken(COMMA)) break;
         position++;  // Skip ','.
       };
 
-      if (!_isToken(RBRACE)) _error("Expected '}' at end of object");
+      if (!isToken(RBRACE)) error("Expected '}' at end of object");
     }
     position++;
 
     return object;
   }
 
-  _parseList() {
+  parseList() {
     final list = [];
 
     position++;  // Eat '['.
 
-    if (!_isToken(RBRACKET)) {
+    if (!isToken(RBRACKET)) {
       while (true) {
-        list.add(_parseValue());
+        list.add(parseValue());
 
-        if (!_isToken(COMMA)) break;
+        if (!isToken(COMMA)) break;
         position++;
       };
 
-      if (!_isToken(RBRACKET)) _error("Expected ']' at end of list");
+      if (!isToken(RBRACKET)) error("Expected ']' at end of list");
     }
     position++;
 
     return list;
   }
 
-  String _parseString() {
-    if (!_isToken(STRING_LITERAL)) _error("Expected string literal");
+  String parseString() {
+    if (!isToken(STRING_LITERAL)) error("Expected string literal");
 
     position++;  // Eat '"'.
 
     List<int> charCodes = new List<int>();
     while (true) {
-      int c = _char();
+      int c = char();
       if (c == QUOTE) {
         position++;
         break;
@@ -257,10 +297,10 @@ class _JsonParser {
       if (c == BACKSLASH) {
         position++;
         if (position == length) {
-          _error('\\ at the end of input');
+          error('\\ at the end of input');
         }
 
-        switch (_char()) {
+        switch (char()) {
           case QUOTE:
             c = QUOTE;
             break;
@@ -287,18 +327,18 @@ class _JsonParser {
             break;
           case CHAR_U:
             if (position + 5 > length) {
-              _error('Invalid unicode esacape sequence');
+              error('Invalid unicode esacape sequence');
             }
             final codeString = json.substring(position + 1, position + 5);
             try {
               c = parseInt('0x${codeString}');
             } catch (e) {
-              _error('Invalid unicode esacape sequence');
+              error('Invalid unicode esacape sequence');
             }
             position += 4;
             break;
           default:
-            _error('Invalid esacape sequence in string literal');
+            error('Invalid esacape sequence in string literal');
         }
       }
       charCodes.add(c);
@@ -308,42 +348,42 @@ class _JsonParser {
     return new String.fromCharCodes(charCodes);
   }
 
-  num _parseNumber() {
-    if (!_isToken(NUMBER_LITERAL)) _error('Expected number literal');
+  num parseNumber() {
+    if (!isToken(NUMBER_LITERAL)) error('Expected number literal');
 
     final int startPos = position;
-    int char = _char();
-    if (char === MINUS) char = _nextChar();
+    int char = char();
+    if (char === MINUS) char = nextChar();
     if (char === CHAR_0) {
-      char = _nextChar();
-    } else if (_isDigit(char)) {
-      char = _nextChar();
-      while (_isDigit(char)) char = _nextChar();
+      char = nextChar();
+    } else if (isDigit(char)) {
+      char = nextChar();
+      while (isDigit(char)) char = nextChar();
     } else {
-      _error('Expected digit when parsing number');
+      error('Expected digit when parsing number');
     }
 
     bool isInt = true;
     if (char === DOT) {
-      char = _nextChar();
-      if (_isDigit(char)) {
-        char = _nextChar();
+      char = nextChar();
+      if (isDigit(char)) {
+        char = nextChar();
         isInt = false;
-        while (_isDigit(char)) char = _nextChar();
+        while (isDigit(char)) char = nextChar();
       } else {
-        _error('Expected digit following comma');
+        error('Expected digit following comma');
       }
     }
 
     if (char === CHAR_E || char === CHAR_CAPITAL_E) {
-      char = _nextChar();
-      if (char === MINUS || char === PLUS) char = _nextChar();
-      if (_isDigit(char)) {
-        char = _nextChar();
+      char = nextChar();
+      if (char === MINUS || char === PLUS) char = nextChar();
+      if (isDigit(char)) {
+        char = nextChar();
         isInt = false;
-        while (_isDigit(char)) char = _nextChar();
+        while (isDigit(char)) char = nextChar();
       } else {
-        _error('Expected digit following \'e\' or \'E\'');
+        error('Expected digit following \'e\' or \'E\'');
       }
     }
 
@@ -355,31 +395,31 @@ class _JsonParser {
     }
   }
 
-  bool _isChar(int char) {
+  bool isChar(int char) {
     if (position >= length) return false;
     return json.charCodeAt(position) == char;
   }
 
-  bool _isDigit(int char) {
+  bool isDigit(int char) {
     return char >= CHAR_0 && char <= CHAR_9;
   }
 
-  bool _isToken(int tokenKind) => _token() == tokenKind;
+  bool isToken(int tokenKind) => token() == tokenKind;
 
-  int _char() {
+  int char() {
     if (position >= length) {
-      _error('Unexpected end of JSON stream');
+      error('Unexpected end of JSON stream');
     }
     return json.charCodeAt(position);
   }
 
-  int _nextChar() {
+  int nextChar() {
     position++;
     if (position >= length) return 0;
     return json.charCodeAt(position);
   }
 
-  int _token() {
+  int token() {
     while (true) {
       if (position >= length) return null;
       int char = json.charCodeAt(position);
@@ -393,56 +433,37 @@ class _JsonParser {
     }
   }
 
-  void _error(String message) {
+  void error(String message) {
     throw message;
   }
-
-  final String json;
-  final int length;
-  int position = 0;
-  static List<int> tokens;
 }
 
-// TODO: proper base class.
-class JsonUnsupportedObjectType {
-  const JsonUnsupportedObjectType();
-}
+class _JsonStringifier {
+  StringBuffer sb;
+  List<Object> seen;  // TODO: that should be identity set.
 
-class JsonStringifier {
+  _JsonStringifier(this.sb) : seen = [];
+
   static String stringify(final object) {
     StringBuffer output = new StringBuffer();
-    JsonStringifier stringifier = new JsonStringifier._internal(output);
-    stringifier._stringify(object);
+    _JsonStringifier stringifier = new _JsonStringifier(output);
+    stringifier.stringifyValue(object);
     return output.toString();
   }
 
   static void printOn(final object, StringBuffer output) {
-    JsonStringifier stringifier = new JsonStringifier._internal(output);
-    stringifier._stringify(object);
+    _JsonStringifier stringifier = new _JsonStringifier(output);
+    stringifier.stringifyValue(object);
   }
 
-  JsonStringifier._internal(this._sb)
-      : _seen = [];
-
-  StringBuffer _sb;
-  List<Object> _seen;  // TODO: that should be identity set.
-
-  static String _numberToString(num x) {
-    // TODO: need some more investigation what to do with precision
-    // of double values.
-    if (x is int) {
-      return x.toString();
-    } else if (x is double) {
-      return x.toString();
-    } else {
-      return x.toDouble().toString();
-    }
+  static String numberToString(num x) {
+    return x.toString();
   }
 
   // ('0' + x) or ('a' + x - 10)
-  static int _hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
+  static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
-  static void _escape(StringBuffer sb, String s) {
+  static void escape(StringBuffer sb, String s) {
     final int length = s.length;
     bool needsEscape = false;
     final charCodes = new List<int>();
@@ -469,10 +490,10 @@ class JsonStringifier {
           break;
         default:
           charCodes.add(_JsonParser.CHAR_U);
-          charCodes.add(_hexDigit((charCode >> 12) & 0xf));
-          charCodes.add(_hexDigit((charCode >> 8) & 0xf));
-          charCodes.add(_hexDigit((charCode >> 4) & 0xf));
-          charCodes.add(_hexDigit(charCode & 0xf));
+          charCodes.add(hexDigit((charCode >> 12) & 0xf));
+          charCodes.add(hexDigit((charCode >> 8) & 0xf));
+          charCodes.add(hexDigit((charCode >> 4) & 0xf));
+          charCodes.add(hexDigit(charCode & 0xf));
           break;
         }
       } else if (charCode == _JsonParser.QUOTE ||
@@ -487,71 +508,95 @@ class JsonStringifier {
     sb.add(needsEscape ? new String.fromCharCodes(charCodes) : s);
   }
 
-  void _checkCycle(final object) {
+  void checkCycle(final object) {
     // TODO: use Iterables.
-    for (int i = 0; i < _seen.length; i++) {
-      if (_seen[i] === object) {
+    for (int i = 0; i < seen.length; i++) {
+      if (seen[i] === object) {
         throw 'Cyclic structure';
       }
     }
-    _seen.add(object);
+    seen.add(object);
   }
 
-  void _stringify(final object) {
+  void stringifyValue(final object) {
+    // Tries stringifying object directly. If it's not a simple value, List or
+    // Map, call toJson() to get a custom representation and try serializing
+    // that.
+    if (!stringifyJsonValue(object)) {
+      checkCycle(object);
+      try {
+        var customJson = object.toJson();
+        if (!stringifyJsonValue(customJson)) {
+          throw new JsonUnsupportedObjectError(object);
+        }
+        seen.removeLast();
+      } catch (e) {
+        throw new JsonUnsupportedObjectError.withCause(object, e);
+      }
+    }
+  }
+
+  /**
+   * Serializes a [num], [String], [bool], [Null], [List] or [Map] value.
+   *
+   * Returns true if the value is one of these types, and false if not.
+   * If a value is both a [List] and a [Map], it's serialized as a [List].
+   */
+  bool stringifyJsonValue(final object) {
     if (object is num) {
       // TODO: use writeOn.
-      _sb.add(_numberToString(object));
-      return;
+      sb.add(numberToString(object));
+      return true;
     } else if (object === true) {
-      _sb.add('true');
-      return;
+      sb.add('true');
+      return true;
     } else if (object === false) {
-      _sb.add('false');
-       return;
+      sb.add('false');
+       return true;
     } else if (object === null) {
-      _sb.add('null');
-      return;
+      sb.add('null');
+      return true;
     } else if (object is String) {
-      _sb.add('"');
-      _escape(_sb, object);
-      _sb.add('"');
-      return;
+      sb.add('"');
+      escape(sb, object);
+      sb.add('"');
+      return true;
     } else if (object is List) {
-      _checkCycle(object);
+      checkCycle(object);
       List a = object;
-      _sb.add('[');
+      sb.add('[');
       if (a.length > 0) {
-        _stringify(a[0]);
+        stringifyValue(a[0]);
         // TODO: switch to Iterables.
         for (int i = 1; i < a.length; i++) {
-          _sb.add(',');
-          _stringify(a[i]);
+          sb.add(',');
+          stringifyValue(a[i]);
         }
       }
-      _sb.add(']');
-      _seen.removeLast();
-      return;
+      sb.add(']');
+      seen.removeLast();
+      return true;
     } else if (object is Map) {
-      _checkCycle(object);
+      checkCycle(object);
       Map<String, Object> m = object;
-      _sb.add('{');
+      sb.add('{');
       bool first = true;
       m.forEach((String key, Object value) {
         if (!first) {
-          _sb.add(',"');
+          sb.add(',"');
         } else {
-          _sb.add('"');
+          sb.add('"');
         }
-        _escape(_sb, key);
-        _sb.add('":');
-        _stringify(value);
+        escape(sb, key);
+        sb.add('":');
+        stringifyValue(value);
         first = false;
       });
-      _sb.add('}');
-      _seen.removeLast();
-      return;
+      sb.add('}');
+      seen.removeLast();
+      return true;
     } else {
-      throw const JsonUnsupportedObjectType();
+      return false;
     }
   }
 }

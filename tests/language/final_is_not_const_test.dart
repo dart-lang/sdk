@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Mocks of classes and interfaces that Leg cannot read directly.
+final F0 = 42;
+const C0 = F0;  /// 01: compile-time error
 
-// TODO(ahe): Remove this file.
-
-class ReceivePortFactory {
-  factory ReceivePort() {
-    throw 'factory ReceivePort is not implemented';
-  }
+main() {
+  Expect.equals(42, F0);
+  Expect.equals(42, C0);  /// 01: continued
 }

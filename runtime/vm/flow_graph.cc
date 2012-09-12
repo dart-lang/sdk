@@ -94,8 +94,8 @@ static void ResetUseListsInInstruction(Instruction* instr) {
     use->set_next_use(NULL);
   }
   if (instr->env() != NULL) {
-    for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
-      Value* use = instr->env()->values()[i];
+    for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+      Value* use = it.CurrentValue();
       use->set_instruction(NULL);
       use->set_use_index(-1);
       use->set_next_use(NULL);
@@ -109,8 +109,8 @@ bool FlowGraph::ResetUseLists() {
   ResetUseListsInInstruction(graph_entry_->constant_null());
 
   // Reset definitions referenced from the start environment.
-  for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
-    Value* env_use = graph_entry_->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
+    Value* env_use = graph_entry_->start_env()->ValueAt(i);
     ResetUseListsInInstruction(env_use->definition());
   }
 
@@ -140,11 +140,11 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
     ASSERT(use->use_index() == i);
     ASSERT(1 == MembershipCount(use, use->definition()->input_use_list()));
   }
-  Environment* env = instr->env();
-  if (env != NULL) {
-    for (intptr_t i = 0; i < env->values().length(); ++i) {
-      Value* use = env->values()[i];
-      ASSERT(use->use_index() == i);
+  if (instr->env() != NULL) {
+    intptr_t use_index = 0;
+    for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+      Value* use = it.CurrentValue();
+      ASSERT(use->use_index() == use_index++);
       ASSERT(1 == MembershipCount(use, use->definition()->env_use_list()));
     }
   }
@@ -160,7 +160,8 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
          use != NULL;
          use = use->next_use()) {
       ASSERT(defn == use->definition());
-      ASSERT(use == use->instruction()->env()->values()[use->use_index()]);
+      ASSERT(use ==
+             use->instruction()->env()->ValueAtUseIndex(use->use_index()));
     }
   }
 }
@@ -171,8 +172,8 @@ bool FlowGraph::ValidateUseLists() {
   ValidateUseListsInInstruction(graph_entry_->constant_null());
 
   // Validate definitions referenced from the start environment.
-  for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
-    Value* env_use = graph_entry_->start_env()->values()[i];
+  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
+    Value* env_use = graph_entry_->start_env()->ValueAt(i);
     ValidateUseListsInInstruction(env_use->definition());
   }
 
@@ -223,14 +224,15 @@ static void RecordInputUses(Instruction* instr) {
 static void RecordEnvUses(Instruction* instr) {
   ASSERT(instr != NULL);
   if (instr->env() == NULL) return;
-  for (intptr_t i = 0; i < instr->env()->values().length(); ++i) {
-    Value* use = instr->env()->values()[i];
+  intptr_t use_index = 0;
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
     DEBUG_ASSERT(use->instruction() == NULL);
     DEBUG_ASSERT(use->use_index() == -1);
     DEBUG_ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(0 == MembershipCount(use, use->definition()->env_use_list()));
     use->set_instruction(instr);
-    use->set_use_index(i);
+    use->set_use_index(use_index++);
     use->AddToEnvUseList();
   }
 }
@@ -286,8 +288,8 @@ void FlowGraph::ComputeUseLists() {
   DEBUG_ASSERT(ResetUseLists());
   // Clear global constants and definitions in the start environment.
   ClearUseLists(graph_entry_->constant_null());
-  for (intptr_t i = 0; i < graph_entry_->start_env()->values().length(); ++i) {
-    ClearUseLists(graph_entry_->start_env()->values()[i]->definition());
+  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
+    ClearUseLists(graph_entry_->start_env()->ValueAt(i)->definition());
   }
   ComputeUseListsRecursive(graph_entry_);
   DEBUG_ASSERT(ValidateUseLists());
@@ -512,7 +514,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     start_env.Add(graph_entry_->constant_null());
   }
   graph_entry_->set_start_env(
-      new Environment(start_env, num_non_copied_params_));
+      Environment::From(start_env, num_non_copied_params_, NULL));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
@@ -545,7 +547,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // Attach current environment to the instruction. First, each instruction
     // gets a full copy of the environment. Later we optimize this by
     // eliminating unnecessary environments.
-    current->set_env(new Environment(*env, num_non_copied_params_));
+    current->set_env(
+        Environment::From(*env, num_non_copied_params_, NULL));
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -753,13 +756,13 @@ static void Link(Instruction* prev, Instruction* next) {
 
 // Inline a flow graph at a call site.
 //
-// Assumes the callee graph was computed with BuildGraphForInlining and
-// transformed to SSA with ComputeSSAForInlining, and that the use lists have
-// been correctly computed.
+// Assumes the callee graph was computed by BuildGraph with an inlining context
+// and transformed to SSA with ComputeSSA with a correct virtual register
+// number, and that the use lists have been correctly computed.
 //
 // After inlining the caller graph will correctly have adjusted the pre/post
 // orders, the dominator tree and the use lists.
-void FlowGraph::InlineCall(StaticCallInstr* call, FlowGraph* callee_graph) {
+void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
   ASSERT(callee_graph->exits() != NULL);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_virtual_register_number() >
@@ -771,11 +774,16 @@ void FlowGraph::InlineCall(StaticCallInstr* call, FlowGraph* callee_graph) {
   // Adjust the SSA temp index by the callee graph's index.
   current_ssa_temp_index_ = callee_graph->max_virtual_register_number();
 
+  BlockEntryInstr* caller_entry = GetBlockEntry(call);
   TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
   ZoneGrowableArray<ReturnInstr*>* callee_exits = callee_graph->exits();
 
   // 1. Insert the callee graph into the caller graph.
-  if (callee_exits->length() == 1) {
+  if (callee_exits->is_empty()) {
+    // If no normal exits exist, inline and truncate the block after inlining.
+    Link(call->previous(), callee_entry->next());
+    caller_entry->set_last_instruction(callee_entry->last_instruction());
+  } else if (callee_exits->length() == 1) {
     ReturnInstr* exit = (*callee_exits)[0];
     // TODO(zerny): Support one exit graph containing control flow.
     ASSERT(callee_entry == GetBlockEntry(exit));
@@ -790,13 +798,6 @@ void FlowGraph::InlineCall(StaticCallInstr* call, FlowGraph* callee_graph) {
 
   // TODO(zerny): Adjust pre/post orders.
   // TODO(zerny): Update dominator tree.
-
-  // Remove original arguments to the call.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
 }
 
 

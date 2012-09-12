@@ -240,7 +240,6 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance_call()->PrintOperandsTo(f);
-  PrintICData(f, ic_data());
 }
 
 
@@ -378,7 +377,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void LoadVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %"Pd"", offset_in_bytes());
+  f->Print(", %"Pd", immutable=%d", offset_in_bytes(), immutable_);
 }
 
 
@@ -461,8 +460,8 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
       constant_null()->PrintTo(f);
     }
     if (start_env() != NULL) {
-      for (intptr_t i = 0; i < start_env()->values().length(); ++i) {
-        Definition* def = start_env()->values()[i]->definition();
+      for (intptr_t i = 0; i < start_env()->Length(); ++i) {
+        Definition* def = start_env()->ValueAt(i)->definition();
         if (def->IsParameter()) {
           f->Print("\n      ");
           def->PrintTo(f);
@@ -804,6 +803,7 @@ void Environment::PrintTo(BufferFormatter* f) const {
     }
   }
   f->Print(" }");
+  if (outer_ != NULL) outer_->PrintTo(f);
 }
 
 }  // namespace dart

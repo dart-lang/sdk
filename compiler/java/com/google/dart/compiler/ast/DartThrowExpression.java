@@ -5,23 +5,18 @@
 package com.google.dart.compiler.ast;
 
 /**
- * Represents a Dart 'throw' statement.
+ * Represents a Dart 'throw' expression.
  */
-public class DartThrowStatement extends DartStatement {
+public class DartThrowExpression extends DartExpression {
 
   private DartExpression exception;
 
-  public DartThrowStatement(DartExpression exception) {
+  public DartThrowExpression(DartExpression exception) {
     this.exception = becomeParentOf(exception);
   }
 
   public DartExpression getException() {
     return exception;
-  }
-
-  @Override
-  public boolean isAbruptCompletingStatement() {
-    return true;
   }
 
   @Override
@@ -31,6 +26,6 @@ public class DartThrowStatement extends DartStatement {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitThrowStatement(this);
+    return visitor.visitThrowExpression(this);
   }
 }

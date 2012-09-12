@@ -11,7 +11,7 @@ interface $ID$EXTENDS {
 
   NodeList getRange(int start, int length);
 
-  Node get first();
+  Node get first;
 
 $!MEMBERS
 }

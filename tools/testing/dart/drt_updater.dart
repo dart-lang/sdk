@@ -15,7 +15,7 @@ class _DartiumUpdater {
   bool updated = false;
   List onUpdated;
 
-  Process _updatingProcess;
+  Future<ProcessResult> _updatingProcess;
 
   _DartiumUpdater(this.name, this.script, [this.option = null]);
 
@@ -24,27 +24,35 @@ class _DartiumUpdater {
       isActive = true;
       print('Updating $name.');
       onUpdated = [() {updated = true;} ];
-      _updatingProcess = Process.start('python', _getUpdateCommand);
-      _updatingProcess.onExit = _onUpdatedHandler;
-      _updatingProcess.onError = (error) {
-        print("Error starting $script process: $error");
-        _onUpdatedHandler(-1);  // Continue anyway.
-      };
+      _updatingProcess = Process.run('python', _getUpdateCommand);
+      _updatingProcess.handleException((e) {
+        print("Error starting $script process: $e");
+        return false;
+      });
+      _updatingProcess.then(_onUpdatedHandler);
     }
   }
 
   List<String> get _getUpdateCommand {
-    String scriptPath = new Options().script.replaceAll('\\', '/');
-    String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-    List<String> command = ['$toolsDir/$script'];
+    Path testScriptPath = new Path.fromNative(new Options().script);
+    Path updateScriptPath = testScriptPath.directoryPath.append(script);
+    List<String> command = [updateScriptPath.toNativePath()];
     if (null !== option) {
       command.add(option);
     }
     return command;
   }
 
-  void _onUpdatedHandler(int exit_code) {
-    print('$name updated ($exit_code)');
+  void _onUpdatedHandler(ProcessResult result) {
+    if (result.exitCode == 0) {
+      print('$name updated');
+    } else {
+      print('Failure updating $name');
+      print('  Exit code: ${result.exitCode}');
+      print(result.stdout);
+      print(result.stderr);
+      exit(1);
+    }
     for (var callback in onUpdated ) callback();
   }
 }

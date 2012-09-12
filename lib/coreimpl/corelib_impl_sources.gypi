@@ -10,7 +10,6 @@
     'dual_pivot_quicksort.dart',
     'duration_implementation.dart',
     'exceptions.dart',
-    'expando.dart',
     'future_implementation.dart',
     'hash_map_set.dart',
     'linked_hash_map.dart',

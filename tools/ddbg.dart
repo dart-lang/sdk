@@ -412,7 +412,7 @@ void processVmData(String data) {
   } else {
     vmData = vmData.concat(data);
   }
-  int msg_len = JSON.length(vmData);
+  int msg_len = jsonObjectLength(vmData);
   if (printMessages && msg_len == 0) {
     print("have partial or illegal json message"
           " of ${vmData.length} chars:\n'$vmData'");
@@ -430,9 +430,55 @@ void processVmData(String data) {
     if (printMessages) { print("first message: $msg"); }
     processVmMessage(msg);
     vmData = vmData.substring(msg_len);
-    msg_len = JSON.length(vmData);
+    msg_len = jsonObjectLength(vmData);
   }
   if (printMessages) { print("leftover vm data '$vmData'"); }
+}
+
+/**
+ * Skip past a JSON object value.
+ * The object value must start with '{' and continues to the
+ * matching '}'. No attempt is made to otherwise validate the contents
+ * as JSON. If it is invalid, a later [JSON.parse] will fail.
+ */
+int jsonObjectLength(String string) {
+  int skipWhitespace(int index) {
+    while (index < string.length) {
+      String char = string[index];
+      if (char != " " && char != "\n" && char != "\r" && char != "\t") break;
+      index++;
+    }
+    return index;
+  }
+  int skipString(int index) {
+    assert(string[index - 1] == '"');
+    while (index < string.length) {
+      String char = string[index];
+      if (char == '"') return index + 1;
+      if (char == @'\') index++;
+      if (index == string.length) return index;
+      index++;
+    }
+    return index;
+  }
+  int index = 0;
+  index = skipWhitespace(index);
+  // Bail out if the first non-whitespace character isn't '{'.
+  if (index == string.length || string[index] != '{') return 0;
+  int nexting = 0;
+  while (index < string.length) {
+    String char = string[index++];
+    if (char == '{') {
+      nexting++;
+    } else if (char == '}') {
+      nexting--;
+      if (nexting == 0) return index;
+    } else if (char == '"') {
+      // Strings can contain braces. Skip their content.
+      index = skipString(index);
+    }
+  }
+  return 0;
 }
 
 

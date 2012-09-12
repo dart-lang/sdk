@@ -64,10 +64,10 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
     discardOpenLt();
-    if (!groupingStack.isEmpty()) {
+    while (!groupingStack.isEmpty()) {
       BeginGroupToken begin = groupingStack.head;
-      throw new MalformedInputException('Unbalanced ${begin.stringValue}',
-                                        begin);
+      begin.endGroup = tail;
+      groupingStack = groupingStack.tail;
     }
   }
 
@@ -111,8 +111,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
       if (openKind !== OPEN_CURLY_BRACKET_TOKEN ||
           begin.kind !== STRING_INTERPOLATION_TOKEN) {
         // Not ending string interpolation.
-        throw new MalformedInputException('Unmatched ${begin.stringValue}',
-                                          begin);
+        return error(new SourceString('Unmatched ${begin.stringValue}'));
       }
       // We're ending an interpolated expression.
       begin.endGroup = tail;

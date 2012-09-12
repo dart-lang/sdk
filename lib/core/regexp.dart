@@ -24,7 +24,7 @@
  *     my
  *     string
  */
-interface Match {
+abstract class Match {
   /**
    * Returns the index in the string where the match starts.
    */
@@ -57,12 +57,12 @@ interface Match {
   /**
    * The string on which this matcher was computed.
    */
-  final String str;
+  String get str;
 
   /**
    * The pattern to search for in [str].
    */
-  final Pattern pattern;
+  Pattern get pattern;
 }
 
 
@@ -117,15 +117,15 @@ interface RegExp extends Pattern default JSSyntaxRegExp {
   /**
    * The pattern of this regular expression.
    */
-  final String pattern;
+  String get pattern;
 
   /**
    * Whether this regular expression matches multiple lines.
    */
-  final bool multiLine;
+  bool get multiLine;
 
   /**
    * Whether this regular expression is case insensitive.
    */
-  final bool ignoreCase;
+  bool get ignoreCase;
 }

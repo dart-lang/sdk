@@ -12,5 +12,5 @@ main() {
   A a = new A();
   a.a(1);
   Expect.throws(
-      () => print(f((x) => (a.a(x)))), (e) => e is NoSuchMethodException);
+      () => print(f((x) => (a.a(x)))), (e) => e is NoSuchMethodError);
 }

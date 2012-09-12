@@ -264,8 +264,12 @@ class Parser {
       return listener.expectedBlockToSkip(token);
     }
     BeginGroupToken beginGroupToken = token;
-    assert(beginGroupToken.endGroup === null ||
-           beginGroupToken.endGroup.kind === $CLOSE_CURLY_BRACKET);
+    Token endGroup = beginGroupToken.endGroup;
+    if (endGroup === null) {
+      return listener.unmatched(beginGroupToken);
+    } else if (endGroup.kind !== $CLOSE_CURLY_BRACKET) {
+      return listener.unmatched(beginGroupToken);
+    }
     return beginGroupToken.endGroup;
   }
 
@@ -800,9 +804,7 @@ class Parser {
 
   Token parseOperatorName(Token token) {
     assert(optional('operator', token));
-    if (isUserDefinableOperator(token.next.stringValue)
-        // TODO(ahe): Remove negate.
-        || token.next.value == const SourceString("negate")) {
+    if (isUserDefinableOperator(token.next.stringValue)) {
       Token operator = token;
       token = token.next;
       listener.handleOperatorName(operator, token);
@@ -1313,7 +1315,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    BeginGroupToken begin = token;
+    Token begin = token;
     token = expect('(', token);
     token = parseExpression(token);
     if (begin.endGroup !== token) {

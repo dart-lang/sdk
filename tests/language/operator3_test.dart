@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  operator negate() => this;
+  operator -() => this;
   toString() => "5";
   abs() => "correct";
 }

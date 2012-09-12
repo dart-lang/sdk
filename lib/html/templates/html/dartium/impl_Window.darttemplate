@@ -13,7 +13,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
 
-  IDBFactory get indexedDB() => webkitIndexedDB;
+  IDBFactory get indexedDB => webkitIndexedDB;
 
   // TODO(kasperl): Document these.
   lookupPort(String name) {

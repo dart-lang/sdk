@@ -8,7 +8,7 @@ $!MEMBERS
   Window get _contentWindow() native "return this.contentWindow;";
 
   // Override contentWindow to return secure wrapper.
-  Window get contentWindow() {
+  Window get contentWindow {
     return _DOMWindowCrossFrameImpl._createSafe(_contentWindow);
   }
 }

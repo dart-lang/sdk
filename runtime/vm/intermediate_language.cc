@@ -72,6 +72,16 @@ bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
 }
 
 
+bool LoadVMFieldInstr::AttributesEqual(Definition* other) const {
+  LoadVMFieldInstr* other_load = other->AsLoadVMField();
+  ASSERT(other_load != NULL);
+  ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
+         ((immutable_ == other_load->immutable_) &&
+          (ResultCid() == other_load->ResultCid())));
+  return offset_in_bytes() == other_load->offset_in_bytes();
+}
+
+
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -1059,6 +1069,11 @@ RawAbstractType* UnboxedDoubleBinaryOpInstr::CompileType() const {
 }
 
 
+RawAbstractType* MathSqrtInstr::CompileType() const {
+  return Type::Double();
+}
+
+
 RawAbstractType* UnboxDoubleInstr::CompileType() const {
   return Type::null();
 }
@@ -1468,18 +1483,12 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label done;
-  if (recognized() == MethodRecognizer::kMathSqrt) {
-    compiler->GenerateInlinedMathSqrt(&done);
-    // Falls through to static call when operand type is not double or smi.
-  }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                function(),
                                ArgumentCount(),
                                argument_names(),
                                locs());
-  __ Bind(&done);
 }
 
 
@@ -1534,17 +1543,20 @@ void ChainContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreVMFieldInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(
-      2,
-      is_used() ? Location::SameAsFirstInput() : Location::NoLocation(),
-      LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                              : Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  return locs;
 }
 
 
 void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value_reg = locs()->in(0).reg();
   Register dest_reg = locs()->in(1).reg();
-  ASSERT(!is_used() || (value_reg == locs()->out().reg()));
 
   if (value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
@@ -1613,27 +1625,42 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-Environment::Environment(const GrowableArray<Definition*>& definitions,
-                         intptr_t fixed_parameter_count)
-    : values_(definitions.length()),
-      locations_(NULL),
-      fixed_parameter_count_(fixed_parameter_count) {
+Environment* Environment::From(const GrowableArray<Definition*>& definitions,
+                               intptr_t fixed_parameter_count,
+                               const Environment* outer) {
+  Environment* env =
+      new Environment(definitions.length(),
+                      fixed_parameter_count,
+                      Isolate::kNoDeoptId,
+                      (outer == NULL) ? NULL : outer->DeepCopy());
   for (intptr_t i = 0; i < definitions.length(); ++i) {
-    values_.Add(new Value(definitions[i]));
+    env->values_.Add(new Value(definitions[i]));
   }
+  return env;
+}
+
+
+Environment* Environment::DeepCopy() const {
+  Environment* copy =
+      new Environment(values_.length(),
+                      fixed_parameter_count_,
+                      deopt_id_,
+                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
+  for (intptr_t i = 0; i < values_.length(); ++i) {
+    copy->values_.Add(values_[i]->Copy());
+  }
+  return copy;
 }
 
 
 // Copies the environment and updates the environment use lists.
-void Environment::CopyTo(Instruction* instr) const {
-  Environment* copy = new Environment(values().length(),
-                                      fixed_parameter_count());
-  GrowableArray<Value*>* values_copy = copy->values_ptr();
-  for (intptr_t i = 0; i < values().length(); ++i) {
-    Value* value = values()[i]->Copy();
-    values_copy->Add(value);
+void Environment::DeepCopyTo(Instruction* instr) const {
+  Environment* copy = DeepCopy();
+  intptr_t use_index = 0;
+  for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
+    Value* value = it.CurrentValue();
     value->set_instruction(instr);
-    value->set_use_index(i);
+    value->set_use_index(use_index++);
     value->AddToEnvUseList();
   }
   instr->set_env(copy);

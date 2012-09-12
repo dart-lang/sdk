@@ -32,6 +32,8 @@ DEFINE_FLAG(bool, deoptimize_alot, false,
 DEFINE_FLAG(bool, inline_cache, true, "Enable inline caches");
 DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
+DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
+    "Trace IC miss in optimized code");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(int, optimization_counter_threshold, 2000,
@@ -919,6 +921,14 @@ static RawFunction* InlineCacheMissHandler(
       class_ids.Add(Class::Handle(args[i]->clazz()).id());
     }
     ic_data.AddCheck(class_ids, target_function);
+  }
+  if (FLAG_trace_ic_miss_in_optimized) {
+    const Code& caller = Code::Handle(Code::LookupCode(caller_frame->pc()));
+    if (caller.is_optimized()) {
+      OS::Print("IC miss in optimized code; call %s -> %s\n",
+          Function::Handle(caller.function()).ToCString(),
+          target_function.ToCString());
+    }
   }
   if (FLAG_trace_ic) {
     OS::Print("InlineCacheMissHandler %d call at %#"Px"' "

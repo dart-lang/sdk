@@ -8,7 +8,9 @@
 #library('io');
 
 #import('dart:io');
+#import('dart:isolate');
 #import('dart:uri');
+#import('utils.dart');
 
 /** Gets the current working directory. */
 String get workingDir => new File('.').fullPathSync();
@@ -279,47 +281,82 @@ Future<File> createSymlink(from, to) {
 }
 
 /**
+ * Creates a new symlink that creates an alias from the package [from] to [to],
+ * both of which can be a [String], [File], or [Directory]. Returns a [Future]
+ * which completes to the symlink file (i.e. [to]).
+ *
+ * Unlike [createSymlink], this has heuristics to detect if [from] is using
+ * the old or new style of package layout. If it's using the new style, then
+ * it will create a symlink to the "lib" directory contained inside that
+ * package directory. Otherwise, it just symlinks to the package directory
+ * itself.
+ */
+// TODO(rnystrom): Remove this when old style packages are no longer supported.
+// See: http://code.google.com/p/dart/issues/detail?id=4964.
+Future<File> createPackageSymlink(String name, from, to,
+    [bool isSelfLink = false]) {
+  // If from contains any Dart files at the top level (aside from build.dart)
+  // we assume that means it's an old style package.
+  return listDir(from).chain((contents) {
+    var isOldStyle = contents.some(
+        (file) => file.endsWith('.dart') && basename(file) != 'build.dart');
+
+    if (isOldStyle) {
+      if (isSelfLink) {
+        printError('Warning: Package "$name" is using a deprecated layout.');
+        printError('See http://www.dartlang.org/docs/pub-package-manager/'
+            'package-layout.html for details.');
+
+        // Do not create self-links on old style packages.
+        return new Future.immediate(to);
+      } else {
+        return createSymlink(from, to);
+      }
+    }
+
+    // It's a new style package, so symlink to the 'lib' directory. But only
+    // if the package actually *has* one. Otherwise, we won't create a
+    // symlink at all.
+    from = join(from, 'lib');
+    return dirExists(from).chain((exists) {
+      if (exists) {
+        return createSymlink(from, to);
+      } else {
+        printError('Warning: Package "$name" does not have a "lib" directory.');
+        return new Future.immediate(to);
+      }
+    });
+  });
+}
+
+/**
  * Given [entry] which may be a [String], [File], or [Directory] relative to
  * the current working directory, returns its full canonicalized path.
  */
 // TODO(rnystrom): Should this be async?
 String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
 
+// TODO(nweiz): make this configurable
+/**
+ * The amount of time in milliseconds to allow HTTP requests before assuming
+ * they've failed.
+ */
+final HTTP_TIMEOUT = 30 * 1000;
+
 /**
  * Opens an input stream for a HTTP GET request to [uri], which may be a
  * [String] or [Uri].
+ *
+ * Callers should be sure to use [timeout] to make sure that the HTTP request
+ * doesn't last indefinitely
  */
-InputStream httpGet(uri) {
-  var resultStream = new ListInputStream();
-  var client = new HttpClient();
-  var connection = client.getUrl(_getUri(uri));
-
-  // TODO(nweiz): propagate this error to the return value. See issue 3657.
-  connection.onError = (e) { throw e; };
-  connection.onResponse = (response) {
-    if (response.statusCode >= 400) {
-      // TODO(nweiz): propagate this error to the return value. See issue 3657.
-      throw new Exception(
-          "HTTP request for $uri failed with status ${response.statusCode}");
-    }
-
-    pipeInputToInput(response.inputStream, resultStream, client.shutdown);
-  };
-
-  return resultStream;
-}
-
-/**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri]. Completes with the result of the request as a String.
- */
-Future<String> httpGetString(uri) {
-  // TODO(rnystrom): This code is very similar to httpGet() and
-  // consumeInputStream() (but this one propagates errors). Merge them when
-  // #3657 is fixed.
+Future<InputStream> httpGet(uri) {
+  // TODO(nweiz): This could return an InputStream synchronously if issue 3657
+  // were fixed and errors could be propagated through it. Then we could also
+  // automatically attach a timeout to that stream.
   uri = _getUri(uri);
 
-  var completer = new Completer<String>();
+  var completer = new Completer<InputStream>();
   var client = new HttpClient();
   var connection = client.getUrl(uri);
 
@@ -344,25 +381,23 @@ Future<String> httpGetString(uri) {
       return;
     }
 
-    var resultStream = new ListInputStream();
-    var buffer = <int>[];
-
-    response.inputStream.onClosed = () {
-      client.shutdown();
-      completer.complete(new String.fromCharCodes(buffer));
-    };
-
-    response.inputStream.onData = () {
-      buffer.addAll(response.inputStream.read());
-    };
-
-    response.inputStream.onError = (e) {
-      client.shutdown();
-      completer.completeException(e);
-    };
+    // TODO(nweiz): remove this extra pipe when issue 4974 is fixed.
+    var sink = new ListInputStream();
+    pipeInputToInput(response.inputStream, sink);
+    completer.complete(sink);
   };
 
   return completer.future;
+}
+
+/**
+ * Opens an input stream for a HTTP GET request to [uri], which may be a
+ * [String] or [Uri]. Completes with the result of the request as a String.
+ */
+Future<String> httpGetString(uri) {
+  var future = httpGet(uri).chain((stream) => consumeInputStream(stream))
+      .transform((bytes) => new String.fromCharCodes(bytes));
+  return timeout(future, HTTP_TIMEOUT, 'Timed out while fetching URL "$uri".');
 }
 
 /**
@@ -460,19 +495,72 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 }
 
 /**
- * Tests whether or not the git command-line app is available for use.
+ * Wraps [input] to provide a timeout. If [input] completes before
+ * [milliSeconds] have passed, then the return value completes in the same way.
+ * However, if [milliSeconds] pass before [input] has completed, it completes
+ * with a [TimeoutException] with [message].
+ *
+ * Note that timing out will not cancel the asynchronous operation behind
+ * [input].
  */
-Future<bool> get isGitInstalled {
-  // TODO(rnystrom): We could cache this after the first check. We aren't right
-  // now because Future.immediate() will invoke its callback synchronously.
-  // That does bad things in cases where the caller expects futures to always
-  // be async. In particular, withGit() in the pub tests which calls
-  // expectAsync() will fail horribly if the test isn't actually async.
+Future timeout(Future input, int milliSeconds, String message) {
+  var completer = new Completer();
+  var timer = new Timer(milliSeconds, (_) {
+    if (completer.future.isComplete) return;
+    completer.completeException(new TimeoutException(message));
+  });
+  input.handleException((e) {
+    if (completer.future.isComplete) return false;
+    timer.cancel();
+    completer.completeException(e);
+    return true;
+  });
+  input.then((value) {
+    if (completer.future.isComplete) return;
+    timer.cancel();
+    completer.complete(value);
+  });
+  return completer.future;
+}
 
+/// The cached Git command.
+String _gitCommandCache;
+
+/// Tests whether or not the git command-line app is available for use.
+Future<bool> get isGitInstalled => _gitCommand.transform((git) => git != null);
+
+/// Run a git process with [args] from [workingDir].
+Future<PubProcessResult> runGit(List<String> args, [String workingDir]) =>
+  _gitCommand.chain((git) => runProcess(git, args, workingDir));
+
+/// Returns the name of the git command-line app, or null if Git could not be
+/// found on the user's PATH.
+Future<String> get _gitCommand {
+  // TODO(nweiz): Just use Future.immediate once issue 3356 is fixed.
+  if (_gitCommandCache != null) {
+    return sleep(0).transform((_) => _gitCommandCache);
+  }
+
+  return _tryGitCommand("git").chain((success) {
+    if (success) return new Future.immediate("git");
+
+    // Git is sometimes installed on Windows as `git.cmd`
+    return _tryGitCommand("git.cmd").transform((success) {
+      if (success) return "git.cmd";
+      return null;
+    });
+  }).transform((command) {
+    _gitCommandCache = command;
+    return command;
+  });
+}
+
+/// Checks whether [command] is the Git command for this computer.
+Future<bool> _tryGitCommand(String command) {
   var completer = new Completer<bool>();
 
   // If "git --version" prints something familiar, git is working.
-  var future = runProcess("git", ["--version"]);
+  var future = runProcess(command, ["--version"]);
 
   future.then((results) {
     var regex = new RegExp("^git version");
@@ -515,6 +603,15 @@ class HttpException implements Exception {
   final String reason;
 
   const HttpException(this.statusCode, this.reason);
+}
+
+/**
+ * Exception thrown when an operation times out.
+ */
+class TimeoutException implements Exception {
+  final String message;
+
+  const TimeoutException(this.message);
 }
 
 /**

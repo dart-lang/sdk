@@ -709,8 +709,10 @@ class JumpHandlerEntry {
 }
 
 
-interface JumpHandler default JumpHandlerImpl {
-  JumpHandler(SsaBuilder builder, TargetElement target);
+abstract class JumpHandler {
+  factory JumpHandler(SsaBuilder builder, TargetElement target) {
+    return new TargetJumpHandler(builder, target);
+  }
   void generateBreak([LabelElement label]);
   void generateContinue([LabelElement label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
@@ -726,37 +728,35 @@ interface JumpHandler default JumpHandlerImpl {
 // handler associated with it.
 class NullJumpHandler implements JumpHandler {
   final Compiler compiler;
+
   NullJumpHandler(this.compiler);
 
   void generateBreak([LabelElement label]) {
-    // TODO(lrn): Need a compiler object and a location. Since label
-    // is optional, it may be null so we also need a position.
     compiler.internalError('generateBreak should not be called');
   }
 
   void generateContinue([LabelElement label]) {
-    // TODO(lrn): Need a compiler object and a location. Since label
-    // is optional, it may be null so we also need a position.
     compiler.internalError('generateContinue should not be called');
   }
 
   void forEachBreak(Function ignored) { }
   void forEachContinue(Function ignored) { }
   void close() { }
-  final TargetElement target = null;
+
   List<LabelElement> labels() => const <LabelElement>[];
+  TargetElement get target => null;
 }
 
 // Records breaks until a target block is available.
 // Breaks are always forward jumps.
 // Continues in loops are implemented as breaks of the body.
 // Continues in switches is currently not handled.
-class JumpHandlerImpl implements JumpHandler {
+class TargetJumpHandler implements JumpHandler {
   final SsaBuilder builder;
   final TargetElement target;
   final List<JumpHandlerEntry> jumps;
 
-  JumpHandlerImpl(SsaBuilder builder, this.target)
+  TargetJumpHandler(SsaBuilder builder, this.target)
       : this.builder = builder,
         jumps = <JumpHandlerEntry>[] {
     assert(builder.jumpTargets[target] === null);
@@ -901,7 +901,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Link<Node> link = node.arguments;
     assert(!link.isEmpty() && link.tail.isEmpty());
     visit(link.head);
-    close(new HReturn(pop())).addSuccessor(graph.exit);
+    HInstruction value = pop();
+    value = potentiallyCheckType(value, variable);
+    close(new HReturn(value)).addSuccessor(graph.exit);
     graph.finalize();
     return graph;
   }
@@ -1231,22 +1233,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // If the class has type variables, create the runtime type
     // information with the type parameters provided.
     if (!classElement.typeVariables.isEmpty()) {
-      List<String> typeVariables = <String>[];
       List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        typeVariables.add("'$typeVariable': #");
         rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
       });
-      String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
-      HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
-                                           new LiteralDartString('Object'),
-                                           rtiInputs);
-      add(typeInfo);
-      Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
-      HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
-      add(typeInfoSetter);
-      add(new HInvokeStatic(
-          <HInstruction>[typeInfoSetter, newObject, typeInfo]));
+      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
     }
 
     // Generate calls to the constructor bodies.
@@ -2023,13 +2014,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
     }
+    bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
     if (staticInterceptor != null) {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
-      push(new HInvokeInterceptor(selector, inputs));
+      push(new HInvokeInterceptor(selector, inputs, !hasGetter));
     } else {
-      push(new HInvokeDynamicGetter(selector, null, receiver));
+      push(new HInvokeDynamicGetter(selector, null, receiver, !hasGetter));
     }
   }
 
@@ -2098,6 +2090,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         add(target);
         addWithPosition(new HInvokeStatic(<HInstruction>[target, value]), send);
       } else {
+        value = potentiallyCheckType(value, element);
         addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);
@@ -2425,8 +2418,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           'More than one expression in JS_HAS_EQUALS()', node: node);
     }
     addGenericSendArgumentsToList(node.arguments, inputs);
-    String name = backend.namer.instanceMethodName(
-        currentLibrary, Elements.OPERATOR_EQUALS, 1);
+    String name =
+        backend.namer.instanceMethodNameByArity(Elements.OPERATOR_EQUALS, 1);
     push(new HForeign(new DartString.literal('!!#.$name'),
                       const LiteralDartString('bool'),
                       inputs));
@@ -2623,10 +2616,42 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void handleListConstructor(InterfaceType type,
+                             Node currentNode,
+                             HInstruction newObject) {
+    if (type.arguments.isEmpty()) return;
+    List<HInstruction> inputs = <HInstruction>[];
+    type.arguments.forEach((DartType argument) {
+      inputs.add(analyzeTypeArgument(argument, currentNode));
+    });
+    callSetRuntimeTypeInfo(type.element, inputs, newObject);
+  }
+
+  void callSetRuntimeTypeInfo(ClassElement element,
+                              List<HInstruction> inputs,
+                              HInstruction newObject) {
+    List<String> typeVariables = <String>[];
+    element.typeVariables.forEach((TypeVariableType typeVariable) {
+      typeVariables.add("'$typeVariable': #");
+    });
+
+    String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
+    HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
+                                         new LiteralDartString('Object'),
+                                         inputs);
+    add(typeInfo);
+    Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
+    HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
+    add(typeInfoSetter);
+    add(new HInvokeStatic(<HInstruction>[typeInfoSetter, newObject, typeInfo]));
+  }
+
   visitNewSend(Send node) {
+    bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
       if (originalElement.getEnclosingClass() === compiler.listClass) {
+        isListConstructor = true;
         if (node.arguments.isEmpty()) {
           return HType.EXTENDABLE_ARRAY;
         } else {
@@ -2671,6 +2696,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HType elementType = computeType(constructor);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);
+
+    // The List constructor forwards to a Dart static method that does
+    // not know about the type argument. Therefore we special case
+    // this constructor to have the setRuntimeTypeInfo called where
+    // the 'new' is done.
+    if (isListConstructor) {
+      handleListConstructor(type, node, newInstance);
+    }
   }
 
   visitStaticSend(Send node) {
@@ -3287,7 +3320,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   bool tryBuildConstantSwitch(SwitchStatement node) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
-    // First check whether all case expressions are compile-time constants.
+    // First check whether all case expressions are compile-time constants,
+    // and all have the same type that doesn't override operator==.
+    // TODO(lrn): Move the constant resolution to the resolver, so
+    // we can report an error before reaching the backend.
+    DartType firstConstantType = null;
+    bool failure = false;
     for (SwitchCase switchCase in node.cases) {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is CaseMatch) {
@@ -3295,14 +3333,39 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Constant constant =
             compiler.constantHandler.tryCompileNodeWithDefinitions(
                 match.expression, elements);
-          if (constant === null) return false;
+          if (constant === null) {
+            compiler.reportWarning(match.expression,
+                MessageKind.NOT_A_COMPILE_TIME_CONSTANT.error());
+            failure = true;
+            continue;
+          }
+          if (firstConstantType == null) {
+            firstConstantType = constant.computeType(compiler);
+            if (nonPrimitiveTypeOverridesEquals(constant)) {
+              compiler.reportWarning(match.expression,
+                  MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS.error());
+              failure = true;
+            }
+          } else {
+            DartType constantType =
+                constant.computeType(compiler);
+            if (constantType != firstConstantType) {
+              compiler.reportWarning(match.expression,
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL.error());
+              failure = true;
+            }
+          }
           constants[labelOrCase] = constant;
         } else {
-          // We don't handle labels yet.
-          return false;
+          compiler.reportWarning(node, "Unsupported: Labels on cases");
+          failure = true;
         }
       }
     }
+    if (failure) {
+      return false;
+    }
+
     // TODO(ngeoffray): Handle switch-instruction in bailout code.
     work.allowSpeculativeOptimization = false;
     // Then build a switch structure.
@@ -3414,6 +3477,41 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return true;
   }
 
+  bool nonPrimitiveTypeOverridesEquals(Constant constant) {
+    // Function values override equals. Even static ones, since
+    // they inherit from [Function].
+    if (constant.isFunction()) return true;
+
+    // [Map] and [List] do not override equals.
+    // If constant is primitive, just return false. We know
+    // about the equals methods of num/String classes.
+    if (!constant.isConstructedObject()) return false;
+
+    ConstructedConstant constructedConstant = constant;
+    DartType type = constructedConstant.type;
+    assert(type !== null);
+    Element element = type.element;
+    // If the type is not a class, we'll just assume it overrides
+    // operator==. Typedefs do, since [Function] does.
+    if (!element.isClass()) return true;
+    ClassElement classElement = element;
+    return typeOverridesObjectEquals(classElement);
+  }
+
+  bool typeOverridesObjectEquals(ClassElement classElement) {
+    Element operatorEq =
+        lookupOperator(classElement, const SourceString('=='));
+    if (operatorEq == null) return false;
+    // If the operator== declaration is in Object, it's not overridden.
+    return (operatorEq.getEnclosingClass() != compiler.objectClass);
+  }
+
+  Element lookupOperator(ClassElement classElement, SourceString operatorName) {
+    SourceString dartMethodName =
+        Elements.constructOperatorName(operatorName, false);
+    return classElement.lookupMember(dartMethodName);
+  }
+
 
   // Recursively build an if/else structure to match the cases.
   void buildSwitchCases(Link<Node> cases, HInstruction expression,
@@ -3474,33 +3572,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             compiler.constantHandler.tryCompileNodeWithDefinitions(
                 match.expression, elements);
         if (constant !== null) {
-          if (constant.isInt()) {
-            // Report the first mixed-string/int type error only.
-            if (encounteredCaseTypes == STRING_TYPE) {
-              compiler.reportWarning(
-                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
-            }
-            encounteredCaseTypes = combine(encounteredCaseTypes, INT_TYPE);
-          } else if (constant.isString()) {
-            if (encounteredCaseTypes == INT_TYPE) {
-              compiler.reportWarning(
-                  match, MessageKind.INVALID_CASE_EXPRESSION_TYPE);
-            }
-            encounteredCaseTypes = combine(encounteredCaseTypes, STRING_TYPE);
-          } else {
-            compiler.reportWarning(match,
-                                   MessageKind.INVALID_CASE_EXPRESSION);
-            encounteredCaseTypes = CONFLICT_TYPE;
-          }
           stack.add(graph.addConstant(constant));
         } else {
-          // TODO(lrn): Remove this else branch, and make the constant
-          // evaluation mandatory when we are ready to break existing code using
-          // non constant-int-or-string expressions.
-          compiler.reportWarning(match,
-              'case expressions not compile-time constant int or string.');
           visit(match.expression);
-          encounteredCaseTypes = CONFLICT_TYPE;
         }
         push(new HEquals(target, pop(), expression));
       }
@@ -3627,8 +3701,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
-        localsHandler.updateLocal(elements[catchBlock.exception],
-                                  unwrappedException);
+        if (catchBlock.exception !== null) {
+          localsHandler.updateLocal(elements[catchBlock.exception],
+                                    unwrappedException);
+        }
         Node trace = catchBlock.trace;
         if (trace != null) {
           pushInvokeHelper1(interceptors.getTraceFromException(), exception);

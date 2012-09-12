@@ -28,28 +28,28 @@
  * supported, but runtime functionality (such as invoking a function
  * or inspecting the contents of a variable) would fail dynamically.
  */
-interface MirrorSystem {
+abstract class MirrorSystem {
   /**
    * An immutable map from from library names to mirrors for all
    * libraries known to this mirror system.
    */
-  final Map<String, LibraryMirror> libraries;
+  Map<String, LibraryMirror> get libraries;
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].
    * This may be null if this mirror system is not running.
    */
-  final IsolateMirror isolate;
+  IsolateMirror get isolate;
 
   /**
    * A mirror on the [:Dynamic:] type.
    */
-  final TypeMirror dynamicType;
+  TypeMirror get dynamicType;
 
   /**
    * A mirror on the [:void:] type.
    */
-  final TypeMirror voidType;
+  TypeMirror get voidType;
 }
 
 /**
@@ -82,37 +82,37 @@ InstanceMirror reflect(Object reflectee) {
  *
  * Every [Mirror] originates from some [MirrorSystem].
  */
-interface Mirror extends Hashable {
+abstract class Mirror implements Hashable {
   /**
    * The [MirrorSystem] that contains this mirror.
    */
-  final MirrorSystem mirrors;
+  MirrorSystem get mirrors;
 }
 
 /**
  * An [IsolateMirror] reflects an isolate.
  */
-interface IsolateMirror extends Mirror {
+abstract class IsolateMirror implements Mirror {
   /**
    * A unique name used to refer to an isolate in debugging messages.
    */
-  final String debugName;
+  String get debugName;
 
   /**
    * Does this mirror reflect the currently running isolate?
    */
-  final bool isCurrent;
+  bool get isCurrent;
 
   /**
    * A mirror on the root library for this isolate.
    */
-  final LibraryMirror rootLibrary;
+  LibraryMirror get rootLibrary;
 }
 
 /**
  * A [DeclarationMirror] reflects some entity declared in a Dart program.
  */
-interface DeclarationMirror extends Mirror {
+abstract class DeclarationMirror implements Mirror {
   /**
    * The simple name for this Dart language entity.
    *
@@ -120,7 +120,7 @@ interface DeclarationMirror extends Mirror {
    * entity, such as 'method' for a method [:void method() {...}:] or
    * 'mylibrary' for a [:#library('mylibrary');:] declaration.
    */
-  final String simpleName;
+  String get simpleName;
 
   /**
    * The fully-qualified name for this Dart language entity.
@@ -133,7 +133,7 @@ interface DeclarationMirror extends Mirror {
    * this is a gray area due to lack of clarity over whether library
    * names are unique.
    */
-  final String qualifiedName;
+  String get qualifiedName;
 
   /**
    * A mirror on the owner of this function.  This is the declaration
@@ -141,14 +141,14 @@ interface DeclarationMirror extends Mirror {
    *
    * Note that for libraries, the owner will be [:null:].
    */
-  final DeclarationMirror owner;
+  DeclarationMirror get owner;
 
   /**
    * Is this declaration private?
    *
    * Note that for libraries, this will be [:false:].
    */
-  final bool isPrivate;
+  bool get isPrivate;
 
   /**
    * Is this declaration top-level?
@@ -156,12 +156,12 @@ interface DeclarationMirror extends Mirror {
    * This is defined to be equivalent to:
    *    [:mirror.owner !== null && mirror.owner is LibraryMirror:]
    */
-  final bool isTopLevel;
+  bool get isTopLevel;
 
   /**
    * The source location of this Dart language entity.
    */
-  final SourceLocation location;
+  SourceLocation get location;
 }
 
 /**
@@ -176,7 +176,7 @@ interface DeclarationMirror extends Mirror {
  *
  * See [InstanceMirror], [ClassMirror], and [LibraryMirror].
  */
-interface ObjectMirror extends Mirror {
+abstract class ObjectMirror implements Mirror {
   /**
    * Invokes the named function and returns a mirror on the result.
    *
@@ -210,11 +210,11 @@ interface ObjectMirror extends Mirror {
 /**
  * An [InstanceMirror] reflects an instance of a Dart language object.
  */
-interface InstanceMirror extends ObjectMirror {
+abstract class InstanceMirror implements ObjectMirror {
   /**
    * A mirror on the type of the reflectee.
    */
-  final ClassMirror type;
+  ClassMirror get type;
 
   /**
    * Does [reflectee] contain the instance reflected by this mirror?
@@ -228,7 +228,7 @@ interface InstanceMirror extends ObjectMirror {
    *  - the value is of type [bool]
    *  - the value is of type [String]
    */
-  final bool hasReflectee;
+  bool get hasReflectee;
 
   /**
    * If the [InstanceMirror] reflects an instance it is meaningful to
@@ -238,7 +238,7 @@ interface InstanceMirror extends ObjectMirror {
    * If you access [reflectee] when [hasReflectee] is false, an
    * exception is thrown.
    */
-  final reflectee;
+  get reflectee;
 }
 
 /**
@@ -247,18 +247,18 @@ interface InstanceMirror extends ObjectMirror {
  * A [ClosureMirror] provides access to its captured variables and
  * provides the ability to execute its reflectee.
  */
-interface ClosureMirror extends InstanceMirror {
+abstract class ClosureMirror implements InstanceMirror {
   /**
    * A mirror on the function associated with this closure.
    */
-  final MethodMirror function;
+  MethodMirror get function;
 
   /**
    * The source code for this closure, if available.  Otherwise null.
    *
    * TODO(turnidge): Would this just be available in function?
    */
-  final String source;
+  String get source;
 
   /**
    * Executes the closure. The arguments given in the descriptor need to
@@ -282,132 +282,129 @@ interface ClosureMirror extends InstanceMirror {
 
 /**
  * A [LibraryMirror] reflects a Dart language library, providing
- * access to the variables, functions, classes, and interfaces of the
+ * access to the variables, functions, and classes of the
  * library.
  */
-interface LibraryMirror extends DeclarationMirror, ObjectMirror {
+abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   /**
    * The url of the library.
    *
    * TODO(turnidge): Document where this url comes from.  Will this
    * value be sensible?
    */
-  final String url;
+  String get url;
 
   /**
    * An immutable map from from names to mirrors for all members in
    * this library.
    *
-   * The members of a library are its top-level classes, interfaces,
+   * The members of a library are its top-level classes,
    * functions, variables, getters, and setters.
    */
-  final Map<String, Mirror> members;
+  Map<String, Mirror> get members;
 
   /**
-   * An immutable map from names to mirrors for all class and
-   * interface declarations in this library.
+   * An immutable map from names to mirrors for all class
+   * declarations in this library.
    */
-  final Map<String, ClassMirror> classes;
+  Map<String, ClassMirror> get classes;
 
   /**
    * An immutable map from names to mirrors for all function, getter,
    * and setter declarations in this library.
    */
-  final Map<String, MethodMirror> functions;
+  Map<String, MethodMirror> get functions;
 
   /**
    * An immutable map from names to mirrors for all getter
    * declarations in this library.
    */
-  final Map<String, MethodMirror> getters;
+  Map<String, MethodMirror> get getters;
 
   /**
    * An immutable map from names to mirrors for all setter
    * declarations in this library.
    */
-  final Map<String, MethodMirror> setters;
+  Map<String, MethodMirror> get setters;
 
   /**
    * An immutable map from names to mirrors for all variable
    * declarations in this library.
    */
-  final Map<String, VariableMirror> variables;
+  Map<String, VariableMirror> get variables;
 }
 
 /**
- * A [TypeMirror] reflects a Dart language class, interface, typedef
+ * A [TypeMirror] reflects a Dart language class, typedef
  * or type variable.
  */
-interface TypeMirror extends DeclarationMirror {
+abstract class TypeMirror implements DeclarationMirror {
 }
 
 /**
- * A [ClassMirror] reflects a Dart language class or interface.
+ * A [ClassMirror] reflects a Dart language class.
  */
-interface ClassMirror extends TypeMirror, ObjectMirror {
+abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
    * A mirror on the superclass on the reflectee.
    *
    * If this type is [:Object:] or a typedef, the superClass will be
-   * null.  For interfaces, the superclass is Object.
+   * null.
    */
-  final ClassMirror superclass;
+  ClassMirror get superclass;
 
   /**
    * A list of mirrors on the superinterfaces of the reflectee.
    */
-  final List<ClassMirror> superinterfaces;
+  List<ClassMirror> get superinterfaces;
 
   /**
    * An immutable map from from names to mirrors for all members of
    * this type.
    *
-   * The members of an interface are its constructors, methods,
-   * fields, getters, and setters.
-   *
    * This does not include inherited members.
    */
-  final Map<String, Mirror> members;
+  Map<String, Mirror> get members;
 
   /**
    * An immutable map from names to mirrors for all method,
    * constructor, getter, and setter declarations for this type.
    */
-  final Map<String, MethodMirror> methods;
+  Map<String, MethodMirror> get methods;
 
   /**
    * An immutable map from names to mirrors for all constructor
    * declarations for this type.
    */
-  final Map<String, MethodMirror> constructors;
+  Map<String, MethodMirror> get constructors;
 
   /**
    * An immutable map from names to mirrors for all getter
    * declarations for this type.
    */
-  final Map<String, MethodMirror> getters;
+  Map<String, MethodMirror> get getters;
 
   /**
    * An immutable map from names to mirrors for all setter
    * declarations for this type.
    */
-  final Map<String, MethodMirror> setters;
+  Map<String, MethodMirror> get setters;
 
   /**
    * An immutable map from names to mirrors for all variable
    * declarations for this type.
    */
-  final Map<String, VariableMirror> variables;
+  Map<String, VariableMirror> get variables;
 
   /**
    * A list of type variables for this type.
    */
-  final List<TypeVariableMirror> typeVariables;
+  List<TypeVariableMirror> get typeVariables;
 
   /**
    * A list of the type arguments for this type.
    */
-  final List<TypeMirror> typeArguments;
+  List<TypeMirror> get typeArguments;
 
   /**
    * Is this the original declaration of this type?
@@ -418,7 +415,7 @@ interface ClassMirror extends TypeMirror, ObjectMirror {
    * the instantiations of generic classes, which have bound type
    * variables.
    */
-  final bool isOriginalDeclaration;
+  bool get isOriginalDeclaration;
 
   /**
    * A mirror on the original declaration of this type.
@@ -429,7 +426,7 @@ interface ClassMirror extends TypeMirror, ObjectMirror {
    * the instantiations of generic classes, which have bound type
    * variables.
    */
-  final ClassMirror originalDeclaration;
+  ClassMirror get originalDeclaration;
 
   /**
    * Invokes the named constructor and returns a mirror on the result.
@@ -446,7 +443,7 @@ interface ClassMirror extends TypeMirror, ObjectMirror {
    * TODO(turnidge): This functions goes away after the
    * class/interface changes.
    */
-  final bool isClass;
+  bool get isClass;
 
   /**
    * A mirror on the default factory class or null if there is none.
@@ -454,69 +451,69 @@ interface ClassMirror extends TypeMirror, ObjectMirror {
    * TODO(turnidge): This functions goes away after the
    * class/interface changes.
    */
-  final ClassMirror defaultFactory;
+  ClassMirror get defaultFactory;
 }
 
 /**
  * A [TypeVariableMirror] represents a type parameter of a generic
  * type.
  */
-interface TypeVariableMirror extends TypeMirror {
+abstract class TypeVariableMirror implements TypeMirror {
   /**
    * A mirror on the type that is the upper bound for this type variable.
    */
-  final TypeMirror upperBound;
+  TypeMirror get upperBound;
 }
 
 /**
  * A [FunctionTypeMirror] represents the type of a function in the
  * Dart language.
  */
-interface FunctionTypeMirror extends TypeMirror {
+abstract class FunctionTypeMirror implements TypeMirror {
   /**
    * The return type of the reflectee.
    */
-  final TypeMirror returnType;
+  TypeMirror get returnType;
 
   /**
    * A list of the parameter types of the reflectee.
    */
-  final List<ParameterMirror> parameters;
+  List<ParameterMirror> get parameters;
 
   /**
    * A mirror on the [:call:] method for the reflectee.
    *
    * TODO(turnidge): What is this and what is it for?
    */
-  final MethodMirror callMethod;
+  MethodMirror get callMethod;
 }
 
 /**
  * A [TypedefMirror] represents a typedef in a Dart language program.
  */
-interface TypedefMirror extends ClassMirror {
+abstract class TypedefMirror implements ClassMirror {
   /**
    * The defining type for this typedef.
    *
    * For instance [:void f(int):] is the value for [:typedef void f(int):].
    */
-  final TypeMirror value;
+  TypeMirror get value;
 }
 
 /**
  * A [MethodMirror] reflects a Dart language function, method,
  * constructor, getter, or setter.
  */
-interface MethodMirror extends DeclarationMirror {
+abstract class MethodMirror implements DeclarationMirror {
   /**
    * A mirror on the return type for the reflectee.
    */
-  final TypeMirror returnType;
+  TypeMirror get returnType;
 
   /**
    * A list of mirrors on the parameters for the reflectee.
    */
-  final List<ParameterMirror> parameters;
+  List<ParameterMirror> get parameters;
 
   /**
    * Is the reflectee static?
@@ -524,12 +521,12 @@ interface MethodMirror extends DeclarationMirror {
    * For the purposes of the mirrors library, a top-level function is
    * considered static.
    */
-  final bool isStatic;
+  bool get isStatic;
 
   /**
    * Is the reflectee abstract?
    */
-  final bool isAbstract;
+  bool get isAbstract;
 
   /**
    * Is the reflectee a regular function or method?
@@ -538,27 +535,27 @@ interface MethodMirror extends DeclarationMirror {
    * constructor.  Note that operators, by this definition, are
    * regular methods.
    */
-  final bool isRegularMethod;
+  bool get isRegularMethod;
 
   /**
    * Is the reflectee an operator?
    */
-  final bool isOperator;
+  bool get isOperator;
 
   /**
    * Is the reflectee a getter?
    */
-  final bool isGetter;
+  bool get isGetter;
 
   /**
    * Is the reflectee a setter?
    */
-  final bool isSetter;
+  bool get isSetter;
 
   /**
    * Is the reflectee a constructor?
    */
-  final bool isConstructor;
+  bool get isConstructor;
 
   /**
    * The constructor name for named constructors and factory methods.
@@ -569,37 +566,37 @@ interface MethodMirror extends DeclarationMirror {
    * For example, [:'bar':] is the constructor name for constructor
    * [:Foo.bar:] of type [:Foo:].
    */
-  final String constructorName;
+  String get constructorName;
 
   /**
    * Is the reflectee a const constructor?
    */
-  final bool isConstConstructor;
+  bool get isConstConstructor;
 
   /**
    * Is the reflectee a generative constructor?
    */
-  final bool isGenerativeConstructor;
+  bool get isGenerativeConstructor;
 
   /**
    * Is the reflectee a redirecting constructor?
    */
-  final bool isRedirectingConstructor;
+  bool get isRedirectingConstructor;
 
   /**
    * Is the reflectee a factory constructor?
    */
-  final bool isFactoryConstructor;
+  bool get isFactoryConstructor;
 }
 
 /**
  * A [VariableMirror] reflects a Dart language variable declaration.
  */
-interface VariableMirror extends DeclarationMirror {
+abstract class VariableMirror implements DeclarationMirror {
   /**
    * A mirror on the type of the reflectee.
    */
-  final TypeMirror type;
+  TypeMirror get type;
 
   /**
    * Is the reflectee a static variable?
@@ -607,37 +604,37 @@ interface VariableMirror extends DeclarationMirror {
    * For the purposes of the mirror library, top-level variables are
    * implicitly declared static.
    */
-  final bool isStatic;
+  bool get isStatic;
 
   /**
    * Is the reflectee a final variable?
    */
-  final bool isFinal;
+  bool get isFinal;
 }
 
 /**
  * A [ParameterMirror] reflects a Dart formal parameter declaration.
  */
-interface ParameterMirror extends VariableMirror {
+abstract class ParameterMirror implements VariableMirror {
   /**
    * A mirror on the type of this parameter.
    */
-  final TypeMirror type;
+  TypeMirror get type;
 
   /**
    * Is this parameter optional?
    */
-  final bool isOptional;
+  bool get isOptional;
 
   /**
    * Is this parameter named?
    */
-  final bool isNamed;
+  bool get isNamed;
 
   /**
    * Does this parameter have a default value?
    */
-  final bool hasDefaultValue;
+  bool get hasDefaultValue;
 
   /**
    * A mirror on the default value for this parameter, if it exists.
@@ -645,13 +642,13 @@ interface ParameterMirror extends VariableMirror {
    * TODO(turnidge): String may not be a good representation of this
    * at runtime.
    */
-  final String defaultValue;
+  String get defaultValue;
 }
 
 /**
  * A [SourceLocation] describes the span of an entity in Dart source code.
  */
-interface SourceLocation {
+abstract class SourceLocation {
 }
 
 /**

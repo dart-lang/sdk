@@ -4,7 +4,7 @@
 // Dart test program testing closures.
 
 class A {
-  operator negate() => this;
+  operator -() => this;
 
   foo(x) {
     -a;

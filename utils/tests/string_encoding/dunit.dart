@@ -56,7 +56,7 @@ class TestSuite {
   List<SynchTest> _tests;
 }
 
-interface TestResult {
+abstract class TestResult {
   String get testDescription;
 }
 

@@ -173,7 +173,7 @@ void defineProperty(var obj, String property, var value) {
  * This method looks up the type name of [obj] in [methods]. [methods]
  * is a Javascript object. If it cannot find it, it looks into the
  * [_dynamicMetadata] array. If the method can still not be found, it
- * creates a method that will throw a [NoSuchMethodException].
+ * creates a method that will throw a [NoSuchMethodError].
  *
  * Once it has a method, the prototype of [obj] is patched with that
  * method, on the property [name]. The method is then invoked.
@@ -204,7 +204,7 @@ dynamicBind(var obj,
   var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
   if (method === null) {
     // If the method cannot be found, we use a trampoline method that
-    // will throw a [NoSuchMethodException] if the object is of the
+    // will throw a [NoSuchMethodError] if the object is of the
     // exact prototype, or will call [dynamicBind] again if the object
     // is a subclass.
     method = JS('var',

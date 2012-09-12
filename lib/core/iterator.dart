@@ -7,7 +7,7 @@
  * is transparently used by the for-in construct to test for the end
  * of the iteration, and to get the elements.
  */
-interface Iterator<E> {
+abstract class Iterator<E> {
   /**
    * Gets the next element in the iteration. Throws a
    * [NoMoreElementsException] if no element is left.

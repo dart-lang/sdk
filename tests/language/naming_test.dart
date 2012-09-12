@@ -177,8 +177,7 @@ class Hoisting {
     f_ = () { return x; };
   }
 
-  // TODO(hausner): Rename to operator -.
-  operator negate() {
+  operator -() {
     var x = 3;
     return () { return x + 1; };
   }
@@ -483,7 +482,7 @@ class DartQuery {
   $negate() => wrapped;
 
   operator +(Object other) => 123;
-  operator negate() => 444;
+  operator -() => 444;
 }
 
 $add(Object first, Object second) => second;
@@ -515,8 +514,8 @@ class Naming2Test {
         // We check for both exceptions because the exact exception to
         // throw is hard to compute on some browsers.
         // Also, ObjectNotClosureException should probably implement
-        // NoSuchMethodException.
-        (e) => e is ObjectNotClosureException || e is NoSuchMethodException);
+        // NoSuchMethodError.
+        (e) => e is ObjectNotClosureException || e is NoSuchMethodError);
   }
 }
 

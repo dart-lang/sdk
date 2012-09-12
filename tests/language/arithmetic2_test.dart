@@ -12,7 +12,7 @@ bool throwsNoSuchMethod(f) {
   try {
     f();
     return false;
-  } on NoSuchMethodException catch (e) {
+  } on NoSuchMethodError catch (e) {
     return true;
   }
   return false;
@@ -22,7 +22,7 @@ bool throwsBecauseOfBadArgument(f) {
   try {
     f();
     return false;
-  } on NoSuchMethodException catch (e) {
+  } on NoSuchMethodError catch (e) {
     return true;
   } on IllegalArgumentException catch (e) {
     return true;

@@ -364,7 +364,7 @@ class _IsolateEvent {
 }
 
 /** An interface for a stub used to interact with a manager. */
-interface _ManagerStub {
+abstract class _ManagerStub {
   get id;
   void set id(int i);
   void set onmessage(Function f);
@@ -1235,6 +1235,8 @@ typedef void _TimeoutHandler();
 class _Window native "@*DOMWindow" {
   int setTimeout(_TimeoutHandler handler, int timeout) native;
   int setInterval(_TimeoutHandler handler, int timeout) native;
+  void clearTimeout(int handle) native;
+  void clearInterval(int handle) native;
 }
 
 _Window get _window =>

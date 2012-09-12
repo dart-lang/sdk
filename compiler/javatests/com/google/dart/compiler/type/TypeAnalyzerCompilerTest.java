@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -21,6 +18,8 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartArrayAccess;
+import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -36,7 +35,9 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.common.SourceInfo;
@@ -44,10 +45,15 @@ import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.EnclosingElement;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -3711,6 +3717,293 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors());
   }
 
+  /**
+   * Test for resolving variants of array access and unary/binary expressions.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5042
+   */
+  public void test_opAssignArrayElement() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  B operator [](k) => new B();",
+        "    operator []=(k, v) { }",
+        "}",
+        "class B {",
+        "  B operator +(x) => new B();",
+        "}",
+        "main () {",
+        "  var a = new A();",
+        "  process( a[2] );",
+        "  a[0]++;",
+        "  ++a[0];",
+        "  a[0] += 1;",
+        "  a[0] = 1;",
+        "}",
+        "process(x) {}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // print( a[2] )
+    {
+      DartArrayAccess access = findNode(DartArrayAccess.class, "a[2]");
+      // a[2] is invocation of method "[]"
+      assertHasMethodElement(access, "A", "[]");
+    }
+    // a[0]++
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "a[0]++");
+      // a[0]++ is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // a[0] is invocation of method []
+      assertHasMethodElement(unary.getArg(), "A", "[]");
+    }
+    // ++a[0]
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++a[0]");
+      // ++a[0] is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // a[0] is invocation of method []
+      assertHasMethodElement(unary.getArg(), "A", "[]");
+    }
+    // a[0] += 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a[0] += 1");
+      // a[0] += 1 is invocation of method "+"
+      assertHasMethodElement(binary, "B", "+");
+      // a[0] is invocation of method []
+      assertHasMethodElement(binary.getArg1(), "A", "[]");
+    }
+    // a[0] = 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a[0] = 1");
+      // a[0] = 1 is invocation of method "[]="
+      assertHasMethodElement(binary, "A", "[]=");
+      // a[0] is invocation of method []=
+      assertHasMethodElement(binary.getArg1(), "A", "[]=");
+    }
+  }
+
+  /**
+   * Test for resolving variants of property access and unary/binary expressions.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5049
+   */
+  public void test_opAssignPropertyAccess_instance() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  B get b => new B();",
+        "    set b(B x) {}",
+        "}",
+        "class B {",
+        "  B operator +(x) => new B();",
+        "}",
+        "main () {",
+        "  A a = new A();",
+        "  process( a.b );",
+        "  a.b++;",
+        "  ++a.b;",
+        "  a.b += 1;",
+        "  a.b = null;",
+        "}",
+        "process(x) {}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // print( a.b )
+    {
+      DartPropertyAccess access = findNode(DartPropertyAccess.class, "a.b");
+      // a.b is invocation of method "get b"
+      assertHasMethodElement(access, "A", "get b");
+    }
+    // a.b++
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "a.b++");
+      // a.b++ is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // a.b is invocation of method "get b"
+      assertHasMethodElement(unary.getArg(), "A", "get b");
+    }
+    // ++a.b
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++a.b");
+      // ++a.b is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // a.b is invocation of method "get b"
+      assertHasMethodElement(unary.getArg(), "A", "get b");
+    }
+    // a.b += 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a.b += 1");
+      // a.b += 1 is invocation of method "+"
+      assertHasMethodElement(binary, "B", "+");
+      // a.b is invocation of method "get b"
+      assertHasMethodElement(binary.getArg1(), "A", "get b");
+    }
+    // a.b = null
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a.b = null");
+      // a.b = null is invocation of method "set b"
+      assertHasMethodElement(binary, "A", "set b");
+      // a.b is invocation of method "set b"
+      assertHasMethodElement(binary.getArg1(), "A", "set b");
+    }
+  }
+
+  /**
+   * Test for resolving variants of static property access and unary/binary expressions.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5049
+   */
+  public void test_opAssignPropertyAccess_static() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static B get b => new B();",
+        "  static   set b(B x) {}",
+        "}",
+        "class B {",
+        "  B operator +(x) => new B();",
+        "}",
+        "main () {",
+        "  process( A.b );",
+        "  A.b++;",
+        "  ++A.b;",
+        "  A.b += 1;",
+        "  A.b = null;",
+        "}",
+        "process(x) {}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // print( A.b )
+    {
+      DartPropertyAccess access = findNode(DartPropertyAccess.class, "A.b");
+      // a.b is invocation of method "get b"
+      assertHasMethodElement(access, "A", "get b");
+    }
+    // A.b++
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "A.b++");
+      // A.b++ is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // A.b is invocation of method "get b"
+      assertHasMethodElement(unary.getArg(), "A", "get b");
+    }
+    // ++A.b
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++A.b");
+      // ++A.b is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // A.b is invocation of method "get b"
+      assertHasMethodElement(unary.getArg(), "A", "get b");
+    }
+    // A.b += 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "A.b += 1");
+      // A.b += 1 is invocation of method "+"
+      assertHasMethodElement(binary, "B", "+");
+      // A.b is invocation of method "get b"
+      assertHasMethodElement(binary.getArg1(), "A", "get b");
+    }
+    // A.b = null
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "A.b = null");
+      // A.b = null is invocation of method "set b"
+      assertHasMethodElement(binary, "A", "set b");
+      // A.b is invocation of method "set b"
+      assertHasMethodElement(binary.getArg1(), "A", "set b");
+    }
+  }
+  
+  /**
+   * Test for resolving variants of top-level property access and unary/binary expressions.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5049
+   */
+  public void test_opAssignPropertyAccess_topLevel() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "B get field => new B();",
+        "  set field(B x) {}",
+        "class B {",
+        "  B operator +(x) => new B();",
+        "}",
+        "main () {",
+        "  process( field );",
+        "  field++;",
+        "  ++field;",
+        "  field += 1;",
+        "  field = null;",
+        "}",
+        "process(x) {}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // print( field )
+    {
+      DartIdentifier access = findNode(DartIdentifier.class, "field );");
+      // "field" is invocation of method "get field"
+      assertHasMethodElement(access, "<library>", "get field");
+    }
+    // field++
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "field++");
+      // field++ is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // "field" is invocation of method "get field"
+      assertHasMethodElement(unary.getArg(), "<library>", "get field");
+    }
+    // ++field
+    {
+      DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++field");
+      // ++field is invocation of method "+"
+      assertHasMethodElement(unary, "B", "+");
+      // "field" is invocation of method "get field"
+      assertHasMethodElement(unary.getArg(), "<library>", "get field");
+    }
+    // field += 1
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "field += 1");
+      // field += 1 is invocation of method "+"
+      assertHasMethodElement(binary, "B", "+");
+      // "field" is invocation of method "get field"
+      assertHasMethodElement(binary.getArg1(), "<library>", "get field");
+    }
+    // field = null
+    {
+      DartBinaryExpression binary = findNode(DartBinaryExpression.class, "field = null");
+      // field = null is invocation of method "set field"
+      assertHasMethodElement(binary, "<library>", "set field");
+      // "field" is invocation of method "set field"
+      assertHasMethodElement(binary.getArg1(), "<library>", "set field");
+    }
+  }
+
+  private static void assertHasMethodElement(DartNode node, String className, String methodName) {
+    Element element = node.getElement();
+    assertTrue("" + node + " " + element, element instanceof MethodElement);
+    MethodElement methodElement = (MethodElement) element;
+    assertMethodElement(methodElement, className, methodName);
+  }
+  
+  private static void assertMethodElement(MethodElement element, String className, String methodName) {
+    EnclosingElement enclosingElement = element.getEnclosingElement();
+    String enclosingName;
+    if (enclosingElement instanceof LibraryElement) {
+      enclosingName = "<library>";
+    } else {
+      enclosingName = enclosingElement.getName();
+    }
+    assertEquals(className, enclosingName);
+    //
+    String elementName = element.getName();
+    if (element.getModifiers().isGetter()) {
+      elementName = "get " + elementName;
+    }
+    if (element.getModifiers().isSetter()) {
+      elementName = "set " + elementName;
+    }
+    assertEquals(methodName, elementName);
+  }
+
   public void test_invokeStaticFieldAsMethod() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -3836,7 +4129,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 6));
+        errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 5));
   }
 
   public void test_externalKeyword_OK() throws Exception {

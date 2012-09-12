@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface TreeElements {
+abstract class TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
   DartType getType(TypeAnnotation annotation);
@@ -717,7 +717,7 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
   }
 }
 
-interface LabelScope {
+abstract class LabelScope {
   LabelScope get outer;
   LabelElement lookup(String label);
 }
@@ -1907,34 +1907,38 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    // Check that the catch has one or two formal parameters.
-    if (node.formals.isEmpty()) {
-      error(node, MessageKind.EMPTY_CATCH_DECLARATION);
-    } else if (!node.formals.nodes.tail.isEmpty()
-               && !node.formals.nodes.tail.tail.isEmpty()) {
-      for (Node extra in node.formals.nodes.tail.tail) {
-        error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+    // Check that if catch part is present, then
+    // it has one or two formal parameters.
+    if (node.formals !== null) {
+      if (node.formals.isEmpty()) {
+        error(node, MessageKind.EMPTY_CATCH_DECLARATION);
       }
-    }
-
-    // Check that the formals aren't optional and that they have no
-    // modifiers or type.
-    for (Link<Node> link = node.formals.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      // If the formal parameter is a node list, it means that it is a
-      // sequence of optional parameters.
-      NodeList nodeList = link.head.asNodeList();
-      if (nodeList !== null) {
-        error(nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
-      } else {
-        VariableDefinitions declaration = link.head;
-        for (Node modifier in declaration.modifiers.nodes) {
-          error(modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
+      if (!node.formals.nodes.tail.isEmpty() &&
+          !node.formals.nodes.tail.tail.isEmpty()) {
+        for (Node extra in node.formals.nodes.tail.tail) {
+          error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
         }
-        TypeAnnotation type = declaration.type;
-        if (type !== null) {
-          error(type, MessageKind.PARAMETER_WITH_TYPE_IN_CATCH);
+      }
+
+      // Check that the formals aren't optional and that they have no
+      // modifiers or type.
+      for (Link<Node> link = node.formals.nodes;
+           !link.isEmpty();
+           link = link.tail) {
+        // If the formal parameter is a node list, it means that it is a
+        // sequence of optional parameters.
+        NodeList nodeList = link.head.asNodeList();
+        if (nodeList !== null) {
+          error(nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
+        } else {
+        VariableDefinitions declaration = link.head;
+          for (Node modifier in declaration.modifiers.nodes) {
+            error(modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
+          }
+          TypeAnnotation type = declaration.type;
+          if (type !== null) {
+            error(type, MessageKind.PARAMETER_WITH_TYPE_IN_CATCH);
+          }
         }
       }
     }
@@ -2323,6 +2327,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
   Link<Element> optionalParameters = const EmptyLink<Element>();
   int optionalParameterCount = 0;
+  bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler, this.enclosingElement) : super(compiler);
@@ -2333,6 +2338,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if ((value !== '[') && (value !== '{')) {
       internalError(node, "expected optional parameters");
     }
+    optionalParametersAreNamed = (value === '{');
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
     optionalParameters = elements.toLink();
@@ -2490,6 +2496,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                  visitor.optionalParameters,
                                  requiredParameterCount,
                                  visitor.optionalParameterCount,
+                                 visitor.optionalParametersAreNamed,
                                  returnType);
   }
 

@@ -632,8 +632,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
   const int min_num_pos_args = num_fixed_params;
-  const int max_num_pos_args = num_fixed_params + num_opt_pos_params +
-      (FLAG_reject_named_argument_as_positional ? 0 : num_opt_named_params);
+  const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
   // Number of positional args is the second Smi in descriptor array (EDX).
   __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
@@ -1351,10 +1350,14 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   // TODO(vegorov): allocate temporary register for such moves.
-  __ pushl(EAX);
-  __ LoadObject(EAX, obj);
-  __ movl(dst, EAX);
-  __ popl(EAX);
+  if (obj.IsSmi() || obj.IsNull()) {
+    __ movl(dst, Immediate(reinterpret_cast<int32_t>(obj.raw())));
+  } else {
+    __ pushl(EAX);
+    __ LoadObject(EAX, obj);
+    __ movl(dst, EAX);
+    __ popl(EAX);
+  }
 }
 
 

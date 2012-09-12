@@ -459,16 +459,16 @@ class _IndexOutOfRangeException extends _ExceptionMatcher {
   bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
 }
 
-/** A matcher for NoSuchMethodExceptions. */
-const isNoSuchMethodException = const _NoSuchMethodException();
+/** A matcher for NoSuchMethodErrors. */
+const isNoSuchMethodError = const _NoSuchMethodError();
 
-/** A matcher for functions that throw NoSuchMethodException */
-const Matcher throwsNoSuchMethodException =
-    const _Throws(isNoSuchMethodException);
+/** A matcher for functions that throw NoSuchMethodError */
+const Matcher throwsNoSuchMethodError =
+    const _Throws(isNoSuchMethodError);
 
-class _NoSuchMethodException extends _ExceptionMatcher {
-  const _NoSuchMethodException() : super("NoSuchMethodException");
-  bool matches(item, MatchState matchState) => item is NoSuchMethodException;
+class _NoSuchMethodError extends _ExceptionMatcher {
+  const _NoSuchMethodError() : super("NoSuchMethodError");
+  bool matches(item, MatchState matchState) => item is NoSuchMethodError;
 }
 
 /** A matcher for NotImplementedExceptions. */

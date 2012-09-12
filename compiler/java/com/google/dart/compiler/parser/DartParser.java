@@ -82,7 +82,7 @@ import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -2252,6 +2252,9 @@ public class DartParser extends CompletionHooksParserBase {
    */
   @VisibleForTesting
   public DartExpression parseExpression() {
+    if (peek(0) == Token.THROW) {
+      return parseThrowExpression(true);
+    }
     beginExpression();
     if (looksLikeTopLevelKeyword() || peek(0).equals(Token.RBRACE)) {
       // Allow recovery back to the top level.
@@ -2290,6 +2293,9 @@ public class DartParser extends CompletionHooksParserBase {
    * @return an expression matching the {@code expression} production above
    */
   private DartExpression parseExpressionWithoutCascade() {
+    if (peek(0) == Token.THROW) {
+      return parseThrowExpression(false);
+    }
     beginExpression();
     if (looksLikeTopLevelKeyword() || peek(0).equals(Token.RBRACE)) {
       // Allow recovery back to the top level.
@@ -3953,15 +3959,18 @@ public class DartParser extends CompletionHooksParserBase {
     return done(new DartReturnStatement(value));
   }
 
-  private DartThrowStatement parseThrowStatement() {
-    beginThrowStatement();
+  private DartThrowExpression parseThrowExpression(boolean allowCascade) {
+    beginThrowExpression();
     expect(Token.THROW);
     DartExpression exception = null;
-    if (peek(0) != Token.SEMICOLON) {
-      exception = parseExpression();
+    if (peek(0) != Token.SEMICOLON && peek(0) != Token.RPAREN) {
+      if (allowCascade) {
+        exception = parseExpression();
+      } else {
+        exception = parseExpressionWithoutCascade();
+      }
     }
-    expectStatmentTerminator();
-    return done(new DartThrowStatement(exception));
+    return done(new DartThrowExpression(exception));
   }
 
   /**
@@ -4112,7 +4121,7 @@ public class DartParser extends CompletionHooksParserBase {
         return parseReturnStatement();
 
       case THROW:
-        return parseThrowStatement();
+       return parseExpressionStatement();
 
       case TRY:
         return parseTryStatement();

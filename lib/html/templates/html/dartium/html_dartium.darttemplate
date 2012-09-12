@@ -35,7 +35,7 @@ $!GENERATED_DART_FILES
 
 Window __window;
 
-Window get window() {
+Window get window {
   if (__window !== null) {
     return __window;
   }
@@ -43,11 +43,11 @@ Window get window() {
   return __window;
 }
 
-Window get _window() native "Utils_window";
+Window get _window native "Utils_window";
 
 Document __document;
 
-Document get document() {
+Document get document {
   if (__document !== null) {
     return __document;
   }
@@ -55,7 +55,7 @@ Document get document() {
   return __document;
 }
 
-Document get _document() => _window.document;
+Document get _document => _window.document;
 
 Element query(String selector) => _document.query(selector);
 ElementList queryAll(String selector) => _document.queryAll(selector);

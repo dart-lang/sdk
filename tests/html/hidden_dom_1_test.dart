@@ -41,5 +41,5 @@ checkNoSuchMethod(action()) {
   if (ex === null)
     Expect.fail('Action should have thrown exception');
 
-  Expect.isTrue(ex is NoSuchMethodException, 'ex is NoSuchMethodException');
+  Expect.isTrue(ex is NoSuchMethodError, 'ex is NoSuchMethodError');
 }

@@ -31,9 +31,6 @@
  * but may be the entrypoint when you're running its tests.
  */
 class Entrypoint {
-  // TODO(rnystrom): Get rid of this when #4820 is fixed.
-  static bool installSelfLink = false;
-
   /**
    * The root package this entrypoint is associated with.
    */
@@ -88,7 +85,7 @@ class Entrypoint {
     }).chain((_) {
       if (id.source.shouldCache) {
         return cache.install(id).chain(
-            (pkg) => createSymlink(pkg.dir, packageDir));
+            (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
       } else {
         return id.source.install(id, packageDir).transform((found) {
           if (found) return null;
@@ -226,18 +223,11 @@ class Entrypoint {
   Future _installSelfReference(_) {
     var linkPath = join(path, root.name);
     return exists(linkPath).chain((exists) {
-      if (installSelfLink) {
-        // Create the symlink if it doesn't exist.
-        if (exists) return new Future.immediate(null);
-        return ensureDir(path).chain((_) => createSymlink(root.dir, linkPath));
-      } else {
-        // TODO(rnystrom): Get rid of this branch when #4820 is fixed.
-        // Delete the old one if it's there.
-        return ensureDir(path).chain((_) {
-          if (!exists) return new Future.immediate(null);
-          return deleteDir(linkPath);
-        });
-      }
+      // Create the symlink if it doesn't exist.
+      if (exists) return new Future.immediate(null);
+      return ensureDir(path).chain(
+          (_) => createPackageSymlink(root.name, root.dir, linkPath,
+              isSelfLink: true));
     });
   }
 

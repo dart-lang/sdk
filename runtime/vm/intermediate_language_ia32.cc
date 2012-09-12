@@ -864,111 +864,85 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static bool CanBeImmediateIndex(Value* index) {
+  if (!index->definition()->IsConstant()) return false;
+  const Object& constant = index->definition()->AsConstant()->value();
+  const Smi& smi_const = Smi::Cast(constant);
+  int64_t disp = smi_const.AsInt64Value() * kWordSize + sizeof(RawArray);
+  return Utils::IsInt(32, disp);
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
-  ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
-         (receiver_type() == kArrayCid) ||
-         (receiver_type() == kImmutableArrayCid));
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = receiver_type() == kGrowableObjectArrayCid ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  if (receiver_type() == kGrowableObjectArrayCid) {
-    locs->set_temp(0, Location::RequiresRegister());
-  }
+  locs->set_in(1, CanBeImmediateIndex(index())
+                    ? Location::RegisterOrConstant(index())
+                    : Location::RequiresRegister());
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
+  Register array = locs()->in(0).reg();
   Register result = locs()->out().reg();
-
-  switch (receiver_type()) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      __ movl(result, FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)));
-      break;
-
-    case kGrowableObjectArrayCid: {
-      Register temp = locs()->temp(0).reg();
-      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      __ movl(result, FieldAddress(temp, index, TIMES_2, sizeof(RawArray)));
-      break;
-    }
-
-    default:
-      UNREACHABLE();
-      break;
+  Location index = locs()->in(1);
+  if (index.IsRegister()) {
+    // Note that index is Smi, i.e, times 2.
+    ASSERT(kSmiTagShift == 1);
+    __ movl(result,
+            FieldAddress(array, index.reg(), TIMES_2, sizeof(RawArray)));
+  } else {
+    const int32_t disp =
+        Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray);
+    __ movl(result, FieldAddress(array, disp));
   }
 }
 
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
-  ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
-         (receiver_type() == kArrayCid));
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = receiver_type() == kGrowableObjectArrayCid ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  locs->set_in(2, Location::RequiresRegister());
-  if (receiver_type() == kGrowableObjectArrayCid) {
-    locs->set_temp(0, Location::RequiresRegister());
-  }
+  locs->set_in(1, CanBeImmediateIndex(index())
+                    ? Location::RegisterOrConstant(index())
+                    : Location::RequiresRegister());
+  locs->set_in(2, value()->NeedsStoreBuffer()
+                    ? Location::WritableRegister()
+                    : Location::RegisterOrConstant(value()));
   return locs;
 }
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
-  Register value = locs()->in(2).reg();
+  Register array = locs()->in(0).reg();
 
-  switch (receiver_type()) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      if (this->value()->NeedsStoreBuffer()) {
-        __ StoreIntoObject(receiver,
-            FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
-            value);
-      } else {
-        __ StoreIntoObjectNoBarrier(receiver,
-            FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)),
-            value);
-      }
-      break;
+  // Note that index is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  Location index = locs()->in(1);
+  FieldAddress field_address = index.IsConstant()
+      ? FieldAddress(
+          array,
+          Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray))
+      : FieldAddress(array, index.reg(), TIMES_2, sizeof(RawArray));
 
-    case kGrowableObjectArrayCid: {
-      Register temp = locs()->temp(0).reg();
-      __ movl(temp, FieldAddress(receiver, GrowableObjectArray::data_offset()));
-      // Note that index is Smi, i.e, times 2.
-      ASSERT(kSmiTagShift == 1);
-      if (this->value()->NeedsStoreBuffer()) {
-        __ StoreIntoObject(temp,
-            FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
-            value);
-      } else {
-        __ StoreIntoObjectNoBarrier(temp,
-            FieldAddress(temp, index, TIMES_2, sizeof(RawArray)),
-            value);
-      }
-      break;
+  if (this->value()->NeedsStoreBuffer()) {
+    Register value = locs()->in(2).reg();
+    __ StoreIntoObject(array, field_address, value);
+  } else {
+    if (locs()->in(2).IsConstant()) {
+      const Object& constant = locs()->in(2).constant();
+      __ StoreIntoObjectNoBarrier(array, field_address, constant);
+    } else {
+      Register value = locs()->in(2).reg();
+      __ StoreIntoObjectNoBarrier(array, field_address, value);
     }
-
-    default:
-      UNREACHABLE();
-      break;
   }
 }
 
@@ -997,7 +971,9 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1,
+      value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                  : Location::RequiresRegister());
   return summary;
 }
 
@@ -1005,7 +981,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register value_reg = locs()->in(1).reg();
-  if (this->value()->NeedsStoreBuffer()) {
+  if (this->value()->NeedsStoreBuffer() && emit_store_barrier()) {
     __ StoreIntoObject(instance_reg,
         FieldAddress(instance_reg, field().Offset()), value_reg);
   } else {
@@ -1031,10 +1007,9 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                              : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
-  locs->set_out(is_used() ? Location::SameAsFirstInput()
-                          : Location::NoLocation());
   return locs;
 }
 
@@ -1042,7 +1017,6 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary() const {
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  ASSERT(!is_used() || (locs()->out().reg() == value));
 
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
@@ -1978,6 +1952,22 @@ void UnboxedDoubleBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_out(Location::RequiresXmmRegister());
+  return summary;
+}
+
+
+void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ sqrtsd(locs()->out().xmm_reg(), locs()->in(0).xmm_reg());
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -2159,9 +2149,14 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Address(ESP, (instance_call()->ArgumentCount() - 1) * kWordSize));
 
   Label done;
-  __ movl(EDI, Immediate(kSmiCid));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, &done);
+  if (ic_data().GetReceiverClassIdAt(0) == kSmiCid) {
+    __ movl(EDI, Immediate(kSmiCid));
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(ZERO, &done, Assembler::kNearJump);
+  } else {
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+  }
   __ LoadClassId(EDI, EAX);
   __ Bind(&done);
 
