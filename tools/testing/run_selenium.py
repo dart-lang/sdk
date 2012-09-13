@@ -135,8 +135,8 @@ def print_server_error():
   the Selenium remote control server, but cannot access it. Then exit the
   program."""
   print ('ERROR: Could not connect to Selenium RC server. Are you running'
-      ' java -jar selenium-server-standalone-*.jar? If not, start '
-      'it before running this test.')
+      ' java -jar tools/testing/selenium-server-standalone-*.jar? If not, '
+      'start it before running this test.')
   sys.exit(1)
 
 def start_browser(browser, executable_path, html_out):
