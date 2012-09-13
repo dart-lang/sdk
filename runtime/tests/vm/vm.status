@@ -14,6 +14,10 @@ cc/SNPrint_BadArgs: Skip
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
+[ $system == windows && $mode == debug ]
+cc/Sleep: Pass, Fail  # Flaky on buildbot. Issue 5133.
+cc/Monitor: Pass, Fail  # Flaky on buildbot. Issue 5133.
+
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
 
