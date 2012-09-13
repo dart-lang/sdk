@@ -9,10 +9,11 @@
 #library('intl');
 
 // TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
-#import('../../pkg/htmlescape/lib/htmlescape.dart');
+#import('../htmlescape/lib/htmlescape.dart');
 
 #import('date_format.dart');
-#source('intl_message.dart');
+#import('lib/intl_helpers.dart');
+
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');
 
@@ -21,36 +22,36 @@ class Intl {
    * String indicating the locale code with which the message is to be
    * formatted (such as en-CA).
    */
-  static String _locale;
+  String _locale;
 
-  IntlMessage intlMsg;
+  /** The default locale, which normally will be obtained from the browser. */
+  static String _defaultLocale;
 
   /**
    * Return a new date format using the specified [pattern].
    * If [desiredLocale] is not specified, then we default to [locale].
    */
-  DateFormat date(String pattern, [String desiredLocale]) {
-    var actualLocale = (desiredLocale == null) ? _locale : desiredLocale;
+  DateFormat date([String pattern, String desiredLocale]) {
+    var actualLocale = (desiredLocale == null) ? locale : desiredLocale;
     return new DateFormat(pattern, actualLocale);
   }
 
   /**
-   * Constructor optionally [_locale] for specifics of the language
+   * Constructor optionally [aLocale] for specifics of the language
    * locale to be used, otherwise, we will attempt to infer it (acceptable if
    * Dart is running on the client, we can infer from the browser/client
    * preferences).
    */
-  Intl([a_locale]) {
-    if (a_locale == null) {
-      _locale = _getDefaultLocale();
+  Intl([String aLocale]) {
+    if (aLocale != null) {
+      _locale = aLocale;
     } else {
-      _locale = verifiedLocale(a_locale);
+      _locale = getCurrentLocale();
     }
-    intlMsg = new IntlMessage(_locale);
   }
 
   /**
-   * Create a message that can be internationalized. It takes a
+   * Returns a message that can be internationalized. It takes a
    * [message_str] that will be translated, which may be interpolated
    * based on one or more variables, a [desc] providing a description of usage
    * for the [message_str], and a map of [examples] for each data element to be
@@ -63,10 +64,15 @@ class Intl {
    * The expected usage of this is inside a function that takes as parameters
    * the variables used in the interpolated string, and additionally also a
    * locale (optional).
+   * Ultimately, the information about the enclosing function and its arguments
+   * will be extracted automatically but for the time being it must be passed
+   * explicitly in the [name] and [args] arguments.
    */
   static String message(String message_str, [final String desc='',
-                        final Map examples=const {}, String locale='']) {
-    return message_str;
+      final Map examples=const {}, String locale, String name,
+      List<String> args]) {
+    return _messageLookup.lookupMessage(
+        message_str, desc, examples, locale, name, args);
   }
 
   /**
@@ -94,6 +100,8 @@ class Intl {
    * [newLocale] is null it will be returned.
    */
   static String verifiedLocale(String newLocale) {
+    // TODO(alanknight): This is specific to DateFormat, and only used there
+    // now. This should be moved, renamed, or generalized.
     if (newLocale == null) return _getDefaultLocale();
     if (_localeExists(newLocale)) {
       return newLocale;
@@ -144,11 +152,11 @@ class Intl {
   static String withLocale(String locale, Function msg_function) {
     // We have to do this silliness because Locale is not known at compile time,
     // but must be a static variable.
-    if (_locale == null) _locale = _getDefaultLocale();
-    var oldLocale = _locale;
-    _locale = locale;
+    if (_defaultLocale == null) _defaultLocale = _getDefaultLocale();
+    var oldLocale = _defaultLocale;
+    _defaultLocale = locale;
     var result = msg_function();
-    _locale = oldLocale;
+    _defaultLocale = oldLocale;
     return result;
   }
 
@@ -183,6 +191,26 @@ class Intl {
    * locale.
    */
   static String getCurrentLocale() {
-    return _locale;
+    if (_defaultLocale == null) _defaultLocale = _getDefaultLocale();
+    return _defaultLocale;
+  }
+}
+
+/**
+ * The internal mechanism for looking up messages. We expect this to be set
+ * by the implementing package so that we're not dependent on its
+ * implementation.
+ */
+var _messageLookup = const
+    UninitializedLocaleData('initializeMessages(<locale>)');
+
+/**
+ * Initialize the message lookup mechanism. This is for internal use only.
+ * User applications should import message_lookup_local.dart and call
+ * initializeMessages
+ */
+void initializeInternalMessageLookup(Function lookupFunction) {
+  if (_messageLookup is UninitializedLocaleData) {
+    _messageLookup = lookupFunction();
   }
 }
