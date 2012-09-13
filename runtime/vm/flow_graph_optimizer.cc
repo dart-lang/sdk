@@ -558,7 +558,15 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                    (op_kind == Token::kNEGATE) ? call : NULL,
                                    value);
   } else if (HasOneDouble(*call->ic_data()) && (op_kind == Token::kNEGATE)) {
-    unary_op = new NumberNegateInstr(call, call->ArgumentAt(0)->value());
+    Value* value = call->ArgumentAt(0)->value();
+    AddCheckClass(call, value->Copy());
+    ConstantInstr* minus_one =
+        new ConstantInstr(Double::ZoneHandle(Double::NewCanonical(-1)));
+    InsertBefore(call, minus_one, NULL, Definition::kValue);
+    unary_op = new UnboxedDoubleBinaryOpInstr(Token::kMUL,
+                                              value,
+                                              new Value(minus_one),
+                                              call);
   }
   if (unary_op == NULL) return false;
 
