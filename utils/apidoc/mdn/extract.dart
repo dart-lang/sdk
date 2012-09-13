@@ -31,25 +31,25 @@ ClientRect getClientRect(Node n) {
  * blocks of information were extracted when using CSS such as DEBUG_CSS
  * which highlights elements that should be removed.
  */
-final DART_REMOVED = "dart-removed";
+const DART_REMOVED = "dart-removed";
 
-final DEBUG_CSS = """
+const DEBUG_CSS = """
 <style type="text/css">
   .dart-removed {
     background-color: rgba(255, 0, 0, 0.5);
    }
 </style>""";
 
-final MIN_PIXELS_DIFFERENT_LINES = 10;
+const MIN_PIXELS_DIFFERENT_LINES = 10;
 
-final IDL_SELECTOR = "pre.eval, pre.idl";
+const IDL_SELECTOR = "pre.eval, pre.idl";
 
 Map data;
 
 // TODO(rnystrom): Hack! Copied from domTypes.json. Instead of hard-coding
 // these, should use the same mapping that the DOM/HTML code generators use.
 var domTypes;
-final domTypesRaw = const [
+const domTypesRaw = const [
   "AbstractWorker", "ArrayBuffer", "ArrayBufferView", "Attr",
   "AudioBuffer", "AudioBufferSourceNode", "AudioChannelMerger",
   "AudioChannelSplitter", "AudioContext", "AudioDestinationNode",
@@ -1121,10 +1121,10 @@ void run() {
   }
 
   // Fix up links.
-  final SHORT_LINK = const RegExp(@'^[\w/]+$');
-  final INNER_LINK = const RegExp(@'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
-  final MEMBER_LINK = const RegExp(@'(\w+)[.#](\w+)');
-  final RELATIVE_LINK = const RegExp(@'^(?:../)*/?[Ee][Nn]/(.+)');
+  const SHORT_LINK = const RegExp(@'^[\w/]+$');
+  const INNER_LINK = const RegExp(@'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
+  const MEMBER_LINK = const RegExp(@'(\w+)[.#](\w+)');
+  const RELATIVE_LINK = const RegExp(@'^(?:../)*/?[Ee][Nn]/(.+)');
 
   // - Make relative links absolute.
   // - If we can, take links that point to other MDN pages and retarget them

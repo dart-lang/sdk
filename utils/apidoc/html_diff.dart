@@ -15,7 +15,7 @@
 #import('../../pkg/dartdoc/mirrors/mirrors.dart');
 #import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
 
-final HTML_LIBRARY_NAME = 'dart:html';
+const HTML_LIBRARY_NAME = 'dart:html';
 
 /**
  * A class for computing a many-to-many mapping between the types and
@@ -44,7 +44,7 @@ final HTML_LIBRARY_NAME = 'dart:html';
  * types.
  */
 class HtmlDiff {
-  /** 
+  /**
    * A map from `dart:html` members to the corresponding fully qualified
    * `@domName` member(s).
    */
