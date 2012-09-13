@@ -4940,7 +4940,7 @@ bool Parser::TryParseTypeParameter() {
 bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   bool no_check = type.IsDynamicType();
   if ((CurrentToken() == Token::kINTEGER) &&
-      (no_check || type.IsIntInterface() || type.IsNumberType())) {
+      (no_check || type.IsIntType() || type.IsNumberType())) {
     *value = CurrentIntegerLiteral();
     return true;
   } else if ((CurrentToken() == Token::kDOUBLE) &&

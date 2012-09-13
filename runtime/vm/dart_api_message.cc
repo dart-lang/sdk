@@ -406,7 +406,7 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
   }
   if (object_id == kDynamicType ||
       object_id == kDoubleType ||
-      object_id == kIntInterface ||
+      object_id == kIntType ||
       object_id == kBoolType ||
       object_id == kStringInterface) {
     // Always return dynamic type (this is only a marker).

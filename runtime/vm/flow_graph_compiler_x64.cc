@@ -344,7 +344,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     Label not_smi;
     __ testq(RAX, Immediate(kSmiTagMask));  // Value is Smi?
     __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-    __ CompareObject(RDI, Type::ZoneHandle(Type::IntInterface()));
+    __ CompareObject(RDI, Type::ZoneHandle(Type::IntType()));
     __ j(EQUAL,  is_instance_lbl);
     __ CompareObject(RDI, Type::ZoneHandle(Type::Number()));
     __ j(EQUAL,  is_instance_lbl);

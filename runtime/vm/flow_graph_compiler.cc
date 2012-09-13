@@ -487,7 +487,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
     args.Add(kDoubleCid);
     args.Add(kMintCid);
     args.Add(kBigintCid);
-  } else if (type.IsIntInterface()) {
+  } else if (type.IsIntType()) {
     args.Add(kMintCid);
     args.Add(kBigintCid);
   } else if (type.IsDoubleType()) {

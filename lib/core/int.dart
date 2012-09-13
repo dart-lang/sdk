@@ -4,7 +4,7 @@
 
 // Dart core library.
 
-interface int extends num {
+abstract class int implements num {
   // Bit-operations.
   int operator &(int other);
   int operator |(int other);

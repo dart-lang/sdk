@@ -814,10 +814,12 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
-  cls = CreateAndRegisterInterface("int", script, core_lib);
+  name = Symbols::New("int");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_int_interface(type);
+  object_store->set_int_type(type);
 
   name = Symbols::New("double");
   cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
@@ -2603,9 +2605,9 @@ bool AbstractType::IsBoolType() const {
 }
 
 
-bool AbstractType::IsIntInterface() const {
+bool AbstractType::IsIntType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::IntInterface()).type_class());
+      (type_class() == Type::Handle(Type::IntType()).type_class());
 }
 
 
@@ -2735,8 +2737,8 @@ RawType* Type::BoolType() {
 }
 
 
-RawType* Type::IntInterface() {
-  return Isolate::Current()->object_store()->int_interface();
+RawType* Type::IntType() {
+  return Isolate::Current()->object_store()->int_type();
 }
 
 

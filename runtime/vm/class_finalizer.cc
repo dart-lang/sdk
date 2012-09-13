@@ -301,7 +301,9 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
         break;
       default:
         // Special case: classes for which we don't have a known class id.
-        if (Type::Handle(Type::Double()).type_class() == super_class.raw()) {
+        // TODO(regis): Why isn't comparing to kIntegerCid enough?
+        if (Type::Handle(Type::Double()).type_class() == super_class.raw() ||
+            Type::Handle(Type::IntType()).type_class() == super_class.raw()) {
           is_error = true;
         }
         break;
@@ -1238,7 +1240,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     if (!cls_belongs_to_core_lib) {
       if (interface.IsBoolType() ||
           interface.IsNumberType() ||
-          interface.IsIntInterface() ||
+          interface.IsIntType() ||
           interface.IsDoubleType() ||
           interface.IsStringInterface() ||
           (interface.IsFunctionType() && !cls.IsSignatureClass()) ||

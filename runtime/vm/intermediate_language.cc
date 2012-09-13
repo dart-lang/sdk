@@ -1028,7 +1028,7 @@ RawAbstractType* CheckStackOverflowInstr::CompileType() const {
 
 
 RawAbstractType* BinarySmiOpInstr::CompileType() const {
-  return (op_kind() == Token::kSHL) ? Type::IntInterface() : Type::SmiType();
+  return (op_kind() == Token::kSHL) ? Type::IntType() : Type::SmiType();
 }
 
 

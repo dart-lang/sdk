@@ -877,8 +877,8 @@ class AbstractType : public Object {
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
 
-  // Check if this type represents the 'int' interface.
-  bool IsIntInterface() const;
+  // Check if this type represents the 'int' type.
+  bool IsIntType() const;
 
   // Check if this type represents the 'double' type.
   bool IsDoubleType() const;
@@ -995,8 +995,8 @@ class Type : public AbstractType {
   // The 'bool' type.
   static RawType* BoolType();
 
-  // The 'int' interface type.
-  static RawType* IntInterface();
+  // The 'int' type.
+  static RawType* IntType();
 
   // The 'Smi' type.
   static RawType* SmiType();

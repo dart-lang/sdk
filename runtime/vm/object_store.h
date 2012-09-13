@@ -60,9 +60,9 @@ class ObjectStore {
     number_type_ = value.raw();
   }
 
-  RawType* int_interface() const { return int_interface_; }
-  void set_int_interface(const Type& value) {
-    int_interface_ = value.raw();
+  RawType* int_type() const { return int_type_; }
+  void set_int_type(const Type& value) {
+    int_type_ = value.raw();
   }
 
   RawClass* integer_implementation_class() const {
@@ -463,7 +463,7 @@ class ObjectStore {
   RawType* void_type_;
   RawType* function_type_;
   RawType* number_type_;
-  RawType* int_interface_;
+  RawType* int_type_;
   RawClass* integer_implementation_class_;
   RawClass* smi_class_;
   RawType* smi_type_;
