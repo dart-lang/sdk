@@ -569,36 +569,6 @@ RawError* Object::Init(Isolate* isolate) {
       Bootstrap::LoadCoreImplScript(false));
 
   String& name = String::Handle();
-  cls = Class::New<Integer>();
-  object_store->set_integer_implementation_class(cls);
-  name = Symbols::IntegerImplementation();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Smi>();
-  object_store->set_smi_class(cls);
-  name = Symbols::Smi();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Mint>();
-  object_store->set_mint_class(cls);
-  name = Symbols::Mint();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Bigint>();
-  object_store->set_bigint_class(cls);
-  name = Symbols::Bigint();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Double>();
-  object_store->set_double_class(cls);
-  name = Symbols::Double();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
   name = Symbols::Bool();
@@ -674,9 +644,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
-  // Allocate and initialize the Object class and type.  The Object
-  // class and ByteArray subclasses are the only pre-allocated,
-  // non-interface classes in the core library.
+  // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
   name = Symbols::Object();
@@ -687,6 +655,36 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
+
+  cls = Class::New<Integer>();
+  object_store->set_integer_implementation_class(cls);
+  name = Symbols::IntegerImplementation();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Smi>();
+  object_store->set_smi_class(cls);
+  name = Symbols::Smi();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Mint>();
+  object_store->set_mint_class(cls);
+  name = Symbols::Mint();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Bigint>();
+  object_store->set_bigint_class(cls);
+  name = Symbols::Bigint();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Double>();
+  object_store->set_double_class(cls);
+  name = Symbols::Double();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);

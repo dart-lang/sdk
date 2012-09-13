@@ -35,8 +35,8 @@ class LocalVariable;
   V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
   V(GrowableObjectArray, get:capacity, GrowableArrayCapacity)                  \
   V(StringBase, get:length, StringBaseLength)                                  \
-  V(IntegerImplementation, toDouble, IntegerToDouble)                          \
-  V(Double, toDouble, DoubleToDouble)                                          \
+  V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
+  V(_Double, toDouble, DoubleToDouble)                                         \
   V(::, sqrt, MathSqrt)                                                        \
 
 // Class that recognizes the name and owner of a function and returns the
