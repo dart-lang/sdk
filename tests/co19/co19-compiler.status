@@ -3,56 +3,57 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/07_Classes/07_Classes_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t07: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A01_t20: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t31: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t32: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t34: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/10_Superinterfaces_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t07: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t08: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A05_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A05_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t09: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/6_Constructors_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A03_t01: Fail, OK # 'default' is no longer supported
+Language/07_Classes/07_Classes_A03_t04: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/07_Classes_A03_t06: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/07_Classes_A03_t07: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/07_Classes_A03_t05: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/07_Classes_A03_t03: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/07_Classes_A01_t20: Fail, OK # the default constructor invokes a non-existent zero argument constructor
+Language/07_Classes/07_Classes_A02_t01: Fail # Issue 5419
+Language/07_Classes/07_Classes_A02_t31: Fail, OK # constant constructors are not required to have a body
+Language/07_Classes/07_Classes_A02_t32: Fail, OK # constant constructors are not required to have a body
+Language/07_Classes/07_Classes_A02_t34: Fail # Issue 5419
+Language/07_Classes/07_Classes_A09_t01: Fail, OK # warning expected if instance member has the same name as a static member
+Language/07_Classes/10_Superinterfaces_A04_t01: Fail # Issue 5084
+Language/07_Classes/2_Getters_A01_t01: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/2_Getters_A01_t05: Fail # No issue: waiting to remove old getter syntax
+Language/07_Classes/3_Setters_A04_t01: Fail # Issue 5153
+Language/07_Classes/3_Setters_A04_t02: Fail, OK # getter and method with the same name
+Language/07_Classes/3_Setters_A04_t03: Fail, OK # getter and method with the same name
+Language/07_Classes/3_Setters_A04_t04: Fail # Issue 5153
+Language/07_Classes/3_Setters_A04_t05: Fail # Issue 5153
+Language/07_Classes/3_Setters_A04_t06: Fail OK # getter and method with the same name
+Language/07_Classes/3_Setters_A04_t07: Fail # Issue 5153
+Language/07_Classes/3_Setters_A04_t08: Fail # Issue 5153
+Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A04_t02: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A04_t03: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A05_t01: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A05_t02: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A05_t03: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A05_t04: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A06_t01: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A06_t04: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A06_t05: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A06_t06: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t03: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t04: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t05: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/4_Abstract_Instance_Members_A07_t09: Fail, OK # abstract methods cannot occur in concrete classes
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # Issue 5162
+Language/07_Classes/6_Constructors_A01_t01: Fail # Issue 5163
+Language/07_Classes/6_Constructors_A03_t03: Fail, OK # this should be a warning, not an error
+
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
