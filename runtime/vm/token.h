@@ -136,7 +136,6 @@ namespace dart {
   TOK(kLIBRARY, "#library", 0, kNoAttribute)                                   \
   TOK(kIMPORT, "#import", 0, kNoAttribute)                                     \
   TOK(kSOURCE, "#source", 0, kNoAttribute)                                     \
-  TOK(kRESOURCE, "#resource", 0, kNoAttribute)                                 \
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.

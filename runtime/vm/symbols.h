@@ -59,7 +59,6 @@ class ObjectPointerVisitor;
   V(Library, "library")                                                        \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
-  V(Resource, "resource")                                                      \
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
   V(Dynamic, "Dynamic")                                                        \

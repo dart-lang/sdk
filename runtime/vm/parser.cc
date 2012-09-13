@@ -4131,23 +4131,6 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
 }
 
 
-// TODO(hausner): Remove support for old library definition syntax.
-void Parser::ParseLibraryResourceObsoleteSyntax() {
-  while (CurrentToken() == Token::kRESOURCE) {
-    // Currently the VM does ignore #resource library tags. They are only used
-    // by the IDE.
-    ConsumeToken();
-    ExpectToken(Token::kLPAREN);
-    if (CurrentToken() != Token::kSTRING) {
-      ErrorMsg("resource url expected");
-    }
-    ConsumeToken();
-    ExpectToken(Token::kRPAREN);
-    ExpectToken(Token::kSEMICOLON);
-  }
-}
-
-
 void Parser::ParseLibraryName() {
   ASSERT(IsLiteral("library"));
   ConsumeToken();
@@ -4240,12 +4223,10 @@ void Parser::ParseLibraryDefinition() {
   // TODO(hausner): Remove support for old library definition syntax.
   if ((CurrentToken() == Token::kLIBRARY) ||
       (CurrentToken() == Token::kIMPORT) ||
-      (CurrentToken() == Token::kSOURCE) ||
-      (CurrentToken() == Token::kRESOURCE)) {
+      (CurrentToken() == Token::kSOURCE)) {
     ParseLibraryNameObsoleteSyntax();
     ParseLibraryImportObsoleteSyntax();
     ParseLibraryIncludeObsoleteSyntax();
-    ParseLibraryResourceObsoleteSyntax();
     return;
   }
 

@@ -262,6 +262,8 @@ LibTest/core/List/forEach_A02_t01: Fail # TODO(vm-team): Please triage this fail
 
 
 [ $runtime == vm ]
+#Scripts that use the obsolete #resource directive, co19 issue 181
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail, OK # co19 issue 181
 
 # Not properly reporting exception in initializer expressions
 Language/10_Expressions/01_Constants_A16_t01: Fail

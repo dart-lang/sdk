@@ -395,7 +395,6 @@ void Scanner::ScanLibraryTag() {
   const String& kLibrary = String::Handle(Symbols::Library());
   const String& kImport = String::Handle(Symbols::Import());
   const String& kSource = String::Handle(Symbols::Source());
-  const String& kResource = String::Handle(Symbols::Resource());
   const String& ident = String::Handle(ConsumeIdentChars(false));
   if (ident.Equals(kLibrary)) {
     current_token_.kind = Token::kLIBRARY;
@@ -407,10 +406,6 @@ void Scanner::ScanLibraryTag() {
   }
   if (ident.Equals(kSource)) {
     current_token_.kind = Token::kSOURCE;
-    return;
-  }
-  if (ident.Equals(kResource)) {
-    current_token_.kind = Token::kRESOURCE;
     return;
   }
   ErrorMsg("Unrecognized library token");
