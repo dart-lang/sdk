@@ -1635,7 +1635,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
       __ cmpl(right,
-          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
+          Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
       __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
       Register right_temp = locs()->temp(1).reg();
       ASSERT(right_temp == ECX);  // Count must be in ECX
@@ -2271,7 +2271,8 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(constant.IsArray());
     const Array& array =  Array::Cast(constant);
     Register index = locs()->in(1).reg();
-    __ cmpl(index, Immediate(array.Length()));
+    __ cmpl(index,
+        Immediate(reinterpret_cast<int32_t>(Smi::New(array.Length()))));
     __ j(ABOVE_EQUAL, deopt);
   } else {
     Register receiver = locs()->in(0).reg();
