@@ -2155,8 +2155,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
-  bool emit_store_barrier() const {
-    return emit_store_barrier_;
+  bool ShouldEmitStoreBarrier() const {
+    return value()->NeedsStoreBuffer() && emit_store_barrier_;
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2265,7 +2265,9 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  bool emit_store_barrier() const { return emit_store_barrier_; }
+  bool ShouldEmitStoreBarrier() const {
+    return value()->NeedsStoreBuffer() && emit_store_barrier_;
+  }
 
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }

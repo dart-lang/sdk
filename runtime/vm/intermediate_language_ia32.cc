@@ -913,7 +913,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
                     : Location::RequiresRegister());
-  locs->set_in(2, value()->NeedsStoreBuffer()
+  locs->set_in(2, ShouldEmitStoreBarrier()
                     ? Location::WritableRegister()
                     : Location::RegisterOrConstant(value()));
   return locs;
@@ -932,7 +932,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray))
       : FieldAddress(array, index.reg(), TIMES_2, sizeof(RawArray));
 
-  if (this->value()->NeedsStoreBuffer() && emit_store_barrier()) {
+  if (ShouldEmitStoreBarrier()) {
     Register value = locs()->in(2).reg();
     __ StoreIntoObject(array, field_address, value);
   } else {
@@ -953,22 +953,30 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1,
-      value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                  : Location::RequiresRegister());
+  summary->set_in(1, ShouldEmitStoreBarrier()
+                       ? Location::WritableRegister()
+                       : Location::RegisterOrConstant(value()));
   return summary;
 }
 
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
-  Register value_reg = locs()->in(1).reg();
-  if (this->value()->NeedsStoreBuffer() && emit_store_barrier()) {
+  if (ShouldEmitStoreBarrier()) {
+    Register value_reg = locs()->in(1).reg();
     __ StoreIntoObject(instance_reg,
         FieldAddress(instance_reg, field().Offset()), value_reg);
   } else {
-    __ StoreIntoObjectNoBarrier(instance_reg,
-        FieldAddress(instance_reg, field().Offset()), value_reg);
+    if (locs()->in(1).IsConstant()) {
+      __ StoreIntoObjectNoBarrier(
+          instance_reg,
+          FieldAddress(instance_reg, field().Offset()),
+          locs()->in(1).constant());
+    } else {
+      Register value_reg = locs()->in(1).reg();
+      __ StoreIntoObjectNoBarrier(instance_reg,
+          FieldAddress(instance_reg, field().Offset()), value_reg);
+    }
   }
 }
 
