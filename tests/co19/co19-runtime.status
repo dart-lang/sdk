@@ -429,6 +429,22 @@ LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # Promise removed (co19 issue #79)
 
+LibTest/core/Date/add_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/add_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/add_A03_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A03_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/compareTo_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/compareTo_A01_t02: Fail, OK # co19 issue 209
+LibTest/core/Duration/Duration_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/Duration_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inDays_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inHours_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inMilliseconds_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inMinutes_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inSeconds_A01_t01: Fail, OK # co19 issue 209
+
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail

@@ -16,8 +16,8 @@ interface Duration extends Comparable default DurationImplementation {
    * All individual parts are allowed to be negative.
    * All arguments are by default 0.
    */
-  const Duration([int days, int hours, int minutes, int seconds,
-                  int milliseconds]);
+  const Duration({int days, int hours, int minutes, int seconds,
+                  int milliseconds});
 
   /**
    * Returns this [Duration] in days. Incomplete days are discarded.

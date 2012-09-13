@@ -595,6 +595,22 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/isUtc_A01_t01: Fail, OK
 
+LibTest/core/Date/add_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/add_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/add_A03_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A03_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/compareTo_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/compareTo_A01_t02: Fail, OK # co19 issue 209
+LibTest/core/Duration/Duration_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/Duration_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inDays_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inHours_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inMilliseconds_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inMinutes_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inSeconds_A01_t01: Fail, OK # co19 issue 209
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
 

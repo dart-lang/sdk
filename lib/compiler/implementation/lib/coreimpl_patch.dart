@@ -118,7 +118,7 @@ patch class DateImplementation {
   }
 
   patch Duration get timeZoneOffset {
-    if (isUtc) return new Duration(0);
+    if (isUtc) return new Duration();
     return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
 

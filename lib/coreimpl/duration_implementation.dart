@@ -7,11 +7,11 @@
 class DurationImplementation implements Duration {
   final int inMilliseconds;
 
-  const DurationImplementation([int days = 0,
-                                int hours = 0,
-                                int minutes = 0,
-                                int seconds = 0,
-                                int milliseconds = 0])
+  const DurationImplementation({int days: 0,
+                                int hours: 0,
+                                int minutes: 0,
+                                int seconds: 0,
+                                int milliseconds: 0})
     : inMilliseconds = days * Duration.MILLISECONDS_PER_DAY +
                        hours * Duration.MILLISECONDS_PER_HOUR +
                        minutes * Duration.MILLISECONDS_PER_MINUTE +
