@@ -273,12 +273,7 @@ pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
-final_is_not_const_test/01: Fail, OK # Issue 3558
-final_syntax_test/none: Fail, OK # Issue 3558
-lazy_static_test: Fail, OK # Issue 3558
-lazy_static2_test: Fail, OK # Issue 3558
 lazy_static3_test: Fail, OK # Issue 3558
-lazy_static4_test: Fail, OK # Issue 3558
 # Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
@@ -342,7 +337,6 @@ gc_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
-final_field_initialization_order_test: Fail # Issue 4839
 # VM specific tests.
 disable_privacy_test: Fail, Ok
 # This test hard codes name of file being run and precise position.
