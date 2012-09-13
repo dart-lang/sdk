@@ -29,7 +29,6 @@ pseudo_kw_illegal_test/03: Fail  # Issue 356
 pseudo_kw_illegal_test/08: Fail  # Issue 356
 pseudo_kw_illegal_test/10: Fail  # Issue 356
 pseudo_kw_illegal_test/14: Fail  # Issue 356
-final_field_initialization_order_test: Fail # Issue 4839
 
 assert_lexical_scope_test: Fail # Issue 4935
 
@@ -63,12 +62,8 @@ getter_no_setter2_test/01: Fail # Issue 4898
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
-final_is_not_const_test/01: Fail # Issue 3558
-final_syntax_test/none: Fail # Issue 3558
-lazy_static_test: Fail # Issue 3558
-lazy_static2_test: Fail # Issue 3558
 lazy_static3_test: Fail # Issue 3558
-lazy_static4_test: Fail # Issue 3558
+
 
 
 # DartC specific tests that should not be run by the VM

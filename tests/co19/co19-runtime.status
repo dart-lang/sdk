@@ -78,7 +78,6 @@ Language/08_Interfaces/4_Factories_and_Constructors_A06_t06: Fail # TODO(vm-team
 Language/08_Interfaces/4_Factories_and_Constructors_A06_t07: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/4_Factories_and_Constructors_A06_t08: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/01_Constants_A15_t38: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t39: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t41: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t43: Fail # TODO(vm-team): Please triage this failure.
@@ -264,6 +263,19 @@ LibTest/core/List/forEach_A02_t01: Fail # TODO(vm-team): Please triage this fail
 
 [ $runtime == vm ]
 
+# Not properly reporting exception in initializer expressions
+Language/10_Expressions/01_Constants_A16_t01: Fail
+Language/10_Expressions/01_Constants_A16_t02: Fail
+Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail
+
+# Broken tests that assume a toplevel final variable is a compile-time const
+Language/06_Functions/2_Formal_Parameters_A02_t02: Fail # co19 issue 207
+LibTest/core/double/operator_remainder_A01_t03: Fail # co19 issue 207
+LibTest/core/double/remainder_A01_t03: Fail # co19 issue 207
+
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # issue 392, potentially constant expression analysis
+Language/10_Expressions/01_Constants_A16_t03: Fail # issue 392
+
 Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail # Missing whitespace is not an error. Program is legal.
 # These tests fail after the deprecation of the corelib
 # Math object in favor of the dart:math library.
@@ -271,6 +283,9 @@ Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail # Missing whitespace i
 Language/05_Variables/05_Variables_A05_t03: Fail, OK
 Language/05_Variables/05_Variables_A04_t09: Fail, OK
 Language/05_Variables/05_Variables_A03_t09: Fail, OK
+Language/05_Variables/05_Variables_A03_t03: Fail # Missing compile-time error on assignment to final variable
+Language/05_Variables/05_Variables_A03_t07: Fail # Missing compile-time error on assignment to final variable
+Language/05_Variables/05_Variables_A03_t10: Fail # Missing compile-time error on assignment to final variable
 LibTest/core/Expect/approxEquals_A01_t01: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t02: Fail, OK
 LibTest/core/Expect/approxEquals_A01_t03: Fail, OK
@@ -850,12 +865,8 @@ Language/07_Classes/1_Instance_Methods_A05_t03: Fail
 
 
 # initializer must be a compile time constant
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail
-Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail
-Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail
 
 
 # invalid operator overloading
