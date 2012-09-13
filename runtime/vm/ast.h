@@ -1075,7 +1075,7 @@ class LoadStaticFieldNode : public AstNode {
 
   virtual const Instance* EvalConstExpr() const {
     ASSERT(field_.is_static());
-    return field_.is_const() ? &Instance::ZoneHandle(field_.value()) : NULL;
+    return field_.is_final() ? &Instance::ZoneHandle(field_.value()) : NULL;
   }
 
   DECLARE_COMMON_NODE_FUNCTIONS(LoadStaticFieldNode);
