@@ -143,6 +143,12 @@ is 'dart file.dart' and you specify special command
                'silent', 'status', 'buildbot'],
               'compact'),
           new _TestOptionSpecification(
+              'step_name',
+              'Step name for use by -pbuildbot',
+              ['--step_name'],
+              [],
+              'string'),
+          new _TestOptionSpecification(
               'report',
               'Print a summary report of the number of tests, by expectation',
               ['--report'],
