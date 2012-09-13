@@ -5,7 +5,8 @@
 
 #library('logging_test');
 
-#import('../logging.dart');
+// TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
+#import('../lib/logging.dart');
 #import('../../../pkg/unittest/unittest.dart');
 
 main() {
