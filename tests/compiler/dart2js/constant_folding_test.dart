@@ -32,18 +32,18 @@ foo(a, b, c, d) {
 
 main() {
   compileAndMatch(
-      NUMBER_FOLDING, 'main', const RegExp(@"print\(7\)"));
+      NUMBER_FOLDING, 'main', const RegExp(r"print\(7\)"));
   compileAndMatch(
-      NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(@"print\(1\)"));
+      NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(r"print\(1\)"));
 
   String generated = compile(NULL_EQUALS_FOLDING, 'foo');
-  RegExp regexp = const RegExp(@'a == null');
+  RegExp regexp = const RegExp(r'a == null');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@'null == b');
+  regexp = const RegExp(r'null == b');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@'4 === c');
+  regexp = const RegExp(r'4 === c');
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("'foo' === d");

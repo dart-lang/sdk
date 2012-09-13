@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 sum(param0, param1) {
   var sum = 0;
   for (var i = param0; i < param1; i += 1) sum = sum + i;
@@ -12,13 +12,13 @@ sum(param0, param1) {
 }
 """;
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 foo(int param0) {
   return -param0;
 }
 """;
 
-const String TEST_TWO_WITH_BAILOUT = @"""
+const String TEST_TWO_WITH_BAILOUT = r"""
 foo(int param0) {
   for (int i = 0; i < 1; i++) {
     param0 = -param0;
@@ -27,27 +27,27 @@ foo(int param0) {
 }
 """;
 
-const String TEST_THREE = @"""
+const String TEST_THREE = r"""
 foo(c) {
   for (int i = 0; i < 10; i++) print(c[i]);
 }
 """;
 
-const String TEST_FOUR = @"""
+const String TEST_FOUR = r"""
 foo(String c) {
   print(c[0]); // Force a type guard.
   while (true) print(c.length);
 }
 """;
 
-const String TEST_FIVE = @"""
+const String TEST_FIVE = r"""
 foo(a) {
   a[0] = 1;
   print(a[1]);
 }
 """;
 
-const String TEST_FIVE_WITH_BAILOUT = @"""
+const String TEST_FIVE_WITH_BAILOUT = r"""
 foo(a) {
   for (int i = 0; i < 1; i++) {
     a[0] = 1;
@@ -56,7 +56,7 @@ foo(a) {
 }
 """;
 
-const String TEST_SIX = @"""
+const String TEST_SIX = r"""
 foo(a) {
   print(a[0]);
   while (true) {

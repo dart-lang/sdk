@@ -106,6 +106,10 @@ class AbstractScanner<T extends SourceString> implements Scanner {
       return advance();
     }
 
+    if ($r === next) {
+      return tokenizeRawStringKeywordOrIdentifier(next);
+    }
+
     if ($a <= next && next <= $z) {
       return tokenizeKeywordOrIdentifier(next, true);
     }
@@ -230,6 +234,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
       return tokenizeSlashOrComment(next);
     }
 
+    // TODO(aprelev@gmail.com) Remove deprecated raw string literals
     if (next === $AT) {
       return tokenizeAtOrRawString(next);
     }
@@ -618,6 +623,16 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         next = advance();
       }
     }
+  }
+
+  int tokenizeRawStringKeywordOrIdentifier(int next) {
+    int nextnext = peek();
+    if (nextnext === $DQ || nextnext === $SQ) {
+      int start = byteOffset;
+      next = advance();
+      return tokenizeString(next, start, true);
+    }
+    return tokenizeKeywordOrIdentifier(next, true);
   }
 
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {

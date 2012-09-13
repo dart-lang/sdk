@@ -20,12 +20,12 @@ testSingleCharacterEscapes() {
   }
 
   // An escaped quote isn't part of a multiline end quote.
-  Expect.equals(@'"', """\"""");
-  Expect.equals(@"'", '''\'''');
-  Expect.equals(@'" "', """" \"""");
-  Expect.equals(@"' '", '''' \'''');
-  Expect.equals(@'"" ', """"" """);
-  Expect.equals(@"'' ", ''''' ''');
+  Expect.equals(r'"', """\"""");
+  Expect.equals(r"'", '''\'''');
+  Expect.equals(r'" "', """" \"""");
+  Expect.equals(r"' '", '''' \'''');
+  Expect.equals(r'"" ', """"" """);
+  Expect.equals(r"'' ", ''''' ''');
 }
 
 testXEscapes() {
@@ -108,13 +108,13 @@ testQuotes() {
   Expect.equals(bothQuotes, ' "\' ');
   Expect.equals(bothQuotes, """ "' """);
   Expect.equals(bothQuotes, ''' "' ''');
-  Expect.equals(bothQuotes, @""" "' """);
-  Expect.equals(bothQuotes, @''' "' ''');
+  Expect.equals(bothQuotes, r""" "' """);
+  Expect.equals(bothQuotes, r''' "' ''');
 }
 
 
 testRawStrings() {
-  String raw1 = @'\x00';
+  String raw1 = r'\x00';
   Expect.equals(4, raw1.length);
   Expect.equals(0x5c, raw1.charCodeAt(0));
 }

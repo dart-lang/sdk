@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 foo(a) {
   a.add(42);
   a.removeLast();
@@ -14,7 +14,7 @@ foo(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains(@'.add$1('));
-  Expect.isTrue(generated.contains(@'.removeLast('));
-  Expect.isTrue(generated.contains(@'.get$length('));
+  Expect.isTrue(generated.contains(r'.add$1('));
+  Expect.isTrue(generated.contains(r'.removeLast('));
+  Expect.isTrue(generated.contains(r'.get$length('));
 }

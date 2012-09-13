@@ -21,7 +21,7 @@ testUnparseMember(String member) {
   Expect.equals(member, unparse(node));
 }
 
-const coreLib = @'''
+const coreLib = r'''
 #library('corelib');
 class Object {}
 interface bool {}
@@ -40,7 +40,7 @@ class Math {
 }
 ''';
 
-const ioLib = @'''
+const ioLib = r'''
 #library('io');
 class Platform {
   static int operatingSystem;

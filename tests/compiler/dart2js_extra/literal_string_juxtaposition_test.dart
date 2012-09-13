@@ -9,7 +9,7 @@ main() {
     var s2 = "abcd" "efgh";
     var s3 = "ab" "cd" "ef" "gh";
     var s4 = "a" "b" "c" "d" "e" "f" "g" "h";
-    var s5 = "a" 'b' @"c" @'d' """e""" '''f''' @"""g""" @'''h''';
+    var s5 = "a" 'b' r"c" r'd' """e""" '''f''' r"""g""" r'''h''';
     Expect.isTrue(s1 === s2);
     Expect.isTrue(s1 === s3);
     Expect.isTrue(s1 === s4);
@@ -21,7 +21,7 @@ main() {
     var s2 = "abcd""efgh";
     var s3 = "ab""cd""ef""gh";
     var s4 = "a""b""c""d""e""f""g""h";
-    var s5 = "a"'b'@"c"@'d'"""e"""'''f'''@"""g"""@'''h''';
+    var s5 = "a"'b'r"c"r'd'"""e"""'''f'''r"""g"""r'''h''';
     Expect.isTrue(s1 === s2);
     Expect.isTrue(s1 === s3);
     Expect.isTrue(s1 === s4);
@@ -31,9 +31,9 @@ main() {
     // """a""""""""b""" is 'a' '""b'.
     Expect.isTrue('a""b' === """a""""""""b""");
     // Raw strings.
-    Expect.isTrue('ab' === "a"@"b");
-    Expect.isTrue('ab' === @"a""b");
-    Expect.isTrue('ab' === @"a"@"b");
+    Expect.isTrue('ab' === "a"r"b");
+    Expect.isTrue('ab' === r"a""b");
+    Expect.isTrue('ab' === r"a"r"b");
   }
 
   // Newlines are just whitespace.
@@ -99,13 +99,13 @@ main() {
 
     Expect.equals("$x-$y-$z", "${'$x' '-' '$y'}" "-" "$z");
 
-    Expect.equals(@"-foo-42-true-",
-                  @"-" "$x" @"""-""" """$y""" @'-' '$z' @'''-''', "j");
-    Expect.equals(@"-$x-42-true-",
-                  @"-" @"$x" @"""-""" """$y""" @'-' '$z' @'''-''', "k");
-    Expect.equals(@"-foo-$y-true-",
-                  @"-" "$x" @"""-""" @"""$y""" @'-' '$z' @'''-''', "l");
-    Expect.equals(@"-foo-42-$z-",
-                  @"-" "$x" @"""-""" """$y""" @'-' @'$z' @'''-''', "m");
+    Expect.equals(r"-foo-42-true-",
+                  r"-" "$x" r"""-""" """$y""" r'-' '$z' r'''-''', "j");
+    Expect.equals(r"-$x-42-true-",
+                  r"-" r"$x" r"""-""" """$y""" r'-' '$z' r'''-''', "k");
+    Expect.equals(r"-foo-$y-true-",
+                  r"-" "$x" r"""-""" r"""$y""" r'-' '$z' r'''-''', "l");
+    Expect.equals(r"-foo-42-$z-",
+                  r"-" "$x" r"""-""" """$y""" r'-' r'$z' r'''-''', "m");
   }
 }

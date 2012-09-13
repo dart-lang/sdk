@@ -6,7 +6,7 @@
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 class A { }
 class B { }
 
@@ -16,7 +16,7 @@ main() {
 }
 """;
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 class A { }
 class B extends A { }
 
@@ -26,7 +26,7 @@ main() {
 }
 """;
 
-const String TEST_THREE = @"""
+const String TEST_THREE = r"""
 class B extends A { }
 class A { }
 
@@ -36,7 +36,7 @@ main() {
 }
 """;
 
-const String TEST_FOUR = @"""
+const String TEST_FOUR = r"""
 class A {
   var x;
 }
@@ -51,7 +51,7 @@ main() {
 }
 """;
 
-const String TEST_FIVE = @"""
+const String TEST_FIVE = r"""
 class A {
   var x;
   A(x) : this.x = x {}
@@ -81,7 +81,7 @@ subClass() {
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
   print(generated);
-  Expect.isTrue(generated.contains(@"""
+  Expect.isTrue(generated.contains(r"""
 $.B = {"":
  ["y", "z", "x"],
  "super": "A"
@@ -90,7 +90,7 @@ $.B = {"":
 
 constructor1() {
   String generated = compileAll(TEST_FIVE);
-  Expect.isTrue(generated.contains(@"new $.A(x);"));
+  Expect.isTrue(generated.contains(r"new $.A(x);"));
 }
 
 main() {

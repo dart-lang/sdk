@@ -6,9 +6,9 @@
 
 main() {
   String code =
-      compileAll(@'''main() { return "${2}${true}${'a'}${3.14}"; }''');
-  Expect.isTrue(code.contains(@'2truea3.14'));
+      compileAll(r'''main() { return "${2}${true}${'a'}${3.14}"; }''');
+  Expect.isTrue(code.contains(r'2truea3.14'));
 
-  code = compileAll(@'''main() { return "foo ${new Object()}"; }''');
-  Expect.isFalse(code.contains(@'concat'));
+  code = compileAll(r'''main() { return "foo ${new Object()}"; }''');
+  Expect.isFalse(code.contains(r'concat'));
 }

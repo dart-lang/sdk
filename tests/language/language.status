@@ -244,7 +244,6 @@ string_escape1_negative_test: Skip
 [ $compiler == dart2dart ]
 metadata_test: Fail
 prefix_new_test: Fail
-raw_string_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail

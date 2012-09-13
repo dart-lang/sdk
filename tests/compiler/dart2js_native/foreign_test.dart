@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 foreign1(var a, var b) {
-  return JS("num", @"# + #", a, b);
+  return JS("num", r"# + #", a, b);
 }
 
 var called = false;
@@ -15,11 +15,11 @@ callOnce() {
 
 foreign2() {
   var t = callOnce();
-  return JS("num", @"# + #", t, t);
+  return JS("num", r"# + #", t, t);
 }
 
 foreign11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
-  return JS("num", @"# + # + # + # + # + # + # + # + # + # + #",
+  return JS("num", r"# + # + # + # + # + # + # + # + # + # + #",
       a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
 }
 

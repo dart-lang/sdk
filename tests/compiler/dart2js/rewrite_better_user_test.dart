@@ -6,7 +6,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST = @"""
+const String TEST = r"""
 class A {
   var field = 52;
   foo() {

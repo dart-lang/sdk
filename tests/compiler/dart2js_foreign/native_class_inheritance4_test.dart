@@ -29,7 +29,7 @@ class B extends A  {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native(@"""
+@native(r"""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

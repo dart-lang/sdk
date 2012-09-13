@@ -27,7 +27,7 @@ class B extends A native "*B" {
 A makeA() native { return new A(); }
 B makeB() native { return new B(); }
 
-void setup() native @"""
+void setup() native r"""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

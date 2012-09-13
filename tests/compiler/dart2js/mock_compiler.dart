@@ -22,7 +22,7 @@ class WarningMessage {
   toString() => message.toString();
 }
 
-const String DEFAULT_HELPERLIB = @'''
+const String DEFAULT_HELPERLIB = r'''
   lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} eqNull(a) {} eqq() {}
@@ -42,7 +42,7 @@ const String DEFAULT_HELPERLIB = @'''
   S() {}
   assert(a){}''';
 
-const String DEFAULT_INTERCEPTORSLIB = @'''
+const String DEFAULT_INTERCEPTORSLIB = r'''
   add$1(receiver, value) {}
   get$length(receiver) {}
   filter(receiver, predicate) {}
@@ -51,7 +51,7 @@ const String DEFAULT_INTERCEPTORSLIB = @'''
   next(receiver) {}
   hasNext(receiver) {}''';
 
-const String DEFAULT_CORELIB = @'''
+const String DEFAULT_CORELIB = r'''
   print(var obj) {}
   interface int extends num {}
   interface double extends num {}
