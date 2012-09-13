@@ -21,18 +21,6 @@
 // TODO(rnystrom): Use "package:" URL (#4968).
 #import('../lib/dartdoc.dart');
 
-// TODO(johnniwinther): Note that [IN_SDK] gets initialized to true when this
-// file is modified by the SDK deployment script. If you change, be sure to test
-// that dartdoc still works when run from the built SDK directory.
-const bool _IN_SDK = false;
-
-// TODO(johnniwinther): Trailing slashes matter due to the use of [libPath] as
-// a base URI with [Uri.resolve].
-/// Relative path to the library in which dart2js resides.
-Path get libPath => _IN_SDK
-    ? scriptDir.append('../../../lib/dart2js/')
-    : scriptDir.append('../../../');
-
 /**
  * Run this from the `pkg/dartdoc` directory.
  */
@@ -40,6 +28,8 @@ main() {
   final args = new Options().arguments;
 
   final dartdoc = new Dartdoc();
+
+  final libPath = scriptDir.append('../../../');
   dartdoc.dartdocPath = libPath.append('pkg/dartdoc');
 
   if (args.isEmpty()) {

@@ -256,13 +256,6 @@ def Main(argv):
         [('../../runtime/bin', '../../lib/io/runtime')])
 
   # Fixup dartdoc
-  ReplaceInFiles([
-      join(PKG, 'dartdoc', 'bin', 'dartdoc.dart'),
-    ], [
-      ("final bool _IN_SDK = false;",
-       "final bool _IN_SDK = true;"),
-    ])
-
   # TODO(dgrove): Remove this once issue 4788 is addressed.
   ReplaceInFiles([
       join(PKG, 'dartdoc', 'lib', 'src', 'mirrors', 'dart2js_mirror.dart'),
