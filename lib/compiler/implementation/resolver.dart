@@ -212,6 +212,14 @@ class ResolverTask extends CompilerTask {
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+    DartType type = resolveReturnType(element, annotation);
+    if (type == compiler.types.voidType) {
+      error(annotation, MessageKind.VOID_NOT_ALLOWED);
+    }
+    return type;
+  }
+
+  DartType resolveReturnType(Element element, TypeAnnotation annotation) {
     if (annotation === null) return compiler.types.dynamicType;
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
     DartType result = visitor.resolveTypeAnnotation(annotation);
@@ -2370,6 +2378,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     Element variables = new VariableListElement.node(currentDefinitions,
         ElementKind.VARIABLE_LIST, enclosingElement);
+    // Ensure a parameter is not typed 'void'.
+    variables.computeType(compiler);
     return new VariableElement(node.source, variables,
         ElementKind.PARAMETER, enclosingElement, node: node);
   }
@@ -2489,7 +2499,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       requiredParameterCount  = parametersBuilder.length;
       parameters = parametersBuilder.toLink();
     }
-    DartType returnType = compiler.resolveTypeAnnotation(element, returnNode);
+    DartType returnType = compiler.resolveReturnType(element, returnNode);
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
                                  requiredParameterCount,

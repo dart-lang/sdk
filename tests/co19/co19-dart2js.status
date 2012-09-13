@@ -86,11 +86,6 @@ Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK # co19 issue 195
 LibTest/core/NoSuchMethodException/NoSuchMethodException_A01_t01: Fail, OK # co19 issue 195
 LibTest/core/NoSuchMethodException/toString_A01_t01: Fail, OK # co19 issue 195
 
-
-[ $compiler == dart2js && $checked ]
-Language/14_Types/7_Type_Void_A01_t02: Crash # http://dartbug.com/5018
-
-
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
@@ -1014,7 +1009,6 @@ Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # Checks that it is a
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
-Language/14_Types/7_Type_Void_A01_t02: Fail # Checks that specifying void as a function's parameter type causes a compile-time error.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
