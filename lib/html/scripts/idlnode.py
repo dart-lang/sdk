@@ -317,11 +317,18 @@ class IDLType(IDLNode):
       self.id = self._find_first(ast, 'ScopedName')
       if not self.id:
         # FIXME: use regexp search instead
-        for childAst in ast:
-          (label, childAst) = childAst
-          if label.endswith('Type'):
-            self.id = self._label_to_type(label, ast)
-            break
+        def findType(ast):
+          for label, childAst in ast:
+            if label.endswith('Type'):
+              type = self._label_to_type(label, ast)
+              if type != 'sequence':
+                return type
+              type_ast = self._find_first(childAst, 'Type')
+              if not type_ast:
+                return type
+              return 'sequence<%s>' % findType(type_ast)
+          raise Exception('No type declaration found in %s' % ast)
+        self.id = findType(ast)
       array_modifiers = self._find_first(ast, 'ArrayModifiers')
       if array_modifiers:
         self.id += array_modifiers

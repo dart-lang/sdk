@@ -91,21 +91,14 @@ def ListImplementationInfo(interface, database):
   return (None, None)
 
 
-def MaybeListElementTypeName(type_name):
-  """Returns the List element type T from string of form "List<T>", or None."""
-  match = re.match(r'sequence<(\w*)>$', type_name)
-  if match:
-    return match.group(1)
-  return None
-
 def MaybeListElementType(interface):
   """Returns the List element type T, or None in interface does not implement
   List<T>.
   """
   for parent in interface.parents:
-    element_type = MaybeListElementTypeName(parent.type.id)
-    if element_type:
-      return element_type
+    match = re.match(r'sequence<(\w*)>$', parent.type.id)
+    if match:
+      return match.group(1)
   return None
 
 def MaybeTypedArrayElementType(interface):
