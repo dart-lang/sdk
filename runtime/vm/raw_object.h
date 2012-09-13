@@ -24,6 +24,7 @@ namespace dart {
     V(InstantiatedTypeArguments)                                               \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
+  V(ClosureData)                                                               \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
@@ -601,13 +602,9 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
-  RawContextScope* context_scope_;
-  RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawClass* signature_class_;  // Only for closure or signature function.
-  RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
-  RawFunction* implicit_closure_function_;  // Implicit closure function.
+  RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->implicit_closure_function_);
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
 
   intptr_t token_pos_;
@@ -617,6 +614,23 @@ class RawFunction : public RawObject {
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   uint16_t deoptimization_counter_;
   uint16_t kind_tag_;
+};
+
+
+class RawClosureData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->context_scope_);
+  }
+  RawContextScope* context_scope_;
+  RawFunction* parent_function_;  // Enclosing function of this local function.
+  RawClass* signature_class_;
+  RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->closure_allocation_stub_);
+  }
 };
 
 

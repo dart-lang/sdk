@@ -79,6 +79,7 @@ RawClass* Object::instantiated_type_arguments_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -331,6 +332,9 @@ void Object::InitOnce() {
   cls = Class::New<Function>();
   function_class_ = cls.raw();
 
+  cls = Class::New<ClosureData>();
+  closure_data_class_ = cls.raw();
+
   cls = Class::New<Field>();
   field_class_ = cls.raw();
 
@@ -435,6 +439,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(instantiated_type_arguments, InstantiatedTypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
+  SET_CLASS_NAME(closure_data, ClosureData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
   SET_CLASS_NAME(token_stream, TokenStream);
@@ -3801,32 +3806,117 @@ void Function::set_unoptimized_code(const Code& value) const {
 }
 
 
+RawContextScope* Function::context_scope() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).context_scope();
+  }
+  return ContextScope::null();
+}
+
+
 void Function::set_context_scope(const ContextScope& value) const {
-  StorePointer(&raw_ptr()->context_scope_, value.raw());
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_context_scope(value);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+RawCode* Function::closure_allocation_stub() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).closure_allocation_stub();
+  }
+  return Code::null();
 }
 
 
 void Function::set_closure_allocation_stub(const Code& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(raw_ptr()->closure_allocation_stub_ == Code::null());
-  StorePointer(&raw_ptr()->closure_allocation_stub_, value.raw());
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_closure_allocation_stub(value);
+    return;
+  }
+  UNREACHABLE();
 }
 
 
-void Function::set_implicit_closure_function(const Function& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(raw_ptr()->implicit_closure_function_ == Function::null());
-  StorePointer(&raw_ptr()->implicit_closure_function_, value.raw());
+RawFunction* Function::parent_function() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).parent_function();
+  }
+  return Function::null();
 }
 
 
 void Function::set_parent_function(const Function& value) const {
-  StorePointer(&raw_ptr()->parent_function_, value.raw());
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_parent_function(value);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+RawFunction* Function::implicit_closure_function() const {
+  if (IsClosureFunction() || IsSignatureFunction()) {
+    return Function::null();
+  }
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsNull() || obj.IsFunction());
+  return (obj.IsNull()) ? Function::null() : Function::Cast(obj).raw();
+}
+
+
+void Function::set_implicit_closure_function(const Function& value) const {
+  ASSERT(!IsClosureFunction() && !IsSignatureFunction());
+  set_data(value);
+}
+
+
+RawClass* Function::signature_class() const {
+  if (IsSignatureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(obj.IsNull() || obj.IsClass());
+    return (obj.IsNull()) ? Class::null() : Class::Cast(obj).raw();
+  }
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).signature_class();
+  }
+  return Class::null();
 }
 
 
 void Function::set_signature_class(const Class& value) const {
-  StorePointer(&raw_ptr()->signature_class_, value.raw());
+  if (IsSignatureFunction()) {
+    set_data(value);
+    return;
+  }
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_signature_class(value);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+void Function::set_data(const Object& value) const {
+  StorePointer(&raw_ptr()->data_, value.raw());
 }
 
 
@@ -4456,7 +4546,7 @@ bool Function::IsImplicitClosureFunction() const {
     return false;
   }
   const Function& parent = Function::Handle(parent_function());
-  return parent.raw_ptr()->implicit_closure_function_ == raw();
+  return (parent.implicit_closure_function() == raw());
 }
 
 
@@ -4499,6 +4589,10 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(true);
   result.set_has_finally(false);
   result.set_is_native(false);
+  if (kind == RawFunction::kClosureFunction) {
+    const ClosureData& data = ClosureData::Handle(ClosureData::New());
+    result.set_data(data);
+  }
   return result.raw();
 }
 
@@ -4527,8 +4621,8 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 RawFunction* Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
-  if (raw_ptr()->implicit_closure_function_ != Function::null()) {
-    return raw_ptr()->implicit_closure_function_;
+  if (implicit_closure_function() != Function::null()) {
+    return implicit_closure_function();
   }
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
   // Create closure function.
@@ -4823,6 +4917,42 @@ const char* Function::ToCString() const {
   OS::SNPrint(chars, len, kFormat, function_name,
               static_str, abstract_str, kind_str, const_str);
   return chars;
+}
+
+
+void ClosureData::set_context_scope(const ContextScope& value) const {
+  StorePointer(&raw_ptr()->context_scope_, value.raw());
+}
+
+
+void ClosureData::set_closure_allocation_stub(const Code& value) const {
+  ASSERT(!value.IsNull());
+  ASSERT(raw_ptr()->closure_allocation_stub_ == Code::null());
+  StorePointer(&raw_ptr()->closure_allocation_stub_, value.raw());
+}
+
+
+void ClosureData::set_parent_function(const Function& value) const {
+  StorePointer(&raw_ptr()->parent_function_, value.raw());
+}
+
+
+void ClosureData::set_signature_class(const Class& value) const {
+  StorePointer(&raw_ptr()->signature_class_, value.raw());
+}
+
+
+RawClosureData* ClosureData::New() {
+  ASSERT(Object::closure_data_class() != Class::null());
+  RawObject* raw = Object::Allocate(ClosureData::kClassId,
+                                    ClosureData::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawClosureData*>(raw);
+}
+
+
+const char* ClosureData::ToCString() const {
+  return "ClosureData class";
 }
 
 

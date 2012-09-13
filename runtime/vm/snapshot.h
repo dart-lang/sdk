@@ -37,6 +37,7 @@ class RawContext;
 class RawDouble;
 class RawField;
 class RawFourByteString;
+class RawClosureData;
 class RawFunction;
 class RawGrowableObjectArray;
 class RawImmutableArray;
@@ -248,6 +249,7 @@ class SnapshotReader : public BaseReader {
   RawType* NewType();
   RawTypeParameter* NewTypeParameter();
   RawPatchClass* NewPatchClass();
+  RawClosureData* NewClosureData();
   RawFunction* NewFunction();
   RawField* NewField();
   RawLibrary* NewLibrary();
@@ -316,6 +318,7 @@ class SnapshotReader : public BaseReader {
   friend class Context;
   friend class ContextScope;
   friend class Field;
+  friend class ClosureData;
   friend class Function;
   friend class GrowableObjectArray;
   friend class ImmutableArray;

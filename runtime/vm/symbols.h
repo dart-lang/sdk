@@ -71,6 +71,7 @@ class ObjectPointerVisitor;
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
+  V(ClosureData, "ClosureData")                                                \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
   V(TokenStream, "TokenStream")                                                \

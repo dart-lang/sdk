@@ -525,6 +525,11 @@ RawPatchClass* SnapshotReader::NewPatchClass() {
 }
 
 
+RawClosureData* SnapshotReader::NewClosureData() {
+  ALLOC_NEW_OBJECT(ClosureData, Object::closure_data_class());
+}
+
+
 RawFunction* SnapshotReader::NewFunction() {
   ALLOC_NEW_OBJECT(Function, Object::function_class());
 }

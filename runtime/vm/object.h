@@ -258,6 +258,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
+  static RawClass* closure_data_class() { return closure_data_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
@@ -388,6 +389,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
+  static RawClass* closure_data_class_;  // Class of ClosureData vm obj.
   static RawClass* field_class_;  // Class of the Field vm object.
   static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
@@ -1389,19 +1391,17 @@ class Function : public Object {
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   inline bool HasCode() const;
 
-  RawContextScope* context_scope() const { return raw_ptr()->context_scope_; }
+  RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
   // Enclosing function of this local function.
-  RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
+  RawFunction* parent_function() const;
 
   // Signature class of this closure function or signature function.
-  RawClass* signature_class() const { return raw_ptr()->signature_class_; }
+  RawClass* signature_class() const;
   void set_signature_class(const Class& value) const;
 
-  RawCode* closure_allocation_stub() const {
-    return raw_ptr()->closure_allocation_stub_;
-  }
+  RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
   // Return the closure function implicitly created for this function.
@@ -1687,9 +1687,11 @@ class Function : public Object {
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
   void set_token_pos(intptr_t value) const;
+  RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
+  void set_data(const Object& value) const;
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,
@@ -1716,6 +1718,38 @@ class Function : public Object {
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
+};
+
+
+class ClosureData: public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawClosureData));
+  }
+
+ private:
+  RawContextScope* context_scope() const { return raw_ptr()->context_scope_; }
+  void set_context_scope(const ContextScope& value) const;
+
+  // Enclosing function of this local function.
+  RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
+  void set_parent_function(const Function& value) const;
+
+  // Signature class of this closure function or signature function.
+  RawClass* signature_class() const { return raw_ptr()->signature_class_; }
+  void set_signature_class(const Class& value) const;
+
+  RawCode* closure_allocation_stub() const {
+    return raw_ptr()->closure_allocation_stub_;
+  }
+  void set_closure_allocation_stub(const Code& value) const;
+
+  static RawClosureData* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
 };
 
 
