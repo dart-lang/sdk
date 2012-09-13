@@ -40,6 +40,7 @@ main() {
   final args = new Options().arguments;
 
   final dartdoc = new Dartdoc();
+  dartdoc.dartdocPath = libPath.append('pkg/dartdoc');
 
   if (args.isEmpty()) {
     print('No arguments provided.');

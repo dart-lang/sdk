@@ -232,8 +232,7 @@ class Dartdoc {
   int get totalMembers => _totalMembers;
 
   Dartdoc()
-      : _comments = new CommentMap(),
-        dartdocPath = scriptDir {
+      : _comments = new CommentMap() {
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
     md.InlineParser.syntaxes.insertRange(0, 1,
