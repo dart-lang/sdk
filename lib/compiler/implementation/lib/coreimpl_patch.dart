@@ -146,8 +146,8 @@ patch class JSSyntaxRegExp {
   final bool _ignoreCase;
 
   patch const JSSyntaxRegExp(String pattern,
-                             [bool multiLine = false,
-                              bool ignoreCase = false])
+                             {bool multiLine: false,
+                              bool ignoreCase: false})
       : _pattern = pattern,
         _multiLine = multiLine,
         _ignoreCase = ignoreCase;
@@ -179,8 +179,8 @@ patch class JSSyntaxRegExp {
 
   static JSSyntaxRegExp _globalVersionOf(JSSyntaxRegExp other) {
     JSSyntaxRegExp re = new JSSyntaxRegExp(other.pattern,
-                                           other.multiLine,
-                                           other.ignoreCase);
+                                           multiLine: other.multiLine,
+                                           ignoreCase: other.ignoreCase);
     regExpAttachGlobalNative(re);
     return re;
   }

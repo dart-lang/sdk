@@ -140,8 +140,7 @@ class InlineSyntax {
   final RegExp pattern;
 
   InlineSyntax(String pattern)
-    : pattern = new RegExp(pattern, true);
-  // TODO(rnystrom): Should use named arg for RegExp multiLine.
+    : pattern = new RegExp(pattern, multiLine: true);
 
   bool tryMatch(InlineParser parser) {
     final startMatch = pattern.firstMatch(parser.currentSource);
@@ -205,10 +204,9 @@ class TagSyntax extends InlineSyntax {
 
   TagSyntax(String pattern, [String tag, String end = null])
     : super(pattern),
-      endPattern = new RegExp((end != null) ? end : pattern, true),
+      endPattern = new RegExp((end != null) ? end : pattern, multiLine: true),
       tag = tag;
     // TODO(rnystrom): Doing this.field doesn't seem to work with named args.
-    // TODO(rnystrom): Should use named arg for RegExp multiLine.
 
   bool onMatch(InlineParser parser, Match match) {
     parser._stack.add(new TagState(parser.pos,
