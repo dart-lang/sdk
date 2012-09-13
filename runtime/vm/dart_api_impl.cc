@@ -284,6 +284,29 @@ bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
 }
 
 
+// When we want to return a handle to a type to the user, we handle
+// class-types differently than some other types.
+static Dart_Handle TypeToHandle(Isolate* isolate,
+                                const char* function_name,
+                                const AbstractType& type) {
+  if (type.HasResolvedTypeClass()) {
+    const Class& cls = Class::Handle(isolate, type.type_class());
+#if defined(DEBUG)
+    const Library& lib = Library::Handle(cls.library());
+    if (lib.IsNull()) {
+      ASSERT(cls.IsDynamicClass() || cls.IsVoidClass());
+    }
+#endif
+    return Api::NewHandle(isolate, cls.raw());
+  } else if (type.IsTypeParameter()) {
+    return Api::NewHandle(isolate, type.raw());
+  } else {
+    return Api::NewError("%s: unexpected type '%s' encountered.",
+                         function_name, type.ToCString());
+  }
+}
+
+
 // --- Handles ---
 
 
@@ -2461,7 +2484,10 @@ DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
 #if defined(DEBUG)
   const Library& lib = Library::Handle(cls.library());
   if (lib.IsNull()) {
-    ASSERT(cls.IsDynamicClass() || cls.IsVoidClass());
+    // ASSERT(cls.IsDynamicClass() || cls.IsVoidClass());
+    if (!cls.IsDynamicClass() && !cls.IsVoidClass()) {
+      fprintf(stderr, "NO LIBRARY: %s\n", cls.ToCString());
+    }
   }
 #endif
 
@@ -2537,6 +2563,69 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
       String::Handle(isolate, interface_type.TypeClassName());
   return Api::NewError("%s: internal error: found unresolved type class '%s'.",
                        CURRENT_FUNC, type_name.ToCString());
+}
+
+
+DART_EXPORT bool Dart_ClassIsTypedef(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+  // For now we represent typedefs as non-canonical signature classes.
+  // I anticipate this may change if we make typedefs more general.
+  return cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassGetTypedefReferent(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+
+  if (!cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass()) {
+    const String& cls_name = String::Handle(cls.UserVisibleName());
+    return Api::NewError("%s: class '%s' is not a typedef class. "
+                         "See Dart_ClassIsTypedef.",
+                         CURRENT_FUNC, cls_name.ToCString());
+  }
+
+  const Function& func = Function::Handle(isolate, cls.signature_function());
+  return Api::NewHandle(isolate, func.signature_class());
+}
+
+
+DART_EXPORT bool Dart_ClassIsFunctionType(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+  // A class represents a function type when it is a canonical
+  // signature class.
+  return cls.IsCanonicalSignatureClass();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ClassGetFunctionTypeSignature(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+  if (!cls.IsCanonicalSignatureClass()) {
+    const String& cls_name = String::Handle(cls.UserVisibleName());
+    return Api::NewError("%s: class '%s' is not a function-type class. "
+                         "See Dart_ClassIsFunctionType.",
+                         CURRENT_FUNC, cls_name.ToCString());
+  }
+  return Api::NewHandle(isolate, cls.signature_function());
 }
 
 
@@ -2817,6 +2906,28 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
 }
 
 
+DART_EXPORT Dart_Handle Dart_FunctionReturnType(Dart_Handle function) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+
+  if (func.kind() == RawFunction::kConstructor) {
+    // Special case the return type for constructors.  Inside the vm
+    // we mark them as returning Dynamic, but for the purposes of
+    // reflection, they return the type of the class being
+    // constructed.
+    return Api::NewHandle(isolate, func.Owner());
+  } else {
+    const AbstractType& return_type =
+        AbstractType::Handle(isolate, func.result_type());
+    return TypeToHandle(isolate, "Dart_FunctionReturnType", return_type);
+  }
+}
+
+
 DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
     Dart_Handle function,
     int64_t* fixed_param_count,
@@ -2846,6 +2957,30 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
   ASSERT(*opt_param_count >= 0);
 
   return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionParameterType(Dart_Handle function,
+                                                   int parameter_index) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+
+  const intptr_t num_implicit_params = func.NumImplicitParameters();
+  const intptr_t num_params = func.NumParameters() - num_implicit_params;
+  if (parameter_index < 0 || parameter_index >= num_params) {
+    return Api::NewError(
+        "%s: argument 'parameter_index' out of range. "
+        "Expected 0..%"Pd" but saw %d.",
+        CURRENT_FUNC, num_params, parameter_index);
+  }
+  const AbstractType& param_type =
+      AbstractType::Handle(isolate, func.ParameterTypeAt(
+          num_implicit_params + parameter_index));
+  return TypeToHandle(isolate, "Dart_FunctionParameterType", param_type);
 }
 
 
@@ -2971,6 +3106,122 @@ DART_EXPORT Dart_Handle Dart_VariableIsFinal(Dart_Handle variable,
   *is_final = var.is_final();
   return Api::Success(isolate);
 }
+
+
+DART_EXPORT Dart_Handle Dart_VariableType(Dart_Handle variable) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Field& var = Api::UnwrapFieldHandle(isolate, variable);
+  if (var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, variable, Field);
+  }
+
+  const AbstractType& type = AbstractType::Handle(isolate, var.type());
+  return TypeToHandle(isolate, "Dart_VariableType", type);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetTypeVariableNames(Dart_Handle clazz) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const TypeArguments& type_params =
+      TypeArguments::Handle(cls.type_parameters());
+
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  TypeParameter& type_param = TypeParameter::Handle(isolate);
+  String& name = String::Handle(isolate);
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_param ^= type_params.TypeAt(i);
+    name = type_param.name();
+    names.Add(name);
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(names));
+}
+
+
+DART_EXPORT Dart_Handle Dart_LookupTypeVariable(
+    Dart_Handle clazz,
+    Dart_Handle type_variable_name) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+  const String& var_name = Api::UnwrapStringHandle(isolate, type_variable_name);
+  if (var_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type_variable_name, String);
+  }
+
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const TypeArguments& type_params =
+      TypeArguments::Handle(cls.type_parameters());
+
+  TypeParameter& type_param = TypeParameter::Handle(isolate);
+  String& name = String::Handle(isolate);
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_param ^= type_params.TypeAt(i);
+    name = type_param.name();
+    if (name.Equals(var_name)) {
+      return Api::NewHandle(isolate, type_param.raw());
+    }
+  }
+  const String& cls_name = String::Handle(cls.UserVisibleName());
+  return Api::NewError(
+      "%s: Could not find type variable named '%s' for class %s.\n",
+      CURRENT_FUNC, var_name.ToCString(), cls_name.ToCString());
+}
+
+
+DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle) {
+  return Api::ClassId(handle) == kTypeParameterCid;
+}
+
+DART_EXPORT Dart_Handle Dart_TypeVariableName(Dart_Handle type_variable) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const TypeParameter& type_var =
+      Api::UnwrapTypeParameterHandle(isolate, type_variable);
+  if (type_var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type_variable, TypeParameter);
+  }
+  return Api::NewHandle(isolate, type_var.name());
+}
+
+
+DART_EXPORT Dart_Handle Dart_TypeVariableOwner(Dart_Handle type_variable) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const TypeParameter& type_var =
+      Api::UnwrapTypeParameterHandle(isolate, type_variable);
+  if (type_var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type_variable, TypeParameter);
+  }
+  const Class& owner = Class::Handle(type_var.parameterized_class());
+  ASSERT(!owner.IsNull() && owner.IsClass());
+  return Api::NewHandle(isolate, owner.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_TypeVariableUpperBound(Dart_Handle type_variable) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const TypeParameter& type_var =
+      Api::UnwrapTypeParameterHandle(isolate, type_variable);
+  if (type_var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type_variable, TypeParameter);
+  }
+  const AbstractType& bound = AbstractType::Handle(type_var.bound());
+  return TypeToHandle(isolate, "Dart_TypeVariableUpperBound", bound);
+}
+
 
 // --- Constructors, Methods, and Fields ---
 
@@ -3985,11 +4236,15 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
   String& name = String::Handle();
   while (it.HasNext()) {
     cls = it.GetNextClass();
-    // For now we suppress the signature classes of closures.
-    //
-    // TODO(turnidge): Add this to the unit test.
-    const Function& signature_func = Function::Handle(cls.signature_function());
-    if (signature_func.IsNull()) {
+    if (cls.IsSignatureClass()) {
+      if (!cls.IsCanonicalSignatureClass()) {
+        // This is a typedef.  Add it to the list of class names.
+        name = cls.UserVisibleName();
+        names.Add(name);
+      } else {
+        // Skip canonical signature classes.  These are not named.
+      }
+    } else {
       name = cls.UserVisibleName();
       names.Add(name);
     }

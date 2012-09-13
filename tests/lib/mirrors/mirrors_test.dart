@@ -53,7 +53,7 @@ testClosureMirrors(mirrors) {
   var mirror = reflect(closure);
   expect(mirror is ClosureMirror, equals(true));
   
-  var funcMirror = mirror.function();
+  var funcMirror = mirror.function;
   expect(funcMirror is MethodMirror, equals(true));
   expect(funcMirror.parameters.length, equals(3));
 

@@ -339,7 +339,7 @@ DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
  *
  * May generate an unhandled exception error.
  *
- * \return A handle to the converted string if no error occurs during
+ * \return The converted string if no error occurs during
  *   the conversion. If an error does occur, an error handle is
  *   returned.
  */
@@ -1952,7 +1952,7 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
 /**
  * Retrieves the function of a closure.
  *
- * \return A handle on the function of the closure, or an error handle if the
+ * \return A handle to the function of the closure, or an error handle if the
  *   argument is not a closure.
  */
 DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure);
@@ -2040,6 +2040,41 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
 DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
                                                  intptr_t index);
 
+/**
+ * Is this class defined by a typedef?
+ *
+ * Typedef definitions from the main program are represented as a
+ * special kind of class handle.  See Dart_ClassGetTypedefReferent.
+ *
+ * TODO(turnidge): Finish documentation.
+ */
+DART_EXPORT bool Dart_ClassIsTypedef(Dart_Handle clazz);
+
+/**
+ * Returns a handle to the type to which a typedef refers.
+ *
+ * It is an error to call this function on a handle for which
+ * Dart_ClassIsTypedef is not true.
+ *
+ * TODO(turnidge): Finish documentation.
+ */
+DART_EXPORT Dart_Handle Dart_ClassGetTypedefReferent(Dart_Handle clazz);
+
+/**
+ * Does this class represent the type of a function?
+ */
+DART_EXPORT bool Dart_ClassIsFunctionType(Dart_Handle clazz);
+
+/**
+ * Returns a function handle representing the signature associated
+ * with a function type.
+ *
+ * The return value is a function handle (See Dart_IsFunction, etc.).
+ *
+ * TODO(turnidge): Finish documentation.
+ */
+DART_EXPORT Dart_Handle Dart_ClassGetFunctionTypeSignature(Dart_Handle clazz);
+
 // --- Function and Variable Declarations ---
 
 /**
@@ -2049,7 +2084,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
  * \param target A library or class.
  *
  * \return If no error occurs, a list of strings is returned.
- *   Otherwise an erorr handle is returned.
+ *   Otherwise an error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target);
 
@@ -2076,19 +2111,21 @@ DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
  * Returns the name for the provided function or method.
  *
  * \return A valid string handle if no error occurs during the
- * operation.
+ *   operation.
  */
 DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function);
 
 /**
- * Returns a handle to the owner of a function. The owner of an instance method
- * or a static method is its defining class. The owner of a top-level function
- * is its defining library. The owner of the function of a non-implicit closure
- * is the function of the method or closure that defines the non-implicit
+ * Returns a handle to the owner of a function.
+ *
+ * The owner of an instance method or a static method is its defining
+ * class. The owner of a top-level function is its defining
+ * library. The owner of the function of a non-implicit closure is the
+ * function of the method or closure that defines the non-implicit
  * closure.
  *
- * \return A valid handle on the owner of the function, or an error handle if
- * the argument is not a valid handle to a function.
+ * \return A valid handle to the owner of the function, or an error
+ *   handle if the argument is not a valid handle to a function.
  */
 DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function);
 
@@ -2153,6 +2190,14 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
                                               bool* is_setter);
 
 /**
+ * Returns the return type of a function.
+ *
+ * \return A valid handle to a type or an error handle if the argument
+ *   is not valid.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionReturnType(Dart_Handle function);
+
+/**
  * Determines the number of required and optional parameters.
  *
  * \param function A handle to a function or method declaration.
@@ -2167,20 +2212,29 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
   int64_t* opt_param_count);
 
 /**
+ * Returns a handle to the type of a function parameter.
+ *
+ * \return A valid handle to a type or an error handle if the argument
+ *   is not valid.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionParameterType(Dart_Handle function,
+                                                   int parameter_index);
+
+/**
  * Returns a list of the names of all variables declared in a library
  * or class.
  *
  * \param target A library or class.
  *
  * \return If no error occurs, a list of strings is returned.
- *   Otherwise an erorr handle is returned.
+ *   Otherwise an error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target);
 
 /**
  * Looks up a variable declaration by name from a library or class.
  *
- * \param library The library or class containing the variable.
+ * \param target The library or class containing the variable.
  * \param variable_name The name of the variable.
  *
  * \return If an error is encountered, returns an error handle.
@@ -2224,6 +2278,70 @@ DART_EXPORT Dart_Handle Dart_VariableIsStatic(Dart_Handle variable,
  */
 DART_EXPORT Dart_Handle Dart_VariableIsFinal(Dart_Handle variable,
                                              bool* is_final);
+
+/**
+ * Returns the type of a variable.
+ *
+ * \return A valid handle to a type of or an error handle if the
+ *   argument is not valid.
+ */
+DART_EXPORT Dart_Handle Dart_VariableType(Dart_Handle function);
+
+/**
+ * Returns a list of the names of all type variables declared in a class.
+ *
+ * The type variables list preserves the original declaration order.
+ *
+ * \param clazz A class.
+ *
+ * \return If no error occurs, a list of strings is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetTypeVariableNames(Dart_Handle clazz);
+
+/**
+ * Looks up a type variable declaration by name from a class.
+ *
+ * \param clazz The class containing the type variable.
+ * \param variable_name The name of the type variable.
+ *
+ * \return If an error is encountered, returns an error handle.
+ *   Otherwise returns a type variable handle if the type variable is
+ *   found or Dart_Null() if the type variable is not found.
+ */
+DART_EXPORT Dart_Handle Dart_LookupTypeVariable(Dart_Handle clazz,
+                                                Dart_Handle type_variable_name);
+
+/**
+ * Is this a type variable handle?
+ */
+DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle);
+
+/**
+ * Returns the name for the provided type variable.
+ */
+DART_EXPORT Dart_Handle Dart_TypeVariableName(Dart_Handle type_variable);
+
+/**
+ * Returns the owner of a function.
+ *
+ * The owner of a type variable is its defining class.
+ *
+ * \return A valid handle to the owner of the type variable, or an error
+ *   handle if the argument is not a valid handle to a type variable.
+ */
+DART_EXPORT Dart_Handle Dart_TypeVariableOwner(Dart_Handle type_variable);
+
+/**
+ * Returns the upper bound of a type variable.
+ *
+ * The upper bound of a type variable is ...
+ *
+ * \return A valid handle to a type, or an error handle if the
+ *   argument is not a valid handle.
+ */
+DART_EXPORT Dart_Handle Dart_TypeVariableUpperBound(Dart_Handle type_variable);
+// TODO(turnidge): Finish documentation.
 
 // --- Constructors, Methods, and Fields ---
 
@@ -2542,7 +2660,7 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
  * in a library.
  *
  * \return If no error occurs, a list of strings is returned.
- *   Otherwise an erorr handle is returned.
+ *   Otherwise an error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library);
 

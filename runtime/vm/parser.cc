@@ -3526,6 +3526,7 @@ void Parser::SkipType(bool allow_void) {
 void Parser::ParseTypeParameters(const Class& cls) {
   TRACE_PARSER("ParseTypeParameters");
   if (CurrentToken() == Token::kLT) {
+    Isolate* isolate = Isolate::Current();
     const GrowableObjectArray& type_parameters_array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
@@ -3559,7 +3560,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
       } else {
-        type_parameter_bound = Type::DynamicType();
+        type_parameter_bound = isolate->object_store()->object_type();
       }
       type_parameter = TypeParameter::New(cls,
                                           index,

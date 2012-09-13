@@ -15,6 +15,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+
 // Only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
@@ -2422,6 +2424,53 @@ TEST_CASE(ClassBasics) {
   EXPECT_ERROR(Dart_ClassGetDefault(Dart_NewApiError("MyError")), "MyError");
 }
 
+TEST_CASE(ClassTypedefsEtc) {
+  const char* kScriptChars =
+      "class SomeClass {\n"
+      "}\n"
+      "typedef void SomeHandler(String a);\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle normal_cls = Dart_GetClass(lib, Dart_NewString("SomeClass"));
+  EXPECT_VALID(normal_cls);
+  Dart_Handle typedef_cls = Dart_GetClass(lib, Dart_NewString("SomeHandler"));
+  EXPECT_VALID(typedef_cls);
+
+  EXPECT(Dart_IsClass(normal_cls));
+  EXPECT(!Dart_ClassIsTypedef(normal_cls));
+  EXPECT(!Dart_ClassIsFunctionType(normal_cls));
+
+  EXPECT(Dart_IsClass(typedef_cls));
+  EXPECT(Dart_ClassIsTypedef(typedef_cls));
+  EXPECT(!Dart_ClassIsFunctionType(typedef_cls));
+
+  // Exercise the typedef class api.
+  Dart_Handle functype_cls = Dart_ClassGetTypedefReferent(typedef_cls);
+  EXPECT_VALID(functype_cls);
+
+  // Pass the wrong class kind to Dart_ClassGetTypedefReferent
+  EXPECT_ERROR(Dart_ClassGetTypedefReferent(normal_cls),
+               "class 'SomeClass' is not a typedef class.");
+
+  EXPECT(Dart_IsClass(functype_cls));
+  EXPECT(!Dart_ClassIsTypedef(functype_cls));
+  EXPECT(Dart_ClassIsFunctionType(functype_cls));
+
+  // Exercise the function type class.
+  Dart_Handle sig_func = Dart_ClassGetFunctionTypeSignature(functype_cls);
+  EXPECT_VALID(sig_func);
+  EXPECT(Dart_IsFunction(sig_func));
+  int64_t fixed_params = -1;
+  int64_t opt_params = -1;
+  EXPECT_VALID(
+      Dart_FunctionParameterCounts(sig_func, &fixed_params, &opt_params));
+  EXPECT_EQ(1, fixed_params);
+  EXPECT_EQ(0, opt_params);
+
+  // Pass the wrong class kind to Dart_ClassGetFunctionTypeSignature
+  EXPECT_ERROR(Dart_ClassGetFunctionTypeSignature(normal_cls),
+               "class 'SomeClass' is not a function-type class.");
+}
 
 #define CHECK_INTERFACE(handle, name)                                   \
   {                                                                     \
@@ -4546,6 +4595,61 @@ TEST_CASE(FunctionReflection) {
 }
 
 
+TEST_CASE(TypeReflection) {
+  const char* kScriptChars =
+      "void func(String a, int b) {}\n"
+      "int variable;\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle func = Dart_LookupFunction(lib, Dart_NewString("func"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+
+  // Make sure parameter counts are right.
+  int64_t fixed_params = -1;
+  int64_t opt_params = -1;
+  EXPECT_VALID(Dart_FunctionParameterCounts(func, &fixed_params, &opt_params));
+  EXPECT_EQ(2, fixed_params);
+  EXPECT_EQ(0, opt_params);
+
+  // Check the return type.
+  Dart_Handle type = Dart_FunctionReturnType(func);
+  EXPECT_VALID(type);
+  Dart_Handle cls_name = Dart_ClassName(type);
+  EXPECT_VALID(cls_name);
+  const char* cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
+  EXPECT_STREQ("void", cls_name_cstr);
+
+  // Check a parameter type.
+  type = Dart_FunctionParameterType(func, 0);
+  EXPECT_VALID(type);
+  cls_name = Dart_ClassName(type);
+  EXPECT_VALID(cls_name);
+  cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
+  EXPECT_STREQ("String", cls_name_cstr);
+
+  Dart_Handle var = Dart_LookupVariable(lib, Dart_NewString("variable"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+
+  // Check the variable type.
+  type = Dart_VariableType(var);
+  EXPECT_VALID(type);
+  cls_name = Dart_ClassName(type);
+  EXPECT_VALID(cls_name);
+  cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
+  if (FLAG_enable_type_checks) {
+    EXPECT_STREQ("int", cls_name_cstr);
+  } else {
+    EXPECT_STREQ("Dynamic", cls_name_cstr);
+  }
+}
+
+
 static void BuildVariableDescription(TextBuffer* buffer, Dart_Handle var) {
   buffer->Clear();
   Dart_Handle name = Dart_VariableName(var);
@@ -4688,6 +4792,61 @@ TEST_CASE(VariableReflection) {
   // Lookup a class using an error class name.  The error propagates.
   var = Dart_LookupVariable(lib, Api::NewError("myerror"));
   EXPECT_ERROR(var, "myerror");
+}
+
+
+TEST_CASE(TypeVariableReflection) {
+  const char* kScriptChars =
+      "interface UpperBound {}\n"
+      "class GenericClass<U, T extends UpperBound> {\n"
+      "  T func1() { return null; }\n"
+      "  U func2() { return null; }\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("GenericClass"));
+  EXPECT_VALID(cls);
+
+  // Test Dart_GetTypeVariableNames.
+  Dart_Handle names = Dart_GetTypeVariableNames(cls);
+  EXPECT_VALID(names);
+  Dart_Handle names_str = Dart_ToString(names);
+  EXPECT_VALID(names_str);
+  const char* cstr = "";
+  EXPECT_VALID(Dart_StringToCString(names_str, &cstr));
+  EXPECT_STREQ("[U, T]", cstr);
+
+  // Test variable U.
+  Dart_Handle type_var = Dart_LookupTypeVariable(cls, Dart_NewString("U"));
+  EXPECT_VALID(type_var);
+  EXPECT(Dart_IsTypeVariable(type_var));
+  Dart_Handle type_var_name = Dart_TypeVariableName(type_var);
+  EXPECT_VALID(type_var_name);
+  EXPECT_VALID(Dart_StringToCString(type_var_name, &cstr));
+  EXPECT_STREQ("U", cstr);
+  Dart_Handle type_var_owner = Dart_TypeVariableOwner(type_var);
+  EXPECT_VALID(type_var_owner);
+  EXPECT(Dart_IdentityEquals(cls, type_var_owner));
+  Dart_Handle type_var_bound = Dart_TypeVariableUpperBound(type_var);
+  Dart_Handle bound_name = Dart_ClassName(type_var_bound);
+  EXPECT_VALID(Dart_StringToCString(bound_name, &cstr));
+  EXPECT_STREQ("Object", cstr);
+
+  // Test variable T.
+  type_var = Dart_LookupTypeVariable(cls, Dart_NewString("T"));
+  EXPECT_VALID(type_var);
+  EXPECT(Dart_IsTypeVariable(type_var));
+  type_var_name = Dart_TypeVariableName(type_var);
+  EXPECT_VALID(type_var_name);
+  EXPECT_VALID(Dart_StringToCString(type_var_name, &cstr));
+  EXPECT_STREQ("T", cstr);
+  type_var_owner = Dart_TypeVariableOwner(type_var);
+  EXPECT_VALID(type_var_owner);
+  EXPECT(Dart_IdentityEquals(cls, type_var_owner));
+  type_var_bound = Dart_TypeVariableUpperBound(type_var);
+  bound_name = Dart_ClassName(type_var_bound);
+  EXPECT_VALID(Dart_StringToCString(bound_name, &cstr));
+  EXPECT_STREQ("UpperBound", cstr);
 }
 
 

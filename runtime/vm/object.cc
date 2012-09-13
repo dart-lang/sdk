@@ -4092,7 +4092,9 @@ intptr_t Function::NumImplicitParameters() const {
       return 2;  // Instance, phase.
     }
   }
-  if (!is_static() && (kind() != RawFunction::kClosureFunction)) {
+  if (!is_static() &&
+      kind() != RawFunction::kClosureFunction &&
+      kind() != RawFunction::kSignatureFunction) {
     // Closure functions defined inside instance (i.e. non-static) functions are
     // marked as non-static, but they do not have a receiver.
     return 1;  // Receiver.
