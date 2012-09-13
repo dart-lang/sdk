@@ -43,6 +43,18 @@ class Interceptors {
     compiler.unimplemented('Unknown operator', node: op);
   }
 
+  // TODO(karlklose,kasperl): change uses of getStatic[Get|Set]Interceptor to
+  // use this function.
+  Element getStaticInterceptorBySelector(Selector selector) {
+    if (selector.isGetter()) {
+      return getStaticGetInterceptor(selector.name);
+    } else if (selector.isSetter()) {
+      return getStaticSetInterceptor(selector.name);
+    } else {
+      return getStaticInterceptor(selector.name, selector.argumentCount);
+    }
+  }
+
   Element getStaticInterceptor(SourceString name, int parameters) {
     String mangledName = name.slowToString();
     Element element = compiler.findInterceptor(new SourceString(mangledName));

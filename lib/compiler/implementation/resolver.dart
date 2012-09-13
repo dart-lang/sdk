@@ -1523,10 +1523,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (!target.isClass()) world.registerStaticUse(target);
     }
 
-    // TODO(kasperl): Pass the selector directly.
-    var interceptor = new Interceptors(compiler).getStaticInterceptor(
-        selector.name,
-        selector.argumentCount);
+    var interceptor =
+        new Interceptors(compiler).getStaticInterceptorBySelector(selector);
     if (interceptor !== null) {
       world.registerStaticUse(interceptor);
     }
