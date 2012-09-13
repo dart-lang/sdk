@@ -214,7 +214,8 @@ class _WebSocketProtocolProcessor {
         index++;
       }
     } catch (e) {
-      if (onClosed !== null) onClosed(1002, "Protocol error");
+      if (onClosed !== null) onClosed(WebSocketStatus.PROTOCOL_ERROR,
+                                      "Protocol error");
       _state = FAILURE;
     }
   }
@@ -224,7 +225,8 @@ class _WebSocketProtocolProcessor {
    */
   void closed() {
     if (_state == START || _state == CLOSED || _state == FAILURE) return;
-    if (onClosed !== null) onClosed(1006, "Connection closed unexpectedly");
+    if (onClosed !== null) onClosed(WebSocketStatus.ABNORMAL_CLOSURE,
+                                    "Connection closed unexpectedly");
     _state = CLOSED;
   }
 
@@ -280,7 +282,7 @@ class _WebSocketProtocolProcessor {
   void _controlFrameEnd() {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
-        int status = 1005;
+        int status = WebSocketStatus.NO_STATUS_RECEIVED;
         String reason = "";
         if (_controlPayload.length > 0) {
           if (_controlPayload.length == 1) {
@@ -382,7 +384,8 @@ class _WebSocketConnectionBase  {
         // that as an error.
         if (_closeTimer !== null) _closeTimer.cancel();
       } else {
-        if (_onClosed !== null) _onClosed(1006, "Unexpected close");
+        if (_onClosed !== null) _onClosed(WebSocketStatus.ABNORMAL_CLOSURE,
+                                          "Unexpected close");
       }
       _socket.close();
     };
@@ -636,7 +639,7 @@ class _WebSocketClientConnection
     _conn.onResponse = _onHttpClientResponse;
     _conn.onError = (e) {
       if (_onClosed !== null) {
-        _onClosed(1006, "$e");
+        _onClosed(WebSocketStatus.ABNORMAL_CLOSURE, "$e");
       }
     };
 
@@ -795,7 +798,9 @@ class _WebSocket implements WebSocket {
     _wsconn.onNoUpgrade = (response) {
       if (_onclose !== null) {
         _onclose(
-            new _WebSocketCloseEvent(true, 1006, "Connection not upgraded"));
+            new _WebSocketCloseEvent(true,
+                                     WebSocketStatus.ABNORMAL_CLOSURE,
+                                     "Connection not upgraded"));
       }
     };
   }

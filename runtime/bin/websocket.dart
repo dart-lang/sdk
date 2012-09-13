@@ -3,6 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * Web socket status codes used when closing a web socket connection.
+ */
+interface WebSocketStatus {
+  static const int NORMAL_CLOSURE = 1000;
+  static const int GOING_AWAY = 1001;
+  static const int PROTOCOL_ERROR = 1002;
+  static const int UNSUPPORTED_DATA = 1003;
+  static const int RESERVED_1004  = 1004;
+  static const int NO_STATUS_RECEIVED = 1005;
+  static const int ABNORMAL_CLOSURE = 1006;
+  static const int INVALID_FRAME_PAYLOAD_DATA = 1007;
+  static const int POLICY_VIOLATION = 1008;
+  static const int MESSAGE_TOO_BIG = 1009;
+  static const int MISSING_MANDATORY_EXTENSION = 1010;
+  static const int INTERNAL_SERVER_ERROR = 1011;
+  static const int RESERVED_1015 = 1015;
+}
+
+/**
  * The web socket protocol is implemented by a HTTP server handler
  * which can be instantiated like this:
  *
@@ -49,7 +68,9 @@ interface WebSocketConnection extends Hashable {
 
   /**
    * Sets the callback to be called when the web socket connection is
-   * closed.
+   * closed. [status] indicate the reason for closing. For network
+   * errors the value of [status] will be
+   * WebSocketStatus.ABNORMAL_CLOSURE].
    */
   void set onClosed(void callback(int status, String reason));
 
@@ -108,7 +129,9 @@ interface WebSocketClientConnection
 
   /**
    * Sets the callback to be called when the web socket connection is
-   * closed.
+   * closed. [status] indicate the reason for closing. For network
+   * errors the value of [status] will be
+   * WebSocketStatus.ABNORMAL_CLOSURE].
    */
   void set onClosed(void callback(int status, String reason));
 
