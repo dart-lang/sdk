@@ -170,7 +170,7 @@ bool runsOn32Bit;
 
 main() {
   runsOn32Bit = 4294967295 is Mint;
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 4000; i++) {
     MediumIntegerTest.testMain();
   }
 }

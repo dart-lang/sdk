@@ -1253,11 +1253,13 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   // builder did already.
   if (FLAG_eliminate_type_checks &&
       instr->value()->BindsToConstant() &&
-      !instr->value()->BindsToConstantNull() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(instr->type())) {
-    Value* use = instr->value();
-    Definition* result = use->definition();
-    ASSERT(result != NULL);
+      !instr->value()->BindsToConstantNull()) {
+    const Bool& bool_result =
+        instr->value()->CompileTypeIsMoreSpecificThan(instr->type()) ?
+            Bool::ZoneHandle(Bool::True()) : Bool::ZoneHandle(Bool::False());
+    Definition* result = new ConstantInstr(bool_result);
+    result->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    result->InsertBefore(instr);
     // Replace uses and remove the current instruction via the iterator.
     instr->ReplaceUsesWith(result);
     ASSERT(current_iterator()->Current() == instr);

@@ -95,9 +95,10 @@ class ParsedFunction;
 
 class FlowGraphTypePropagator : public FlowGraphVisitor {
  public:
-  explicit FlowGraphTypePropagator(const FlowGraph& flow_graph)
-      : FlowGraphVisitor(flow_graph.reverse_postorder()),
-        parsed_function_(flow_graph.parsed_function()),
+  explicit FlowGraphTypePropagator(FlowGraph* flow_graph)
+      : FlowGraphVisitor(flow_graph->reverse_postorder()),
+        parsed_function_(flow_graph->parsed_function()),
+        flow_graph_(flow_graph),
         still_changing_(false) { }
   virtual ~FlowGraphTypePropagator() { }
 
@@ -119,6 +120,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitPushArgument(PushArgumentInstr* bind);
 
   const ParsedFunction& parsed_function_;
+  FlowGraph* flow_graph_;
   bool still_changing_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
 };

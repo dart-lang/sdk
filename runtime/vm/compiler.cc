@@ -197,7 +197,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         }
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(*flow_graph);
+        FlowGraphTypePropagator propagator(flow_graph);
         propagator.PropagateTypes();
 
         // Verify that the use lists are still valid.
