@@ -21,7 +21,6 @@
     'math.dart',
     'math.cc',
     'object.cc',
-    'print_patch.dart',
     'regexp.cc',
     'regexp_jsc.cc',
     'regexp_jsc.h',

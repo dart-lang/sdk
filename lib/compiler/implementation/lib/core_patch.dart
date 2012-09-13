@@ -4,6 +4,16 @@
 
 // Patch file for dart:core classes.
 
+// Patch for 'print' function.
+patch void print(var obj) {
+  if (obj is String) {
+    Primitives.printString(obj);
+  } else {
+    Primitives.printString(obj.toString());
+  }
+}
+
+
 // Patch for Object implementation.
 patch class Object {
   patch String toString() {

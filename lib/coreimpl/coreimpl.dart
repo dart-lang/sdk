@@ -16,7 +16,6 @@
 #source("list.dart");
 #source("maps.dart");
 #source("options.dart");
-#source("print.dart");
 #source("queue.dart");
 #source("regexp.dart");
 #source("splay_tree.dart");
