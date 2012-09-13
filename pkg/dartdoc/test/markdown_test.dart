@@ -5,12 +5,11 @@
 /// Unit tests for markdown.
 #library('markdown_tests');
 
-// TODO(rnystrom): Move this test into pkg/dartdoc/test.
-#import('../../pkg/dartdoc/lib/markdown.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../lib/markdown.dart');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../pkg/unittest/unittest.dart');
-#import('test_utils.dart');
+#import('../../unittest/unittest.dart');
 
 /// Most of these tests are based on observing how showdown behaves:
 /// http://softwaremaniacs.org/playground/showdown-highlight/
@@ -742,6 +741,34 @@ void main() {
         <p>links <a href="http://foo.com"><em>are</em></a> awesome</p>
         ''');
   });
+}
+
+/**
+ * Removes eight spaces of leading indentation from a multiline string.
+ *
+ * Note that this is very sensitive to how the literals are styled. They should
+ * be:
+ *     '''
+ *     Text starts on own line. Lines up with subsequent lines.
+ *     Lines are indented exactly 8 characters from the left margin.'''
+ *
+ * This does nothing if text is only a single line.
+ */
+// TODO(nweiz): Make this auto-detect the indentation level from the first
+// non-whitespace line.
+String cleanUpLiteral(String text) {
+  var lines = text.split('\n');
+  if (lines.length <= 1) return text;
+
+  for (var j = 0; j < lines.length; j++) {
+    if (lines[j].length > 8) {
+      lines[j] = lines[j].substring(8, lines[j].length);
+    } else {
+      lines[j] = '';
+    }
+  }
+
+  return Strings.join(lines, '\n');
 }
 
 validate(String description, String markdown, String html) {

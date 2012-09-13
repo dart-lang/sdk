@@ -4,9 +4,9 @@
 
 #library('dartdoc_search_test');
 
-// TODO(rnystrom): Move this test into pkg/dartdoc/test.
-#source('../../pkg/dartdoc/lib/src/dartdoc/nav.dart');
-#source('../../pkg/dartdoc/lib/src/client/search.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#source('../lib/src/dartdoc/nav.dart');
+#source('../lib/src/client/search.dart');
 
 const String URL = 'dummy-url';
 
