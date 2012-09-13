@@ -38,6 +38,7 @@ const String DEFAULT_HELPERLIB = r'''
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
   stringTypeCheck(x) {}
+  boolConversionCheck(x) {}
   interface JavaScriptIndexingBehavior {}
   S() {}
   assert(a){}''';
