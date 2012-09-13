@@ -396,6 +396,11 @@ class StandardTestSuite implements TestSuite {
 
     if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
       bool isWrappingRequired = configuration['compiler'] != 'dart2js';
+      if (configuration['runtime'] == 'ff' &&
+          Platform.operatingSystem == 'windows') {
+        // TODO(ahe): Investigate why this doesn't work on Windows.
+        isWrappingRequired = true;
+      }
       enqueueBrowserTest(info, testName, expectations, isWrappingRequired);
     } else {
       enqueueStandardTest(info, testName, expectations);
