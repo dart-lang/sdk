@@ -6,18 +6,24 @@
 main() {
   // Trigger optimization of 'test' method.
   for (int i = 0; i < 1000; i++) {
-    test();
+    test(2);
   }
 }
 
 
-test() {
+test(n) {
   var a = new List();    // Growable list.
   var b = new List(10);  // Fixed size list.
+  var c = const [1, 2, 3, 4];  // Constant aray.
   // In optimized mode the class checks will be eliminated since the
   // constructors above provide information about exact types.
   a.add(4);
   b[0] = 5;
   Expect.equals(4, a[0]);
   Expect.equals(5, b[0]);
+  // Test bound check elimination.
+  Expect.equals(2, c[1]);
+  // Test elimination of array length computation.
+  var v = c[n];
+  Expet equals(v, c[n]);
 }

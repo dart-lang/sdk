@@ -2246,6 +2246,8 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary() const {
 
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(srdjan): Check if we can remove this by reordering CSE and LICM.
+  if (value()->ResultCid() == kSmiCid) return;
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckSmi);
@@ -2266,8 +2268,6 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-
   const DeoptReasonId deopt_reason =
       (array_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
@@ -2280,14 +2280,26 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ? GrowableObjectArray::length_offset()
       : Array::length_offset();
 
+  // This case should not have created a bound check instruction.
+  ASSERT(!(locs()->in(0).IsConstant() && locs()->in(1).IsConstant()));
+
   if (locs()->in(1).IsConstant()) {
+    Register receiver = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
     const int64_t imm =
         reinterpret_cast<int64_t>(constant.raw());
     __ cmpq(FieldAddress(receiver, length_offset), Immediate(imm));
     __ j(BELOW_EQUAL, deopt);
+  } else if (locs()->in(0).IsConstant()) {
+    const Object& constant = locs()->in(0).constant();
+    ASSERT(constant.IsArray());
+    const Array& array =  Array::Cast(constant);
+    Register index = locs()->in(1).reg();
+    __ cmpq(index, Immediate(array.Length()));
+    __ j(ABOVE_EQUAL, deopt);
   } else {
+    Register receiver = locs()->in(0).reg();
     Register index = locs()->in(1).reg();
     __ cmpq(index, FieldAddress(receiver, length_offset));
     __ j(ABOVE_EQUAL, deopt);

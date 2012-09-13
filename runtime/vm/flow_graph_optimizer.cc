@@ -363,14 +363,19 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                    new CheckSmiInstr(index->Copy(), call->deopt_id()),
                    call->env(),
                    Definition::kEffect);
-      // Insert array bounds check.
-      InsertBefore(call,
-                   new CheckArrayBoundInstr(array->Copy(),
-                                            index->Copy(),
-                                            class_id,
-                                            call),
-                   call->env(),
-                   Definition::kEffect);
+      // If both index and array are constants, then the bound check always
+      // succeeded.
+      // TODO(srdjan): Remove once constant propagation lands.
+      if (!(array->BindsToConstant() && index->BindsToConstant())) {
+        // Insert array bounds check.
+        InsertBefore(call,
+                     new CheckArrayBoundInstr(array->Copy(),
+                                              index->Copy(),
+                                              class_id,
+                                              call),
+                     call->env(),
+                     Definition::kEffect);
+      }
       if (class_id == kGrowableObjectArrayCid) {
         // Insert data elements load.
         LoadFieldInstr* elements =

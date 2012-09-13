@@ -2222,6 +2222,8 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary() const {
 
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(srdjan): Check if we can remove this by reordering CSE and LICM.
+  if (value()->ResultCid() == kSmiCid) return;
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckSmi);
@@ -2235,15 +2237,13 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(0, Location::RegisterOrConstant(array()));
   locs->set_in(1, Location::RegisterOrConstant(index()));
   return locs;
 }
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-
   const DeoptReasonId deopt_reason =
       (array_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
@@ -2255,15 +2255,26 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t length_offset = (array_type() == kGrowableObjectArrayCid)
       ? GrowableObjectArray::length_offset()
       : Array::length_offset();
+  // This case should not have created a bound check instruction.
+  ASSERT(!(locs()->in(0).IsConstant() && locs()->in(1).IsConstant()));
 
   if (locs()->in(1).IsConstant()) {
+    Register receiver = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
     const int32_t imm =
         reinterpret_cast<int32_t>(constant.raw());
     __ cmpl(FieldAddress(receiver, length_offset), Immediate(imm));
     __ j(BELOW_EQUAL, deopt);
+  } else if (locs()->in(0).IsConstant()) {
+    const Object& constant = locs()->in(0).constant();
+    ASSERT(constant.IsArray());
+    const Array& array =  Array::Cast(constant);
+    Register index = locs()->in(1).reg();
+    __ cmpl(index, Immediate(array.Length()));
+    __ j(ABOVE_EQUAL, deopt);
   } else {
+    Register receiver = locs()->in(0).reg();
     Register index = locs()->in(1).reg();
     __ cmpl(index, FieldAddress(receiver, length_offset));
     __ j(ABOVE_EQUAL, deopt);
