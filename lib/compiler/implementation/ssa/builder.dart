@@ -1996,7 +1996,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   String getTargetName(ErroneousElement error, [String prefix = '']) {
-    return '$prefix${error.targetName.slowToString}';
+    return '$prefix${error.targetName.slowToString()}';
   }
 
   void generateInstanceGetterWithCompiledReceiver(Send send,
