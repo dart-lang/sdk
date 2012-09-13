@@ -24,6 +24,8 @@ intl/test/date_time_format_file_odd_test: skip
 # broken
 [ $compiler == dartc]
 intl/test/date_time_format_file_test: skip
+intl/test/date_time_format_file_even_test: Fail # issue 5143
+intl/test/date_time_format_file_odd_test: Fail # issue 5143
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: fail

@@ -353,12 +353,9 @@ public class MemberBuilder {
     private FieldElement buildField(DartField fieldNode, Type type) {
       assert !fieldNode.getModifiers().isAbstractField();
       Modifiers modifiers = fieldNode.getModifiers();
-      if (modifiers.isFinal() && (modifiers.isStatic() || context == topLevelContext)) {
-        // final top-level fields are implicitly compile-time constants.
+      // top-level fields are implicitly static.
+      if (context == topLevelContext) {
         modifiers = modifiers.makeStatic();
-        // Set the "const" modifier so that it is easy to compare a constant field to other
-        // types of constant expressions.
-        modifiers = modifiers.makeConstant();
       }
       if (fieldNode.getValue() != null) {
         modifiers = modifiers.makeInitialized();

@@ -385,9 +385,7 @@ public class CompileTimeConstantAnalyzer {
           visitedElements.add(element);
 
           // Should be declared as constant.
-          // TODO(brianwilkerson) Remove the second condition when final variables are no longer
-          // treated like constants
-          if (!element.getModifiers().isConstant() && !element.getModifiers().isFinal()) {
+          if (!element.getModifiers().isConstant()) {
             expectedConstant(x);
           }
 

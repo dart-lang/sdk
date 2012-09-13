@@ -357,6 +357,7 @@ public class Resolver {
             FieldElement fieldElement = node.getElement();
             if (fieldElement != null && fieldElement.getModifiers().isFinal()
                 && !fieldElement.isStatic()
+                && !fieldElement.getModifiers().isConstant()
                 && !fieldElement.getModifiers().isGetter()
                 && !fieldElement.getModifiers().isSetter()
                 && !fieldElement.getModifiers().isInitialized()) {

@@ -850,7 +850,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    */
   public static boolean isStaticField(FieldElement field) {
     Modifiers modifiers = field.getModifiers();
-    return modifiers.isStatic() || modifiers.isConstant();
+    return modifiers.isStatic();
   }
 
   /**

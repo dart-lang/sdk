@@ -10,6 +10,9 @@ dartdoc_test: Fail # http://dartbug.com/4540
 [ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 
+[ $compiler == dartc ]
+dummy_compiler_test: Fail # Issue 5143
+
 [ $compiler == none && $runtime == drt ]
 dummy_compiler_test: Fail # Issue 2264.
 dartdoc_test: Skip # http://dartbug.com/4541

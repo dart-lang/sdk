@@ -134,6 +134,10 @@ Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail, OK # co19 issue 195
 
 
+LibTest/core/double/operator_remainder_A01_t03: Fail # co19 issue 207
+LibTest/core/double/remainder_A01_t03: Fail # co19 issue 207
+
+
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
@@ -144,6 +148,7 @@ LibTest/core/Math/parseDouble_A02_t01: Fail
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
 Language/03_Overview/2_Privacy_A01_t02: Fail # language change 1031
+Language/06_Functions/2_Formal_Parameters_A02_t02: Fail co19 issue 207
 Language/06_Functions/06_Functions_A01_t22: Fail # c019 issue 204
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t03: Fail, OK # out of date - getters are not allowed to have parameters
@@ -157,8 +162,6 @@ Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t03: Fail # Issue 3476
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
-Language/10_Expressions/01_Constants_A15_t16: Fail # issue 3553
-Language/10_Expressions/01_Constants_A15_t38: Fail # issue 3553
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
@@ -565,7 +568,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail, OK
 Language/10_Expressions/29_Type_Test_A01_t02: Fail, OK
 Language/10_Expressions/16_Assignment_A08_t03: Fail, OK
 Language/10_Expressions/22_Shift_A01_t11: Fail, OK
-Language/10_Expressions/01_Constants_A15_t38: Fail, OK
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail, OK
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t03: Fail, OK

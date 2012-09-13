@@ -145,7 +145,6 @@ duplicate_implements_test/02: Fail # Issue 5084
 duplicate_implements_test/03: Fail # Issue 5084
 duplicate_implements_test/04: Fail # Issue 5084
 factory5_test/00: Fail # issue 3079
-final_is_not_const_test/01: Fail # Issue 3476
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
