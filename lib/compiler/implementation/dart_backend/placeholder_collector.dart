@@ -425,7 +425,8 @@ class PlaceholderCollector extends AbstractVisitor {
                typeDeclarationElement, node.typeName)) {
       return;
     }
-    final type = compiler.resolveTypeAnnotation(currentElement, node);
+    // We call [resolveReturnType] to allow having 'void'.    
+    final type = compiler.resolveReturnType(currentElement, node);
     if (type is InterfaceType || type is TypedefType) {
       var target = node.typeName;
       if (node.typeName is Send) {

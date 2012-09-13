@@ -323,7 +323,8 @@ class ReferencedElementCollector extends AbstractVisitor {
   visitNode(Node node) { node.visitChildren(this); }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
-    final type = compiler.resolveTypeAnnotation(rootElement, typeAnnotation);
+    // We call [resolveReturnType] to allow having 'void'.
+    final type = compiler.resolveReturnType(rootElement, typeAnnotation);
     Element typeElement = type.element;
     if (typeElement.isTypedef()) newTypedefElementCallback(typeElement);
     if (typeElement.isClass()) newClassElementCallback(typeElement);
