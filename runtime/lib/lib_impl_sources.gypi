@@ -30,7 +30,5 @@
     'string.cc',
     'string_base.dart',
     'string_patch.dart',
-    'weak_property.dart',
-    'weak_property.cc',
   ],
 }
