@@ -773,7 +773,7 @@ _idl_type_registry = {
     'float': TypeData(clazz='Primitive', dart_type='num', native_type='double'),
     'double': TypeData(clazz='Primitive', dart_type='num'),
 
-    'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
+    'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue', requires_v8_scope=True),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='Dynamic'),
     'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
