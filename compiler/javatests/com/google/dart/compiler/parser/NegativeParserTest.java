@@ -807,73 +807,36 @@ public class NegativeParserTest extends CompilerTestCase {
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class abstract {}",
-            "class assert {}",
+            "class as {}",
             "class Dynamic {}",
-            "class equals {}",
+            "class export {}",
+            "class external {}",
             "class factory {}",
             "class get {}",
             "class implements {}",
-            "class interface {}",
-            "class negate {}",
+            "class import {}",
+            "class library {}",
             "class operator {}",
+            "class part {}",
             "class set {}",
             "class static {}",
             "class typedef {}",
             ""),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 7, 8),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 7, 6),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 7),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 7, 6),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 7, 7),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 7, 3),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 7, 10),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 7, 9),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 7, 6),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 7, 8),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 7, 3),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 7, 6),
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 7, 7));
-  }
-
-  /**
-   * The spec in the section 10.28 says:
-   * <p>
-   * It is a compile-time error if a built-in identifier is used as the declared name of a class,
-   * interface, type variable or type alias.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3477
-   */
-  public void test_builtInIdentifier_asInterfaceName() {
-    parseExpectErrors(
-        Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "interface abstract {}",
-            "interface assert {}",
-            "interface Dynamic {}",
-            "interface equals {}",
-            "interface factory {}",
-            "interface get {}",
-            "interface implements {}",
-            "interface interface {}",
-            "interface negate {}",
-            "interface operator {}",
-            "interface set {}",
-            "interface static {}",
-            "interface typedef {}",
-            ""),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 11, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 11, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 11, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 11, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 11, 7));
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 7, 8), // abstract
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 7, 2), // as
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 7), // Dynamic
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 7, 6), // export
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 7, 8), // external
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 7, 7), // factory
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 8, 7, 3), // get
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 9, 7, 10), // implements
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 10, 7, 6), // import
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 11, 7, 7), // library
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 12, 7, 8), // operator
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 13, 7, 4), // part
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 14, 7, 3), // set
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 15, 7, 6), // static
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 16, 7, 7)); // typedef
   }
 
   /**
@@ -889,32 +852,36 @@ public class NegativeParserTest extends CompilerTestCase {
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class C01<abstract> {}",
-            "class C02<assert> {}",
-            "class C04<Dynamic> {}",
-            "class C05<equals> {}",
+            "class C02<as> {}",
+            "class C03<Dynamic> {}",
+            "class C04<export> {}",
+            "class C05<external> {}",
             "class C06<factory> {}",
             "class C07<get> {}",
             "class C08<implements> {}",
-            "class C09<interface> {}",
-            "class C10<negate> {}",
+            "class C09<import> {}",
+            "class C10<library> {}",
             "class C11<operator> {}",
-            "class C12<set> {}",
-            "class C13<static> {}",
-            "class C14<typedef> {}",
+            "class C12<part> {}",
+            "class C13<set> {}",
+            "class C14<static> {}",
+            "class C15<typedef> {}",
             ""),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 2, 11, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 3, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 5, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 6, 11, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 7, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 8, 11, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 9, 11, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 10, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 11, 11, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 12, 11, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 13, 11, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 14, 11, 7));
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 2, 11, 8), // abstract
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 3, 11, 2), // as
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 7), // Dynamic
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 5, 11, 6), // export
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 6, 11, 8), // external
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 7, 11, 7), // factory
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 8, 11, 3), // get
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 9, 11, 10), // implements
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 10, 11, 6), // import
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 11, 11, 7), // library
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 12, 11, 8), // operator
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 13, 11, 4), // part
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 14, 11, 3), // set
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 15, 11, 6), // static
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 16, 11, 7)); // typedef
   }
 
   /**
@@ -930,32 +897,36 @@ public class NegativeParserTest extends CompilerTestCase {
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "typedef abstract();",
-            "typedef assert();",
+            "typedef as();",
             "typedef Dynamic();",
-            "typedef equals();",
+            "typedef export();",
+            "typedef external();",
             "typedef factory();",
             "typedef get();",
             "typedef implements();",
-            "typedef interface();",
-            "typedef negate();",
+            "typedef import();",
+            "typedef library();",
             "typedef operator();",
+            "typedef part();",
             "typedef set();",
             "typedef static();",
             "typedef typedef();",
             ""),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 2, 9, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 3, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 5, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 6, 9, 7),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 7, 9, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 9, 10),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 9, 9, 9),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 10, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 11, 9, 8),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 12, 9, 3),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 9, 6),
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 14, 9, 7));
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 2, 9, 8), // abstract
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 3, 9, 2), // as
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 7), // Dynamic
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 5, 9, 6), // export
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 6, 9, 8), // external
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 7, 9, 7), // factory
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 9, 3), // get
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 9, 9, 10), // implements
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 10, 9, 6), // import
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 11, 9, 7), // library
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 12, 9, 8), // operator
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 9, 4), // part
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 14, 9, 3), // set
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 15, 9, 6), // static
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 16, 9, 7)); // typedef
   }
 
   /**

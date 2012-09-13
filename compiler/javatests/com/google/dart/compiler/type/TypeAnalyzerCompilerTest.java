@@ -3307,34 +3307,39 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  abstract   v01;",
-        "  assert     v02;",
+        "  as         v02;",
         "  Dynamic    v03;",
-        "  equals     v04;",
-        "  factory    v05;",
-        "  get        v06;",
-        "  implements v07;",
-        "//  interface  v08;",
-        "  negate     v09;",
-        "  operator   v10;",
-        "  set        v11;",
-        "  static     v12;",
-        "//  typedef    v13;",
+        "  export     v04;",
+        "  external   v05;",
+        "  factory    v06;",
+        "  get        v07;",
+        "  implements v08;",
+        "  import     v09;",
+        "  library    v10;",
+        "  operator   v11;",
+        "  part       v12;",
+        "  set        v13;",
+        "  static     v14;",
+        "//  typedef    v15;",
         "}",
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 6),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 3, 6),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 7),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 3),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 3, 10),
-//        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 3, 8),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 3, 6),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 12, 3, 8),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 13, 3, 3),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 14, 3, 6)
-//        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 7)
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),   // abstract
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 2),   // as
+                                                                         // Dynamic
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 3, 6),   // export
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 8),   // external
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 7),   // factory
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 3, 3),   // get
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 3, 10), // implements
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 3, 6),  // import
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 12, 3, 7),  // library
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 13, 3, 8),  // operator
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 14, 3, 4),  // part
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 3),  // set
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 16, 3, 6)  // static
+//        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 17, 3, 7)   // typedef
     );
   }
 

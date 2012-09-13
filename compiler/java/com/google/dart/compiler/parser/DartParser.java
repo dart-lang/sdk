@@ -170,14 +170,15 @@ public class DartParser extends CompletionHooksParserBase {
     AS_KEYWORD,
     ASSERT_KEYWORD,
     DYNAMIC_KEYWORD,
-    EQUALS_KEYWORD,
+    EXPORT_KEYWORD,
     EXTERNAL_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
     IMPLEMENTS_KEYWORD,
-    INTERFACE_KEYWORD,
-    NEGATE_KEYWORD,
+    IMPORT_KEYWORD,
+    LIBRARY_KEYWORD,
     OPERATOR_KEYWORD,
+    PART_KEYWORD,
     SETTER_KEYWORD,
     STATIC_KEYWORD,
     TYPEDEF_KEYWORD
@@ -328,7 +329,7 @@ public class DartParser extends CompletionHooksParserBase {
           isParsingInterface = true;
           node = done(parseClass());
         } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
-            && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
+            && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID) || peek(1).equals(Token.AS))) {
           consume(Token.IDENTIFIER);
           node = done(parseFunctionTypeAlias());
         } else if (looksLikeDirective()) {
@@ -1031,10 +1032,10 @@ public class DartParser extends CompletionHooksParserBase {
   private boolean isFunctionTypeAliasName() {
     beginFunctionTypeInterface();
     try {
-      if (peek(0) == Token.IDENTIFIER && peek(1) == Token.LPAREN) {
+      if ((peek(0) == Token.IDENTIFIER || peek(0) == Token.AS) && peek(1) == Token.LPAREN) {
         return true;
       }
-      if (peek(0) == Token.IDENTIFIER && peek(1) == Token.LT) {
+      if ((peek(0) == Token.IDENTIFIER || peek(0) == Token.AS) && peek(1) == Token.LT) {
         consume(Token.IDENTIFIER);
         // isTypeParameter leaves the position advanced if it matches
         if (isTypeParameter() && peek(0) == Token.LPAREN) {
@@ -4175,6 +4176,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         break;
 
+      case AS:
       case IDENTIFIER:
         // We have already eliminated function declarations earlier, so check for:
         // a) variable declarations;
@@ -5112,7 +5114,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private DartTypeNode tryTypeAnnotation() {
-    if (peek(0) != Token.IDENTIFIER) {
+    if (peek(0) != Token.IDENTIFIER && peek(0) != Token.AS) {
       return null;
     }
     List<DartTypeNode> typeArguments = new ArrayList<DartTypeNode>();
@@ -5121,7 +5123,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartNode qualified = parseQualified(false);
 
     if (optional(Token.LT)) {
-      if (peek(0) != Token.IDENTIFIER) {
+      if (peek(0) != Token.IDENTIFIER && peek(0) != Token.AS) {
         rollback();
         return null;
       }

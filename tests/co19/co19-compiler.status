@@ -254,6 +254,20 @@ Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail # language change 
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # 'equals' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # 'equals' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # 'equals' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # 'equals' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail, OK # 'interface' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail, OK # 'interface' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # 'interface' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail, OK # 'interface' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # 'negate' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # 'negate' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # 'negate' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # 'negate' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail, OK # 'equals' is not a keyword
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # 'negate' is not a keyword
 Language/10_Expressions/29_Type_Test_A01_t02: Fail # language change 3368
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A06_t02: Fail, OK # out of date - case can use any constant expression

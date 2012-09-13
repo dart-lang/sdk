@@ -91,6 +91,7 @@ metadata_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member
 bad_constructor_test/05: Fail # Constructor name clashes with other member
 bad_constructor_test/06: Fail # Constructor name clashes with other member
+call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_negative_test: Fail # instantiation of abstract class
@@ -178,9 +179,9 @@ prefix9_negative_test : Fail # language change 1031
 prefix10_negative_test : Fail # language change 1031
 prefix11_negative_test : Fail # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
-pseudo_kw_illegal_test/08: Fail # Issue 356
-pseudo_kw_illegal_test/10: Fail # Issue 356
-pseudo_kw_illegal_test/14: Fail # Issue 356
+pseudo_kw_illegal_test/09: Fail, OK # 'interface' is not a built-in identifier
+pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
+pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier
 resource_test: Fail # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 syntax_test/none: Fail # Bug 2107  Static type warnings in none case (INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS)
