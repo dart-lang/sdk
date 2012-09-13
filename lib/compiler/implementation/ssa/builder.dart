@@ -1352,11 +1352,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction potentiallyCheckType(HInstruction original,
-                                    Element sourceElement) {
+  HInstruction potentiallyCheckType(
+      HInstruction original, Element sourceElement,
+      { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
-    HInstruction other = original.convertType(
-        compiler, sourceElement, HTypeConversion.CHECKED_MODE_CHECK);
+    HInstruction other = original.convertType(compiler, sourceElement, kind);
     if (other != original) add(other);
     return other;
   }
@@ -1433,10 +1433,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     stack.add(stack.last());
   }
 
-  HBoolify popBoolified() {
-    HBoolify boolified = new HBoolify(pop());
-    add(boolified);
-    return boolified;
+  HInstruction popBoolified() {
+    HInstruction value = pop();
+    if (compiler.enableTypeAssertions) {
+      return potentiallyCheckType(
+          value,
+          compiler.boolClass,
+          kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+    }
+    HInstruction result = new HBoolify(value);
+    add(result);
+    return result;
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {

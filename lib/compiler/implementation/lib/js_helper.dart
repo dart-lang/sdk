@@ -977,6 +977,12 @@ getRuntimeTypeInfo(target) {
  * checked mode and casts. We specialize each primitive type (eg int, bool), and
  * use the compiler's convention to do is-checks on regular objects.
  */
+boolConversionCheck(value) {
+  boolTypeCheck(value);
+  assert(value !== null);
+  return value;
+}
+
 stringTypeCheck(value) {
   if (value === null) return value;
   if (value is String) return value;
@@ -1260,7 +1266,12 @@ class FallThroughErrorImplementation implements FallThroughError {
  */
 void assert(condition) {
   if (condition is Function) condition = condition();
-  if (!condition) throw new AssertionError();
+  if (condition is !bool) {
+    throw new TypeErrorImplementation('$condition does not implement bool');
+  }
+  // Compare to true to avoid boolean conversion check in checked
+  // mode.
+  if (condition !== true) throw new AssertionError();
 }
 
 /**

@@ -2444,18 +2444,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         pushStatement(new js.If.noElse(test, body), node);
         return;
       }
-
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-      SourceString helper = backend.getCheckedModeHelper(type);
-      String additionalArgument = backend.namer.operatorIs(element);
-      if (node.isCastTypeCheck) {
-        helper = castNames[helper.stringValue];
+
+      SourceString helper;
+      if (node.isBooleanConversionCheck) {
+        helper = const SourceString('boolConversionCheck');
+      } else {
+        helper = backend.getCheckedModeHelper(type);
+        if (node.isCastTypeCheck) {
+          helper = castNames[helper.stringValue];
+        }
       }
       Element helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);
       arguments.add(pop());
+      String additionalArgument = backend.namer.operatorIs(element);
       arguments.add(new js.LiteralString("'$additionalArgument'"));
       String helperName = backend.namer.isolateAccess(helperElement);
       push(new js.Call(new js.VariableUse(helperName), arguments));

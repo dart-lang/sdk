@@ -2527,6 +2527,7 @@ class HTypeConversion extends HCheck {
   static const int CHECKED_MODE_CHECK = 1;
   static const int ARGUMENT_TYPE_CHECK = 2;
   static const int CAST_TYPE_CHECK = 3;
+  static const int BOOLEAN_CONVERSION_CHECK = 4;
 
   HTypeConversion(this.type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
@@ -2541,9 +2542,12 @@ class HTypeConversion extends HCheck {
 
 
   bool get isChecked => kind != NO_CHECK;
-  bool get isCheckedModeCheck => kind == CHECKED_MODE_CHECK;
+  bool get isCheckedModeCheck {
+    return kind == CHECKED_MODE_CHECK || kind == BOOLEAN_CONVERSION_CHECK;
+  }
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
+  bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
 
   HType get guaranteedType => type;
 

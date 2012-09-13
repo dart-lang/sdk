@@ -1218,8 +1218,8 @@ $classesCollector.$mangledName = {'':
 var \$globalThis = $currentIsolate;
 var \$globalState;
 var \$globals;
-var \$isWorker;
-var \$supportsWorkers;
+var \$isWorker = false;
+var \$supportsWorkers = false;
 var \$thisScriptUrl;
 function \$static_init(){};
 
