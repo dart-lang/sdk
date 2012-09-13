@@ -5,8 +5,9 @@
 /// Unit tests for doc.
 #library('dartdoc_tests');
 
-#import('../../pkg/dartdoc/dartdoc.dart', prefix: 'dd');
-#import('../../pkg/dartdoc/markdown.dart', prefix: 'md');
+// TODO(rnystrom): Move this test into pkg/dartdoc/test.
+#import('../../pkg/dartdoc/lib/dartdoc.dart', prefix: 'dd');
+#import('../../pkg/dartdoc/lib/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
 #import('../../pkg/unittest/unittest.dart');
