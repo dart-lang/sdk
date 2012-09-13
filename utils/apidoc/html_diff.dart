@@ -11,9 +11,10 @@
 #import('dart:coreimpl');
 #import('dart:io');
 
-#import('../../pkg/dartdoc/dartdoc.dart');
-#import('../../pkg/dartdoc/mirrors/mirrors.dart');
-#import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../pkg/dartdoc/lib/dartdoc.dart');
+#import('../../pkg/dartdoc/lib/mirrors.dart');
+#import('../../pkg/dartdoc/lib/mirrors_util.dart');
 
 const HTML_LIBRARY_NAME = 'dart:html';
 

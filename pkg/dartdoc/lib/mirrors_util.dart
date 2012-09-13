@@ -4,6 +4,7 @@
 
 #library('mirrors.util');
 
+// TODO(rnystrom): Use "package:" URL (#4968).
 #import('mirrors.dart');
 #import('../../../lib/compiler/implementation/util/characters.dart');
 

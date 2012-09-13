@@ -4,7 +4,8 @@
 
 #library('classify');
 
-#import('../../lib/compiler/implementation/scanner/scannerlib.dart');
+#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
 #import('markdown.dart', prefix: 'md');
 
 /**

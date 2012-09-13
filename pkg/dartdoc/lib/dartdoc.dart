@@ -20,23 +20,21 @@
 #import('dart:math');
 #import('dart:uri');
 #import('dart:json');
-#import('mirrors/mirrors.dart');
-#import('mirrors/mirrors_util.dart');
-#import('mirrors/dart2js_mirror.dart', prefix: 'dart2js');
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('mirrors.dart');
+#import('mirrors_util.dart');
+#import('src/mirrors/dart2js_mirror.dart', prefix: 'dart2js');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
-#import('../../lib/compiler/implementation/scanner/scannerlib.dart',
+#import('../../../lib/compiler/implementation/scanner/scannerlib.dart',
         prefix: 'dart2js');
-#import('../../lib/_internal/libraries.dart');
+#import('../../../lib/_internal/libraries.dart');
 
-#source('comment_map.dart');
-#source('nav.dart');
-#source('utils.dart');
-
-// TODO(johnniwinther): Note that [IN_SDK] gets initialized to true when this
-// file is modified by the SDK deployment script. If you change, be sure to test
-// that dartdoc still works when run from the built SDK directory.
-const bool IN_SDK = false;
+// TODO(rnystrom): Use "package:" URL (#4968).
+#source('src/dartdoc/comment_map.dart');
+#source('src/dartdoc/nav.dart');
+#source('src/dartdoc/utils.dart');
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -62,166 +60,6 @@ const MODE_LIVE_NAV = 1;
 const API_LOCATION = 'http://api.dartlang.org/';
 
 /**
- * Run this from the `pkg/dartdoc` directory.
- */
-void main() {
-  final args = new Options().arguments;
-
-  final dartdoc = new Dartdoc();
-
-  if (args.isEmpty()) {
-    print('No arguments provided.');
-    printUsage();
-    return;
-  }
-
-  final entrypoints = <Path>[];
-
-  var i = 0;
-  while (i < args.length) {
-    final arg = args[i];
-    if (!arg.startsWith('--')) {
-      // The remaining arguments must be entry points.
-      break;
-    }
-
-    switch (arg) {
-      case '--no-code':
-        dartdoc.includeSource = false;
-        break;
-
-      case '--mode=static':
-        dartdoc.mode = MODE_STATIC;
-        break;
-
-      case '--mode=live-nav':
-        dartdoc.mode = MODE_LIVE_NAV;
-        break;
-
-      case '--generate-app-cache':
-      case '--generate-app-cache=true':
-        dartdoc.generateAppCache = true;
-        break;
-
-      case '--omit-generation-time':
-        dartdoc.omitGenerationTime = true;
-        break;
-      case '--verbose':
-        dartdoc.verbose = true;
-        break;
-      case '--include-api':
-        dartdoc.includeApi = true;
-        break;
-      case '--link-api':
-        dartdoc.linkToApi = true;
-        break;
-
-      default:
-        if (arg.startsWith('--out=')) {
-          dartdoc.outputDir =
-              new Path.fromNative(arg.substring('--out='.length));
-        } else if (arg.startsWith('--include-lib=')) {
-          dartdoc.includedLibraries =
-              arg.substring('--include-lib='.length).split(',');
-        } else if (arg.startsWith('--exclude-lib=')) {
-          dartdoc.excludedLibraries =
-              arg.substring('--exclude-lib='.length).split(',');
-        } else {
-          print('Unknown option: $arg');
-          printUsage();
-          return;
-        }
-        break;
-    }
-    i++;
-  }
-  while (i < args.length) {
-    final arg = args[i];
-    entrypoints.add(new Path.fromNative(arg));
-    i++;
-  }
-
-  if (entrypoints.isEmpty()) {
-    print('No entrypoints provided.');
-    printUsage();
-    return;
-  }
-
-  cleanOutputDirectory(dartdoc.outputDir);
-
-  dartdoc.documentLibraries(entrypoints, libPath);
-
-  // Compile the client-side code to JS.
-  final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
-  Future compiled = compileScript(
-    scriptDir.append('client-$clientScript.dart'),
-    dartdoc.outputDir.append('client-$clientScript.js'));
-
-  Future filesCopied = copyDirectory(scriptDir.append('static'),
-                                     dartdoc.outputDir);
-
-  Futures.wait([compiled, filesCopied]).then((_) {
-    dartdoc.cleanup();
-    print('Documented ${dartdoc._totalLibraries} libraries, '
-          '${dartdoc._totalTypes} types, and '
-          '${dartdoc._totalMembers} members.');
-  });
-}
-
-void printUsage() {
-  print('''
-Usage dartdoc [options] <entrypoint(s)>
-[options] include
- --no-code                   Do not include source code in the documentation.
-
- --mode=static               Generates completely static HTML containing
-                             everything you need to browse the docs. The only
-                             client side behavior is trivial stuff like syntax
-                             highlighting code.
-
- --mode=live-nav             (default) Generated docs do not include baked HTML
-                             navigation. Instead, a single `nav.json` file is
-                             created and the appropriate navigation is generated
-                             client-side by parsing that and building HTML.
-                                This dramatically reduces the generated size of
-                             the HTML since a large fraction of each static page
-                             is just redundant navigation links.
-                                In this mode, the browser will do a XHR for
-                             nav.json which means that to preview docs locally,
-                             you will need to enable requesting file:// links in
-                             your browser or run a little local server like
-                             `python -m SimpleHTTPServer`.
-
- --generate-app-cache        Generates the App Cache manifest file, enabling
-                             offline doc viewing.
-
- --out=<dir>                 Generates files into directory <dir>. If omitted
-                             the files are generated into ./docs/
-
- --link-api                  Link to the online language API in the generated
-                             documentation. The option overrides inclusion
-                             through --include-api or --include-lib.
-
- --include-api               Include the used API libraries in the generated
-                             documentation.  If the --link-api option is used,
-                             this option is ignored.
-
- --include-lib=<libs>        Use this option to explicitly specify which
-                             libraries to include in the documentation. If
-                             omitted, all used libraries are included by
-                             default. <libs> is comma-separated list of library
-                             names.
-
- --exclude-lib=<libs>        Use this option to explicitly specify which
-                             libraries to exclude from the documentation. If
-                             omitted, no libraries are excluded. <libs> is
-                             comma-separated list of library names.
-
- --verbose                   Print verbose information during generation.
-''');
-}
-
-/**
  * Gets the full path to the directory containing the entrypoint of the current
  * script. In other words, if you invoked dartdoc, directly, it will be the
  * path to the directory containing `dartdoc.dart`. If you're running a script
@@ -231,13 +69,6 @@ Usage dartdoc [options] <entrypoint(s)>
 // the feature is supported.
 Path get scriptDir =>
     new Path.fromNative(new Options().script).directoryPath;
-
-// TODO(johnniwinther): Trailing slashes matter due to the use of [libPath] as
-// a base URI with [Uri.resolve].
-/// Relative path to the library in which dart2js resides.
-Path get libPath => IN_SDK
-    ? scriptDir.append('../../lib/dart2js/')
-    : scriptDir.append('../../');
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
@@ -284,10 +115,14 @@ Future copyDirectory(Path from, Path to) {
 }
 
 /**
- * Compiles the given Dart script to a JavaScript file at [jsPath] using the
- * Dart2js compiler.
+ * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
-Future<bool> compileScript(Path dartPath, Path jsPath) {
+Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
+  var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
+  var dartPath = libPath.append(
+      'pkg/dartdoc/lib/src/client/client-$clientScript.dart');
+  var jsPath = outputDir.append('client-$clientScript.js');
+
   var completer = new Completer<bool>();
   var compilation = new Compilation(dartPath, libPath);
   Future<String> result = compilation.compileToJavaScript();
@@ -391,6 +226,10 @@ class Dartdoc {
   int _totalLibraries = 0;
   int _totalTypes = 0;
   int _totalMembers = 0;
+
+  int get totalLibraries => _totalLibraries;
+  int get totalTypes => _totalTypes;
+  int get totalMembers => _totalMembers;
 
   Dartdoc()
       : _comments = new CommentMap(),

@@ -103,7 +103,7 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDart2Js(build_dir, sdk_root, revision):
   if revision:
-    ReplaceInFiles([os.path.join(sdk_root, 'pkg', 'compiler', 
+    ReplaceInFiles([os.path.join(sdk_root, 'pkg', 'compiler',
                                  'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
                      r"BUILD_ID = '%s'" % revision)])
@@ -237,7 +237,7 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, meta, unittest}
   #
 
-  for library in ['args', 'htmlescape', 'dartdoc', 'intl', 'logging', 
+  for library in ['args', 'htmlescape', 'dartdoc', 'intl', 'logging',
                   'meta', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
@@ -257,20 +257,20 @@ def Main(argv):
 
   # Fixup dartdoc
   ReplaceInFiles([
-      join(PKG, 'dartdoc', 'dartdoc.dart'),
+      join(PKG, 'dartdoc', 'bin', 'dartdoc.dart'),
     ], [
-      ("final bool IN_SDK = false;",
-       "final bool IN_SDK = true;"),
-    ]) 
+      ("final bool _IN_SDK = false;",
+       "final bool _IN_SDK = true;"),
+    ])
 
   # TODO(dgrove): Remove this once issue 4788 is addressed.
   ReplaceInFiles([
-      join(PKG, 'dartdoc', 'mirrors', 'dart2js_mirror.dart'),
-      join(PKG, 'dartdoc', 'mirrors', 'mirrors_util.dart'),
-      join(PKG, 'dartdoc', 'classify.dart'),
-      join(PKG, 'dartdoc', 'client-live-nav.dart'),
-      join(PKG, 'dartdoc', 'client-static.dart'),
-      join(PKG, 'dartdoc', 'dartdoc.dart'),
+      join(PKG, 'dartdoc', 'lib', 'src', 'mirrors', 'dart2js_mirror.dart'),
+      join(PKG, 'dartdoc', 'lib', 'mirrors_util.dart'),
+      join(PKG, 'dartdoc', 'lib', 'classify.dart'),
+      join(PKG, 'dartdoc', 'lib', 'src', 'client', 'client-live-nav.dart'),
+      join(PKG, 'dartdoc', 'lib', 'src', 'client', 'client-static.dart'),
+      join(PKG, 'dartdoc', 'lib', 'dartdoc.dart'),
     ], [
       ("../../lib/compiler",
        "../../pkg/compiler"),

@@ -7,13 +7,15 @@
 
 #import('dart:html');
 #import('dart:json');
-#import('../../lib/compiler/implementation/source_file.dart');
-#import('classify.dart');
-#import('markdown.dart', prefix: 'md');
+#import('../../../../../lib/compiler/implementation/source_file.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../classify.dart');
+#import('../../markdown.dart', prefix: 'md');
 
+// TODO(rnystrom): Use "package:" URL (#4968).
 #source('dropdown.dart');
 #source('search.dart');
-#source('nav.dart');
+#source('../dartdoc/nav.dart');
 #source('client-shared.dart');
 
 main() {

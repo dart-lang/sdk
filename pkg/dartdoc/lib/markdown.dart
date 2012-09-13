@@ -5,10 +5,11 @@
 /// Parses text in a markdown-like format and renders to HTML.
 #library('markdown');
 
-#source('ast.dart');
-#source('block_parser.dart');
-#source('html_renderer.dart');
-#source('inline_parser.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#source('src/markdown/ast.dart');
+#source('src/markdown/block_parser.dart');
+#source('src/markdown/html_renderer.dart');
+#source('src/markdown/inline_parser.dart');
 
 /// Converts the given string of markdown to HTML.
 String markdownToHtml(String markdown) {
