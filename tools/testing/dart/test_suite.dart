@@ -395,8 +395,7 @@ class StandardTestSuite implements TestSuite {
     if (expectations.contains(SKIP)) return;
 
     if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
-      bool isWrappingRequired = configuration['compiler'] != 'dart2js'
-          || configuration['runtime'] != 'drt';
+      bool isWrappingRequired = configuration['compiler'] != 'dart2js';
       enqueueBrowserTest(info, testName, expectations, isWrappingRequired);
     } else {
       enqueueStandardTest(info, testName, expectations);

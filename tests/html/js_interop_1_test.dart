@@ -20,10 +20,14 @@ main() {
   var callback;
 
   test('js-to-dart-post-message', () {
-    callback = expectAsync1((e) {
-      Expect.equals('hello', e.data);
+    var onSuccess = expectAsync1((e) {
       window.on.message.remove(callback);
     });
+    callback = (e) {
+      if (e.data == 'hello') {
+        onSuccess(e);
+      }
+    };
     window.on.message.add(callback);
     injectSource("window.postMessage('hello', '*');");
   });

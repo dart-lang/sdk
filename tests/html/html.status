@@ -83,7 +83,6 @@ indexeddb_1_test: Fail
 indexeddb_2_test: Fail
 indexeddb_3_test: Fail
 indexeddb_4_test: Fail
-js_interop_1_test: Fail
 js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
@@ -102,7 +101,6 @@ xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
-js_interop_1_test: Pass, Fail # BUG(4631)
 
 
 [ $runtime == safari ]
@@ -112,7 +110,6 @@ svgelement_test: Fail
 svgelement2_test: Fail
 
 [ $runtime == ff ]
-js_interop_1_test: Fail, Pass # http://dartbug.com/5083
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
