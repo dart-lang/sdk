@@ -28,6 +28,7 @@ patch class Object {
 
 // Patch for Expando implementation.
 patch class Expando<T> {
+  patch Expando([this.name]);
 
   patch T operator[](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
