@@ -2186,6 +2186,9 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
+  virtual bool AffectedBySideEffect() const { return !field().is_final(); }
+  virtual bool AttributesEqual(Definition* other) const;
+
  private:
   const Field& field_;
 
@@ -2515,7 +2518,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
   virtual intptr_t ResultCid() const { return result_cid_; }
 
-  bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Definition* other) const;
 
   virtual bool AffectedBySideEffect() const { return !immutable_; }
 

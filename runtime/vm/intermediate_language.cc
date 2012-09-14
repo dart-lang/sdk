@@ -82,6 +82,23 @@ bool LoadFieldInstr::AttributesEqual(Definition* other) const {
 }
 
 
+bool LoadStaticFieldInstr::AttributesEqual(Definition* other) const {
+  LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
+  ASSERT(other_load != NULL);
+  // Assert that the field is initialized.
+  ASSERT(field().value() != Object::sentinel());
+  ASSERT(field().value() != Object::transition_sentinel());
+  return field().raw() == other_load->field().raw();
+}
+
+
+bool ConstantInstr::AttributesEqual(Definition* other) const {
+  ConstantInstr* other_constant = other->AsConstant();
+  ASSERT(other_constant != NULL);
+  return (value().raw() == other_constant->value().raw());
+}
+
+
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -100,13 +117,6 @@ const Object& Value::BoundConstant() const {
   ConstantInstr* constant = definition()->AsConstant();
   ASSERT(constant != NULL);
   return constant->value();
-}
-
-
-bool ConstantInstr::AttributesEqual(Definition* other) const {
-  ConstantInstr* other_constant = other->AsConstant();
-  ASSERT(other_constant != NULL);
-  return (value().raw() == other_constant->value().raw());
 }
 
 
