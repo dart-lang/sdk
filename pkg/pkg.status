@@ -37,3 +37,6 @@ dartdoc/test/dartdoc_test: fail
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
+
+[ $compiler == none && $runtime == drt ]
+dartdoc/test/dartdoc_test: skip # See dartbug.com/4541.
