@@ -159,10 +159,8 @@ closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewri
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
-duplicate_implements_test/01: Fail # Issue 5084
-duplicate_implements_test/02: Fail # Issue 5084
-duplicate_implements_test/03: Fail # Issue 5084
-duplicate_implements_test/04: Fail # Issue 5084
+duplicate_implements_test/03: Fail, OK # we are going to remove interfaces
+duplicate_implements_test/04: Fail, OK # we are going to remove interfaces
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 const_syntax_test/09: Fail  # Issue 4713

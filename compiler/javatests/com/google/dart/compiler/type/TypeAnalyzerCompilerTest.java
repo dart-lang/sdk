@@ -4772,6 +4772,48 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5084
+   */
+  public void test_duplicateSuperInterface_errorInClassImplements() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B implements A, A {}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.DUPLICATE_IMPLEMENTS_TYPE, 3, 23, 1));
+  }
+  
+  /**
+   * We should report only "no such type", but not duplicate.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5084
+   */
+  public void test_duplicateSuperInterface_whenNoSuchType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class B implements X, Y {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 20, 1),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 23, 1));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5084
+   */
+  public void test_duplicateSuperInterface_okInInterfaceExtends() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface A {}",
+        "interface B extends A, A {}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
     assertTrue(index != -1);

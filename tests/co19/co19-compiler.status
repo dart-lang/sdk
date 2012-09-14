@@ -85,7 +85,6 @@ Language/07_Classes/07_Classes_A02_t31: Fail, OK # constant constructors are not
 Language/07_Classes/07_Classes_A02_t32: Fail, OK # constant constructors are not required to have a body
 Language/07_Classes/07_Classes_A02_t34: Fail # Issue 5419
 Language/07_Classes/07_Classes_A09_t01: Fail, OK # warning expected if instance member has the same name as a static member
-Language/07_Classes/10_Superinterfaces_A04_t01: Fail # Issue 5084
 Language/07_Classes/2_Getters_A01_t01: Fail, OK # abstract methods cannot occur in concrete classes
 Language/07_Classes/2_Getters_A01_t05: Fail # No issue: waiting to remove old getter syntax
 Language/07_Classes/3_Setters_A04_t01: Fail # Issue 5153

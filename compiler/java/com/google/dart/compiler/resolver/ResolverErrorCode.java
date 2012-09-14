@@ -83,6 +83,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Both String (as key) and value type arguments required."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
+  DUPLICATE_IMPLEMENTS_TYPE("Duplicate type in the implements clause"),
   DUPLICATE_INITIALIZATION("Duplicate initialization of '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),
   DUPLICATE_LABEL_IN_SWITCH_STATEMENT("Duplicate label in switch statement"),
