@@ -127,9 +127,6 @@ get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/09: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/10: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
@@ -148,9 +145,6 @@ method_override2_test/03: Fail # accepts illegal override
 implicit_this_test/02: Fail # instantiation of abstract class
 implicit_this_test/03: Fail # instantiation of abstract class
 abstract_getter_test/01: Fail # instantiation of abstract class
-interface_negative_test: Fail # instantiation of abstract class
-interface_test/00: Fail # instantiation of abstract class
-abstract_factory_constructor_test/00: Fail # instantiation of abstract class
 abstract_factory_constructor_test/01: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters2_test: Fail # Unimplemented non-matching static call

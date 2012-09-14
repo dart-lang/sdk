@@ -38,8 +38,6 @@ Language/07_Classes/3_Setters_A04_t05: Fail # TODO(vm-team): Please triage this 
 Language/07_Classes/3_Setters_A04_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/3_Setters_A04_t07: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/3_Setters_A04_t08: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # TODO(vm-team): Please triage this failure.
@@ -318,20 +316,12 @@ Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
 
 # co19 issue 183 - must not instantiate an abstract class
 # Some of these tests are expected to fail for another reason. These are marked as Skip.
-Language/10_Expressions/10_Instance_Creation/2_Const_A11_t04: Fail # co19 issue 183
 Language/10_Expressions/10_Instance_Creation/2_Const_A11_t03: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/2_Const_A11_t02: Fail # co19 issue 183
 Language/10_Expressions/10_Instance_Creation/2_Const_A11_t01: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/1_New_A16_t02: Fail # co19 issue 183
 Language/10_Expressions/10_Instance_Creation/1_New_A16_t01: Fail # co19 issue 183
-Language/10_Expressions/10_Instance_Creation/1_New_A15_t02: Fail # co19 issue 183
 Language/10_Expressions/10_Instance_Creation/1_New_A15_t01: Fail # co19 issue 183
 Language/07_Classes/07_Classes_A02_t29: Skip # co19 issue 183
 Language/07_Classes/07_Classes_A02_t31: Skip # co19 issue 183
-Language/07_Classes/07_Classes_A07_t10: Fail # co19 issue 183
-Language/07_Classes/2_Getters_A01_t01: Fail # co19 issue 183
-Language/07_Classes/3_Setters_A01_t01: Fail # co19 issue 183
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # co19 issue 183
 
 # co19 175 - related to issue 4522, all need fixing, some passes because of temporary warning.
 Language/10_Expressions/07_Maps_A03_t01: Pass, Fail # co19 175

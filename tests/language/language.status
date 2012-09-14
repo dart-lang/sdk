@@ -106,7 +106,6 @@ bad_constructor_test/06: Fail # Constructor name clashes with other member
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
-interface_negative_test: Fail # instantiation of abstract class
 argument_definition_test/01: Fail # Issue 5082
 argument_definition_test/02: Fail # Issue 5082
 argument_definition_test/03: Fail # Issue 5082
@@ -266,8 +265,6 @@ assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail
 bad_constructor_test/05: Fail
 bad_constructor_test/06: Fail
-interface_negative_test: Fail
-abstract_factory_constructor_test/00: Fail
 interface_test/00: Fail
 argument_definition_test/*: Skip # Not implemented.
 argument_definition2_test: Skip # Not implemented. Fails in minified tests.
@@ -385,7 +382,7 @@ get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.

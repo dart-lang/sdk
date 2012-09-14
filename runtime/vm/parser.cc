@@ -533,7 +533,6 @@ class ClassDesc : public ValueObject {
       : clazz_(cls),
         class_name_(cls_name),
         is_interface_(is_interface),
-        is_abstract_(false),
         token_pos_(token_pos),
         functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
@@ -609,14 +608,6 @@ class ClassDesc : public ValueObject {
     return is_interface_;
   }
 
-  void set_is_abstract() {
-    is_abstract_ = true;
-  }
-
-  bool is_abstract() const {
-    return is_abstract_;
-  }
-
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
@@ -667,7 +658,6 @@ class ClassDesc : public ValueObject {
   const Class& clazz_;
   const String& class_name_;
   const bool is_interface_;
-  bool is_abstract_;
   intptr_t token_pos_;   // Token index of "class" keyword.
   GrowableObjectArray& functions_;
   GrowableObjectArray& fields_;
@@ -2602,9 +2592,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   ASSERT(is_top_level_);
   AddFormalParamsToFunction(&method->params, func);
   members->AddFunction(func);
-  if (method->has_abstract) {
-    members->set_is_abstract();
-  }
 }
 
 
@@ -3112,7 +3099,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   }
   ExpectToken(Token::kRBRACE);
 
-  if (is_abstract || members.is_abstract()) {
+  if (is_abstract) {
     cls.set_is_abstract();
   }
 
