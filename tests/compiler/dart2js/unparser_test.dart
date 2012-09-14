@@ -727,16 +727,7 @@ main() {
 }
 ''';
   var expectedResult =
-      'main(){'
-        'var a=7;'
-        'void g(a,f){'
-          'void c(e,b){'
-            'var d=a;'
-          '}'
-          'c(f,a);'
-        '}'
-        'g(a,8);'
-      '}';
+      'main(){var A=7;void B(A,C){void D(E,F){var G=A;}D(C,A);}B(A,8);}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
@@ -762,9 +753,8 @@ main() {
 }
 ''';
   var expectedResult =
-      'class A{var D;static B(b){b=5;}}'
-      'C(a,[optionalarg=7]){a=6;}'
-      'main(){new A().D;A.B(8);C(8);}';
+      'class B{var E;static C(A){A=5;}}D(A,[optionalarg=7]){A=6;}'
+      'main(){new B().E;B.C(8);D(8);}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
