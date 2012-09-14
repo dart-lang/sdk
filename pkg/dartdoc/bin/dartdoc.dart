@@ -79,6 +79,11 @@ main() {
         dartdoc.linkToApi = true;
         break;
 
+      // Hack to accept, but not use, colors option.
+      // This allows shared bash script to run dartdoc.
+      case '--enable-diagnostic-colors':
+        break;
+
       default:
         if (arg.startsWith('--out=')) {
           dartdoc.outputDir =
