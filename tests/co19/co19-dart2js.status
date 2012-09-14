@@ -63,29 +63,6 @@ Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this 
 LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
-# The following tests use NoSuchMethodException instead of NoSuchMethodError.
-Language/03_Overview/2_Privacy_A01_t18: Fail, OK # co19 issue 195
-Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK # co19 issue 195
-Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail, OK # co19 issue 195
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A01_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: Fail, OK # co19 issue 195
-Language/10_Expressions/15_Getter_Invocation_A06_t02: Fail, OK # co19 issue 195
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/16_Assignment_A01_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/16_Assignment_A04_t04: Fail, OK # co19 issue 195
-Language/10_Expressions/16_Assignment_A08_t03: Fail, OK # co19 issue 195
-Language/10_Expressions/27_Assignable_Expressions_A07_t01: Fail, OK # co19 issue 195
-Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/28_Identifier_Reference_A05_t06: Fail, OK # co19 issue 195
-Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail, OK # co19 issue 195
-Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK # co19 issue 195
-LibTest/core/NoSuchMethodException/NoSuchMethodException_A01_t01: Fail, OK # co19 issue 195
-LibTest/core/NoSuchMethodException/toString_A01_t01: Fail, OK # co19 issue 195
-
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
