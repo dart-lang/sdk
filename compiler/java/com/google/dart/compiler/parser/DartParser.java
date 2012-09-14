@@ -142,7 +142,6 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
-  private static final String EQUALS_KEYWORD = "equals";
   private static final String EXPORT_KEYWORD = "export";
   private static final String EXTERNAL_KEYWORD = "external";
   private static final String FACTORY_KEYWORD = "factory";
@@ -153,7 +152,6 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String INTERFACE_KEYWORD = "interface";
   private static final String LIBRARY_KEYWORD = "library";
   private static final String NATIVE_KEYWORD = "native";
-  private static final String NEGATE_KEYWORD = "negate";
   private static final String OF_KEYWORD = "of";
   private static final String ON_KEYWORD = "on";
   private static final String OPERATOR_KEYWORD = "operator";
@@ -1438,14 +1436,6 @@ public class DartParser extends CompletionHooksParserBase {
         if (peekPseudoKeyword(0, CALL_KEYWORD) && peek(1).equals(Token.LPAREN)) {
           return true;
         }
-        // operator equals (
-        if (peekPseudoKeyword(0, EQUALS_KEYWORD) && peek(1).equals(Token.LPAREN)) {
-          return true;
-        }
-        // operator negate (
-        if (peekPseudoKeyword(0, NEGATE_KEYWORD) && peek(1).equals(Token.LPAREN)) {
-          return true;
-        }
         // TODO(zundel): Look for valid operator overload tokens.  For now just assuming
         // non-idents are good enough
         // operator ??? (
@@ -1605,14 +1595,6 @@ public class DartParser extends CompletionHooksParserBase {
                  && ctx.getTokenString().equals(CALL_KEYWORD)) {
         name = done(new DartIdentifier(CALL_KEYWORD));
         arity = -1;
-      } else if (operation == Token.IDENTIFIER
-          && ctx.getTokenString().equals(EQUALS_KEYWORD)) {
-        name = done(new DartIdentifier(EQUALS_KEYWORD));
-        arity = 1;
-      } else if (operation == Token.IDENTIFIER
-          && ctx.getTokenString().equals(NEGATE_KEYWORD)) {
-        name = done(new DartIdentifier(NEGATE_KEYWORD));
-        arity = 0;
       } else if (operation == Token.IDENTIFIER
           && ctx.getTokenString().equals(CALL_KEYWORD)) {
         name = done(new DartIdentifier(CALL_KEYWORD));

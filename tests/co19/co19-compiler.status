@@ -221,6 +221,7 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # Iss
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
+Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail, OK # co19 issue 169
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
@@ -250,6 +251,7 @@ Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail, OK # co19 issue 169
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Issue 3524
@@ -281,6 +283,12 @@ Language/10_Expressions/20_Equality_A01_t19: Fail # language change 3368
 Language/10_Expressions/20_Equality_A01_t20: Fail # language change 3368
 Language/10_Expressions/20_Equality_A01_t21: Fail # language change 3368
 Language/10_Expressions/20_Equality_A01_t22: Fail # language change 3368
+Language/10_Expressions/20_Equality_A02_t02: Fail, OK # co19 issue 169
+Language/10_Expressions/20_Equality_A02_t03: Fail, OK # co19 issue 169
+Language/10_Expressions/20_Equality_A02_t04: Fail, OK # co19 issue 169
+Language/10_Expressions/20_Equality_A03_t01: Fail, OK # co19 issue 169
+Language/10_Expressions/20_Equality_A03_t02: Fail, OK # co19 issue 169
+Language/10_Expressions/20_Equality_A03_t03: Fail, OK # co19 issue 169
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # Issue 1489
 Language/10_Expressions/21_Relational_Expressions_A01_t18: Fail # language change 3368
 Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail # language change 3368
@@ -299,6 +307,7 @@ Language/10_Expressions/24_Multiplicative_Expressions_A01_t10: Fail # language c
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail # language change 3368
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t12: Fail # language change 3368
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail, OK # co19 issue 169
 Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail # language change 3368
 Language/10_Expressions/25_Unary_Expressions_A01_t03: Fail # language change 3368
 Language/10_Expressions/25_Unary_Expressions_A01_t11: Fail # language change 3368
@@ -307,6 +316,9 @@ Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail # language change 336
 Language/10_Expressions/25_Unary_Expressions_A01_t14: Fail # language change 3368
 Language/10_Expressions/25_Unary_Expressions_A01_t15: Fail # language change 3368
 Language/10_Expressions/25_Unary_Expressions_A01_t16: Fail # language change 3368
+Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, OK # co19 issue 169
+Language/10_Expressions/25_Unary_Expressions_A05_t01: Fail, OK # co19 issue 169
+Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail, OK # co19 issue 169
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # Issue 1489,2439
 Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail # language change 3368
 Language/10_Expressions/26_Postfix_Expressions_A01_t04: Fail # language change 3368
