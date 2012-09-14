@@ -5,7 +5,7 @@
 #library('reader_test');
 
 #import('dart:io');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 #import('../../archive/archive.dart');
 
 final String dataPath = "utils/tests/archive/data";

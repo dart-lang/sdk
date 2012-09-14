@@ -10,8 +10,9 @@
 
 #library('date_time_format_tests');
 
+// TODO(rnystrom): Use "package:" URL (#4968).
 #import('../date_format.dart');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 #import('date_time_format_test_data.dart');
 #import('../intl.dart');
 #import('../lib/date_format_internal.dart');

@@ -6,7 +6,7 @@
 
 #library('NestedSpawnTest');
 #import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
 
 void isolateA() {
   port.receive((msg, replyTo) {

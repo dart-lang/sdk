@@ -4,7 +4,7 @@
 
 #library("CountTest");
 #import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
 
 void countMessages() {
   int count = 0;

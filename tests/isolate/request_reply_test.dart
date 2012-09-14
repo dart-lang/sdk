@@ -5,7 +5,7 @@
 #library("RequestReplyTest");
 
 #import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
 
 void entry() {
   port.receive((message, SendPort replyTo) {

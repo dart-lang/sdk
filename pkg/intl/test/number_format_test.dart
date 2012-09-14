@@ -6,7 +6,8 @@
 
 #library('number_format_test');
 
-#import('../../../pkg/unittest/unittest.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../../pkg/unittest/lib/unittest.dart');
 #import('../number_format.dart');
 #import('../intl.dart');
 

@@ -5,7 +5,7 @@
 // Negative test to make sure that we are reaching all assertions.
 #library('spawn_tests');
 #import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
 
 child() {
   port.receive((msg, reply) => reply.send('re: $msg'));

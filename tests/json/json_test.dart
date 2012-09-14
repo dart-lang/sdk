@@ -6,8 +6,8 @@
 
 #import('dart:json');
 #import('dart:html');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
+#import('../../pkg/unittest/lib/html_config.dart');
 
 main() {
   useHtmlConfiguration();

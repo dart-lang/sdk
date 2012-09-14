@@ -1,6 +1,6 @@
 #library('IndexedDB3Test');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
+#import('../../pkg/unittest/lib/html_config.dart');
 #import('dart:html');
 
 // Read with cursor.
@@ -56,7 +56,7 @@ class Test {
 
   fail(message) => (e) {
     guardAsync(() {
-      Expect.fail('IndexedDB failure: $message'); 
+      Expect.fail('IndexedDB failure: $message');
     });
   };
 
