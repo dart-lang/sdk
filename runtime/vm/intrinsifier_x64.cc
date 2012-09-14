@@ -414,13 +414,15 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
 }
 
 
-// Assumes the first argument is a byte array, tests if the second
-// argument is a smi, tests if the smi is within bounds of the array
-// length, and jumps to label fall_through if any test fails.  Leaves
-// the second argument in RBX.
+// Places the address of the ByteArray in RAX.
+// Places the Smi index in RBX.
+// Tests if RBX contains an Smi, jumps to label fall_through if false.
+// Tests if index in RBX is within bounds, jumps to label fall_through if not.
+// Leaves the index as an Smi in RBX.
+// Leaves the ByteArray address in RAX.
 void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Array.
-  __ movq(RBX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ movq(RBX, Address(RSP, + 1 * kWordSize));  // Index.
   __ testq(RBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
   // Range check.
