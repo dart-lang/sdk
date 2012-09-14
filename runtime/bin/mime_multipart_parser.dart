@@ -16,24 +16,24 @@
  */
 
 class _MimeMultipartParser {
-  final int _START = 0;
-  final int _FIRST_BOUNDARY_ENDING = 111;
-  final int _FIRST_BOUNDARY_END = 112;
-  final int _BOUNDARY_ENDING = 1;
-  final int _BOUNDARY_END = 2;
-  final int _HEADER_START = 3;
-  final int _HEADER_FIELD = 4;
-  final int _HEADER_VALUE_START = 5;
-  final int _HEADER_VALUE = 6;
-  final int _HEADER_VALUE_FOLDING_OR_ENDING = 7;
-  final int _HEADER_VALUE_FOLD_OR_END = 8;
-  final int _HEADER_ENDING = 9;
-  final int _CONTENT = 10;
-  final int _LAST_BOUNDARY_DASH2 = 11;
-  final int _LAST_BOUNDARY_ENDING = 12;
-  final int _LAST_BOUNDARY_END = 13;
-  final int _DONE = 14;
-  final int _FAILURE = 15;
+  const int _START = 0;
+  const int _FIRST_BOUNDARY_ENDING = 111;
+  const int _FIRST_BOUNDARY_END = 112;
+  const int _BOUNDARY_ENDING = 1;
+  const int _BOUNDARY_END = 2;
+  const int _HEADER_START = 3;
+  const int _HEADER_FIELD = 4;
+  const int _HEADER_VALUE_START = 5;
+  const int _HEADER_VALUE = 6;
+  const int _HEADER_VALUE_FOLDING_OR_ENDING = 7;
+  const int _HEADER_VALUE_FOLD_OR_END = 8;
+  const int _HEADER_ENDING = 9;
+  const int _CONTENT = 10;
+  const int _LAST_BOUNDARY_DASH2 = 11;
+  const int _LAST_BOUNDARY_ENDING = 12;
+  const int _LAST_BOUNDARY_END = 13;
+  const int _DONE = 14;
+  const int _FAILURE = 15;
 
   // Construct a new MIME multipart parser with the boundary
   // [boundary]. The boundary should be as specified in the content
