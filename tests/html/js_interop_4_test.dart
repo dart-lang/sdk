@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file
 
 #library('JsInterop4Test');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
+#import('../../pkg/unittest/lib/html_config.dart');
 #import('dart:html');
 #import('dart:isolate');
 

@@ -8,7 +8,7 @@
 #library('Message2Test');
 #import("dart:isolate");
 
-#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
 
 // ---------------------------------------------------------------------------
 // Message passing test 2.

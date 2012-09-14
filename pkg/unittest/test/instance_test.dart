@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('instance_test');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 #source('test_utils.dart');
 
 doesThrow() { throw 'X'; }

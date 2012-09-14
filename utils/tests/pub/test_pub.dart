@@ -16,7 +16,7 @@
 #import('dart:math');
 #import('dart:uri');
 
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 #import('../../lib/file_system.dart', prefix: 'fs');
 #import('../../pub/git_source.dart');
 #import('../../pub/hosted_source.dart');

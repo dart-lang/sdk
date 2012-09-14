@@ -7,7 +7,7 @@
 
 #library('IsolateComplexMessagesTest');
 #import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
 
 main() {
   test("complex messages are serialized correctly", () {

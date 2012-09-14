@@ -1,6 +1,6 @@
 #library('KeyNameLocationTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
+#import('../../pkg/unittest/lib/unittest.dart');
+#import('../../pkg/unittest/lib/html_config.dart');
 #import('dart:html');
 
 // Test for existence of some KeyName and KeyLocation constants.

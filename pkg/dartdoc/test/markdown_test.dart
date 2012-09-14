@@ -7,9 +7,7 @@
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 #import('../lib/markdown.dart');
-
-// TODO(rnystrom): Better path to unittest.
-#import('../../unittest/unittest.dart');
+#import('../../unittest/lib/unittest.dart');
 
 /// Most of these tests are based on observing how showdown behaves:
 /// http://softwaremaniacs.org/playground/showdown-highlight/

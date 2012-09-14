@@ -8,9 +8,7 @@
 // TODO(rnystrom): Use "package:" URL (#4968).
 #import('../lib/dartdoc.dart', prefix: 'dd');
 #import('../lib/markdown.dart', prefix: 'md');
-
-// TODO(rnystrom): Better path to unittest.
-#import('../../unittest/unittest.dart');
+#import('../../unittest/lib/unittest.dart');
 
 main() {
   group('countOccurrences', () {

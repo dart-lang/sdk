@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('unittestTest');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 
 class MockList extends Mock implements List {
 }
@@ -166,11 +166,11 @@ main() {
     m.getLogs(null, returning(4)).verify(happenedExactly(2));
   });
 
-  test('Mocking: RegExp CallMatcher good', () {	
-    var m = new Mock();	
-    m.when(callsTo(matches('^[A-Z]'))).	
-           alwaysThrow('Method names must start with lower case.');	
-    m.test();	
+  test('Mocking: RegExp CallMatcher good', () {
+    var m = new Mock();
+    m.when(callsTo(matches('^[A-Z]'))).
+           alwaysThrow('Method names must start with lower case.');
+    m.test();
   });
 
   test('Mocking: No logging', () {
@@ -600,7 +600,7 @@ main() {
         expect(log[pos + 1].args[0] - log[pos].args[0], equals(1));
         return 2;
     });
-    expect(total, equals((0 * 1) + (2 * 3) + (4 * 5) + (6 * 7) + (8 * 9))); 
+    expect(total, equals((0 * 1) + (2 * 3) + (4 * 5) + (6 * 7) + (8 * 9)));
   });
 
   test('Mocking: clearLogs', () {

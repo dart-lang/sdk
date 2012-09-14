@@ -4,8 +4,9 @@
 
 #library('intl_test');
 
+// TODO(rnystrom): Use "package:" URL (#4968).
 #import('../intl.dart');
-#import('../../unittest/unittest.dart');
+#import('../../unittest/lib/unittest.dart');
 #import('../date_symbol_data_local.dart');
 
 main() {

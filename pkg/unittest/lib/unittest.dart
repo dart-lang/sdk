@@ -6,7 +6,7 @@
  * A library for writing dart unit tests.
  *
  * To import this library, specify the relative path to
- * pkg/unittest/unittest.dart.
+ * pkg/unittest/lib/unittest.dart.
  *
  * ##Concepts##
  *
@@ -24,7 +24,7 @@
  *
  * A trivial test:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     #import('package:unittest/unittest.dart');
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -34,7 +34,7 @@
  *
  * Multiple tests:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     #import('package:unittest/unittest.dart');
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -48,7 +48,7 @@
  *
  * Multiple tests, grouped by category:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     #import('package:unittest/unittest.dart');
  *     main() {
  *       group('group A', () {
  *         test('test A.1', () {
@@ -74,7 +74,7 @@
  * that callback is run. A count argument can be provided to specify the number
  * of times the callback should be called (the default is 1).
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     #import('package:unittest/unittest.dart');
  *     #import('dart:html');
  *     main() {
  *       test('calllback is executed once', () {
@@ -115,7 +115,7 @@
  * arguments or that take named parameters. (this is not implemented yet,
  * but will be coming here soon).
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     #import('package:unittest/unittest.dart');
  *     #import('dart:html');
  *     main() {
  *       test('calllback is executed', () {
@@ -138,20 +138,20 @@
 
 #import('dart:isolate');
 
-#source('collection_matchers.dart');
-#source('config.dart');
-#source('core_matchers.dart');
-#source('description.dart');
-#source('expect.dart');
-#source('future_matchers.dart');
-#source('interfaces.dart');
-#source('map_matchers.dart');
-#source('matcher.dart');
-#source('mock.dart');
-#source('numeric_matchers.dart');
-#source('operator_matchers.dart');
-#source('string_matchers.dart');
-#source('test_case.dart');
+#source('src/collection_matchers.dart');
+#source('src/config.dart');
+#source('src/core_matchers.dart');
+#source('src/description.dart');
+#source('src/expect.dart');
+#source('src/future_matchers.dart');
+#source('src/interfaces.dart');
+#source('src/map_matchers.dart');
+#source('src/matcher.dart');
+#source('src/mock.dart');
+#source('src/numeric_matchers.dart');
+#source('src/operator_matchers.dart');
+#source('src/string_matchers.dart');
+#source('src/test_case.dart');
 
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;

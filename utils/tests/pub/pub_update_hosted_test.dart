@@ -7,7 +7,7 @@
 #import('dart:io');
 
 #import('test_pub.dart');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 
 main() {
   test('fails gracefully if the url does not resolve', () {

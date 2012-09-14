@@ -5,8 +5,9 @@
 
 #library('bidi_format_test');
 
+// TODO(rnystrom): Use "package:" URL (#4968).
 #import('../intl.dart');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../../pkg/unittest/lib/unittest.dart');
 
 /**
  * Tests the bidirectional text formatting library.
