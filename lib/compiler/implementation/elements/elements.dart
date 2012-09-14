@@ -482,8 +482,8 @@ class LibraryElement extends ScopeContainerElement {
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const EmptyLink<CompilationUnitElement>();
-  Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
-  ScriptTag libraryTag;
+  Link<LibraryTag> tags = const EmptyLink<LibraryTag>();
+  LibraryTag libraryTag;
   bool canUseNative = false;
   LibraryElement patch = null;
 
@@ -500,7 +500,7 @@ class LibraryElement extends ScopeContainerElement {
     compilationUnits = compilationUnits.prepend(element);
   }
 
-  void addTag(ScriptTag tag, DiagnosticListener listener) {
+  void addTag(LibraryTag tag, DiagnosticListener listener) {
     tags = tags.prepend(tag);
   }
 

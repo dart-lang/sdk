@@ -229,9 +229,6 @@ LibTest/core/Clock/now_A01_t01: Fail, OK
 
 # Tests that fail because they use the legacy try-catch syntax.
 # See co19 issue 184.
-Language/03_Overview/1_Scoping_A02_t30: Fail, OK
-Language/03_Overview/2_Privacy_A01_t08: Fail, OK
-Language/03_Overview/2_Privacy_A01_t21: Fail, OK
 Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
@@ -445,7 +442,6 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK
 # Tests that used to fail before deprecating the old try-catch syntax.
 # The original issue that used to cause the test to fail is put in an
 # end-of-line comment. See co19 issue 184.
-Language/03_Overview/2_Privacy_A01_t02: Pass, OK # Unresolvable constructors are not a compile-time error after 0.11.
 Language/08_Interfaces/1_Methods_A03_t01: Pass, OK # co19 issue 188
 Language/08_Interfaces/1_Methods_A03_t02: Pass, OK # co19 issue 188
 Language/08_Interfaces/1_Methods_A03_t03: Pass, OK # co19 issue 188
@@ -683,6 +679,8 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
+Language/03_Overview/2_Privacy_A01_t04: Fail, OK # co19 issue 210
+Language/03_Overview/2_Privacy_A01_t05: Fail, OK # co19 issue 210
 Language/05_Variables/05_Variables_A01_t03: Fail, OK # co19 issue 210
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
@@ -697,22 +695,20 @@ Language/10_Expressions/03_Numbers_A01_t28: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail, OK # co19 issue 210
-Language/13_Libraries_and_Scripts/2_Imports_A01_t23: Fail, OK # co19 issue 210
-Language/13_Libraries_and_Scripts/2_Imports_A01_t02: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t05: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t06: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A02_t03: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A02_t06: Fail, OK # co19 issue 210
-Language/11_Statements/15_Assert_A01_t04: Fail, OK # co19 issue 210
-Language/11_Statements/11_Labels_A01_t05: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A02_t05: Fail, OK # co19 issue 210
-Language/11_Statements/05_For_A01_t07: Fail, OK # co19 issue 210
-Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
-Language/11_Statements/15_Assert_A01_t05: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t09: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t10: Fail, OK # co19 issue 210
-Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A02_t04: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t06: Fail, OK # co19 issue 210
+Language/11_Statements/05_For_A01_t07: Fail, OK # co19 issue 210
+Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
+Language/11_Statements/11_Labels_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t04: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t05: Fail, OK # co19 issue 210
 
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
@@ -803,6 +799,14 @@ Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.co
 Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # co19 issue 195
 
 Language/07_Classes/07_Classes_A02_t01: Fail, OK # co19 issue 197
+
+Language/03_Overview/2_Privacy_A01_t02: Fail, OK # co19 issue 198
+Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
+Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
+Language/03_Overview/2_Privacy_A01_t19: Fail, OK # co19 issue 198
+Language/03_Overview/2_Privacy_A01_t20: Fail, OK # co19 issue 198
+
+Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail, OK # co19 issue 213
 
 
 [ $compiler == dart2js && $runtime == d8 ]
@@ -1094,6 +1098,8 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
+Language/05_Variables/05_Variables_A08_t01: Fail # http://dartbug.com/5170
+
 
 #
 # Unexpected compile-time errors.
@@ -1154,39 +1160,13 @@ Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
 
 Language/06_Functions/06_Functions_A01_t03: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t02: Fail # http://dartbug.com/4050
+Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t10: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # http://dartbug.com/4050
@@ -1194,14 +1174,31 @@ Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # http://dartbug.com/4
 Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t25: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # http://dartbug.com/4050
-Language/03_Overview/1_Scoping_A03_t02: Fail # http://dartbug.com/4050
-Language/03_Overview/2_Privacy_A01_t01: Fail # http://dartbug.com/4050
-Language/03_Overview/2_Privacy_A01_t16: Fail # http://dartbug.com/4050
-Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A05_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # http://dartbug.com/4050
 
 
 #
