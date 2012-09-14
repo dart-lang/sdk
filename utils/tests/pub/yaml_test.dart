@@ -6,7 +6,7 @@
 
 #import('dart:math');
 
-#import('../../../pkg/unittest/lib/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 #import('../../pub/yaml/yaml.dart');
 #import('../../pub/yaml/deep_equals.dart');
 #import('../../../tests/utils/test_utils.dart');

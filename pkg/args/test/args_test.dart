@@ -4,8 +4,9 @@
 
 #library('args_test');
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-#import('../../unittest/lib/unittest.dart');
+#import('../../unittest/unittest.dart');
+
+// TODO(rnystrom): Use "package:" URL here when test.dart can handle pub.
 #import('../lib/args.dart');
 
 main() {

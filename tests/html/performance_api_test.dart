@@ -1,6 +1,6 @@
 #library('PerformanceApiTest');
-#import('../../pkg/unittest/lib/unittest.dart');
-#import('../../pkg/unittest/lib/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 main() {
@@ -10,7 +10,7 @@ main() {
     var requestStart = window.performance.timing.requestStart;
     var responseStart = window.performance.timing.responseStart;
     var responseEnd = window.performance.timing.responseEnd;
-
+    
     var loading = window.performance.timing.domLoading;
     var loadedStart = window.performance.timing.domContentLoadedEventStart;
     var loadedEnd = window.performance.timing.domContentLoadedEventEnd;

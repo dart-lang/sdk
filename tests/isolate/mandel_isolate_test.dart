@@ -5,7 +5,7 @@
 #library('MandelIsolateTest');
 #import('dart:isolate');
 #import('dart:math');
-#import('../../pkg/unittest/lib/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 
 const TERMINATION_MESSAGE = -1;
 const N = 100;

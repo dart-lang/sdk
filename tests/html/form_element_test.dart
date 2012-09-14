@@ -4,8 +4,8 @@
 
 #library('FormElementTest');
 
-#import('../../pkg/unittest/lib/unittest.dart');
-#import('../../pkg/unittest/lib/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 void main() {
@@ -34,47 +34,47 @@ void main() {
     form.acceptCharset = charset;
     expect(form.acceptCharset, charset);
   });
-
+  
   test('actionTest', () {
     var action = 'http://dartlang.org/';
     form.action = action;
     expect(form.action, action);
   });
-
+  
   test('autocompleteTest', () {
     var auto = 'on';
     form.autocomplete = auto;
     expect(form.autocomplete, auto);
   });
-
+  
   test('encodingAndEnctypeTest', () {
     expect(form.enctype, form.encoding);
   });
-
+  
   test('lengthTest', () {
     expect(form.length, 0);
     form.innerHTML = '<label>Google: <input type="search" name="q"></label> '
                      '<input type="submit" value="Search...">';
     expect(form.length, 2);
   });
-
+  
   test('methodTest', () {
     var method = 'post';
     form.method = method;
     expect(form.method, method);
   });
-
+  
   test('nameTest', () {
     var name = 'aname';
     form.name = name;
     expect(form.name, name);
   });
-
+  
   test('noValidateTest', () {
     form.noValidate = true;
     expect(form.noValidate, true);
   });
-
+  
   test('targetTest', () {
     var target = 'target';
     form.target = target;

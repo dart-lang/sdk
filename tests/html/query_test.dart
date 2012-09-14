@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('QueryTest');
-#import('../../pkg/unittest/lib/unittest.dart');
-#import('../../pkg/unittest/lib/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 main() {
@@ -16,7 +16,7 @@ main() {
   final element =
       new Element.html("<div><br/><img/><input/><img/></div>");
   document.body.nodes.addAll([div, canvas,  element]);
-
+  
 
   test('query', () {
       Element e = query('#testcanvas');

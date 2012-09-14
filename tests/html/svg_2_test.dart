@@ -1,6 +1,6 @@
 #library('SVG2Test');
-#import('../../pkg/unittest/lib/unittest.dart');
-#import('../../pkg/unittest/lib/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 // Test that SVG elements explicitly implement the IDL interfaces (is-checks
