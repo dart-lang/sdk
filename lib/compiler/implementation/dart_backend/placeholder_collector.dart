@@ -150,10 +150,14 @@ class PlaceholderCollector extends AbstractVisitor {
   final Map<String, Set<Identifier>> memberPlaceholders;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
+  FunctionElement topmostEnclosingFunction;
   TreeElements treeElements;
 
   LibraryElement get coreLibrary => compiler.coreLibrary;
   FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
+
+  get currentFunctionScope => functionScopes.putIfAbsent(
+      topmostEnclosingFunction, () => new FunctionScope());
 
   PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
@@ -237,6 +241,7 @@ class PlaceholderCollector extends AbstractVisitor {
 
   void collect(Element element) {
     this.currentElement = element;
+    this.topmostEnclosingFunction = null;
     final ElementAst elementAst = elementAsts[element];
     this.treeElements = elementAst.treeElements;
     Node elementNode = elementAst.ast;
@@ -273,8 +278,7 @@ class PlaceholderCollector extends AbstractVisitor {
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
     if (element.isParameter() && isOptionalParameter()) {
-      functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
-          .registerParameter(node);
+      currentFunctionScope.registerParameter(node);
     } else if (Elements.isLocal(element)) {
       makeLocalPlaceholder(node);
     }
@@ -347,13 +351,11 @@ class PlaceholderCollector extends AbstractVisitor {
       String name = identifier.source.slowToString();
       return currentLocalPlaceholders.putIfAbsent(name, () {
         LocalPlaceholder localPlaceholder = new LocalPlaceholder(name);
-        functionScopes.putIfAbsent(currentElement, () => new FunctionScope())
-            .localPlaceholders.add(localPlaceholder);
+        currentFunctionScope.localPlaceholders.add(localPlaceholder);
         return localPlaceholder;
       });
     }
 
-    assert(currentElement is FunctionElement);
     getLocalPlaceholder().nodes.add(identifier);
   }
 
@@ -457,37 +459,35 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitVariableDefinitions(VariableDefinitions node) {
     // Collect only local placeholders.
-    if (currentElement is FunctionElement) {
-      for (Node definition in node.definitions.nodes) {
-        Element definitionElement = treeElements[definition];
-        // definitionElement may be null if we're inside variable definitions
-        // of a function that is a parameter of another function.
-        // TODO(smok): Fix this when resolver correctly deals with
-        // such cases.
-        if (definitionElement === null) continue;
-        if (definition is Send) {
-          // May get FunctionExpression here in definition.selector
-          // in case of A(int this.f());
-          if (definition.selector is Identifier) {
-            if (definitionElement.kind === ElementKind.FIELD_PARAMETER) {
-              tryMakeMemberPlaceholder(definition.selector);
-            } else {
-              tryMakeLocalPlaceholder(definitionElement, definition.selector);
-            }
+    for (Node definition in node.definitions.nodes) {
+      Element definitionElement = treeElements[definition];
+      // definitionElement may be null if we're inside variable definitions
+      // of a function that is a parameter of another function.
+      // TODO(smok): Fix this when resolver correctly deals with
+      // such cases.
+      if (definitionElement === null) continue;
+      if (definition is Send) {
+        // May get FunctionExpression here in definition.selector
+        // in case of A(int this.f());
+        if (definition.selector is Identifier) {
+          if (definitionElement.kind === ElementKind.FIELD_PARAMETER) {
+            tryMakeMemberPlaceholder(definition.selector);
           } else {
-            assert(definition.selector is FunctionExpression);
-            if (definitionElement.kind === ElementKind.FIELD_PARAMETER) {
-              tryMakeMemberPlaceholder(
-                  definition.selector.asFunctionExpression().name);
-            }
+            tryMakeLocalPlaceholder(definitionElement, definition.selector);
           }
-        } else if (definition is Identifier) {
-          tryMakeLocalPlaceholder(definitionElement, definition);
-        } else if (definition is FunctionExpression) {
-          // Skip, it will be processed in visitFunctionExpression.
         } else {
-          internalError('Unexpected definition structure $definition');
+          assert(definition.selector is FunctionExpression);
+          if (definitionElement.kind === ElementKind.FIELD_PARAMETER) {
+            tryMakeMemberPlaceholder(
+                definition.selector.asFunctionExpression().name);
+          }
         }
+      } else if (definition is Identifier) {
+        tryMakeLocalPlaceholder(definitionElement, definition);
+      } else if (definition is FunctionExpression) {
+        // Skip, it will be processed in visitFunctionExpression.
+      } else {
+        internalError('Unexpected definition structure $definition');
       }
     }
     node.visitChildren(this);
@@ -498,6 +498,9 @@ class PlaceholderCollector extends AbstractVisitor {
     // May get null here in case of A(int this.f());
     if (element !== null) {
       // Rename only local functions.
+      if (topmostEnclosingFunction === null) {
+        topmostEnclosingFunction = element;
+      }
       if (element !== currentElement) {
         if (node.name !== null) {
           assert(node.name is Identifier);

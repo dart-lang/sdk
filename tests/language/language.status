@@ -302,7 +302,6 @@ pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
-lazy_static2_test: Fail, Pass # Passes in conservative mode, fails in minified (issue 5141)
 lazy_static3_test: Fail, OK # Issue 3558
 # Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
