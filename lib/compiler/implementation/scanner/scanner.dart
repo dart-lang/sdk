@@ -101,16 +101,20 @@ class AbstractScanner<T extends SourceString> implements Scanner {
 
   int bigSwitch(int next) {
     beginToken();
-    if (next === $TAB || next === $LF || next === $CR || next === $SPACE) {
+    if (next === $SPACE || next === $TAB || next === $LF || next === $CR) {
       appendWhiteSpace(next);
-      return advance();
-    }
-
-    if ($r === next) {
-      return tokenizeRawStringKeywordOrIdentifier(next);
+      next = advance();
+      while (next === $SPACE) {
+        appendWhiteSpace(next);
+        next = advance();
+      }
+      return next;
     }
 
     if ($a <= next && next <= $z) {
+      if ($r === next) {
+        return tokenizeRawStringKeywordOrIdentifier(next);
+      }
       return tokenizeKeywordOrIdentifier(next, true);
     }
 
