@@ -99,7 +99,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
-language/implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
+implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member
 bad_constructor_test/05: Fail # Constructor name clashes with other member
