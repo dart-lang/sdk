@@ -51,6 +51,10 @@ interface ConstantSystem {
   Constant createBool(bool value);
   Constant createNull();
 
+  // We need to special case the subtype check for JavaScript constant
+  // system because an int is a double at runtime.
+  bool isSubtype(Compiler compiler, DartType s, DartType t);
+
   /** Returns true if the [constant] is an integer at runtime. */
   bool isInt(Constant constant);
   /** Returns true if the [constant] is a double at runtime. */

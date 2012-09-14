@@ -85,6 +85,18 @@ field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK
+compile_time_constant_checked2_test/01: Fail, OK
+compile_time_constant_checked2_test/02: Fail, OK
+compile_time_constant_checked2_test/03: Fail, OK
+compile_time_constant_checked2_test/04: Fail, OK
+compile_time_constant_checked2_test/05: Fail, OK
+compile_time_constant_checked2_test/06: Fail, OK
+compile_time_constant_checked2_test/07: Fail, OK
+compile_time_constant_checked2_test/08: Fail, OK
+compile_time_constant_checked2_test/09: Fail, OK
+compile_time_constant_checked2_test/10: Fail, OK
+compile_time_constant_checked2_test/11: Fail, OK
+compile_time_constant_checked2_test/12: Fail, OK
 
 [ $compiler == dartc ]
 metadata_test: Fail

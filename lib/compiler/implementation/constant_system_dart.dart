@@ -342,4 +342,8 @@ class DartConstantSystem implements ConstantSystem {
   bool isString(Constant constant) => constant.isString();
   bool isBool(Constant constant) => constant.isBool();
   bool isNull(Constant constant) => constant.isNull();
+
+  bool isSubtype(Compiler compiler, DartType s, DartType t) {
+    return compiler.types.isSubtype(s, t);
+  }
 }

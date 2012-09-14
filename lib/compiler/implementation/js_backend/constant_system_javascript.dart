@@ -217,4 +217,15 @@ class JavaScriptConstantSystem implements ConstantSystem {
   bool isString(Constant constant) => constant.isString();
   bool isBool(Constant constant) => constant.isBool();
   bool isNull(Constant constant) => constant.isNull();
+
+  bool isSubtype(Compiler compiler, DartType s, DartType t) {
+    // At runtime, an integer is both an integer and a double: the
+    // integer type check is Math.floor, which will return true only
+    // for real integers, and our double type check is 'typeof number'
+    // which will return true for both integers and doubles.
+    if (s.element == compiler.intClass && t.element == compiler.doubleClass) {
+      return true;
+    }
+    return compiler.types.isSubtype(s, t);
+  }
 }

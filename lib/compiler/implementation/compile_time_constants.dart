@@ -642,6 +642,25 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     return super.visitSend(send);
   }
 
+  void potentiallyCheckType(Node node, Element element, Constant constant) {
+    if (compiler.enableTypeAssertions) {
+      DartType elementType = element.computeType(compiler);
+      DartType constantType = constant.computeType(compiler);
+      // TODO(ngeoffray): Handle type parameters.
+      if (elementType.element.isTypeVariable()) return;
+      if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+        MessageKind kind = MessageKind.NOT_ASSIGNABLE;
+        compiler.reportError(node, new CompileTimeConstantError(
+            kind, [elementType, constantType]));
+      }
+    }
+  }
+
+  void updateFieldValue(Node node, Element element, Constant constant) {
+    potentiallyCheckType(node, element, constant);
+    fieldValues[element] = constant;
+  }
+
   /**
    * Given the arguments (a list of constants) assigns them to the parameters,
    * updating the definitions map. If the constructor has field-initializer
@@ -653,10 +672,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     int index = 0;
     parameters.forEachParameter((Element parameter) {
       Constant argument = arguments[index++];
+      Node node = parameter.parseNode(compiler);
+      potentiallyCheckType(node, parameter, argument);
       definitions[parameter] = argument;
       if (parameter.kind == ElementKind.FIELD_PARAMETER) {
         FieldParameterElement fieldParameterElement = parameter;
-        fieldValues[fieldParameterElement.fieldElement] = argument;
+        updateFieldValue(node, fieldParameterElement.fieldElement, argument);
       }
     });
   }
@@ -671,6 +692,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         targetConstructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
+    // No need to go through [updateFieldValue] because the
+    // assignments have already been checked in checked mode.
     evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
   }
 
@@ -703,7 +726,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           Link<Node> initArguments = init.arguments;
           assert(!initArguments.isEmpty() && initArguments.tail.isEmpty());
           Constant fieldValue = evaluate(initArguments.head);
-          fieldValues[elements[init]] = fieldValue;
+          updateFieldValue(init, elements[init], fieldValue);
         }
       }
     }
