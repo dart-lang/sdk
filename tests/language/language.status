@@ -172,11 +172,6 @@ setter_no_getter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
-final_syntax_test/none: Fail # Issue 3476
-lazy_static_test: Fail # Issue 3476
-lazy_static2_test: Fail # Issue 3476
-lazy_static3_test: Fail # Issue 3476
-lazy_static4_test: Fail # Issue 3476
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650

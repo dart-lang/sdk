@@ -411,7 +411,7 @@ public class CompileTimeConstantAnalyzer {
           break;
           
         case VARIABLE:
-          if (!element.getModifiers().isConstant() && !element.getModifiers().isFinal()) {
+          if (!element.getModifiers().isConstant()) {
             expectedConstant(x);
           }
           return null;
@@ -508,9 +508,7 @@ public class CompileTimeConstantAnalyzer {
           return null;
         }
         // OK. Constant field.
-        // TODO(brianwilkerson) Remove the second condition when final variables are no longer
-        // treated like constants
-        if (element.getModifiers().isConstant() || element.getModifiers().isFinal()) {
+        if (element.getModifiers().isConstant()) {
           return null;
         }
         // Fail.
@@ -623,12 +621,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitField(DartField node) {
       if (node.getParent() != null) {
-        DartNode pp = node.getParent().getParent();
-        boolean isFinalTopLevelField = node.getModifiers().isFinal() && pp instanceof DartUnit;
-        boolean isClassField = pp instanceof DartClass;
-        boolean isStatic = node.getModifiers().isStatic();
-        boolean isConst = node.getModifiers().isConstant();
-        if (isFinalTopLevelField || (isClassField && isStatic) || isConst) {
+        if (node.getModifiers().isConstant()) {
           Type type = checkConstantExpression(node.getValue());
           if (node.getElement().getType().equals(dynamicType)) {
             node.getElement().setConstantType(type);
@@ -725,7 +718,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitVariableStatement(DartVariableStatement node) {
       Modifiers modifiers = node.getModifiers();
-      if (modifiers.isConstant() || (modifiers.isStatic() && modifiers.isFinal())) {
+      if (modifiers.isConstant()) {
         for (DartVariable variable : node.getVariables()) {
           if (variable.getValue() != null) {
             checkConstantExpression(variable.getValue());

@@ -39,6 +39,30 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         " var f = new Object();",
         "}"));
   }
+  
+  /**
+   * Final variable does not have to have constant initializer.
+   */
+  public void test_finalIsNoConst() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "class int {}",
+        "",
+        "foo() => 10;",
+        "final g1 = foo();",
+        "var   g2 = foo();",
+        "",
+        "class A {",
+        "  static final f1 = bar();",
+        "  static var   f2 = bar();",
+        "  bar() => 20;",
+        "}",
+        "main() {",
+        "  final v1 = foo();",
+        "}",
+        ""));
+  }
 
   /**
    * We can not reference "this" directly or indirectly as reference to other fields.
@@ -377,7 +401,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "  m() {}",
             "  static const V1 = m;",
             "}",
-            "final V2 = A.m;",
+            "const V2 = A.m;",
             ""),
         errEx(ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC, 5, 21, 1),
         errEx(ResolverErrorCode.NOT_A_STATIC_METHOD, 7, 14, 1),

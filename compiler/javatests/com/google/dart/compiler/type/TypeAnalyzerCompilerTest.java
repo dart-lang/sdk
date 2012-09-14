@@ -399,11 +399,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 5, 10, 3));
   }
   
-  public void test_switchExpression_case_finalLocalVariable() throws Exception {
+  public void test_switchExpression_case_constLocalVariable() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "foo(var v) {",
-        "  final int VALUE = 0;",
+        "  const int VALUE = 0;",
         "  switch (v) {",
         "    case VALUE: break;",
         "  }",
