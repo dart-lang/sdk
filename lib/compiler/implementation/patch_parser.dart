@@ -26,7 +26,7 @@ class PatchParserTask extends leg.CompilerTask {
     CompilationUnitElement compilationUnit =
         new CompilationUnitElement(script, library);
     library.addCompilationUnit(compilationUnit);
-    LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
+    LinkBuilder<tree.ScriptTag> imports = new LinkBuilder<tree.ScriptTag>();
     compiler.withCurrentElement(compilationUnit, () {
       // This patches the elements of the patch library into [library].
       // Injected elements are added directly under the compilation unit.
@@ -36,14 +36,14 @@ class PatchParserTask extends leg.CompilerTask {
     // After scanning declarations, we handle the import tags in the patch.
     // TODO(lrn): These imports end up in the original library and are in
     // scope for the original methods too. This should be fixed.
-    for (tree.LibraryTag tag in imports.toLink()) {
+    for (tree.ScriptTag tag in imports.toLink()) {
       compiler.scanner.importLibraryFromTag(tag, compilationUnit);
     }
   }
 
   void scanLibraryElements(
         CompilationUnitElement compilationUnit,
-        LinkBuilder<tree.LibraryTag> imports) {
+        LinkBuilder<tree.ScriptTag> imports) {
     measure(() {
       // TODO(lrn): Possibly recursively handle #source directives in patch.
       leg.Script script = compilationUnit.script;
@@ -155,7 +155,7 @@ class PatchClassElementParser extends PatchParser {
  * Extension of [ElementListener] for parsing patch files.
  */
 class PatchElementListener extends ElementListener implements PatchListener {
-  final LinkBuilder<tree.LibraryTag> imports;
+  final LinkBuilder<tree.ScriptTag> imports;
   bool isMemberPatch = false;
   bool isClassPatch = false;
 
@@ -192,10 +192,10 @@ class PatchElementListener extends ElementListener implements PatchListener {
     * Allow script tags (import only, the parser rejects the rest for now) in
     * patch files. The import tags will be added to the library.
     */
-  bool allowLibraryTags() => true;
+  bool allowScriptTags() => true;
 
-  void addLibraryTag(tree.LibraryTag tag) {
-    super.addLibraryTag(tag);
+  void addScriptTag(tree.ScriptTag tag) {
+    super.addScriptTag(tag);
     imports.addLast(tag);
   }
 

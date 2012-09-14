@@ -48,111 +48,9 @@ class Parser {
       return parseNamedFunctionAlias(token);
     } else if (value === '#') {
       return parseScriptTags(token);
-    } else if (value === 'library') {
-      return parseLibraryName(token);
-    } else if (value === 'import') {
-      return parseImport(token);
-    } else if (value === 'export') {
-      return parseExport(token);
     } else {
       return parseTopLevelMember(token);
     }
-  }
-
-  /// library qualified ';'
-  Token parseLibraryName(Token token) {
-    Token libraryKeyword = token;
-    listener.beginLibraryName(libraryKeyword);
-    assert(optional('library', token));
-    token = parseIdentifier(token.next);
-    while (optional('.', token)) {
-      token = parseQualifiedRest(token);
-    }
-    Token semicolon = token;
-    token = expect(';', token);
-    listener.endLibraryName(libraryKeyword, semicolon);
-    return token;
-  }
-
-  /// import uri (as identifier)? combinator* ';'
-  Token parseImport(Token token) {
-    Token importKeyword = token;
-    listener.beginImport(importKeyword);
-    assert(optional('import', token));
-    token = parseLiteralStringOrRecoverExpression(token.next);
-    Token asKeyword;
-    if (optional('as', token)) {
-      asKeyword = token;
-      token = parseIdentifier(token.next);
-    }
-    token = parseCombinators(token);
-    Token semicolon = token;
-    token = expect(';', token);
-    listener.endImport(importKeyword, asKeyword, semicolon);
-    return token;
-  }
-
-  /// export uri combinator* ';'
-  Token parseExport(Token token) {
-    Token exportKeyword = token;
-    listener.beginExport(exportKeyword);
-    assert(optional('export', token));
-    token = parseLiteralStringOrRecoverExpression(token.next);
-    token = parseCombinators(token);
-    Token semicolon = token;
-    token = expect(';', token);
-    listener.endExport(exportKeyword, semicolon);
-    return token;
-  }
-
-  Token parseCombinators(Token token) {
-    listener.beginCombinators(token);
-    int count = 0;
-    while (true) {
-      String value = token.stringValue;
-      if ('hide' === value) {
-        token = parseHide(token);
-      } else if ('show' === value) {
-        token = parseShow(token);
-      } else {
-        listener.endCombinators(count);
-        return token;
-      }
-      count++;
-    }
-  }
-
-  /// hide identifierList
-  Token parseHide(Token token) {
-    Token hideKeyword = token;
-    listener.beginHide(hideKeyword);
-    assert(optional('hide', token));
-    token = parseIdentifierList(token.next);
-    listener.endHide(hideKeyword);
-    return token;
-  }
-
-  /// show identifierList
-  Token parseShow(Token token) {
-    Token showKeyword = token;
-    listener.beginShow(showKeyword);
-    assert(optional('show', token));
-    token = parseIdentifierList(token.next);
-    listener.endShow(showKeyword);
-    return token;
-  }
-
-  /// identifier (, identifier)*
-  Token parseIdentifierList(Token token) {
-    listener.beginIdentifierList(token);
-    token = parseIdentifier(token);
-    int count = 1;
-    while (optional(',', token)) {
-      token = parseIdentifier(token.next);
-      count++;
-    }
-    listener.endIdentifierList(count);
-    return token;
   }
 
   Token parseMetadataStar(Token token) {
@@ -344,17 +242,10 @@ class Parser {
 
   Token parseQualifiedRestOpt(Token token) {
     if (optional('.', token)) {
-      return parseQualifiedRest(token);
-    } else {
-      return token;
+      Token period = token;
+      token = parseIdentifier(token.next);
+      listener.handleQualified(period);
     }
-  }
-
-  Token parseQualifiedRest(Token token) {
-    assert(optional('.', token));
-    Token period = token;
-    token = parseIdentifier(token.next);
-    listener.handleQualified(period);
     return token;
   }
 
