@@ -177,7 +177,12 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   intptr_t fd;
   struct sockaddr_in server_address;
 
-  in_addr_t s_addr = TEMP_FAILURE_RETRY(inet_addr(host));
+  // Cast to/from int to work-around Android bug:
+  // http://code.google.com/p/android/issues/detail?id=37426
+  // unistd.h TEMP_FAILURE_RETRY generates warning when used with syscall that
+  // returns unsigned int.
+  in_addr_t s_addr = static_cast<in_addr_t>(
+      TEMP_FAILURE_RETRY(static_cast<int>(inet_addr(host))));
   if (s_addr == INADDR_NONE) {
     return -5;
   }
