@@ -551,11 +551,17 @@ class IDLTypeInfo(object):
   def native_type(self):
     return self._data.native_type or self._idl_type
 
+  def bindings_class(self):
+    return 'Dart%s' % self.idl_type()
+
+  def vector_to_dart_template_parameter(self):
+    return self.bindings_class()
+
   def requires_v8_scope(self):
     return self._data.requires_v8_scope
 
   def to_native_info(self, idl_node, interface_name):
-    cls = 'Dart%s' % self.idl_type()
+    cls = self.bindings_class()
 
     if 'Callback' in idl_node.ext_attrs:
       return '%s', 'RefPtr<%s>' % self.native_type(), cls, 'create'
@@ -635,20 +641,17 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
   def dart_type(self):
     return 'List<%s>' % self._item_info.dart_type()
 
-  def to_native_info(self, idl_node, interface_name):
-    item_info = self._item_info
-    item_native_type = item_info.native_type()
-    # Ugly hack. Usually IDLs floats are treated as C++ doubles, however
-    # sequence<float> should map to Vector<float>
-    if item_native_type == 'double' and item_info.idl_type() == 'float':
-      item_native_type = 'float'
+  def vector_to_dart_template_parameter(self):
+    raise Exception('sequences of sequences are not supported yet')
 
+  def to_native_info(self, idl_node, interface_name):
+    item_native_type = self._item_info.vector_to_dart_template_parameter()
     return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
 
   def pass_native_by_ref(self): return True
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    return 'DartDOMWrapper::vectorToDart<Dart%s>(%s)' % (self._item_info.native_type(), value)
+    return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.vector_to_dart_template_parameter(), value)
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()
@@ -667,6 +670,12 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
+
+  def vector_to_dart_template_parameter(self):
+    # Ugly hack. Usually IDLs floats are treated as C++ doubles, however
+    # sequence<float> should map to Vector<float>
+    if self.idl_type() == 'float': return 'float'
+    return self.native_type()
 
   def to_native_info(self, idl_node, interface_name):
     type = self.native_type()
