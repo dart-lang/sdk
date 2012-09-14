@@ -825,17 +825,25 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # Emit arguments.
     start_index = 1 if needs_receiver else 0
     for i, argument in enumerate(arguments):
+      type_info = self._TypeInfo(argument.type.id)
       argument_expression_template, type, cls, function = \
-          self._TypeInfo(argument.type.id).to_native_info(argument, self._interface.id)
+          type_info.to_native_info(argument, self._interface.id)
 
       if ((IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
           (argument.ext_attrs.get('Optional') == 'DefaultIsNullString')):
         function += 'WithNullCheck'
 
       argument_name = DartDomNameOfAttribute(argument)
+      if type_info.pass_native_by_ref():
+        invocation_template =\
+            '        $TYPE $ARGUMENT_NAME;\n'\
+            '        $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), $ARGUMENT_NAME, exception);\n'
+      else:
+        invocation_template =\
+            '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
       body_emitter.Emit(
-          '\n'
-          '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
+          '\n' +
+          invocation_template +
           '        if (exception)\n'
           '            goto fail;\n',
           TYPE=type,
