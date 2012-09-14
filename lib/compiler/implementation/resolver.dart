@@ -1054,7 +1054,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       Element element = lookup(node, node.source);
       if (element === null) {
-        if (!inInstanceContext) error(node, MessageKind.CANNOT_RESOLVE, [node]);
+        if (!inInstanceContext) {
+          element = warnAndCreateErroneousElement(node, node.source,
+                                                  MessageKind.CANNOT_RESOLVE,
+                                                  [node]);
+        }
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           // TODO(ahe): Improve error message. Need UX input.
@@ -1301,6 +1305,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       ClassElement receiverClass = resolvedReceiver;
       target = receiverClass.ensureResolved(compiler).lookupLocalMember(name);
       if (target === null) {
+        // TODO(karlklose): this should be reported by the caller of
+        // [resolveSend] to select better warning messages for getters and
+        // setters.
         return warnAndCreateErroneousElement(node, name,
                                              MessageKind.METHOD_NOT_FOUND,
                                              [receiverClass.name, name]);
@@ -1404,8 +1411,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
-      if (Elements.isUnresolved(target) && !inInstanceContext) {
-        error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
+      if (target == null && !inInstanceContext) {
+        target =
+            warnAndCreateErroneousElement(node.selector, field.name,
+                                          MessageKind.CANNOT_RESOLVE_GETTER,
+                                          [node.selector]);
       }
     }
 
@@ -1468,10 +1478,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       setter = field.setter;
       getter = field.getter;
       if (setter == null && !inInstanceContext) {
-        error(node.selector, MessageKind.CANNOT_RESOLVE_SETTER);
+        setter =
+            warnAndCreateErroneousElement(node.selector, field.name,
+                                          MessageKind.CANNOT_RESOLVE_SETTER,
+                                          [node.selector]);
       }
       if (isComplex && getter == null && !inInstanceContext) {
-        error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
+        getter =
+            warnAndCreateErroneousElement(node.selector, field.name,
+                                          MessageKind.CANNOT_RESOLVE_GETTER,
+                                          [node.selector]);
       }
     }
 

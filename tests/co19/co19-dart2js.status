@@ -701,6 +701,37 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
+Language/05_Variables/05_Variables_A01_t03: Fail, OK # co19 issue 210
+Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
+Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
+Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
+Language/06_Functions/2_Formal_Parameters_A02_t01: Fail, OK # co19 issue 210
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t06: Fail, OK # co19 issue 210
+Language/10_Expressions/03_Numbers_A01_t19: Fail, OK # co19 issue 210
+Language/10_Expressions/03_Numbers_A01_t20: Fail, OK # co19 issue 210
+Language/10_Expressions/03_Numbers_A01_t28: Fail, OK # co19 issue 210
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail, OK # co19 issue 210
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
+Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail, OK # co19 issue 210
+Language/13_Libraries_and_Scripts/2_Imports_A01_t23: Fail, OK # co19 issue 210
+Language/13_Libraries_and_Scripts/2_Imports_A01_t02: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t06: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t03: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t06: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t04: Fail, OK # co19 issue 210
+Language/11_Statements/11_Labels_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t05: Fail, OK # co19 issue 210
+Language/11_Statements/05_For_A01_t07: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t09: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t10: Fail, OK # co19 issue 210
+Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t04: Fail, OK # co19 issue 210
+
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 
@@ -1090,7 +1121,6 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail #
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027
 Language/10_Expressions/16_Assignment_A04_t05: Fail # http://dartbug.com/5027
 
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # http://dartbug.com/5028
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # http://dartbug.com/5028
 Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # http://dartbug.com/5028
 Language/10_Expressions/16_Assignment_A04_t03: Fail # http://dartbug.com/5028
