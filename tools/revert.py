@@ -79,7 +79,8 @@ def has_new_code(is_git):
         'Changes not staged for commit:' in line):
       return True
   if is_git:
-    p = subprocess.Popen(['git', 'log', '-1'], stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(['git', 'log', '-1'], stdout=subprocess.PIPE,
+                         shell=(platform.system()=='Windows'))
     output, _ = p.communicate()
     if find_git_info(output) == None:
       return True
@@ -101,10 +102,12 @@ def run_cmd(cmd_list, suppress_output=False, std_in=''):
 def runs_git():
   """Returns True if we're standing in an svn-git repository."""
   p = subprocess.Popen(['svn', 'info'], stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE, shell=True)
+                       stderr=subprocess.PIPE,
+                       shell=(platform.system()=='Windows'))
   output, err = p.communicate()
   if err != None and 'is not a working copy' in err:
-    p = subprocess.Popen(['git', 'status'], stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(['git', 'status'], stdout=subprocess.PIPE,
+                         shell=(platform.system()=='Windows'))
     output, _ = p.communicate()
     if 'fatal: Not a git repository' in output:
       maybe_fail('Error: not running git or svn.')
