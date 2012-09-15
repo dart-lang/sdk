@@ -14,7 +14,7 @@ typedef void Callback([String msg
 
 class NamedParametersAggregatedTests {
 
-  static int F31(int a, [int b = 20, int c = 30]) {
+  static int F31(int a, {int b: 20, int c: 30}) {
     return 100*(100*a + b) + c;
   }
 
@@ -26,9 +26,9 @@ class NamedParametersAggregatedTests {
 
   // Expect compile-time error as no default values
   // are allowed in closure type.
-  void InstallCallback(void cb([String msg
-    = null /// 03: compile-time error
-    ])) {
+  void InstallCallback(void cb({String msg
+    : null /// 03: compile-time error
+    })) {
     _handler = cb;
   }
 

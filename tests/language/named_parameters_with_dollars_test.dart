@@ -10,11 +10,11 @@ main() {
 }
 
 class TestClass {
-  method([a, b, a$b, a$$b]) => [a, b, a$b, a$$b];
+  method({a, b, a$b, a$$b}) => [a, b, a$b, a$$b];
 
-  psycho([$, $$, $$$, $$$$]) => [$, $$, $$$, $$$$];
+  psycho({$, $$, $$$, $$$$}) => [$, $$, $$$, $$$$];
 }
-globalMethod([a, b, a$b, a$$b]) => [a, b, a$b, a$$b];
+globalMethod({a, b, a$b, a$$b}) => [a, b, a$b, a$$b];
 
 
 format(thing) {

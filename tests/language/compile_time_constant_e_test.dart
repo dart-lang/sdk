@@ -9,18 +9,22 @@ class A {
   final t;
 
   const A([this.z = 99, tt = 100]) : y = 499, t = tt, x = 3;
-  const A.named([z, this.t]) : y = 400 + z, this.z = z, x = 3;
-  const A.named2([t, z, y, x]) : x = t, y = z, z = y, t = x;
+  const A.n({this.z: 99, tt: 100}) : y = 499, t = tt, x = 3;
+  const A.named({z, this.t}) : y = 400 + z, this.z = z, x = 3;
+  const A.named2({t, z, y, x}) : x = t, y = z, z = y, t = x;
 
   toString() => "A $x $y $z $t";
 }
 
 const a1 = const A(99, 100);
-const a2 = const A.named(99, 100);
-const a3 = const A.named2(1, 2, 3, 4);
+const a1n = const A.n(99, 100);
+const a2 = const A.named(z: 99, t: 100);
+const a3 = const A.named2(t: 1, z: 2, y: 3, x: 4);
 const a4 = const A();
-const a5 = const A(tt: 100, z: 99);
-const a6 = const A(1, tt: 2);
+const a5 = const A(99, 100);
+const a5n = const A.n(tt: 100, z: 99);
+const a6 = const A(1, 2);
+const a6n = const A.n(z: 1, tt: 2);
 const a7 = const A.named(z: 7);
 const a8 = const A.named2();
 const a9 = const A.named2(x: 4, y: 3, z: 2, t: 1);

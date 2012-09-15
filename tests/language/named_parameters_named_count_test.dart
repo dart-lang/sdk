@@ -21,19 +21,13 @@ main() {
 
   Expect.equals(null, obj.method());
   Expect.equals(0, obj.method(0));
-  Expect.equals(0, obj.method(count: 0));
   Expect.equals("", obj.method(""));
-  Expect.equals("", obj.method(count: ""));
 
   Expect.equals(null, TestClass.staticMethod());
   Expect.equals(true, TestClass.staticMethod(true));
-  Expect.equals(true, TestClass.staticMethod(count: true));
   Expect.equals(false, TestClass.staticMethod(false));
-  Expect.equals(false, TestClass.staticMethod(count: false));
 
   Expect.equals(null, globalMethod());
   Expect.equals(true, globalMethod(true));
-  Expect.equals(true, globalMethod(count: true));
   Expect.equals(false, globalMethod(false));
-  Expect.equals(false, globalMethod(count: false));
 }

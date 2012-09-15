@@ -30,10 +30,10 @@ main() {
 // 'constructor' property.
 
 class TestClass_constructor {
-  method([constructor]) => constructor;
-  static staticMethod([constructor]) => constructor;
+  method({constructor}) => constructor;
+  static staticMethod({constructor}) => constructor;
 }
-globalMethod_constructor([constructor]) => constructor;
+globalMethod_constructor({constructor}) => constructor;
 
 test_constructor() {
   var obj = new TestClass_constructor();
@@ -51,10 +51,10 @@ test_constructor() {
 // '__proto__' property.
 
 class TestClass___proto__ {
-  method([__proto__]) => __proto__;
-  static staticMethod([__proto__]) => __proto__;
+  method({__proto__}) => __proto__;
+  static staticMethod({__proto__}) => __proto__;
 }
-globalMethod___proto__([__proto__]) => __proto__;
+globalMethod___proto__({__proto__}) => __proto__;
 
 test___proto__() {
   var obj = new TestClass___proto__();
@@ -72,10 +72,10 @@ test___proto__() {
 // '__defineGetter__' property.
 
 class TestClass___defineGetter__ {
-  method([__defineGetter__]) => __defineGetter__;
-  static staticMethod([__defineGetter__]) => __defineGetter__;
+  method({__defineGetter__}) => __defineGetter__;
+  static staticMethod({__defineGetter__}) => __defineGetter__;
 }
-globalMethod___defineGetter__([__defineGetter__]) => __defineGetter__;
+globalMethod___defineGetter__({__defineGetter__}) => __defineGetter__;
 
 test___defineGetter__() {
   var obj = new TestClass___defineGetter__();
@@ -93,10 +93,10 @@ test___defineGetter__() {
 // '__defineSetter__' property.
 
 class TestClass___defineSetter__ {
-  method([__defineSetter__]) => __defineSetter__;
-  static staticMethod([__defineSetter__]) => __defineSetter__;
+  method({__defineSetter__}) => __defineSetter__;
+  static staticMethod({__defineSetter__}) => __defineSetter__;
 }
-globalMethod___defineSetter__([__defineSetter__]) => __defineSetter__;
+globalMethod___defineSetter__({__defineSetter__}) => __defineSetter__;
 
 test___defineSetter__() {
   var obj = new TestClass___defineSetter__();
@@ -114,10 +114,10 @@ test___defineSetter__() {
 // '__lookupGetter__' property.
 
 class TestClass___lookupGetter__ {
-  method([__lookupGetter__]) => __lookupGetter__;
-  static staticMethod([__lookupGetter__]) => __lookupGetter__;
+  method({__lookupGetter__}) => __lookupGetter__;
+  static staticMethod({__lookupGetter__}) => __lookupGetter__;
 }
-globalMethod___lookupGetter__([__lookupGetter__]) => __lookupGetter__;
+globalMethod___lookupGetter__({__lookupGetter__}) => __lookupGetter__;
 
 test___lookupGetter__() {
   var obj = new TestClass___lookupGetter__();
@@ -135,10 +135,10 @@ test___lookupGetter__() {
 // '__lookupSetter__' property.
 
 class TestClass___lookupSetter__ {
-  method([__lookupSetter__]) => __lookupSetter__;
-  static staticMethod([__lookupSetter__]) => __lookupSetter__;
+  method({__lookupSetter__}) => __lookupSetter__;
+  static staticMethod({__lookupSetter__}) => __lookupSetter__;
 }
-globalMethod___lookupSetter__([__lookupSetter__]) => __lookupSetter__;
+globalMethod___lookupSetter__({__lookupSetter__}) => __lookupSetter__;
 
 test___lookupSetter__() {
   var obj = new TestClass___lookupSetter__();
@@ -156,10 +156,10 @@ test___lookupSetter__() {
 // '__noSuchMethod__' property.
 
 class TestClass___noSuchMethod__ {
-  method([__noSuchMethod__]) => __noSuchMethod__;
-  static staticMethod([__noSuchMethod__]) => __noSuchMethod__;
+  method({__noSuchMethod__}) => __noSuchMethod__;
+  static staticMethod({__noSuchMethod__}) => __noSuchMethod__;
 }
-globalMethod___noSuchMethod__([__noSuchMethod__]) => __noSuchMethod__;
+globalMethod___noSuchMethod__({__noSuchMethod__}) => __noSuchMethod__;
 
 test___noSuchMethod__() {
   var obj = new TestClass___noSuchMethod__();
@@ -177,10 +177,10 @@ test___noSuchMethod__() {
 // 'hasOwnProperty' property.
 
 class TestClass_hasOwnProperty {
-  method([hasOwnProperty]) => hasOwnProperty;
-  static staticMethod([hasOwnProperty]) => hasOwnProperty;
+  method({hasOwnProperty}) => hasOwnProperty;
+  static staticMethod({hasOwnProperty}) => hasOwnProperty;
 }
-globalMethod_hasOwnProperty([hasOwnProperty]) => hasOwnProperty;
+globalMethod_hasOwnProperty({hasOwnProperty}) => hasOwnProperty;
 
 test_hasOwnProperty() {
   var obj = new TestClass_hasOwnProperty();
@@ -198,10 +198,10 @@ test_hasOwnProperty() {
 // 'isPrototypeOf' property.
 
 class TestClass_isPrototypeOf {
-  method([isPrototypeOf]) => isPrototypeOf;
-  static staticMethod([isPrototypeOf]) => isPrototypeOf;
+  method({isPrototypeOf}) => isPrototypeOf;
+  static staticMethod({isPrototypeOf}) => isPrototypeOf;
 }
-globalMethod_isPrototypeOf([isPrototypeOf]) => isPrototypeOf;
+globalMethod_isPrototypeOf({isPrototypeOf}) => isPrototypeOf;
 
 test_isPrototypeOf() {
   var obj = new TestClass_isPrototypeOf();
@@ -219,10 +219,10 @@ test_isPrototypeOf() {
 // 'propertyIsEnumerable' property.
 
 class TestClass_propertyIsEnumerable {
-  method([propertyIsEnumerable]) => propertyIsEnumerable;
-  static staticMethod([propertyIsEnumerable]) => propertyIsEnumerable;
+  method({propertyIsEnumerable}) => propertyIsEnumerable;
+  static staticMethod({propertyIsEnumerable}) => propertyIsEnumerable;
 }
-globalMethod_propertyIsEnumerable([propertyIsEnumerable]) => propertyIsEnumerable;
+globalMethod_propertyIsEnumerable({propertyIsEnumerable}) => propertyIsEnumerable;
 
 test_propertyIsEnumerable() {
   var obj = new TestClass_propertyIsEnumerable();
@@ -240,10 +240,10 @@ test_propertyIsEnumerable() {
 // 'toSource' property.
 
 class TestClass_toSource {
-  method([toSource]) => toSource;
-  static staticMethod([toSource]) => toSource;
+  method({toSource}) => toSource;
+  static staticMethod({toSource}) => toSource;
 }
-globalMethod_toSource([toSource]) => toSource;
+globalMethod_toSource({toSource}) => toSource;
 
 test_toSource() {
   var obj = new TestClass_toSource();
@@ -261,10 +261,10 @@ test_toSource() {
 // 'toLocaleString' property.
 
 class TestClass_toLocaleString {
-  method([toLocaleString]) => toLocaleString;
-  static staticMethod([toLocaleString]) => toLocaleString;
+  method({toLocaleString}) => toLocaleString;
+  static staticMethod({toLocaleString}) => toLocaleString;
 }
-globalMethod_toLocaleString([toLocaleString]) => toLocaleString;
+globalMethod_toLocaleString({toLocaleString}) => toLocaleString;
 
 test_toLocaleString() {
   var obj = new TestClass_toLocaleString();
@@ -282,10 +282,10 @@ test_toLocaleString() {
 // 'toString' property.
 
 class TestClass_toString {
-  method([toString]) => toString;
-  static staticMethod([toString]) => toString;
+  method({toString}) => toString;
+  static staticMethod({toString}) => toString;
 }
-globalMethod_toString([toString]) => toString;
+globalMethod_toString({toString}) => toString;
 
 test_toString() {
   var obj = new TestClass_toString();
@@ -303,10 +303,10 @@ test_toString() {
 // 'unwatch' property.
 
 class TestClass_unwatch {
-  method([unwatch]) => unwatch;
-  static staticMethod([unwatch]) => unwatch;
+  method({unwatch}) => unwatch;
+  static staticMethod({unwatch}) => unwatch;
 }
-globalMethod_unwatch([unwatch]) => unwatch;
+globalMethod_unwatch({unwatch}) => unwatch;
 
 test_unwatch() {
   var obj = new TestClass_unwatch();
@@ -324,10 +324,10 @@ test_unwatch() {
 // 'valueOf' property.
 
 class TestClass_valueOf {
-  method([valueOf]) => valueOf;
-  static staticMethod([valueOf]) => valueOf;
+  method({valueOf}) => valueOf;
+  static staticMethod({valueOf}) => valueOf;
 }
-globalMethod_valueOf([valueOf]) => valueOf;
+globalMethod_valueOf({valueOf}) => valueOf;
 
 test_valueOf() {
   var obj = new TestClass_valueOf();
@@ -345,10 +345,10 @@ test_valueOf() {
 // 'watch' property.
 
 class TestClass_watch {
-  method([watch]) => watch;
-  static staticMethod([watch]) => watch;
+  method({watch}) => watch;
+  static staticMethod({watch}) => watch;
 }
-globalMethod_watch([watch]) => watch;
+globalMethod_watch({watch}) => watch;
 
 test_watch() {
   var obj = new TestClass_watch();

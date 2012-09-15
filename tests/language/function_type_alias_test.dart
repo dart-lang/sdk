@@ -1,7 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks
+// VMOptions=--enable_type_checks --reject_named_argument_as_positional
 //
 // Dart test for function type alias.
 
@@ -66,7 +66,7 @@ class FunctionTypeAliasTest {
     Expect.isTrue(compareStrLenReverse is !BoolFun);
     Expect.isTrue(compareStrLenReverse is CompareObj);
     Expect.isTrue(compareStrLenReverse is !CompareInt);
-    Expect.isTrue(compareStrLenReverse is !CompareString);
+    Expect.isTrue(compareStrLenReverse is CompareString);
 
     int compareObj(Object a, Object b) { return a === b ? 0 : -1; }
     Expect.isTrue(compareObj is Fun);

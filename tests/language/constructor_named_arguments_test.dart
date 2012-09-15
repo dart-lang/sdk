@@ -18,13 +18,13 @@ bar() {
 class X {
   var i;
   var j;
-  X([a = 'defa', b = 'defb']) : this.i = a, this.j = b;
+  X({a: 'defa', b: 'defb'}) : this.i = a, this.j = b;
   X.foo() : this(b: 1, a: 2);
   X.bar() : this(
                      1,  /// 01: runtime error
                      a: 2);
   X.baz() : this(a: 1, b: 2);
-  X.qux() : this(1, 2);
+  X.qux() : this(b: 2);
   X.hest() : this();
   X.fisk() : this(b: bar(), a: foo());
   X.naebdyr() : this(a: foo(), b: bar());
@@ -39,7 +39,7 @@ main() {
   test(new X.foo(), 2, 1);
   test(new X.bar(), 2, 'defb');
   test(new X.baz(), 1, 2);
-  test(new X.qux(), 1, 2);
+  test(new X.qux(), 'defa', 2);
   test(new X.hest(), 'defa', 'defb');
 
   message = '';

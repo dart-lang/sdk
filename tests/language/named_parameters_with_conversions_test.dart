@@ -36,21 +36,35 @@ class HasMethod {
     calls += 1;
     Validate(tag, a, b);
   }
+
+  foo2(tag, {a: 10, b: 20}) {
+    calls += 1;
+    Validate(tag, a, b);
+  }
 }
 
 class HasField {
 
   int calls;
-  var foo;
+  var foo, foo2;
 
   HasField() {
     calls = 0;
     foo = makeFoo(this);
+    foo2 = makeFoo2(this);
   }
 
   makeFoo(owner) {
     // This function is closed-over 'owner'.
     return (tag, [a = 10, b = 20]) {
+      owner.calls += 1;
+      Validate(tag, a, b);
+    };
+  }
+
+  makeFoo2(owner) {
+    // This function is closed-over 'owner'.
+    return (tag, {a: 10, b: 20}) {
       owner.calls += 1;
       Validate(tag, a, b);
     };
@@ -74,35 +88,36 @@ class NamedParametersWithConversionsTest {
     a.foo('');
     a.foo('a', 111);
     a.foo('ab', 111, 222);
-    a.foo('a', a: 111);
-    a.foo('b', b: 222);
-    a.foo('ab', a: 111, b: 222);
-    a.foo('ab', b: 222, a: 111);
+    a.foo2('a', a: 111);
+    a.foo2('b', b: 222);
+    a.foo2('ab', a: 111, b: 222);
+    a.foo2('ab', b: 222, a: 111);
 
     Expect.equals(7, a.calls);
 
     checkException(() => a.foo());                 // Too few arguments.
     checkException(() => a.foo('abc', 1, 2, 3));   // Too many arguments.
-    checkException(() => a.foo('c', c: 1));        // Bad name.
+    checkException(() => a.foo2('c', c: 1));        // Bad name.
 
     Expect.equals(7, a.calls);
   }
 
   static testFunctionCallSyntax(a) {
     var f = a.foo;
+    var f2 = a.foo2;
     f('');
     f('a', 111);
     f('ab', 111, 222);
-    f('a', a: 111);
-    f('b', b: 222);
-    f('ab', a: 111, b: 222);
-    f('ab', b: 222, a: 111);
+    f2('a', a: 111);
+    f2('b', b: 222);
+    f2('ab', a: 111, b: 222);
+    f2('ab', b: 222, a: 111);
 
     Expect.equals(7, a.calls);
 
     checkException(() => f());                 // Too few arguments.
     checkException(() => f('abc', 1, 2, 3));   // Too many arguments.
-    checkException(() => f('c', c: 1));        // Bad name.
+    checkException(() => f2('c', c: 1));        // Bad name.
 
     Expect.equals(7, a.calls);
   }

@@ -14,7 +14,7 @@ class ParameterInitializerTest {
     obj = new Foo.subtype(7);
     Expect.equals(7, obj.x);
 
-    obj = new Foo.optional(x: 111);
+    obj = new Foo.optional(111);
     Expect.equals(111, obj.x);
 
     obj = new Foo.optional();

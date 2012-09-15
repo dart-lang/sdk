@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing argument definition test.
 
-int test(int a, [int b = 2, int c = 3]) {
+int test(int a, {int b: 2, int c: 3}) {
   int result = 0;
   ?b;
   ?result;  /// 01: compile-time error
@@ -26,7 +26,7 @@ int test(int a, [int b = 2, int c = 3]) {
   return result;
 }
 
-closure_test(int a, [int b = 2, int c = 3]) {
+closure_test(int a, {int b: 2, int c: 3}) {
   var x = 0;
   return () {
     int result = 0;
@@ -59,13 +59,13 @@ main() {
   // Use a loop to test optimized version as well.
   for (int i = 0; i < 1000; i++) {
     Expect.equals(100, test(1));
-    Expect.equals(720, test(1, 2));
-    Expect.equals(523, test(1, 2, 3));
-    Expect.equals(703, test(1, c:3));
+    Expect.equals(720, test(1, b: 2));
+    Expect.equals(523, test(1, b: 2, c: 3));
+    Expect.equals(703, test(1, c: 3));
 
     Expect.equals(100, closure_test(1)());
-    Expect.equals(720, closure_test(1, 2)());
-    Expect.equals(523, closure_test(1, 2, 3)());
-    Expect.equals(703, closure_test(1, c:3)());
+    Expect.equals(720, closure_test(1, b: 2)());
+    Expect.equals(523, closure_test(1, b: 2, c: 3)());
+    Expect.equals(703, closure_test(1, c: 3)());
   }
 }
