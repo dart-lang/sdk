@@ -4,7 +4,7 @@
 
 #library('utils_test');
 
-#import('../../../pkg/unittest/lib/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 #import('../../archive/utils.dart');
 
 main() {

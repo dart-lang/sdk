@@ -11,7 +11,7 @@
 
 #library('unittestTest');
 #import('dart:isolate');
-#import('../../../pkg/unittest/lib/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 var tests; // array of test names
 var expected; // array of test expected results (from buildStatusString)

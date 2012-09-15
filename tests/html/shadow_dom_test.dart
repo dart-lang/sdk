@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('ShadowDOMTest');
-#import('../../pkg/unittest/lib/unittest.dart');
-#import('../../pkg/unittest/lib/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 main() {
   useHtmlConfiguration();
-
+  
   group('ShadowDOM tests', () {
 
     var div1, div2, shadowRoot, paragraph1, paragraph2;
@@ -39,7 +39,7 @@ main() {
       expect(shadowRoot.parent, isNull);
     });
 
-
+    
     // TODO(samhop): test that <content> and <content select="foo"> and
     // <shadow>
     // work properly. This is blocked on having a good way to do browser
@@ -47,6 +47,6 @@ main() {
 
     test('Querying in shadowed fragment respects the shadow boundary.', () {
       expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
-    });
+    }); 
   });
 }

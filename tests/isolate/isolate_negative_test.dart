@@ -6,7 +6,7 @@
 
 #library('IsolateNegativeTest');
 #import('dart:isolate');
-#import('../../pkg/unittest/lib/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 
 void entry() {
   port.receive((ignored, replyTo) {

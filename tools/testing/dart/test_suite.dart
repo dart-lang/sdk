@@ -636,8 +636,7 @@ class StandardTestSuite implements TestSuite {
       } else {
         content = getHtmlContents(
           filename,
-          '$filePrefix'
-              '${dartDir.append("pkg/unittest/static/test_controller.js")}',
+          '$filePrefix${dartDir.append("pkg/unittest/test_controller.js")}',
           '$filePrefix${dartDir.append("client/dart.js")}',
           scriptType,
           '$filePrefix$scriptPath');

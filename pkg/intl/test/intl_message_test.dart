@@ -4,9 +4,8 @@
 
 #library('intl_message_test');
 
-// TODO(rnystrom): Use "package:" URL (#4968).
 #import('../intl.dart');
-#import('../../unittest/lib/unittest.dart');
+#import('../../unittest/unittest.dart');
 #import('../message_lookup_local.dart');
 
 /** Tests the MessageFormat library in dart. */

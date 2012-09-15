@@ -7,7 +7,7 @@
 #import('dart:io');
 
 #import('test_pub.dart');
-#import('../../../pkg/unittest/lib/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 main() {
   test("updates locked Git packages", () {

@@ -10,7 +10,7 @@
 #import('dart:html');
 #import('unittest.dart');
 
-#source('src/html_print.dart');
+#source('html_print.dart');
 
 class HtmlConfiguration extends Configuration {
   /** Whether this is run within dartium layout tests. */

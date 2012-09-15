@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(rmacnak): Move the existing mirror tests here (a place for
+// TODO(rmacnak): Move the existing mirror tests here (a place for 
 // cross-implementation tests).
 
 #library("MirrorsTest.dart");
 #import("dart:mirrors");
-#import("../../../pkg/unittest/lib/unittest.dart");
+#import("../../../pkg/unittest/unittest.dart");
 
 var topLevelField;
 
@@ -29,30 +29,30 @@ testFieldAccess(mirrors) {
   var future = libMirror.getField('topLevelField');
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(42));
-    expect(topLevelField, equals(42));
+    expect(topLevelField, equals(42));   
   }));
-
+  
   classMirror.setField('staticField', 43);
   future = classMirror.getField('staticField');
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(43));
-    expect(Class.staticField, equals(43));
+    expect(Class.staticField, equals(43)); 
   }));
 
   instMirror.setField('field', 44);
   future = instMirror.getField('field');
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(44));
-    expect(instance.field, equals(44));
+    expect(instance.field, equals(44)); 
   }));
 }
 
 testClosureMirrors(mirrors) {
   var closure = (x, y, z) { return x + y + z; };
-
+  
   var mirror = reflect(closure);
   expect(mirror is ClosureMirror, equals(true));
-
+  
   var funcMirror = mirror.function;
   expect(funcMirror is MethodMirror, equals(true));
   expect(funcMirror.parameters.length, equals(3));
@@ -66,7 +66,7 @@ testClosureMirrors(mirrors) {
 testInvokeConstructor(mirrors) {
   var libMirror = mirrors.libraries["MirrorsTest.dart"];
   var classMirror = libMirror.classes["Class"];
-
+  
   var future = classMirror.newInstance('', []);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
