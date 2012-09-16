@@ -28,11 +28,11 @@ main() {
   checkSVGTests(e) {
     // Just check that the operations seem to exist.
     var rx = e.requiredExtensions;
-    Expect.isTrue(rx is List<String>);
+    Expect.isTrue(rx is SVGStringList);
     var rf = e.requiredFeatures;
-    Expect.isTrue(rf is List<String>);
+    Expect.isTrue(rf is SVGStringList);
     var sl = e.systemLanguage;
-    Expect.isTrue(sl is List<String>);
+    Expect.isTrue(sl is SVGStringList);
 
     bool hasDoDo = e.hasExtension("DoDo");
     Expect.isFalse(hasDoDo);

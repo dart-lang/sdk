@@ -21,7 +21,6 @@ main() {
 
   test('StyleSheetList', () {
     List<StyleSheet> asList = window.document.styleSheets;
-    expect(asList is List<StyleSheet>);
     // Check it's Iterable.
     int counter = 0;
     for (StyleSheet styleSheet in window.document.styleSheets) {
