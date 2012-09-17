@@ -46,6 +46,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
+import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
@@ -3817,40 +3818,40 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // print( a.b )
     {
       DartPropertyAccess access = findNode(DartPropertyAccess.class, "a.b");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(access, "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(access, "A", "b");
     }
     // a.b++
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "a.b++");
       // a.b++ is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // ++a.b
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++a.b");
       // ++a.b is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // a.b += 1
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a.b += 1");
       // a.b += 1 is invocation of method "+"
       assertHasMethodElement(binary, "B", "+");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(binary.getArg1(), "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
     // a.b = null
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a.b = null");
-      // a.b = null is invocation of method "set b"
-      assertHasMethodElement(binary, "A", "set b");
-      // a.b is invocation of method "set b"
-      assertHasMethodElement(binary.getArg1(), "A", "set b");
+      // a.b = null has no Element
+      assertSame(null, binary.getElement());
+      // a.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
   }
 
@@ -3882,40 +3883,40 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // print( A.b )
     {
       DartPropertyAccess access = findNode(DartPropertyAccess.class, "A.b");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(access, "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(access, "A", "b");
     }
     // A.b++
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "A.b++");
       // A.b++ is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // A.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // ++A.b
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++A.b");
       // ++A.b is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // A.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // A.b += 1
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "A.b += 1");
       // A.b += 1 is invocation of method "+"
       assertHasMethodElement(binary, "B", "+");
-      // A.b is invocation of method "get b"
-      assertHasMethodElement(binary.getArg1(), "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
     // A.b = null
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "A.b = null");
-      // A.b = null is invocation of method "set b"
-      assertHasMethodElement(binary, "A", "set b");
-      // A.b is invocation of method "set b"
-      assertHasMethodElement(binary.getArg1(), "A", "set b");
+      // A.b = null has no Element
+      assertSame(null, binary.getElement());
+      // A.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
   }
   
@@ -3945,43 +3946,64 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // print( field )
     {
       DartIdentifier access = findNode(DartIdentifier.class, "field );");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(access, "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(access, "<library>", "field");
     }
     // field++
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "field++");
       // field++ is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(unary.getArg(), "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(unary.getArg(), "<library>", "field");
     }
     // ++field
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++field");
       // ++field is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(unary.getArg(), "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(unary.getArg(), "<library>", "field");
     }
     // field += 1
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "field += 1");
       // field += 1 is invocation of method "+"
       assertHasMethodElement(binary, "B", "+");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(binary.getArg1(), "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(binary.getArg1(), "<library>", "field");
     }
     // field = null
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "field = null");
-      // field = null is invocation of method "set field"
-      assertHasMethodElement(binary, "<library>", "set field");
-      // "field" is invocation of method "set field"
-      assertHasMethodElement(binary.getArg1(), "<library>", "set field");
+      // field = null is no Element
+      assertSame(null, binary.getElement());
+      // "field" is top-level field
+      assertHasFieldElement(binary.getArg1(), "<library>", "field");
     }
   }
 
+  private static void assertHasFieldElement(DartNode node, String className, String fieldName) {
+    Element element = node.getElement();
+    assertTrue("" + node + " " + element, element instanceof FieldElement);
+    FieldElement fieldElement = (FieldElement) element;
+    assertHasFieldElement(fieldElement, className, fieldName);
+  }
+  
+  private static void assertHasFieldElement(FieldElement element, String className, String fieldName) {
+    EnclosingElement enclosingElement = element.getEnclosingElement();
+    String enclosingName;
+    if (enclosingElement instanceof LibraryElement) {
+      enclosingName = "<library>";
+    } else {
+      enclosingName = enclosingElement.getName();
+    }
+    assertEquals(className, enclosingName);
+    //
+    String elementName = element.getName();
+    assertEquals(fieldName, elementName);
+  }
+  
   private static void assertHasMethodElement(DartNode node, String className, String methodName) {
     Element element = node.getElement();
     assertTrue("" + node + " " + element, element instanceof MethodElement);

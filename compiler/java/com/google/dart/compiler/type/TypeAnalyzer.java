@@ -23,6 +23,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -1813,19 +1814,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
           type = typeAsMemberOf(element, currentClass);
           // try to resolve as getter/setter
           FieldElement fieldElement = (FieldElement) element;
-          if (Elements.inGetterContext(node)) {
+          DartNode properyAccess = ASTNodes.getPropertyAccessNode(node);
+          if (ASTNodes.inGetterContext(properyAccess)) {
             MethodElement getter = fieldElement.getGetter();
             if (getter != null) {
-              node.setElement(getter);
               type = ((FunctionType) typeAsMemberOf(getter, currentClass)).getReturnType();
               node.setType(type);
             }
-          } else if (Elements.inSetterContext(node)) {
+          } else if (ASTNodes.inSetterContext(properyAccess)) {
             MethodElement setter = fieldElement.getSetter();
             if (setter != null) {
               if (setter.getParameters().size() > 0) {
-                node.setElement(setter);
-                node.getParent().setElement(setter);
                 type = setter.getParameters().get(0).getType();
                 node.setType(type);
               }
@@ -2308,8 +2307,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Modifiers fieldModifiers = fieldElement.getModifiers();
           MethodElement getter = fieldElement.getGetter();
           MethodElement setter = fieldElement.getSetter();
-          boolean inSetterContext = Elements.inSetterContext(node);
-          boolean inGetterContext = Elements.inGetterContext(node);
+          boolean inSetterContext = ASTNodes.inSetterContext(node);
+          boolean inGetterContext = ASTNodes.inGetterContext(node);
           ClassElement enclosingClass = null;
           if (fieldElement.getEnclosingElement() instanceof ClassElement) {
             enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
@@ -2330,8 +2329,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
                 }
               }
-              node.setElement(setter);
-              node.getParent().setElement(setter);
             }
             // Check for using field without getter in other operation that assignment.
             if (inGetterContext) {
@@ -2341,7 +2338,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
                 }
               }
-              node.setElement(getter);
             }
           }
 

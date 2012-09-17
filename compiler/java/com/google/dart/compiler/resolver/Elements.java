@@ -6,13 +6,10 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartField;
@@ -28,12 +25,10 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
-import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
@@ -57,20 +52,6 @@ public class Elements {
    * Name of the artificial function used for resolution of "assert" statement.
    */
   public static final String ASSERT_FUNCTION_NAME = "assert__forStatement" + System.currentTimeMillis();
-  private static final ImmutableSet<Token> ASSIGN_OPERATORS =
-      Sets.immutableEnumSet(
-          Token.ASSIGN,
-          Token.ASSIGN_BIT_OR,
-          Token.ASSIGN_BIT_XOR,
-          Token.ASSIGN_BIT_AND,
-          Token.ASSIGN_SHL,
-          Token.ASSIGN_SAR,
-          Token.ASSIGN_ADD,
-          Token.ASSIGN_SUB,
-          Token.ASSIGN_MUL,
-          Token.ASSIGN_DIV,
-          Token.ASSIGN_MOD,
-          Token.ASSIGN_TRUNC);
 
   private Elements() {} // Prevent subclassing and instantiation.
 
@@ -752,47 +733,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
       return Objects.equal(scopeLibrary, getDeclaringLibrary(element));
     }
     return true;
-  }
-
-  /**
-   * Looks to see if the property access requires a getter.
-   *
-   * A property access requires a getter if it is on the right hand side of an assignment,
-   * or if it is on the left hand side of an assignment and uses one of the assignment
-   * operators other than plain '='.
-   */
-  public static boolean inGetterContext(DartNode node) {
-    if (node.getParent() instanceof DartBinaryExpression) {
-      DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
-      if (Token.ASSIGN.equals(expr.getOperator()) && expr.getArg1() == node) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Looks to see if the property access requires a setter.
-   *
-   * Basically, this boils down to any property access on the left hand side of an assignment.
-   *
-   * Keep in mind that an assignment of the form node = <expr> is the only kind of write-only
-   * expression. Other types of assignments also read the value and require a getter access.
-   */
-  public static boolean inSetterContext(DartNode node) {
-    if (node.getParent() instanceof DartUnaryExpression) {
-      DartUnaryExpression expr = (DartUnaryExpression) node.getParent();
-      if (expr.getArg() == node && expr.getOperator().isCountOperator()) {
-        return true;
-      }
-    }
-    if (node.getParent() instanceof DartBinaryExpression) {
-      DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
-      if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

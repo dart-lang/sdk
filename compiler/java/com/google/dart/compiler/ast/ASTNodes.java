@@ -15,23 +15,8 @@ package com.google.dart.compiler.ast;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.dart.compiler.ast.DartBlock;
-import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartDeclaration;
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartNamedExpression;
-import com.google.dart.compiler.ast.DartNewExpression;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartPropertyAccess;
-import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartStatement;
-import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
-import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -50,6 +35,24 @@ import java.util.List;
  * {@link DartNode} and its subclasses).
  */
 public class ASTNodes {
+  
+  /**
+   * Returns complete field access node for given field name.
+   * 
+   * <pre>
+   * node = 1;        => node
+   * obj.node = 1;    => obj.node
+   * </pre>
+   * 
+   * Note, that we don't check if given {@link DartNode} is actually field name.
+   */
+  public static DartNode getPropertyAccessNode(DartNode node) {
+    DartNode parent = node.getParent();
+    if (parent instanceof DartPropertyAccess && ((DartPropertyAccess) parent).getName() == node) {
+      return parent;
+    }
+    return node;
+  }
 
   public static List<DartNode> findDeepestCommonPath(List<DartNode> nodes) {
     List<List<DartNode>> parents = Lists.newArrayList();
@@ -1316,6 +1319,47 @@ public class ASTNodes {
 
   private ASTNodes() {
     // no instance;
+  }
+
+  /**
+   * Looks to see if the property access requires a getter.
+   * <p>
+   * A property access requires a getter if it is on the right hand side of an assignment, or if it
+   * is on the left hand side of an assignment and uses one of the assignment operators other than
+   * plain '='.
+   * <p>
+   * Note, that we don't check if given {@link DartNode} is actually field name.
+   */
+  public static boolean inGetterContext(DartNode node) {
+    if (node.getParent() instanceof DartBinaryExpression) {
+      DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+      if (expr.getArg1() == node && expr.getOperator() == Token.ASSIGN) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Looks to see if the property access requires a setter.
+   * <p>
+   * Basically, this boils down to any property access on the left hand side of an assignment.
+   * <p>
+   * Keep in mind that an assignment of the form node = <expr> is the only kind of write-only
+   * expression. Other types of assignments also read the value and require a getter access.
+   * <p>
+   * Note, that we don't check if given {@link DartNode} is actually field name.
+   */
+  public static boolean inSetterContext(DartNode node) {
+    if (node.getParent() instanceof DartUnaryExpression) {
+      DartUnaryExpression expr = (DartUnaryExpression) node.getParent();
+      return expr.getArg() == node && expr.getOperator().isCountOperator();
+    }
+    if (node.getParent() instanceof DartBinaryExpression) {
+      DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+      return expr.getArg1() == node && expr.getOperator().isAssignmentOperator();
+    }
+    return false;
   }
 
 }
