@@ -278,7 +278,8 @@ class Instruction : public ZoneAllocated {
         lifetime_position_(-1),
         previous_(NULL),
         next_(NULL),
-        env_(NULL) { }
+        env_(NULL),
+        expr_id_(-1) { }
 
   virtual Tag tag() const = 0;
 
@@ -310,6 +311,9 @@ class Instruction : public ZoneAllocated {
 
   // Returns true, if this instruction can deoptimize.
   virtual bool CanDeoptimize() const = 0;
+
+  // Returns true if the instruction may have side effects.
+  virtual bool HasSideEffect() const  = 0;
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -434,6 +438,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return Isolate::kNoDeoptId;
   }
 
+  // Id for instructions used in CSE.
+  intptr_t expr_id() const { return expr_id_; }
+  void set_expr_id(intptr_t expr_id) { expr_id_ = expr_id; }
+
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -458,6 +466,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;
+  intptr_t expr_id_;
+
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -556,6 +566,8 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
 
   MoveOperands* AddMove(Location dest, Location src) {
     MoveOperands* move = new MoveOperands(dest, src);
@@ -658,6 +670,8 @@ class BlockEntryInstr : public Instruction {
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
 
   intptr_t try_index() const { return try_index_; }
 
@@ -1086,6 +1100,8 @@ class PhiInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual bool HasSideEffect() const { return false; }
+
   // TODO(regis): This helper will be removed once we support type sets.
   RawAbstractType* LeastSpecificInputType() const;
 
@@ -1159,6 +1175,8 @@ class ParameterInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
     return 0;
@@ -1224,6 +1242,8 @@ class PushArgumentInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual bool HasSideEffect() const { return false; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
@@ -1252,6 +1272,8 @@ class ReturnInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual bool HasSideEffect() const { return false; }
+
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
@@ -1274,6 +1296,8 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual bool HasSideEffect() const { return true; }
+
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
@@ -1295,6 +1319,8 @@ class ReThrowInstr : public TemplateInstruction<0> {
   intptr_t token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
 
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
@@ -1322,6 +1348,8 @@ class GotoInstr : public TemplateInstruction<0> {
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
 
   ParallelMoveInstr* parallel_move() const {
     return parallel_move_;
@@ -1401,6 +1429,8 @@ class BranchInstr : public ControlInstruction {
   void SetInputAt(intptr_t i, Value* value);
   virtual bool CanDeoptimize() const;
 
+  virtual bool HasSideEffect() const;
+
   ComparisonInstr* comparison() const { return comparison_; }
   void set_comparison(ComparisonInstr* value) { comparison_ = value; }
 
@@ -1468,6 +1498,8 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const;
 
   virtual bool AttributesEqual(Definition* other) const;
@@ -1524,6 +1556,9 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1562,6 +1597,9 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1596,6 +1634,9 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -1615,6 +1656,9 @@ class CurrentContextInstr : public TemplateDefinition<0> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1635,6 +1679,9 @@ class StoreContextInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -1663,6 +1710,9 @@ class ClosureCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1720,6 +1770,9 @@ class InstanceCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -1762,6 +1815,9 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   const ICData& ic_data() const { return ic_data_; }
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -1825,6 +1881,11 @@ inline bool BranchInstr::CanDeoptimize() const {
 }
 
 
+inline bool BranchInstr::HasSideEffect() const {
+  return comparison()->HasSideEffect();
+}
+
+
 inline LocationSummary* BranchInstr::locs() {
   if (comparison()->locs_ == NULL) {
     LocationSummary* summary = comparison()->MakeLocationSummary();
@@ -1860,6 +1921,11 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AffectedBySideEffect() const { return false; }
 
   virtual Definition* Canonicalize();
 
@@ -1903,6 +1969,10 @@ class EqualityCompareInstr : public ComparisonInstr {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
+    return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kSmiCid);
+  }
+  virtual bool HasSideEffect() const {
     return (receiver_class_id() != kDoubleCid)
         && (receiver_class_id() != kSmiCid);
   }
@@ -1967,6 +2037,10 @@ class RelationalOpInstr : public ComparisonInstr {
     return (operands_class_id() != kDoubleCid)
         && (operands_class_id() != kSmiCid);
   }
+  virtual bool HasSideEffect() const {
+    return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kSmiCid);
+  }
 
   virtual intptr_t ResultCid() const;
 
@@ -2023,6 +2097,9 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return result_cid_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
@@ -2052,6 +2129,12 @@ class LoadLocalInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const {
+    UNREACHABLE();
+    return false;
+  }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2086,6 +2169,12 @@ class StoreLocalInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const {
+    UNREACHABLE();
+    return false;
+  }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2127,6 +2216,9 @@ class NativeCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2163,6 +2255,9 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2185,6 +2280,9 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual bool AffectedBySideEffect() const { return !field().is_final(); }
@@ -2215,6 +2313,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2240,6 +2341,9 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   Value* index() const { return inputs_[1]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2274,6 +2378,9 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2297,6 +2404,9 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -2338,6 +2448,9 @@ class InstanceOfInstr : public TemplateDefinition<3> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -2375,6 +2488,9 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2406,6 +2522,9 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2449,6 +2568,9 @@ class CreateArrayInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2481,6 +2603,9 @@ class CreateClosureInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2517,6 +2642,9 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return result_cid_; }
 
   virtual bool AttributesEqual(Definition* other) const;
@@ -2558,6 +2686,9 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2592,6 +2723,9 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2626,6 +2760,9 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2656,6 +2793,9 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2681,6 +2821,9 @@ class AllocateContextInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
@@ -2704,6 +2847,9 @@ class ChainContextInstr : public TemplateDefinition<1> {
   Value* context_value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -2726,6 +2872,9 @@ class CloneContextInstr : public TemplateDefinition<1> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -2750,6 +2899,9 @@ class CatchEntryInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return true; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -2776,6 +2928,9 @@ class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool AttributesEqual(Definition* other) const { return true; }
@@ -2806,6 +2961,9 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   intptr_t token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Definition* other) const { return true; }
 
@@ -2840,6 +2998,8 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
     return value()->ResultCid() != kDoubleCid;
   }
 
+  virtual bool HasSideEffect() const { return false; }
+
   // The output is not an instance but when it is boxed it becomes double.
   virtual intptr_t ResultCid() const { return kDoubleCid; }
 
@@ -2869,6 +3029,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AttributesEqual(Definition* other) const {
@@ -2923,6 +3084,9 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Definition* other) const {
@@ -2987,8 +3151,10 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const;
 
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedByEffect() const { return false; }
   virtual bool AttributesEqual(Definition* other) const;
-  virtual bool AffectedBySideEffect() const { return false; }
 
   virtual intptr_t ResultCid() const;
 
@@ -3029,6 +3195,9 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const;
 
  private:
@@ -3062,6 +3231,9 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kSmiCid; }
 
  private:
@@ -3091,6 +3263,9 @@ class NumberNegateInstr : public TemplateDefinition<1> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
@@ -3111,6 +3286,9 @@ class CheckStackOverflowInstr : public TemplateDefinition<0> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
@@ -3136,6 +3314,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
@@ -3158,6 +3339,9 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
   virtual intptr_t ArgumentCount() const { return 1; }
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
@@ -3182,6 +3366,9 @@ class CheckClassInstr : public TemplateDefinition<1> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool AttributesEqual(Definition* other) const;
@@ -3216,6 +3403,9 @@ class CheckSmiInstr : public TemplateDefinition<1> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool AttributesEqual(Definition* other) const { return true; }
@@ -3249,6 +3439,9 @@ class CheckArrayBoundInstr : public TemplateDefinition<2> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
   virtual intptr_t ResultCid() const { return kIllegalCid; }
 
   virtual bool AttributesEqual(Definition* other) const;

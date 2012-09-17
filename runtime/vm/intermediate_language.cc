@@ -72,6 +72,13 @@ bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
 }
 
 
+bool StrictCompareInstr::AttributesEqual(Definition* other) const {
+  StrictCompareInstr* other_op = other->AsStrictCompare();
+  ASSERT(other_op != NULL);
+  return kind() == other_op->kind();
+}
+
+
 bool BinarySmiOpInstr::AttributesEqual(Definition* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
   ASSERT(other_op != NULL);

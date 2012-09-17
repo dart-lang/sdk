@@ -215,7 +215,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
         if (FLAG_cse) {
           flow_graph->ComputeUseLists();
-          DominatorBasedCSE::Optimize(flow_graph->graph_entry());
+          DominatorBasedCSE::Optimize(flow_graph);
         }
         if (FLAG_licm) {
           LICM::Optimize(flow_graph);

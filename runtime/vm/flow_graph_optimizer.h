@@ -147,7 +147,7 @@ class LICM : public AllStatic {
 // on the dominator tree.
 class DominatorBasedCSE : public AllStatic {
  public:
-  static void Optimize(BlockEntryInstr* graph_entry);
+  static void Optimize(FlowGraph* graph);
 
  private:
   static void OptimizeRecursive(

@@ -21,6 +21,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -1546,10 +1547,206 @@ void LICM::Optimize(FlowGraph* flow_graph) {
 }
 
 
-void DominatorBasedCSE::Optimize(BlockEntryInstr* graph_entry) {
-  ASSERT(graph_entry->IsGraphEntry());
+static intptr_t NumberLoadExpressions(FlowGraph* graph) {
   DirectChainedHashMap<Definition*> map;
-  OptimizeRecursive(graph_entry, &map);
+  intptr_t expr_id = 0;
+  for (BlockIterator it = graph->reverse_postorder_iterator();
+       !it.Done();
+       it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    for (ForwardInstructionIterator instr_it(block);
+         !instr_it.Done();
+         instr_it.Advance()) {
+      Definition* defn = instr_it.Current()->AsDefinition();
+      if ((defn == NULL) ||
+          !defn->IsLoadField() ||
+          !defn->AffectedBySideEffect()) {
+        // TODO(fschneider): Extend to other load instructions.
+        continue;
+      }
+      Definition* result = map.Lookup(defn);
+      if (result == NULL) {
+        map.Insert(defn);
+        defn->set_expr_id(expr_id++);
+      } else {
+        defn->set_expr_id(result->expr_id());
+      }
+    }
+  }
+  return expr_id;
+}
+
+
+static void ComputeAvailableLoads(
+    FlowGraph* graph,
+    intptr_t max_expr_id,
+    const GrowableArray<BitVector*>& avail_in) {
+  // Initialize gen-, kill-, out-sets.
+  intptr_t num_blocks = graph->preorder().length();
+  GrowableArray<BitVector*> avail_out(num_blocks);
+  GrowableArray<BitVector*> avail_gen(num_blocks);
+  GrowableArray<BitVector*> avail_kill(num_blocks);
+  for (intptr_t i = 0; i < num_blocks; i++) {
+    avail_out.Add(new BitVector(max_expr_id));
+    avail_gen.Add(new BitVector(max_expr_id));
+    avail_kill.Add(new BitVector(max_expr_id));
+  }
+
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    intptr_t preorder_number = block->preorder_number();
+    for (BackwardInstructionIterator instr_it(block);
+         !instr_it.Done();
+         instr_it.Advance()) {
+      Instruction* instr = instr_it.Current();
+      if (instr->HasSideEffect()) {
+        avail_kill[preorder_number]->SetAll();
+        break;
+      }
+      Definition* defn = instr_it.Current()->AsDefinition();
+      if ((defn == NULL) ||
+          !defn->IsLoadField() ||
+          !defn->AffectedBySideEffect()) {
+        // TODO(fschneider): Extend to other load instructions.
+        continue;
+      }
+      avail_gen[preorder_number]->Add(defn->expr_id());
+    }
+    avail_out[preorder_number]->CopyFrom(avail_gen[preorder_number]);
+  }
+
+  BitVector* temp = new BitVector(avail_in[0]->length());
+
+  bool changed = true;
+  while (changed) {
+    changed = false;
+
+    for (BlockIterator block_it = graph->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      BitVector* block_in = avail_in[block->preorder_number()];
+      BitVector* block_out = avail_out[block->preorder_number()];
+      BitVector* block_kill = avail_kill[block->preorder_number()];
+      BitVector* block_gen = avail_gen[block->preorder_number()];
+
+      if (FLAG_trace_optimization) {
+        OS::Print("B%"Pd"", block->block_id());
+        block_in->Print();
+        block_out->Print();
+        OS::Print("\n");
+      }
+
+      // Compute block_in as the intersection of all out(p) where p
+      // is a predecessor of the current block.
+      if (block->IsGraphEntry()) {
+        temp->Clear();
+      } else {
+        temp->SetAll();
+        ASSERT(block->PredecessorCount() > 0);
+        for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+          BlockEntryInstr* pred = block->PredecessorAt(i);
+          BitVector* pred_out = avail_out[pred->preorder_number()];
+          temp->Intersect(*pred_out);
+        }
+      }
+      if (!temp->Equals(*block_in)) {
+        block_in->CopyFrom(temp);
+        if (block_out->KillAndAdd(block_kill, block_gen)) changed = true;
+      }
+    }
+  }
+}
+
+
+static void OptimizeLoads(
+    BlockEntryInstr* block,
+    GrowableArray<Definition*>* definitions,
+    const GrowableArray<BitVector*>& avail_in) {
+  // TODO(fschneider): Factor out code shared with the existing CSE pass.
+
+  // Delete loads that are killed (not available) at the entry.
+  intptr_t pre_num = block->preorder_number();
+  ASSERT(avail_in[pre_num]->length() == definitions->length());
+  for (intptr_t i = 0; i < avail_in[pre_num]->length(); i++) {
+    if (!avail_in[pre_num]->Contains(i)) {
+      (*definitions)[i] = NULL;
+    }
+  }
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->HasSideEffect()) {
+      // Handle local side effects by clearing current definitions.
+      for (intptr_t i = 0; i < definitions->length(); i++) {
+        (*definitions)[i] = NULL;
+      }
+      continue;
+    }
+    Definition* defn = instr->AsDefinition();
+    if ((defn == NULL) ||
+        !defn->IsLoadField() ||
+        !defn->AffectedBySideEffect()) {
+      // Immutable loads are handled in normal CSE.
+      // TODO(fschneider): Extend to other load instructions.
+      continue;
+    }
+    Definition* result = (*definitions)[defn->expr_id()];
+    if (result == NULL) {
+      (*definitions)[defn->expr_id()] = defn;
+      continue;
+    }
+
+    // Replace current with lookup result.
+    defn->ReplaceUsesWith(result);
+    it.RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+                defn->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+  }
+
+  // Process children in the dominator tree recursively.
+  intptr_t num_children = block->dominated_blocks().length();
+  for (intptr_t i = 0; i < num_children; ++i) {
+    BlockEntryInstr* child = block->dominated_blocks()[i];
+    if (i  < num_children - 1) {
+      GrowableArray<Definition*> child_defs(definitions->length());
+      child_defs.AddArray(*definitions);
+      OptimizeLoads(child, &child_defs, avail_in);
+    } else {
+      OptimizeLoads(child, definitions, avail_in);
+    }
+  }
+}
+
+
+void DominatorBasedCSE::Optimize(FlowGraph* graph) {
+  if (FLAG_load_cse) {
+    intptr_t max_expr_id = NumberLoadExpressions(graph);
+    if (max_expr_id > 0) {
+      intptr_t num_blocks = graph->preorder().length();
+      GrowableArray<BitVector*> avail_in(num_blocks);
+      for (intptr_t i = 0; i < num_blocks; i++) {
+        avail_in.Add(new BitVector(max_expr_id));
+      }
+
+      ComputeAvailableLoads(graph, max_expr_id, avail_in);
+
+      GrowableArray<Definition*> definitions(max_expr_id);
+      for (intptr_t j = 0; j < max_expr_id ; j++) {
+        definitions.Add(NULL);
+      }
+
+      OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
+    }
+  }
+
+  DirectChainedHashMap<Definition*> map;
+  OptimizeRecursive(graph->graph_entry(), &map);
 }
 
 

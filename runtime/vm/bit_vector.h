@@ -52,6 +52,11 @@ class BitVector: public ZoneAllocated {
     Clear();
   }
 
+  void CopyFrom(const BitVector* other) {
+    Clear();
+    AddAll(other);
+  }
+
   static intptr_t SizeFor(intptr_t length) {
     return 1 + ((length - 1) / kBitsPerWord);
   }
@@ -66,12 +71,16 @@ class BitVector: public ZoneAllocated {
     data_[i / kBitsPerWord] &= ~(static_cast<uword>(1) << (i % kBitsPerWord));
   }
 
+  bool Equals(const BitVector& other) const;
+
   // Add all elements that are in the bitvector from.
-  bool AddAll(BitVector* from);
+  bool AddAll(const BitVector* from);
 
   // From the bitvector gen add those elements that are not in the
   // bitvector kill.
   bool KillAndAdd(BitVector* kill, BitVector* gen);
+
+  void Intersect(const BitVector& other);
 
   bool Contains(int i) const {
     ASSERT(i >= 0 && i < length());
@@ -85,7 +94,15 @@ class BitVector: public ZoneAllocated {
     }
   }
 
+  void SetAll() {
+    for (intptr_t i = 0; i < data_length_; i++) {
+      data_[i] = static_cast<uword>(-1);
+    }
+  }
+
   intptr_t length() const { return length_; }
+
+  void Print() const;
 
  private:
   intptr_t length_;

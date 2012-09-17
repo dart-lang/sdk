@@ -83,6 +83,25 @@ TEST_CASE(BitVector) {
     EXPECT_EQ(false, a->Contains(64));
     EXPECT_EQ(false, a->Contains(96));
   }
+
+  { BitVector* a = new BitVector(34);
+    BitVector* b = new BitVector(34);
+    a->SetAll();
+    b->Add(0);
+    b->Add(1);
+    b->Add(31);
+    b->Add(32);
+    a->Intersect(*b);
+    EXPECT_EQ(true, a->Equals(*b));
+  }
+
+  { BitVector* a = new BitVector(2);
+    BitVector* b = new BitVector(2);
+    a->SetAll();
+    a->Remove(0);
+    a->Remove(1);
+    EXPECT_EQ(true, a->Equals(*b));
+  }
 }
 
 }  // namespace dart
