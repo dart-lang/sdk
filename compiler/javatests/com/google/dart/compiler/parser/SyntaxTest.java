@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
@@ -1426,6 +1427,21 @@ public class SyntaxTest extends AbstractParserTest {
             "  for (var foo, bar in a) { }",
             "}"),
             ParserErrorCode.FOR_IN_WITH_MULTIPLE_VARIABLES, 2, 17);
+  }
+
+  public void test_formalParameters_field() throws Exception {
+    DartUnit unit = parseUnit("formalParameters.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  final foo;",
+            "  A(this.foo) {}",
+            "}"));
+    DartClass classNode = (DartClass) unit.getTopLevelNodes().get(0);
+    DartMethodDefinition methodNode = (DartMethodDefinition) classNode.getMembers().get(1);
+    DartParameter parameterNode = methodNode.getFunction().getParameters().get(0);
+    assertTrue(parameterNode.getName() instanceof DartPropertyAccess);
+    DartPropertyAccess accessNode = (DartPropertyAccess) parameterNode.getName();
+    assertEquals(4, accessNode.getQualifier().getSourceInfo().getLength());
   }
 
   public void test_formalParameters_named() throws Exception {

@@ -2220,10 +2220,12 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartExpression parseParameterName() {
     beginParameterName();
-    if (optional(Token.THIS)) {
+    if (match(Token.THIS)) {
       beginThisExpression();
+      expect(Token.THIS);
+      DartThisExpression thisExpression = done(DartThisExpression.get());
       expect(Token.PERIOD);
-      return done(new DartPropertyAccess(done(DartThisExpression.get()), parseIdentifier()));
+      return done(new DartPropertyAccess(thisExpression, parseIdentifier()));
     }
     return done(parseIdentifier());
   }
