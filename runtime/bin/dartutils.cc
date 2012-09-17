@@ -398,10 +398,8 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   // Setup the corelib 'print' function.
   Dart_Handle print =
       Dart_Invoke(builtin_lib, Dart_NewString("_getPrintClosure"), 0, 0);
-  Dart_Handle coreimpl = Dart_LookupLibrary(Dart_NewString("dart:coreimpl"));
-  Dart_Handle print_impl =
-      Dart_GetClass(coreimpl, Dart_NewString("PrintImplementation"));
-  Dart_Handle result = Dart_SetField(print_impl,
+  Dart_Handle corelib = Dart_LookupLibrary(Dart_NewString("dart:core"));
+  Dart_Handle result = Dart_SetField(corelib,
                                      Dart_NewString("_printClosure"), print);
 
   // Setup the 'timer' factory.

@@ -91,21 +91,14 @@ def ListImplementationInfo(interface, database):
   return (None, None)
 
 
-def MaybeListElementTypeName(type_name):
-  """Returns the List element type T from string of form "List<T>", or None."""
-  match = re.match(r'sequence<(\w*)>$', type_name)
-  if match:
-    return match.group(1)
-  return None
-
 def MaybeListElementType(interface):
   """Returns the List element type T, or None in interface does not implement
   List<T>.
   """
   for parent in interface.parents:
-    element_type = MaybeListElementTypeName(parent.type.id)
-    if element_type:
-      return element_type
+    match = re.match(r'sequence<(\w*)>$', parent.type.id)
+    if match:
+      return match.group(1)
   return None
 
 def MaybeTypedArrayElementType(interface):
@@ -558,11 +551,17 @@ class IDLTypeInfo(object):
   def native_type(self):
     return self._data.native_type or self._idl_type
 
+  def bindings_class(self):
+    return 'Dart%s' % self.idl_type()
+
+  def vector_to_dart_template_parameter(self):
+    return self.bindings_class()
+
   def requires_v8_scope(self):
     return self._data.requires_v8_scope
 
   def to_native_info(self, idl_node, interface_name):
-    cls = 'Dart%s' % self.idl_type()
+    cls = self.bindings_class()
 
     if 'Callback' in idl_node.ext_attrs:
       return '%s', 'RefPtr<%s>' % self.native_type(), cls, 'create'
@@ -577,6 +576,8 @@ class IDLTypeInfo(object):
       else:
         argument_expression_template = '%s'
     return argument_expression_template, type, cls, 'toNative'
+
+  def pass_native_by_ref(self): return False
 
   def custom_to_native(self):
     return self._data.custom_to_native
@@ -640,8 +641,17 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
   def dart_type(self):
     return 'List<%s>' % self._item_info.dart_type()
 
+  def vector_to_dart_template_parameter(self):
+    raise Exception('sequences of sequences are not supported yet')
+
+  def to_native_info(self, idl_node, interface_name):
+    item_native_type = self._item_info.vector_to_dart_template_parameter()
+    return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
+
+  def pass_native_by_ref(self): return True
+
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    return 'DartDOMWrapper::vectorToDart<Dart%s>(%s)' % (self._item_info.native_type(), value)
+    return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.vector_to_dart_template_parameter(), value)
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()
@@ -654,10 +664,18 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
   def to_native_info(self, idl_node, interface_name):
     return '%s', 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
 
+  def pass_native_by_ref(self): return False
+
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
+
+  def vector_to_dart_template_parameter(self):
+    # Ugly hack. Usually IDLs floats are treated as C++ doubles, however
+    # sequence<float> should map to Vector<float>
+    if self.idl_type() == 'float': return 'float'
+    return self.native_type()
 
   def to_native_info(self, idl_node, interface_name):
     type = self.native_type()
@@ -773,7 +791,7 @@ _idl_type_registry = {
     'float': TypeData(clazz='Primitive', dart_type='num', native_type='double'),
     'double': TypeData(clazz='Primitive', dart_type='num'),
 
-    'any': TypeData(clazz='Primitive', dart_type='Object'),
+    'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue', requires_v8_scope=True),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='Dynamic'),
     'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),

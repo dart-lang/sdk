@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_IF_BOOL_FIRST_INSTRUCTION = @"""
+const String TEST_IF_BOOL_FIRST_INSTRUCTION = r"""
 negate(x) {
   if (x is bool) return !x;
   return x;

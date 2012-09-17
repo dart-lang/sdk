@@ -28,6 +28,7 @@
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
+#import("testing/dart/test_progress.dart");
 
 #import("../compiler/tests/dartc/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
@@ -75,6 +76,7 @@ main() {
   Map<String, RegExp> selectors = firstConf['selectors'];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
+  BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];

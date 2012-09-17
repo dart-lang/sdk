@@ -24,5 +24,5 @@ class A2 {
 
 main() {
   new A1.make();
-  new A2.make();              /// 00: static type warning, runtime error
+  new A2.make();              /// 00: static type warning
 }

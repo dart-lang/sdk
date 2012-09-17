@@ -95,7 +95,7 @@
 #import('dart:io');
 #import('dart:isolate');
 #import('dart:math');
-#import('../../pkg/args/args.dart');
+#import('../../pkg/args/lib/args.dart');
 
 #source('configuration.dart');
 #source('dart_task.dart');

@@ -48,7 +48,7 @@ class _Message {
       body = msg;
     } else {
       messageType = match.group(1);
-      elapsed = parseInt(match.group(2));
+      elapsed = int.parse(match.group(2));
       body = match.group(3);
     }
   }
@@ -96,7 +96,7 @@ class ChildHtmlConfiguration extends Configuration {
         String search = window.location.search;
         int pos = search.indexOf('t=');
         String ids = search.substring(pos+2);
-        int id = parseInt(ids);
+        int id = int.parse(ids);
         setSoloTest(id);
         runTests();
       }

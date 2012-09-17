@@ -14,7 +14,7 @@ class A native "*A" {
 
   factory A.fromString(String s)  => makeA(s.length);
 
-  factory A.nativeConstructor(int a, int b) native @'return makeA(a+b);';
+  factory A.nativeConstructor(int a, int b) native r'return makeA(a+b);';
 
   foo() native 'return this._x;';
 }

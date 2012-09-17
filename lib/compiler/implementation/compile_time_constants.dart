@@ -405,6 +405,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
       Constant constant = new FunctionConstant(element);
       compiler.constantHandler.registerCompileTimeConstant(constant);
+      compiler.enqueuer.codegen.registerStaticUse(element);
       return constant;
     } else if (send.isPrefix) {
       assert(send.isOperator);
@@ -530,7 +531,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   /** Returns the list of constants that are passed to the static function. */
-  List<Constant> evaluateArgumentsToConstructor(Selector selector,
+  List<Constant> evaluateArgumentsToConstructor(Node node,
+                                                Selector selector,
                                                 Link<Node> arguments,
                                                 FunctionElement target) {
     List<Constant> compiledArguments = <Constant>[];
@@ -543,7 +545,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
                                                  compileArgument,
                                                  compileConstant,
                                                  compiler);
-    assert(succeeded);
+    if (!succeeded) {
+      MessageKind kind = MessageKind.INVALID_ARGUMENTS;
+      compiler.reportError(node,
+          new CompileTimeConstantError(kind, [target.name.slowToString()]));
+    }
     return compiledArguments;
   }
 
@@ -562,8 +568,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     }
 
     Selector selector = elements.getSelector(send);
-    List<Constant> arguments =
-        evaluateArgumentsToConstructor(selector, send.arguments, constructor);
+    List<Constant> arguments = evaluateArgumentsToConstructor(
+        node, selector, send.arguments, constructor);
     ConstructorEvaluator evaluator =
         new ConstructorEvaluator(constructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
@@ -642,6 +648,25 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     return super.visitSend(send);
   }
 
+  void potentiallyCheckType(Node node, Element element, Constant constant) {
+    if (compiler.enableTypeAssertions) {
+      DartType elementType = element.computeType(compiler);
+      DartType constantType = constant.computeType(compiler);
+      // TODO(ngeoffray): Handle type parameters.
+      if (elementType.element.isTypeVariable()) return;
+      if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+        MessageKind kind = MessageKind.NOT_ASSIGNABLE;
+        compiler.reportError(node, new CompileTimeConstantError(
+            kind, [elementType, constantType]));
+      }
+    }
+  }
+
+  void updateFieldValue(Node node, Element element, Constant constant) {
+    potentiallyCheckType(node, element, constant);
+    fieldValues[element] = constant;
+  }
+
   /**
    * Given the arguments (a list of constants) assigns them to the parameters,
    * updating the definitions map. If the constructor has field-initializer
@@ -653,24 +678,29 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     int index = 0;
     parameters.forEachParameter((Element parameter) {
       Constant argument = arguments[index++];
+      Node node = parameter.parseNode(compiler);
+      potentiallyCheckType(node, parameter, argument);
       definitions[parameter] = argument;
       if (parameter.kind == ElementKind.FIELD_PARAMETER) {
         FieldParameterElement fieldParameterElement = parameter;
-        fieldValues[fieldParameterElement.fieldElement] = argument;
+        updateFieldValue(node, fieldParameterElement.fieldElement, argument);
       }
     });
   }
 
-  void evaluateSuperOrRedirectSend(Selector selector,
+  void evaluateSuperOrRedirectSend(Node currentNode,
+                                   Selector selector,
                                    Link<Node> arguments,
                                    FunctionElement targetConstructor) {
-    List<Constant> compiledArguments =
-        evaluateArgumentsToConstructor(selector, arguments, targetConstructor);
+    List<Constant> compiledArguments = evaluateArgumentsToConstructor(
+        currentNode, selector, arguments, targetConstructor);
 
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
         targetConstructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
+    // No need to go through [updateFieldValue] because the
+    // assignments have already been checked in checked mode.
     evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
   }
 
@@ -695,7 +725,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           FunctionElement targetConstructor = elements[call];
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
-          evaluateSuperOrRedirectSend(selector, arguments, targetConstructor);
+          evaluateSuperOrRedirectSend(
+              call, selector, arguments, targetConstructor);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -703,7 +734,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           Link<Node> initArguments = init.arguments;
           assert(!initArguments.isEmpty() && initArguments.tail.isEmpty());
           Constant fieldValue = evaluate(initArguments.head);
-          fieldValues[elements[init]] = fieldValue;
+          updateFieldValue(init, elements[init], fieldValue);
         }
       }
     }
@@ -726,7 +757,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         Selector selector = new Selector.call(superClass.name,
                                               enclosingClass.getLibrary(),
                                               0);
-        evaluateSuperOrRedirectSend(selector,
+        evaluateSuperOrRedirectSend(functionNode,
+                                    selector,
                                     const EmptyLink<Node>(),
                                     targetConstructor);
       }

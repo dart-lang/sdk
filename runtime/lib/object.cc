@@ -43,7 +43,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
     function = instance_class.LookupDynamicFunction(function_name);
   }
   if (!function.IsNull()) {
-    const int total_num_parameters = function.NumberOfParameters();
+    const int total_num_parameters = function.NumParameters();
     const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
     // Skip receiver.
     for (int i = 1; i < total_num_parameters; i++) {

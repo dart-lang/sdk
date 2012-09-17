@@ -1,7 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks
+// VMOptions=--enable_type_checks --reject_named_argument_as_positional
 //
 // Dart test for function type alias with optional parameters.
 
@@ -32,9 +32,9 @@ main() {
   Expect.isTrue(bar is f3<int>);
   Expect.isFalse(baz is f1<double>);
   Expect.isFalse(bar is f3<double>);
-  Expect.isFalse(baz is f2);
+  Expect.isTrue(baz is f2);
   Expect.isFalse(bar is f4);
-  Expect.isFalse(baz is f2<int>);
+  Expect.isTrue(baz is f2<int>);
   Expect.isFalse(bar is f2<int>);
 
   A<int> a = new A<int>();
@@ -47,8 +47,8 @@ main() {
   Expect.isTrue(a.bar is f3<int>);
   Expect.isFalse(a.baz is f1<double>);
   Expect.isFalse(a.bar is f3<double>);
-  Expect.isFalse(a.baz is f2);
+  Expect.isTrue(a.baz is f2);
   Expect.isFalse(a.bar is f4);
-  Expect.isFalse(a.baz is f2<int>);
+  Expect.isTrue(a.baz is f2<int>);
   Expect.isFalse(a.bar is f2<int>);
 }

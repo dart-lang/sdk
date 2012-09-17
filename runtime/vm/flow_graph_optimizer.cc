@@ -21,6 +21,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -327,6 +328,19 @@ void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
 }
 
 
+static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
+  ASSERT(ic_data.num_args_tested() > arg_n);
+  if (ic_data.NumberOfChecks() == 0) return false;
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (class_ids[arg_n] != kSmiCid) return false;
+  }
+  return true;
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                                                Token::Kind op_kind) {
   // TODO(fschneider): Optimize []= operator in checked mode as well.
@@ -350,20 +364,25 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
                    new CheckSmiInstr(index->Copy(), call->deopt_id()),
                    call->env(),
                    Definition::kEffect);
-      // Insert array bounds check.
-      InsertBefore(call,
-                   new CheckArrayBoundInstr(array->Copy(),
-                                            index->Copy(),
-                                            class_id,
-                                            call),
-                   call->env(),
-                   Definition::kEffect);
+      // If both index and array are constants, then the bound check always
+      // succeeded.
+      // TODO(srdjan): Remove once constant propagation lands.
+      if (!(array->BindsToConstant() && index->BindsToConstant())) {
+        // Insert array bounds check.
+        InsertBefore(call,
+                     new CheckArrayBoundInstr(array->Copy(),
+                                              index->Copy(),
+                                              class_id,
+                                              call),
+                     call->env(),
+                     Definition::kEffect);
+      }
       if (class_id == kGrowableObjectArrayCid) {
         // Insert data elements load.
-        LoadVMFieldInstr* elements =
-            new LoadVMFieldInstr(array->Copy(),
-                                 GrowableObjectArray::data_offset(),
-                                 Type::ZoneHandle(Type::DynamicType()));
+        LoadFieldInstr* elements =
+            new LoadFieldInstr(array->Copy(),
+                               GrowableObjectArray::data_offset(),
+                               Type::ZoneHandle(Type::DynamicType()));
         elements->set_result_cid(kArrayCid);
         InsertBefore(call, elements, NULL, Definition::kValue);
         array = new Value(elements);
@@ -372,8 +391,18 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
       if (op_kind == Token::kINDEX) {
         array_op = new LoadIndexedInstr(array, index);
       } else {
+        bool needs_store_barrier = true;
+        if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
+          InsertBefore(call,
+                       new CheckSmiInstr(call->ArgumentAt(2)->value()->Copy(),
+                                         call->deopt_id()),
+                       call->env(),
+                       Definition::kEffect);
+          needs_store_barrier = false;
+        }
         Value* value = call->ArgumentAt(2)->value();
-        array_op = new StoreIndexedInstr(array, index, value);
+        array_op =
+            new StoreIndexedInstr(array, index, value, needs_store_barrier);
       }
       call->ReplaceWith(array_op, current_iterator());
       RemovePushArguments(call);
@@ -530,7 +559,15 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                    (op_kind == Token::kNEGATE) ? call : NULL,
                                    value);
   } else if (HasOneDouble(*call->ic_data()) && (op_kind == Token::kNEGATE)) {
-    unary_op = new NumberNegateInstr(call, call->ArgumentAt(0)->value());
+    Value* value = call->ArgumentAt(0)->value();
+    AddCheckClass(call, value->Copy());
+    ConstantInstr* minus_one =
+        new ConstantInstr(Double::ZoneHandle(Double::NewCanonical(-1)));
+    InsertBefore(call, minus_one, NULL, Definition::kValue);
+    unary_op = new UnboxedDoubleBinaryOpInstr(Token::kMUL,
+                                              value,
+                                              new Value(minus_one),
+                                              call);
   }
   if (unary_op == NULL) return false;
 
@@ -614,8 +651,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // Detach environment from the original instruction because it can't
     // deoptimize.
     call->set_env(NULL);
-    LoadInstanceFieldInstr* load =
-        new LoadInstanceFieldInstr(field, call->ArgumentAt(0)->value());
+    LoadFieldInstr* load = new LoadFieldInstr(
+        call->ArgumentAt(0)->value(),
+        field.Offset(),
+        AbstractType::ZoneHandle(field.type()));
     call->ReplaceWith(load, current_iterator());
     RemovePushArguments(call);
     return true;
@@ -650,7 +689,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // Check receiver class.
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
-    LoadVMFieldInstr* load = new LoadVMFieldInstr(
+    LoadFieldInstr* load = new LoadFieldInstr(
         call->ArgumentAt(0)->value(),
         length_offset,
         Type::ZoneHandle(Type::SmiType()),
@@ -666,14 +705,14 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
     // TODO(srdjan): type of load should be GrowableObjectArrayType.
-    LoadVMFieldInstr* data_load = new LoadVMFieldInstr(
+    LoadFieldInstr* data_load = new LoadFieldInstr(
         call->ArgumentAt(0)->value(),
         Array::data_offset(),
         Type::ZoneHandle(Type::DynamicType()));
     data_load->set_result_cid(kArrayCid);
     InsertBefore(call, data_load, NULL, Definition::kValue);
 
-    LoadVMFieldInstr* length_load = new LoadVMFieldInstr(
+    LoadFieldInstr* length_load = new LoadFieldInstr(
         new Value(data_load),
         Array::length_offset(),
         Type::ZoneHandle(Type::SmiType()));
@@ -693,7 +732,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
     const bool is_immutable = true;  // String length is immutable.
-    LoadVMFieldInstr* load = new LoadVMFieldInstr(
+    LoadFieldInstr* load = new LoadFieldInstr(
         call->ArgumentAt(0)->value(),
         String::length_offset(),
         Type::ZoneHandle(Type::SmiType()),
@@ -807,19 +846,6 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     call->ReplaceWith(sqrt, current_iterator());
     RemovePushArguments(call);
   }
-}
-
-
-static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
-  ASSERT(ic_data.num_args_tested() > arg_n);
-  if (ic_data.NumberOfChecks() == 0) return false;
-  GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    if (class_ids[arg_n] != kSmiCid) return false;
-  }
-  return true;
 }
 
 
@@ -983,6 +1009,144 @@ void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
 }
 
 
+// SminessPropagator ensures that CheckSmis are eliminated across phis.
+class SminessPropagator {
+ public:
+  explicit SminessPropagator(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        known_smis_(new BitVector(flow_graph_->current_ssa_temp_index())),
+        rollback_checks_(10),
+        in_worklist_(NULL),
+        worklist_(0) { }
+
+  void Propagate();
+
+ private:
+  void PropagateSminessRecursive(BlockEntryInstr* block);
+  void AddToWorklist(PhiInstr* phi);
+  PhiInstr* RemoveLastFromWorklist();
+  void ProcessPhis();
+
+  FlowGraph* flow_graph_;
+
+  BitVector* known_smis_;
+  GrowableArray<intptr_t> rollback_checks_;
+
+  BitVector* in_worklist_;
+  GrowableArray<PhiInstr*> worklist_;
+};
+
+
+void SminessPropagator::AddToWorklist(PhiInstr* phi) {
+  if (in_worklist_ == NULL) {
+    in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
+  }
+  if (!in_worklist_->Contains(phi->ssa_temp_index())) {
+    in_worklist_->Add(phi->ssa_temp_index());
+    worklist_.Add(phi);
+  }
+}
+
+
+PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
+  PhiInstr* phi = worklist_.Last();
+  ASSERT(in_worklist_->Contains(phi->ssa_temp_index()));
+  worklist_.RemoveLast();
+  in_worklist_->Remove(phi->ssa_temp_index());
+  return phi;
+}
+
+
+static bool IsSmiPhi(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    Value* input = phi->InputAt(i);
+    if ((input->definition() != phi) &&
+        (input->ResultCid() != kSmiCid)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+void SminessPropagator::ProcessPhis() {
+  while (!worklist_.is_empty()) {
+    PhiInstr* phi = RemoveLastFromWorklist();
+    if (IsSmiPhi(phi)) {
+      ASSERT(phi->GetPropagatedCid() != kSmiCid);
+      phi->SetPropagatedCid(kSmiCid);
+      for (Value* use = phi->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        if (use->definition()->IsPhi() &&
+            (use->definition()->GetPropagatedCid() != kSmiCid)) {
+          AddToWorklist(use->definition()->AsPhi());
+        }
+      }
+    }
+  }
+}
+
+
+void SminessPropagator::PropagateSminessRecursive(BlockEntryInstr* block) {
+  const intptr_t rollback_point = rollback_checks_.length();
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->IsCheckSmi()) {
+      const intptr_t value_ssa_index =
+          instr->InputAt(0)->definition()->ssa_temp_index();
+      if (!known_smis_->Contains(value_ssa_index)) {
+        known_smis_->Add(value_ssa_index);
+        rollback_checks_.Add(value_ssa_index);
+      }
+    }
+  }
+
+  for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
+    PropagateSminessRecursive(block->dominated_blocks()[i]);
+  }
+
+  if (block->last_instruction()->SuccessorCount() == 1 &&
+      block->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* join =
+        block->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = join->IndexOfPredecessor(block);
+    ASSERT(pred_index >= 0);
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi == NULL) continue;
+        Value* use = phi->InputAt(pred_index);
+        const intptr_t value_ssa_index = use->definition()->ssa_temp_index();
+        if (known_smis_->Contains(value_ssa_index) &&
+            (phi->GetPropagatedCid() != kSmiCid)) {
+          use->set_reaching_cid(kSmiCid);
+          AddToWorklist(phi);
+        }
+      }
+    }
+  }
+
+  for (intptr_t i = rollback_point; i < rollback_checks_.length(); i++) {
+    known_smis_->Remove(rollback_checks_[i]);
+  }
+  rollback_checks_.TruncateTo(rollback_point);
+}
+
+
+void SminessPropagator::Propagate() {
+  PropagateSminessRecursive(flow_graph_->graph_entry());
+  ProcessPhis();
+}
+
+
+void FlowGraphOptimizer::PropagateSminess() {
+  SminessPropagator propagator(flow_graph_);
+  propagator.Propagate();
+}
+
+
 void FlowGraphTypePropagator::VisitBlocks() {
   ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -1103,11 +1267,13 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   // builder did already.
   if (FLAG_eliminate_type_checks &&
       instr->value()->BindsToConstant() &&
-      !instr->value()->BindsToConstantNull() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(instr->type())) {
-    Value* use = instr->value();
-    Definition* result = use->definition();
-    ASSERT(result != NULL);
+      !instr->value()->BindsToConstantNull()) {
+    const Bool& bool_result =
+        instr->value()->CompileTypeIsMoreSpecificThan(instr->type()) ?
+            Bool::ZoneHandle(Bool::True()) : Bool::ZoneHandle(Bool::False());
+    Definition* result = new ConstantInstr(bool_result);
+    result->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    result->InsertBefore(instr);
     // Replace uses and remove the current instruction via the iterator.
     instr->ReplaceUsesWith(result);
     ASSERT(current_iterator()->Current() == instr);
@@ -1381,10 +1547,206 @@ void LICM::Optimize(FlowGraph* flow_graph) {
 }
 
 
-void DominatorBasedCSE::Optimize(BlockEntryInstr* graph_entry) {
-  ASSERT(graph_entry->IsGraphEntry());
+static intptr_t NumberLoadExpressions(FlowGraph* graph) {
   DirectChainedHashMap<Definition*> map;
-  OptimizeRecursive(graph_entry, &map);
+  intptr_t expr_id = 0;
+  for (BlockIterator it = graph->reverse_postorder_iterator();
+       !it.Done();
+       it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    for (ForwardInstructionIterator instr_it(block);
+         !instr_it.Done();
+         instr_it.Advance()) {
+      Definition* defn = instr_it.Current()->AsDefinition();
+      if ((defn == NULL) ||
+          !defn->IsLoadField() ||
+          !defn->AffectedBySideEffect()) {
+        // TODO(fschneider): Extend to other load instructions.
+        continue;
+      }
+      Definition* result = map.Lookup(defn);
+      if (result == NULL) {
+        map.Insert(defn);
+        defn->set_expr_id(expr_id++);
+      } else {
+        defn->set_expr_id(result->expr_id());
+      }
+    }
+  }
+  return expr_id;
+}
+
+
+static void ComputeAvailableLoads(
+    FlowGraph* graph,
+    intptr_t max_expr_id,
+    const GrowableArray<BitVector*>& avail_in) {
+  // Initialize gen-, kill-, out-sets.
+  intptr_t num_blocks = graph->preorder().length();
+  GrowableArray<BitVector*> avail_out(num_blocks);
+  GrowableArray<BitVector*> avail_gen(num_blocks);
+  GrowableArray<BitVector*> avail_kill(num_blocks);
+  for (intptr_t i = 0; i < num_blocks; i++) {
+    avail_out.Add(new BitVector(max_expr_id));
+    avail_gen.Add(new BitVector(max_expr_id));
+    avail_kill.Add(new BitVector(max_expr_id));
+  }
+
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    intptr_t preorder_number = block->preorder_number();
+    for (BackwardInstructionIterator instr_it(block);
+         !instr_it.Done();
+         instr_it.Advance()) {
+      Instruction* instr = instr_it.Current();
+      if (instr->HasSideEffect()) {
+        avail_kill[preorder_number]->SetAll();
+        break;
+      }
+      Definition* defn = instr_it.Current()->AsDefinition();
+      if ((defn == NULL) ||
+          !defn->IsLoadField() ||
+          !defn->AffectedBySideEffect()) {
+        // TODO(fschneider): Extend to other load instructions.
+        continue;
+      }
+      avail_gen[preorder_number]->Add(defn->expr_id());
+    }
+    avail_out[preorder_number]->CopyFrom(avail_gen[preorder_number]);
+  }
+
+  BitVector* temp = new BitVector(avail_in[0]->length());
+
+  bool changed = true;
+  while (changed) {
+    changed = false;
+
+    for (BlockIterator block_it = graph->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      BitVector* block_in = avail_in[block->preorder_number()];
+      BitVector* block_out = avail_out[block->preorder_number()];
+      BitVector* block_kill = avail_kill[block->preorder_number()];
+      BitVector* block_gen = avail_gen[block->preorder_number()];
+
+      if (FLAG_trace_optimization) {
+        OS::Print("B%"Pd"", block->block_id());
+        block_in->Print();
+        block_out->Print();
+        OS::Print("\n");
+      }
+
+      // Compute block_in as the intersection of all out(p) where p
+      // is a predecessor of the current block.
+      if (block->IsGraphEntry()) {
+        temp->Clear();
+      } else {
+        temp->SetAll();
+        ASSERT(block->PredecessorCount() > 0);
+        for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+          BlockEntryInstr* pred = block->PredecessorAt(i);
+          BitVector* pred_out = avail_out[pred->preorder_number()];
+          temp->Intersect(*pred_out);
+        }
+      }
+      if (!temp->Equals(*block_in)) {
+        block_in->CopyFrom(temp);
+        if (block_out->KillAndAdd(block_kill, block_gen)) changed = true;
+      }
+    }
+  }
+}
+
+
+static void OptimizeLoads(
+    BlockEntryInstr* block,
+    GrowableArray<Definition*>* definitions,
+    const GrowableArray<BitVector*>& avail_in) {
+  // TODO(fschneider): Factor out code shared with the existing CSE pass.
+
+  // Delete loads that are killed (not available) at the entry.
+  intptr_t pre_num = block->preorder_number();
+  ASSERT(avail_in[pre_num]->length() == definitions->length());
+  for (intptr_t i = 0; i < avail_in[pre_num]->length(); i++) {
+    if (!avail_in[pre_num]->Contains(i)) {
+      (*definitions)[i] = NULL;
+    }
+  }
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->HasSideEffect()) {
+      // Handle local side effects by clearing current definitions.
+      for (intptr_t i = 0; i < definitions->length(); i++) {
+        (*definitions)[i] = NULL;
+      }
+      continue;
+    }
+    Definition* defn = instr->AsDefinition();
+    if ((defn == NULL) ||
+        !defn->IsLoadField() ||
+        !defn->AffectedBySideEffect()) {
+      // Immutable loads are handled in normal CSE.
+      // TODO(fschneider): Extend to other load instructions.
+      continue;
+    }
+    Definition* result = (*definitions)[defn->expr_id()];
+    if (result == NULL) {
+      (*definitions)[defn->expr_id()] = defn;
+      continue;
+    }
+
+    // Replace current with lookup result.
+    defn->ReplaceUsesWith(result);
+    it.RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+                defn->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+  }
+
+  // Process children in the dominator tree recursively.
+  intptr_t num_children = block->dominated_blocks().length();
+  for (intptr_t i = 0; i < num_children; ++i) {
+    BlockEntryInstr* child = block->dominated_blocks()[i];
+    if (i  < num_children - 1) {
+      GrowableArray<Definition*> child_defs(definitions->length());
+      child_defs.AddArray(*definitions);
+      OptimizeLoads(child, &child_defs, avail_in);
+    } else {
+      OptimizeLoads(child, definitions, avail_in);
+    }
+  }
+}
+
+
+void DominatorBasedCSE::Optimize(FlowGraph* graph) {
+  if (FLAG_load_cse) {
+    intptr_t max_expr_id = NumberLoadExpressions(graph);
+    if (max_expr_id > 0) {
+      intptr_t num_blocks = graph->preorder().length();
+      GrowableArray<BitVector*> avail_in(num_blocks);
+      for (intptr_t i = 0; i < num_blocks; i++) {
+        avail_in.Add(new BitVector(max_expr_id));
+      }
+
+      ComputeAvailableLoads(graph, max_expr_id, avail_in);
+
+      GrowableArray<Definition*> definitions(max_expr_id);
+      for (intptr_t j = 0; j < max_expr_id ; j++) {
+        definitions.Add(NULL);
+      }
+
+      OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
+    }
+  }
+
+  DirectChainedHashMap<Definition*> map;
+  OptimizeRecursive(graph->graph_entry(), &map);
 }
 
 

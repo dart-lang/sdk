@@ -5,7 +5,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 class A { foo() => 499; }
 class B { bar() => 499; }
 class C { gee() => 499; }
@@ -17,7 +17,7 @@ void main() {
 }
 """;
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 class A extends B { foo() => 499; }
 class B extends C { bar() => 499; }
 class C { gee() => 499; }
@@ -32,7 +32,7 @@ void main() {
 main() {
   // Make sure that class A, B and C are emitted in that order. For simplicity
   // we just verify that their members are in the correct order.
-  RegExp regexp = const RegExp(@"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
+  RegExp regexp = const RegExp(r"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
 
   String generated = compileAll(TEST_ONE);
   print(generated);

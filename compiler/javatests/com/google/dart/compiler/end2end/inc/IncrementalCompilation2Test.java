@@ -1051,7 +1051,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=4238
    */
   //TODO(pquitslund): re-enable (dartbug.com/4925).
-  public void Xtest_typesPropagation_html_query() throws Exception {
+  public void test_typesPropagation_html_query() throws Exception {
     appSource.setContent(
         APP,
         makeCode(
@@ -1137,16 +1137,16 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "library application;",
             "import 'A.dart' as abstract;",
             "import 'A.dart' as as;",
-            "import 'A.dart' as assert;",
             "import 'A.dart' as Dynamic;",
-            "import 'A.dart' as equals;", // TODO(brianwilkerson) remove
+            "import 'A.dart' as export;",
             "import 'A.dart' as external;",
             "import 'A.dart' as factory;",
             "import 'A.dart' as get;",
             "import 'A.dart' as implements;",
-            "import 'A.dart' as interface;", // TODO(brianwilkerson) remove
-            "import 'A.dart' as negate;", // TODO(brianwilkerson) remove
+            "import 'A.dart' as import;",
+            "import 'A.dart' as library;",
             "import 'A.dart' as operator;",
+            "import 'A.dart' as part;",
             "import 'A.dart' as set;",
             "import 'A.dart' as static;",
             "import 'A.dart' as typedef;",

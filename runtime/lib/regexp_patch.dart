@@ -62,8 +62,8 @@ class _JSRegExpMatch implements Match {
 patch class JSSyntaxRegExp {
   /* patch */ const factory JSSyntaxRegExp(
       String pattern,
-      [bool multiLine = false,
-       bool ignoreCase = false]) native "JSSyntaxRegExp_factory";
+      {bool multiLine: false,
+       bool ignoreCase: false}) native "JSSyntaxRegExp_factory";
 
   /* patch */ Match firstMatch(String str) {
     List match = _ExecuteMatch(str, 0);

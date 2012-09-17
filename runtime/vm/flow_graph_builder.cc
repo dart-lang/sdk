@@ -241,7 +241,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
     ASSERT(delta >= 0);
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
-      context = Bind(new LoadVMFieldInstr(
+      context = Bind(new LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle()));
     }
 
@@ -270,12 +270,12 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     ASSERT(delta >= 0);
     Value* context = Bind(new CurrentContextInstr());
     while (delta-- > 0) {
-      context = Bind(new LoadVMFieldInstr(
+      context = Bind(new LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle()));
     }
-    return new LoadVMFieldInstr(context,
-                                Context::variable_offset(local.index()),
-                                local.type());
+    return new LoadFieldInstr(context,
+                              Context::variable_offset(local.index()),
+                              local.type());
   } else {
     return new LoadLocalInstr(local, owner()->context_level());
   }
@@ -982,15 +982,20 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(push_value);
-  String& name = String::ZoneHandle();
-  if (node->kind() == Token::kSUB) {
-    name = Symbols::New("unary-");
-  } else {
-    name = Symbols::New(Token::Str(node->kind()));
-  }
-  InstanceCallInstr* call = new InstanceCallInstr(
-      node->token_pos(), name, node->kind(),
-      arguments, Array::ZoneHandle(), 1);
+  InstanceCallInstr* call = (node->kind() == Token::kSUB)
+      ? new InstanceCallInstr(node->token_pos(),
+                              String::ZoneHandle(Symbols::New("unary-")),
+                              Token::kNEGATE,
+                              arguments,
+                              Array::ZoneHandle(),
+                              1)
+      : new InstanceCallInstr(node->token_pos(),
+                              String::ZoneHandle(
+                                  Symbols::New(Token::Str(node->kind()))),
+                              node->kind(),
+                              arguments,
+                              Array::ZoneHandle(),
+                              1);
   ReturnDefinition(call);
 }
 
@@ -1771,7 +1776,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
 
   InlineBailout("EffectGraphVisitor::BuildInstantiatorTypeArguments (deopt)");
-  return Bind(new LoadVMFieldInstr(
+  return Bind(new LoadFieldInstr(
       instantiator,
       type_arguments_instance_field_offset,
       Type::ZoneHandle()));  // Not an instance, no type.
@@ -2131,8 +2136,10 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   ValueGraphVisitor for_instance(owner(), temp_index());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
-  LoadInstanceFieldInstr* load = new LoadInstanceFieldInstr(
-      node->field(), for_instance.value());
+  LoadFieldInstr* load = new LoadFieldInstr(
+      for_instance.value(),
+      node->field().Offset(),
+      AbstractType::ZoneHandle(node->field().type()));
   ReturnDefinition(load);
 }
 
@@ -2269,7 +2276,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   }
   arguments->Add(PushArgument(value));
 
-  const intptr_t checked_argument_count = 1;
+  const intptr_t checked_argument_count = 3;
   const String& name =
       String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
   InstanceCallInstr* store = new InstanceCallInstr(node->token_pos(),
@@ -2307,9 +2314,9 @@ void EffectGraphVisitor::UnchainContext() {
   InlineBailout("EffectGraphVisitor::UnchainContext (deopt)");
   Value* context = Bind(new CurrentContextInstr());
   Value* parent = Bind(
-      new LoadVMFieldInstr(context,
-                           Context::parent_offset(),
-                           Type::ZoneHandle()));  // Not an instance, no type.
+      new LoadFieldInstr(context,
+                         Context::parent_offset(),
+                         Type::ZoneHandle()));  // Not an instance, no type.
   Do(new StoreContextInstr(parent));
 }
 
@@ -2351,7 +2358,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (node == owner()->parsed_function().node_sequence()) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function().function();
-      int num_params = function.NumberOfParameters();
+      int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (1 + num_params) : ParsedFunction::kFirstLocalSlotIndex;
       // Handle the saved arguments descriptor as an additional parameter.
@@ -2389,7 +2396,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (FLAG_enable_type_checks &&
       (node == owner()->parsed_function().node_sequence())) {
     const Function& function = owner()->parsed_function().function();
-    const int num_params = function.NumberOfParameters();
+    const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsConstructor()) {
       // Skip type checking of receiver and phase for constructor functions.

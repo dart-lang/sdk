@@ -6,9 +6,6 @@ interface Interface {
   final x;
 }
 
-// The abstract keyword is implicit if a class declares an abstract
-// member. This class does not declare any abstract members, so it
-// must be marked abstract because it doesn't implement the x getter.
 abstract class Abstract implements Interface {
   String toString() => x.toString();
 }
@@ -39,7 +36,7 @@ class SubConcrete extends Concrete {
 void main() {
   var x = new Abstract(); /// 02: runtime error
   var y = new SubAbstract1(); /// 01: continued
-  var z = new SubAbstract2(); /// 03: runtime error
+  var z = new SubAbstract2();
   var a = new SubSubAbstract2(); /// 04: continued
   Expect.equals(x, x); /// 02: continued
   Expect.equals('7', new Concrete().toString());

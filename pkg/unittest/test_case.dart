@@ -86,7 +86,7 @@ class TestCase {
       // TODO(gram): currently the duration measurement code is blocked
       // by issue 4437. When that is fixed replace the line below with:
       //    runningTime = new Date.now().difference(startTime);
-      runningTime = new Duration(milliseconds:0);
+      runningTime = new Duration(milliseconds: 0);
     }
     if (!_doneTeardown) {
       if (_tearDown != null) {

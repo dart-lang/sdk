@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 #library('intl_message_test');
 
 #import('../intl.dart');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../unittest/unittest.dart');
+#import('../message_lookup_local.dart');
 
 /** Tests the MessageFormat library in dart. */
 
@@ -16,6 +16,10 @@ class Person {
 }
 
 main() {
+  initializeMessages('en_US').then(runTests);
+}
+
+runTests(_) {
   test('Trivial Message', () {
     hello() => Intl.message('Hello, world!',
         desc: 'hello world string');

@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
@@ -91,19 +92,29 @@ public class SupertypeResolver {
       }
 
       if (node.getInterfaces() != null) {
+        Set<InterfaceType> seenImplement = Sets.newHashSet();
         for (DartTypeNode intNode : node.getInterfaces()) {
-          InterfaceType intElement = classContext.resolveInterface(intNode, false, false);
-          Elements.addInterface(classElement, intElement);
-          // Dynamic can not be used as interface.
+          InterfaceType intType = classContext.resolveInterface(intNode, false, false);
+          // May be type which can not be used as interface.
           if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
               && !Elements.isCoreLibrarySource(node.getSourceInfo().getSource())) {
             topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
             continue;
           }
           // May be unresolved type, error already reported, ignore.
-          if (intElement.getKind() == TypeKind.DYNAMIC) {
+          if (intType.getKind() == TypeKind.DYNAMIC) {
             continue;
           }
+          // check for uniqueness
+          if (!classElement.isInterface()) {
+            if (seenImplement.contains(intType)) {
+              topLevelContext.onError(intNode, ResolverErrorCode.DUPLICATE_IMPLEMENTS_TYPE);
+              continue;
+            }
+            seenImplement.add(intType);
+          }
+          // OK, add
+          Elements.addInterface(classElement, intType);
         }
       }
       setBoundsOnTypeParameters(classElement.getTypeParameters(), classContext);

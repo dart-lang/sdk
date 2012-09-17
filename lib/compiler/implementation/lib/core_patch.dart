@@ -4,6 +4,16 @@
 
 // Patch file for dart:core classes.
 
+// Patch for 'print' function.
+patch void print(var obj) {
+  if (obj is String) {
+    Primitives.printString(obj);
+  } else {
+    Primitives.printString(obj.toString());
+  }
+}
+
+
 // Patch for Object implementation.
 patch class Object {
   patch String toString() {
@@ -18,6 +28,7 @@ patch class Object {
 
 // Patch for Expando implementation.
 patch class Expando<T> {
+  patch Expando([this.name]);
 
   patch T operator[](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
@@ -45,4 +56,12 @@ patch class Expando<T> {
   static const String _KEY_PROPERTY_NAME = 'expando\$key';
   static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
   static int _keyCount = 0;
+}
+
+patch class int {
+  patch static int parse(String string) => Primitives.parseInt(string);
+}
+
+patch class double {
+  patch static double parse(String string) => Primitives.parseDouble(string);
 }

@@ -105,11 +105,12 @@ def TestStepName(name, flags):
   # Filter out flags with '=' as this breaks the /stats feature of the
   # build bot.
   flags = [x for x in flags if not '=' in x]
-  return '%s tests %s' % (name, ' '.join(flags))
+  return ('%s tests %s' % (name, ' '.join(flags))).strip()
 
 
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
-  print '@@@BUILD_STEP %s@@@' % TestStepName(name, flags)
+  step_name = TestStepName(name, flags)
+  print '@@@BUILD_STEP %s@@@' % step_name
   sys.stdout.flush()
   if NeedsXterm(compiler, runtime) and system == 'linux':
     cmd = ['xvfb-run', '-a']
@@ -120,6 +121,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
   cmd.extend([sys.executable,
               os.path.join(os.curdir, 'tools', 'test.py'),
+              '--step_name=' + step_name,
               '--mode=' + mode,
               '--compiler=' + compiler,
               '--runtime=' + runtime,

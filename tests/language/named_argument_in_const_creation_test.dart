@@ -5,7 +5,7 @@
 class A {
   final x;
   final y;
-  const A(a, [b]) : x = a, y = b;
+  const A(a, {b}) : x = a, y = b;
   static const test = const A(1, b: 2);
 }
 

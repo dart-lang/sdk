@@ -112,22 +112,22 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   void addTypeParameters(Element element,
-                        List<js.Parameter> parameters,
-                        Map<Element, String> parameterNames) {
-    if (element.isFactoryConstructor() || element.isGenerativeConstructor()) {
-      ClassElement cls = element.enclosingElement;
-      cls.typeVariables.forEach((TypeVariableType typeVariable) {
-        String name = typeVariable.element.name.slowToString();
-        String prefix = '';
-        // Avoid collisions with real parameters of the method.
-        do {
-          name = JsNames.getValid('$prefix$name');
-          prefix = '\$$prefix';
-        } while (parameterNames.containsValue(name));
-        parameterNames[typeVariable.element] = name;
-        parameters.add(new js.Parameter(name));
-      });
-    }
+                         List<js.Parameter> parameters,
+                         Map<Element, String> parameterNames) {
+    if (!element.isConstructor()) return;
+    ClassElement cls = element.enclosingElement;
+    if (!compiler.world.needsRti(cls)) return;
+    cls.typeVariables.forEach((TypeVariableType typeVariable) {
+      String name = typeVariable.element.name.slowToString();
+      String prefix = '';
+      // Avoid collisions with real parameters of the method.
+      do {
+        name = JsNames.getValid('$prefix$name');
+        prefix = '\$$prefix';
+      } while (parameterNames.containsValue(name));
+      parameterNames[typeVariable.element] = name;
+      parameters.add(new js.Parameter(name));
+    });
   }
 
   CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
@@ -2243,6 +2243,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, DartType type, [bool negative = false]) {
+    world.registerIsCheck(type);
     Element element = type.element;
     use(input);
     js.PropertyAccess field =
@@ -2304,6 +2305,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitIs(HIs node) {
     DartType type = node.typeExpression;
+    world.registerIsCheck(type);
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables", instruction: node);
@@ -2444,18 +2446,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         pushStatement(new js.If.noElse(test, body), node);
         return;
       }
-
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-      SourceString helper = backend.getCheckedModeHelper(type);
-      String additionalArgument = backend.namer.operatorIs(element);
-      if (node.isCastTypeCheck) {
-        helper = castNames[helper.stringValue];
+
+      SourceString helper;
+      if (node.isBooleanConversionCheck) {
+        helper = const SourceString('boolConversionCheck');
+      } else {
+        helper = backend.getCheckedModeHelper(type);
+        if (node.isCastTypeCheck) {
+          helper = castNames[helper.stringValue];
+        }
       }
       Element helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);
       arguments.add(pop());
+      String additionalArgument = backend.namer.operatorIs(element);
       arguments.add(new js.LiteralString("'$additionalArgument'"));
       String helperName = backend.namer.isolateAccess(helperElement);
       push(new js.Call(new js.VariableUse(helperName), arguments));

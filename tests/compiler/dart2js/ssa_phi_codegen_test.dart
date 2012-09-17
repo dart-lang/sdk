@@ -5,7 +5,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 void foo(bar) {
   var a = 1;
   if (bar) {
@@ -17,7 +17,7 @@ void foo(bar) {
 }
 """;
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 void main() {
   var t = 0;
   for (var i = 0; i == 0; i = i + 1) {
@@ -27,7 +27,7 @@ void main() {
 }
 """;
 
-const String TEST_THREE = @"""
+const String TEST_THREE = r"""
 foo(b, c, d) {
   var val = 42;
   if (b) {
@@ -40,7 +40,7 @@ foo(b, c, d) {
 }
 """;
 
-const String TEST_FOUR = @"""
+const String TEST_FOUR = r"""
 foo() {
   var cond1 = true;
   var cond2 = false;
@@ -77,7 +77,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that a store just after the declaration of the local
   // only generates one instruction.
-  regexp = const RegExp(@"val = 42");
+  regexp = const RegExp(r"val = 42");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FOUR, 'foo');

@@ -81,6 +81,8 @@ class FlowGraph : public ZoneAllocated {
     return BlockIterator(postorder());
   }
 
+  intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
+
   intptr_t max_virtual_register_number() const {
     return current_ssa_temp_index();
   }
@@ -140,8 +142,6 @@ class FlowGraph : public ZoneAllocated {
       const GrowableArray<BitVector*>& dom_frontier);
 
   void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
-
-  intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.

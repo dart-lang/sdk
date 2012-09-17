@@ -43,7 +43,7 @@ class _Message {
     messageType = msg.substring(0, idx);
     ++idx;
     int idx2 = msg.indexOf(' ', idx);
-    elapsed = parseInt(msg.substring(idx, idx2));
+    elapsed = int.parse(msg.substring(idx, idx2));
     ++idx2;
     body = msg.substring(idx2);
   }
@@ -91,7 +91,7 @@ class ChildInteractiveHtmlConfiguration extends Configuration {
         String search = window.location.search;
         int pos = search.indexOf('t=');
         String ids = search.substring(pos+2);
-        int id = parseInt(ids);
+        int id = int.parse(ids);
         setSoloTest(id);
         runTests();
       }
@@ -288,7 +288,7 @@ class ParentInteractiveHtmlConfiguration extends Configuration {
         for (Element t in tests.elements) {
           cb = t.query('.testselect') as InputElement;
           cb.checked = state;
-          var testId = parseInt(t.id.substring(_testIdPrefix.length));
+          var testId = int.parse(t.id.substring(_testIdPrefix.length));
           if (state) {
             enableTest(testId);
           } else {
@@ -305,7 +305,7 @@ class ParentInteractiveHtmlConfiguration extends Configuration {
           <li id='$_testIdPrefix$id' class='test-it status-pending'>
             <div class='test-info'>
               <p class='test-title'>
-                <input type='checkbox' checked='true' class='testselect' 
+                <input type='checkbox' checked='true' class='testselect'
                     id='$_selectedIdPrefix$id'>
                 <span class='test-label'>
                 <span class='timer-result test-timer-result'></span>
@@ -315,7 +315,7 @@ class ParentInteractiveHtmlConfiguration extends Configuration {
             </div>
             <div class='scrollpane'>
               <ol class='test-actions' id='$_actionIdPrefix$id'></ol>
-            </div>          
+            </div>
           </li>""");
       list.nodes.add(testItem);
       testItem.query('#$_selectedIdPrefix$id').on.change.add((e) {

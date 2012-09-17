@@ -15,11 +15,11 @@ class Expando<T> {
 
   /**
    * Creates a new [Expando]. The optional name is only used for
-   * debugging purposes and creating two different (non-const)
-   * [Expando]s with the same name yields two [Expando]s that work on
-   * different properties of the objects they are used on.
+   * debugging purposes and creating two different [Expando]s with the
+   * same name yields two [Expando]s that work on different properties
+   * of the objects they are used on.
    */
-  const Expando([String this.name]);
+  external Expando([String name]);
 
   /**
    * Expando toString method override.

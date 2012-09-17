@@ -41,7 +41,7 @@ main() {
   List<String> dartdocScript = buildScript(
       'dartdoc',
       dartUri, dartVmUri,
-      'pkg/dartdoc/dartdoc.dart', '');
+      'pkg/dartdoc/bin/dartdoc.dart', '');
   writeScript(dartdocUri, dartdocScript);
 }
 
@@ -109,7 +109,7 @@ if test -t 1; then
   # Stdout is a terminal.
   if test 8 -le `tput colors`; then
     # Stdout has at least 8 colors, so enable colors.
-    COLORS="--colors"
+    COLORS="--enable-diagnostic-colors"
   fi
 fi
 exec \$BIN_DIR/dart$options \$BIN_DIR/$path \$COLORS "\$@"

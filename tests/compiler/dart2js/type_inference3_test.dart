@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 sum(param0, param1) {
   var sum = 0;
   for (var i = param0; i < param1; i += 1) sum = sum + i;

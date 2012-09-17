@@ -4,6 +4,8 @@
 //
 // Dart test program for checking implemention of MirrorSystem when
 // inspecting the current isolate.
+//
+// VMOptions=--enable_type_checks
 
 #library('isolate_mirror_local_test');
 
@@ -29,7 +31,7 @@ final int final_global_var = 0;
 
 // Top-level getter and setter.
 int get myVar { return 5; }
-int set myVar(x) {}
+void set myVar(x) {}
 
 // This function will be invoked reflectively.
 int function(int x) {
@@ -37,11 +39,15 @@ int function(int x) {
   return x + 1;
 }
 
+typedef void FuncType(String a);
+
+FuncType myFunc = null;
+
 _stringCompare(String a, String b) => a.compareTo(b);
 sort(list) => list.sort(_stringCompare);
 
 String buildMethodString(MethodMirror func) {
-  var result = '${func.simpleName}';
+  var result = '${func.simpleName} return(${func.returnType.simpleName})';
   if (func.isPrivate) {
     result = '$result private';
   }
@@ -82,7 +88,7 @@ String buildMethodString(MethodMirror func) {
 }
 
 String buildVariableString(VariableMirror variable) {
-  var result = '${variable.simpleName}';
+  var result = '${variable.simpleName} type(${variable.type.simpleName})';
   if (variable.isPrivate) {
     result = '$result private';
   }
@@ -122,6 +128,8 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   List keys = lib_mirror.members.getKeys();
   sort(keys);
   Expect.equals('['
+                'FuncType, '
+                'GenericClass, '
                 'MyClass, '
                 'MyException, '
                 'MyInterface, '
@@ -137,6 +145,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'main, '
                 'methodWithError, '
                 'methodWithException, '
+                'myFunc, '
                 'myVar, '
                 'myVar=, '
                 'sort, '
@@ -156,6 +165,8 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   keys = lib_mirror.classes.getKeys();
   sort(keys);
   Expect.equals('['
+                'FuncType, '
+                'GenericClass, '
                 'MyClass, '
                 'MyException, '
                 'MyInterface, '
@@ -205,49 +216,77 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'exit_port, '
                 'expectedTests, '
                 'final_global_var, '
-                'global_var]',
+                'global_var, '
+                'myFunc]',
                 '$keys');
 
   ClassMirror cls_mirror = lib_mirror.members['MyClass'];
+  ClassMirror generic_cls_mirror = lib_mirror.members['GenericClass'];
 
   // Test function mirrors.
   MethodMirror func = lib_mirror.members['function'];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('function toplevel static method', buildMethodString(func));
+  Expect.equals('function return(int) toplevel static method',
+                buildMethodString(func));
 
   func = lib_mirror.members['myVar'];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('myVar toplevel static getter', buildMethodString(func));
+  Expect.equals('myVar return(int) toplevel static getter',
+                buildMethodString(func));
 
   func = lib_mirror.members['myVar='];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('myVar= toplevel static setter', buildMethodString(func));
+  Expect.equals('myVar= return(void) toplevel static setter',
+                buildMethodString(func));
 
   func = cls_mirror.members['method'];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('method method', buildMethodString(func));
+  Expect.equals('method return(int) method', buildMethodString(func));
 
-  func = cls_mirror.members['MyClass'];
+  func = cls_mirror.constructors['MyClass'];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('MyClass constructor', buildMethodString(func));
+  Expect.equals('MyClass return(MyClass) constructor', buildMethodString(func));
 
-  func = cls_mirror.members['MyClass.named'];
+  func = cls_mirror.constructors['MyClass.named'];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('MyClass.named constructor', buildMethodString(func));
+  Expect.equals('MyClass.named return(MyClass) constructor',
+                buildMethodString(func));
+
+  func = generic_cls_mirror.members['method'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('method return(T) method', buildMethodString(func));
 
   // Test variable mirrors.
   VariableMirror variable = lib_mirror.members['global_var'];
   Expect.isTrue(variable is VariableMirror);
-  Expect.equals('global_var toplevel static', buildVariableString(variable));
+  Expect.equals('global_var type(int) toplevel static',
+                buildVariableString(variable));
 
   variable = lib_mirror.members['final_global_var'];
   Expect.isTrue(variable is VariableMirror);
-  Expect.equals('final_global_var toplevel static final',
+  Expect.equals('final_global_var type(int) toplevel static final',
                 buildVariableString(variable));
 
   variable = cls_mirror.members['value'];
   Expect.isTrue(variable is VariableMirror);
-  Expect.equals('value final', buildVariableString(variable));
+  Expect.equals('value type(Dynamic) final', buildVariableString(variable));
+
+  // Test type variable mirrors.
+  var type_var = generic_cls_mirror.members['method'].returnType;
+  Expect.isTrue(type_var is TypeVariableMirror);
+  Expect.equals('GenericClass', type_var.owner.simpleName);
+  Expect.equals('Object', type_var.upperBound.simpleName);
+
+  // Test typedef mirrors.
+  var typedef_mirror = lib_mirror.members['myFunc'].type;
+  Expect.isTrue(typedef_mirror is TypedefMirror);
+  Expect.equals('isolate_mirror_local_test', typedef_mirror.owner.simpleName);
+
+  // Test function type mirrors.
+  var func_cls_mirror = typedef_mirror.referent;
+  Expect.isTrue(func_cls_mirror is FunctionTypeMirror);
+  Expect.equals('void (dart:core.String)', func_cls_mirror.simpleName);
+  Expect.equals('void', func_cls_mirror.returnType.simpleName);
 }
 
 void testLibrariesMap(Map libraries) {
@@ -360,6 +399,12 @@ class MyClass extends MySuperClass implements MyInterface {
 
   int method(int arg) {
     return arg + value;
+  }
+}
+
+class GenericClass<T> {
+  T method(int arg) {
+    return null;
   }
 }
 

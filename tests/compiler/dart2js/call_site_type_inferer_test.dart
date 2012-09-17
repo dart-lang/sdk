@@ -61,7 +61,7 @@ const String TEST_5 = @"""
   }
 """;
 
-const String TEST_6 = @"""
+const String TEST_6 = r"""
   class A {
     x(p) => p;
   }
@@ -71,7 +71,7 @@ const String TEST_6 = @"""
   }
 """;
 
-const String TEST_7 = @"""
+const String TEST_7 = r"""
   class A {
     x(p) => x("x");
   }
@@ -80,7 +80,7 @@ const String TEST_7 = @"""
   }
 """;
 
-const String TEST_8 = @"""
+const String TEST_8 = r"""
   class A {
     x(p1, p2) => x(p1, "x");
   }
@@ -89,7 +89,7 @@ const String TEST_8 = @"""
   }
 """;
 
-const String TEST_9 = @"""
+const String TEST_9 = r"""
   class A {
     x(p1, p2) => x(p1, p2);
   }
@@ -98,7 +98,7 @@ const String TEST_9 = @"""
   }
 """;
 
-const String TEST_10 = @"""
+const String TEST_10 = r"""
   class A {
     x(p1, p2) => x(p1, p2);
   }
@@ -111,7 +111,7 @@ const String TEST_10 = @"""
   }
 """;
 
-const String TEST_11 = @"""
+const String TEST_11 = r"""
   class A {
     x(p1, p2) => x(1, 2);
   }
@@ -120,7 +120,7 @@ const String TEST_11 = @"""
   }
 """;
 
-const String TEST_12 = @"""
+const String TEST_12 = r"""
   class A {
     x(p1, [p2 = 1]) => 1;
   }
@@ -130,7 +130,7 @@ const String TEST_12 = @"""
   }
 """;
 
-const String TEST_13 = @"""
+const String TEST_13 = r"""
   class A {
     x(p) => 1;
   }

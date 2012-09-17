@@ -31,7 +31,7 @@ patch class DateImplementation {
   }
 
   /* patch */ Duration get timeZoneOffset {
-    if (isUtc) return new Duration(0);
+    if (isUtc) return new Duration();
     int offsetInSeconds = _timeZoneOffsetInSeconds(millisecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
   }

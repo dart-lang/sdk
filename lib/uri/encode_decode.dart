@@ -107,11 +107,12 @@ String _uriEncode(String canonical, String text) {
  */
 
 int _hexCharPairToByte(String s, int pos) {
-  // An alternative to calling parseInt twice would be to take a
+  // An alternative to calling [int.parse] twice would be to take a
   // two character substring and call it once, but that may be less
   // efficient.
-  int d1 = parseInt("0x${s[pos]}");
-  int d2 = parseInt("0x${s[pos+1]}");
+  // TODO(lrn): I fail to see how that could possibly be slower than this.
+  int d1 = int.parse("0x${s[pos]}");
+  int d2 = int.parse("0x${s[pos+1]}");
   return d1 * 16 + d2;
 }
 

@@ -49,18 +49,6 @@ class System(object):
 
   # Helper methods used by several systems.
 
-  def _ProcessCallback(self, interface, info, file_path):
-    """Generates a typedef for the callback interface."""
-    self._dart_interface_file_paths.append(file_path)
-    code = self._emitters.FileEmitter(file_path)
-
-    code.Emit(self._templates.Load('callback.darttemplate'))
-    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
-              NAME=interface.id,
-              TYPE=DartType(info.type_name),
-              PARAMS=info.ParametersImplementationDeclaration(DartType))
-
-
   def _GenerateLibFile(self, lib_template, lib_file_path, file_paths,
                        **template_args):
     """Generates a lib file from a template and a list of files.

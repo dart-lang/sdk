@@ -216,7 +216,8 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   default_values.SetAt(0, Smi::ZoneHandle(Smi::New(1)));  // b = 1.
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
-  function.SetNumberOfParameters(num_fixed_params, num_opt_params, true);
+  function.set_num_fixed_parameters(num_fixed_params);
+  function.SetNumOptionalParameters(num_opt_params, true);
   const bool has_opt_params = true;
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestSmiSub"));
@@ -386,7 +387,8 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   default_values.SetAt(2, Smi::ZoneHandle(Smi::New(-32)));
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
-  function.SetNumberOfParameters(num_fixed_params, num_opt_params, true);
+  function.set_num_fixed_parameters(num_fixed_params);
+  function.SetNumOptionalParameters(num_opt_params, true);
   function.set_parameter_types(Array::Handle(Array::New(num_params)));
   function.set_parameter_names(Array::Handle(Array::New(num_params)));
   const Type& param_type = Type::Handle(Type::DynamicType());

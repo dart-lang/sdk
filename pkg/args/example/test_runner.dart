@@ -11,7 +11,7 @@
 
 #import('dart:io');
 
-#import('args.dart');
+#import('package:args/args.dart');
 
 main() {
   var parser = new ArgParser();

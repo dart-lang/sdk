@@ -11,7 +11,7 @@
 
 #import('dart:io');
 
-final allowedExtensions = const [
+const allowedExtensions = const [
   '.css', '.dart', '.ico', '.js', '.json', '.png', '.sh', '.txt'
 ];
 

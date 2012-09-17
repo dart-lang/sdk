@@ -93,10 +93,10 @@ stringReplaceAllUnchecked(receiver, from, to) {
       }
     } else {
       RegExp quoteRegExp =
-          const JSSyntaxRegExp(@'[-[\]{}()*+?.,\\^$|#\s]', false, false);
+          const JSSyntaxRegExp(@'[-[\]{}()*+?.,\\^$|#\s]');
       var quoter = regExpMakeNative(quoteRegExp, global: true);
       var quoted = JS('String', @'#.replace(#, "\\$&")', from, quoter);
-      RegExp replaceRegExp = new JSSyntaxRegExp(quoted, false, false);
+      RegExp replaceRegExp = new JSSyntaxRegExp(quoted);
       var replacer = regExpMakeNative(replaceRegExp, global: true);
       return stringReplaceJS(receiver, replacer, to);
     }

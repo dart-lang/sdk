@@ -34,13 +34,6 @@ class NativeImplementationSystem(systembase.System):
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
     for operation in interface.operations:
-      if operation.type.id == 'void':
-        return_prefix = ''
-        error_return = ''
-      else:
-        return_prefix = 'return '
-        error_return = ' false'
-
       parameters = []
       arguments = []
       conversion_includes = []
@@ -51,11 +44,10 @@ class NativeImplementationSystem(systembase.System):
         arguments.append(argument_type_info.to_dart_conversion(argument.id))
         conversion_includes.extend(argument_type_info.conversion_includes())
 
-      native_return_type = self._type_registry.TypeInfo(operation.type.id).native_type()
       cpp_header_handlers_emitter.Emit(
           '\n'
-          '    virtual $TYPE handleEvent($PARAMETERS);\n',
-          TYPE=native_return_type, PARAMETERS=', '.join(parameters))
+          '    virtual bool handleEvent($PARAMETERS);\n',
+          PARAMETERS=', '.join(parameters))
 
       if 'Custom' in operation.ext_attrs:
         continue
@@ -66,20 +58,17 @@ class NativeImplementationSystem(systembase.System):
         arguments_declaration = 'Dart_Handle* arguments = 0'
       cpp_impl_handlers_emitter.Emit(
           '\n'
-          '$TYPE $CLASS_NAME::handleEvent($PARAMETERS)\n'
+          'bool $CLASS_NAME::handleEvent($PARAMETERS)\n'
           '{\n'
           '    if (!m_callback.isolate()->isAlive())\n'
-          '        return$ERROR_RETURN;\n'
+          '        return false;\n'
           '    DartIsolate::Scope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
           '    $ARGUMENTS_DECLARATION;\n'
-          '    $(RETURN_PREFIX)m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
+          '    return m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
-          TYPE=native_return_type,
           CLASS_NAME=class_name,
           PARAMETERS=', '.join(parameters),
-          ERROR_RETURN=error_return,
-          RETURN_PREFIX=return_prefix,
           ARGUMENTS_DECLARATION=arguments_declaration,
           ARGUMENT_COUNT=len(arguments))
 
@@ -177,18 +166,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def ImplementationClassName(self):
     return self._ImplClassName(self._interface.id)
-
-  def FilePathForDartImplementation(self):
-    return os.path.join(self._system._output_dir, 'dart',
-                        '%sImplementation.dart' % self._interface.id)
-
-  def FilePathForDartFactoryProviderImplementation(self):
-    file_name = '%sFactoryProviderImplementation.dart' % self._interface.id
-    return os.path.join(self._system._output_dir, 'dart', file_name)
-
-  def FilePathForDartElementsFactoryProviderImplementation(self):
-    return os.path.join(self._system._output_dir, 'dart',
-                        '_ElementsFactoryProviderImplementation.dart')
 
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_impl_emitter = implementation_emitter
@@ -825,17 +802,25 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # Emit arguments.
     start_index = 1 if needs_receiver else 0
     for i, argument in enumerate(arguments):
+      type_info = self._TypeInfo(argument.type.id)
       argument_expression_template, type, cls, function = \
-          self._TypeInfo(argument.type.id).to_native_info(argument, self._interface.id)
+          type_info.to_native_info(argument, self._interface.id)
 
       if ((IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
           (argument.ext_attrs.get('Optional') == 'DefaultIsNullString')):
         function += 'WithNullCheck'
 
       argument_name = DartDomNameOfAttribute(argument)
+      if type_info.pass_native_by_ref():
+        invocation_template =\
+            '        $TYPE $ARGUMENT_NAME;\n'\
+            '        $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), $ARGUMENT_NAME, exception);\n'
+      else:
+        invocation_template =\
+            '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
       body_emitter.Emit(
-          '\n'
-          '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
+          '\n' +
+          invocation_template +
           '        if (exception)\n'
           '            goto fail;\n',
           TYPE=type,

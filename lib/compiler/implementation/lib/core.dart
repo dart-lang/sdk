@@ -4,8 +4,6 @@
 
 #library('dart:core');
 
-#import('dart:math');
-
 #import('coreimpl.dart');
 
 #import('js_helper.dart'); // TODO(ahe): remove this import.

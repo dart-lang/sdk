@@ -301,7 +301,9 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
         break;
       default:
         // Special case: classes for which we don't have a known class id.
-        if (Type::Handle(Type::Double()).type_class() == super_class.raw()) {
+        // TODO(regis): Why isn't comparing to kIntegerCid enough?
+        if (Type::Handle(Type::Double()).type_class() == super_class.raw() ||
+            Type::Handle(Type::IntType()).type_class() == super_class.raw()) {
           is_error = true;
         }
         break;
@@ -782,7 +784,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   }
   function.set_result_type(type);
   // Resolve formal parameter types.
-  const intptr_t num_parameters = function.NumberOfParameters();
+  const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);
@@ -1157,7 +1159,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
     }
   }
   // Check classes of formal parameter types.
-  const intptr_t num_parameters = function.NumberOfParameters();
+  const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);
@@ -1238,7 +1240,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     if (!cls_belongs_to_core_lib) {
       if (interface.IsBoolType() ||
           interface.IsNumberType() ||
-          interface.IsIntInterface() ||
+          interface.IsIntType() ||
           interface.IsDoubleType() ||
           interface.IsStringInterface() ||
           (interface.IsFunctionType() && !cls.IsSignatureClass()) ||

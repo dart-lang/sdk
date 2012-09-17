@@ -6,15 +6,17 @@
 #library('client-static');
 
 #import('dart:html');
-#import('../../lib/compiler/implementation/source_file.dart');
 #import('dart:json');
-#import('classify.dart');
+#import('../../../../../lib/compiler/implementation/source_file.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../classify.dart');
 
+// TODO(rnystrom): Use "package:" URL (#4968).
 #source('dropdown.dart');
 #source('search.dart');
-#source('nav.dart');
+#source('../dartdoc/nav.dart');
 #source('client-shared.dart');
-#source('tmp/nav.dart');
+#source('../../../tmp/nav.dart');
 
 main() {
   setupLocation();

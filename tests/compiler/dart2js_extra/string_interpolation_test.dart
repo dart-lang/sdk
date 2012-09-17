@@ -16,14 +16,14 @@ void nfun() => null;
 void testEscapes() {
   // Test that escaping the '$' prevents string interpolation.
   String x = "NOT HERE";
-  Expect.equals(@'a${x}', 'a\${x}');
-  Expect.equals(@'a$x', 'a\$x');
-  Expect.equals(@'a${x}', '''a\${x}''');
-  Expect.equals(@'a$x', '''a\$x''');
-  Expect.equals(@'a${x}', "a\${x}");
-  Expect.equals(@'a$x', "a\$x");
-  Expect.equals(@'a${x}', """a\${x}""");
-  Expect.equals(@'a$x', """a\$x""");
+  Expect.equals(r'a${x}', 'a\${x}');
+  Expect.equals(r'a$x', 'a\$x');
+  Expect.equals(r'a${x}', '''a\${x}''');
+  Expect.equals(r'a$x', '''a\$x''');
+  Expect.equals(r'a${x}', "a\${x}");
+  Expect.equals(r'a$x', "a\$x");
+  Expect.equals(r'a${x}', """a\${x}""");
+  Expect.equals(r'a$x', """a\$x""");
 }
 
 

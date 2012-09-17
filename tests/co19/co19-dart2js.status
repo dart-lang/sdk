@@ -63,35 +63,12 @@ Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this 
 LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
-# The following tests use NoSuchMethodException instead of NoSuchMethodError.
-Language/03_Overview/2_Privacy_A01_t18: Fail, OK # co19 issue 195
-Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK # co19 issue 195
-Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail, OK # co19 issue 195
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A01_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: Fail, OK # co19 issue 195
-Language/10_Expressions/15_Getter_Invocation_A06_t02: Fail, OK # co19 issue 195
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/16_Assignment_A01_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/16_Assignment_A04_t04: Fail, OK # co19 issue 195
-Language/10_Expressions/16_Assignment_A08_t03: Fail, OK # co19 issue 195
-Language/10_Expressions/27_Assignable_Expressions_A07_t01: Fail, OK # co19 issue 195
-Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail, OK # co19 issue 195
-Language/10_Expressions/28_Identifier_Reference_A05_t06: Fail, OK # co19 issue 195
-Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail, OK # co19 issue 195
-Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK # co19 issue 195
-LibTest/core/NoSuchMethodException/NoSuchMethodException_A01_t01: Fail, OK # co19 issue 195
-LibTest/core/NoSuchMethodException/toString_A01_t01: Fail, OK # co19 issue 195
-
-
 [ $compiler == dart2js && $checked ]
-Language/14_Types/7_Type_Void_A01_t02: Crash # http://dartbug.com/5018
+# Tests rely on a VM exception being thrown in checked mode.
+Language/10_Expressions/10_Instance_Creation/2_Const_A09_t02: Fail, OK
+Language/10_Expressions/10_Instance_Creation/2_Const_A09_t03: Fail, OK
 
 
-[ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
@@ -103,7 +80,6 @@ Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(ahe): Please triage th
 Language/09_Generics/09_Generics_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A04_t06: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/04_Booleans/1_Boolean_Conversion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/06_Lists_A09_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/06_Lists_A09_t05: Fail # TODO(ahe): Please triage this failure.
@@ -118,32 +94,18 @@ Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Pl
 Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/17_Conditional_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
-Language/11_Statements/04_If_A02_t01: Fail # http://dartbug.com/5030
-Language/11_Statements/04_If_A02_t02: Fail # http://dartbug.com/5030
-Language/11_Statements/05_For/1_For_Loop_A01_t07: Fail # http://dartbug.com/5030
-Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail # http://dartbug.com/5030
-Language/11_Statements/06_While_A02_t02: Fail # http://dartbug.com/5030
-Language/11_Statements/07_Do_A02_t03: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A03_t01: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A03_t02: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A03_t03: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A03_t04: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A03_t05: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A03_t06: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A04_t01: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A04_t02: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A04_t03: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A04_t04: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A04_t05: Fail # http://dartbug.com/5030
-Language/11_Statements/15_Assert_A04_t06: Fail # http://dartbug.com/5030
+Language/11_Statements/04_If_A02_t02: Fail, OK # Issue co19 208
+Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail, OK # Issue co19 208
+Language/11_Statements/06_While_A02_t02: Fail, OK # Issue co19 208
+Language/11_Statements/06_While_A03_t03: Fail, OK # Issue co19 208
 
+Language/11_Statements/15_Assert_A04_t04: Fail # dart2js doesn't throw ClosureArgumentMismatchException
 Language/11_Statements/15_Assert_A05_t03: Fail # dart2js doesn't throw ClosureArgumentMismatchException
 
 
@@ -257,8 +219,6 @@ LibTest/core/double/remainder_A01_t03: Fail, OK # co19 issue 207
 
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
-LibTest/core/Queue/addLast_A01_t01: Slow, Pass
-LibTest/core/Queue/add_A01_t01: Slow, Pass
 
 # These test the Clock class which has been removed.
 # issue co19 - 173
@@ -610,10 +570,97 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/isUtc_A01_t01: Fail, OK
 
+LibTest/core/Date/add_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/add_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/add_A03_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Date/subtract_A03_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/compareTo_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/compareTo_A01_t02: Fail, OK # co19 issue 209
+LibTest/core/Duration/Duration_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/Duration_A02_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inDays_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inHours_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inMilliseconds_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inMinutes_A01_t01: Fail, OK # co19 issue 209
+LibTest/core/Duration/inSeconds_A01_t01: Fail, OK # co19 issue 209
+
+LibTest/core/Match/end_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/group_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/groupCount_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/groups_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/pattern_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/start_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/Match/str_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/firstMatch_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/hasMatch_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/hasMatch_A01_t02: Fail, OK # co19 issue 212
+LibTest/core/RegExp/ignoreCase_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/multiLine_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/pattern_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A05_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A05_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A03_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A04_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A05_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t03: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t04: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A04_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A05_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A06_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A02_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/RegExp_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/RegExp/RegExp_A01_t02: Fail, OK # co19 issue 212
+LibTest/core/RegExp/stringMatch_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/String/replaceAll_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/String/replaceFirst_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/String/split_A01_t01: Fail, OK # co19 issue 212
+LibTest/core/String/split_A01_t02: Fail, OK # co19 issue 212
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
 
 [ $compiler == dart2js && $checked ]
+LibTest/core/Queue/addLast_A01_t01: Slow, Pass
+LibTest/core/Queue/add_A01_t01: Slow, Pass
 LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 
 #
@@ -635,6 +682,37 @@ Language/11_Statements/07_Do_A02_t02: Fail, OK # co19 issue 145.
 LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+
+Language/05_Variables/05_Variables_A01_t03: Fail, OK # co19 issue 210
+Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
+Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
+Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
+Language/06_Functions/2_Formal_Parameters_A02_t01: Fail, OK # co19 issue 210
+Language/08_Interfaces/4_Factories_and_Constructors_A02_t06: Fail, OK # co19 issue 210
+Language/10_Expressions/03_Numbers_A01_t19: Fail, OK # co19 issue 210
+Language/10_Expressions/03_Numbers_A01_t20: Fail, OK # co19 issue 210
+Language/10_Expressions/03_Numbers_A01_t28: Fail, OK # co19 issue 210
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail, OK # co19 issue 210
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
+Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail, OK # co19 issue 210
+Language/13_Libraries_and_Scripts/2_Imports_A01_t23: Fail, OK # co19 issue 210
+Language/13_Libraries_and_Scripts/2_Imports_A01_t02: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t06: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t03: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t06: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t04: Fail, OK # co19 issue 210
+Language/11_Statements/11_Labels_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t05: Fail, OK # co19 issue 210
+Language/11_Statements/05_For_A01_t07: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
+Language/11_Statements/15_Assert_A01_t05: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t09: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A01_t10: Fail, OK # co19 issue 210
+Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
+Language/11_Statements/03_Variable_Declaration_A02_t04: Fail, OK # co19 issue 210
 
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
@@ -1013,7 +1091,6 @@ Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # Checks that it is a
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
-Language/14_Types/7_Type_Void_A01_t02: Fail # Checks that specifying void as a function's parameter type causes a compile-time error.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
@@ -1024,12 +1101,6 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whites
 [ $compiler == dart2js ]
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # http://dartbug.com/5027
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027
-Language/10_Expressions/16_Assignment_A04_t05: Fail # http://dartbug.com/5027
-
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # http://dartbug.com/5028
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # http://dartbug.com/5028
-Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # http://dartbug.com/5028
-Language/10_Expressions/16_Assignment_A04_t03: Fail # http://dartbug.com/5028
 
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # http://dartbug.com/5029
 Language/10_Expressions/30_Type_Cast_A03_t01: Fail # http://dartbug.com/5029
@@ -1137,7 +1208,6 @@ Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # http://dartbug.co
 # Unexpected runtime errors.
 #
 [ $compiler == dart2js ]
-Language/10_Expressions/01_Constants_A19_t01: Fail # TypeError: Cannot set property 'call$0' of undefined
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TypeError: Object #<C> has no method 'call$0'
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TypeError: Object #<Foo> has no method 'call$0'
 Language/10_Expressions/30_Type_Cast_A02_t01: Fail # Expect.identical(expected: <Instance of 'C'>, actual: <Instance of 'C'>) fails.

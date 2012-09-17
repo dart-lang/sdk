@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 foo() {
   var c = null;
   while (true) c = 1 + c;

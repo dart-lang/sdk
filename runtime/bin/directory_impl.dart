@@ -205,10 +205,10 @@ class _Directory implements Directory {
 
 class _DirectoryLister implements DirectoryLister {
   _DirectoryLister(String path, bool recursive) {
-    final int LIST_DIRECTORY = 0;
-    final int LIST_FILE = 1;
-    final int LIST_ERROR = 2;
-    final int LIST_DONE = 3;
+    const int LIST_DIRECTORY = 0;
+    const int LIST_FILE = 1;
+    const int LIST_ERROR = 2;
+    const int LIST_DONE = 3;
 
     final int RESPONSE_TYPE = 0;
     final int RESPONSE_PATH = 1;

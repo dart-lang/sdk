@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 foo(a) {
   int x = 0;
   for (int i = 0; i < 10; i++) {
@@ -14,7 +14,7 @@ foo(a) {
 }
 """;
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 foo(a) {
   int x = 0;
   int i = 0;
@@ -26,7 +26,7 @@ foo(a) {
 }
 """;
 
-const String TEST_THREE = @"""
+const String TEST_THREE = r"""
 foo(a) {
   int x = 0;
   for (int i in a) {
@@ -37,7 +37,7 @@ foo(a) {
 """;
 
 
-const String TEST_FOUR = @"""
+const String TEST_FOUR = r"""
 foo(a) {
   int x = 0;
   for (int i = 0; i < 10; i++) {
@@ -48,7 +48,7 @@ foo(a) {
 }
 """;
 
-const String TEST_FIVE = @"""
+const String TEST_FIVE = r"""
 foo(a) {
   int x = 0;
   int i = 0;
@@ -61,7 +61,7 @@ foo(a) {
 }
 """;
 
-const String TEST_SIX = @"""
+const String TEST_SIX = r"""
 foo(a) {
   int x = 0;
   for (int i in a) {
@@ -75,15 +75,15 @@ foo(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains(@'for ('));
+  Expect.isTrue(generated.contains(r'for ('));
   generated = compile(TEST_TWO, 'foo');
-  Expect.isTrue(!generated.contains(@'break'));
+  Expect.isTrue(!generated.contains(r'break'));
   generated = compile(TEST_THREE, 'foo');
-  Expect.isTrue(!generated.contains(@'break'));
+  Expect.isTrue(!generated.contains(r'break'));
   generated = compile(TEST_FOUR, 'foo');
-  Expect.isTrue(generated.contains(@'continue'));
+  Expect.isTrue(generated.contains(r'continue'));
   generated = compile(TEST_FIVE, 'foo');
-  Expect.isTrue(generated.contains(@'continue'));
+  Expect.isTrue(generated.contains(r'continue'));
   generated = compile(TEST_SIX, 'foo');
-  Expect.isTrue(generated.contains(@'continue'));
+  Expect.isTrue(generated.contains(r'continue'));
 }

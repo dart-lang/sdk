@@ -258,6 +258,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
+  static RawClass* closure_data_class() { return closure_data_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
@@ -388,6 +389,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
+  static RawClass* closure_data_class_;  // Class of ClosureData vm obj.
   static RawClass* field_class_;  // Class of the Field vm object.
   static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
@@ -875,8 +877,8 @@ class AbstractType : public Object {
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
 
-  // Check if this type represents the 'int' interface.
-  bool IsIntInterface() const;
+  // Check if this type represents the 'int' type.
+  bool IsIntType() const;
 
   // Check if this type represents the 'double' type.
   bool IsDoubleType() const;
@@ -993,8 +995,8 @@ class Type : public AbstractType {
   // The 'bool' type.
   static RawType* BoolType();
 
-  // The 'int' interface type.
-  static RawType* IntInterface();
+  // The 'int' type.
+  static RawType* IntType();
 
   // The 'Smi' type.
   static RawType* SmiType();
@@ -1389,19 +1391,17 @@ class Function : public Object {
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   inline bool HasCode() const;
 
-  RawContextScope* context_scope() const { return raw_ptr()->context_scope_; }
+  RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
   // Enclosing function of this local function.
-  RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
+  RawFunction* parent_function() const;
 
   // Signature class of this closure function or signature function.
-  RawClass* signature_class() const { return raw_ptr()->signature_class_; }
+  RawClass* signature_class() const;
   void set_signature_class(const Class& value) const;
 
-  RawCode* closure_allocation_stub() const {
-    return raw_ptr()->closure_allocation_stub_;
-  }
+  RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
   // Return the closure function implicitly created for this function.
@@ -1476,19 +1476,33 @@ class Function : public Object {
   void set_num_fixed_parameters(intptr_t value) const;
 
   bool HasOptionalParameters() const {
-    return (num_optional_positional_parameters() +
-            num_optional_named_parameters()) > 0;
+    return raw_ptr()->num_optional_parameters_ != 0;
+  }
+  bool HasOptionalPositionalParameters() const {
+    return raw_ptr()->num_optional_parameters_ > 0;
+  }
+  bool HasOptionalNamedParameters() const {
+    return raw_ptr()->num_optional_parameters_ < 0;
+  }
+  intptr_t NumOptionalParameters() const {
+    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
+    return (num_opt_params >= 0) ? num_opt_params : -num_opt_params;
+  }
+  void SetNumOptionalParameters(intptr_t num_optional_parameters,
+                                bool are_optional_positional) const;
+
+  intptr_t NumOptionalPositionalParameters() const {
+    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
+    return (num_opt_params > 0) ? num_opt_params : 0;
+  }
+  intptr_t NumOptionalNamedParameters() const {
+    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
+    return (num_opt_params < 0) ? -num_opt_params : 0;
   }
 
-  intptr_t num_optional_positional_parameters() const {
-    return raw_ptr()->num_optional_positional_parameters_;
-  }
-  void set_num_optional_positional_parameters(intptr_t value) const;
+  intptr_t NumParameters() const;
 
-  intptr_t num_optional_named_parameters() const {
-    return raw_ptr()->num_optional_named_parameters_;
-  }
-  void set_num_optional_named_parameters(intptr_t value) const;
+  intptr_t NumImplicitParameters() const;
 
   static intptr_t usage_counter_offset() {
     return OFFSET_OF(RawFunction, usage_counter_);
@@ -1522,12 +1536,6 @@ class Function : public Object {
   void set_is_abstract(bool value) const;
 
   bool HasOptimizedCode() const;
-
-  intptr_t NumberOfParameters() const;
-  intptr_t NumberOfImplicitParameters() const;
-  void SetNumberOfParameters(intptr_t num_fixed_parameters,
-                             intptr_t num_optional_parameters,
-                             bool are_optional_positional) const;
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
@@ -1679,8 +1687,11 @@ class Function : public Object {
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
   void set_token_pos(intptr_t value) const;
+  RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
+  void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
+  void set_data(const Object& value) const;
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,
@@ -1707,6 +1718,38 @@ class Function : public Object {
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
+};
+
+
+class ClosureData: public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawClosureData));
+  }
+
+ private:
+  RawContextScope* context_scope() const { return raw_ptr()->context_scope_; }
+  void set_context_scope(const ContextScope& value) const;
+
+  // Enclosing function of this local function.
+  RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
+  void set_parent_function(const Function& value) const;
+
+  // Signature class of this closure function or signature function.
+  RawClass* signature_class() const { return raw_ptr()->signature_class_; }
+  void set_signature_class(const Class& value) const;
+
+  RawCode* closure_allocation_stub() const {
+    return raw_ptr()->closure_allocation_stub_;
+  }
+  void set_closure_allocation_stub(const Code& value) const;
+
+  static RawClosureData* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
 };
 
 

@@ -46,6 +46,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
+import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
@@ -312,8 +313,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "class A {",
         "  const A();",
         "}",
-        "final A CONST_1 = const A();",
-        "final A CONST_2 = const A();",
+        "const A CONST_1 = const A();",
+        "const A CONST_2 = const A();",
         "foo(var v) {",
         "  switch (v) {",
         "    case 0: break;",
@@ -399,11 +400,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 5, 10, 3));
   }
   
-  public void test_switchExpression_case_finalLocalVariable() throws Exception {
+  public void test_switchExpression_case_constLocalVariable() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "foo(var v) {",
-        "  final int VALUE = 0;",
+        "  const int VALUE = 0;",
         "  switch (v) {",
         "    case VALUE: break;",
         "  }",
@@ -3307,34 +3308,39 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  abstract   v01;",
-        "  assert     v02;",
+        "  as         v02;",
         "  Dynamic    v03;",
-        "  equals     v04;",
-        "  factory    v05;",
-        "  get        v06;",
-        "  implements v07;",
-        "//  interface  v08;",
-        "  negate     v09;",
-        "  operator   v10;",
-        "  set        v11;",
-        "  static     v12;",
-        "//  typedef    v13;",
+        "  export     v04;",
+        "  external   v05;",
+        "  factory    v06;",
+        "  get        v07;",
+        "  implements v08;",
+        "  import     v09;",
+        "  library    v10;",
+        "  operator   v11;",
+        "  part       v12;",
+        "  set        v13;",
+        "  static     v14;",
+        "//  typedef    v15;",
         "}",
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 6),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 3, 6),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 7),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 3),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 3, 10),
-//        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 3, 8),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 3, 6),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 12, 3, 8),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 13, 3, 3),
-        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 14, 3, 6)
-//        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 7)
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),   // abstract
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 2),   // as
+                                                                         // Dynamic
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 3, 6),   // export
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 8),   // external
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 7),   // factory
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 3, 3),   // get
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 3, 10), // implements
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 3, 6),  // import
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 12, 3, 7),  // library
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 13, 3, 8),  // operator
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 14, 3, 4),  // part
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 15, 3, 3),  // set
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 16, 3, 6)  // static
+//        ,errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 17, 3, 7)   // typedef
     );
   }
 
@@ -3812,40 +3818,40 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // print( a.b )
     {
       DartPropertyAccess access = findNode(DartPropertyAccess.class, "a.b");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(access, "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(access, "A", "b");
     }
     // a.b++
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "a.b++");
       // a.b++ is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // ++a.b
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++a.b");
       // ++a.b is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // a.b += 1
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a.b += 1");
       // a.b += 1 is invocation of method "+"
       assertHasMethodElement(binary, "B", "+");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(binary.getArg1(), "A", "get b");
+      // a.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
     // a.b = null
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "a.b = null");
-      // a.b = null is invocation of method "set b"
-      assertHasMethodElement(binary, "A", "set b");
-      // a.b is invocation of method "set b"
-      assertHasMethodElement(binary.getArg1(), "A", "set b");
+      // a.b = null has no Element
+      assertSame(null, binary.getElement());
+      // a.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
   }
 
@@ -3877,40 +3883,40 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // print( A.b )
     {
       DartPropertyAccess access = findNode(DartPropertyAccess.class, "A.b");
-      // a.b is invocation of method "get b"
-      assertHasMethodElement(access, "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(access, "A", "b");
     }
     // A.b++
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "A.b++");
       // A.b++ is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // A.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // ++A.b
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++A.b");
       // ++A.b is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // A.b is invocation of method "get b"
-      assertHasMethodElement(unary.getArg(), "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(unary.getArg(), "A", "b");
     }
     // A.b += 1
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "A.b += 1");
       // A.b += 1 is invocation of method "+"
       assertHasMethodElement(binary, "B", "+");
-      // A.b is invocation of method "get b"
-      assertHasMethodElement(binary.getArg1(), "A", "get b");
+      // A.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
     // A.b = null
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "A.b = null");
-      // A.b = null is invocation of method "set b"
-      assertHasMethodElement(binary, "A", "set b");
-      // A.b is invocation of method "set b"
-      assertHasMethodElement(binary.getArg1(), "A", "set b");
+      // A.b = null has no Element
+      assertSame(null, binary.getElement());
+      // A.b is field "A.b"
+      assertHasFieldElement(binary.getArg1(), "A", "b");
     }
   }
   
@@ -3940,43 +3946,64 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // print( field )
     {
       DartIdentifier access = findNode(DartIdentifier.class, "field );");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(access, "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(access, "<library>", "field");
     }
     // field++
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "field++");
       // field++ is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(unary.getArg(), "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(unary.getArg(), "<library>", "field");
     }
     // ++field
     {
       DartUnaryExpression unary = findNode(DartUnaryExpression.class, "++field");
       // ++field is invocation of method "+"
       assertHasMethodElement(unary, "B", "+");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(unary.getArg(), "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(unary.getArg(), "<library>", "field");
     }
     // field += 1
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "field += 1");
       // field += 1 is invocation of method "+"
       assertHasMethodElement(binary, "B", "+");
-      // "field" is invocation of method "get field"
-      assertHasMethodElement(binary.getArg1(), "<library>", "get field");
+      // "field" is top-level field
+      assertHasFieldElement(binary.getArg1(), "<library>", "field");
     }
     // field = null
     {
       DartBinaryExpression binary = findNode(DartBinaryExpression.class, "field = null");
-      // field = null is invocation of method "set field"
-      assertHasMethodElement(binary, "<library>", "set field");
-      // "field" is invocation of method "set field"
-      assertHasMethodElement(binary.getArg1(), "<library>", "set field");
+      // field = null is no Element
+      assertSame(null, binary.getElement());
+      // "field" is top-level field
+      assertHasFieldElement(binary.getArg1(), "<library>", "field");
     }
   }
 
+  private static void assertHasFieldElement(DartNode node, String className, String fieldName) {
+    Element element = node.getElement();
+    assertTrue("" + node + " " + element, element instanceof FieldElement);
+    FieldElement fieldElement = (FieldElement) element;
+    assertHasFieldElement(fieldElement, className, fieldName);
+  }
+  
+  private static void assertHasFieldElement(FieldElement element, String className, String fieldName) {
+    EnclosingElement enclosingElement = element.getEnclosingElement();
+    String enclosingName;
+    if (enclosingElement instanceof LibraryElement) {
+      enclosingName = "<library>";
+    } else {
+      enclosingName = enclosingElement.getName();
+    }
+    assertEquals(className, enclosingName);
+    //
+    String elementName = element.getName();
+    assertEquals(fieldName, elementName);
+  }
+  
   private static void assertHasMethodElement(DartNode node, String className, String methodName) {
     Element element = node.getElement();
     assertTrue("" + node + " " + element, element instanceof MethodElement);
@@ -4765,6 +4792,84 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       AnalyzeLibraryResult result = analyzeLibrary(lines);
       assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF, 10, 20, 17));
     }
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5084
+   */
+  public void test_duplicateSuperInterface_errorInClassImplements() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B implements A, A {}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.DUPLICATE_IMPLEMENTS_TYPE, 3, 23, 1));
+  }
+  
+  /**
+   * We should report only "no such type", but not duplicate.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5084
+   */
+  public void test_duplicateSuperInterface_whenNoSuchType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class B implements X, Y {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 20, 1),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 23, 1));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5084
+   */
+  public void test_duplicateSuperInterface_okInInterfaceExtends() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface A {}",
+        "interface B extends A, A {}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5082
+   */
+  public void test_argumentDefinitionTest_type() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(p) {",
+        "  ?p;",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+    DartUnaryExpression unary = findNode(DartUnaryExpression.class, "?p");
+    Type type = unary.getType();
+    assertNotNull(type);
+    assertEquals("bool", type.toString());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5082
+   */
+  public void test_argumentDefinitionTest_shouldBeFormalParameter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(p) {",
+        "  var v;",
+        "  ?p;",
+        "  ?v;",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED, 5, 4, 1));
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {

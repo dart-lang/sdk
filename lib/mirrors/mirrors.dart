@@ -362,21 +362,20 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * An immutable map from from names to mirrors for all members of
    * this type.
    *
+   * The members of a type are its methods, fields, getters, and
+   * setters.  Note that constructors and type variables are not
+   * considered to be members of a type.
+   *
    * This does not include inherited members.
    */
   Map<String, Mirror> get members;
 
   /**
    * An immutable map from names to mirrors for all method,
-   * constructor, getter, and setter declarations for this type.
+   * declarations for this type.  This does not include getters and
+   * setters.
    */
   Map<String, MethodMirror> get methods;
-
-  /**
-   * An immutable map from names to mirrors for all constructor
-   * declarations for this type.
-   */
-  Map<String, MethodMirror> get constructors;
 
   /**
    * An immutable map from names to mirrors for all getter
@@ -397,14 +396,26 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   Map<String, VariableMirror> get variables;
 
   /**
-   * A list of type variables for this type.
+   * An immutable map from names to mirrors for all constructor
+   * declarations for this type.
    */
-  List<TypeVariableMirror> get typeVariables;
+   Map<String, MethodMirror> get constructors;
 
   /**
-   * A list of the type arguments for this type.
+   * An immutable map from names to mirrors for all type variables for
+   * this type.
+   *
+   * This map preserves the order of declaration of the type variables.
    */
-  List<TypeMirror> get typeArguments;
+   Map<String, TypeVariableMirror> get typeVariables;
+
+  /**
+   * An immutable map from names to mirrors for all type arguments for
+   * this type.
+   *
+   * This map preserves the order of declaration of the type variables.
+   */
+  Map<String, TypeMirror> get typeArguments;
 
   /**
    * Is this the original declaration of this type?
@@ -455,21 +466,10 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 }
 
 /**
- * A [TypeVariableMirror] represents a type parameter of a generic
- * type.
- */
-abstract class TypeVariableMirror implements TypeMirror {
-  /**
-   * A mirror on the type that is the upper bound for this type variable.
-   */
-  TypeMirror get upperBound;
-}
-
-/**
  * A [FunctionTypeMirror] represents the type of a function in the
  * Dart language.
  */
-abstract class FunctionTypeMirror implements TypeMirror {
+abstract class FunctionTypeMirror implements ClassMirror {
   /**
    * The return type of the reflectee.
    */
@@ -486,6 +486,17 @@ abstract class FunctionTypeMirror implements TypeMirror {
    * TODO(turnidge): What is this and what is it for?
    */
   MethodMirror get callMethod;
+}
+
+/**
+ * A [TypeVariableMirror] represents a type parameter of a generic
+ * type.
+ */
+abstract class TypeVariableMirror extends TypeMirror {
+  /**
+   * A mirror on the type that is the upper bound of this type variable.
+   */
+  TypeMirror get upperBound;
 }
 
 /**

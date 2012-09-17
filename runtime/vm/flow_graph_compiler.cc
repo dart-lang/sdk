@@ -452,6 +452,9 @@ void FlowGraphCompiler::GenerateInstanceCall(
     case 2:
       label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
       break;
+    case 3:
+      label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
+      break;
     default:
       UNIMPLEMENTED();
   }
@@ -484,7 +487,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
     args.Add(kDoubleCid);
     args.Add(kMintCid);
     args.Add(kBigintCid);
-  } else if (type.IsIntInterface()) {
+  } else if (type.IsIntType()) {
     args.Add(kMintCid);
     args.Add(kBigintCid);
   } else if (type.IsDoubleType()) {
@@ -657,12 +660,14 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     Register reg = kNoRegister;
     if (loc.IsRegister()) {
       reg = loc.reg();
-    } else if (loc.IsUnallocated()) {
-      ASSERT((loc.policy() == Location::kRequiresRegister) ||
-             (loc.policy() == Location::kWritableRegister));
+    } else if (loc.IsUnallocated() || loc.IsConstant()) {
+      ASSERT(loc.IsConstant() ||
+             ((loc.policy() == Location::kRequiresRegister) ||
+              (loc.policy() == Location::kWritableRegister)));
       reg = AllocateFreeRegister(blocked_registers);
       locs->set_in(i, Location::RegisterLocation(reg));
     }
+    ASSERT(reg != kNoRegister);
 
     // Inputs are consumed from the simulated frame. In case of a call argument
     // we leave it until the call instruction.

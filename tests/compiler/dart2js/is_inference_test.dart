@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_IF = @"""
+const String TEST_IF = r"""
 test(param) {
   if (param is int) {
     param = param + 42;
@@ -13,7 +13,7 @@ test(param) {
 }
 """;
 
-const String TEST_IF_ELSE = @"""
+const String TEST_IF_ELSE = r"""
 test(param) {
   if (param is int) {
     param = param + 42;
@@ -24,7 +24,7 @@ test(param) {
 }
 """;
 
-const String TEST_IF_RETURN = @"""
+const String TEST_IF_RETURN = r"""
 test(param) {
   if (param is int) {
     return param + 42;
@@ -33,7 +33,7 @@ test(param) {
 }
 """;
 
-const String TEST_IF_NOT_ELSE = @"""
+const String TEST_IF_NOT_ELSE = r"""
 test(param) {
   if (param is !int) {
     param = param + 53;
@@ -44,14 +44,14 @@ test(param) {
 }
 """;
 
-const String TEST_IF_NOT_RETURN = @"""
+const String TEST_IF_NOT_RETURN = r"""
 test(param) {
   if (param is !int) return param + 53;
   return param + 42;
 }
 """;
 
-const String TEST_IF_NOT_ELSE_RETURN = @"""
+const String TEST_IF_NOT_ELSE_RETURN = r"""
 test(param) {
   if (param is !int) {
     return param + 53;

@@ -298,7 +298,6 @@ class Parser : public ValueObject {
   void ParseLibraryNameObsoleteSyntax();
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
-  void ParseLibraryResourceObsoleteSyntax();
 
   void ResolveTypeFromClass(const Class& cls,
                             ClassFinalizer::FinalizationKind finalization,

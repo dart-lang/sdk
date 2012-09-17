@@ -128,8 +128,8 @@ void compile(List<String> argv) {
     new OptionHandler('--minify', passThrough),
     new OptionHandler('--cut-declaration-types', passThrough),
     // TODO(ahe): Remove the --no-colors option.
-    new OptionHandler('--no-colors', (_) => enableColors = false),
-    new OptionHandler('--colors', (_) => enableColors = true),
+    new OptionHandler('--disable-diagnostic-colors', (_) => enableColors = false),
+    new OptionHandler('--enable-diagnostic-colors', (_) => enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler(@'--help|/\?|/h', (_) => wantHelp = true),
@@ -344,7 +344,7 @@ Supported options:
   --suppress-warnings
     Do not display any warnings.
 
-  --colors
+  --enable-diagnostic-colors
     Add colors to diagnostic messages.
 
 The following options are only used for compiler development and may

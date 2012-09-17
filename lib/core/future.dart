@@ -70,7 +70,7 @@ interface Future<T> default FutureImpl<T> {
   void onComplete(void complete(Future<T> future));
 
   /**
-   * If this future is complete and has a value, then [onValue] is called
+   * If this future is complete and has a value, then [onSuccess] is called
    * with the value.
    */
   void then(void onSuccess(T value));

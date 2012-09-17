@@ -44,6 +44,18 @@ assertion_test: Fail
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK
+compile_time_constant_checked2_test/01: Fail, OK
+compile_time_constant_checked2_test/02: Fail, OK
+compile_time_constant_checked2_test/03: Fail, OK
+compile_time_constant_checked2_test/04: Fail, OK
+compile_time_constant_checked2_test/05: Fail, OK
+compile_time_constant_checked2_test/06: Fail, OK
+compile_time_constant_checked3_test/01: Fail, OK
+compile_time_constant_checked3_test/02: Fail, OK
+compile_time_constant_checked3_test/03: Fail, OK
+compile_time_constant_checked3_test/04: Fail, OK
+compile_time_constant_checked3_test/05: Fail, OK
+compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js && $host_unchecked ]
 metadata_test: Fail # Metadata on type parameters not supported.
@@ -52,7 +64,6 @@ metadata_test: Fail # Metadata on type parameters not supported.
 metadata_test: Crash # Metadata on type parameters not supported.
 
 [ $compiler == dart2js ]
-raw_string_test: Fail
 prefix_new_test: Fail # New library syntax not supported
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
@@ -74,6 +85,9 @@ function_type_alias_test: Fail # Support for optional parameters not conform to 
 function_type_alias2_test: Fail # Support for optional parameters not conform to latest spec.
 named_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
 positional_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
+named_parameters_test/0*: Fail # Support for optional parameters not conform to latest spec.
+named_parameters_test/1*: Fail # Support for optional parameters not conform to latest spec.
+named_parameters_with_object_property_names_test: Fail # Support for optional parameters not conform to latest spec.
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
@@ -116,9 +130,6 @@ get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/09: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/10: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/11: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
@@ -137,9 +148,6 @@ method_override2_test/03: Fail # accepts illegal override
 implicit_this_test/02: Fail # instantiation of abstract class
 implicit_this_test/03: Fail # instantiation of abstract class
 abstract_getter_test/01: Fail # instantiation of abstract class
-interface_negative_test: Fail # instantiation of abstract class
-interface_test/00: Fail # instantiation of abstract class
-abstract_factory_constructor_test/00: Fail # instantiation of abstract class
 abstract_factory_constructor_test/01: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters2_test: Fail # Unimplemented non-matching static call
@@ -304,7 +312,6 @@ assign_top_method_negative_test: Crash
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
-raw_string_test: Fail
 
 
 [ $compiler == dart2js && $runtime == ie ]

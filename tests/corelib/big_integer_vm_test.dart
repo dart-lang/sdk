@@ -5,13 +5,8 @@
 // TODO(srdjan): Make sure the numbers are Bigint and not Mint or Smi.
 
 #library("BigIntegerTest.dart");
-#import("dart:coreimpl");
 
 class BigIntegerTest {
-
-  static void checkBigint(int a) {
-    Expect.equals(true, (a is Bigint));
-  }
 
   static foo() {
     return 1234567890123456789;
@@ -164,8 +159,6 @@ class BigIntegerTest {
     Expect.equals(1234567890123456, (-1234567890123456).abs());
     var a = 10000000000000000000;
     var b = 10000000000000000001;
-    checkBigint(a);
-    checkBigint(b);
     Expect.equals(false, a.hashCode() == b.hashCode());
     Expect.equals(true, a.hashCode() == (b - 1).hashCode());
   }

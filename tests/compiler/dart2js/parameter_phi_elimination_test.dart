@@ -8,7 +8,7 @@
 
 #import("compiler_helper.dart");
 
-const String SOURCE = @"""
+const String SOURCE = r"""
 bool baz(int a, int b) {
   while (a == b || a < b) {
     a = a + b;

@@ -6,7 +6,7 @@
 
 class Foo {
   num _y;
-  Foo.optional_private([this._y = 77]) {}
+  Foo.optional_private({this._y: 77}) {}
 }
 
 main() {

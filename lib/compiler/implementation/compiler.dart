@@ -574,11 +574,6 @@ class Compiler implements DiagnosticListener {
 
     if (compilationFailed) return;
 
-    // TODO(karlklose): also take the instantiated types into account and move
-    // this computation to before codegen.
-    enqueuer.codegen.universe.computeRequiredTypes(
-        enqueuer.resolution.universe.isChecks);
-
     backend.assembleProgram();
 
     checkQueues();
@@ -733,8 +728,14 @@ class Compiler implements DiagnosticListener {
     backend.codegen(work);
   }
 
-  DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+  DartType resolveTypeAnnotation(Element element,
+                                 TypeAnnotation annotation) {
     return resolver.resolveTypeAnnotation(element, annotation);
+  }
+
+  DartType resolveReturnType(Element element,
+                             TypeAnnotation annotation) {
+    return resolver.resolveReturnType(element, annotation);
   }
 
   FunctionSignature resolveSignature(FunctionElement element) {

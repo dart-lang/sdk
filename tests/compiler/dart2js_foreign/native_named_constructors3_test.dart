@@ -15,7 +15,7 @@ class A  {
 
   factory A.fromString(String s)  => makeA(s.length);
 
-  @native(@'return makeA(a+b);')
+  @native(r'return makeA(a+b);')
   factory A.nativeConstructor(int a, int b);
 
   @native('return this._x;')

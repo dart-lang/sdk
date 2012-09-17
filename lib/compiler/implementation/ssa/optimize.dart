@@ -580,6 +580,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         || type.element === compiler.objectClass) {
       return value;
     }
+    if (types[value].canBeNull() && node.isBooleanConversionCheck) {
+      return node;
+    }
     HType combinedType = types[value].intersection(types[node]);
     return (combinedType == types[value]) ? value : node;
   }

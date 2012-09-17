@@ -16,7 +16,7 @@ ObjectStore::ObjectStore()
   : object_class_(Class::null()),
     function_type_(Type::null()),
     number_type_(Type::null()),
-    int_interface_(Type::null()),
+    int_type_(Type::null()),
     integer_implementation_class_(Class::null()),
     smi_class_(Class::null()),
     mint_class_(Class::null()),

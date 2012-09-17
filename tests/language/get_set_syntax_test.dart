@@ -45,5 +45,5 @@ class C2 {
 }
 
 main() {
-  new C1();           /// 16: runtime error
+  new C1();
 }

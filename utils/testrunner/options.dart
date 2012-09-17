@@ -220,7 +220,7 @@ ArgResults loadConfiguration(optionsParser) {
   // issue a usage message.
   try {
     return optionsParser.parse(options);
-  } catch (var e) {
+  } catch (e) {
     print(e);
     print('Usage: testrunner <options> [<directory or file> ...]');
     print(optionsParser.getUsage());

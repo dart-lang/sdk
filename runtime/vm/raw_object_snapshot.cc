@@ -465,6 +465,54 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
+                                      intptr_t object_id,
+                                      intptr_t tags,
+                                      Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate closure data object.
+  ClosureData& data = ClosureData::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(ClosureData));
+  reader->AddBackRef(object_id, &data, kIsDeserialized);
+
+  // Set the object tags.
+  data.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (data.raw()->to() - data.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(data.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return data.raw();
+}
+
+
+void RawClosureData::WriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kClosureDataCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
@@ -484,10 +532,9 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // Set all the non object fields.
   func.set_token_pos(reader->ReadIntptrValue());
   func.set_end_token_pos(reader->ReadIntptrValue());
-  func.set_num_fixed_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_positional_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_named_parameters(reader->ReadIntptrValue());
   func.set_usage_counter(reader->ReadIntptrValue());
+  func.set_num_fixed_parameters(reader->ReadIntptrValue());
+  func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
   func.set_kind_tag(reader->ReadIntptrValue());
 
@@ -520,10 +567,9 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->WriteIntptrValue(ptr()->end_token_pos_);
-  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_positional_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_named_parameters_);
   writer->WriteIntptrValue(ptr()->usage_counter_);
+  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
+  writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
   writer->WriteIntptrValue(ptr()->kind_tag_);
 

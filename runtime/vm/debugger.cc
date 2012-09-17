@@ -767,6 +767,11 @@ void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
 }
 
 
+Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
+  return (Dart_ExceptionPauseInfo)exc_pause_info_;
+}
+
+
 // TODO(hausner): Determine whether the exception is handled or not.
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                                       const Object& exc) {

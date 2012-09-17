@@ -12,46 +12,46 @@ namespace dart {
 
 // List of intrinsics: (class-name, function-name, intrinsification method).
 #define INTRINSIC_LIST(V)                                                      \
-  V(IntegerImplementation, addFromInteger, Integer_addFromInteger)             \
-  V(IntegerImplementation, +, Integer_add)                                     \
-  V(IntegerImplementation, subFromInteger, Integer_subFromInteger)             \
-  V(IntegerImplementation, -, Integer_sub)                                     \
-  V(IntegerImplementation, mulFromInteger, Integer_mulFromInteger)             \
-  V(IntegerImplementation, *, Integer_mul)                                     \
-  V(IntegerImplementation, %, Integer_modulo)                                  \
-  V(IntegerImplementation, ~/, Integer_truncDivide)                            \
-  V(IntegerImplementation, negate, Integer_negate)                             \
-  V(IntegerImplementation, bitAndFromInteger, Integer_bitAndFromInteger)       \
-  V(IntegerImplementation, &, Integer_bitAnd)                                  \
-  V(IntegerImplementation, bitOrFromInteger, Integer_bitOrFromInteger)         \
-  V(IntegerImplementation, |, Integer_bitOr)                                   \
-  V(IntegerImplementation, bitXorFromInteger, Integer_bitXorFromInteger)       \
-  V(IntegerImplementation, ^, Integer_bitXor)                                  \
-  V(IntegerImplementation, greaterThanFromInteger, Integer_greaterThanFromInt) \
-  V(IntegerImplementation, >, Integer_greaterThan)                             \
-  V(IntegerImplementation, ==, Integer_equal)                                  \
-  V(IntegerImplementation, equalToInteger, Integer_equalToInteger)             \
-  V(IntegerImplementation, <, Integer_lessThan)                                \
-  V(IntegerImplementation, <=, Integer_lessEqualThan)                          \
-  V(IntegerImplementation, >=, Integer_greaterEqualThan)                       \
-  V(IntegerImplementation, <<, Integer_shl)                                    \
-  V(IntegerImplementation, >>, Integer_sar)                                    \
-  V(Smi, ~, Smi_bitNegate)                                                     \
-  V(Double, >, Double_greaterThan)                                             \
-  V(Double, >=, Double_greaterEqualThan)                                       \
-  V(Double, <, Double_lessThan)                                                \
-  V(Double, <=, Double_lessEqualThan)                                          \
-  V(Double, ==, Double_equal)                                                  \
-  V(Double, +, Double_add)                                                     \
-  V(Double, -, Double_sub)                                                     \
-  V(Double, *, Double_mul)                                                     \
-  V(Double, /, Double_div)                                                     \
-  V(Double, toDouble, Double_toDouble)                                         \
-  V(Double, mulFromInteger, Double_mulFromInteger)                             \
-  V(Double, Double.fromInteger, Double_fromInteger)                            \
-  V(Double, isNaN, Double_isNaN)                                               \
-  V(Double, isNegative, Double_isNegative)                                     \
-  V(Double, toInt, Double_toInt)                                               \
+  V(_IntegerImplementation, addFromInteger, Integer_addFromInteger)            \
+  V(_IntegerImplementation, +, Integer_add)                                    \
+  V(_IntegerImplementation, subFromInteger, Integer_subFromInteger)            \
+  V(_IntegerImplementation, -, Integer_sub)                                    \
+  V(_IntegerImplementation, mulFromInteger, Integer_mulFromInteger)            \
+  V(_IntegerImplementation, *, Integer_mul)                                    \
+  V(_IntegerImplementation, %, Integer_modulo)                                 \
+  V(_IntegerImplementation, ~/, Integer_truncDivide)                           \
+  V(_IntegerImplementation, negate, Integer_negate)                            \
+  V(_IntegerImplementation, bitAndFromInteger, Integer_bitAndFromInteger)      \
+  V(_IntegerImplementation, &, Integer_bitAnd)                                 \
+  V(_IntegerImplementation, bitOrFromInteger, Integer_bitOrFromInteger)        \
+  V(_IntegerImplementation, |, Integer_bitOr)                                  \
+  V(_IntegerImplementation, bitXorFromInteger, Integer_bitXorFromInteger)      \
+  V(_IntegerImplementation, ^, Integer_bitXor)                                 \
+  V(_IntegerImplementation, greaterThanFromInteger, Integer_greaterThanFromInt)\
+  V(_IntegerImplementation, >, Integer_greaterThan)                            \
+  V(_IntegerImplementation, ==, Integer_equal)                                 \
+  V(_IntegerImplementation, equalToInteger, Integer_equalToInteger)            \
+  V(_IntegerImplementation, <, Integer_lessThan)                               \
+  V(_IntegerImplementation, <=, Integer_lessEqualThan)                         \
+  V(_IntegerImplementation, >=, Integer_greaterEqualThan)                      \
+  V(_IntegerImplementation, <<, Integer_shl)                                   \
+  V(_IntegerImplementation, >>, Integer_sar)                                   \
+  V(_Smi, ~, Smi_bitNegate)                                                    \
+  V(_Double, >, Double_greaterThan)                                            \
+  V(_Double, >=, Double_greaterEqualThan)                                      \
+  V(_Double, <, Double_lessThan)                                               \
+  V(_Double, <=, Double_lessEqualThan)                                         \
+  V(_Double, ==, Double_equal)                                                 \
+  V(_Double, +, Double_add)                                                    \
+  V(_Double, -, Double_sub)                                                    \
+  V(_Double, *, Double_mul)                                                    \
+  V(_Double, /, Double_div)                                                    \
+  V(_Double, toDouble, Double_toDouble)                                        \
+  V(_Double, mulFromInteger, Double_mulFromInteger)                            \
+  V(_Double, _Double.fromInteger, Double_fromInteger)                          \
+  V(_Double, isNaN, Double_isNaN)                                              \
+  V(_Double, isNegative, Double_isNegative)                                    \
+  V(_Double, toInt, Double_toInt)                                              \
   V(ObjectArray, ObjectArray., ObjectArray_Allocate)                           \
   V(ObjectArray, get:length, Array_getLength)                                  \
   V(ObjectArray, [], Array_getIndexed)                                         \

@@ -28,6 +28,7 @@ DECLARE_RUNTIME_ENTRY(Deoptimize);
 DECLARE_RUNTIME_ENTRY(FixCallersTarget);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs);
+DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs);
 DECLARE_RUNTIME_ENTRY(Instanceof);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
 DECLARE_RUNTIME_ENTRY(InvokeImplicitClosureFunction);

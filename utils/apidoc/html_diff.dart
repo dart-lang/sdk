@@ -11,11 +11,12 @@
 #import('dart:coreimpl');
 #import('dart:io');
 
-#import('../../pkg/dartdoc/dartdoc.dart');
-#import('../../pkg/dartdoc/mirrors/mirrors.dart');
-#import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../pkg/dartdoc/lib/dartdoc.dart');
+#import('../../pkg/dartdoc/lib/mirrors.dart');
+#import('../../pkg/dartdoc/lib/mirrors_util.dart');
 
-final HTML_LIBRARY_NAME = 'dart:html';
+const HTML_LIBRARY_NAME = 'dart:html';
 
 /**
  * A class for computing a many-to-many mapping between the types and
@@ -44,7 +45,7 @@ final HTML_LIBRARY_NAME = 'dart:html';
  * types.
  */
 class HtmlDiff {
-  /** 
+  /**
    * A map from `dart:html` members to the corresponding fully qualified
    * `@domName` member(s).
    */

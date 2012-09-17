@@ -40,6 +40,7 @@ static Dart_Handle CoreLib() {
 
 
 static Dart_Handle MapNew() {
+  // TODO(turnidge): Switch to an order-preserving map type.
   Dart_Handle cls = Dart_GetClass(CoreLib(), Dart_NewString("Map"));
   if (Dart_IsError(cls)) {
     return cls;
@@ -181,7 +182,7 @@ static Dart_Handle UnwrapArgList(Dart_Handle arg_list,
   if (Dart_IsError(result)) {
     return result;
   }
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Dart_Handle arg = Dart_ListGetAt(arg_list, i);
     Dart_Handle unwrapped_arg = UnwrapArg(arg);
     if (Dart_IsError(unwrapped_arg)) {
@@ -193,31 +194,111 @@ static Dart_Handle UnwrapArgList(Dart_Handle arg_list,
 }
 
 
+static Dart_Handle CreateLazyMirror(Dart_Handle target);
+
+
+static Dart_Handle CreateParameterMirrorList(Dart_Handle func) {
+  int64_t fixed_param_count;
+  int64_t opt_param_count;
+  Dart_Handle result = Dart_FunctionParameterCounts(func,
+                                                    &fixed_param_count,
+                                                    &opt_param_count);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
+  int64_t param_count = fixed_param_count + opt_param_count;
+  Dart_Handle parameter_list = Dart_NewList(param_count);
+  if (Dart_IsError(parameter_list)) {
+    return result;
+  }
+
+  Dart_Handle param_cls_name = Dart_NewString("_LocalParameterMirrorImpl");
+  Dart_Handle param_cls = Dart_GetClass(MirrorLib(), param_cls_name);
+  if (Dart_IsError(param_cls)) {
+    return param_cls;
+  }
+
+  for (int64_t i = 0; i < param_count; i++) {
+    Dart_Handle param_type = Dart_FunctionParameterType(func, i);
+    if (Dart_IsError(param_type)) {
+      return param_type;
+    }
+    Dart_Handle args[] = {
+      CreateLazyMirror(param_type),
+      Dart_NewBoolean(i >= fixed_param_count),  // optional param?
+    };
+    Dart_Handle param =
+        Dart_New(param_cls, Dart_Null(), ARRAY_SIZE(args), args);
+    if (Dart_IsError(param)) {
+      return param;
+    }
+    result = Dart_ListSetAt(parameter_list, i, param);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+  }
+  return parameter_list;
+}
+
+
 static Dart_Handle CreateLazyMirror(Dart_Handle target) {
-  if (Dart_IsNull(target)) {
+  if (Dart_IsNull(target) || Dart_IsError(target)) {
     return target;
   }
+
   if (Dart_IsLibrary(target)) {
     Dart_Handle cls_name = Dart_NewString("_LazyLibraryMirror");
     Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
     Dart_Handle args[] = { Dart_LibraryName(target) };
     return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
-  } else {
-    ASSERT(Dart_IsClass(target) || Dart_IsInterface(target));
-    Dart_Handle cls_name = Dart_NewString("_LazyClassMirror");
+  }
+
+  if (Dart_IsClass(target) || Dart_IsInterface(target)) {
+    if (Dart_ClassIsFunctionType(target)) {
+      Dart_Handle cls_name = Dart_NewString("_LazyFunctionTypeMirror");
+      Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+
+      Dart_Handle sig = Dart_ClassGetFunctionTypeSignature(target);
+      Dart_Handle return_type = Dart_FunctionReturnType(sig);
+      if (Dart_IsError(return_type)) {
+        return return_type;
+      }
+
+      Dart_Handle args[] = {
+        CreateLazyMirror(return_type),
+        CreateParameterMirrorList(sig),
+      };
+      return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
+    } else {
+      Dart_Handle cls_name = Dart_NewString("_LazyTypeMirror");
+      Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+      Dart_Handle lib = Dart_ClassGetLibrary(target);
+      Dart_Handle lib_name;
+      if (Dart_IsNull(lib)) {
+        lib_name = Dart_Null();
+      } else {
+        lib_name = Dart_LibraryName(lib);
+      }
+      Dart_Handle args[] = { lib_name, Dart_ClassName(target) };
+      return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
+    }
+  }
+
+  if (Dart_IsTypeVariable(target)) {
+    Dart_Handle var_name = Dart_TypeVariableName(target);
+    Dart_Handle owner = Dart_TypeVariableOwner(target);
+    Dart_Handle owner_mirror = CreateLazyMirror(owner);
+
+    Dart_Handle cls_name = Dart_NewString("_LazyTypeVariableMirror");
     Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
 
-    Dart_Handle lib = Dart_ClassGetLibrary(target);
-    Dart_Handle lib_name;
-    if (Dart_IsNull(lib)) {
-      lib_name = Dart_Null();
-    } else {
-      lib_name = Dart_LibraryName(lib);
-    }
-
-    Dart_Handle args[] = { lib_name, Dart_ClassName(target) };
+    Dart_Handle args[] = { var_name, owner_mirror };
     return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   }
+
+  UNREACHABLE();
+  return Dart_Null();
 }
 
 
@@ -233,7 +314,7 @@ static Dart_Handle CreateImplementsList(Dart_Handle intf) {
     return mirror_list;
   }
 
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Dart_Handle interface = Dart_ClassGetInterfaceAt(intf, i);
     if (Dart_IsError(interface)) {
       return interface;
@@ -251,7 +332,99 @@ static Dart_Handle CreateImplementsList(Dart_Handle intf) {
 }
 
 
-static Dart_Handle CreateMemberMap(Dart_Handle owner);
+static Dart_Handle CreateTypeVariableMirror(Dart_Handle type_var,
+                                            Dart_Handle type_var_name,
+                                            Dart_Handle owner_mirror) {
+  ASSERT(Dart_IsTypeVariable(type_var));
+  Dart_Handle cls_name = Dart_NewString("_LocalTypeVariableMirrorImpl");
+  Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+  if (Dart_IsError(cls)) {
+    return cls;
+  }
+
+  Dart_Handle upper_bound = Dart_TypeVariableUpperBound(type_var);
+  if (Dart_IsError(upper_bound)) {
+    return upper_bound;
+  }
+
+  Dart_Handle args[] = {
+    type_var_name,
+    owner_mirror,
+    CreateLazyMirror(upper_bound),
+  };
+  Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
+  return mirror;
+}
+
+
+static Dart_Handle CreateTypeVariableMap(Dart_Handle owner,
+                                         Dart_Handle owner_mirror) {
+  ASSERT(Dart_IsClass(owner) || Dart_IsInterface(owner));
+  // TODO(turnidge): This should be an immutable map.
+  Dart_Handle map = MapNew();
+  if (Dart_IsError(map)) {
+    return map;
+  }
+
+  Dart_Handle names = Dart_GetTypeVariableNames(owner);
+  if (Dart_IsError(names)) {
+    return names;
+  }
+  intptr_t len;
+  Dart_Handle result = Dart_ListLength(names, &len);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  for (intptr_t i = 0; i < len; i++) {
+    Dart_Handle type_var_name = Dart_ListGetAt(names, i);
+    Dart_Handle type_var = Dart_LookupTypeVariable(owner, type_var_name);
+    if (Dart_IsError(type_var)) {
+      return type_var;
+    }
+    ASSERT(!Dart_IsNull(type_var));
+    Dart_Handle type_var_mirror =
+        CreateTypeVariableMirror(type_var, type_var_name, owner_mirror);
+    if (Dart_IsError(type_var_mirror)) {
+      return type_var_mirror;
+    }
+    result = MapAdd(map, type_var_name, type_var_mirror);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+  }
+  return map;
+}
+
+
+static Dart_Handle CreateTypedefMirror(Dart_Handle cls,
+                                       Dart_Handle cls_name,
+                                       Dart_Handle owner,
+                                       Dart_Handle owner_mirror) {
+  Dart_Handle mirror_cls_name = Dart_NewString("_LocalTypedefMirrorImpl");
+  Dart_Handle mirror_cls = Dart_GetClass(MirrorLib(), mirror_cls_name);
+  if (Dart_IsError(mirror_cls)) {
+    return mirror_cls;
+  }
+
+  Dart_Handle referent = Dart_ClassGetTypedefReferent(cls);
+  if (Dart_IsError(referent)) {
+    return referent;
+  }
+
+  Dart_Handle args[] = {
+    cls_name,
+    owner_mirror,
+    CreateLazyMirror(referent),
+  };
+  Dart_Handle mirror =
+      Dart_New(mirror_cls, Dart_Null(), ARRAY_SIZE(args), args);
+  return mirror;
+}
+
+
+static Dart_Handle CreateMemberMap(Dart_Handle owner, Dart_Handle owner_mirror);
+static Dart_Handle CreateConstructorMap(Dart_Handle owner,
+                                        Dart_Handle owner_mirror);
 
 
 static Dart_Handle CreateClassMirror(Dart_Handle intf,
@@ -259,6 +432,12 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
                                      Dart_Handle lib,
                                      Dart_Handle lib_mirror) {
   ASSERT(Dart_IsClass(intf) || Dart_IsInterface(intf));
+  if (Dart_ClassIsTypedef(intf)) {
+    // This class is actually a typedef.  Represent it specially in
+    // reflection.
+    return CreateTypedefMirror(intf, intf_name, lib, lib_mirror);
+  }
+
   Dart_Handle cls_name = Dart_NewString("_LocalClassMirrorImpl");
   Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
   if (Dart_IsError(cls)) {
@@ -271,9 +450,22 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
     super_class = Dart_GetClass(CoreLib(), Dart_NewString("Object"));
   }
   Dart_Handle default_class = Dart_ClassGetDefault(intf);
-  Dart_Handle member_map = CreateMemberMap(intf);
+
+  Dart_Handle intf_mirror = CreateLazyMirror(intf);
+  if (Dart_IsError(intf_mirror)) {
+    return intf_mirror;
+  }
+  Dart_Handle member_map = CreateMemberMap(intf, intf_mirror);
   if (Dart_IsError(member_map)) {
     return member_map;
+  }
+  Dart_Handle constructor_map = CreateConstructorMap(intf, intf_mirror);
+  if (Dart_IsError(constructor_map)) {
+    return constructor_map;
+  }
+  Dart_Handle type_var_map = CreateTypeVariableMap(intf, intf_mirror);
+  if (Dart_IsError(type_var_map)) {
+    return type_var_map;
   }
 
   Dart_Handle args[] = {
@@ -285,6 +477,8 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
     CreateImplementsList(intf),
     CreateLazyMirror(default_class),
     member_map,
+    constructor_map,
+    type_var_map,
   };
   Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   return mirror;
@@ -295,10 +489,10 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
                                       Dart_Handle func_name,
                                       Dart_Handle owner_mirror) {
   ASSERT(Dart_IsFunction(func));
-  Dart_Handle cls_name = Dart_NewString("_LocalMethodMirrorImpl");
-  Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
-  if (Dart_IsError(cls)) {
-    return cls;
+  Dart_Handle mirror_cls_name = Dart_NewString("_LocalMethodMirrorImpl");
+  Dart_Handle mirror_cls = Dart_GetClass(MirrorLib(), mirror_cls_name);
+  if (Dart_IsError(mirror_cls)) {
+    return mirror_cls;
   }
 
   bool is_static = false;
@@ -328,6 +522,11 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
     return result;
   }
 
+  Dart_Handle return_type = Dart_FunctionReturnType(func);
+  if (Dart_IsError(return_type)) {
+    return return_type;
+  }
+
   int64_t fixed_param_count;
   int64_t opt_param_count;
   result = Dart_FunctionParameterCounts(func,
@@ -337,51 +536,12 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
     return result;
   }
 
-  Dart_Handle parameter_mirrors =
-    Dart_NewList(fixed_param_count + opt_param_count);
-  if (Dart_IsError(parameter_mirrors)) {
-    return result;
-  }
-
-  Dart_Handle param_cls_name = Dart_NewString("_LocalParameterMirrorImpl");
-  Dart_Handle param_cls = Dart_GetClass(MirrorLib(), param_cls_name);
-  if (Dart_IsError(param_cls)) {
-    return param_cls;
-  }
-
-  // TODO(rmacnak): Fill the parameter mirrors with more than whether they are
-  // are optional.
-  for (int i = 0; i < fixed_param_count; i++) {
-    Dart_Handle args[] = { Dart_False() };
-    Dart_Handle fixed_param =
-      Dart_New(param_cls, Dart_Null(), ARRAY_SIZE(args), args);
-    if (Dart_IsError(fixed_param)) {
-     return fixed_param;
-    }
-    result = Dart_ListSetAt(parameter_mirrors, i, fixed_param);
-    if (Dart_IsError(result)) {
-     return result;
-    }
-  }
-
-  for (int i = 0; i < opt_param_count; i++) {
-    Dart_Handle args[] = { Dart_True() };
-    Dart_Handle opt_param =
-      Dart_New(param_cls, Dart_Null(), ARRAY_SIZE(args), args);
-    if (Dart_IsError(opt_param)) {
-     return opt_param;
-    }
-    result = Dart_ListSetAt(parameter_mirrors, i+fixed_param_count, opt_param);
-    if (Dart_IsError(result)) {
-     return result;
-    }
-  }
-
   // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
   Dart_Handle args[] = {
     func_name,
     owner_mirror,
-    parameter_mirrors,
+    CreateParameterMirrorList(func),
+    CreateLazyMirror(return_type),
     Dart_NewBoolean(is_static),
     Dart_NewBoolean(is_abstract),
     Dart_NewBoolean(is_getter),
@@ -392,7 +552,8 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
     Dart_False(),
     Dart_False(),
   };
-  Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
+  Dart_Handle mirror =
+      Dart_New(mirror_cls, Dart_Null(), ARRAY_SIZE(args), args);
   return mirror;
 }
 
@@ -419,9 +580,15 @@ static Dart_Handle CreateVariableMirror(Dart_Handle var,
     return result;
   }
 
+  Dart_Handle type = Dart_VariableType(var);
+  if (Dart_IsError(type)) {
+    return type;
+  }
+
   Dart_Handle args[] = {
     var_name,
     lib_mirror,
+    CreateLazyMirror(type),
     Dart_NewBoolean(is_static),
     Dart_NewBoolean(is_final),
   };
@@ -444,7 +611,7 @@ static Dart_Handle AddMemberClasses(Dart_Handle map,
   if (Dart_IsError(result)) {
     return result;
   }
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Dart_Handle intf_name = Dart_ListGetAt(names, i);
     Dart_Handle intf = Dart_GetClass(owner, intf_name);
     if (Dart_IsError(intf)) {
@@ -477,13 +644,68 @@ static Dart_Handle AddMemberFunctions(Dart_Handle map,
   if (Dart_IsError(result)) {
     return result;
   }
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Dart_Handle func_name = Dart_ListGetAt(names, i);
     Dart_Handle func = Dart_LookupFunction(owner, func_name);
     if (Dart_IsError(func)) {
       return func;
     }
     ASSERT(!Dart_IsNull(func));
+
+    bool is_constructor = false;
+    result = Dart_FunctionIsConstructor(func, &is_constructor);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    if (is_constructor) {
+      // Skip constructors.
+      continue;
+    }
+
+    Dart_Handle func_mirror = CreateMethodMirror(func, func_name, owner_mirror);
+    if (Dart_IsError(func_mirror)) {
+      return func_mirror;
+    }
+    result = MapAdd(map, func_name, func_mirror);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+  }
+  return Dart_True();
+}
+
+
+static Dart_Handle AddConstructors(Dart_Handle map,
+                                   Dart_Handle owner,
+                                   Dart_Handle owner_mirror) {
+  Dart_Handle result;
+  Dart_Handle names = Dart_GetFunctionNames(owner);
+  if (Dart_IsError(names)) {
+    return names;
+  }
+  intptr_t len;
+  result = Dart_ListLength(names, &len);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  for (intptr_t i = 0; i < len; i++) {
+    Dart_Handle func_name = Dart_ListGetAt(names, i);
+    Dart_Handle func = Dart_LookupFunction(owner, func_name);
+    if (Dart_IsError(func)) {
+      return func;
+    }
+    ASSERT(!Dart_IsNull(func));
+
+    bool is_constructor = false;
+    result = Dart_FunctionIsConstructor(func, &is_constructor);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    if (!is_constructor) {
+      // Skip non-constructors.
+      continue;
+    }
+
     Dart_Handle func_mirror = CreateMethodMirror(func, func_name, owner_mirror);
     if (Dart_IsError(func_mirror)) {
       return func_mirror;
@@ -510,7 +732,7 @@ static Dart_Handle AddMemberVariables(Dart_Handle map,
   if (Dart_IsError(result)) {
     return result;
   }
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Dart_Handle var_name = Dart_ListGetAt(names, i);
     Dart_Handle var = Dart_LookupVariable(owner, var_name);
     if (Dart_IsError(var)) {
@@ -530,9 +752,9 @@ static Dart_Handle AddMemberVariables(Dart_Handle map,
 }
 
 
-static Dart_Handle CreateMemberMap(Dart_Handle owner) {
+static Dart_Handle CreateMemberMap(Dart_Handle owner,
+                                   Dart_Handle owner_mirror) {
   // TODO(turnidge): This should be an immutable map.
-  Dart_Handle owner_mirror = CreateLazyMirror(owner);
   if (Dart_IsError(owner_mirror)) {
     return owner_mirror;
   }
@@ -556,13 +778,33 @@ static Dart_Handle CreateMemberMap(Dart_Handle owner) {
 }
 
 
+static Dart_Handle CreateConstructorMap(Dart_Handle owner,
+                                        Dart_Handle owner_mirror) {
+  // TODO(turnidge): This should be an immutable map.
+  if (Dart_IsError(owner_mirror)) {
+    return owner_mirror;
+  }
+  Dart_Handle result;
+  Dart_Handle map = MapNew();
+  result = AddConstructors(map, owner, owner_mirror);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  return map;
+}
+
+
 static Dart_Handle CreateLibraryMirror(Dart_Handle lib) {
   Dart_Handle cls_name = Dart_NewString("_LocalLibraryMirrorImpl");
   Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
   if (Dart_IsError(cls)) {
     return cls;
   }
-  Dart_Handle member_map = CreateMemberMap(lib);
+  Dart_Handle lazy_lib_mirror = CreateLazyMirror(lib);
+  if (Dart_IsError(lazy_lib_mirror)) {
+    return lazy_lib_mirror;
+  }
+  Dart_Handle member_map = CreateMemberMap(lib, lazy_lib_mirror);
   if (Dart_IsError(member_map)) {
     return member_map;
   }
@@ -594,7 +836,7 @@ static Dart_Handle CreateLibrariesMap() {
   if (Dart_IsError(result)) {
     return result;
   }
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Dart_Handle lib_url = Dart_ListGetAt(lib_urls, i);
     Dart_Handle lib = Dart_LookupLibrary(lib_url);
     if (Dart_IsError(lib)) {
@@ -677,47 +919,59 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
   }
   ASSERT(Dart_IsInstance(instance));
 
-  bool is_closure = Dart_IsClosure(instance);
-  Dart_Handle cls_name = Dart_NewString(
-    is_closure ? "_LocalClosureMirrorImpl" : "_LocalInstanceMirrorImpl");
-  Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
-  if (Dart_IsError(cls)) {
-    return cls;
-  }
   Dart_Handle instance_cls = Dart_InstanceGetClass(instance);
   if (Dart_IsError(instance_cls)) {
     return instance_cls;
   }
 
-  Dart_Handle args[] = {
-    CreateVMReference(instance),
-    CreateLazyMirror(instance_cls),
-    instance
-  };
-  Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
-
-  if (is_closure) {
+  if (Dart_IsClosure(instance)) {
+    Dart_Handle cls_name = Dart_NewString("_LocalClosureMirrorImpl");
+    Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+    if (Dart_IsError(cls)) {
+      return cls;
+    }
     // We set the function field of ClosureMirrors outside of the constructor
     // to break the mutual recursion.
     Dart_Handle func = Dart_ClosureFunction(instance);
     if (Dart_IsError(func)) {
       return func;
     }
+
+    // TODO(turnidge): Why not use the real function name here?
     Dart_Handle func_name = Dart_NewString("call");
-    // TODO(turnidge): Passing in 'mirror' here as the method owner
-    // seems wrong to me.  Investigate.
-    Dart_Handle func_mirror = CreateMethodMirror(func, func_name, mirror);
+    Dart_Handle func_owner = Dart_FunctionOwner(func);
+    if (Dart_IsError(func_owner)) {
+      return func_owner;
+    }
+
+    // TODO(turnidge): Pass the function owner here.  This will require
+    // us to support functions in CreateLazyMirror.
+    Dart_Handle func_mirror =
+        CreateMethodMirror(func, func_name, Dart_Null());
     if (Dart_IsError(func_mirror)) {
       return func_mirror;
     }
+    Dart_Handle args[] = {
+      CreateVMReference(instance),
+      CreateLazyMirror(instance_cls),
+      instance,
+      func_mirror,
+    };
+    return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
 
-    Dart_Handle func_field_name = Dart_NewString("_function");
-    Dart_Handle result = Dart_SetField(mirror, func_field_name, func_mirror);
-    if (Dart_IsError(result)) {
-      return result;
+  } else {
+    Dart_Handle cls_name = Dart_NewString("_LocalInstanceMirrorImpl");
+    Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+    if (Dart_IsError(cls)) {
+      return cls;
     }
+    Dart_Handle args[] = {
+      CreateVMReference(instance),
+      CreateLazyMirror(instance_cls),
+      instance,
+    };
+    return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   }
-  return mirror;
 }
 
 

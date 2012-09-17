@@ -58,9 +58,12 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 
-  // EDI: allocation size.
   __ movl(EAX, Address::Absolute(heap->TopAddress()));
-  __ leal(EBX, Address(EAX, EDI, TIMES_1, 0));
+  __ movl(EBX, EAX);
+
+  // EDI: allocation size.
+  __ addl(EBX, EDI);
+  __ j(CARRY, &fall_through);
 
   // Check if the allocation fits into the remaining space.
   // EAX: potential new object start.
@@ -215,7 +218,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     // Check for int and num.
     __ testl(EDI, Immediate(kSmiTagMask));  // Value is Smi?
     __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
-    __ CompareObject(EAX, Type::ZoneHandle(Type::IntInterface()));
+    __ CompareObject(EAX, Type::ZoneHandle(Type::IntType()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     __ CompareObject(EAX, Type::ZoneHandle(Type::Number()));
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
@@ -468,13 +471,15 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
 }
 
 
-// Assumes the first argument is a byte array, tests if the second
-// argument is a smi, tests if the smi is within bounds of the array
-// length, and jumps to label fall_through if any test fails.  Leaves
-// the second argument in EBX.
+// Places the address of the ByteArray in EAX.
+// Places the Smi index in EBX.
+// Tests if EBX contains an Smi, jumps to label fall_through if false.
+// Tests if index in EBX is within bounds, jumps to label fall_through if not.
+// Leaves the index as an Smi in EBX.
+// Leaves the ByteArray address in EAX.
 static void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Array.
-  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
   // Range check.

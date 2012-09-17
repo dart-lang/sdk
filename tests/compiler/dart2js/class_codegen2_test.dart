@@ -6,7 +6,7 @@
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 class A { foo() => 499; }
 class B { bar() => 42; }
 
@@ -16,7 +16,7 @@ main() {
 }
 """;
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 class A {
   foo() => 499;
   bar() => 42;
@@ -28,7 +28,7 @@ main() {
 }
 """;
 
-const String TEST_THREE = @"""
+const String TEST_THREE = r"""
 class A {
   foo() => 499;
   bar() => 42;
@@ -72,7 +72,7 @@ main() {
 }
 """;
 
-const String TEST_FOUR = @"""
+const String TEST_FOUR = r"""
 class A { foo() => 499; }
 
 foo(f) { f(); }
@@ -85,7 +85,7 @@ main() {
 main() {
   // At some point Dart2js generated bad object literals with dangling commas:
   // { a: true, }. Make sure this doesn't happen again.
-  RegExp danglingComma = const RegExp(@',[ \n]*}');
+  RegExp danglingComma = const RegExp(r',[ \n]*}');
   String generated = compileAll(TEST_ONE);
   Expect.isFalse(danglingComma.hasMatch(generated));
 

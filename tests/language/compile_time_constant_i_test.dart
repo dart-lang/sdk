@@ -41,7 +41,7 @@ const b2 = const B.redirect(1234, 5678);
 const b3 = const B.redirect2(112233, 556677);
 const b4 = const B.redirect3(332211, 776655);
 const b5 = const B.optional(43526);
-const b6 = const B.optional2(y: 9753, x:8642);
+const b6 = const B.optional2(8642, 9753);
 const b3b = const B(112233 + 122 + 1, 556677 + 122);
 const b6b = const B(8642, 9753);
 

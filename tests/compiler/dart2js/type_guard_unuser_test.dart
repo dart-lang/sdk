@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST_ONE = @"""
+const String TEST_ONE = r"""
 foo(a) {
   int c = foo(true);
   if (a) c = foo(2);
@@ -13,7 +13,7 @@ foo(a) {
 """;
 
 
-const String TEST_TWO = @"""
+const String TEST_TWO = r"""
 bar(a) {}
 foo(d) {
   int a = 1;
@@ -23,13 +23,13 @@ foo(d) {
 }
 """;
 
-const String TEST_THREE = @"""
+const String TEST_THREE = r"""
 foo(int param1, int param2) {
   return 0 + param1 + param2;
 }
 """;
 
-const String TEST_THREE_WITH_BAILOUT = @"""
+const String TEST_THREE_WITH_BAILOUT = r"""
 foo(int param1, int param2) {
   var t;
   for (int i = 0; i < 1; i++) {
@@ -44,7 +44,7 @@ main() {
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 0);
-  Expect.isTrue(generated.contains(@'return a === true ? $.foo(2) : c;'));
+  Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : c;'));
 
   generated = compile(TEST_TWO, 'foo');
   regexp = const RegExp("foo\\(1\\)");

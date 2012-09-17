@@ -17,6 +17,7 @@
 namespace dart {
 
 DECLARE_FLAG(int, code_heap_size);
+DECLARE_FLAG(int, heap_growth_space_ratio);
 
 // The BENCHMARK macro is used for benchmarking a specific functionality
 // of the VM
@@ -25,6 +26,7 @@ DECLARE_FLAG(int, code_heap_size);
   static const Benchmark kRegister##name(Dart_Benchmark##name, #name);         \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
+    FLAG_heap_growth_space_ratio = 100;                                        \
     FLAG_code_heap_size = 12;                                                  \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
     Zone __zone__(benchmark->isolate());                                       \

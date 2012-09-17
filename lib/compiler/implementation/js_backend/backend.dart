@@ -459,7 +459,6 @@ class JavaScriptBackend extends Backend {
 
   void enqueueHelpers(Enqueuer world) {
     enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
-    enqueueAllTopLevelFunctions(compiler.interceptorsLibrary, world);
 
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));

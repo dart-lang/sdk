@@ -1361,6 +1361,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0xB8 + dst);
     buffer_.EmitObject(object);
@@ -1373,6 +1374,7 @@ void Assembler::PushObject(const Object& object) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0x68);
     buffer_.EmitObject(object);
@@ -1385,6 +1387,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     if (reg == EAX) {
       EmitUint8(0x05 + (7 << 3));

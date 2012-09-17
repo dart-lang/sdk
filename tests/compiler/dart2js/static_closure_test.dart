@@ -7,7 +7,7 @@
 #import("compiler_helper.dart");
 
 main() {
-  String code = compileAll(@'''main() { print(main); }''');
+  String code = compileAll(r'''main() { print(main); }''');
 
   // At some point, we will have to closurize global functions
   // differently, at which point this test will break. Then it is time
@@ -16,5 +16,5 @@ main() {
 
   // If this test fail, please take a look at the use of
   // toStringWrapper in captureStackTrace in js_helper.dart.
-  Expect.isTrue(code.contains(@'print($.main);'));
+  Expect.isTrue(code.contains(r'print($.main);'));
 }

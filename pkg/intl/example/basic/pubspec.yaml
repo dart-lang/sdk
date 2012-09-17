@@ -1,0 +1,9 @@
+name: IntlExample
+description: >
+  An example using internationalization facilities
+dependencies:
+  intl:
+    sdk: intl
+  htmlescape:
+    sdk: htmlescape
+

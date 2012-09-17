@@ -212,6 +212,14 @@ class ResolverTask extends CompilerTask {
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
+    DartType type = resolveReturnType(element, annotation);
+    if (type == compiler.types.voidType) {
+      error(annotation, MessageKind.VOID_NOT_ALLOWED);
+    }
+    return type;
+  }
+
+  DartType resolveReturnType(Element element, TypeAnnotation annotation) {
     if (annotation === null) return compiler.types.dynamicType;
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
     DartType result = visitor.resolveTypeAnnotation(annotation);
@@ -1046,7 +1054,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       Element element = lookup(node, node.source);
       if (element === null) {
-        if (!inInstanceContext) error(node, MessageKind.CANNOT_RESOLVE, [node]);
+        if (!inInstanceContext) {
+          element = warnAndCreateErroneousElement(node, node.source,
+                                                  MessageKind.CANNOT_RESOLVE,
+                                                  [node]);
+        }
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           // TODO(ahe): Improve error message. Need UX input.
@@ -1293,6 +1305,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       ClassElement receiverClass = resolvedReceiver;
       target = receiverClass.ensureResolved(compiler).lookupLocalMember(name);
       if (target === null) {
+        // TODO(karlklose): this should be reported by the caller of
+        // [resolveSend] to select better warning messages for getters and
+        // setters.
         return warnAndCreateErroneousElement(node, name,
                                              MessageKind.METHOD_NOT_FOUND,
                                              [receiverClass.name, name]);
@@ -1396,8 +1411,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
-      if (Elements.isUnresolved(target) && !inInstanceContext) {
-        error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
+      if (target == null && !inInstanceContext) {
+        target =
+            warnAndCreateErroneousElement(node.selector, field.name,
+                                          MessageKind.CANNOT_RESOLVE_GETTER,
+                                          [node.selector]);
       }
     }
 
@@ -1460,10 +1478,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       setter = field.setter;
       getter = field.getter;
       if (setter == null && !inInstanceContext) {
-        error(node.selector, MessageKind.CANNOT_RESOLVE_SETTER);
+        setter =
+            warnAndCreateErroneousElement(node.selector, field.name,
+                                          MessageKind.CANNOT_RESOLVE_SETTER,
+                                          [node.selector]);
       }
       if (isComplex && getter == null && !inInstanceContext) {
-        error(node.selector, MessageKind.CANNOT_RESOLVE_GETTER);
+        getter =
+            warnAndCreateErroneousElement(node.selector, field.name,
+                                          MessageKind.CANNOT_RESOLVE_GETTER,
+                                          [node.selector]);
       }
     }
 
@@ -1523,10 +1547,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (!target.isClass()) world.registerStaticUse(target);
     }
 
-    // TODO(kasperl): Pass the selector directly.
-    var interceptor = new Interceptors(compiler).getStaticInterceptor(
-        selector.name,
-        selector.argumentCount);
+    var interceptor =
+        new Interceptors(compiler).getStaticInterceptorBySelector(selector);
     if (interceptor !== null) {
       world.registerStaticUse(interceptor);
     }
@@ -1657,13 +1679,43 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
+  void analyzeTypeArgument(DartType annotation, DartType argument) {
+    if (argument == null) return;
+    if (argument.element.isTypeVariable()) {
+      // Register a dependency between the class where the type
+      // variable is, and the annotation. If the annotation requires
+      // runtime type information, then the class of the type variable
+      // does too.
+      compiler.world.registerRtiDependency(
+          annotation.element,
+          argument.element.enclosingElement);
+    } else if (argument is InterfaceType) {
+      InterfaceType type = argument;
+      type.arguments.forEach((DartType argument) {
+        analyzeTypeArgument(type, argument);
+      });
+    }
+  }
+
   DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
     DartType type = typeResolver.resolveTypeAnnotation(node, inScope: scope,
                                                        onFailure: report,
                                                        whenResolved: useType);
-    if (inCheckContext && type != null) {
+    if (type == null) return null;
+    if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type);
+    }
+    if (typeRequired || inCheckContext) {
+      if (type is InterfaceType) {
+        InterfaceType itf = type;
+        itf.arguments.forEach((DartType argument) {
+          analyzeTypeArgument(type, argument);
+        });
+      }
+      // TODO(ngeoffray): Also handle cases like:
+      // 1) a is T
+      // 2) T a (in checked mode).
     }
     return type;
   }
@@ -2372,6 +2424,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     Element variables = new VariableListElement.node(currentDefinitions,
         ElementKind.VARIABLE_LIST, enclosingElement);
+    // Ensure a parameter is not typed 'void'.
+    variables.computeType(compiler);
     return new VariableElement(node.source, variables,
         ElementKind.PARAMETER, enclosingElement, node: node);
   }
@@ -2491,7 +2545,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       requiredParameterCount  = parametersBuilder.length;
       parameters = parametersBuilder.toLink();
     }
-    DartType returnType = compiler.resolveTypeAnnotation(element, returnNode);
+    DartType returnType = compiler.resolveReturnType(element, returnNode);
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
                                  requiredParameterCount,

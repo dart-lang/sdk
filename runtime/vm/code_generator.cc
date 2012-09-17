@@ -980,6 +980,29 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
 }
 
 
+// Handles inline cache misses by updating the IC data array of the call
+// site.
+//   Arg0: Receiver object.
+//   Arg1: Argument after receiver.
+//   Arg2: Second argument after receiver.
+//   Returns: target function with compiled code or null.
+// Modifies the instance call to hold the updated IC data array.
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 3) {
+  ASSERT(arguments.Count() ==
+      kInlineCacheMissHandlerThreeArgsRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+  const Instance& arg1 = Instance::CheckedHandle(arguments.At(1));
+  const Instance& arg2 = Instance::CheckedHandle(arguments.At(2));
+  GrowableArray<const Instance*> args(3);
+  args.Add(&receiver);
+  args.Add(&arg1);
+  args.Add(&arg2);
+  const Function& result =
+      Function::Handle(InlineCacheMissHandler(isolate, args));
+  arguments.SetReturn(result);
+}
+
+
 static RawFunction* LookupDynamicFunction(Isolate* isolate,
                                           const Class& in_cls,
                                           const String& name) {

@@ -43,6 +43,18 @@ class Interceptors {
     compiler.unimplemented('Unknown operator', node: op);
   }
 
+  // TODO(karlklose,kasperl): change uses of getStatic[Get|Set]Interceptor to
+  // use this function.
+  Element getStaticInterceptorBySelector(Selector selector) {
+    if (selector.isGetter()) {
+      return getStaticGetInterceptor(selector.name);
+    } else if (selector.isSetter()) {
+      return getStaticSetInterceptor(selector.name);
+    } else {
+      return getStaticInterceptor(selector.name, selector.argumentCount);
+    }
+  }
+
   Element getStaticInterceptor(SourceString name, int parameters) {
     String mangledName = name.slowToString();
     Element element = compiler.findInterceptor(new SourceString(mangledName));
@@ -1232,7 +1244,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // If the class has type variables, create the runtime type
     // information with the type parameters provided.
-    if (!classElement.typeVariables.isEmpty()) {
+    InterfaceType type = classElement.computeType(compiler);
+    if (compiler.world.needsRti(type.element)) {
       List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
@@ -1341,10 +1354,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Add the type parameters of the class as parameters of this
     // method.
-    if (functionElement.isFactoryConstructor()
-        || functionElement.isGenerativeConstructor()) {
-      ClassElement cls = functionElement.enclosingElement;
-      cls.typeVariables.forEach((TypeVariableType typeVariable) {
+    var enclosing = functionElement.enclosingElement;
+    if (functionElement.isConstructor() && compiler.world.needsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = new HParameterValue(typeVariable.element);
         add(param);
         localsHandler.directLocals[typeVariable.element] = param;
@@ -1352,11 +1364,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction potentiallyCheckType(HInstruction original,
-                                    Element sourceElement) {
+  HInstruction potentiallyCheckType(
+      HInstruction original, Element sourceElement,
+      { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
-    HInstruction other = original.convertType(
-        compiler, sourceElement, HTypeConversion.CHECKED_MODE_CHECK);
+    HInstruction other = original.convertType(compiler, sourceElement, kind);
     if (other != original) add(other);
     return other;
   }
@@ -1433,10 +1445,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     stack.add(stack.last());
   }
 
-  HBoolify popBoolified() {
-    HBoolify boolified = new HBoolify(pop());
-    add(boolified);
-    return boolified;
+  HInstruction popBoolified() {
+    HInstruction value = pop();
+    if (compiler.enableTypeAssertions) {
+      return potentiallyCheckType(
+          value,
+          compiler.boolClass,
+          kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+    }
+    HInstruction result = new HBoolify(value);
+    add(result);
+    return result;
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {
@@ -1996,7 +2015,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   String getTargetName(ErroneousElement error, [String prefix = '']) {
-    return '$prefix${error.targetName.slowToString}';
+    return '$prefix${error.targetName.slowToString()}';
   }
 
   void generateInstanceGetterWithCompiledReceiver(Send send,
@@ -2689,9 +2708,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.internalError("malformed send in new expression");
     }
     InterfaceType type = elements.getType(annotation);
-    type.arguments.forEach((DartType argument) {
-      inputs.add(analyzeTypeArgument(argument, node));
-    });
+    if (compiler.world.needsRti(constructor.enclosingElement)) {
+      type.arguments.forEach((DartType argument) {
+        inputs.add(analyzeTypeArgument(argument, node));
+      });
+    }
 
     HType elementType = computeType(constructor);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
@@ -2701,7 +2722,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isListConstructor) {
+    if (isListConstructor && compiler.world.needsRti(compiler.listClass)) {
       handleListConstructor(type, node, newInstance);
     }
   }

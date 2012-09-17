@@ -59,7 +59,6 @@ class ObjectPointerVisitor;
   V(Library, "library")                                                        \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
-  V(Resource, "resource")                                                      \
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
   V(Dynamic, "Dynamic")                                                        \
@@ -71,6 +70,7 @@ class ObjectPointerVisitor;
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
+  V(ClosureData, "ClosureData")                                                \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
   V(TokenStream, "TokenStream")                                                \
@@ -92,12 +92,12 @@ class ObjectPointerVisitor;
   V(LanguageError, "LanguageError")                                            \
   V(UnhandledException, "UnhandledException")                                  \
   V(UnwindError, "UnwindError")                                                \
-  V(IntegerImplementation, "IntegerImplementation")                            \
+  V(IntegerImplementation, "_IntegerImplementation")                           \
   V(Number, "num")                                                             \
-  V(Smi, "Smi")                                                                \
-  V(Mint, "Mint")                                                              \
-  V(Bigint, "Bigint")                                                          \
-  V(Double, "Double")                                                          \
+  V(Smi, "_Smi")                                                               \
+  V(Mint, "_Mint")                                                             \
+  V(Bigint, "_Bigint")                                                         \
+  V(Double, "_Double")                                                         \
   V(Bool, "bool")                                                              \
   V(ObjectArray, "ObjectArray")                                                \
   V(GrowableObjectArray, "GrowableObjectArray")                                \

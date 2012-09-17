@@ -13,11 +13,11 @@ String compileExpression(String expression) {
 
 main() {
   String generated = compileExpression("''' \n\r\u2028\u2029'''");
-  Expect.isTrue(generated.contains(@"\n\r\u2028\u2029"));
+  Expect.isTrue(generated.contains(r"\n\r\u2028\u2029"));
 
-  generated = compileExpression("@''' \n\r\u2028\u2029'''");
-  Expect.isTrue(generated.contains(@"\n\r\u2028\u2029"));
+  generated = compileExpression("r''' \n\r\u2028\u2029'''");
+  Expect.isTrue(generated.contains(r"\n\r\u2028\u2029"));
 
   generated = compileExpression("'\u2028\u2029'");
-  Expect.isTrue(generated.contains(@"\u2028\u2029"));
+  Expect.isTrue(generated.contains(r"\u2028\u2029"));
 }

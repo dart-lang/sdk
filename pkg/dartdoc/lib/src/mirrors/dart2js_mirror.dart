@@ -4,22 +4,24 @@
 
 #library('mirrors.dart2js');
 
-#import('../../../lib/compiler/compiler.dart', prefix: 'diagnostics');
-#import('../../../lib/compiler/implementation/elements/elements.dart');
-#import('../../../lib/compiler/implementation/apiimpl.dart', prefix: 'api');
-#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
-#import('../../../lib/compiler/implementation/leg.dart');
-#import('../../../lib/compiler/implementation/filenames.dart');
-#import('../../../lib/compiler/implementation/source_file.dart');
-#import('../../../lib/compiler/implementation/tree/tree.dart');
-#import('../../../lib/compiler/implementation/util/util.dart');
-#import('../../../lib/compiler/implementation/util/uri_extras.dart');
-#import('../../../lib/compiler/implementation/dart2js.dart');
-#import('mirrors.dart');
-#import('util.dart');
 #import('dart:io');
 #import('dart:uri');
 
+#import('../../../../../lib/compiler/compiler.dart', prefix: 'diagnostics');
+#import('../../../../../lib/compiler/implementation/elements/elements.dart');
+#import('../../../../../lib/compiler/implementation/apiimpl.dart', prefix: 'api');
+#import('../../../../../lib/compiler/implementation/scanner/scannerlib.dart');
+#import('../../../../../lib/compiler/implementation/leg.dart');
+#import('../../../../../lib/compiler/implementation/filenames.dart');
+#import('../../../../../lib/compiler/implementation/source_file.dart');
+#import('../../../../../lib/compiler/implementation/tree/tree.dart');
+#import('../../../../../lib/compiler/implementation/util/util.dart');
+#import('../../../../../lib/compiler/implementation/util/uri_extras.dart');
+#import('../../../../../lib/compiler/implementation/dart2js.dart');
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../mirrors.dart');
+#import('util.dart');
 
 //------------------------------------------------------------------------------
 // Utility types and functions for the dart2js mirror system

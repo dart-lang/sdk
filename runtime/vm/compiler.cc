@@ -197,11 +197,14 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         }
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(*flow_graph);
+        FlowGraphTypePropagator propagator(flow_graph);
         propagator.PropagateTypes();
 
         // Verify that the use lists are still valid.
         DEBUG_ASSERT(flow_graph->ValidateUseLists());
+
+        // Propagate sminess from CheckSmi to phis.
+        optimizer.PropagateSminess();
 
         // Do optimizations that depend on the propagated type information.
         optimizer.OptimizeComputations();
@@ -212,7 +215,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
         if (FLAG_cse) {
           flow_graph->ComputeUseLists();
-          DominatorBasedCSE::Optimize(flow_graph->graph_entry());
+          DominatorBasedCSE::Optimize(flow_graph);
         }
         if (FLAG_licm) {
           LICM::Optimize(flow_graph);
@@ -544,8 +547,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
     func.set_result_type(Type::Handle(Type::DynamicType()));
     func.set_num_fixed_parameters(0);
-    func.set_num_optional_positional_parameters(0);
-    func.set_num_optional_named_parameters(0);
+    func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.
     func.set_is_optimizable(false);
 

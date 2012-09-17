@@ -305,6 +305,13 @@ DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
 
 
 /**
+ * Returns on which exceptions the debugger pauses.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_ExceptionPauseInfo Dart_GetExceptionPauseInfo();
+
+/**
  * Returns in \trace the the current stack trace, or NULL if the
  * VM is not paused.
  *

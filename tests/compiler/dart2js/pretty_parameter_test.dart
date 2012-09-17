@@ -5,19 +5,19 @@
 
 #import("compiler_helper.dart");
 
-const String FOO = @"""
+const String FOO = r"""
 void foo(var a, var b) {
 }
 """;
 
 
-const String BAR = @"""
+const String BAR = r"""
 void bar(var eval, var $eval) {
 }
 """;
 
 
-const String PARAMETER_AND_TEMP = @"""
+const String PARAMETER_AND_TEMP = r"""
 void bar(var t0, var b) {
   {
     var t0 = 2;
@@ -32,7 +32,7 @@ void bar(var t0, var b) {
 }
 """;
 
-const String NO_LOCAL = @"""
+const String NO_LOCAL = r"""
 foo(bar, baz) {
   if (bar) {
     baz = 2;
@@ -43,7 +43,7 @@ foo(bar, baz) {
 }
 """;
 
-const String MULTIPLE_PHIS_ONE_LOCAL = @"""
+const String MULTIPLE_PHIS_ONE_LOCAL = r"""
 foo(param1, param2, param3) {
   var a = 2;
   if (param1) {
@@ -57,7 +57,7 @@ foo(param1, param2, param3) {
 }
 """;
 
-const String PARAMETER_INIT = @"""
+const String PARAMETER_INIT = r"""
 int foo(var start, bool test) {
   var result = start;
   if (test) {
@@ -70,35 +70,35 @@ int foo(var start, bool test) {
 main() {
   String generated = compile(FOO, 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
-  RegExp regexp = const RegExp(@"function\(a, b\) {");
+  RegExp regexp = const RegExp(r"function\(a, b\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(BAR, 'bar');
-  regexp = const RegExp(@"function\(eval\$, \$\$eval\) {");
+  regexp = const RegExp(r"function\(eval\$, \$\$eval\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(PARAMETER_AND_TEMP, 'bar');
-  regexp = const RegExp(@"print\(t0\)");
+  regexp = const RegExp(r"print\(t0\)");
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that the second 't0' got another name.
-  regexp = const RegExp(@"print\(t0_0\)");
+  regexp = const RegExp(r"print\(t0_0\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(NO_LOCAL, 'foo');
   regexp = const RegExp("return baz");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = const RegExp(@"baz = 2");
+  regexp = const RegExp(r"baz = 2");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = const RegExp(@"baz = 3");
+  regexp = const RegExp(r"baz = 3");
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp("bar === true");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(MULTIPLE_PHIS_ONE_LOCAL, 'foo');
-  regexp = const RegExp(@"var a = 2;");
+  regexp = const RegExp(r"var a = 2;");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@"a = 2;");
+  regexp = const RegExp(r"a = 2;");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext());
   matches.next();

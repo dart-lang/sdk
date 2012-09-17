@@ -108,7 +108,6 @@ class LazyLocaleData {
     var data = _reader.read(localeName);
     return jsonData(data).transform( (input) {
         map[localeName] = _creationFunction(input);});
-    return data;
   }
 
   /**

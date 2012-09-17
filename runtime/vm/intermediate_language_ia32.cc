@@ -913,7 +913,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
                     : Location::RequiresRegister());
-  locs->set_in(2, value()->NeedsStoreBuffer()
+  locs->set_in(2, ShouldEmitStoreBarrier()
                     ? Location::WritableRegister()
                     : Location::RegisterOrConstant(value()));
   return locs;
@@ -932,7 +932,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray))
       : FieldAddress(array, index.reg(), TIMES_2, sizeof(RawArray));
 
-  if (this->value()->NeedsStoreBuffer()) {
+  if (ShouldEmitStoreBarrier()) {
     Register value = locs()->in(2).reg();
     __ StoreIntoObject(array, field_address, value);
   } else {
@@ -947,46 +947,36 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* LoadInstanceFieldInstr::MakeLocationSummary() const {
-  // TODO(fschneider): For this instruction the input register may be
-  // reused for the result (but is not required to) because the input
-  // is not used after the result is defined.  We should consider adding
-  // this information to the input policy.
-  return LocationSummary::Make(1,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void LoadInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
-  __ movl(result_reg, FieldAddress(instance_reg, field().Offset()));
-}
-
-
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t num_temps =  0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1,
-      value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                  : Location::RequiresRegister());
+  summary->set_in(1, ShouldEmitStoreBarrier()
+                       ? Location::WritableRegister()
+                       : Location::RegisterOrConstant(value()));
   return summary;
 }
 
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
-  Register value_reg = locs()->in(1).reg();
-  if (this->value()->NeedsStoreBuffer() && emit_store_barrier()) {
+  if (ShouldEmitStoreBarrier()) {
+    Register value_reg = locs()->in(1).reg();
     __ StoreIntoObject(instance_reg,
         FieldAddress(instance_reg, field().Offset()), value_reg);
   } else {
-    __ StoreIntoObjectNoBarrier(instance_reg,
-        FieldAddress(instance_reg, field().Offset()), value_reg);
+    if (locs()->in(1).IsConstant()) {
+      __ StoreIntoObjectNoBarrier(
+          instance_reg,
+          FieldAddress(instance_reg, field().Offset()),
+          locs()->in(1).constant());
+    } else {
+      Register value_reg = locs()->in(1).reg();
+      __ StoreIntoObjectNoBarrier(instance_reg,
+          FieldAddress(instance_reg, field().Offset()), value_reg);
+    }
   }
 }
 
@@ -1118,14 +1108,14 @@ void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
 }
 
 
-LocationSummary* LoadVMFieldInstr::MakeLocationSummary() const {
+LocationSummary* LoadFieldInstr::MakeLocationSummary() const {
   return LocationSummary::Make(1,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
-void LoadVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
@@ -1645,7 +1635,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
       __ cmpl(right,
-          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
+          Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
       __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
       Register right_temp = locs()->temp(1).reg();
       ASSERT(right_temp == ECX);  // Count must be in ECX
@@ -2232,6 +2222,8 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary() const {
 
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(srdjan): Check if we can remove this by reordering CSE and LICM.
+  if (value()->ResultCid() == kSmiCid) return;
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckSmi);
@@ -2245,15 +2237,13 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(0, Location::RegisterOrConstant(array()));
   locs->set_in(1, Location::RegisterOrConstant(index()));
   return locs;
 }
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register receiver = locs()->in(0).reg();
-
   const DeoptReasonId deopt_reason =
       (array_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
@@ -2265,15 +2255,27 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t length_offset = (array_type() == kGrowableObjectArrayCid)
       ? GrowableObjectArray::length_offset()
       : Array::length_offset();
+  // This case should not have created a bound check instruction.
+  ASSERT(!(locs()->in(0).IsConstant() && locs()->in(1).IsConstant()));
 
   if (locs()->in(1).IsConstant()) {
+    Register receiver = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
     const int32_t imm =
         reinterpret_cast<int32_t>(constant.raw());
     __ cmpl(FieldAddress(receiver, length_offset), Immediate(imm));
     __ j(BELOW_EQUAL, deopt);
+  } else if (locs()->in(0).IsConstant()) {
+    const Object& constant = locs()->in(0).constant();
+    ASSERT(constant.IsArray());
+    const Array& array =  Array::Cast(constant);
+    Register index = locs()->in(1).reg();
+    __ cmpl(index,
+        Immediate(reinterpret_cast<int32_t>(Smi::New(array.Length()))));
+    __ j(ABOVE_EQUAL, deopt);
   } else {
+    Register receiver = locs()->in(0).reg();
     Register index = locs()->in(1).reg();
     __ cmpl(index, FieldAddress(receiver, length_offset));
     __ j(ABOVE_EQUAL, deopt);

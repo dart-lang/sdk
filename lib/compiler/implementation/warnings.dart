@@ -88,6 +88,8 @@ class MessageKind {
       "'Object' cannot have a super initializer");
   static const DUPLICATE_SUPER_INITIALIZER = const MessageKind(
       'cannot have more than one super initializer');
+  static const INVALID_ARGUMENTS = const MessageKind(
+      "arguments do not match the expected parameters of #{1}");
   static const NO_MATCHING_CONSTRUCTOR = const MessageKind(
       "super call arguments and constructor parameters don't match");
   static const NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT = const MessageKind(
@@ -242,10 +244,13 @@ class MessageKind {
       "Error: parameter name expected.");
 
   static const CANNOT_RESOLVE_GETTER = const MessageKind(
-      'Cannot resolve getter.');
+      'cannot resolve getter.');
 
   static const CANNOT_RESOLVE_SETTER = const MessageKind(
-      'Cannot resolve setter.');
+      'cannot resolve setter.');
+
+  static const VOID_NOT_ALLOWED = const MessageKind(
+      'type void is only allowed in a return type.');
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

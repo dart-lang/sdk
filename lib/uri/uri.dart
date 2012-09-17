@@ -49,7 +49,7 @@ class Uri {
 
   static int _parseIntOrZero(String val) {
     if (val !== null && val != '') {
-      return parseInt(val);
+      return int.parse(val);
     } else {
       return 0;
     }

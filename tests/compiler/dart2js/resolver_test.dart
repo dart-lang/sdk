@@ -663,7 +663,7 @@ testInitializers() {
                 A.a() : this.b(0);
                 A.b(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", @"A$a", 1,
+  resolveConstructor(script, "A a = new A.a();", "A", r"A$a", 1,
                      [], []);
 
   script = """class A {
@@ -671,7 +671,7 @@ testInitializers() {
                 A.a() : i = 42, this(0);
                 A(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", @"A$a", 2,
+  resolveConstructor(script, "A a = new A.a();", "A", r"A$a", 2,
                      [], [MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER]);
 
   script = """class A {
@@ -743,7 +743,7 @@ checkMemberResolved(compiler, className, memberName) {
 }
 
 testToString() {
-  final script = @"class C { toString() => 'C'; } main() { '${new C()}'; }";
+  final script = r"class C { toString() => 'C'; } main() { '${new C()}'; }";
   final compiler = compileScript(script);
 
   checkMemberResolved(compiler, 'C', buildSourceString('toString'));
@@ -754,7 +754,7 @@ operatorName(op, isUnary) {
 }
 
 testIndexedOperator() {
-  final script = @"""
+  final script = r"""
       class C {
         operator[](ix) => ix;
         operator[]=(ix, v) {}
@@ -767,7 +767,7 @@ testIndexedOperator() {
 }
 
 testIncrementsAndDecrements() {
-  final script = @"""
+  final script = r"""
       class A { operator+(o)=>null; }
       class B { operator+(o)=>null; }
       class C { operator-(o)=>null; }

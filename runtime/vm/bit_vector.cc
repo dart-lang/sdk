@@ -33,7 +33,23 @@ void BitVector::Iterator::Advance() {
 }
 
 
-bool BitVector::AddAll(BitVector* from) {
+bool BitVector::Equals(const BitVector& other) const {
+  if (length_ != other.length_) return false;
+  intptr_t i = 0;
+  for (; i < data_length_ - 1; i++) {
+    if (data_[i] != other.data_[i]) return false;
+  }
+  if (i < data_length_) {
+    // Don't compare bits beyond length_.
+    uword mask =
+        static_cast<uword>(-1) >> (kBitsPerWord - (length_ % kBitsPerWord));
+    if ((data_[i] & mask) != (other.data_[i] & mask)) return false;
+  }
+  return true;
+}
+
+
+bool BitVector::AddAll(const BitVector* from) {
   ASSERT(data_length_ == from->data_length_);
   bool changed = false;
   for (intptr_t i = 0; i < data_length_; i++) {
@@ -59,5 +75,21 @@ bool BitVector::KillAndAdd(BitVector* kill, BitVector* gen) {
   return changed;
 }
 
+
+void BitVector::Intersect(const BitVector& other) {
+  ASSERT(other.length() == length());
+  for (int i = 0; i < data_length_; i++) {
+    data_[i] = data_[i] & other.data_[i];
+  }
+}
+
+
+void BitVector::Print() const {
+  OS::Print("[");
+  for (intptr_t i = 0; i < length_; i++) {
+    OS::Print(Contains(i) ? "1" : "0");
+  }
+  OS::Print("]");
+}
 
 }  // namespace dart

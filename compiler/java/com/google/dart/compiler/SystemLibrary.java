@@ -56,6 +56,10 @@ public class SystemLibrary {
     return implementation;
   }
 
+  public boolean isShared(){
+    return category.equals("Shared");
+  }
+  
   public String getHost() {
     return host;
   }

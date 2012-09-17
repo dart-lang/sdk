@@ -5,17 +5,17 @@
 // Checks that an overriding method has compatible parameters.
 
 interface I {
-  m([a, b]);
+  m({a, b});
 }
 
 interface J extends I { }
 
 interface K extends J {
-  m([c, d]);  /// 00: compile-time error
+  m({c, d});  /// 00: compile-time error
 }
 
 class C implements I {
-  m([a, b]) {
+  m({a, b}) {
     print("$a $b");
   }
 }
@@ -25,7 +25,7 @@ class D
     implements I  /// 02: compile-time error
     implements J  /// 03: compile-time error
 {
-  m([c, d]) {
+  m({c, d}) {
     print("$c $d");
   }
 }

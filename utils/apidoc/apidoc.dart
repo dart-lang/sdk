@@ -18,9 +18,10 @@
 #import('dart:io');
 #import('dart:json');
 #import('html_diff.dart');
-#import('../../pkg/dartdoc/mirrors/mirrors.dart');
-#import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
-#import('../../pkg/dartdoc/dartdoc.dart', prefix: 'doc');
+// TODO(rnystrom): Use "package:" URL (#4968).
+#import('../../pkg/dartdoc/lib/mirrors.dart');
+#import('../../pkg/dartdoc/lib/mirrors_util.dart');
+#import('../../pkg/dartdoc/lib/dartdoc.dart', prefix: 'doc');
 #import('../../lib/_internal/libraries.dart');
 
 HtmlDiff _diff;
@@ -60,15 +61,17 @@ void main() {
     }
   }
 
+  final libPath = doc.scriptDir.append('../../');
+
   doc.cleanOutputDirectory(outputDir);
 
   // The basic dartdoc-provided static content.
-  final Future copiedStatic = doc.copyDirectory(
+  final copiedStatic = doc.copyDirectory(
       doc.scriptDir.append('../../pkg/dartdoc/static'),
       outputDir);
 
   // The apidoc-specific static content.
-  final Future copiedApiDocStatic = doc.copyDirectory(
+  final copiedApiDocStatic = doc.copyDirectory(
       doc.scriptDir.append('static'),
       outputDir);
 
@@ -77,7 +80,7 @@ void main() {
   final mdn = JSON.parse(mdnFile.readAsTextSync());
 
   print('Cross-referencing dart:html...');
-  HtmlDiff.initialize(doc.libPath);
+  HtmlDiff.initialize(libPath);
   _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
 
@@ -87,7 +90,7 @@ void main() {
   htmldoc.includeApi = true;
   htmldoc.documentLibraries(
     <Path>[doc.scriptDir.append('../../lib/html/doc/html.dartdoc')],
-    doc.libPath);
+    libPath);
 
   // Process libraries.
 
@@ -102,19 +105,28 @@ void main() {
   });
 
   final includedLibraries = <String>[];
-  var lister = new Directory.fromPath(
-      doc.scriptDir.append('../../pkg')).list();
+
+  var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
     var path = new Path.fromNative(dirPath);
-    var libname = path.filename;
-    path = path.append('${libname}.dart');
-    if (new File.fromPath(path).existsSync()) {
-      apidocLibraries.add(path);
-      includedLibraries.add(libname);
+    var libName = path.filename;
+
+    // TODO(rnystrom): Get rid of oldStylePath support when all packages are
+    // using new layout. See #5106.
+    var oldStylePath = path.append('${libName}.dart');
+    var newStylePath = path.append('lib/${libName}.dart');
+
+    if (new File.fromPath(oldStylePath).existsSync()) {
+      apidocLibraries.add(oldStylePath);
+      includedLibraries.add(libName);
+    } else if (new File.fromPath(newStylePath).existsSync()) {
+      apidocLibraries.add(newStylePath);
+      includedLibraries.add(libName);
     } else {
       print('Warning: could not find package at $path');
     }
   };
+
   lister.onDone = (success) {
     print('Generating docs...');
     final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
@@ -124,12 +136,9 @@ void main() {
     apidoc.includedLibraries = includedLibraries;
 
     Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
-      apidoc.documentLibraries(apidocLibraries, doc.libPath);
+      apidoc.documentLibraries(apidocLibraries, libPath);
 
-      final clientScript = (mode == doc.MODE_STATIC) ? 'static' : 'live-nav';
-      final Future compiled = doc.compileScript(
-          apidoc.dartdocPath.append('client-$clientScript.dart'),
-          outputDir.append('client-$clientScript.js'));
+      final compiled = doc.compileScript(mode, outputDir, libPath);
 
       Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
         apidoc.cleanup();

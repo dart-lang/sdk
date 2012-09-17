@@ -37,5 +37,5 @@ class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
 
 main() {
   // instantiate an abstract class
-  var o = new Bi(); /// 00: static type warning, runtime error
+  var o = new Bi(); /// 00: static type warning
 }

@@ -143,6 +143,12 @@ is 'dart file.dart' and you specify special command
                'silent', 'status', 'buildbot'],
               'compact'),
           new _TestOptionSpecification(
+              'step_name',
+              'Step name for use by -pbuildbot',
+              ['--step_name'],
+              [],
+              'string'),
+          new _TestOptionSpecification(
               'report',
               'Print a summary report of the number of tests, by expectation',
               ['--report'],
@@ -544,6 +550,9 @@ Note: currently only implemented for dart2js.''',
           }
           if (configuration['host_checked']) {
             timeout *= 16;
+          }
+          if (configuration['checked']) {
+            timeout *= 2;
           }
           if (Contains(configuration['runtime'],
                        const ['ie', 'ff', 'chrome', 'safari', 'opera'])) {

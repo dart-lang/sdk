@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Double implements double {
-  factory Double.fromInteger(int value)
+class _Double implements double {
+  factory _Double.fromInteger(int value)
       native "Double_doubleFromInteger";
   int hashCode() {
     try {
@@ -74,22 +74,22 @@ class Double implements double {
     return (this == other) ||  (this < other);
   }
   double addFromInteger(int other) {
-    return new Double.fromInteger(other) + this;
+    return new _Double.fromInteger(other) + this;
   }
   double subFromInteger(int other) {
-    return new Double.fromInteger(other) - this;
+    return new _Double.fromInteger(other) - this;
   }
   double mulFromInteger(int other) {
-    return new Double.fromInteger(other) * this;
+    return new _Double.fromInteger(other) * this;
   }
   double truncDivFromInteger(int other) {
-    return new Double.fromInteger(other) ~/ this;
+    return new _Double.fromInteger(other) ~/ this;
   }
   double moduloFromInteger(int other) {
-    return new Double.fromInteger(other) % this;
+    return new _Double.fromInteger(other) % this;
   }
   double remainderFromInteger(int other) {
-    return new Double.fromInteger(other).remainder(this);
+    return new _Double.fromInteger(other).remainder(this);
   }
 
   bool greaterThanFromInteger(int other) native "Double_greaterThanFromInteger";

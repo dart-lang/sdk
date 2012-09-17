@@ -10,6 +10,7 @@ import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -357,6 +358,7 @@ public class Resolver {
             FieldElement fieldElement = node.getElement();
             if (fieldElement != null && fieldElement.getModifiers().isFinal()
                 && !fieldElement.isStatic()
+                && !fieldElement.getModifiers().isConstant()
                 && !fieldElement.getModifiers().isGetter()
                 && !fieldElement.getModifiers().isSetter()
                 && !fieldElement.getModifiers().isInitialized()) {
@@ -1274,18 +1276,16 @@ public class Resolver {
                 onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_FIELD,
                     x.getPropertyName());
               }
-              if (Elements.inSetterContext(x)) {
+              if (ASTNodes.inSetterContext(x)) {
                 if (field.getGetter() != null) {
-                  element = field.getSetter();
-                  if (element == null) {
+                  if (field.getSetter() == null) {
                     onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
                   }
                 }
               }
-              if (Elements.inGetterContext(x)) {
+              if (ASTNodes.inGetterContext(x)) {
                 if (field.getSetter() != null) {
-                  element = field.getGetter();
-                  if (element == null) {
+                  if (field.getGetter() == null) {
                     onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
                   }
                 }
@@ -1987,6 +1987,11 @@ public class Resolver {
                   argElement.getName());
             }
             break;
+        }
+      }
+      if (node.getOperator() == Token.CONDITIONAL) {
+        if (ElementKind.of(argElement) != ElementKind.PARAMETER) {
+          onError(arg, ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED);
         }
       }
       return null;

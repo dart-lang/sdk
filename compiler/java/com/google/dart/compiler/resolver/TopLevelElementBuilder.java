@@ -281,10 +281,6 @@ public class TopLevelElementBuilder {
     @Override
     public Void visitField(DartField node) {
       Modifiers modifiers = node.getModifiers();
-      if (modifiers.isFinal()) {
-        // final top-level fields are implicitly compile-time constants.
-        modifiers = modifiers.makeConstant();
-      }
       node.setElement(Elements.fieldFromNode(node, library, node.getObsoleteMetadata(), modifiers));
       return null;
     }

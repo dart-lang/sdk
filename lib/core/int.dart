@@ -4,7 +4,7 @@
 
 // Dart core library.
 
-interface int extends num {
+abstract class int implements num {
   // Bit-operations.
   int operator &(int other);
   int operator |(int other);
@@ -24,4 +24,20 @@ interface int extends num {
   int floor();
   int ceil();
   int truncate();
+  /**
+   * Returns a representation of this [int] value.
+   *
+   * It should always be the case that if 'i' is an [int] value, then
+   * [:i == int.parse(i.toString())].
+   */
+  String toString();
+
+  /**
+   * Parse [source] as an integer literal and return its value.
+   *
+   * Accepts "0x" prefix for hexadecimal numbers, otherwise defaults
+   * to base-10.
+   * Throws a [FormatException] if [source] is not a valid integer literal.
+   */
+  external static int parse(String source);
 }

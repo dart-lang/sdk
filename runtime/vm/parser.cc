@@ -121,7 +121,7 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 
 
 LocalVariable* ParsedFunction::GetSavedArgumentsDescriptorVar() const {
-  const int num_parameters = function().NumberOfParameters();
+  const int num_parameters = function().NumParameters();
   LocalScope* scope = node_sequence()->scope();
   if (scope->num_variables() > num_parameters) {
     LocalVariable* saved_args_desc_var = scope->VariableAt(num_parameters);
@@ -144,11 +144,7 @@ LocalVariable* ParsedFunction::GetSavedArgumentsDescriptorVar() const {
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
-  const intptr_t num_opt_pos_params =
-      function().num_optional_positional_parameters();
-  const intptr_t num_opt_named_params =
-      function().num_optional_named_parameters();
-  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
+  const intptr_t num_opt_params = function().NumOptionalParameters();
   intptr_t num_params = num_fixed_params + num_opt_params;
   const bool is_native_instance_closure =
       function().is_native() && function().IsImplicitInstanceClosureFunction();
@@ -537,7 +533,6 @@ class ClassDesc : public ValueObject {
       : clazz_(cls),
         class_name_(cls_name),
         is_interface_(is_interface),
-        is_abstract_(false),
         token_pos_(token_pos),
         functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
@@ -613,14 +608,6 @@ class ClassDesc : public ValueObject {
     return is_interface_;
   }
 
-  void set_is_abstract() {
-    is_abstract_ = true;
-  }
-
-  bool is_abstract() const {
-    return is_abstract_;
-  }
-
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
@@ -671,7 +658,6 @@ class ClassDesc : public ValueObject {
   const Class& clazz_;
   const String& class_name_;
   const bool is_interface_;
-  bool is_abstract_;
   intptr_t token_pos_;   // Token index of "class" keyword.
   GrowableObjectArray& functions_;
   GrowableObjectArray& fields_;
@@ -770,8 +756,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 }
 
 
-// TODO(regis): Implement support for non-const final static fields (currently
-// supported "final" fields are actually const fields).
 // TODO(regis): Since a const variable is implicitly final,
 // rename ParseStaticConstGetter to ParseStaticFinalGetter and
 // rename kConstImplicitGetter to kImplicitFinalGetter.
@@ -801,12 +785,11 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   // leave the evaluation to the getter function.
   const intptr_t expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
-  // TODO(hausner): Remove is_final check below once we support
-  // non-const finals.
-  if (field.is_const() || field.is_final()) {
+
+  if (field.is_const()) {
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
-      ErrorMsg(expr_pos, "initializer must be a compile time constant");
+      ErrorMsg(expr_pos, "initializer must be a compile-time constant");
     }
     ReturnNode* return_node = new ReturnNode(TokenPos(), expr);
     current_block_->statements->Add(return_node);
@@ -822,11 +805,6 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
     //   field.value = expr;
     // }
     // return field.value;  // Type check is executed here in checked mode.
-
-    // TODO(regis): Remove this check once we support proper const fields.
-    if (expr->EvalConstExpr() == NULL) {
-      ErrorMsg(expr_pos, "initializer must be a compile time constant");
-    }
 
     // Generate code checking for circular dependency in field initialization.
     AstNode* compare_circular = new ComparisonNode(
@@ -870,6 +848,10 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
             new LiteralNode(
                 TokenPos(),
                 Instance::ZoneHandle(Object::transition_sentinel()))));
+    // TODO(hausner): If evaluation of the field value throws an exception,
+    // we leave the field value as 'transition_sentinel', which is wrong.
+    // A second reference to the field later throws a circular dependency
+    // exception. The field should instead be set to null after an exception.
     initialize_field->Add(new StoreStaticFieldNode(TokenPos(), field, expr));
     AstNode* uninitialized_check =
         new IfNode(TokenPos(), compare_uninitialized, initialize_field, NULL);
@@ -1936,7 +1918,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-  ASSERT(func.NumberOfParameters() == params.parameters->length());
+  ASSERT(func.NumParameters() == params.parameters->length());
 
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
@@ -2201,7 +2183,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-  ASSERT(func.NumberOfParameters() == params.parameters->length());
+  ASSERT(func.NumParameters() == params.parameters->length());
 
   // Check whether the function has any field initializer formal parameters,
   // which are not allowed in non-constructor functions.
@@ -2610,9 +2592,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   ASSERT(is_top_level_);
   AddFormalParamsToFunction(&method->params, func);
   members->AddFunction(func);
-  if (method->has_abstract) {
-    members->set_is_abstract();
-  }
 }
 
 
@@ -2676,12 +2655,10 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     }
 
     // Create the field object.
-    // TODO(hausner): For now, all static final fields are constant. Remove
-    // this when lazy init of static variables is implemented.
     class_field = Field::New(*field->name,
                              field->has_static,
                              field->has_final,
-                             field->has_const || field->has_final,
+                             field->has_const,
                              current_class(),
                              field->name_pos);
     class_field.set_type(*field->type);
@@ -2697,7 +2674,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         getter = Function::New(getter_name,
                                RawFunction::kConstImplicitGetter,
                                field->has_static,
-                               field->has_final,
+                               field->has_const,
                                /* is_abstract = */ false,
                                /* is_external = */ false,
                                current_class(),
@@ -3065,6 +3042,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       patch = String::Concat(patch, class_name);
       patch = Symbols::New(patch);
       cls = Class::New(patch, script_, classname_pos);
+      cls.set_library(library_);
     } else {
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
@@ -3121,7 +3099,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   }
   ExpectToken(Token::kRBRACE);
 
-  if (is_abstract || members.is_abstract()) {
+  if (is_abstract) {
     cls.set_is_abstract();
   }
 
@@ -3535,6 +3513,7 @@ void Parser::SkipType(bool allow_void) {
 void Parser::ParseTypeParameters(const Class& cls) {
   TRACE_PARSER("ParseTypeParameters");
   if (CurrentToken() == Token::kLT) {
+    Isolate* isolate = Isolate::Current();
     const GrowableObjectArray& type_parameters_array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
@@ -3568,7 +3547,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
       } else {
-        type_parameter_bound = Type::DynamicType();
+        type_parameter_bound = isolate->object_store()->object_type();
       }
       type_parameter = TypeParameter::New(cls,
                                           index,
@@ -3738,8 +3717,9 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
 
 void Parser::ParseTopLevelVariable(TopLevel* top_level) {
   TRACE_PARSER("ParseTopLevelVariable");
-  const bool is_final = (CurrentToken() == Token::kFINAL);
   const bool is_const = (CurrentToken() == Token::kCONST);
+  // Const fields are implicitly final.
+  const bool is_final = is_const || (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
   const AbstractType& type =
       AbstractType::ZoneHandle(ParseConstFinalVarOrType(
@@ -3765,13 +3745,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
                var_name.ToCString());
     }
 
-    // TODO(hausner): const and final are equivalent at the moment.
-    field = Field::New(var_name,
-                       is_static,
-                       is_final || is_const,  // Const fields are also final.
-                       is_const || is_final,
-                       current_class(),
-                       name_pos);
+    field = Field::New(var_name, is_static, is_final, is_const,
+                       current_class(), name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(Instance::null()));
     top_level->fields.Add(field);
@@ -3780,7 +3755,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel());
       bool has_simple_literal = false;
-      if ((is_final || is_const) && (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (is_final && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
@@ -3791,7 +3766,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
         getter = Function::New(getter_name,
                                RawFunction::kConstImplicitGetter,
                                is_static,
-                               is_final,
+                               is_const,
                                /* is_abstract = */ false,
                                /* is_external = */ false,
                                current_class(),
@@ -3799,8 +3774,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
         getter.set_result_type(type);
         top_level->functions.Add(getter);
       }
-
-    } else if (is_final || is_const) {
+    } else if (is_final) {
       ErrorMsg(name_pos, "missing initializer for final or const variable");
     }
 
@@ -4144,23 +4118,6 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
 }
 
 
-// TODO(hausner): Remove support for old library definition syntax.
-void Parser::ParseLibraryResourceObsoleteSyntax() {
-  while (CurrentToken() == Token::kRESOURCE) {
-    // Currently the VM does ignore #resource library tags. They are only used
-    // by the IDE.
-    ConsumeToken();
-    ExpectToken(Token::kLPAREN);
-    if (CurrentToken() != Token::kSTRING) {
-      ErrorMsg("resource url expected");
-    }
-    ConsumeToken();
-    ExpectToken(Token::kRPAREN);
-    ExpectToken(Token::kSEMICOLON);
-  }
-}
-
-
 void Parser::ParseLibraryName() {
   ASSERT(IsLiteral("library"));
   ConsumeToken();
@@ -4253,12 +4210,10 @@ void Parser::ParseLibraryDefinition() {
   // TODO(hausner): Remove support for old library definition syntax.
   if ((CurrentToken() == Token::kLIBRARY) ||
       (CurrentToken() == Token::kIMPORT) ||
-      (CurrentToken() == Token::kSOURCE) ||
-      (CurrentToken() == Token::kRESOURCE)) {
+      (CurrentToken() == Token::kSOURCE)) {
     ParseLibraryNameObsoleteSyntax();
     ParseLibraryImportObsoleteSyntax();
     ParseLibraryIncludeObsoleteSyntax();
-    ParseLibraryResourceObsoleteSyntax();
     return;
   }
 
@@ -4447,11 +4402,15 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
   ASSERT((params->num_optional_parameters > 0) ==
          (params->has_optional_positional_parameters ||
           params->has_optional_named_parameters));
-  func.SetNumberOfParameters(params->num_fixed_parameters,
-                             params->num_optional_parameters,
-                             params->has_optional_positional_parameters);
+  if (!Utils::IsInt(16, params->num_fixed_parameters) ||
+      !Utils::IsInt(16, params->num_optional_parameters)) {
+    ErrorMsg("too many formal parameters");
+  }
+  func.set_num_fixed_parameters(params->num_fixed_parameters);
+  func.SetNumOptionalParameters(params->num_optional_parameters,
+                                params->has_optional_positional_parameters);
   const int num_parameters = params->parameters->length();
-  ASSERT(num_parameters == func.NumberOfParameters());
+  ASSERT(num_parameters == func.NumParameters());
   func.set_parameter_types(Array::Handle(Array::New(num_parameters,
                                                     Heap::kOld)));
   func.set_parameter_names(Array::Handle(Array::New(num_parameters,
@@ -4939,7 +4898,7 @@ bool Parser::TryParseTypeParameter() {
 bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   bool no_check = type.IsDynamicType();
   if ((CurrentToken() == Token::kINTEGER) &&
-      (no_check || type.IsIntInterface() || type.IsNumberType())) {
+      (no_check || type.IsIntType() || type.IsNumberType())) {
     *value = CurrentIntegerLiteral();
     return true;
   } else if ((CurrentToken() == Token::kDOUBLE) &&
@@ -6786,7 +6745,7 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
     return expr;
   }
   if (expr->EvalConstExpr() == NULL) {
-    ErrorMsg(expr_pos, "expression must be a compile time constant");
+    ErrorMsg(expr_pos, "expression must be a compile-time constant");
   }
   return new LiteralNode(expr_pos, EvaluateConstExpr(expr));
 }
@@ -6941,7 +6900,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   ConsumeToken();
   const intptr_t right_expr_pos = TokenPos();
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
-    ErrorMsg(right_expr_pos, "expression must be a compile time constant");
+    ErrorMsg(right_expr_pos, "expression must be a compile-time constant");
   }
   AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
   AstNode* left_expr = expr;
@@ -7180,9 +7139,7 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
     return initializing_getter;
   }
   // The field is initialized.
-  // TODO(hausner): Remove the is_final check when we support non-const
-  // final static variables.
-  if (field.is_const() || field.is_final()) {
+  if (field.is_const()) {
     ASSERT(field.value() != Object::sentinel());
     ASSERT(field.value() != Object::transition_sentinel());
     return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
@@ -7629,7 +7586,7 @@ bool Parser::IsFormalParameter(const String& ident,
     Function& function = Function::Handle(innermost_function().raw());
     String& param_name = String::Handle();
     do {
-      const int num_parameters = function.NumberOfParameters();
+      const int num_parameters = function.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         param_name = function.ParameterNameAt(i);
         if (ident.Equals(param_name)) {
@@ -7657,7 +7614,7 @@ bool Parser::IsFormalParameter(const String& ident,
     }
     if (scope == local->owner()) {
       // Scope contains 'local' and the formal parameters of 'function'.
-      const int num_parameters = function.NumberOfParameters();
+      const int num_parameters = function.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         if (scope->VariableAt(i) == local) {
           *owner_function = function.raw();
@@ -7751,9 +7708,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
   const Instance& value = Instance::Handle(field.value());
   if (value.raw() == Object::transition_sentinel()) {
-    // TODO(hausner): Remove the check for is_final() once we support
-    // non-const final fields.
-    if (field.is_const() || field.is_final()) {
+    if (field.is_const()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
                String::Handle(field.name()).ToCString());
     } else {
@@ -7768,9 +7723,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     // This field has not been referenced yet and thus the value has
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
-    // TODO(hausner): Remove the check for is_final() once we support
-    // non-const final fields.
-    if (field.is_const() || field.is_final()) {
+    if (field.is_const()) {
       field.set_value(Instance::Handle(Object::transition_sentinel()));
       const String& field_name = String::Handle(field.name());
       const String& getter_name =
@@ -7796,7 +7749,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
           AppendErrorMsg(error, TokenPos(),
-                         "error initializing final field '%s'",
+                         "error initializing const field '%s'",
                          String::Handle(field.name()).ToCString());
         } else {
           Isolate::Current()->long_jump_base()->Jump(1, error);
@@ -8566,7 +8519,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (key == NULL) {
       ErrorMsg("map entry key must be string literal");
     } else if (is_const && !key->IsLiteralNode()) {
-      ErrorMsg("map entry key must be compile time constant string");
+      ErrorMsg("map entry key must be compile-time constant string");
     }
     ExpectToken(Token::kCOLON);
     const bool saved_mode = SetAllowFunctionLiterals(true);
@@ -9114,7 +9067,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     // formal parameters. This simplifies the 2-step saving of a captured
     // arguments descriptor.
     // At this time, the owner scope should only contain formal parameters.
-    ASSERT(owner_scope->num_variables() == owner_function.NumberOfParameters());
+    ASSERT(owner_scope->num_variables() == owner_function.NumParameters());
     bool success = owner_scope->AddVariable(saved_args_desc_var);
     ASSERT(success);
     // Capture the saved argument descriptor variable if necessary.

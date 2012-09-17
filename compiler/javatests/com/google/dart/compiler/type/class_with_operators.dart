@@ -55,7 +55,7 @@ class ClassWithOperators {
     return this;
   }
 
-  bool operator equals(other) {
+  bool operator ==(other) {
     return false;
   }
 }

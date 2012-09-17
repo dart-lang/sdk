@@ -79,6 +79,7 @@ RawClass* Object::instantiated_type_arguments_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -331,6 +332,9 @@ void Object::InitOnce() {
   cls = Class::New<Function>();
   function_class_ = cls.raw();
 
+  cls = Class::New<ClosureData>();
+  closure_data_class_ = cls.raw();
+
   cls = Class::New<Field>();
   field_class_ = cls.raw();
 
@@ -435,6 +439,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(instantiated_type_arguments, InstantiatedTypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
+  SET_CLASS_NAME(closure_data, ClosureData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
   SET_CLASS_NAME(token_stream, TokenStream);
@@ -564,36 +569,6 @@ RawError* Object::Init(Isolate* isolate) {
       Bootstrap::LoadCoreImplScript(false));
 
   String& name = String::Handle();
-  cls = Class::New<Integer>();
-  object_store->set_integer_implementation_class(cls);
-  name = Symbols::IntegerImplementation();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Smi>();
-  object_store->set_smi_class(cls);
-  name = Symbols::Smi();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Mint>();
-  object_store->set_mint_class(cls);
-  name = Symbols::Mint();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Bigint>();
-  object_store->set_bigint_class(cls);
-  name = Symbols::Bigint();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<Double>();
-  object_store->set_double_class(cls);
-  name = Symbols::Double();
-  RegisterClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
   name = Symbols::Bool();
@@ -669,9 +644,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
-  // Allocate and initialize the Object class and type.  The Object
-  // class and ByteArray subclasses are the only pre-allocated,
-  // non-interface classes in the core library.
+  // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
   name = Symbols::Object();
@@ -682,6 +655,36 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
+
+  cls = Class::New<Integer>();
+  object_store->set_integer_implementation_class(cls);
+  name = Symbols::IntegerImplementation();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Smi>();
+  object_store->set_smi_class(cls);
+  name = Symbols::Smi();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Mint>();
+  object_store->set_mint_class(cls);
+  name = Symbols::Mint();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Bigint>();
+  object_store->set_bigint_class(cls);
+  name = Symbols::Bigint();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Double>();
+  object_store->set_double_class(cls);
+  name = Symbols::Double();
+  RegisterPrivateClass(cls, name, core_lib);
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
@@ -809,10 +812,12 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
-  cls = CreateAndRegisterInterface("int", script, core_lib);
+  name = Symbols::New("int");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_int_interface(type);
+  object_store->set_int_type(type);
 
   name = Symbols::New("double");
   cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
@@ -2598,9 +2603,9 @@ bool AbstractType::IsBoolType() const {
 }
 
 
-bool AbstractType::IsIntInterface() const {
+bool AbstractType::IsIntType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::IntInterface()).type_class());
+      (type_class() == Type::Handle(Type::IntType()).type_class());
 }
 
 
@@ -2730,8 +2735,8 @@ RawType* Type::BoolType() {
 }
 
 
-RawType* Type::IntInterface() {
-  return Isolate::Current()->object_store()->int_interface();
+RawType* Type::IntType() {
+  return Isolate::Current()->object_store()->int_type();
 }
 
 
@@ -3801,32 +3806,117 @@ void Function::set_unoptimized_code(const Code& value) const {
 }
 
 
+RawContextScope* Function::context_scope() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).context_scope();
+  }
+  return ContextScope::null();
+}
+
+
 void Function::set_context_scope(const ContextScope& value) const {
-  StorePointer(&raw_ptr()->context_scope_, value.raw());
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_context_scope(value);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+RawCode* Function::closure_allocation_stub() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).closure_allocation_stub();
+  }
+  return Code::null();
 }
 
 
 void Function::set_closure_allocation_stub(const Code& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(raw_ptr()->closure_allocation_stub_ == Code::null());
-  StorePointer(&raw_ptr()->closure_allocation_stub_, value.raw());
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_closure_allocation_stub(value);
+    return;
+  }
+  UNREACHABLE();
 }
 
 
-void Function::set_implicit_closure_function(const Function& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(raw_ptr()->implicit_closure_function_ == Function::null());
-  StorePointer(&raw_ptr()->implicit_closure_function_, value.raw());
+RawFunction* Function::parent_function() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).parent_function();
+  }
+  return Function::null();
 }
 
 
 void Function::set_parent_function(const Function& value) const {
-  StorePointer(&raw_ptr()->parent_function_, value.raw());
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_parent_function(value);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+RawFunction* Function::implicit_closure_function() const {
+  if (IsClosureFunction() || IsSignatureFunction()) {
+    return Function::null();
+  }
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsNull() || obj.IsFunction());
+  return (obj.IsNull()) ? Function::null() : Function::Cast(obj).raw();
+}
+
+
+void Function::set_implicit_closure_function(const Function& value) const {
+  ASSERT(!IsClosureFunction() && !IsSignatureFunction());
+  set_data(value);
+}
+
+
+RawClass* Function::signature_class() const {
+  if (IsSignatureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(obj.IsNull() || obj.IsClass());
+    return (obj.IsNull()) ? Class::null() : Class::Cast(obj).raw();
+  }
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).signature_class();
+  }
+  return Class::null();
 }
 
 
 void Function::set_signature_class(const Class& value) const {
-  StorePointer(&raw_ptr()->signature_class_, value.raw());
+  if (IsSignatureFunction()) {
+    set_data(value);
+    return;
+  }
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_signature_class(value);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
+void Function::set_data(const Object& value) const {
+  StorePointer(&raw_ptr()->data_, value.raw());
 }
 
 
@@ -3935,25 +4025,24 @@ void Function::set_kind_tag(intptr_t value) const {
 
 void Function::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->num_fixed_parameters_ = value;
+  ASSERT(Utils::IsInt(16, value));
+  raw_ptr()->num_fixed_parameters_ = static_cast<int16_t>(value);
 }
 
 
-void Function::set_num_optional_positional_parameters(intptr_t value) const {
-  ASSERT(value >= 0);
-  raw_ptr()->num_optional_positional_parameters_ = value;
-  // Optional positional and optional named parameters are mutually exclusive.
-  ASSERT((num_optional_positional_parameters() == 0) ||
-         (num_optional_named_parameters() == 0));
+void Function::set_num_optional_parameters(intptr_t value) const {
+  // A positive value indicates positional params, a negative one named params.
+  ASSERT(Utils::IsInt(16, value));
+  raw_ptr()->num_optional_parameters_ = static_cast<int16_t>(value);
 }
 
 
-void Function::set_num_optional_named_parameters(intptr_t value) const {
-  ASSERT(value >= 0);
-  raw_ptr()->num_optional_named_parameters_ = value;
-  // Optional positional and optional named parameters are mutually exclusive.
-  ASSERT((num_optional_positional_parameters() == 0) ||
-         (num_optional_named_parameters() == 0));
+void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
+                                        bool are_optional_positional) const {
+  ASSERT(num_optional_parameters >= 0);
+  set_num_optional_parameters(are_optional_positional ?
+                              num_optional_parameters :
+                              -num_optional_parameters);
 }
 
 
@@ -3988,13 +4077,12 @@ void Function::set_is_abstract(bool value) const {
 }
 
 
-intptr_t Function::NumberOfParameters() const {
-  return num_fixed_parameters() +
-      num_optional_positional_parameters() + num_optional_named_parameters();
+intptr_t Function::NumParameters() const {
+  return num_fixed_parameters() + NumOptionalParameters();
 }
 
 
-intptr_t Function::NumberOfImplicitParameters() const {
+intptr_t Function::NumImplicitParameters() const {
   if (kind() == RawFunction::kConstructor) {
     if (is_static()) {
       ASSERT(IsFactory());
@@ -4004,7 +4092,9 @@ intptr_t Function::NumberOfImplicitParameters() const {
       return 2;  // Instance, phase.
     }
   }
-  if (!is_static() && (kind() != RawFunction::kClosureFunction)) {
+  if (!is_static() &&
+      kind() != RawFunction::kClosureFunction &&
+      kind() != RawFunction::kSignatureFunction) {
     // Closure functions defined inside instance (i.e. non-static) functions are
     // marked as non-static, but they do not have a receiver.
     return 1;  // Receiver.
@@ -4013,25 +4103,11 @@ intptr_t Function::NumberOfImplicitParameters() const {
 }
 
 
-void Function::SetNumberOfParameters(intptr_t num_fixed_parameters,
-                                     intptr_t num_optional_parameters,
-                                     bool are_optional_positional) const {
-  set_num_fixed_parameters(num_fixed_parameters);
-  if (are_optional_positional) {
-    set_num_optional_positional_parameters(num_optional_parameters);
-    set_num_optional_named_parameters(0);
-  } else {
-    set_num_optional_positional_parameters(0);
-    set_num_optional_named_parameters(num_optional_parameters);
-  }
-}
-
-
 bool Function::AreValidArgumentCounts(int num_arguments,
                                       int num_named_arguments,
                                       String* error_message) const {
   if (FLAG_reject_named_argument_as_positional) {
-    if (num_named_arguments > num_optional_named_parameters()) {
+    if (num_named_arguments > NumOptionalNamedParameters()) {
       if (error_message != NULL) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
@@ -4039,20 +4115,20 @@ bool Function::AreValidArgumentCounts(int num_arguments,
                     kMessageBufferSize,
                     "%d named passed, at most %"Pd" expected",
                     num_named_arguments,
-                    num_optional_named_parameters());
+                    NumOptionalNamedParameters());
         *error_message = String::New(message_buffer);
       }
       return false;  // Too many named arguments.
     }
     const int num_pos_args = num_arguments - num_named_arguments;
-    const int num_opt_pos_params = num_optional_positional_parameters();
+    const int num_opt_pos_params = NumOptionalPositionalParameters();
     const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
     if (num_pos_args > num_pos_params) {
       if (error_message != NULL) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
         // Hide implicit parameters to the user.
-        const intptr_t num_hidden_params = NumberOfImplicitParameters();
+        const intptr_t num_hidden_params = NumImplicitParameters();
         OS::SNPrint(message_buffer,
                     kMessageBufferSize,
                     "%"Pd"%s passed, %s%"Pd" expected",
@@ -4069,7 +4145,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
         // Hide implicit parameters to the user.
-        const intptr_t num_hidden_params = NumberOfImplicitParameters();
+        const intptr_t num_hidden_params = NumImplicitParameters();
         OS::SNPrint(message_buffer,
                     kMessageBufferSize,
                     "%"Pd"%s passed, %s%"Pd" expected",
@@ -4086,18 +4162,18 @@ bool Function::AreValidArgumentCounts(int num_arguments,
 
   // TODO(regis): Remove the following code once the flag is removed.
 
-  if (num_arguments > NumberOfParameters()) {
+  if (num_arguments > NumParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
-      const intptr_t num_hidden_params = NumberOfImplicitParameters();
+      const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
                   "%"Pd" passed, %s%"Pd" expected",
                   num_arguments - num_hidden_params,
                   HasOptionalParameters() ? "at most " : "",
-                  NumberOfParameters() - num_hidden_params);
+                  NumParameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
     return false;  // Too many arguments.
@@ -4108,7 +4184,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
-      const intptr_t num_hidden_params = NumberOfImplicitParameters();
+      const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
                   "%"Pd" %spassed, %"Pd" expected",
@@ -4141,7 +4217,7 @@ bool Function::AreValidArguments(int num_arguments,
     ASSERT(argument_name.IsSymbol());
     bool found = false;
     const int num_positional_args = num_arguments - num_named_arguments;
-    const int num_parameters = NumberOfParameters();
+    const int num_parameters = NumParameters();
     for (int j = num_positional_args; !found && (j < num_parameters); j++) {
       parameter_name ^= ParameterNameAt(j);
       ASSERT(argument_name.IsSymbol());
@@ -4222,13 +4298,13 @@ const char* Function::ToFullyQualifiedCString() const {
 
 bool Function::HasCompatibleParametersWith(const Function& other) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
-  const intptr_t num_opt_named_params = num_optional_named_parameters();
+  const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
+  const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_pos_params =
-      other.num_optional_positional_parameters();
+      other.NumOptionalPositionalParameters();
   const intptr_t other_num_opt_named_params =
-      other.num_optional_named_parameters();
+      other.NumOptionalNamedParameters();
   if (FLAG_reject_named_argument_as_positional) {
     // The default values of optional parameters can differ.
     if ((num_fixed_params != other_num_fixed_params) ||
@@ -4346,13 +4422,13 @@ bool Function::TypeTest(TypeTestKind test_kind,
                         const AbstractTypeArguments& other_type_arguments,
                         Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
-  const intptr_t num_opt_named_params = num_optional_named_parameters();
+  const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
+  const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_pos_params =
-      other.num_optional_positional_parameters();
+      other.NumOptionalPositionalParameters();
   const intptr_t other_num_opt_named_params =
-      other.num_optional_named_parameters();
+      other.NumOptionalNamedParameters();
   if ((num_fixed_params != other_num_fixed_params) ||
       (num_opt_pos_params < other_num_opt_pos_params) ||
       (num_opt_named_params < other_num_opt_named_params)) {
@@ -4472,7 +4548,7 @@ bool Function::IsImplicitClosureFunction() const {
     return false;
   }
   const Function& parent = Function::Handle(parent_function());
-  return parent.raw_ptr()->implicit_closure_function_ == raw();
+  return (parent.implicit_closure_function() == raw());
 }
 
 
@@ -4509,13 +4585,16 @@ RawFunction* Function::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
-  result.set_num_optional_positional_parameters(0);
-  result.set_num_optional_named_parameters(0);
+  result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
   result.set_has_finally(false);
   result.set_is_native(false);
+  if (kind == RawFunction::kClosureFunction) {
+    const ClosureData& data = ClosureData::Handle(ClosureData::New());
+    result.set_data(data);
+  }
   return result.raw();
 }
 
@@ -4544,8 +4623,8 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 RawFunction* Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
-  if (raw_ptr()->implicit_closure_function_ != Function::null()) {
-    return raw_ptr()->implicit_closure_function_;
+  if (implicit_closure_function() != Function::null()) {
+    return implicit_closure_function();
   }
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
   // Create closure function.
@@ -4569,13 +4648,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // removing the receiver if this is an instance method.
   const int has_receiver = is_static() ? 0 : 1;
   const int num_fixed_params = num_fixed_parameters() - has_receiver;
-  const int num_opt_pos_params = num_optional_positional_parameters();
-  const int num_opt_named_params = num_optional_named_parameters();
-  const int num_params =
-      num_fixed_params + num_opt_pos_params + num_opt_named_params;
+  const int num_opt_params = NumOptionalParameters();
+  const bool has_opt_pos_params = HasOptionalPositionalParameters();
+  const int num_params = num_fixed_params + num_opt_params;
   closure_function.set_num_fixed_parameters(num_fixed_params);
-  closure_function.set_num_optional_positional_parameters(num_opt_pos_params);
-  closure_function.set_num_optional_named_parameters(num_opt_named_params);
+  closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
   closure_function.set_parameter_types(Array::Handle(Array::New(num_params,
                                                                 Heap::kOld)));
   closure_function.set_parameter_names(Array::Handle(Array::New(num_params,
@@ -4668,10 +4745,10 @@ RawString* Function::BuildSignature(
     }
   }
   AbstractType& param_type = AbstractType::Handle();
-  const intptr_t num_params = NumberOfParameters();
+  const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_pos_params = num_optional_positional_parameters();
-  const intptr_t num_opt_named_params = num_optional_named_parameters();
+  const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
+  const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
   pieces.Add(kLParen);
@@ -4736,7 +4813,7 @@ bool Function::HasInstantiatedSignature() const {
   if (!type.IsInstantiated()) {
     return false;
   }
-  const intptr_t num_parameters = NumberOfParameters();
+  const intptr_t num_parameters = NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = ParameterTypeAt(i);
     if (!type.IsInstantiated()) {
@@ -4842,6 +4919,42 @@ const char* Function::ToCString() const {
   OS::SNPrint(chars, len, kFormat, function_name,
               static_str, abstract_str, kind_str, const_str);
   return chars;
+}
+
+
+void ClosureData::set_context_scope(const ContextScope& value) const {
+  StorePointer(&raw_ptr()->context_scope_, value.raw());
+}
+
+
+void ClosureData::set_closure_allocation_stub(const Code& value) const {
+  ASSERT(!value.IsNull());
+  ASSERT(raw_ptr()->closure_allocation_stub_ == Code::null());
+  StorePointer(&raw_ptr()->closure_allocation_stub_, value.raw());
+}
+
+
+void ClosureData::set_parent_function(const Function& value) const {
+  StorePointer(&raw_ptr()->parent_function_, value.raw());
+}
+
+
+void ClosureData::set_signature_class(const Class& value) const {
+  StorePointer(&raw_ptr()->signature_class_, value.raw());
+}
+
+
+RawClosureData* ClosureData::New() {
+  ASSERT(Object::closure_data_class() != Class::null());
+  RawObject* raw = Object::Allocate(ClosureData::kClassId,
+                                    ClosureData::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawClosureData*>(raw);
+}
+
+
+const char* ClosureData::ToCString() const {
+  return "ClosureData class";
 }
 
 

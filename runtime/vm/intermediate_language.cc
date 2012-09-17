@@ -72,13 +72,44 @@ bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool LoadVMFieldInstr::AttributesEqual(Definition* other) const {
-  LoadVMFieldInstr* other_load = other->AsLoadVMField();
+bool StrictCompareInstr::AttributesEqual(Definition* other) const {
+  StrictCompareInstr* other_op = other->AsStrictCompare();
+  ASSERT(other_op != NULL);
+  return kind() == other_op->kind();
+}
+
+
+bool BinarySmiOpInstr::AttributesEqual(Definition* other) const {
+  BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
+  ASSERT(other_op != NULL);
+  return op_kind() == other_op->op_kind();
+}
+
+
+bool LoadFieldInstr::AttributesEqual(Definition* other) const {
+  LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
          ((immutable_ == other_load->immutable_) &&
           (ResultCid() == other_load->ResultCid())));
   return offset_in_bytes() == other_load->offset_in_bytes();
+}
+
+
+bool LoadStaticFieldInstr::AttributesEqual(Definition* other) const {
+  LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
+  ASSERT(other_load != NULL);
+  // Assert that the field is initialized.
+  ASSERT(field().value() != Object::sentinel());
+  ASSERT(field().value() != Object::transition_sentinel());
+  return field().raw() == other_load->field().raw();
+}
+
+
+bool ConstantInstr::AttributesEqual(Definition* other) const {
+  ConstantInstr* other_constant = other->AsConstant();
+  ASSERT(other_constant != NULL);
+  return (value().raw() == other_constant->value().raw());
 }
 
 
@@ -103,13 +134,6 @@ const Object& Value::BoundConstant() const {
 }
 
 
-bool ConstantInstr::AttributesEqual(Definition* other) const {
-  ConstantInstr* other_constant = other->AsConstant();
-  ASSERT(other_constant != NULL);
-  return (value().raw() == other_constant->value().raw());
-}
-
-
 GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
     : BlockEntryInstr(CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
@@ -117,6 +141,18 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
       start_env_(NULL),
       constant_null_(NULL),
       spill_slot_count_(0) {
+}
+
+
+static bool CompareNames(const Library& lib,
+                         const char* test_name,
+                         const String& name) {
+  // If both names are private mangle test_name before comparison.
+  if ((name.CharAt(0) == '_') && (test_name[0] == '_')) {
+    const String& test_name_symbol = String::Handle(Symbols::New(test_name));
+    return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
+  }
+  return name.Equals(test_name);
 }
 
 
@@ -132,15 +168,13 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
       (function_class.library() != math_lib.raw())) {
     return kUnknown;
   }
-  const String& recognize_name = String::Handle(function.name());
-  const String& recognize_class = String::Handle(function_class.Name());
-  String& test_function_name = String::Handle();
-  String& test_class_name = String::Handle();
-#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
-  test_function_name = Symbols::New(#function_name);                           \
-  test_class_name = Symbols::New(#class_name);                                 \
-  if (recognize_name.Equals(test_function_name) &&                             \
-      recognize_class.Equals(test_class_name)) {                               \
+  const Library& lib = Library::Handle(function_class.library());
+  const String& function_name = String::Handle(function.name());
+  const String& class_name = String::Handle(function_class.Name());
+
+#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name)     \
+  if (CompareNames(lib, #test_function_name, function_name) &&                 \
+      CompareNames(lib, #test_class_name, class_name)) {                       \
     return k##enum_name;                                                       \
   }
 RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
@@ -742,7 +776,10 @@ RawAbstractType* Value::CompileType() const {
 
 
 intptr_t Value::ResultCid() const {
-  return definition()->GetPropagatedCid();
+  if (reaching_cid() == kIllegalCid) {
+    return definition()->GetPropagatedCid();
+  }
+  return reaching_cid();
 }
 
 
@@ -913,14 +950,6 @@ RawAbstractType* StoreIndexedInstr::CompileType() const {
 }
 
 
-RawAbstractType* LoadInstanceFieldInstr::CompileType() const {
-  if (FLAG_enable_type_checks) {
-    return field().type();
-  }
-  return Type::DynamicType();
-}
-
-
 RawAbstractType* StoreInstanceFieldInstr::CompileType() const {
   return value()->CompileType();
 }
@@ -973,7 +1002,7 @@ RawAbstractType* AllocateObjectWithBoundsCheckInstr::CompileType() const {
 }
 
 
-RawAbstractType* LoadVMFieldInstr::CompileType() const {
+RawAbstractType* LoadFieldInstr::CompileType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
   // Keep it as null for debug purposes and do not return Dynamic in production
   // mode, since misuse of the type would remain undetected.
@@ -1033,7 +1062,7 @@ RawAbstractType* CheckStackOverflowInstr::CompileType() const {
 
 
 RawAbstractType* BinarySmiOpInstr::CompileType() const {
-  return (op_kind() == Token::kSHL) ? Type::IntInterface() : Type::SmiType();
+  return (op_kind() == Token::kSHL) ? Type::IntType() : Type::SmiType();
 }
 
 
