@@ -598,7 +598,7 @@ trim(receiver) {
 
 /**
  * This is the [Jenkins hash function][1] but using masking to keep
- * values in SMI range.
+ * values in SMI range. 
  *
  * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
  */
@@ -618,6 +618,9 @@ hashCode(receiver) {
   hash ^= hash >> 11;
   return 0x1fffffff & (hash + JS('int', @'# << #', 0x00003fff & hash, 15));
 }
+
+// TODO(ahe): Dynamic may be overridden.
+get$dynamic(receiver) => receiver;
 
 charCodes(receiver) {
   if (receiver is !String) return UNINTERCEPTED(receiver.charCodes());

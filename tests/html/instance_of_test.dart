@@ -29,8 +29,7 @@ main() {
     // Expect.isFalse(context is CanvasPixelArray);
 
     // FIXME(b/5286633): Interface injection type check workaround.
-    var image = context.createImageData(canvas.width as Dynamic,
-                                        canvas.height as Dynamic);
+    var image = context.createImageData(canvas.width.dynamic, canvas.height.dynamic);
     Expect.isFalse(image is CanvasRenderingContext);
     Expect.isFalse(image is CanvasRenderingContext2D);
     Expect.isFalse(image is Element);

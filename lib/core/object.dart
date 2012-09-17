@@ -10,6 +10,8 @@ class Object {
 
   bool operator ==(other) => this === other;
 
+  get dynamic => this;
+
   external String toString();
 
   external void noSuchMethod(String name, List args);

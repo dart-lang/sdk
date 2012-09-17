@@ -2398,33 +2398,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // If the invoke is on foreign code, don't visit the first
     // argument, which is the type, and the second argument,
     // which is the foreign code.
-    if (link.isEmpty() || link.tail.isEmpty()) {
+    if (link.isEmpty() || link.isEmpty()) {
       compiler.cancel('At least two arguments expected',
                       node: node.argumentsNode);
     }
+    link = link.tail.tail;
     List<HInstruction> inputs = <HInstruction>[];
-    Node type = link.head;
-    Node code = link.tail.head;
-    addGenericSendArgumentsToList(link.tail.tail, inputs);
-
+    addGenericSendArgumentsToList(link, inputs);
+    Node type = node.arguments.head;
+    Node literal = node.arguments.tail.head;
+    if (literal is !StringNode || literal.dynamic.isInterpolation) {
+      compiler.cancel('JS code must be a string literal', node: literal);
+    }
     if (type is !LiteralString) {
-      // The type must not be a juxtaposition or interpolation.
-      compiler.cancel('The type of a JS expression must be a string literal',
-                      node: type);
+      compiler.cancel(
+          'The type of a JS expression must be a string literal', node: type);
     }
-    LiteralString typeString = type;
-
-    if (code is StringNode) {
-      StringNode codeString = code;
-      if (!codeString.isInterpolation) {
-        // codeString may not be an interpolation, but may be a juxtaposition.
-        push(new HForeign(codeString.dartString,
-                          typeString.dartString,
-                          inputs));
-        return;
-      }
-    }
-    compiler.cancel('JS code must be a string literal', node: literal);
+    push(new HForeign(
+        literal.dynamic.dartString, type.dynamic.dartString, inputs));
   }
 
   void handleForeignUnintercepted(Send node) {
