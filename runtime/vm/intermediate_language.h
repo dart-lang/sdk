@@ -3153,7 +3153,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual bool AffectedByEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Definition* other) const;
 
   virtual intptr_t ResultCid() const;
