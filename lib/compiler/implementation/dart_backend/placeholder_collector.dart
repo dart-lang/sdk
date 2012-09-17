@@ -375,10 +375,19 @@ class PlaceholderCollector extends AbstractVisitor {
   }
 
   visitSendSet(SendSet send) {
-    final element = treeElements[send];
-    if (!Elements.isUnresolved(element)) {
+    Element element = treeElements[send];
+    if (Elements.isErroneousElement(element)) {
+      // Complicated case: constructs like receiver.selector++ can resolve
+      // to ErroneousElement.  Fortunately, receiver.selector still
+      // can be resoved via treeElements[send.selector], that's all
+      // that is needed to rename the construct properly.
+      element = treeElements[send.selector];
+    }
+    if (element === null) {
+      if (send.receiver !== null) tryMakeMemberPlaceholder(send.selector);
+    } else if (!element.isErroneous()) {
       if (Elements.isStaticOrTopLevel(element)) {
-        assert(element is VariableElement || element.isSetter());
+        assert(element is VariableElement || element.isAccessor());
         makeElementPlaceholder(send.selector, element);
       } else {
         assert(send.selector is Identifier);
@@ -387,10 +396,6 @@ class PlaceholderCollector extends AbstractVisitor {
         } else {
           tryMakeLocalPlaceholder(element, send.selector);
         }
-      }
-    } else {
-      if (send.receiver !== null) {
-        tryMakeMemberPlaceholder(send.selector);
       }
     }
     send.visitChildren(this);

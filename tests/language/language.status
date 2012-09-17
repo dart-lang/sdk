@@ -258,7 +258,6 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
-getter_no_setter2_test/01: Fail, Pass # Test works only for minified output.
 metadata_test: Fail
 prefix_new_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
@@ -352,6 +351,7 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 gc_test: Fail
+getter_no_setter2_test/01: Fail # Issue 4898
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
