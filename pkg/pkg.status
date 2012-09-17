@@ -25,6 +25,10 @@ intl/test/find_default_locale_standalone_test: skip
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: skip
 
+# Skip windows i18n finding default locale temporarily
+[ $system == windows]
+intl/test/find_default_locale_standalone_test: skip
+
 # Skip tests that use dart:io on dartc. Issue 5143
 [ $compiler == dartc ]
 intl/test/date_time_format_file_even_test: skip
