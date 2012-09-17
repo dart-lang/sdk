@@ -405,6 +405,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
       Constant constant = new FunctionConstant(element);
       compiler.constantHandler.registerCompileTimeConstant(constant);
+      compiler.enqueuer.codegen.registerStaticUse(element);
       return constant;
     } else if (send.isPrefix) {
       assert(send.isOperator);
