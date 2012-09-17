@@ -389,7 +389,7 @@ function(cls, fields, methods) {
   }
 
   void emitIsChecks(Map<String, String> objectProperties) {
-    for (Element element in compiler.codegenWorld.checkedClasses) {
+    for (Element element in emitter.checkedClasses) {
       if (!requiresNativeIsCheck(element)) continue;
       String name = backend.namer.operatorIs(element);
       objectProperties[name] = 'function() { return false; }';

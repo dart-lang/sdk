@@ -1244,7 +1244,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // If the class has type variables, create the runtime type
     // information with the type parameters provided.
-    if (!classElement.typeVariables.isEmpty()) {
+    InterfaceType type = classElement.computeType(compiler);
+    if (compiler.world.needsRti(type.element)) {
       List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
@@ -1353,10 +1354,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Add the type parameters of the class as parameters of this
     // method.
-    if (functionElement.isFactoryConstructor()
-        || functionElement.isGenerativeConstructor()) {
-      ClassElement cls = functionElement.enclosingElement;
-      cls.typeVariables.forEach((TypeVariableType typeVariable) {
+    var enclosing = functionElement.enclosingElement;
+    if (functionElement.isConstructor() && compiler.world.needsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = new HParameterValue(typeVariable.element);
         add(param);
         localsHandler.directLocals[typeVariable.element] = param;
@@ -2708,9 +2708,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.internalError("malformed send in new expression");
     }
     InterfaceType type = elements.getType(annotation);
-    type.arguments.forEach((DartType argument) {
-      inputs.add(analyzeTypeArgument(argument, node));
-    });
+    if (compiler.world.needsRti(constructor.enclosingElement)) {
+      type.arguments.forEach((DartType argument) {
+        inputs.add(analyzeTypeArgument(argument, node));
+      });
+    }
 
     HType elementType = computeType(constructor);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
@@ -2720,7 +2722,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isListConstructor) {
+    if (isListConstructor && compiler.world.needsRti(compiler.listClass)) {
       handleListConstructor(type, node, newInstance);
     }
   }

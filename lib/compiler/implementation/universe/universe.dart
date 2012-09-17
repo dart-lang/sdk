@@ -28,8 +28,6 @@ class Universe {
   final Map<SourceString, Set<Selector>> fieldGetters;
   final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
-  // TODO(karlklose): move this data to RuntimeTypeInformation.
-  Set<Element> checkedClasses;
   final RuntimeTypeInformation rti;
 
   Universe() : generatedCode = new Map<Element, CodeBuffer>(),
@@ -43,13 +41,6 @@ class Universe {
                fieldSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<DartType>(),
                rti = new RuntimeTypeInformation();
-
-  // TODO(karlklose): add the set of instantiatedtypes as second argument.
-  void computeRequiredTypes(Set<DartType> isChecks) {
-    assert(checkedClasses == null);
-    checkedClasses = new Set<Element>();
-    isChecks.forEach((DartType t) => checkedClasses.add(t.element));
-  }
 
   void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
     generatedCode[work.element] = codeBuffer;
@@ -88,8 +79,6 @@ class Universe {
   bool hasFieldSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(fieldSetters[member.name], member, compiler);
   }
-
-  bool hasIsCheck(DartType type) => isChecks.contains(type);
 }
 
 class SelectorKind {

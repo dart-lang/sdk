@@ -574,11 +574,6 @@ class Compiler implements DiagnosticListener {
 
     if (compilationFailed) return;
 
-    // TODO(karlklose): also take the instantiated types into account and move
-    // this computation to before codegen.
-    enqueuer.codegen.universe.computeRequiredTypes(
-        enqueuer.resolution.universe.isChecks);
-
     backend.assembleProgram();
 
     checkQueues();

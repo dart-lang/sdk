@@ -43,6 +43,7 @@ class CodeEmitterTask extends CompilerTask {
   String isolateProperties;
   String classesCollector;
   final Map<int, String> boundClosureCache;
+  Set<ClassElement> checkedClasses;
 
   final bool generateSourceMap;
 
@@ -56,6 +57,14 @@ class CodeEmitterTask extends CompilerTask {
         constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
+  }
+
+  void computeRequiredTypeChecks() {
+    assert(checkedClasses == null);
+    checkedClasses = new Set<ClassElement>();
+    compiler.codegenWorld.isChecks.forEach((DartType t) {
+      if (t is InterfaceType) checkedClasses.add(t.element);
+    });
   }
 
   void writeConstantToBuffer(Constant value, CodeBuffer buffer,
@@ -690,7 +699,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   void generateTypeTests(ClassElement cls,
                          void generateTypeTest(ClassElement element)) {
-    if (compiler.codegenWorld.checkedClasses.contains(cls)) {
+    if (checkedClasses.contains(cls)) {
       generateTypeTest(cls);
     }
     generateInterfacesIsTests(cls, generateTypeTest, new Set<Element>());
@@ -702,7 +711,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     for (DartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       if (!alreadyGenerated.contains(element) &&
-          compiler.codegenWorld.checkedClasses.contains(element)) {
+          checkedClasses.contains(element)) {
         alreadyGenerated.add(element);
         generateTypeTest(element);
       }
@@ -712,7 +721,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       // is checks for the superclass and its supertypes.
       ClassElement superclass = element.superclass;
       if (!alreadyGenerated.contains(superclass) &&
-          compiler.codegenWorld.checkedClasses.contains(superclass)) {
+          checkedClasses.contains(superclass)) {
         alreadyGenerated.add(superclass);
         generateTypeTest(superclass);
       }
@@ -721,6 +730,9 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
   }
 
   void emitClasses(CodeBuffer buffer) {
+    // Compute the required type checks to know which classes need a
+    // 'is$' method.
+    computeRequiredTypeChecks();
     Set<ClassElement> instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses;
     Set<ClassElement> neededClasses =

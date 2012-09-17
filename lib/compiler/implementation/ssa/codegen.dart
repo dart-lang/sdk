@@ -112,22 +112,22 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   void addTypeParameters(Element element,
-                        List<js.Parameter> parameters,
-                        Map<Element, String> parameterNames) {
-    if (element.isFactoryConstructor() || element.isGenerativeConstructor()) {
-      ClassElement cls = element.enclosingElement;
-      cls.typeVariables.forEach((TypeVariableType typeVariable) {
-        String name = typeVariable.element.name.slowToString();
-        String prefix = '';
-        // Avoid collisions with real parameters of the method.
-        do {
-          name = JsNames.getValid('$prefix$name');
-          prefix = '\$$prefix';
-        } while (parameterNames.containsValue(name));
-        parameterNames[typeVariable.element] = name;
-        parameters.add(new js.Parameter(name));
-      });
-    }
+                         List<js.Parameter> parameters,
+                         Map<Element, String> parameterNames) {
+    if (!element.isConstructor()) return;
+    ClassElement cls = element.enclosingElement;
+    if (!compiler.world.needsRti(cls)) return;
+    cls.typeVariables.forEach((TypeVariableType typeVariable) {
+      String name = typeVariable.element.name.slowToString();
+      String prefix = '';
+      // Avoid collisions with real parameters of the method.
+      do {
+        name = JsNames.getValid('$prefix$name');
+        prefix = '\$$prefix';
+      } while (parameterNames.containsValue(name));
+      parameterNames[typeVariable.element] = name;
+      parameters.add(new js.Parameter(name));
+    });
   }
 
   CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
@@ -2304,6 +2304,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitIs(HIs node) {
     DartType type = node.typeExpression;
+    world.registerIsCheck(type);
     Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables", instruction: node);

@@ -1679,13 +1679,43 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
+  void analyzeTypeArgument(DartType annotation, DartType argument) {
+    if (argument == null) return;
+    if (argument.element.isTypeVariable()) {
+      // Register a dependency between the class where the type
+      // variable is, and the annotation. If the annotation requires
+      // runtime type information, then the class of the type variable
+      // does too.
+      compiler.world.registerRtiDependency(
+          annotation.element,
+          argument.element.enclosingElement);
+    } else if (argument is InterfaceType) {
+      InterfaceType type = argument;
+      type.arguments.forEach((DartType argument) {
+        analyzeTypeArgument(type, argument);
+      });
+    }
+  }
+
   DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
     DartType type = typeResolver.resolveTypeAnnotation(node, inScope: scope,
                                                        onFailure: report,
                                                        whenResolved: useType);
-    if (inCheckContext && type != null) {
+    if (type == null) return null;
+    if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type);
+    }
+    if (typeRequired || inCheckContext) {
+      if (type is InterfaceType) {
+        InterfaceType itf = type;
+        itf.arguments.forEach((DartType argument) {
+          analyzeTypeArgument(type, argument);
+        });
+      }
+      // TODO(ngeoffray): Also handle cases like:
+      // 1) a is T
+      // 2) T a (in checked mode).
     }
     return type;
   }
