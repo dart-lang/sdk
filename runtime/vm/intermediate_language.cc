@@ -130,6 +130,18 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
 }
 
 
+static bool CompareNames(const Library& lib,
+                         const char* test_name,
+                         const String& name) {
+  // If both names are private mangle test_name before comparison.
+  if ((name.CharAt(0) == '_') && (test_name[0] == '_')) {
+    const String& test_name_symbol = String::Handle(Symbols::New(test_name));
+    return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
+  }
+  return name.Equals(test_name);
+}
+
+
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
   // Only core and math library methods can be recognized.
@@ -142,15 +154,13 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
       (function_class.library() != math_lib.raw())) {
     return kUnknown;
   }
-  const String& recognize_name = String::Handle(function.name());
-  const String& recognize_class = String::Handle(function_class.Name());
-  String& test_function_name = String::Handle();
-  String& test_class_name = String::Handle();
-#define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
-  test_function_name = Symbols::New(#function_name);                           \
-  test_class_name = Symbols::New(#class_name);                                 \
-  if (recognize_name.Equals(test_function_name) &&                             \
-      recognize_class.Equals(test_class_name)) {                               \
+  const Library& lib = Library::Handle(function_class.library());
+  const String& function_name = String::Handle(function.name());
+  const String& class_name = String::Handle(function_class.Name());
+
+#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name)     \
+  if (CompareNames(lib, #test_function_name, function_name) &&                 \
+      CompareNames(lib, #test_class_name, class_name)) {                       \
     return k##enum_name;                                                       \
   }
 RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
