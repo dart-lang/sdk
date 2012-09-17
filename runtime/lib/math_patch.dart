@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // A VM patch of the dart:math library.
-patch int parseInt(String str) => MathNatives.parseInt(str);
-patch double parseDouble(String str) => MathNatives.parseDouble(str);
 patch num pow(num x, num exponent) => MathNatives.pow(x, exponent);
 patch double atan2(num a, num b) => MathNatives.atan2(a, b);
 patch double sin(num x) => MathNatives.sin(x);

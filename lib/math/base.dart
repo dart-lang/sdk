@@ -46,19 +46,11 @@ const double SQRT1_2 = 0.7071067811865476;
  */
 const double SQRT2 = 1.4142135623730951;
 
-/**
- * Parses a [String] representation of an [int], and returns an [int].
- *
- * Throws a [FormatException] if [str] cannot be parsed as an [int].
- */
-external int parseInt(String str);
+/** Temporary redirect to [int.parse]. */
+int parseInt(String string) => int.parse(string);
 
-/**
- * Parses a [String] representation of a [double], and returns a [double].
- *
- * Throws a [FormatException] if [str] cannot be parsed as a [double].
- */
-external double parseDouble(String str);
+/** Temporary redirect to [double.parse]. */
+double parseDouble(String string) => double.parse(string);
 
 /**
   * Returns the lesser of two numbers.

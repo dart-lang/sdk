@@ -331,7 +331,7 @@ class _JsonParser {
             }
             final codeString = json.substring(position + 1, position + 5);
             try {
-              c = parseInt('0x${codeString}');
+              c = int.parse('0x${codeString}');
             } catch (e) {
               error('Invalid unicode esacape sequence');
             }
@@ -389,9 +389,9 @@ class _JsonParser {
 
     String number = json.substring(startPos, position);
     if (isInt) {
-      return parseInt(number);
+      return int.parse(number);
     } else {
-      return parseDouble(number);
+      return double.parse(number);
     }
   }
 

@@ -21,8 +21,6 @@ class MathNatives {
   static double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
   static double exp(num value) => _exp(value.toDouble());
   static double log(num value) => _log(value.toDouble());
-  static int parseInt(String str) => _parseInt(str);
-  static double parseDouble(String str) => _parseDouble(str);
 
   static double _random() native "MathNatives_random";
   static double _sqrt(double value) native "MathNatives_sqrt";
@@ -35,6 +33,4 @@ class MathNatives {
   static double _atan2(double a, double b) native "MathNatives_atan2";
   static double _exp(double value) native "MathNatives_exp";
   static double _log(double value) native "MathNatives_log";
-  static int _parseInt(String str) native "MathNatives_parseInt";
-  static double _parseDouble(String str) native "MathNatives_parseDouble";
 }

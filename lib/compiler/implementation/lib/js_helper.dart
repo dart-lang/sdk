@@ -378,6 +378,41 @@ class Primitives {
     }
   }
 
+  static int parseInt(String string) {
+    checkString(string);
+    var match = JS('List',
+                   @'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
+                   string);
+    if (match === null) {
+      throw new FormatException(string);
+    }
+    var base = 10;
+    if (match[1] !== null) base = 16;
+    var result = JS('num', @'parseInt(#, #)', string, base);
+    if (result.isNaN()) throw new FormatException(string);
+    return result;
+  }
+
+  static double parseDouble(String string) {
+    checkString(string);
+    // Notice that JS parseFloat accepts garbage at the end of the string.
+    // Accept, ignoring leading and trailing whitespace:
+    // - NaN
+    // - [+/-]Infinity
+    // -  a Dart double literal
+    if (!JS('bool',
+            @'/^\s*(?:NaN|[+-]?(?:Infinity|'
+                @'(?:\.\d+|\d+(?:\.\d+)?)(?:[eE][+-]?\d+)?))\s*$/.test(#)',
+            string)) {
+      throw new FormatException(string);
+    }
+    var result = JS('num', @'parseFloat(#)', string);
+    if (result.isNaN() && string != 'NaN') {
+      throw new FormatException(string);
+    }
+    return result;
+  }
+
   /** [: @"$".charCodeAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 

@@ -7,41 +7,6 @@
 // Imports checkNum etc. used below.
 #import("js_helper.dart");
 
-// TODO(lrn): Consider not using the JS function directly, but instead calling
-// helper functions in the "js_helper" library. Then we can stop enabling JS
-// in all patched library files.
-
-patch int parseInt(str) {
-  checkString(str);
-  if (!JS('bool',
-          @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
-          str)) {
-    throw new FormatException(str);
-  }
-  var trimmed = str.trim();
-  var base = 10;
-  if ((trimmed.length > 2 && (trimmed[1] == 'x' || trimmed[1] == 'X')) ||
-    (trimmed.length > 3 && (trimmed[2] == 'x' || trimmed[2] == 'X'))) {
-    base = 16;
-  }
-  var ret = JS('num', @'parseInt(#, #)', trimmed, base);
-  if (ret.isNaN()) throw new FormatException(str);
-  return ret;
-}
-
-patch double parseDouble(String str) {
-  checkString(str);
-  var ret = JS('num', @'parseFloat(#)', str);
-  if (ret == 0 && (str.startsWith("0x") || str.startsWith("0X"))) {
-    // TODO(ahe): This is unspecified, but tested by co19.
-    ret = JS('num', @'parseInt(#)', str);
-  }
-  if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
-    throw new FormatException(str);
-  }
-  return ret;
-}
-
 patch double sqrt(num value)
   => JS('double', @'Math.sqrt(#)', checkNum(value));
 

@@ -82,7 +82,7 @@ class Expect {
                            [num tolerance = null,
                             String reason = null]) {
     if (tolerance === null) {
-      tolerance = (expected / pow(10.0, 4.0)).abs();
+      tolerance = (expected / 1e4).abs();
     }
     // Note: use !( <= ) rather than > so we fail on NaNs
     if ((expected - actual).abs() <= tolerance) return;
@@ -107,7 +107,7 @@ class Expect {
    */
   static void listEquals(List expected, List actual, [String reason = null]) {
     String msg = _getMessage(reason);
-    int n = min(expected.length, actual.length);
+    int n = (expected.length < actual.length) ? expected.length : actual.length;
     for (int i = 0; i < n; i++) {
       if (expected[i] != actual[i]) {
         _fail('Expect.listEquals(at index $i, '

@@ -4,7 +4,6 @@
 
 #library('dart:coreimpl');
 
-#import('dart:math');
 #import('js_helper.dart');
 
 #source('../../../../lib/coreimpl/arrays.dart');

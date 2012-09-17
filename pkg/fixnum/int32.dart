@@ -79,7 +79,7 @@ class int32 implements intx {
   /**
    * Parses a decimal [String] and returns an [int32].
    */
-  static int32 parseInt(String s) => new int32.fromInt(Math.parseInt(s));
+  static int32 parseInt(String s) => new int32.fromInt(int.parse(s));
 
   /**
    * Parses a hexadecimal [String] and returns an [int32].

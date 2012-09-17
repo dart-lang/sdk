@@ -125,6 +125,6 @@ class _Stream {
     var string = digitMatcher.stringMatch(rest());
     if (string == null || string.isEmpty()) return null;
     read(string.length);
-    return parseInt(string);
+    return int.parse(string);
   }
 }

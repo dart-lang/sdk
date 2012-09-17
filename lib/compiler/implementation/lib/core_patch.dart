@@ -57,3 +57,11 @@ patch class Expando<T> {
   static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
   static int _keyCount = 0;
 }
+
+patch class int {
+  patch static int parse(String string) => Primitives.parseInt(string);
+}
+
+patch class double {
+  patch static double parse(String string) => Primitives.parseDouble(string);
+}
