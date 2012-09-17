@@ -531,7 +531,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   /** Returns the list of constants that are passed to the static function. */
-  List<Constant> evaluateArgumentsToConstructor(Selector selector,
+  List<Constant> evaluateArgumentsToConstructor(Node node,
+                                                Selector selector,
                                                 Link<Node> arguments,
                                                 FunctionElement target) {
     List<Constant> compiledArguments = <Constant>[];
@@ -544,7 +545,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
                                                  compileArgument,
                                                  compileConstant,
                                                  compiler);
-    assert(succeeded);
+    if (!succeeded) {
+      MessageKind kind = MessageKind.INVALID_ARGUMENTS;
+      compiler.reportError(node,
+          new CompileTimeConstantError(kind, [target.name.slowToString()]));
+    }
     return compiledArguments;
   }
 
@@ -563,8 +568,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     }
 
     Selector selector = elements.getSelector(send);
-    List<Constant> arguments =
-        evaluateArgumentsToConstructor(selector, send.arguments, constructor);
+    List<Constant> arguments = evaluateArgumentsToConstructor(
+        node, selector, send.arguments, constructor);
     ConstructorEvaluator evaluator =
         new ConstructorEvaluator(constructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
@@ -683,11 +688,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     });
   }
 
-  void evaluateSuperOrRedirectSend(Selector selector,
+  void evaluateSuperOrRedirectSend(Node currentNode,
+                                   Selector selector,
                                    Link<Node> arguments,
                                    FunctionElement targetConstructor) {
-    List<Constant> compiledArguments =
-        evaluateArgumentsToConstructor(selector, arguments, targetConstructor);
+    List<Constant> compiledArguments = evaluateArgumentsToConstructor(
+        currentNode, selector, arguments, targetConstructor);
 
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
         targetConstructor, constantSystem, compiler);
@@ -719,7 +725,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           FunctionElement targetConstructor = elements[call];
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
-          evaluateSuperOrRedirectSend(selector, arguments, targetConstructor);
+          evaluateSuperOrRedirectSend(
+              call, selector, arguments, targetConstructor);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -750,7 +757,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         Selector selector = new Selector.call(superClass.name,
                                               enclosingClass.getLibrary(),
                                               0);
-        evaluateSuperOrRedirectSend(selector,
+        evaluateSuperOrRedirectSend(functionNode,
+                                    selector,
                                     const EmptyLink<Node>(),
                                     targetConstructor);
       }

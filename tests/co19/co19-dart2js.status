@@ -649,7 +649,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 i
 LibTest/core/RegExp/RegExp_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/RegExp_A01_t02: Fail, OK # co19 issue 212
 LibTest/core/RegExp/stringMatch_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/String/contains_A01_t01: Crash # co19 issue 212
+LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/String/replaceAll_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/String/replaceFirst_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/String/split_A01_t01: Fail, OK # co19 issue 212

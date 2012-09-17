@@ -88,6 +88,8 @@ class MessageKind {
       "'Object' cannot have a super initializer");
   static const DUPLICATE_SUPER_INITIALIZER = const MessageKind(
       'cannot have more than one super initializer');
+  static const INVALID_ARGUMENTS = const MessageKind(
+      "arguments do not match the expected parameters of #{1}");
   static const NO_MATCHING_CONSTRUCTOR = const MessageKind(
       "super call arguments and constructor parameters don't match");
   static const NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT = const MessageKind(
