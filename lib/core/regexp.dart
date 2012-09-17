@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -68,6 +68,11 @@ abstract class Match {
 
 /**
  * [RegExp] represents regular expressions.
+ *
+ * Dart regular expressions have the same syntax and semantics as
+ * JavaScript regular expressions. See
+ * <http://ecma-international.org/ecma-262/5.1/#sec-15.10>
+ * for the specification of JavaScript regular expressions.
  *
  * [firstMatch] is the main implementation method that applies a regular
  * expression to a string and returns the first [Match]. All
