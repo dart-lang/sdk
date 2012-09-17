@@ -1440,6 +1440,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
   void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 
 
+
   // TODO(jacobr): generate this list of properties using the existing script.
     /** Gets the value of "animation" */
   String get animation =>
