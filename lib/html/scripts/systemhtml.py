@@ -563,7 +563,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
       if not self._interface.id in _merged_html_interfaces:
         filename = '%sImpl.dart' % self._html_interface_name
       else:
-        filename = '%sImpl.dart' % self._interface.id
+        filename = '%sImpl_Merged.dart' % self._html_interface_name
       self._implementation_emitter = self._system._CreateEmitter(filename)
     else:
       self._implementation_emitter = emitter.Emitter()
