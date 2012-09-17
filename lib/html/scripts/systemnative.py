@@ -34,13 +34,6 @@ class NativeImplementationSystem(systembase.System):
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
     for operation in interface.operations:
-      if operation.type.id == 'void':
-        return_prefix = ''
-        error_return = ''
-      else:
-        return_prefix = 'return '
-        error_return = ' false'
-
       parameters = []
       arguments = []
       conversion_includes = []
@@ -51,11 +44,10 @@ class NativeImplementationSystem(systembase.System):
         arguments.append(argument_type_info.to_dart_conversion(argument.id))
         conversion_includes.extend(argument_type_info.conversion_includes())
 
-      native_return_type = self._type_registry.TypeInfo(operation.type.id).native_type()
       cpp_header_handlers_emitter.Emit(
           '\n'
-          '    virtual $TYPE handleEvent($PARAMETERS);\n',
-          TYPE=native_return_type, PARAMETERS=', '.join(parameters))
+          '    virtual bool handleEvent($PARAMETERS);\n',
+          PARAMETERS=', '.join(parameters))
 
       if 'Custom' in operation.ext_attrs:
         continue
@@ -66,20 +58,17 @@ class NativeImplementationSystem(systembase.System):
         arguments_declaration = 'Dart_Handle* arguments = 0'
       cpp_impl_handlers_emitter.Emit(
           '\n'
-          '$TYPE $CLASS_NAME::handleEvent($PARAMETERS)\n'
+          'bool $CLASS_NAME::handleEvent($PARAMETERS)\n'
           '{\n'
           '    if (!m_callback.isolate()->isAlive())\n'
-          '        return$ERROR_RETURN;\n'
+          '        return false;\n'
           '    DartIsolate::Scope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
           '    $ARGUMENTS_DECLARATION;\n'
-          '    $(RETURN_PREFIX)m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
+          '    return m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
-          TYPE=native_return_type,
           CLASS_NAME=class_name,
           PARAMETERS=', '.join(parameters),
-          ERROR_RETURN=error_return,
-          RETURN_PREFIX=return_prefix,
           ARGUMENTS_DECLARATION=arguments_declaration,
           ARGUMENT_COUNT=len(arguments))
 
