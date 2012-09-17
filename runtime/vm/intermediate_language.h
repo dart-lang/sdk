@@ -1471,6 +1471,7 @@ class ConstantInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const;
 
   virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AffectedBySideEffect() const { return false; }
 
  private:
   const Object& value_;
@@ -2985,6 +2986,9 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const;
+
+  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AffectedBySideEffect() const { return false; }
 
   virtual intptr_t ResultCid() const;
 

@@ -72,6 +72,13 @@ bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
 }
 
 
+bool BinarySmiOpInstr::AttributesEqual(Definition* other) const {
+  BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
+  ASSERT(other_op != NULL);
+  return op_kind() == other_op->op_kind();
+}
+
+
 bool LoadFieldInstr::AttributesEqual(Definition* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
