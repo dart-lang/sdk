@@ -24,8 +24,21 @@ class Intl {
    */
   String _locale;
 
-  /** The default locale, which normally will be obtained from the browser. */
+  /** The default locale. This defaults to being set from systemLocale, but
+   * can also be set explicitly, and will then apply to any new instances where
+   * the locale isn't specified.
+   */
   static String _defaultLocale;
+
+  /**
+   * The system's locale, as obtained from the window.navigator.language
+   * or other operating system mechanism. Note that due to system limitations
+   * this is not automatically set, and must be set by importing one of
+   * intl_browser.dart or intl_standalone.dart and calling findSystemLocale().
+   */
+  // TODO(alanknight): Detect this without forcing the jump through hoops.
+  // Issue 5171.
+  static String systemLocale = 'en_US';
 
   /**
    * Return a new date format using the specified [pattern].
@@ -102,11 +115,11 @@ class Intl {
   static String verifiedLocale(String newLocale) {
     // TODO(alanknight): This is specific to DateFormat, and only used there
     // now. This should be moved, renamed, or generalized.
-    if (newLocale == null) return _getDefaultLocale();
+    if (newLocale == null) return systemLocale;
     if (_localeExists(newLocale)) {
       return newLocale;
     }
-    for (var each in [_canonicalized(newLocale), _shortLocale(newLocale)]) {
+    for (var each in [canonicalizedLocale(newLocale), _shortLocale(newLocale)]) {
       if (_localeExists(each)) {
         return each;
       }
@@ -124,7 +137,7 @@ class Intl {
    * Return a locale name turned into xx_YY where it might possibly be
    * in the wrong case or with a hyphen instead of an underscore.
    */
-  static String _canonicalized(String aLocale) {
+  static String canonicalizedLocale(String aLocale) {
     // Locales of length < 5 are presumably two-letter forms, or else malformed.
     // Locales of length > 6 are likely to be malformed. In either case we
     // return them unmodified and if correct they will be found.
@@ -152,7 +165,7 @@ class Intl {
   static String withLocale(String locale, Function msg_function) {
     // We have to do this silliness because Locale is not known at compile time,
     // but must be a static variable.
-    if (_defaultLocale == null) _defaultLocale = _getDefaultLocale();
+    if (_defaultLocale == null) _defaultLocale = systemLocale;
     var oldLocale = _defaultLocale;
     _defaultLocale = locale;
     var result = msg_function();
@@ -175,23 +188,12 @@ class Intl {
   }
 
   /**
-   * Helper to detect the locale as defined at runtime.
-   */
-  static String _getDefaultLocale() {
-    // TODO(efortuna): Detect the default locale given the user preferences.
-    // That would mean using window.navigator.language in a browser or
-    // an environment variable or other OS mechanism for the standalone VM.
-    // Yay, hard-coding for now!
-    return 'en_US';
-  }
-
-  /**
    * Accessor for the current locale. This should always == the default locale,
    * unless for some reason this gets called inside a message that resets the
    * locale.
    */
   static String getCurrentLocale() {
-    if (_defaultLocale == null) _defaultLocale = _getDefaultLocale();
+    if (_defaultLocale == null) _defaultLocale = systemLocale;
     return _defaultLocale;
   }
 }

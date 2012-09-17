@@ -19,6 +19,11 @@ fixnum/test/int_64_vm_test: Skip
 [ $runtime == opera || $runtime == ff || $runtime == ie || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
 intl/test/date_time_format_file_even_test: skip
 intl/test/date_time_format_file_odd_test: skip
+intl/test/find_default_locale_standalone_test: skip
+
+# Skip browser-specific Intl tests on VM
+[ $runtime == vm ]
+intl/test/find_default_locale_browser_test: skip
 
 # Skip tests that use dart:io on dartc. Issue 5143
 [ $compiler == dartc ]
