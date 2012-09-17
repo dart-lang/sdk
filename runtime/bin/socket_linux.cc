@@ -176,7 +176,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   intptr_t fd;
   struct sockaddr_in server_address;
 
-  in_addr_t s_addr = TEMP_FAILURE_RETRY(inet_addr(host));
+  in_addr_t s_addr = inet_addr(host);
   if (s_addr == INADDR_NONE) {
     return -5;
   }
