@@ -4836,6 +4836,42 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5082
+   */
+  public void test_argumentDefinitionTest_type() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(p) {",
+        "  ?p;",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+    DartUnaryExpression unary = findNode(DartUnaryExpression.class, "?p");
+    Type type = unary.getType();
+    assertNotNull(type);
+    assertEquals("bool", type.toString());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5082
+   */
+  public void test_argumentDefinitionTest_shouldBeFormalParameter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(p) {",
+        "  var v;",
+        "  ?p;",
+        "  ?v;",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED, 5, 4, 1));
+  }
+
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
     assertTrue(index != -1);

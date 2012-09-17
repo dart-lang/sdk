@@ -117,6 +117,7 @@ public enum ResolverErrorCode implements ErrorCode {
   FIELD_DOES_NOT_HAVE_A_SETTER("Field does not have a setter"),
   FIELD_GETTER_SETTER_SAME_STATIC("Field's getter and setter should be both static or not static"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
+  FORMAL_PARAMETER_NAME_EXPECTED("Formal parameter name expected"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?

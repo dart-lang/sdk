@@ -1989,6 +1989,11 @@ public class Resolver {
             break;
         }
       }
+      if (node.getOperator() == Token.CONDITIONAL) {
+        if (ElementKind.of(argElement) != ElementKind.PARAMETER) {
+          onError(arg, ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED);
+        }
+      }
       return null;
     }
 

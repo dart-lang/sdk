@@ -619,6 +619,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     @Override
+    public Type visitExprStmt(DartExprStmt node) {
+      Type type = typeOf(node.getExpression());
+      return type;
+    }
+
+    @Override
     public Type visitVariableStatement(DartVariableStatement node) {
       Type type = typeOf(node.getTypeNode());
       visit(node.getVariables());

@@ -107,11 +107,6 @@ bad_constructor_test/06: Fail # Constructor name clashes with other member
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
-argument_definition_test/01: Fail # Issue 5082
-argument_definition_test/02: Fail # Issue 5082
-argument_definition_test/03: Fail # Issue 5082
-argument_definition_test/04: Fail # Issue 5082
-argument_definition_test/05: Fail # Issue 5082
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite as multitest
