@@ -551,6 +551,9 @@ Note: currently only implemented for dart2js.''',
           if (configuration['host_checked']) {
             timeout *= 16;
           }
+          if (configuration['checked']) {
+            timeout *= 2;
+          }
           if (Contains(configuration['runtime'],
                        const ['ie', 'ff', 'chrome', 'safari', 'opera'])) {
             timeout *= 8; // Allow additional time for browser testing to run.

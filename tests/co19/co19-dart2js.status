@@ -219,8 +219,6 @@ LibTest/core/double/remainder_A01_t03: Fail, OK # co19 issue 207
 
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
-LibTest/core/Queue/addLast_A01_t01: Slow, Pass
-LibTest/core/Queue/add_A01_t01: Slow, Pass
 
 # These test the Clock class which has been removed.
 # issue co19 - 173
@@ -661,6 +659,8 @@ LibTest/core/String/split_A01_t02: Fail, OK # co19 issue 212
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
 
 [ $compiler == dart2js && $checked ]
+LibTest/core/Queue/addLast_A01_t01: Slow, Pass
+LibTest/core/Queue/add_A01_t01: Slow, Pass
 LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 
 #
