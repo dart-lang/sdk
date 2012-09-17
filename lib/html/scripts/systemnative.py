@@ -178,18 +178,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def ImplementationClassName(self):
     return self._ImplClassName(self._interface.id)
 
-  def FilePathForDartImplementation(self):
-    return os.path.join(self._system._output_dir, 'dart',
-                        '%sImplementation.dart' % self._interface.id)
-
-  def FilePathForDartFactoryProviderImplementation(self):
-    file_name = '%sFactoryProviderImplementation.dart' % self._interface.id
-    return os.path.join(self._system._output_dir, 'dart', file_name)
-
-  def FilePathForDartElementsFactoryProviderImplementation(self):
-    return os.path.join(self._system._output_dir, 'dart',
-                        '_ElementsFactoryProviderImplementation.dart')
-
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_impl_emitter = implementation_emitter
 

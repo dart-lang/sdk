@@ -37,8 +37,8 @@ _webkit_renames = {
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
 
-def Generate(system_names, database_dir, use_database_cache,
-             html_output_dir):
+def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
+             dartium_output_dir=None):
   current_dir = os.path.dirname(__file__)
   auxiliary_dir = os.path.join(current_dir, '..', 'src')
   template_dir = os.path.join(current_dir, '..', 'templates')
@@ -64,6 +64,10 @@ def Generate(system_names, database_dir, use_database_cache,
   generator.FixEventTargets(webkit_database)
   generator.AddMissingArguments(webkit_database)
 
+  emitters = multiemitter.MultiEmitter()
+  renamer = HtmlRenamer(webkit_database)
+  type_registry = TypeRegistry(webkit_database, renamer)
+
   def CreateGeneratorOptions(template_paths, conditions, type_registry, output_dir,
                              renamer=None):
     template_loader = TemplateLoader(template_dir, template_paths, conditions)
@@ -71,33 +75,30 @@ def Generate(system_names, database_dir, use_database_cache,
         template_loader, webkit_database, emitters, type_registry, renamer,
         output_dir)
 
-  def Generate(system):
-    generator.Generate(webkit_database, system,
+  def Generate(backend, output_dir):
+    options = CreateGeneratorOptions(
+        ['html/interface', 'html/impl', 'html', ''], {},
+        type_registry, output_dir, renamer)
+    html_system = HtmlInterfacesSystem(options, backend)
+    generator.Generate(webkit_database, html_system,
                        super_database=common_database,
                        webkit_renames=_webkit_renames)
 
-  emitters = multiemitter.MultiEmitter()
-
-  for system_name in system_names:
-    renamer = HtmlRenamer(webkit_database)
-    type_registry = TypeRegistry(webkit_database, renamer)
-    if system_name == 'htmldart2js':
-      options = CreateGeneratorOptions(
-          ['html/dart2js', 'html/impl', 'html', ''],
-          {'DARTIUM': False, 'DART2JS': True},
-          type_registry, html_output_dir, renamer)
-      backend = HtmlDart2JSSystem(options)
-    else:
-      options = CreateGeneratorOptions(
-          ['html/dartium', 'html/impl', ''],
-          {'DARTIUM': True, 'DART2JS': False},
-          type_registry, html_output_dir, renamer)
-      backend = NativeImplementationSystem(options, auxiliary_dir)
+  if dart2js_output_dir:
     options = CreateGeneratorOptions(
-        ['html/interface', 'html/impl', 'html', ''], {},
-        type_registry, html_output_dir, renamer)
-    html_system = HtmlInterfacesSystem(options, backend)
-    Generate(html_system)
+        ['html/dart2js', 'html/impl', 'html', ''],
+        {'DARTIUM': False, 'DART2JS': True},
+        type_registry, dart2js_output_dir, renamer)
+    backend = HtmlDart2JSSystem(options)
+    Generate(backend, dart2js_output_dir)
+
+  if dartium_output_dir:
+    options = CreateGeneratorOptions(
+        ['html/dartium', 'html/impl', ''],
+        {'DARTIUM': True, 'DART2JS': False},
+        type_registry, dartium_output_dir, renamer)
+    backend = NativeImplementationSystem(options, auxiliary_dir)
+    Generate(backend, dartium_output_dir)
 
   _logger.info('Flush...')
   emitters.Flush()
@@ -137,10 +138,15 @@ def main():
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
   systems = options.systems.split(',')
 
-  html_output_dir = options.output_dir or os.path.join(current_dir,
-      '../generated')
-  Generate(systems, database_dir, options.use_database_cache,
-              html_output_dir)
+  output_dir = options.output_dir or os.path.join(current_dir, '../generated')
+  dart2js_output_dir = None
+  if 'htmldart2js' in systems:
+    dart2js_output_dir = os.path.join(output_dir, 'dart2js')
+  dartium_output_dir = None
+  if 'htmldartium' in systems:
+    dartium_output_dir = os.path.join(output_dir, 'dartium')
+  Generate(database_dir, options.use_database_cache, dart2js_output_dir,
+           dartium_output_dir)
   GenerateSingleFile(systems)
 
 if __name__ == '__main__':

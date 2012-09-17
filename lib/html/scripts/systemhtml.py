@@ -437,7 +437,7 @@ class HtmlInterfacesSystem(System):
     super(HtmlInterfacesSystem, self).__init__(options)
     self._backend = backend
     self._shared = HtmlSystemShared(options)
-    self._dart_interface_file_paths = []
+    self._dart_file_paths = []
     self._elements_factory_emitter = None
 
   def ProcessInterface(self, interface):
@@ -445,19 +445,21 @@ class HtmlInterfacesSystem(System):
 
   def ProcessCallback(self, interface, info):
     """Generates a typedef for the callback interface."""
-    interface_name = interface.id
-    file_path = self._FilePathForDartInterface(interface_name)
-    self._ProcessCallback(interface, info, file_path)
+    code = self._CreateEmitter('%s.dart' % interface.id)
+    code.Emit(self._templates.Load('callback.darttemplate'))
+    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
+              NAME=interface.id,
+              TYPE=DartType(info.type_name),
+              PARAMS=info.ParametersImplementationDeclaration(DartType))
     self._backend.ProcessCallback(interface, info)
 
   def GenerateLibraries(self):
-    self._backend.GenerateLibraries(self._dart_interface_file_paths)
+    self._backend.GenerateLibraries(self._dart_file_paths)
 
-  def _FilePathForDartInterface(self, interface_name):
-    """Returns the file path of the Dart interface definition."""
-    # TODO(jmesserly): is this the right path
-    return os.path.join(self._output_dir, 'html', 'interface',
-                        '%s.dart' % interface_name)
+  def _CreateEmitter(self, filename):
+    path = os.path.join(self._output_dir, 'dart', filename)
+    self._dart_file_paths.append(path)
+    return self._emitters.FileEmitter(path)
 
 # ------------------------------------------------------------------------------
 
@@ -474,9 +476,8 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
   def StartInterface(self):
     if not self._interface.id in _merged_html_interfaces:
-      path = self._system._FilePathForDartInterface(self._html_interface_name)
-      self._system._dart_interface_file_paths.append(path)
-      self._interface_emitter = self._system._emitters.FileEmitter(path)
+      path = '%s.dart' % self._html_interface_name
+      self._interface_emitter = self._system._CreateEmitter(path)
     else:
       self._interface_emitter = emitter.Emitter()
 
@@ -519,18 +520,15 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     if constructor_info:
       constructors.append(constructor_info)
       factory_provider = '_' + typename + 'FactoryProvider'
-      path = self._backend.FilePathForDartFactoryProviderImplementation()
-      self._system._dart_interface_file_paths.append(path)
-      factory_provider_emitter = self._system._emitters.FileEmitter(path)
+      factory_provider_emitter = self._system._CreateEmitter(
+          '_%sFactoryProvider.dart' % self._html_interface_name)
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
     infos = HtmlElementConstructorInfos(typename)
     if infos:
       if not self._system._elements_factory_emitter:
-        path = self._backend.FilePathForDartElementsFactoryProviderImplementation()
-        self._system._dart_interface_file_paths.append(path)
-        file_emitter = self._system._emitters.FileEmitter(path)
+        file_emitter = self._system._CreateEmitter('_Elements.dart')
         template = self._system._templates.Load(
             'factoryprovider_Elements.darttemplate')
         self._system._elements_factory_emitter = file_emitter.Emit(template)
@@ -562,9 +560,11 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         DOMNAME=self._interface.doc_js_name)
 
     if self._backend.HasImplementation():
-      path = self._backend.FilePathForDartImplementation()
-      self._system._dart_interface_file_paths.append(path)
-      self._implementation_emitter = self._system._emitters.FileEmitter(path)
+      if not self._interface.id in _merged_html_interfaces:
+        filename = '%sImpl.dart' % self._html_interface_name
+      else:
+        filename = '%sImpl.dart' % self._interface.id
+      self._implementation_emitter = self._system._CreateEmitter(filename)
     else:
       self._implementation_emitter = emitter.Emitter()
     self._backend.SetImplementationEmitter(self._implementation_emitter)
@@ -769,18 +769,6 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
 
   def ImplementationClassName(self):
     return self._ImplClassName(self._html_interface_name)
-
-  def FilePathForDartImplementation(self):
-    return os.path.join(self._system._output_dir, 'html', 'dart2js',
-                        '%s.dart' % self._html_interface_name)
-
-  def FilePathForDartFactoryProviderImplementation(self):
-    return os.path.join(self._system._output_dir, 'html', 'dart2js',
-                        '_%sFactoryProvider.dart' % self._html_interface_name)
-
-  def FilePathForDartElementsFactoryProviderImplementation(self):
-    return os.path.join(self._system._output_dir, 'html', 'dart2js',
-                        '_Elements.dart')
 
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_code = implementation_emitter
