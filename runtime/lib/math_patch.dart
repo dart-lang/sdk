@@ -60,16 +60,16 @@ class _Random implements Random {
     do {
       rnd32 = _nextInt32();
       result = rnd32 % max;
-    } while (rnd32 - result + max >= _POW2_32);
+    } while ((rnd32 - result + max) >= _POW2_32);
     return result;
   }
 
   double nextDouble() {
-    return ((nextInt(1 << (26)) << 27) + nextInt(1 << 27)) / _POW2_53_D;
+    return ((nextInt(1 << 26) << 27) + nextInt(1 << 27)) / _POW2_53_D;
   }
 
   bool nextBool() {
-    return nextInt(1) == 0;
+    return nextInt(2) == 0;
   }
 
   // Constants used by the algorithm or masking.
