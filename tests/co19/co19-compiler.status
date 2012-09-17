@@ -173,6 +173,9 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail, 
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail, OK # co19 issue 195
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail, OK # co19 issue 195
 
+LibTest/core/Object/dynamic_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Object/operator_equality_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
 
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when

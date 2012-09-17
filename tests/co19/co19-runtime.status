@@ -169,6 +169,10 @@ LibTest/core/Futures/wait_A03_t01: Fail # TODO(vm-team): Please triage this fail
 LibTest/core/double/operator_negate_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 
 
+LibTest/core/Object/dynamic_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Object/operator_equality_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
+
 [ $runtime == vm && $checked ]
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.

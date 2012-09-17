@@ -316,7 +316,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
         line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
         // the test.
-        if (testCase.dynamic.numRetries > 0) {
+        if ((testCase as Dynamic).numRetries > 0) {
           requestRetry = true;
         }
         return true;
@@ -551,16 +551,16 @@ class RunningProcess {
     }
     if (allowRetries && testCase.usesWebDriver
         && testCase.output.unexpectedOutput
-        && testCase.dynamic.numRetries > 0) {
+        && (testCase as Dynamic).numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
     if (testCase.output.requestRetry) {
       testCase.output.requestRetry = false;
       this.timedOut = false;
-      testCase.dynamic.numRetries--;
+      (testCase as Dynamic).numRetries--;
       print("Potential flake. Re-running ${testCase.displayName} "
-          "(${testCase.dynamic.numRetries} attempt(s) remains)");
+          "(${(testCase as Dynamic).numRetries} attempt(s) remains)");
       this.start();
     } else {
       testCase.completed();
