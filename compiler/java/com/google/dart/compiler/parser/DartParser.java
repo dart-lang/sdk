@@ -824,6 +824,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartTypeParameter parseTypeParameter() {
     beginTypeParameter();
+    List<DartAnnotation> metadata = parseMetadata();
     DartIdentifier name = parseIdentifier();
     if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
       reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
@@ -858,7 +859,9 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
     // Ready to create DartTypeParameter.
-    return done(new DartTypeParameter(name, bound));
+    DartTypeParameter parameter = new DartTypeParameter(name, bound);
+    parameter.setMetadata(metadata);
+    return done(parameter);
   }
 
   private List<DartTypeParameter> parseTypeParametersOpt() {
