@@ -1,3 +1,10 @@
+# These ignores are auto-generated from the canonical svn ignore metadata
+# using:
+# 
+#  $ git svn create-ignore
+#
+# Whenever possible, prefer creating ignores in svn and then generating them
+# to keep git in sync.
 /api_docs.target.mk
 /benchmarks
 /compiler.target.mk
@@ -49,3 +56,20 @@
 /dart2js.vcproj
 /create_sdk.vcxproj.user
 /runtime.vcxproj
+
+# End generated ignores. The following are hand-added because the svn:ignore
+# stuff doesn't handle them well.
+
+# Generated XCode projects on Mac
+*.xcodeproj
+
+# Dart Editor config files
+.children
+.project
+
+# Built by chromebot and downloaded from Google Storage
+client/tests/drt
+
+# Compiled python binaries
+*.pyc
+third_party/gsutil/*/gsutilc
