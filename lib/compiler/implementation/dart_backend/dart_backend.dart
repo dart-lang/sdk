@@ -8,6 +8,7 @@
 #import('../leg.dart');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
+#import('../universe/universe.dart');
 #import('../util/util.dart');
 
 #source('backend.dart');
