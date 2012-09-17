@@ -2243,6 +2243,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, DartType type, [bool negative = false]) {
+    world.registerIsCheck(type);
     Element element = type.element;
     use(input);
     js.PropertyAccess field =
