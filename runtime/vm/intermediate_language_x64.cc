@@ -1910,32 +1910,34 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* UnboxDoubleInstr::MakeLocationSummary() const {
-  const intptr_t v_cid = value()->ResultCid();
-
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = (v_cid != kDoubleCid) ? 1 : 0;
+  const intptr_t kNumTemps = CanDeoptimize() ? 1 : 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  if (v_cid != kDoubleCid) summary->set_temp(0, Location::RequiresRegister());
+  if (CanDeoptimize()) summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(Location::RequiresXmmRegister());
   return summary;
 }
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t v_cid = value()->ResultCid();
-
+  const intptr_t value_cid = value()->ResultCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().xmm_reg();
-  if (v_cid != kDoubleCid) {
+
+  if (value_cid == kDoubleCid) {
+    __ movsd(result, FieldAddress(value, Double::value_offset()));
+  } else if (value_cid == kSmiCid) {
+    __ SmiUntag(value);  // Untag input before conversion.
+    __ cvtsi2sd(result, value);
+    __ SmiTag(value);  // Restore input register.
+  } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
     compiler->LoadDoubleOrSmiToXmm(result,
                                    value,
                                    locs()->temp(0).reg(),
                                    deopt);
-  } else {
-    __ movsd(result, FieldAddress(value, Double::value_offset()));
   }
 }
 

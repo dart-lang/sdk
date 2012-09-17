@@ -2995,7 +2995,8 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const {
-    return value()->ResultCid() != kDoubleCid;
+    return (value()->ResultCid() != kDoubleCid)
+        && (value()->ResultCid() != kSmiCid);
   }
 
   virtual bool HasSideEffect() const { return false; }
