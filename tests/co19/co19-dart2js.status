@@ -63,6 +63,11 @@ Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this 
 LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
+LibTest/core/Object/dynamic_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Object/operator_equality_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
+
+
 [ $compiler == dart2js && $checked ]
 # Tests rely on a VM exception being thrown in checked mode.
 Language/10_Expressions/10_Instance_Creation/2_Const_A09_t02: Fail, OK
