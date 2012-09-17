@@ -656,13 +656,14 @@ public class Resolver {
         isAbstractClass = cl.getModifiers().isAbstract();
       }
 
-      if (body == null
-          && !Elements.isNonFactoryConstructor(member)
-          && !member.getModifiers().isAbstract()
-          && !member.getModifiers().isExternal()
-          && node.getRedirectedTypeName() == null
-          && !(isInterface || isAbstractClass)) {
-        onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
+      if (body == null) {
+        if (member.getModifiers().isStatic() && !member.getModifiers().isExternal()) {
+          onError(functionNode, ResolverErrorCode.STATIC_METHOD_MUST_HAVE_BODY);
+        } else if (!Elements.isNonFactoryConstructor(member) && !member.getModifiers().isAbstract()
+            && !member.getModifiers().isExternal() && node.getRedirectedTypeName() == null
+            && !(isInterface || isAbstractClass)) {
+          onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
+        }
       }
       resolve(functionNode.getBody());
 

@@ -152,7 +152,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONSTRUCTOR_WITH_NAME_OF_MEMBER(
       ErrorSeverity.WARNING,
       "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
-  METHOD_MUST_HAVE_BODY("Method must have a body in a non-abstract class"),
+  METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR(
@@ -183,6 +183,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Target of constant redirecting factory constructor also should be constant"),
   RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
+  STATIC_METHOD_MUST_HAVE_BODY("Static method must have a body"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),
   SUPER_IN_STATIC_METHOD("Cannot use 'super' in a static method"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),

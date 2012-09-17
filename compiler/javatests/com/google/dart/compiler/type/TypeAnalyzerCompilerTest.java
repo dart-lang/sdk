@@ -4871,6 +4871,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED, 5, 4, 1));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5148
+   */
+  public void test_errorIfNoBodyForStaticMethod() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo();",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.STATIC_METHOD_MUST_HAVE_BODY, 3, 3, 13));
+  }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
