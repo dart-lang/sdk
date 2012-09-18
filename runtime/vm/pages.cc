@@ -308,6 +308,26 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
+void PageSpace::SetPeer(RawObject* raw_obj, void* peer) {
+  if (peer == NULL) {
+    peer_table_.erase(raw_obj);
+  } else {
+    peer_table_[raw_obj] = peer;
+  }
+}
+
+
+void* PageSpace::GetPeer(RawObject* raw_obj) {
+  PeerTable::iterator it = peer_table_.find(raw_obj);
+  return (it == peer_table_.end()) ? NULL : it->second;
+}
+
+
+int64_t PageSpace::PeerCount() const {
+  return static_cast<int64_t>(peer_table_.size());
+}
+
+
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   HeapPage* page = pages_;
   while (page != NULL) {

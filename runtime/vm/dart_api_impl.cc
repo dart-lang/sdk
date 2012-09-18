@@ -4444,4 +4444,44 @@ DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function) {
   Dart::set_flow_graph_writer(function);
 }
 
+
+// --- Peer support ---
+
+
+DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
+  if (peer == NULL) {
+    RETURN_NULL_ERROR(peer);
+  }
+  Isolate* isolate = Isolate::Current();
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
+    const char* msg =
+        "%s: argument 'object' cannot be a subtype of Null, num, or bool";
+    return Api::NewError(msg, CURRENT_FUNC);
+  }
+  {
+    NoGCScope no_gc;
+    RawObject* raw_obj = obj.raw();
+    *peer = isolate->heap()->GetPeer(raw_obj);
+  }
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
+  Isolate* isolate = Isolate::Current();
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
+    const char* msg =
+        "%s: argument 'object' cannot be a subtype of Null, num, or bool";
+    return Api::NewError(msg, CURRENT_FUNC);
+  }
+  {
+    NoGCScope no_gc;
+    RawObject* raw_obj = obj.raw();
+    isolate->heap()->SetPeer(raw_obj, peer);
+  }
+  return Api::Success(isolate);
+}
+
 }  // namespace dart

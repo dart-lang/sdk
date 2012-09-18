@@ -6733,6 +6733,390 @@ TEST_CASE(NewString_Null) {
 }
 
 
+// Try to allocate a peer with a handles to objects of prohibited
+// subtypes.
+TEST_CASE(InvalidGetSetPeer) {
+  void* out = &out;
+  EXPECT(Dart_IsError(Dart_GetPeer(Dart_Null(), &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(Dart_Null(), &out)));
+  out = &out;
+  EXPECT(Dart_IsError(Dart_GetPeer(Dart_True(), &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(Dart_True(), &out)));
+  out = &out;
+  EXPECT(Dart_IsError(Dart_GetPeer(Dart_False(), &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(Dart_False(), &out)));
+  out = &out;
+  Dart_Handle smi = Dart_NewInteger(0);
+  EXPECT(Dart_IsError(Dart_GetPeer(smi, &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(smi, &out)));
+  out = &out;
+  Dart_Handle big = Dart_NewIntegerFromHexCString("0x10000000000000000");
+  EXPECT(Dart_IsError(Dart_GetPeer(big, &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(big, &out)));
+  Dart_Handle dbl = Dart_NewDouble(0.0);
+  EXPECT(Dart_IsError(Dart_GetPeer(dbl, &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(dbl, &out)));
+}
+
+
+// Allocates an object in new space and assigns it a peer.  Removes
+// the peer and checks that the count of peer objects is decremented
+// by one.
+TEST_CASE(OneNewSpacePeer) {
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle str = Dart_NewString("a string");
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  void* out = &out;
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == NULL);
+  int peer = 1234;
+  EXPECT_VALID(Dart_SetPeer(str, &peer));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  out = &out;
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == reinterpret_cast<void*>(&peer));
+  EXPECT_VALID(Dart_SetPeer(str, NULL));
+  out = &out;
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == NULL);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Allocates an object in new space and assigns it a peer.  Allows the
+// peer referent to be garbage collected and checks that the count of
+// peer objects is decremented by one.
+TEST_CASE(CollectOneNewSpacePeer) {
+  Isolate* isolate = Isolate::Current();
+  Dart_EnterScope();
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    Dart_Handle str = Dart_NewString("a string");
+    EXPECT_VALID(str);
+    EXPECT(Dart_IsString(str));
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    void* out = &out;
+    EXPECT_VALID(Dart_GetPeer(str, &out));
+    EXPECT(out == NULL);
+    int peer = 1234;
+    EXPECT_VALID(Dart_SetPeer(str, &peer));
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    out = &out;
+    EXPECT_VALID(Dart_GetPeer(str, &out));
+    EXPECT(out == reinterpret_cast<void*>(&peer));
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    out = &out;
+    EXPECT_VALID(Dart_GetPeer(str, &out));
+    EXPECT(out == reinterpret_cast<void*>(&peer));
+  }
+  Dart_ExitScope();
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Allocates two objects in new space and assigns them peers.  Removes
+// the peers and checks that the count of peer objects is decremented
+// by two.
+TEST_CASE(TwoNewSpacePeers) {
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle s1 = Dart_NewString("s1");
+  EXPECT_VALID(s1);
+  EXPECT(Dart_IsString(s1));
+  void* o1 = &o1;
+  EXPECT_VALID(Dart_GetPeer(s1, &o1));
+  EXPECT(o1 == NULL);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  int p1 = 1234;
+  EXPECT_VALID(Dart_SetPeer(s1, &p1));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_VALID(Dart_GetPeer(s1, &o1));
+  EXPECT(o1 == reinterpret_cast<void*>(&p1));
+  Dart_Handle s2 = Dart_NewString("a string");
+  EXPECT_VALID(s2);
+  EXPECT(Dart_IsString(s2));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  void* o2 = &o2;
+  EXPECT(Dart_GetPeer(s2, &o2));
+  EXPECT(o2 == NULL);
+  int p2 = 5678;
+  EXPECT_VALID(Dart_SetPeer(s2, &p2));
+  EXPECT_EQ(2, isolate->heap()->PeerCount());
+  EXPECT_VALID(Dart_GetPeer(s2, &o2));
+  EXPECT(o2 == reinterpret_cast<void*>(&p2));
+  EXPECT_VALID(Dart_SetPeer(s1, NULL));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT(Dart_GetPeer(s1, &o1));
+  EXPECT(o1 == NULL);
+  EXPECT_VALID(Dart_SetPeer(s2, NULL));
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT(Dart_GetPeer(s2, &o2));
+  EXPECT(o2 == NULL);
+}
+
+
+// Allocates two objects in new space and assigns them a peer.  Allow
+// the peer referents to be garbage collected and check that the count
+// of peer objects is decremented by two.
+TEST_CASE(CollectTwoNewSpacePeers) {
+  Isolate* isolate = Isolate::Current();
+  Dart_EnterScope();
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    Dart_Handle s1 = Dart_NewString("s1");
+    EXPECT_VALID(s1);
+    EXPECT(Dart_IsString(s1));
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    void* o1 = &o1;
+    EXPECT(Dart_GetPeer(s1, &o1));
+    EXPECT(o1 == NULL);
+    int p1 = 1234;
+    EXPECT_VALID(Dart_SetPeer(s1, &p1));
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_VALID(Dart_GetPeer(s1, &o1));
+    EXPECT(o1 == reinterpret_cast<void*>(&p1));
+    Dart_Handle s2 = Dart_NewString("s2");
+    EXPECT_VALID(s2);
+    EXPECT(Dart_IsString(s2));
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    void* o2 = &o2;
+    EXPECT(Dart_GetPeer(s2, &o2));
+    EXPECT(o2 == NULL);
+    int p2 = 5678;
+    EXPECT_VALID(Dart_SetPeer(s2, &p2));
+    EXPECT_EQ(2, isolate->heap()->PeerCount());
+    EXPECT_VALID(Dart_GetPeer(s2, &o2));
+    EXPECT(o2 == reinterpret_cast<void*>(&p2));
+  }
+  Dart_ExitScope();
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Allocates several objects in new space.  Performs successive
+// garbage collections and checks that the peer count is stable.
+TEST_CASE(CopyNewSpacePeers) {
+  const int kPeerCount = 10;
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle s[kPeerCount];
+  for (int i = 0; i < kPeerCount; ++i) {
+    s[i] = Dart_NewString("a string");
+    EXPECT_VALID(s[i]);
+    EXPECT(Dart_IsString(s[i]));
+    void* o = &o;
+    EXPECT_VALID(Dart_GetPeer(s[i], &o));
+    EXPECT(o == NULL);
+  }
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  int p[kPeerCount];
+  for (int i = 0; i < kPeerCount; ++i) {
+    EXPECT_VALID(Dart_SetPeer(s[i], &p[i]));
+    EXPECT_EQ(i + 1, isolate->heap()->PeerCount());
+    void* o = &o;
+    EXPECT_VALID(Dart_GetPeer(s[i], &o));
+    EXPECT(o == reinterpret_cast<void*>(&p[i]));
+  }
+  EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+}
+
+
+// Allocates an object in new space and assigns it a peer.  Promotes
+// the peer to old space.  Removes the peer and check that the count
+// of peer objects is decremented by one.
+TEST_CASE(OnePromotedPeer) {
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle str = Dart_NewString("a string");
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  void* out = &out;
+  EXPECT(Dart_GetPeer(str, &out));
+  EXPECT(out == NULL);
+  int peer = 1234;
+  EXPECT_VALID(Dart_SetPeer(str, &peer));
+  out = &out;
+  EXPECT(Dart_GetPeer(str, &out));
+  EXPECT(out == reinterpret_cast<void*>(&peer));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    String& handle = String::Handle();
+    handle ^= Api::UnwrapHandle(str);
+    EXPECT(handle.IsOld());
+  }
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == reinterpret_cast<void*>(&peer));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_VALID(Dart_SetPeer(str, NULL));
+  out = &out;
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == NULL);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Allocates an object in old space and assigns it a peer.  Removes
+// the peer and checks that the count of peer objects is decremented
+// by one.
+TEST_CASE(OneOldSpacePeer) {
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle str = Api::NewHandle(isolate, String::New("str", Heap::kOld));
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  void* out = &out;
+  EXPECT(Dart_GetPeer(str, &out));
+  EXPECT(out == NULL);
+  int peer = 1234;
+  EXPECT_VALID(Dart_SetPeer(str, &peer));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  out = &out;
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == reinterpret_cast<void*>(&peer));
+  isolate->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == reinterpret_cast<void*>(&peer));
+  EXPECT_VALID(Dart_SetPeer(str, NULL));
+  out = &out;
+  EXPECT_VALID(Dart_GetPeer(str, &out));
+  EXPECT(out == NULL);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Allocates an object in old space and assigns it a peer.  Allow the
+// peer referent to be garbage collected and check that the count of
+// peer objects is decremented by one.
+TEST_CASE(CollectOneOldSpacePeer) {
+  Isolate* isolate = Isolate::Current();
+  Dart_EnterScope();
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    Dart_Handle str = Api::NewHandle(isolate, String::New("str", Heap::kOld));
+    EXPECT_VALID(str);
+    EXPECT(Dart_IsString(str));
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    void* out = &out;
+    EXPECT(Dart_GetPeer(str, &out));
+    EXPECT(out == NULL);
+    int peer = 1234;
+    EXPECT_VALID(Dart_SetPeer(str, &peer));
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    out = &out;
+    EXPECT_VALID(Dart_GetPeer(str, &out));
+    EXPECT(out == reinterpret_cast<void*>(&peer));
+    isolate->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_VALID(Dart_GetPeer(str, &out));
+    EXPECT(out == reinterpret_cast<void*>(&peer));
+  }
+  Dart_ExitScope();
+  isolate->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Allocates two objects in old space and assigns them peers.  Removes
+// the peers and checks that the count of peer objects is decremented
+// by two.
+TEST_CASE(TwoOldSpacePeers) {
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle s1 = Api::NewHandle(isolate, String::New("s1", Heap::kOld));
+  EXPECT_VALID(s1);
+  EXPECT(Dart_IsString(s1));
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  void* o1 = &o1;
+  EXPECT(Dart_GetPeer(s1, &o1));
+  EXPECT(o1 == NULL);
+  int p1 = 1234;
+  EXPECT_VALID(Dart_SetPeer(s1, &p1));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  o1 = &o1;
+  EXPECT_VALID(Dart_GetPeer(s1, &o1));
+  EXPECT(o1 == reinterpret_cast<void*>(&p1));
+  Dart_Handle s2 = Api::NewHandle(isolate, String::New("s2", Heap::kOld));
+  EXPECT_VALID(s2);
+  EXPECT(Dart_IsString(s2));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  void* o2 = &o2;
+  EXPECT(Dart_GetPeer(s2, &o2));
+  EXPECT(o2 == NULL);
+  int p2 = 5678;
+  EXPECT_VALID(Dart_SetPeer(s2, &p2));
+  EXPECT_EQ(2, isolate->heap()->PeerCount());
+  o2 = &o2;
+  EXPECT_VALID(Dart_GetPeer(s2, &o2));
+  EXPECT(o2 == reinterpret_cast<void*>(&p2));
+  EXPECT_VALID(Dart_SetPeer(s1, NULL));
+  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  o1 = &o1;
+  EXPECT(Dart_GetPeer(s1, &o1));
+  EXPECT(o1 == NULL);
+  EXPECT_VALID(Dart_SetPeer(s2, NULL));
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  o2 = &o2;
+  EXPECT_VALID(Dart_GetPeer(s2, &o2));
+  EXPECT(o2 == NULL);
+}
+
+
+// Allocates two objects in old space and assigns them a peer.  Allows
+// the peer referents to be garbage collected and checks that the
+// count of peer objects is decremented by two.
+TEST_CASE(CollectTwoOldSpacePeers) {
+  Isolate* isolate = Isolate::Current();
+  Dart_EnterScope();
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    Dart_Handle s1 = Api::NewHandle(isolate, String::New("s1", Heap::kOld));
+    EXPECT_VALID(s1);
+    EXPECT(Dart_IsString(s1));
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    void* o1 = &o1;
+    EXPECT(Dart_GetPeer(s1, &o1));
+    EXPECT(o1 == NULL);
+    int p1 = 1234;
+    EXPECT_VALID(Dart_SetPeer(s1, &p1));
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    o1 = &o1;
+    EXPECT_VALID(Dart_GetPeer(s1, &o1));
+    EXPECT(o1 == reinterpret_cast<void*>(&p1));
+    Dart_Handle s2 = Api::NewHandle(isolate, String::New("s2", Heap::kOld));
+    EXPECT_VALID(s2);
+    EXPECT(Dart_IsString(s2));
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    void* o2 = &o2;
+    EXPECT(Dart_GetPeer(s2, &o2));
+    EXPECT(o2 == NULL);
+    int p2 = 5678;
+    EXPECT_VALID(Dart_SetPeer(s2, &p2));
+    EXPECT_EQ(2, isolate->heap()->PeerCount());
+    o2 = &o2;
+    EXPECT_VALID(Dart_GetPeer(s2, &o2));
+    EXPECT(o2 == reinterpret_cast<void*>(&p2));
+  }
+  Dart_ExitScope();
+  isolate->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

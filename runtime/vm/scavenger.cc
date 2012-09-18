@@ -4,6 +4,7 @@
 
 #include "vm/scavenger.h"
 
+#include <algorithm>
 #include <map>
 #include <utility>
 
@@ -511,6 +512,24 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 }
 
 
+void Scavenger::ProcessPeerReferents() {
+  PeerTable prev;
+  std::swap(prev, peer_table_);
+  for (PeerTable::iterator it = prev.begin(); it != prev.end(); ++it) {
+    RawObject* raw_obj = it->first;
+    ASSERT(raw_obj->IsHeapObject());
+    uword raw_addr = RawObject::ToAddr(raw_obj);
+    uword header = *reinterpret_cast<uword*>(raw_addr);
+    if (IsForwarding(header)) {
+      // The object has survived.  Preserve its record.
+      uword new_addr = ForwardedAddr(header);
+      raw_obj = RawObject::FromAddr(new_addr);
+      heap_->SetPeer(raw_obj, it->second);
+    }
+  }
+}
+
+
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   uword cur = FirstObjectStart();
   while (cur < top_) {
@@ -565,6 +584,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
   ScavengerWeakVisitor weak_visitor(this);
   IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
   visitor.Finalize();
+  ProcessPeerReferents();
   Epilogue(isolate, invoke_api_callbacks);
   timer.Stop();
   if (FLAG_verbose_gc) {
@@ -589,6 +609,26 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
 void Scavenger::WriteProtect(bool read_only) {
   space_->Protect(
       read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+}
+
+
+void Scavenger::SetPeer(RawObject* raw_obj, void* peer) {
+  if (peer == NULL) {
+    peer_table_.erase(raw_obj);
+  } else {
+    peer_table_[raw_obj] = peer;
+  }
+}
+
+
+void* Scavenger::GetPeer(RawObject* raw_obj) {
+  PeerTable::iterator it = peer_table_.find(raw_obj);
+  return (it == peer_table_.end()) ? NULL : it->second;
+}
+
+
+int64_t Scavenger::PeerCount() const {
+  return static_cast<int64_t>(peer_table_.size());
 }
 
 }  // namespace dart
