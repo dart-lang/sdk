@@ -72,9 +72,7 @@ class World {
     }
   }
 
-  bool needsRti(ClassElement cls) {
-    return classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
-  }
+  bool needsRti(ClassElement cls) => classesNeedingRti.contains(cls);
 
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.

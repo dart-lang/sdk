@@ -23,11 +23,6 @@ patch class Object {
   patch void noSuchMethod(String name, List args) {
     throw new NoSuchMethodError(this, name, args);
   }
-
-  patch Type runtimeType() {
-    String key = getRuntimeTypeString(this);
-    return getOrCreateCachedRuntimeType(key);
-  }
 }
 
 

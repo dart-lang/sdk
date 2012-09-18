@@ -1311,9 +1311,6 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
-      if (compiler.enabledRuntimeType) {
-        mainBuffer.add('$isolateProperties.runtimeTypeCache = {};\n');
-      }
 
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the

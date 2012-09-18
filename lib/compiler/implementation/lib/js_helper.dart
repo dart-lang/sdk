@@ -1324,25 +1324,3 @@ void throwNoSuchMethod(obj, name, arguments) {
 void throwCyclicInit(String staticName) {
   throw new RuntimeError("Cyclic initialization for static $staticName");
 }
-
-class TypeImpl implements Type {
-  final String typeName;
-  TypeImpl(this.typeName);
-  toString() => typeName;
-}
-
-Type getOrCreateCachedRuntimeType(String key) {
-  Type runtimeType =
-      JS('Type', @'#.runtimeTypeCache[#]', JS_CURRENT_ISOLATE(), key);
-  if (runtimeType == null) {
-    runtimeType = new TypeImpl(key);
-    JS('void', @'#.runtimeTypeCache[#] = #', JS_CURRENT_ISOLATE(), key,
-       runtimeType);
-  }
-  return runtimeType;
-}
-
-String getRuntimeTypeString(var object) {
-  var typeInfo = JS('Object', @'#.builtin$typeInfo', object);
-  return JS('String', @'#.runtimeType', typeInfo);
-}

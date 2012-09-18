@@ -107,11 +107,6 @@ class Enqueuer {
 
     queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
 
-    // Enable runtime type support if we discover a method called runtimeType.
-    if (element.isFunction() && element.name == Compiler.RUNTIME_TYPE) {
-      compiler.enabledRuntimeType = true;
-    }
-
     // Enable isolate support if we start using something from the
     // isolate library.
     LibraryElement library = element.getLibrary();
