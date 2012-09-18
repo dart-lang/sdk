@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+pub_install_hosted_test: Fail, Pass # http://dartbug.com/5065
+pub_update_hosted_test: Fail, Pass # http://dartbug.com/5065
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
 *: Skip
