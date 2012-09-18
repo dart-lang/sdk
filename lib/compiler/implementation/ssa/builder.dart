@@ -2449,8 +2449,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           'More than one expression in JS_HAS_EQUALS()', node: node);
     }
     addGenericSendArgumentsToList(node.arguments, inputs);
-    String name =
-        backend.namer.instanceMethodNameByArity(Elements.OPERATOR_EQUALS, 1);
+    String name = backend.namer.publicInstanceMethodNameByArity(
+        Elements.OPERATOR_EQUALS, 1);
     push(new HForeign(new DartString.literal('!!#.$name'),
                       const LiteralDartString('bool'),
                       inputs));

@@ -360,7 +360,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     }
     if (parameters.optionalParametersAreNamed
         && selector.namedArgumentCount == parameters.optionalParameterCount) {
-      // If the selector has the same number of named arguments than
+      // If the selector has the same number of named arguments as
       // the element, we don't need to add a stub. The call site will
       // hit the method directly.
       return;
@@ -378,42 +378,6 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     List<String> parametersBuffer = new List<String>(selector.argumentCount);
     // The arguments that will be passed to the real method.
     List<String> argumentsBuffer = new List<String>(parameters.parameterCount);
-
-    // TODO(5074): Update this comment once we remove support for
-    // the deprecated parameter specification.
-    // We fill the lists depending on the selector. For example,
-    // take method foo:
-    //    foo(a, b, [c, d]);
-    //
-    // We may have multiple ways of calling foo:
-    // (1) foo(1, 2, 3, 4)
-    // (2) foo(1, 2);
-    // (3) foo(1, 2, 3);
-    // (4) foo(1, 2, c: 3);
-    // (5) foo(1, 2, d: 4);
-    // (6) foo(1, 2, c: 3, d: 4);
-    // (7) foo(1, 2, d: 4, c: 3);
-    //
-    // What we generate at the call sites are:
-    // (1) foo$4(1, 2, 3, 4)
-    // (2) foo$2(1, 2);
-    // (3) foo$3(1, 2, 3);
-    // (4) foo$3$c(1, 2, 3);
-    // (5) foo$3$d(1, 2, 4);
-    // (6) foo$4$c$d(1, 2, 3, 4);
-    // (7) foo$4$c$d(1, 2, 3, 4);
-    //
-    // The stubs we generate are (expressed in Dart):
-    // (1) No stub generated, call is direct.
-    // (2) foo$2(a, b) => foo$4(a, b, null, null)
-    // (3) foo$3(a, b, c) => foo$4(a, b, c, null)
-    // (4) foo$3$c(a, b, c) => foo$4(a, b, c, null);
-    // (5) foo$3$d(a, b, d) => foo$4(a, b, null, d);
-    // (6) foo$4$c$d(a, b, c, d) => foo$4(a, b, c, d);
-    // (7) Same as (5).
-    //
-    // We need to generate a stub for (5) because the order of the
-    // stub arguments and the real method may be different.
 
     int count = 0;
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
@@ -473,6 +437,41 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   void addParameterStubs(FunctionElement member,
                          DefineMemberFunction defineInstanceMember) {
+    // TODO(5074): Update this comment once we remove support for
+    // the deprecated parameter specification.
+    // We fill the lists depending on the selector. For example,
+    // take method foo:
+    //    foo(a, b, [c, d]);
+    //
+    // We may have multiple ways of calling foo:
+    // (1) foo(1, 2, 3, 4)
+    // (2) foo(1, 2);
+    // (3) foo(1, 2, 3);
+    // (4) foo(1, 2, c: 3);
+    // (5) foo(1, 2, d: 4);
+    // (6) foo(1, 2, c: 3, d: 4);
+    // (7) foo(1, 2, d: 4, c: 3);
+    //
+    // What we generate at the call sites are:
+    // (1) foo$4(1, 2, 3, 4)
+    // (2) foo$2(1, 2);
+    // (3) foo$3(1, 2, 3);
+    // (4) foo$3$c(1, 2, 3);
+    // (5) foo$3$d(1, 2, 4);
+    // (6) foo$4$c$d(1, 2, 3, 4);
+    // (7) foo$4$c$d(1, 2, 3, 4);
+    //
+    // The stubs we generate are (expressed in Dart):
+    // (1) No stub generated, call is direct.
+    // (2) foo$2(a, b) => foo$4(a, b, null, null)
+    // (3) foo$3(a, b, c) => foo$4(a, b, c, null)
+    // (4) foo$3$c(a, b, c) => foo$4(a, b, c, null);
+    // (5) foo$3$d(a, b, d) => foo$4(a, b, null, d);
+    // (6) foo$4$c$d(a, b, c, d) => foo$4(a, b, c, d);
+    // (7) Same as (5).
+    //
+    // We need to generate a stub for (5) because the order of the
+    // stub arguments and the real method may be different.
     Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
     if (selectors == null) return;
     for (Selector selector in selectors) {
@@ -1056,7 +1055,7 @@ $classesCollector.$mangledName = {'':
     if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
     String noSuchMethodName =
-        namer.instanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);
+        namer.publicInstanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
