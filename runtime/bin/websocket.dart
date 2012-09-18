@@ -70,7 +70,11 @@ interface WebSocketConnection extends Hashable {
    * Sets the callback to be called when the web socket connection is
    * closed. [status] indicate the reason for closing. For network
    * errors the value of [status] will be
-   * WebSocketStatus.ABNORMAL_CLOSURE].
+   * WebSocketStatus.ABNORMAL_CLOSURE]. In this callbach it is
+   * possible to call [close] if [close] has not already been called.
+   * If [close] has still not been called after the close callback
+   * returns the received close status will automatically be echoed
+   * back to the other end to finish the close handshake.
    */
   void set onClosed(void callback(int status, String reason));
 

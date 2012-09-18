@@ -289,6 +289,9 @@ class _WebSocketProtocolProcessor {
             throw new WebSocketException("Protocol error");
           }
           status = _controlPayload[0] << 8 | _controlPayload[1];
+          if (status == WebSocketStatus.NO_STATUS_RECEIVED) {
+            throw new WebSocketException("Protocol error");
+          }
           if (_controlPayload.length > 2) {
             var decoder = _StringDecoders.decoder(Encoding.UTF_8);
             decoder.write(
@@ -423,6 +426,12 @@ class _WebSocketConnectionBase  {
   }
 
   close([int status, String reason]) {
+    if (status == WebSocketStatus.RESERVED_1004 ||
+        status == WebSocketStatus.NO_STATUS_RECEIVED ||
+        status == WebSocketStatus.RESERVED_1015) {
+      throw new WebSocketException("Reserved status code $status");
+    }
+
     if (_closeSent) return;
     List<int> data;
     if (status !== null) {
@@ -506,7 +515,11 @@ class _WebSocketConnectionBase  {
       if (_closeTimer !== null) _closeTimer.cancel();
       _socket.close();
     } else {
-      close(status);
+      if (status != WebSocketStatus.NO_STATUS_RECEIVED) {
+        close(status);
+      } else {
+        close();
+      }
     }
   }
 
