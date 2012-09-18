@@ -1242,15 +1242,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
 
-    // If the class has type variables, create the runtime type
-    // information with the type parameters provided.
+    // Create the runtime type information, if needed.
     InterfaceType type = classElement.computeType(compiler);
-    if (compiler.world.needsRti(type.element)) {
-      List<HInstruction> rtiInputs = <HInstruction>[];
+      List<HInstruction> inputs = <HInstruction>[];
+      if (compiler.world.needsRti(classElement)) {
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
+        inputs.add(localsHandler.directLocals[typeVariable.element]);
       });
-      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
+      callSetRuntimeTypeInfo(classElement, inputs, newObject);
     }
 
     // Generate calls to the constructor bodies.
@@ -2647,7 +2646,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void handleListConstructor(InterfaceType type,
                              Node currentNode,
                              HInstruction newObject) {
-    if (type.arguments.isEmpty()) return;
+    if (!compiler.world.needsRti(type.element)) return;
     List<HInstruction> inputs = <HInstruction>[];
     type.arguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument, currentNode));
@@ -2656,22 +2655,51 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void callSetRuntimeTypeInfo(ClassElement element,
-                              List<HInstruction> inputs,
+                              List<HInstruction> rtiInputs,
                               HInstruction newObject) {
-    List<String> typeVariables = <String>[];
-    element.typeVariables.forEach((TypeVariableType typeVariable) {
-      typeVariables.add("'$typeVariable': #");
-    });
+    bool needsRti = compiler.world.needsRti(element);
+    bool runtimeTypeIsUsed = compiler.enabledRuntimeType;
 
-    String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
-    HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
-                                         new LiteralDartString('Object'),
-                                         inputs);
-    add(typeInfo);
+    HInstruction createForeign(String template,
+                               List<HInstruction> arguments,
+                               [String type = 'String']) {
+      return new HForeign(new LiteralDartString(template),
+                          new LiteralDartString(type),
+                          arguments);
+    }
+
+    // Construct the runtime type information.
+    StringBuffer runtimeCode = new StringBuffer();
+    List<HInstruction> runtimeCodeInputs = <HInstruction>[];
+    if (runtimeTypeIsUsed) {
+      String runtimeTypeString =
+          RuntimeTypeInformation.generateRuntimeTypeString(element,
+                                                           rtiInputs.length);
+      HInstruction runtimeType = createForeign(runtimeTypeString, rtiInputs);
+      add(runtimeType);
+      runtimeCodeInputs.add(runtimeType);
+      runtimeCode.add('runtimeType: #');
+    }
+    if (needsRti) {
+      if (runtimeTypeIsUsed) runtimeCode.add(', ');
+      String typeVariablesString =
+          RuntimeTypeInformation.generateTypeVariableString(element,
+                                                            rtiInputs.length);
+      HInstruction typeInfo = createForeign(typeVariablesString, rtiInputs);
+      add(typeInfo);
+      runtimeCodeInputs.add(typeInfo);
+      runtimeCode.add('#');
+    }
+    HInstruction runtimeInfo =
+        createForeign("{$runtimeCode}", runtimeCodeInputs, 'Object');
+    add(runtimeInfo);
+
+    // Set the runtime type information on the object.
     Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
     HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
     add(typeInfoSetter);
-    add(new HInvokeStatic(<HInstruction>[typeInfoSetter, newObject, typeInfo]));
+    add(new HInvokeStatic(
+        <HInstruction>[typeInfoSetter, newObject, runtimeInfo]));
   }
 
   visitNewSend(Send node) {
