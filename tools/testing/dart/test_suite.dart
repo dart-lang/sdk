@@ -1331,6 +1331,8 @@ class TestUtils {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
+    } else if (system == 'windows') {
+      result = 'build/';
     }
     return result;
   }
