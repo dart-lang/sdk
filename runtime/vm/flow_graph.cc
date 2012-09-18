@@ -514,7 +514,9 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     start_env.Add(graph_entry_->constant_null());
   }
   graph_entry_->set_start_env(
-      Environment::From(start_env, num_non_copied_params_, NULL));
+      Environment::From(start_env,
+                        num_non_copied_params_,
+                        parsed_function_.function()));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
@@ -547,8 +549,12 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // Attach current environment to the instruction. First, each instruction
     // gets a full copy of the environment. Later we optimize this by
     // eliminating unnecessary environments.
-    current->set_env(
-        Environment::From(*env, num_non_copied_params_, NULL));
+    current->set_env(Environment::From(*env,
+                                       num_non_copied_params_,
+                                       parsed_function_.function()));
+    if (current->CanDeoptimize()) {
+      current->env()->set_deopt_id(current->deopt_id());
+    }
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -777,6 +783,12 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
   BlockEntryInstr* caller_entry = GetBlockEntry(call);
   TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
   ZoneGrowableArray<ReturnInstr*>* callee_exits = callee_graph->exits();
+
+  // 0. Attach the outer environment on each instruction in the callee graph.
+  for (ForwardInstructionIterator it(callee_entry); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->CanDeoptimize()) call->env()->DeepCopyToOuter(instr);
+  }
 
   // 1. Insert the callee graph into the caller graph.
   if (callee_exits->is_empty()) {

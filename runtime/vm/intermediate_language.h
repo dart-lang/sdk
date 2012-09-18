@@ -3494,6 +3494,16 @@ class Environment : public ZoneAllocated {
       environment_->values_[index_] = value;
     }
 
+    Location CurrentLocation() const {
+      ASSERT(!Done());
+      return environment_->locations_[index_];
+    }
+
+    void SetCurrentLocation(Location loc) {
+      ASSERT(!Done());
+      environment_->locations_[index_] = loc;
+    }
+
    private:
     Environment* environment_;
     intptr_t index_;
@@ -3525,6 +3535,16 @@ class Environment : public ZoneAllocated {
       iterator_.SetCurrentValue(value);
     }
 
+    Location CurrentLocation() const {
+      ASSERT(!Done());
+      return iterator_.CurrentLocation();
+    }
+
+    void SetCurrentLocation(Location loc) {
+      ASSERT(!Done());
+      iterator_.SetCurrentLocation(loc);
+    }
+
    private:
     void SkipDone() {
       while (!Done() && iterator_.Done()) {
@@ -3538,7 +3558,7 @@ class Environment : public ZoneAllocated {
   // Construct an environment by constructing uses from an array of definitions.
   static Environment* From(const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
-                           const Environment* outer);
+                           const Function& function);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);
@@ -3583,7 +3603,10 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
+  const Function& function() const { return function_; }
+
   void DeepCopyTo(Instruction* instr) const;
+  void DeepCopyToOuter(Instruction* instr) const;
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -3593,11 +3616,13 @@ class Environment : public ZoneAllocated {
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t deopt_id,
+              const Function& function,
               Environment* outer)
       : values_(length),
         locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
         deopt_id_(deopt_id),
+        function_(function),
         outer_(outer) { }
 
   Environment* DeepCopy() const;
@@ -3606,6 +3631,7 @@ class Environment : public ZoneAllocated {
   Location* locations_;
   const intptr_t fixed_parameter_count_;
   intptr_t deopt_id_;
+  const Function& function_;
   Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

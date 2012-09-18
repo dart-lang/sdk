@@ -57,24 +57,6 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 }
 
 
-// Returns an array indexed by deopt id, containing the extracted ICData.
-static RawArray* ExtractTypeFeedbackArray(const Code& code) {
-  ASSERT(!code.IsNull() && !code.is_optimized());
-  GrowableArray<intptr_t> deopt_ids;
-  const GrowableObjectArray& ic_data_objs =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const intptr_t max_id =
-      code.ExtractIcDataArraysAtCalls(&deopt_ids, ic_data_objs);
-  const Array& result = Array::Handle(Array::New(max_id + 1));
-  for (intptr_t i = 0; i < deopt_ids.length(); i++) {
-    intptr_t result_index = deopt_ids[i];
-    ASSERT(result.At(result_index) == Object::null());
-    result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
-  }
-  return result.raw();
-}
-
-
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   Isolate* isolate = Isolate::Current();
   LongJump* base = isolate->long_jump_base();
@@ -157,7 +139,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
           const Code& unoptimized_code =
               Code::Handle(parsed_function.function().unoptimized_code());
           isolate->set_ic_data_array(
-              ExtractTypeFeedbackArray(unoptimized_code));
+              unoptimized_code.ExtractTypeFeedbackArray());
         }
       }
 

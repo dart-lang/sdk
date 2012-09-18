@@ -4,10 +4,13 @@
 
 #include "vm/flow_graph_inliner.h"
 
+#include "vm/compiler.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_optimizer.h"
 #include "vm/il_printer.h"
+#include "vm/intrinsifier.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -17,6 +20,7 @@ namespace dart {
 DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 DECLARE_FLAG(bool, print_flow_graph);
+DECLARE_FLAG(bool, deoptimization_counter_threshold);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -46,10 +50,19 @@ class CallSiteInliner : public FlowGraphVisitor {
     // Assuming no optional parameters the actual/formal count should match.
     ASSERT(arguments->length() == function.num_fixed_parameters());
 
+    // Abort if the callee has an intrinsic translation.
+    if (Intrinsifier::CanIntrinsify(function)) {
+      TRACE_INLINING(OS::Print("     Bailout: can intrinsify\n"));
+      return false;
+    }
+
     Isolate* isolate = Isolate::Current();
     // Save and clear IC data.
-    const Array& old_ic_data = Array::Handle(isolate->ic_data_array());
+    const Array& prev_ic_data = Array::Handle(isolate->ic_data_array());
     isolate->set_ic_data_array(Array::null());
+    // Save and clear deopt id.
+    const intptr_t prev_deopt_id = isolate->deopt_id();
+    isolate->set_deopt_id(0);
     // Install bailout jump.
     LongJump* base = isolate->long_jump_base();
     LongJump jump;
@@ -59,40 +72,44 @@ class CallSiteInliner : public FlowGraphVisitor {
       ParsedFunction parsed_function(function);
       Parser::ParseFunction(&parsed_function);
       parsed_function.AllocateVariables();
-      FlowGraphBuilder builder(parsed_function);
+
+      // Load IC data for the callee.
+      if ((function.deoptimization_counter() <
+           FLAG_deoptimization_counter_threshold) &&
+          function.HasCode()) {
+        const Code& unoptimized_code =
+            Code::Handle(function.unoptimized_code());
+        isolate->set_ic_data_array(unoptimized_code.ExtractTypeFeedbackArray());
+      }
 
       // Build the callee graph.
+      FlowGraphBuilder builder(parsed_function);
       FlowGraph* callee_graph =
           builder.BuildGraph(FlowGraphBuilder::kValueContext);
 
       // Abort if the callee graph contains control flow.
       if (callee_graph->preorder().length() != 2) {
         isolate->set_long_jump_base(base);
-        isolate->set_ic_data_array(old_ic_data.raw());
+        isolate->set_ic_data_array(prev_ic_data.raw());
         TRACE_INLINING(OS::Print("     Bailout: control flow\n"));
         return false;
       }
 
-      if (FLAG_trace_inlining && FLAG_print_flow_graph) {
-        OS::Print("Callee graph before SSA %s\n",
-                  parsed_function.function().ToFullyQualifiedCString());
-        FlowGraphPrinter printer(*callee_graph);
-        printer.PrintBlocks();
-      }
-
-      // Compute SSA on the callee graph. (catching bailouts)
+      // Compute SSA on the callee graph, catching bailouts.
       callee_graph->ComputeSSA(next_ssa_temp_index_);
-
-      if (FLAG_trace_inlining && FLAG_print_flow_graph) {
-        OS::Print("Callee graph after SSA %s\n",
-                  parsed_function.function().ToFullyQualifiedCString());
-        FlowGraphPrinter printer(*callee_graph);
-        printer.PrintBlocks();
-      }
-
       callee_graph->ComputeUseLists();
 
-      // TODO(zerny): Do optimization passes on the callee graph.
+      // TODO(zerny): Do more optimization passes on the callee graph.
+      FlowGraphOptimizer optimizer(callee_graph);
+      optimizer.ApplyICData();
+      callee_graph->ComputeUseLists();
+
+      if (FLAG_trace_inlining && FLAG_print_flow_graph) {
+        OS::Print("Callee graph for inlining %s\n",
+                  parsed_function.function().ToFullyQualifiedCString());
+        FlowGraphPrinter printer(*callee_graph);
+        printer.PrintBlocks();
+      }
 
       // TODO(zerny): If result is more than size threshold then abort.
 
@@ -102,14 +119,17 @@ class CallSiteInliner : public FlowGraphVisitor {
       caller_graph_->InlineCall(call, callee_graph);
       next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
-      // Remove (all) push arguments of the call.
+      // Check that inlining maintains use lists.
+      DEBUG_ASSERT(caller_graph_->ValidateUseLists());
+
+      // Remove push arguments of the call.
       for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
         PushArgumentInstr* push = call->ArgumentAt(i);
         push->ReplaceUsesWith(push->value()->definition());
         push->RemoveFromGraph();
       }
 
-      // Replace all the formal parameters with the actuals.
+      // Replace formal parameters with actuals.
       for (intptr_t i = 0; i < arguments->length(); ++i) {
         Value* val = callee_graph->graph_entry()->start_env()->ValueAt(i);
         ParameterInstr* param = val->definition()->AsParameter();
@@ -126,14 +146,16 @@ class CallSiteInliner : public FlowGraphVisitor {
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
       isolate->set_long_jump_base(base);
-      isolate->set_ic_data_array(old_ic_data.raw());
+      isolate->set_deopt_id(prev_deopt_id);
+      isolate->set_ic_data_array(prev_ic_data.raw());
       return true;
     } else {
       Error& error = Error::Handle();
       error = isolate->object_store()->sticky_error();
       isolate->object_store()->clear_sticky_error();
       isolate->set_long_jump_base(base);
-      isolate->set_ic_data_array(old_ic_data.raw());
+      isolate->set_deopt_id(prev_deopt_id);
+      isolate->set_ic_data_array(prev_ic_data.raw());
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
       return false;
     }
@@ -199,6 +221,10 @@ void FlowGraphInliner::Inline() {
     return;
   }
 
+  TRACE_INLINING(OS::Print(
+      "Inlining calls in %s\n",
+      flow_graph_->parsed_function().function().ToCString()));
+
   if (FLAG_trace_inlining && FLAG_print_flow_graph) {
     OS::Print("Before Inlining of %s\n", flow_graph_->
               parsed_function().function().ToFullyQualifiedCString());
@@ -206,9 +232,6 @@ void FlowGraphInliner::Inline() {
     printer.PrintBlocks();
   }
 
-  TRACE_INLINING(OS::Print(
-      "Inlining calls in %s\n",
-      flow_graph_->parsed_function().function().ToCString()));
   CallSiteInliner inliner(flow_graph_);
   inliner.VisitBlocks();
 

@@ -36,8 +36,11 @@ class DeoptimizationContext : public ValueObject {
     return &to_frame_[index];
   }
 
-  intptr_t* GetFromFpAddress() const;
-  intptr_t* GetFromPcAddress() const;
+  intptr_t GetFromFp() const;
+  intptr_t GetFromPc() const;
+
+  intptr_t GetCallerFp() const;
+  void SetCallerFp(intptr_t callers_fp);
 
   RawObject* ObjectAt(intptr_t index) const {
     return object_table_.At(index);
@@ -64,6 +67,7 @@ class DeoptimizationContext : public ValueObject {
   intptr_t* registers_copy_;
   double* xmm_registers_copy_;
   const intptr_t num_args_;
+  intptr_t caller_fp_;
   Isolate* isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationContext);
