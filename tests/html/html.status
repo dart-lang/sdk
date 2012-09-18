@@ -201,6 +201,5 @@ fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name
 cross_frame_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
 window_open_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime
-== safari || $runtime == opera) ]
+[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == safari || $runtime == opera) ]
 window_open_test: Fail
