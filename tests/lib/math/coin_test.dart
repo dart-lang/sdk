@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that the default PRNG does converge towards Pi when doing a Monte Carlo
-// simulation.
+// Test that a coin toss with Random.nextBool() is fair.
 
 // Library tag to allow Dartium to run the test.
 #library("coin_test");
