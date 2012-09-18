@@ -40,7 +40,7 @@ abstract class DartType implements Hashable {
    */
   abstract DartType unalias(Compiler compiler);
 
-  abstract bool equals(other);
+  abstract bool operator ==(other);
 }
 
 class TypeVariableType implements DartType {
@@ -54,9 +54,9 @@ class TypeVariableType implements DartType {
 
   int hashCode() => 17 * element.hashCode();
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !TypeVariableType) return false;
-    return other.element == element;
+    return other.element === element;
   }
 
   String toString() => name.slowToString();
@@ -86,7 +86,7 @@ class StatementType implements DartType {
 
   int hashCode() => 17 * stringName.hashCode();
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !StatementType) return false;
     return other.stringName == stringName;
   }
@@ -103,7 +103,7 @@ class VoidType implements DartType {
 
   int hashCode() => 1729;
 
-  bool equals(other) => other is VoidType;
+  bool operator ==(other) => other is VoidType;
 
   String toString() => name.slowToString();
 }
@@ -141,8 +141,9 @@ class InterfaceType implements DartType {
     return hash;
   }
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !InterfaceType) return false;
+    if (element !== other.element) return false;
     return arguments == other.arguments;
   }
 }
@@ -191,7 +192,7 @@ class FunctionType implements DartType {
     return hash;
   }
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !FunctionType) return false;
     return returnType == other.returnType
            && parameterTypes == other.parameterTypes;
@@ -226,9 +227,10 @@ class TypedefType implements DartType {
 
   int hashCode() => 17 * element.hashCode();
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !TypedefType) return false;
-    return other.element == element;
+    if (element !== other.element) return false;
+    return typeArguments == other.typeArguments;
   }
 }
 

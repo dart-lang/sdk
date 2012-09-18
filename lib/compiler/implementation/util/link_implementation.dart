@@ -71,7 +71,7 @@ class LinkTail<T> implements EmptyLink<T> {
 
   void forEach(void f(T element)) {}
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !Link<T>) return false;
     return other.isEmpty();
   }
@@ -140,7 +140,7 @@ class LinkEntry<T> implements Link<T> {
     }
   }
 
-  bool equals(other) {
+  bool operator ==(other) {
     if (other is !Link<T>) return false;
     Link<T> myElements = this;
     while (!myElements.isEmpty() && !other.isEmpty()) {
