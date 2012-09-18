@@ -94,6 +94,7 @@ class Intrinsifier : public AllStatic {
   // completely and the code does not need to be generated (i.e., no slow
   // path possible).
   static bool Intrinsify(const Function& function, Assembler* assembler);
+  static bool CanIntrinsify(const Function& function);
 
  private:
 #define DECLARE_FUNCTION(test_class_name, test_function_name, destination)    \
