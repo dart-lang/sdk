@@ -141,10 +141,15 @@ class Intl {
     // Locales of length < 5 are presumably two-letter forms, or else malformed.
     // Locales of length > 6 are likely to be malformed. In either case we
     // return them unmodified and if correct they will be found.
+    // We treat C as a special case, and assume it wants en_ISO for formatting.
+    // TODO(alanknight): en_ISO is probably not quite right for the C/Posix
+    // locale for formatting. Consider adding C to the formats database.
+    if (aLocale == "C") return "en_ISO";
     if ((aLocale.length < 5) || (aLocale.length > 6)) return aLocale;
     if (aLocale[2] != '-' && (aLocale[2] != '_')) return aLocale;
+    var lastRegionLetter = aLocale.length == 5 ? "" : aLocale[5].toUpperCase();
     return '${aLocale[0]}${aLocale[1]}_${aLocale[3].toUpperCase()}'
-           '${aLocale[4].toUpperCase()}';
+           '${aLocale[4].toUpperCase()}$lastRegionLetter';
   }
 
   /**

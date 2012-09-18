@@ -25,4 +25,13 @@ main() {
       expect(format.locale, equals('de'));
      });
   });
+
+  test("Canonicalizing locales", () {
+    expect(Intl.canonicalizedLocale('en-us'), 'en_US');
+    expect(Intl.canonicalizedLocale('en_us'), 'en_US');
+    expect(Intl.canonicalizedLocale('en_US'), 'en_US');
+    expect(Intl.canonicalizedLocale('xx-yyy'), 'xx_YYY');
+    expect(Intl.canonicalizedLocale('xx_YYY'), 'xx_YYY');
+    expect(Intl.canonicalizedLocale('C'), 'en_ISO');
+  });
 }

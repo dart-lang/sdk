@@ -51,7 +51,7 @@ Future<String> findSystemLocale() {
  * Regular expression to match the expected output of systeminfo on
  * Windows. e.g. System Locale:<tab>en_US;English (United States)
  */
-RegExp _sysInfoRegex = const RegExp(@"System Locale:\t(\w\w-\w+);");
+RegExp _sysInfoRegex = const RegExp(@"System Locale:\s+(\w\w-\w+);");
 
 /**
  * Regular expression to match the expected output of reading the defaults
