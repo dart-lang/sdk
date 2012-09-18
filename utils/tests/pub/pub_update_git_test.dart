@@ -62,6 +62,81 @@ main() {
     run();
   });
 
+  test("updates Git packages to an incompatible pubspec", () {
+    ensureGit();
+
+    git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
+    ]).scheduleCreate();
+
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      libDir('zoo'),
+      libPubspec('zoo', '1.0.0')
+    ]).scheduleCommit();
+
+    schedulePub(args: ['update'],
+        error: const RegExp(@'The name you specified for your dependency, '
+            @'"foo", doesn' @"'" @'t match the name "zoo" in its pubspec.'),
+        exitCode: 1);
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  solo_test("updates Git packages to a nonexistent pubspec", () {
+    ensureGit();
+
+    var repo = git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
+    ]);
+    repo.scheduleCreate();
+
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    repo.scheduleGit(['rm', 'pubspec.yaml']);
+    repo.scheduleGit(['commit', '-m', 'delete']);
+
+    schedulePub(args: ['update'],
+        error: const RegExp(@'Package "foo" doesn' @"'" @'t have a '
+            @'pubspec.yaml file.'),
+        exitCode: 1);
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
   group("with an argument", () {
     test("updates one locked Git package but no others", () {
       ensureGit();
