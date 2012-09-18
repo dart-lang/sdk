@@ -8,12 +8,12 @@
  * The Options object allows accessing the arguments which have been passed to
  * the current isolate.
  */
-interface Options default RuntimeOptions {
+abstract class Options {
   /**
    * A newly constructed Options object contains the arguments exactly as they
    * have been passed to the isolate.
    */
-  Options();
+  factory Options() => new RuntimeOptions();
 
   /**
    * Returns a list of arguments that have been passed to this isolate. Any

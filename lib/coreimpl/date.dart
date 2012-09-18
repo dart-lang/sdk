@@ -62,7 +62,7 @@ class DateImplementation implements Date {
   static const int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
   DateImplementation.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch,
-                                                [this.isUtc = false]) {
+                                                this.isUtc) {
     if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
       throw new IllegalArgumentException(millisecondsSinceEpoch);
     }
@@ -159,14 +159,15 @@ class DateImplementation implements Date {
     return new Duration(milliseconds: ms - otherMs);
   }
 
+  // TODO(lrn): Make parameters not optional for the implementation class.
   external DateImplementation(int year,
-                              [int month,
-                               int day,
-                               int hour,
-                               int minute,
-                               int second,
-                               int millisecond,
-                               bool isUtc]);
+                              [int month = 1,
+                               int day = 1,
+                               int hour = 0,
+                               int minute = 0,
+                               int second = 0,
+                               int millisecond = 0,
+                               bool isUtc = false]);
   external DateImplementation.now();
   external static int _brokenDownDateToMillisecondsSinceEpoch(
       int years, int month, int day, int hour, int minute, int second,
