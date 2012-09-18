@@ -2013,8 +2013,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return pop();
   }
 
-  String getTargetName(ErroneousElement error, [String prefix = '']) {
-    return '$prefix${error.targetName.slowToString()}';
+  String getTargetName(ErroneousElement error, [String prefix]) {
+    String result = error.targetName.slowToString();
+    if (?prefix) {
+      result = '$prefix $result';
+    }
+    return result;
   }
 
   void generateInstanceGetterWithCompiledReceiver(Send send,
@@ -2071,7 +2075,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'get '),
+                                getTargetName(element, 'get'),
                                 const EmptyLink<Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
@@ -2118,7 +2122,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static setter.
       generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'set '),
+                                getTargetName(element, 'set'),
                                 send.arguments);
     } else {
       stack.add(value);
@@ -3230,7 +3234,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction oldVariable = pop();
       if (variable.isErroneous()) {
         generateThrowNoSuchMethod(node,
-                                  getTargetName(variable, 'set '),
+                                  getTargetName(variable, 'set'),
                                   argumentValues: <HInstruction>[oldVariable]);
         pop();
       } else {
