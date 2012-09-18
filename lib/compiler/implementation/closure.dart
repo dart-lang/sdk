@@ -373,9 +373,8 @@ class ClosureTranslator extends AbstractVisitor {
         }
       }
     }
-
-    if (outermostFunctionElement.isMember()
-        && compiler.world.needsRti(outermostFunctionElement.enclosingElement)) {
+    if (outermostFunctionElement.isMember() &&
+        compiler.world.needsRti(outermostFunctionElement.getEnclosingClass())) {
       if (outermostFunctionElement.isInstanceMember()
           || outermostFunctionElement.isGenerativeConstructor()) {
         if (hasTypeVariable(type)) useLocal(closureData.thisElement);
