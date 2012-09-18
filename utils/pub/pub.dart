@@ -156,6 +156,11 @@ class PubCommand {
    */
   abstract String get usage;
 
+  /// Whether or not this command requires [entrypoint] to be defined. If false,
+  /// Pub won't look for a pubspec and [entrypoint] will be null when the
+  /// command runs.
+  bool get requiresEntrypoint => true;
+
   /**
    * Override this to define command-specific options. The results will be made
    * available in [commandOptions].
@@ -195,12 +200,17 @@ class PubCommand {
       exit(1);
     }
 
-    // TODO(rnystrom): Will eventually need better logic to walk up
-    // subdirectories until we hit one that looks package-like. For now, just
-    // assume the cwd is it.
-    var future = Package.load(workingDir, cache.sources).chain((package) {
-      entrypoint = new Entrypoint(package, cache);
+    var future = new Future.immediate(null);
+    if (requiresEntrypoint) {
+      // TODO(rnystrom): Will eventually need better logic to walk up
+      // subdirectories until we hit one that looks package-like. For now, just
+      // assume the cwd is it.
+      future = Package.load(null, workingDir, cache.sources)
+          .transform((package) => new Entrypoint(package, cache));
+    }
 
+    future = future.chain((entrypoint) {
+      this.entrypoint = entrypoint;
       try {
         var commandFuture = onRun();
         if (commandFuture == null) return new Future.immediate(true);
@@ -211,7 +221,18 @@ class PubCommand {
         return new Future.immediate(null);
       }
     });
-    future.handleException((e) => handleError(e, future.stackTrace));
+
+    future.handleException((e) {
+      if (e is PubspecNotFoundException && e.name == null) {
+        e = 'Could not find a file named "pubspec.yaml" in the directory '
+          '$workingDir.';
+      } else if (e is PubspecHasNoNameException && e.name == null) {
+        e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
+          '${basename(workingDir)}").';
+      }
+
+      handleError(e, future.stackTrace);
+    });
     // Explicitly exit on success to ensure that any dangling dart:io handles
     // don't cause the process to never terminate.
     future.then((_) => exit(0));

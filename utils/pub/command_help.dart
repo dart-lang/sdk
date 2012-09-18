@@ -10,6 +10,7 @@
 class HelpCommand extends PubCommand {
   String get description => "display help information for Pub";
   String get usage => 'pub help [command]';
+  bool get requiresEntrypoint => false;
 
   Future onRun() {
     if (commandOptions.rest.isEmpty()) {

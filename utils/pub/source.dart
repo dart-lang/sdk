@@ -66,7 +66,7 @@ class Source {
 
   /**
    * Get the list of all versions that exist for the package described by
-   * [description].
+   * [description]. [name] is the expected name of the package.
    *
    * Note that this does *not* require the packages to be installed, which is
    * the point. This is used during version resolution to determine which
@@ -75,8 +75,8 @@ class Source {
    * By default, this assumes that each description has a single version and
    * uses [describe] to get that version.
    */
-  Future<List<Version>> getVersions(description) {
-    return describe(new PackageId(this, Version.none, description))
+  Future<List<Version>> getVersions(String name, description) {
+    return describe(new PackageId(name, this, Version.none, description))
       .transform((pubspec) => [pubspec.version]);
   }
 
@@ -128,7 +128,7 @@ class Source {
       return ensureDir(dirname(path)).chain((_) => install(id, path));
     }).chain((found) {
       if (!found) throw 'Package $id not found.';
-      return Package.load(path, systemCache.sources);
+      return Package.load(id.name, path, systemCache.sources);
     });
   }
 
@@ -155,16 +155,6 @@ class Source {
    * allow the source to use lockfile-specific descriptions via [resolveId].
    */
   void validateDescription(description, [bool fromLockFile=false]) {}
-
-  /**
-   * Returns a human-friendly name for the package described by [description].
-   * This method should be light-weight. It doesn't need to validate that the
-   * given package exists.
-   *
-   * The package name should be lower-case and suitable for use in a filename.
-   * It may contain forward slashes.
-   */
-  String packageName(description) => description;
 
   /**
    * Returns whether or not [description1] describes the same package as

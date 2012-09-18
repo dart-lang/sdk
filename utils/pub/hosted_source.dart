@@ -31,7 +31,7 @@ class HostedSource extends Source {
    * Downloads a list of all versions of a package that are available from the
    * site.
    */
-  Future<List<Version>> getVersions(description) {
+  Future<List<Version>> getVersions(String name, description) {
     var parsed = _parseDescription(description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
 

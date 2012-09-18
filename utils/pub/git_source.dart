@@ -57,16 +57,9 @@ class GitSource extends Source {
       var ref = _getEffectiveRef(id);
       if (ref == 'HEAD') return new Future.immediate(null);
       return _checkOut(revisionCachePath, ref);
-    }).chain((_) => Package.load(revisionCachePath, systemCache.sources));
-  }
-
-  /**
-   * The package name of a Git repo is the name of the directory into which
-   * it'll be cloned.
-   */
-  String packageName(description) {
-    return basename(_getUrl(description)
-        .replaceFirst(const RegExp(@"(\.git)?/?$"), ""));
+    }).chain((_) {
+      return Package.load(id.name, revisionCachePath, systemCache.sources);
+    });
   }
 
   /**
@@ -109,7 +102,7 @@ class GitSource extends Source {
     return _revisionAt(id).transform((revision) {
       var description = {'url': _getUrl(id), 'ref': _getRef(id)};
       description['resolved-ref'] = revision;
-      return new PackageId(this, id.version, description);
+      return new PackageId(id.name, this, id.version, description);
     });
   }
 

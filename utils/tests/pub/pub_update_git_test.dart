@@ -14,11 +14,13 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCreate();
 
     git('bar.git', [
-      libDir('bar')
+      libDir('bar'),
+      libPubspec('bar', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
@@ -36,11 +38,13 @@ main() {
     ]).scheduleValidate();
 
     git('foo.git', [
-      libDir('foo', 'foo 2')
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCommit();
 
     git('bar.git', [
-      libDir('bar', 'bar 2')
+      libDir('bar', 'bar 2'),
+      libPubspec('bar', '1.0.0')
     ]).scheduleCommit();
 
     schedulePub(args: ['update'],
@@ -63,11 +67,13 @@ main() {
       ensureGit();
 
       git('foo.git', [
-        libDir('foo')
+        libDir('foo'),
+        libPubspec('foo', '1.0.0')
       ]).scheduleCreate();
 
       git('bar.git', [
-        libDir('bar')
+        libDir('bar'),
+        libPubspec('bar', '1.0.0')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
@@ -85,11 +91,13 @@ main() {
       ]).scheduleValidate();
 
       git('foo.git', [
-        libDir('foo', 'foo 2')
+        libDir('foo', 'foo 2'),
+        libPubspec('foo', '1.0.0')
       ]).scheduleCommit();
 
       git('bar.git', [
-        libDir('bar', 'bar 2')
+        libDir('bar', 'bar 2'),
+        libPubspec('bar', '1.0.0')
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],
@@ -117,7 +125,8 @@ main() {
       ]).scheduleCreate();
 
       git('foo-dep.git', [
-        libDir('foo-dep')
+        libDir('foo-dep'),
+        libPubspec('foo-dep', '1.0.0')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -140,7 +149,8 @@ main() {
       ]).scheduleCreate();
 
       git('foo-dep.git', [
-        libDir('foo-dep', 'foo-dep 2')
+        libDir('foo-dep', 'foo-dep 2'),
+        libPubspec('foo-dep', '1.0.0')
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],

@@ -326,7 +326,8 @@ testResolve(description, packages, [lockfile, result, error]) {
     if (lockfile != null) {
       lockfile.forEach((name, version) {
         version = new Version.parse(version);
-        realLockFile.packages[name] = new PackageId(source1, version, name);
+        realLockFile.packages[name] =
+          new PackageId(name, source1, version, name);
       });
     }
 
@@ -383,8 +384,8 @@ class MockSource extends Source {
   MockSource(this.name)
       : _packages = <String, Map<Version, Package>>{};
 
-  Future<List<Version>> getVersions(String name) {
-    return fakeAsync(() => _packages[name].getKeys());
+  Future<List<Version>> getVersions(String name, String description) {
+    return fakeAsync(() => _packages[description].getKeys());
   }
 
   Future<Pubspec> describe(PackageId id) {
@@ -403,8 +404,10 @@ class MockSource extends Source {
     var dependencies = <PackageRef>[];
     dependencyStrings.forEach((name, constraint) {
       var parsed = parseSource(name);
-      dependencies.add(new PackageRef(
-          parsed.last, new VersionConstraint.parse(constraint), parsed.first));
+      var description = parsed.first;
+      var packageName = description.replaceFirst(new RegExp(@"-[^-]+$"), "");
+      dependencies.add(new PackageRef(packageName, parsed.last,
+          new VersionConstraint.parse(constraint), description));
     });
 
     var pubspec = new Pubspec(
@@ -416,9 +419,6 @@ class MockSource extends Source {
     _packages.putIfAbsent(package.name, () => new Map<Version, Package>());
     _packages[package.name][package.version] = package;
   }
-
-  String packageName(String description) =>
-    description.replaceFirst(new RegExp(@"-[^-]+$"), "");
 }
 
 /**
