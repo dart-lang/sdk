@@ -921,7 +921,16 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 
 
 [ $compiler == dart2dart ]
-Language/03_Overview/*: Skip # ~10
+Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
+Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
+Language/03_Overview/1_Scoping_A02_t30: Fail # New import syntax
+Language/03_Overview/1_Scoping_A03_t02: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t01: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t08: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
+Language/03_Overview/2_Privacy_A01_t16: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t21: Fail # New import syntax
 Language/06_Functions/06_Functions_A01_t03: Fail # New import syntax
 Language/07_Classes/*: Skip # ~41
 Language/08_Interfaces/*: Skip # ~3
