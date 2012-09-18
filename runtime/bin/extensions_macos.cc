@@ -16,6 +16,7 @@ void* Extensions::LoadExtensionLibrary(const char* library_path,
 }
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
+  dlerror();
   void* result = dlsym(lib_handle, symbol);
   if (dlerror() != NULL) return NULL;
   return result;
