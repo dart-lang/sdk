@@ -2,3 +2,4 @@
 /out
 /xcodebuild
 /dart.xcodeproj
+/tests

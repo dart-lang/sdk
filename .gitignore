@@ -12,23 +12,11 @@
 /dart.Makefile
 /dart.xcodeproj
 /dart2js.target.mk
-/frog.target.mk
-/frogsh.target.mk
 /Makefile
 /out
 /runtime.target.mk
 /upload_sdk.target.mk
 /xcodebuild
-/Debug
-/DebugARM
-/DebugIA32
-/DebugSIMARM
-/DebugX64
-/Release
-/ReleaseARM
-/ReleaseIA32
-/ReleaseSIMARM
-/ReleaseX64
 /upload_sdk.vcxproj
 /dart2js.vcxproj.user
 /api_docs.vcproj
@@ -56,6 +44,11 @@
 /dart2js.vcproj
 /create_sdk.vcxproj.user
 /runtime.vcxproj
+/build
+/*.xcodeproj
+/.children
+/.project
+/*.pyc
 
 # End generated ignores. The following are hand-added because the svn:ignore
 # stuff doesn't handle them well.
