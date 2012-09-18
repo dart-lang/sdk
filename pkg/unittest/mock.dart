@@ -38,11 +38,6 @@ class _MockFailureHandler implements FailureHandler {
 
 _MockFailureHandler _mockFailureHandler = null;
 
-/**
- * [_noArg] is a sentinel value representing no argument.
- */
-const _noArg = const _Sentinel();
-
 /** The ways in which a call to a mock method can be handled. */
 class Action {
   /** Do nothing (void method) */
@@ -93,42 +88,29 @@ class CallMatcher {
    * or a [Matcher]. The various arguments can be scalar values or
    * [Matcher]s.
    */
-  CallMatcher([name,
-              arg0 = _noArg,
-              arg1 = _noArg,
-              arg2 = _noArg,
-              arg3 = _noArg,
-              arg4 = _noArg,
-              arg5 = _noArg,
-              arg6 = _noArg,
-              arg7 = _noArg,
-              arg8 = _noArg,
-              arg9 = _noArg]) {
-    if (name == null) {
-      nameFilter = anything;
-    } else {
-      nameFilter = wrapMatcher(name);
-    }
+  CallMatcher([name, arg0, arg1, arg2, arg3, arg4,
+               arg5, arg6, arg7, arg8, arg9]) {
+    nameFilter = name != null ? wrapMatcher(name) : anything;
     argMatchers = new List<Matcher>();
-    if (arg0 === _noArg) return;
+    if (!?arg0) return;
     argMatchers.add(wrapMatcher(arg0));
-    if (arg1 === _noArg) return;
+    if (!?arg1) return;
     argMatchers.add(wrapMatcher(arg1));
-    if (arg2 === _noArg) return;
+    if (!?arg2) return;
     argMatchers.add(wrapMatcher(arg2));
-    if (arg3 === _noArg) return;
+    if (!?arg3) return;
     argMatchers.add(wrapMatcher(arg3));
-    if (arg4 === _noArg) return;
+    if (!?arg4) return;
     argMatchers.add(wrapMatcher(arg4));
-    if (arg5 === _noArg) return;
+    if (!?arg5) return;
     argMatchers.add(wrapMatcher(arg5));
-    if (arg6 === _noArg) return;
+    if (!?arg6) return;
     argMatchers.add(wrapMatcher(arg6));
-    if (arg7 === _noArg) return;
+    if (!?arg7) return;
     argMatchers.add(wrapMatcher(arg7));
-    if (arg8 === _noArg) return;
+    if (!?arg8) return;
     argMatchers.add(wrapMatcher(arg8));
-    if (arg9 === _noArg) return;
+    if (!?arg9) return;
     argMatchers.add(wrapMatcher(arg9));
   }
 
@@ -182,19 +164,18 @@ class CallMatcher {
  * null to match anything, or a literal [String], a predicate [Function],
  * or a [Matcher]. The various arguments can be scalar values or [Matcher]s.
  */
-CallMatcher callsTo([method,
-                     arg0 = _noArg,
-                     arg1 = _noArg,
-                     arg2 = _noArg,
-                     arg3 = _noArg,
-                     arg4 = _noArg,
-                     arg5 = _noArg,
-                     arg6 = _noArg,
-                     arg7 = _noArg,
-                     arg8 = _noArg,
-                     arg9 = _noArg]) {
-  return new CallMatcher(method, arg0, arg1, arg2, arg3, arg4,
-      arg5, arg6, arg7, arg8, arg9);
+CallMatcher callsTo([method, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9]) {
+  if (!?a0) return new CallMatcher(method);
+  if (!?a1) return new CallMatcher(method, a0);
+  if (!?a2) return new CallMatcher(method, a0, a1);
+  if (!?a3) return new CallMatcher(method, a0, a1, a2);
+  if (!?a4) return new CallMatcher(method, a0, a1, a2, a3);
+  if (!?a5) return new CallMatcher(method, a0, a1, a2, a3, a4);
+  if (!?a6) return new CallMatcher(method, a0, a1, a2, a3, a4, a5);
+  if (!?a7) return new CallMatcher(method, a0, a1, a2, a3, a4, a5, a6);
+  if (!?a8) return new CallMatcher(method, a0, a1, a2, a3, a4, a5, a6, a7);
+  if (!?a9) return new CallMatcher(method, a0, a1, a2, a3, a4, a5, a6, a7, a8);
+  return new CallMatcher(method, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
 /**
@@ -1423,19 +1404,21 @@ class Mock {
    * Useful shorthand method that creates a [CallMatcher] from its arguments
    * and then calls [getLogs].
    */
-  LogEntryList calls(method,
-                      [arg0 = _noArg,
-                       arg1 = _noArg,
-                       arg2 = _noArg,
-                       arg3 = _noArg,
-                       arg4 = _noArg,
-                       arg5 = _noArg,
-                       arg6 = _noArg,
-                       arg7 = _noArg,
-                       arg8 = _noArg,
-                       arg9 = _noArg]) =>
-      getLogs(callsTo(method, arg0, arg1, arg2, arg3, arg4,
-          arg5, arg6, arg7, arg8, arg9));
+  LogEntryList calls(method, [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9]) {
+    if (!?a0) return getLogs(callsTo(method));
+    if (!?a1) return getLogs(callsTo(method, a0));
+    if (!?a2) return getLogs(callsTo(method, a0, a1));
+    if (!?a3) return getLogs(callsTo(method, a0, a1, a2));
+    if (!?a4) return getLogs(callsTo(method, a0, a1, a2, a3));
+    if (!?a5) return getLogs(callsTo(method, a0, a1, a2, a3, a4));
+    if (!?a6) return getLogs(callsTo(method, a0, a1, a2, a3, a4, a5));
+    if (!?a7) return getLogs(callsTo(method, a0, a1, a2, a3, a4, a5, a6));
+    if (!?a8) return getLogs(callsTo(method, a0, a1, a2, a3, a4, a5, a6, a7));
+    if (!?a9) {
+      return getLogs(callsTo(method, a0, a1, a2, a3, a4, a5, a6, a7, a8));
+    }
+    return getLogs(callsTo(method, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9));
+  }
 
   /** Clear the behaviors for the Mock. */
   void resetBehavior() => _behaviors.clear();

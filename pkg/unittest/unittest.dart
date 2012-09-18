@@ -293,15 +293,6 @@ void solo_test(String spec, TestFunction body) {
   _tests.add(_soloTest);
 }
 
-/** Sentinel value for [_SpreadArgsHelper]. */
-class _Sentinel {
-  const _Sentinel();
-}
-
-// TODO(sigmund): make a singleton const field when frog supports passing those
-// as default values to named arguments.
-const _sentinel = const _Sentinel();
-
 /** Simulates spread arguments using named arguments. */
 // TODO(sigmund): remove this class and simply use a closure with named
 // arguments (if still applicable).
@@ -365,30 +356,21 @@ class _SpreadArgsHelper {
     }
   }
 
-  invoke([arg0 = _sentinel, arg1 = _sentinel, arg2 = _sentinel,
-          arg3 = _sentinel, arg4 = _sentinel]) {
+  invoke([arg0, arg1, arg2, arg3, arg4]) {
     return guardAsync(() {
       ++_actualCalls;
-      if (!_shouldCallBack()) {
-        return;
-      } else if (arg0 == _sentinel) {
-        return _callback();
-      } else if (arg1 == _sentinel) {
-        return _callback(arg0);
-      } else if (arg2 == _sentinel) {
-        return _callback(arg0, arg1);
-      } else if (arg3 == _sentinel) {
-        return _callback(arg0, arg1, arg2);
-      } else if (arg4 == _sentinel) {
-        return _callback(arg0, arg1, arg2, arg3);
-      } else {
-        _testCase.error(
-           'unittest lib does not support callbacks with more than'
-              ' 4 arguments.',
-           '');
-      }
-    },
-    _after, _testNum);
+      if (!_shouldCallBack()) return;
+      if (?arg0) return _callback();
+      if (?arg1) return _callback(arg0);
+      if (?arg2) return _callback(arg0, arg1);
+      if (?arg3) return _callback(arg0, arg1, arg2);
+      if (?arg4) return _callback(arg0, arg1, arg2, arg3);
+      _testCase.error(
+          'unittest lib does not support callbacks with more than'
+          ' 4 arguments.',
+          '');
+      },
+      _after, _testNum);
   }
 
   invoke0() {

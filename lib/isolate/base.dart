@@ -64,8 +64,7 @@ abstract class SendPort implements Hashable {
    * In the special circumstances when two isolates share the same code and are
    * running in the same process (e.g. isolates created via [spawnFunction]), it
    * is also possible to send object instances (which would be copied in the
-   * process). This is currently only supported by the dartvm.  For now, the
-   * frog compiler only supports the restricted messages described above.
+   * process). This is currently only supported by the dartvm.
    *
    * Deprecation note: it is no longer valid to transmit a [ReceivePort] in a
    * message. Previously they were translated to the corresponding send port
