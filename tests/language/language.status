@@ -71,6 +71,8 @@ lazy_static3_test: Fail # Issue 3558
 *dartc_negative_test: Skip
 
 compile_time_constant10_test: Fail # issue 5214
+compile_time_constant10_test/01: Pass # issue 5214
+compile_time_constant10_test/02: Pass # issue 5214
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
@@ -109,6 +111,11 @@ bad_constructor_test/06: Fail # Constructor name clashes with other member
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
+argument_definition_test/01: Fail # Issue 5082
+argument_definition_test/02: Fail # Issue 5082
+argument_definition_test/03: Fail # Issue 5082
+argument_definition_test/04: Fail # Issue 5082
+argument_definition_test/05: Fail # Issue 5082
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -154,6 +161,8 @@ class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 compile_time_constant10_test: Fail # issue 5215.
+compile_time_constant10_test/01: Pass # issue 5215.
+compile_time_constant10_test/02: Pass # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
@@ -256,6 +265,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+getter_no_setter2_test/01: Fail, Pass # Test works only for minified output.
 metadata_test: Fail
 prefix_new_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
@@ -349,7 +359,6 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 gc_test: Fail
-getter_no_setter2_test/01: Fail # Issue 4898
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
@@ -378,6 +387,7 @@ get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 
+compile_time_constant10_test: Fail # Triage this.
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
