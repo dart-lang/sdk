@@ -70,6 +70,8 @@ lazy_static3_test: Fail # Issue 3558
 *dartc_test: Skip
 *dartc_negative_test: Skip
 
+compile_time_constant10_test: Fail # issue 5214
+
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
@@ -151,6 +153,7 @@ class_literal_test/27 : Fail # language change 3368
 class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+compile_time_constant10_test: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.

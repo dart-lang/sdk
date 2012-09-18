@@ -64,7 +64,8 @@ const String DEFAULT_CORELIB = r'''
   class List {}
   class Closure {}
   class Null {}
-  class Dynamic_ {}''';
+  class Dynamic_ {}
+  bool identical(Object a, Object b) {}''';
 
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;

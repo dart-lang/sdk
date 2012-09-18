@@ -8,9 +8,14 @@
 class Object {
   const Object();
 
-  bool operator ==(other) => this === other;
+  bool operator ==(other) => identical(this, other);
 
   external String toString();
 
   external void noSuchMethod(String name, List args);
 }
+
+/**
+ * Check whether two references are to the same object.
+ */
+bool identical(Object a, Object b) => a === b;
