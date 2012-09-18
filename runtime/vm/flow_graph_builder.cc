@@ -2540,6 +2540,9 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
+  // TODO(kmillikin) non-local control flow is not handled correctly
+  // by the inliner.
+  InlineBailout("EffectGraphVisitor::BuildThrowNode");
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);

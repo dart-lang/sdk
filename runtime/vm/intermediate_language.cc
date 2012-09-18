@@ -1174,9 +1174,6 @@ Definition* StrictCompareInstr::Canonicalize() {
   if ((kind() == Token::kEQ_STRICT) &&
       (right_constant.raw() == Bool::True()) &&
       (left()->ResultCid() == kBoolCid)) {
-    // Remove the constant from the graph.
-    Definition* right_defn = right()->definition();
-    right_defn->RemoveFromGraph();
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
   }
