@@ -374,11 +374,13 @@ class ClosureTranslator extends AbstractVisitor {
       }
     }
 
-    if (outermostFunctionElement.isInstanceMember()
-        || outermostFunctionElement.isGenerativeConstructor()) {
-      if (hasTypeVariable(type)) useLocal(closureData.thisElement);
-    } else if (outermostFunctionElement.isFactoryConstructor()) {
-      analyzeTypeVariables(type);
+    if (compiler.world.needsRti(outermostFunctionElement.enclosingElement)) {
+      if (outermostFunctionElement.isInstanceMember()
+          || outermostFunctionElement.isGenerativeConstructor()) {
+        if (hasTypeVariable(type)) useLocal(closureData.thisElement);
+      } else if (outermostFunctionElement.isFactoryConstructor()) {
+        analyzeTypeVariables(type);
+      }
     }
 
     node.visitChildren(this);
@@ -547,7 +549,8 @@ class ClosureTranslator extends AbstractVisitor {
         declareLocal(element);
       }
 
-      if (currentFunctionElement.isFactoryConstructor()) {
+      if (currentFunctionElement.isFactoryConstructor()
+          && compiler.world.needsRti(currentFunctionElement.enclosingElement)) {
         // Declare the type parameters in the scope. Generative
         // constructors just use 'this'.
         ClassElement cls = currentFunctionElement.enclosingElement;
