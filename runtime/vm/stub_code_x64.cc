@@ -544,21 +544,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ ReserveAlignedFrameSpace(0);
   __ movq(RDI, RCX);  // Set up argument 1 last_fp.
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
-  // Result (RAX) is our FP.
   if (preserve_rax) {
-    // Restore result into RBX.
-    __ movq(RBX, Address(RBP, -1 * kWordSize));
+    // Restore result into RAX.
+    __ movq(RAX, Address(RBP, -1 * kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
-  __ movq(RBP, RAX);
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterFrame(0);
   if (preserve_rax) {
-    __ pushq(RBX);  // Preserve result, it will be GC-d here.
+    __ pushq(RAX);  // Preserve result, it will be GC-d here.
   }
   __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
   if (preserve_rax) {

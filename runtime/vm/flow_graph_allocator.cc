@@ -149,10 +149,8 @@ void FlowGraphAllocator::ComputeInitialSets() {
       // Add non-argument uses from the deoptimization environment (pushed
       // arguments are not allocated by the register allocator).
       if (current->env() != NULL) {
-        for (Environment::DeepIterator env_it(current->env());
-             !env_it.Done();
-             env_it.Advance()) {
-          Value* value = env_it.CurrentValue();
+        for (intptr_t i = 0; i < current->env()->Length(); ++i) {
+          Value* value = current->env()->ValueAt(i);
           if (!value->definition()->IsPushArgument()) {
             live_in->Add(value->definition()->ssa_temp_index());
           }
@@ -740,53 +738,49 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
 void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
                                                 Instruction* current) {
   ASSERT(current->env() != NULL);
-  Environment* env = current->env();
-  while (env != NULL) {
-    // Any value mentioned in the deoptimization environment should survive
-    // until the end of instruction but it does not need to be in the register.
-    // Expected shape of live range:
-    //
-    //                 i  i'
-    //      value    -----*
-    //
 
-    if (env->Length() == 0) {
-      env = env->outer();
+  Environment* env = current->env();
+
+  // Any value mentioned in the deoptimization environment should survive
+  // until the end of instruction but it does not need to be in the register.
+  // Expected shape of live range:
+  //
+  //                 i  i'
+  //      value    -----*
+  //
+
+  if (env->Length() == 0) return;
+
+  const intptr_t block_start_pos = block->start_pos();
+  const intptr_t use_pos = current->lifetime_position() + 1;
+
+  Location* locations =
+      Isolate::Current()->current_zone()->Alloc<Location>(env->Length());
+
+  for (intptr_t i = 0; i < env->Length(); ++i) {
+    Value* value = env->ValueAt(i);
+    locations[i] = Location::Any();
+    Definition* def = value->definition();
+
+    if (def->IsPushArgument()) {
+      // Frame size is unknown until after allocation.
+      locations[i] = Location::NoLocation();
       continue;
     }
 
-    const intptr_t block_start_pos = block->start_pos();
-    const intptr_t use_pos = current->lifetime_position() + 1;
-
-    Location* locations =
-        Isolate::Current()->current_zone()->Alloc<Location>(env->Length());
-
-    for (intptr_t i = 0; i < env->Length(); ++i) {
-      Value* value = env->ValueAt(i);
-      locations[i] = Location::Any();
-      Definition* def = value->definition();
-
-      if (def->IsPushArgument()) {
-        // Frame size is unknown until after allocation.
-        locations[i] = Location::NoLocation();
-        continue;
-      }
-
-      ConstantInstr* constant = def->AsConstant();
-      if (constant != NULL) {
-        locations[i] = Location::Constant(constant->value());
-        continue;
-      }
-
-      const intptr_t vreg = def->ssa_temp_index();
-      LiveRange* range = GetLiveRange(vreg);
-      range->AddUseInterval(block_start_pos, use_pos);
-      range->AddUse(use_pos, &locations[i]);
+    ConstantInstr* constant = def->AsConstant();
+    if (constant != NULL) {
+      locations[i] = Location::Constant(constant->value());
+      continue;
     }
 
-    env->set_locations(locations);
-    env = env->outer();
+    const intptr_t vreg = def->ssa_temp_index();
+    LiveRange* range = GetLiveRange(vreg);
+    range->AddUseInterval(block_start_pos, use_pos);
+    range->AddUse(use_pos, &locations[i]);
   }
+
+  env->set_locations(locations);
 }
 
 

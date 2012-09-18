@@ -787,14 +787,9 @@ void ParallelMoveInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void Environment::PrintTo(BufferFormatter* f) const {
   f->Print(" env={ ");
-  int arg_count = 0;
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->Print(", ");
-    if (values_[i]->definition()->IsPushArgument()) {
-      f->Print("a%d", arg_count++);
-    } else {
-      values_[i]->PrintTo(f);
-    }
+    values_[i]->PrintTo(f);
     if ((locations_ != NULL) && !locations_[i].IsInvalid()) {
       f->Print(" [");
       locations_[i].PrintTo(f);

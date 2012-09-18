@@ -45,69 +45,46 @@ void CompilerDeoptInfoWithStub::BuildReturnAddress(DeoptInfoBuilder* builder,
 }
 
 
-// Assign locations to incoming arguments, i.e., values pushed above spill slots
-// with PushArgument.  Recursively allocates from outermost to innermost
-// environment.
-void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
-    Environment* env,
-    intptr_t* stack_height) {
-  if (env == NULL) return;
-  AllocateIncomingParametersRecursive(env->outer(), stack_height);
-  for (Environment::ShallowIterator it(env); !it.Done(); it.Advance()) {
-    if (it.CurrentLocation().IsInvalid()) {
-      ASSERT(it.CurrentValue()->definition()->IsPushArgument());
-      it.SetCurrentLocation(Location::StackSlot((*stack_height)++));
-    }
-  }
-}
-
-
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   if (deoptimization_env_ == NULL) return DeoptInfo::null();
-
-  intptr_t stack_height = compiler->StackSize();
-  AllocateIncomingParametersRecursive(deoptimization_env_, &stack_height);
-
   const Function& function = compiler->parsed_function().function();
-  // For functions with optional arguments, all incoming arguments are copied
-  // to spill slots. The deoptimization environment does not track them.
-  const intptr_t incoming_arg_count =
+  // For functions with optional arguments, all incoming are copied to local
+  // area below FP, deoptimization environment does not track them.
+  const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(compiler->object_table(), incoming_arg_count);
+  const intptr_t fixed_parameter_count =
+      deoptimization_env_->fixed_parameter_count();
+  DeoptInfoBuilder builder(compiler->object_table(), num_args);
 
   intptr_t slot_ix = 0;
-  Environment* env = deoptimization_env_;
-  while (env != NULL) {
-    const Function& function = env->function();
-    const intptr_t fixed_parameter_count = env->fixed_parameter_count();
+  BuildReturnAddress(&builder, function, slot_ix++);
 
-    if (slot_ix == 0) {
-      // For the innermost environment call the virtual return builder.
-      BuildReturnAddress(&builder, function, slot_ix++);
-    } else {
-      // For any outer environment the deopt id is that of the call instruction
-      // which is recorded in the outer environment.
-      builder.AddReturnAddressAfter(function, env->deopt_id(), slot_ix++);
+  // Assign locations to values pushed above spill slots with PushArgument.
+  intptr_t height = compiler->StackSize();
+  for (intptr_t i = 0; i < deoptimization_env_->Length(); i++) {
+    if (deoptimization_env_->LocationAt(i).IsInvalid()) {
+      ASSERT(deoptimization_env_->ValueAt(i)->definition()->IsPushArgument());
+      *deoptimization_env_->LocationSlotAt(i) = Location::StackSlot(height++);
     }
+  }
 
-    for (intptr_t i = env->Length() - 1; i >= fixed_parameter_count; i--) {
-      builder.AddCopy(env->LocationAt(i), *env->ValueAt(i), slot_ix++);
-    }
+  for (intptr_t i = deoptimization_env_->Length() - 1;
+       i >= fixed_parameter_count;
+       i--) {
+    builder.AddCopy(deoptimization_env_->LocationAt(i),
+                    *deoptimization_env_->ValueAt(i),
+                    slot_ix++);
+  }
 
-    // PC marker and caller FP.
-    builder.AddPcMarker(function, slot_ix++);
-    builder.AddCallerFp(slot_ix++);
-
-    // On the outermost environment set caller PC and incoming arguments.
-    if (env->outer() == NULL) {
-      builder.AddCallerPc(slot_ix++);
-      for (intptr_t i = fixed_parameter_count - 1; i >= 0; i--) {
-        builder.AddCopy(env->LocationAt(i), *env->ValueAt(i), slot_ix++);
-      }
-    }
-
-    // Iterate on the outer environment.
-    env = env->outer();
+  // PC marker, caller-fp, caller-pc.
+  builder.AddPcMarker(function, slot_ix++);
+  builder.AddCallerFp(slot_ix++);
+  builder.AddCallerPc(slot_ix++);
+  // Incoming arguments.
+  for (intptr_t i = fixed_parameter_count - 1; i >= 0; i--) {
+    builder.AddCopy(deoptimization_env_->LocationAt(i),
+                    *deoptimization_env_->ValueAt(i),
+                    slot_ix++);
   }
 
   const DeoptInfo& deopt_info = DeoptInfo::Handle(builder.CreateDeoptInfo());
@@ -365,7 +342,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
+  descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
 }
 

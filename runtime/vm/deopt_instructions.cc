@@ -28,25 +28,16 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
   from_frame_size_ = isolate_->deopt_frame_copy_size();
   registers_copy_ = isolate_->deopt_cpu_registers_copy();
   xmm_registers_copy_ = isolate_->deopt_xmm_registers_copy();
-  caller_fp_ = GetFromFp();
 }
 
 
-intptr_t DeoptimizationContext::GetFromFp() const {
-  return from_frame_[from_frame_size_ - 1 - num_args_ - 1];
+intptr_t* DeoptimizationContext::GetFromFpAddress() const {
+  return &from_frame_[from_frame_size_ - 1 - num_args_ - 1];
 }
 
 
-intptr_t DeoptimizationContext::GetFromPc() const {
-  return from_frame_[from_frame_size_ - 1 - num_args_];
-}
-
-intptr_t DeoptimizationContext::GetCallerFp() const {
-  return caller_fp_;
-}
-
-void DeoptimizationContext::SetCallerFp(intptr_t caller_fp) {
-  caller_fp_ = caller_fp;
+intptr_t* DeoptimizationContext::GetFromPcAddress() const {
+  return &from_frame_[from_frame_size_ - 1 - num_args_];
 }
 
 // Deoptimization instruction moving value from optimized frame at
@@ -343,10 +334,9 @@ class DeoptCallerFpInstr : public DeoptInstr {
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
-    intptr_t from = deopt_context->GetCallerFp();
+    intptr_t* from_addr = deopt_context->GetFromFpAddress();
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
-    *to_addr = from;
-    deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(to_addr));
+    *to_addr = *from_addr;
   }
 
  private:
@@ -368,9 +358,9 @@ class DeoptCallerPcInstr : public DeoptInstr {
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
-    intptr_t from = deopt_context->GetFromPc();
+    intptr_t* from_addr = deopt_context->GetFromPcAddress();
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
-    *to_addr = from;
+    *to_addr = *from_addr;
   }
 
  private:

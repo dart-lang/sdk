@@ -50,7 +50,7 @@ static bool TestFunction(const Function& function,
 }
 
 
-bool Intrinsifier::CanIntrinsify(const Function& function) {
+bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (!FLAG_intrinsify) return false;
   // Closure functions may have different arguments.
   if (function.IsClosureFunction()) return false;
@@ -66,23 +66,6 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
       (function_class.library() != math_lib.raw())) {
     return false;
   }
-#define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
-  if (TestFunction(function,                                                   \
-                   class_name, function_name,                                  \
-                   #test_class_name, #test_function_name)) {                   \
-    return true;                                                               \
-  }                                                                            \
-
-INTRINSIC_LIST(FIND_INTRINSICS);
-#undef FIND_INTRINSICS
-  return false;
-}
-
-bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
-  if (!CanIntrinsify(function)) return false;
-  const char* function_name = String::Handle(function.name()).ToCString();
-  const Class& function_class = Class::Handle(function.Owner());
-  const char* class_name = String::Handle(function_class.Name()).ToCString();
 #define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
   if (TestFunction(function,                                                   \
                    class_name, function_name,                                  \

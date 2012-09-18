@@ -2371,7 +2371,7 @@ class PcDescriptors : public Object {
   uword GetPcForKind(Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
-  void Verify(const Function& function) const;
+  void Verify(bool check_ids) const;
 
   static void PrintHeaderString();
 
@@ -2719,9 +2719,6 @@ class Code : public Object {
   intptr_t ExtractIcDataArraysAtCalls(
       GrowableArray<intptr_t>* node_ids,
       const GrowableObjectArray& ic_data_objs) const;
-
-  // Returns an array indexed by deopt id, containing the extracted ICData.
-  RawArray* ExtractTypeFeedbackArray() const;
 
  private:
   // An object finder visitor interface.

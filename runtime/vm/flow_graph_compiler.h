@@ -70,9 +70,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler);
 
-  void AllocateIncomingParametersRecursive(Environment* env,
-                                           intptr_t* stack_height);
-
   // No code needs to be generated.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
 
@@ -88,7 +85,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
  private:
   const intptr_t deopt_id_;
   const DeoptReasonId reason_;
-  Environment* deoptimization_env_;
+  const Environment* deoptimization_env_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
 };

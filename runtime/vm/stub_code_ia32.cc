@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -551,21 +551,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), ECX);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
-  // Result (EAX) is our FP.
+
   if (preserve_eax) {
-    // Restore result into EBX.
-    __ movl(EBX, Address(EBP, -1 * kWordSize));
+    // Restore result into EAX.
+    __ movl(EAX, Address(EBP, -1 * kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
-  __ movl(EBP, EAX);
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterFrame(0);
   if (preserve_eax) {
-    __ pushl(EBX);  // Preserve result, it will be GC-d here.
+    __ pushl(EAX);  // Preserve result, it will be GC-d here.
   }
   __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
   if (preserve_eax) {

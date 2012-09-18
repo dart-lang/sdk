@@ -7114,7 +7114,7 @@ const char* PcDescriptors::ToCString() const {
 // - No two ic-call descriptors have the same deoptimization id (type feedback).
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
-void PcDescriptors::Verify(const Function& function) const {
+void PcDescriptors::Verify(bool check_ids) const {
 #if defined(DEBUG)
   // TODO(srdjan): Implement a more efficient way to check, currently drop
   // the check for too large number of descriptors.
@@ -7124,15 +7124,15 @@ void PcDescriptors::Verify(const Function& function) const {
     }
     return;
   }
-  // Only check ids for unoptimized code that is optimizable.
-  if (!function.is_optimizable()) return;
   for (intptr_t i = 0; i < Length(); i++) {
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
-    if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
-        (DescriptorKind(i) == PcDescriptors::kIcCall)) {
-      deopt_id = DeoptId(i);
+    if (check_ids) {
+      if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
+          (DescriptorKind(i) == PcDescriptors::kIcCall)) {
+        deopt_id = DeoptId(i);
+      }
     }
     for (intptr_t k = i + 1; k < Length(); k++) {
       if (kind == DescriptorKind(k)) {
@@ -7767,23 +7767,6 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
     }
   }
   return max_id;
-}
-
-
-RawArray* Code::ExtractTypeFeedbackArray() const {
-  ASSERT(!IsNull() && !is_optimized());
-  GrowableArray<intptr_t> deopt_ids;
-  const GrowableObjectArray& ic_data_objs =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const intptr_t max_id =
-      ExtractIcDataArraysAtCalls(&deopt_ids, ic_data_objs);
-  const Array& result = Array::Handle(Array::New(max_id + 1));
-  for (intptr_t i = 0; i < deopt_ids.length(); i++) {
-    intptr_t result_index = deopt_ids[i];
-    ASSERT(result.At(result_index) == Object::null());
-    result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
-  }
-  return result.raw();
 }
 
 
