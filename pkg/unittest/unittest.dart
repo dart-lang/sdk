@@ -360,11 +360,11 @@ class _SpreadArgsHelper {
     return guardAsync(() {
       ++_actualCalls;
       if (!_shouldCallBack()) return;
-      if (?arg0) return _callback();
-      if (?arg1) return _callback(arg0);
-      if (?arg2) return _callback(arg0, arg1);
-      if (?arg3) return _callback(arg0, arg1, arg2);
-      if (?arg4) return _callback(arg0, arg1, arg2, arg3);
+      if (!?arg0) return _callback();
+      if (!?arg1) return _callback(arg0);
+      if (!?arg2) return _callback(arg0, arg1);
+      if (!?arg3) return _callback(arg0, arg1, arg2);
+      if (!?arg4) return _callback(arg0, arg1, arg2, arg3);
       _testCase.error(
           'unittest lib does not support callbacks with more than'
           ' 4 arguments.',
