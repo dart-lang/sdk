@@ -921,7 +921,18 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 
 
 [ $compiler == dart2dart ]
-*: Skip
+Language/03_Overview/*: Skip # ~10
+Language/06_Functions/06_Functions_A01_t03: Fail # New import syntax
+Language/07_Classes/*: Skip # ~41
+Language/08_Interfaces/*: Skip # ~3
+Language/09_Generics/*: Skip # ~38
+Language/10_Expressions/*: Skip # ~49
+Language/11_Statements/*: Skip # ~2
+Language/13_Libraries_and_Scripts/*: Skip # ~11
+Language/14_Types/*: Skip # ~3
+Language/15_Reference/*: Skip # Not clear
+LibTest/core/*: Skip # ~4
+LibTest/isolate/*: Skip # ~5
 
 
 [ $compiler == dart2js && $browser ]
