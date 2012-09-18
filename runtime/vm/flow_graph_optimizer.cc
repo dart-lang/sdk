@@ -1182,9 +1182,12 @@ void FlowGraphTypePropagator::VisitBlocks() {
 
 void FlowGraphTypePropagator::VisitAssertAssignable(
     AssertAssignableInstr* instr) {
+  bool is_null, is_instance;
   if (FLAG_eliminate_type_checks &&
       !instr->is_eliminated() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(instr->dst_type())) {
+      ((instr->value()->CanComputeIsNull(&is_null) && is_null) ||
+       (instr->value()->CanComputeIsInstanceOf(instr->dst_type(), &is_instance)
+        && is_instance))) {
     // TODO(regis): Remove is_eliminated_ field and support.
     instr->eliminate();
 
@@ -1215,21 +1218,16 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
 
 
 void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
-  // TODO(regis): Propagate NullType as well and revise the comment and code
-  // below to also eliminate the test for non-null and non-constant value.
-
-  // We can only eliminate an 'assert boolean' test when the checked value is
-  // a constant time constant. Indeed, a variable of the proper compile time
-  // type (bool) may still hold null at run time and therefore fail the test.
+  bool is_null, is_bool;
   if (FLAG_eliminate_type_checks &&
       !instr->is_eliminated() &&
-      instr->value()->BindsToConstant() &&
-      !instr->value()->BindsToConstantNull() &&
-      instr->value()->CompileTypeIsMoreSpecificThan(
-          Type::Handle(Type::BoolType()))) {
+      instr->value()->CanComputeIsNull(&is_null) &&
+      !is_null &&
+      instr->value()->CanComputeIsInstanceOf(Type::Handle(Type::BoolType()),
+                                             &is_bool) &&
+      is_bool) {
     // TODO(regis): Remove is_eliminated_ field and support.
     instr->eliminate();
-
     Value* use = instr->value();
     Definition* result = use->definition();
     ASSERT(result != NULL);
@@ -1257,21 +1255,14 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
 
 
 void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
-  // TODO(regis): Propagate NullType as well and revise the comment and code
-  // below to also eliminate the test for non-null and non-constant value.
-
-  // We can only eliminate an 'instance of' test when the checked value is
-  // a constant time constant. Indeed, a variable of the proper compile time
-  // type may still hold null at run time and therefore fail the test.
-  // We do not bother checking for Object destination type, since the graph
-  // builder did already.
+  bool is_null;
+  bool is_instance = false;
   if (FLAG_eliminate_type_checks &&
-      instr->value()->BindsToConstant() &&
-      !instr->value()->BindsToConstantNull()) {
-    const Bool& bool_result =
-        instr->value()->CompileTypeIsMoreSpecificThan(instr->type()) ?
-            Bool::ZoneHandle(Bool::True()) : Bool::ZoneHandle(Bool::False());
-    Definition* result = new ConstantInstr(bool_result);
+      instr->value()->CanComputeIsNull(&is_null) &&
+      (is_null ||
+       instr->value()->CanComputeIsInstanceOf(instr->type(), &is_instance))) {
+    Definition* result = new ConstantInstr(Bool::ZoneHandle(Bool::Get(
+        instr->negate_result() ? !is_instance : is_instance)));
     result->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
     result->InsertBefore(instr);
     // Replace uses and remove the current instruction via the iterator.

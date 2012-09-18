@@ -89,18 +89,23 @@ class Value : public ZoneAllocated {
 
   const char* DebugName() const { return "Value"; }
 
-  // Returns true if the value represents a constant.
+  // Return true if the value represents a constant.
   bool BindsToConstant() const;
 
-  // Returns true if the value represents the constant null.
+  // Return true if the value represents the constant null.
   bool BindsToConstantNull() const;
 
   // Assert if BindsToConstant() is false, otherwise returns the constant value.
   const Object& BoundConstant() const;
 
-  // Reminder: The type of the constant null is the bottom type, which is more
-  // specific than any type.
-  bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
+  // Compute a run-time null test at compile-time and set result in is_null.
+  // Return false if the computation is not possible at compile time.
+  bool CanComputeIsNull(bool* is_null) const;
+
+  // Compute a run-time type test at compile-time and set result in is_instance.
+  // Return false if the computation is not possible at compile time.
+  bool CanComputeIsInstanceOf(const AbstractType& type,
+                              bool* is_instance) const;
 
   // Compile time constants, Bool, Smi and Nulls do not need to update
   // the store buffer.

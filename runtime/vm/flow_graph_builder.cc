@@ -568,9 +568,10 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 
   // Propagated types are not set yet.
   // More checks will possibly be eliminated during type propagation.
-  const bool eliminated = value->CompileTypeIsMoreSpecificThan(dst_type);
-  // Note: 'eliminated' is true for a null constant value, since its type,
-  // i.e. bottom type, is more specific than any type.
+  bool is_null, is_instance;
+  const bool eliminated =
+      (value->CanComputeIsNull(&is_null) && is_null) ||
+      (value->CanComputeIsInstanceOf(dst_type, &is_instance) && is_instance);
   if (FLAG_trace_type_check_elimination) {
     FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,

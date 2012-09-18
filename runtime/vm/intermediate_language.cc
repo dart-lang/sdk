@@ -291,30 +291,53 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-// Returns true if the compile type of this value is more specific than the
-// given dst_type.
 // TODO(regis): Support a set of compile types for the given value.
-bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
-  // No type is more specific than a malformed type.
-  if (dst_type.IsMalformed()) {
+bool Value::CanComputeIsNull(bool* is_null) const {
+  ASSERT(is_null != NULL);
+  // For now, we can only return a meaningful result if the value is constant.
+  if (!BindsToConstant()) {
     return false;
   }
 
-  // If the value is the null constant, its type (NullType) is more specific
-  // than the destination type, even if the destination type is the void type,
-  // since a void function is allowed to return null.
+  // Return true if the constant value is Object::null.
   if (BindsToConstantNull()) {
+    *is_null = true;
     return true;
   }
 
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
-  // In case of a null constant, we have already returned true above, else we
-  // return false here.
-  if (dst_type.IsVoidType()) {
+  // Consider the compile type of the value to check for sentinels, which are
+  // also treated as null.
+  const AbstractType& compile_type = AbstractType::Handle(CompileType());
+  ASSERT(!compile_type.IsMalformed());
+  ASSERT(!compile_type.IsVoidType());
+
+  // There are only three instances that can be of type Null:
+  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
+  // The inline code and run time code performing the type check will only
+  // encounter the 2 sentinel values if type check elimination was disabled.
+  // Otherwise, the type check of a sentinel value will be eliminated here,
+  // because these sentinel values can only be encountered as constants, never
+  // as actual value of a heap object being type checked.
+  if (compile_type.IsNullType()) {
+    *is_null = true;
+    return true;
+  }
+
+  return false;
+}
+
+
+// TODO(regis): Support a set of compile types for the given value.
+bool Value::CanComputeIsInstanceOf(const AbstractType& type,
+                                   bool* is_instance) const {
+  ASSERT(is_instance != NULL);
+  // We cannot give an answer if the given type is malformed.
+  if (type.IsMalformed()) {
     return false;
   }
+
+  // We should never test for an instance of null.
+  ASSERT(!type.IsNullType());
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = AbstractType::Handle(CompileType());
@@ -324,33 +347,57 @@ bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
   // of a void function, which was checked to be null at the return statement
   // inside the function.
   if (compile_type.IsVoidType()) {
+    ASSERT(FLAG_enable_type_checks);
+    *is_instance = true;
     return true;
   }
 
-  // If the compile type of the value is NullType, the type test is eliminated.
-  // There are only three instances that can be of Class Null:
-  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-  // The inline code and run time code performing the type check will never
-  // encounter the 2 sentinel values. The type check of a sentinel value
-  // will always be eliminated here, because these sentinel values can only
-  // be encountered as constants, never as actual value of a heap object
-  // being type checked.
+  // The Null type is only a subtype of Object and of Dynamic.
+  // Functions that do not explicitly return a value, implicitly return null,
+  // except generative constructors, which return the object being constructed.
+  // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
+    *is_instance =
+        type.IsObjectType() || type.IsDynamicType() || type.IsVoidType();
     return true;
   }
+
+  // Until we support a set of compile types, we can only give answers for
+  // constant values. Indeed, a variable of the proper compile time type may
+  // still hold null at run time and therefore fail the test.
+  if (!BindsToConstant()) {
+    return false;
+  }
+
+  // A non-null constant is not an instance of void.
+  if (type.IsVoidType()) {
+    *is_instance = false;
+    return true;
+  }
+
+  // Since the value is a constant, its type is instantiated.
+  ASSERT(compile_type.IsInstantiated());
 
   // The run time type of the value is guaranteed to be a subtype of the
-  // compile time type of the value. However, establishing here that
-  // the compile time type is a subtype of the destination type does not
-  // guarantee that the run time type will also be a subtype of the destination
-  // type, because the subtype relation is not transitive.
-  // However, the 'more specific than' relation is transitive and is used
-  // here. In other words, if the compile type of the value is more specific
-  // than the destination type, the run time type of the value, which is
-  // guaranteed to be a subtype of the compile type, is also guaranteed to be
-  // a subtype of the destination type and the type check can therefore be
-  // eliminated.
-  return compile_type.IsMoreSpecificThan(dst_type, NULL);
+  // compile time type of the value. However, establishing here that the
+  // compile time type is a subtype of the given type does not guarantee that
+  // the run time type will also be a subtype of the given type, because the
+  // subtype relation is not transitive when an uninstantiated type is
+  // involved.
+  Error& malformed_error = Error::Handle();
+  if (type.IsInstantiated()) {
+    // Perform the test on the compile-time type and provide the answer, unless
+    // the type test produced a malformed error (e.g. an upper bound error).
+    *is_instance = compile_type.IsSubtypeOf(type, &malformed_error);
+  } else {
+    // However, the 'more specific than' relation is transitive and used here.
+    // In other words, if the compile type of the value is more specific than
+    // the given type, the run time type of the value, which is guaranteed to be
+    // a subtype of the compile type, is also guaranteed to be a subtype of the
+    // given type.
+    *is_instance = compile_type.IsMoreSpecificThan(type, &malformed_error);
+  }
+  return malformed_error.IsNull();
 }
 
 

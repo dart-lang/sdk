@@ -44,6 +44,7 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 
 static const char* kGetterPrefix = "get:";
@@ -8550,7 +8551,18 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsMalformed());
-  if (IsNull()) {
+  const Class& cls = Class::Handle(clazz());
+  if (cls.IsNullClass()) {
+    if (!IsNull()) {
+      // We can only encounter Object::sentinel() or
+      // Object::transition_sentinel() if type checks were not eliminated at
+      // compile time. Both sentinels are instances of the Null class, but they
+      // are not the Object::null() instance.
+      ASSERT((raw() == Object::transition_sentinel()) ||
+             (raw() == Object::sentinel()));
+      ASSERT(!FLAG_eliminate_type_checks);
+      return true;  // We are doing an instance of test as part of a type check.
+    }
     // The null instance can be returned from a void function.
     if (other.IsVoidType()) {
       return true;
@@ -8575,10 +8587,6 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   if (other.IsVoidType()) {
     return false;
   }
-  const Class& cls = Class::Handle(clazz());
-  // We must not encounter Object::sentinel() or Object::transition_sentinel(),
-  // both instances of class NullClass, but not instance Object::null().
-  ASSERT(!cls.IsNullClass());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {
