@@ -932,7 +932,8 @@ Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t16: Fail # New import syntax
 Language/03_Overview/2_Privacy_A01_t21: Fail # New import syntax
 Language/06_Functions/06_Functions_A01_t03: Fail # New import syntax
-# TODO(antonm): adjust suppressions to drop Pass expectations.
+# TODO(antonm): adjust suppressions to drop Pass expectations which
+# are currently due to runtime suppressions.
 Language/07_Classes/07_Classes_A03_t07: Pass
 Language/07_Classes/07_Classes_A03_t08: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A03_t09: Fail # inherited from dart2js
@@ -971,17 +972,17 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Pass
 Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Pass
 Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Pass
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # inherited from dart2js
-Language/07_Classes/6_Constructors/2_Factories_A05_t02: Pass # ???
+Language/07_Classes/6_Constructors/2_Factories_A05_t02: Pass
 Language/07_Classes/6_Constructors_A03_t03: Fail # BUG in dart2dart: need to emit a ctor.
-Language/08_Interfaces/*: Skip # ~3
-Language/09_Generics/*: Skip # ~38
-Language/10_Expressions/*: Skip # ~49
-Language/11_Statements/*: Skip # ~2
-Language/13_Libraries_and_Scripts/*: Skip # ~11
-Language/14_Types/*: Skip # ~3
-Language/15_Reference/*: Skip # Not clear
-LibTest/core/*: Skip # ~4
-LibTest/isolate/*: Skip # ~5
+Language/08_Interfaces/*: Skip # ~30 failures, interfaces are going away, let's not waste time
+Language/09_Generics/*: Skip # ~38 failures
+Language/10_Expressions/*: Skip # ~49 failures
+Language/11_Statements/*: Skip # ~2 failures
+Language/13_Libraries_and_Scripts/*: Skip # ~11 failures
+Language/14_Types/*: Skip # ~3 failures
+Language/15_Reference/*: Skip # Not clear how many failures
+LibTest/core/*: Skip # ~4 failures
+LibTest/isolate/*: Skip # ~5 failures
 
 
 [ $compiler == dart2js && $browser ]
