@@ -293,7 +293,7 @@ class _WebSocketProtocolProcessor {
             var decoder = _StringDecoders.decoder(Encoding.UTF_8);
             decoder.write(
                 _controlPayload.getRange(2, _controlPayload.length - 2));
-            reason = decoder.decoded;
+            reason = decoder.decoded();
           }
         }
         if (onClosed !== null) onClosed(status, reason);
@@ -481,7 +481,7 @@ class _WebSocketConnectionBase  {
   _onWebSocketMessageEnd() {
     if (_onMessage !== null) {
       if (_currentMessageType == _WebSocketMessageType.TEXT) {
-        _onMessage(_decoder.decoded);
+        _onMessage(_decoder.decoded());
       } else {
         _onMessage(_outputStream.read());
       }

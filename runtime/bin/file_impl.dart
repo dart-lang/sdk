@@ -722,7 +722,7 @@ class _File extends _FileBase implements File {
       if (bytes.length == 0) return "";
       var decoder = _StringDecoders.decoder(encoding);
       decoder.write(bytes);
-      return decoder.decoded;
+      return decoder.decoded();
     });
   }
 
@@ -731,7 +731,7 @@ class _File extends _FileBase implements File {
     List<int> bytes = readAsBytesSync();
     if (bytes.length == 0) return "";
     decoder.write(bytes);
-    return decoder.decoded;
+    return decoder.decoded();
   }
 
   List<String> _getDecodedLines(_StringDecoder decoder) {
@@ -743,7 +743,7 @@ class _File extends _FileBase implements File {
     }
     // If there is more data with no terminating line break we treat
     // it as the last line.
-    var data = decoder.decoded;
+    var data = decoder.decoded();
     if (data != null) {
       result.add(data);
     }

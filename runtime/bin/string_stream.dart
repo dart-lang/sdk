@@ -19,9 +19,11 @@ interface _StringDecoder {
   // data.
   int get lineBreaks;
 
-  // Get the string data decoded since the last call to [decode] or
-  // [decodeLine]. Returns null if no decoded data is available.
-  String get decoded;
+  // Get up to [len] characters of string data decoded since the last
+  // call to [decode] or [decodeLine]. Returns null if no decoded data
+  // is available. If [len] is not specified all decoded characters
+  // are returned.
+  String decoded([int len]);
 
   // Get the string data decoded since the last call to [decode] or
   // [decodeLine] up to the next line break present. Returns null if
@@ -80,22 +82,29 @@ class _StringDecoderBase implements _StringDecoder {
 
   int get lineBreaks => _lineBreaks;
 
-  String get decoded {
+  String decoded([int len]) {
     if (isEmpty()) return null;
 
     String result;
-    if (_resultOffset == 0) {
-      result = new String.fromCharCodes(_result);
+    if (len !== null && len < available()) {
+      result = new String.fromCharCodes(_result.getRange(_resultOffset, len));
     } else {
-      result =
-          new String.fromCharCodes(
-              _result.getRange(_resultOffset, _result.length - _resultOffset));
+      if (_resultOffset == 0) {
+        result = new String.fromCharCodes(_result);
+      } else {
+        result =
+            new String.fromCharCodes(
+                _result.getRange(_resultOffset,
+                                 _result.length - _resultOffset));
+      }
     }
-    while (!_lineBreakEnds.isEmpty() && _lineBreakEnds.first() < _charOffset) {
+    _resultOffset += result.length;
+    while (!_lineBreakEnds.isEmpty() &&
+           _lineBreakEnds.first() < _charOffset + _resultOffset) {
       _lineBreakEnds.removeFirst();
       _lineBreaks--;
     }
-    _resetResult();
+    if (_result.length == _resultOffset) _resetResult();
     return result;
   }
 
@@ -105,6 +114,7 @@ class _StringDecoderBase implements _StringDecoder {
     int terminationSequenceLength = 1;
     if (_result[lineEnd - _charOffset] == LF &&
         lineEnd > _charOffset &&
+        _resultOffset < lineEnd &&
         _result[lineEnd - _charOffset - 1] == CR) {
       terminationSequenceLength = 2;
     }
@@ -353,8 +363,8 @@ class _StringInputStream implements StringInputStream {
     _input.onClosed = _onClosed;
   }
 
-  String read() {
-    String result = _decoder.decoded;
+  String read([int len]) {
+    String result = _decoder.decoded(len);
     _checkInstallDataHandler();
     return result;
   }
@@ -364,7 +374,7 @@ class _StringInputStream implements StringInputStream {
     if (decodedLine == null) {
       if (_inputClosed) {
         // Last line might not have a line separator.
-        decodedLine = _decoder.decoded;
+        decodedLine = _decoder.decoded();
         if (decodedLine != null &&
             decodedLine[decodedLine.length - 1] == '\r') {
           decodedLine = decodedLine.substring(0, decodedLine.length - 1);

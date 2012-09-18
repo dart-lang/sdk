@@ -122,10 +122,11 @@ interface StringInputStream default _StringInputStream {
   StringInputStream(InputStream input, [Encoding encoding]);
 
   /**
-   * Reads as many characters as is available from the stream. If no data is
-   * available null will be returned.
+   * Reads up to [len] characters from the stream. if [len] is not
+   * specified reads as many characters as is available from the
+   * stream. If no data is available null will be returned.
    */
-  String read();
+  String read([int len]);
 
   /**
    * Reads the next line from the stream. The line ending characters

@@ -165,6 +165,110 @@ void testReadLine2() {
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
 }
 
+void testReadChunks() {
+  ListInputStream s = new ListInputStream();
+  StringInputStream stream = new StringInputStream(s);
+
+  void stringData() {
+    var data;
+    Expect.equals(8, stream.available());
+    data = stream.read(1);
+    Expect.equals("A", data);
+    Expect.equals(7, stream.available());
+    data = stream.read(2);
+    Expect.equals("BC", data);
+    Expect.equals(5, stream.available());
+    data = stream.read(3);
+    Expect.equals("D12", data);
+    Expect.equals(2, stream.available());
+    data = stream.read();
+    Expect.equals("34", data);
+    Expect.equals(0, stream.available());
+    data = stream.read(1);
+    Expect.equals(null, data);
+    Expect.equals(0, stream.available());
+    data = stream.read(2);
+    Expect.equals(null, data);
+    Expect.equals(0, stream.available());
+    data = stream.read(3);
+    Expect.equals(null, data);
+    Expect.equals(0, stream.available());
+    data = stream.read();
+    Expect.equals(null, data);
+    Expect.equals(0, stream.available());
+  }
+
+  s.write("ABCD1234".charCodes());
+  stream.onData = stringData;
+}
+
+void testReadMixed() {
+  ListInputStream s = new ListInputStream();
+  StringInputStream stream = new StringInputStream(s);
+  var stage = 0;
+
+  void stringData() {
+    var data;
+    if (stage == 0) {
+      Expect.equals(11, stream.available());
+      data = stream.read(2);
+      Expect.equals("A\r", data);
+      Expect.equals(9, stream.available());
+      data = stream.readLine();
+      Expect.equals("", data);
+      Expect.equals(8, stream.available());
+      data = stream.read(4);
+      Expect.equals("BCD\n", data);
+      Expect.equals(4, stream.available());
+      data = stream.readLine();
+      Expect.equals(null, data);
+      data = stream.read(4);
+      Expect.equals("1234", data);
+      s.write("A\r\nBCD\n1234".charCodes());
+      stage++;
+    } else if (stage == 1) {
+      Expect.equals(11, stream.available());
+      data = stream.read(1);
+      Expect.equals("A", data);
+      Expect.equals(10, stream.available());
+      data = stream.read(1);
+      Expect.equals("\r", data);
+      Expect.equals(9, stream.available());
+      data = stream.read(1);
+      Expect.equals("\n", data);
+      Expect.equals(8, stream.available());
+      data = stream.readLine();
+      Expect.equals("BCD", data);
+      data = stream.readLine();
+      Expect.equals(null, data);
+      data = stream.read(4);
+      Expect.equals("1234", data);
+      s.write("A\r\nBCD\n1234".charCodes());
+      stage++;
+    } else if (stage == 2) {
+      Expect.equals(11, stream.available());
+      data = stream.read(7);
+      Expect.equals("A\r\nBCD\n", data);
+      Expect.equals(4, stream.available());
+      data = stream.readLine();
+      Expect.equals(null, data);
+      data = stream.read();
+      Expect.equals("1234", data);
+      stage++;
+      s.markEndOfStream();
+    }
+  }
+
+  void streamClosed() {
+    Expect.equals(3, stage);
+    Expect.equals(true, stream.closed);
+  }
+
+  s.write("A\r\nBCD\n1234".charCodes());
+  stream.onData = stringData;
+  stream.onClosed = streamClosed;
+}
+
 class TestException implements Exception {
   TestException();
 }
@@ -200,5 +304,7 @@ main() {
   testAscii();
   testReadLine1();
   testReadLine2();
+  testReadChunks();
+  testReadMixed();
   testErrorHandler();
 }
