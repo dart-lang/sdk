@@ -7,10 +7,10 @@
  */
 #library('intl_message_test_2');
 
-#import('../date_format.dart');
-#import('../date_symbol_data_local.dart');
-#import('../intl.dart');
-#import('../message_lookup_local.dart');
+#import('../lib/date_format.dart');
+#import('../lib/date_symbol_data_local.dart');
+#import('../lib/intl.dart');
+#import('../lib/message_lookup_local.dart');
 #import('../example/basic/basic_example.dart');
 #import('../../unittest/unittest.dart');
 

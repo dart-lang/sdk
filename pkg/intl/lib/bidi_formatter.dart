@@ -73,11 +73,29 @@ class BidiFormatter {
       _alwaysSpan = alwaysSpan;
   BidiFormatter.RTL([alwaysSpan=false]) : contextDirection = TextDirection.RTL,
       _alwaysSpan = alwaysSpan;
-  BidiFormatter.UNKNOWN([alwaysSpan=false]) : 
+  BidiFormatter.UNKNOWN([alwaysSpan=false]) :
       contextDirection = TextDirection.UNKNOWN, _alwaysSpan = alwaysSpan;
 
   /** Is true if the known context direction for this formatter is RTL. */
   bool get isRTL => contextDirection == TextDirection.RTL;
+
+  /**
+   * Escapes HTML-special characters of [text] so that the result can be
+   * included verbatim in HTML source code, either in an element body or in an
+   * attribute value.
+   */
+  String htmlEscape(String text) {
+    // TODO(alanknight): This is copied into here directly to avoid having a
+    // dependency on the htmlescape library, which is difficult to do in a way
+    // that's compatible with both package: links and direct links in the SDK.
+    // Once pub is used in test.dart (Issue #4968) this should be removed.
+    // TODO(efortuna): A more efficient implementation.
+    return text.replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&apos;");
+  }
 
   /**
    * Formats a string of a given (or estimated, if not provided)
@@ -114,7 +132,7 @@ class BidiFormatter {
   }
 
   /**
-   * Format [text] of a known (if specified) or estimated [direction] for use 
+   * Format [text] of a known (if specified) or estimated [direction] for use
    * in *plain-text* output of the context directionality, so an
    * opposite-directionality text is neither garbled nor garbles what follows
    * it. Unlike wrapWithSpan, this makes use of unicode BiDi formatting
@@ -144,7 +162,7 @@ class BidiFormatter {
 
   /**
    * Estimates the directionality of [text] using the best known
-   * general-purpose method (using relative word counts). A 
+   * general-purpose method (using relative word counts). A
    * TextDirection.UNKNOWN return value indicates completely neutral input.
    * [isHtml] is true if [text] HTML or HTML-escaped.
    */
@@ -157,7 +175,7 @@ class BidiFormatter {
    * (not necessarily the direction of [text]). The function returns an LRM or
    * RLM if the overall directionality or the exit directionality of [text] is
    * opposite the context directionality. Otherwise
-   * return the empty string. [isHtml] is true if [text] is HTML or 
+   * return the empty string. [isHtml] is true if [text] is HTML or
    * HTML-escaped.
    */
   String _resetDir(String text, TextDirection direction, bool isHtml) {

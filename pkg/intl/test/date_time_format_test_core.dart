@@ -10,11 +10,11 @@
 
 #library('date_time_format_tests');
 
-#import('../date_format.dart');
+#import('../lib/date_format.dart');
 #import('../../../pkg/unittest/unittest.dart');
 #import('date_time_format_test_data.dart');
-#import('../intl.dart');
-#import('../lib/date_format_internal.dart');
+#import('../lib/intl.dart');
+#import('../lib/src/date_format_internal.dart');
 
 var formatsToTest = const [
   DateFormat.DAY,

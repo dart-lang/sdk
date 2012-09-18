@@ -10,7 +10,7 @@ includes things like the names of weekdays and months. The data is the same as
 that in date_symbol_data_locale.dart and is generated from it using the 
 tools/generate_locale_data_files.dart program.
 
-There is also a localeList.dart file that lists all of the locales in these 
-directories and which is sourced by other files in order to have a list of the
-available locales.
+There is also a localeList.dart file that lists all of the 
+locales in these directories and which is sourced by other files in order to 
+have a list of the available locales.
  

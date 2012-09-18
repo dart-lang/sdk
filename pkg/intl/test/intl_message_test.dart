@@ -4,9 +4,9 @@
 
 #library('intl_message_test');
 
-#import('../intl.dart');
+#import('../lib/intl.dart');
 #import('../../unittest/unittest.dart');
-#import('../message_lookup_local.dart');
+#import('../lib/message_lookup_local.dart');
 
 /** Tests the MessageFormat library in dart. */
 

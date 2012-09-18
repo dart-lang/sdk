@@ -4,8 +4,8 @@
 
 #library('find_default_locale_browser_test');
 
-#import('../intl.dart');
-#import('../intl_standalone.dart');
+#import('../lib/intl.dart');
+#import('../lib/intl_standalone.dart');
 #import('../../unittest/unittest.dart');
 
 main() {

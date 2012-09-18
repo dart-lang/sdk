@@ -8,11 +8,8 @@
  */
 #library('intl');
 
-// TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
-#import('../htmlescape/lib/htmlescape.dart');
-
 #import('date_format.dart');
-#import('lib/intl_helpers.dart');
+#import('src/intl_helpers.dart');
 
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');

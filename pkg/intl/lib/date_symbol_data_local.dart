@@ -17,7 +17,7 @@
 #library("date_symbol_data");
 #import("date_symbols.dart");
 #import("date_format.dart");
-#import("lib/date_format_internal.dart");
+#import("src/date_format_internal.dart");
 #import("date_time_patterns.dart");
 
 /**
