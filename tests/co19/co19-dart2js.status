@@ -932,7 +932,47 @@ Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t16: Fail # New import syntax
 Language/03_Overview/2_Privacy_A01_t21: Fail # New import syntax
 Language/06_Functions/06_Functions_A01_t03: Fail # New import syntax
-Language/07_Classes/*: Skip # ~41
+# TODO(antonm): adjust suppressions to drop Pass expectations.
+Language/07_Classes/07_Classes_A03_t07: Pass
+Language/07_Classes/07_Classes_A03_t08: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A03_t09: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t19: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t21: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t22: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t24: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t25: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A03*: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t02: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t03: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t04: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t05: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t06: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t07: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t08: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t09: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t10: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t11: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t12: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t13: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t14: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t17: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t18: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A05_t02: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods_A05_t02: Pass
+Language/07_Classes/1_Instance_Methods_A05_t03: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Pass
+Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # inherited from dart2js
+Language/07_Classes/6_Constructors/2_Factories_A05_t02: Pass # ???
+Language/07_Classes/6_Constructors_A03_t03: Fail # BUG in dart2dart: need to emit a ctor.
 Language/08_Interfaces/*: Skip # ~3
 Language/09_Generics/*: Skip # ~38
 Language/10_Expressions/*: Skip # ~49
