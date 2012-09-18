@@ -89,6 +89,7 @@ abstract class Match {
  *     Iterable<Match> matches = exp.allMatches(str);
  */
 interface RegExp extends Pattern default JSSyntaxRegExp {
+
   /**
    * Constructs a regular expression. The default implementation of a
    * [RegExp] sets [multiLine] and [ignoreCase] to false.

@@ -6,15 +6,14 @@
  * This class is the public interface of a set. A set is a collection
  * without duplicates.
  */
-abstract class Set<E> extends Collection<E> {
-  factory Set() => new HashSetImplementation<E>();
+interface Set<E> extends Collection<E>
+    default HashSetImplementation<E extends Hashable> {
+  Set();
 
   /**
    * Creates a [Set] that contains all elements of [other].
    */
-  factory Set.from(Iterable<E> other) {
-    return new HashSetImplementation<E>.from(other);
-  }
+  Set.from(Iterable<E> other);
 
   /**
    * Returns true if [value] is in the set.
@@ -69,12 +68,12 @@ abstract class Set<E> extends Collection<E> {
 
 }
 
-abstract class HashSet<E extends Hashable> extends Set<E> {
-  factory HashSet() => new HashSetImplementation<E>();
+interface HashSet<E extends Hashable> extends Set<E>
+    default HashSetImplementation<E extends Hashable> {
+  HashSet();
 
   /**
    * Creates a [Set] that contains all elements of [other].
    */
-  factory HashSet.from(Iterable<E> other) =>
-      new HashSetImplementation<E>.from(other);
+  HashSet.from(Iterable<E> other);
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ExceptionImplementation implements Exception {
-  final message;
-  const ExceptionImplementation([this.message]);
-  String toString() => (message == null) ? "Exception" : "Exception: $message";
+  const ExceptionImplementation([msg = null]) : _msg = msg;
+  String toString() => (_msg === null) ? "Exception" : "Exception: $_msg";
+  final _msg;
 }

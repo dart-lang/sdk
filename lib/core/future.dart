@@ -27,9 +27,10 @@
  *
  * Use a [Completer] to create and change the state of a [Future].
  */
-abstract class Future<T> {
+interface Future<T> default FutureImpl<T> {
+
   /** A future whose value is immediately available. */
-  factory Future.immediate(T value) => new FutureImpl<T>.immediate(value);
+  Future.immediate(T value);
 
   /** The value provided. Throws an exception if [hasValue] is false. */
   T get value;
@@ -157,9 +158,9 @@ abstract class Future<T> {
  *     completer.completeException(exception);
  *
  */
-abstract class Completer<T> {
+interface Completer<T> default CompleterImpl<T> {
 
-  factory Completer() => new CompleterImpl<T>();
+  Completer();
 
   /** The future that will contain the value produced by this completer. */
   Future get future;
@@ -197,6 +198,7 @@ class FutureAlreadyCompleteException implements Exception {
  * example, waiting for a collection of Futures to complete).
  */
 class Futures {
+
   /**
    * Returns a future which will complete once all the futures in a list are
    * complete. If any of the futures in the list completes with an exception,

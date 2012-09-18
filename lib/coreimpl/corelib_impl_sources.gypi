@@ -8,6 +8,7 @@
     'collections.dart',
     'date.dart',
     'dual_pivot_quicksort.dart',
+    'duration_implementation.dart',
     'exceptions.dart',
     'future_implementation.dart',
     'hash_map_set.dart',

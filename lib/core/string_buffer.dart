@@ -7,11 +7,11 @@
  * efficiently. Only on a call to [toString] are the strings
  * concatenated to a single String.
  */
-abstract class StringBuffer {
+interface StringBuffer default StringBufferImpl {
   /**
    * Creates the string buffer with an initial content.
    */
-  factory StringBuffer([Object content = ""]) => new StringBufferImpl(content);
+  StringBuffer([Object content]);
 
   /**
    * Returns the length of the buffer.
