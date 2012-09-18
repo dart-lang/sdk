@@ -4,7 +4,7 @@
 
 // Interface for decoders decoding binary data into string data. The
 // decoder keeps track of line breaks during decoding.
-interface _StringDecoder {
+abstract class _StringDecoder {
   // Add more binary data to be decoded. The ownership of the buffer
   // is transfered to the decoder and the caller most not modify it any more.
   int write(List<int> buffer);
@@ -245,7 +245,7 @@ class _Latin1Decoder extends _StringDecoderBase {
 
 
 // Interface for encoders encoding string data into binary data.
-interface _StringEncoder {
+abstract class _StringEncoder {
   List<int> encodeString(String string);
 }
 
@@ -355,9 +355,7 @@ class EncoderException implements Exception {
 
 
 class _StringInputStream implements StringInputStream {
-  _StringInputStream(InputStream this._input,
-                     [Encoding encoding = Encoding.UTF_8])
-      : _encoding = encoding {
+  _StringInputStream(InputStream this._input, Encoding this._encoding) {
     _decoder = _StringDecoders.decoder(encoding);
     _input.onData = _onData;
     _input.onClosed = _onClosed;

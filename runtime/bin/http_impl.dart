@@ -427,8 +427,8 @@ class _HeaderValue implements HeaderValue {
 
 
 class _ContentType extends _HeaderValue implements ContentType {
-  _ContentType([String primaryType = "", String subType = ""])
-    : _primaryType = primaryType, _subType = subType;
+  _ContentType(String primaryType, String subType)
+      : _primaryType = primaryType, _subType = subType, super("");
 
   _ContentType.fromString(String value) : super.fromString(value);
 

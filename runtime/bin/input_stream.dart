@@ -31,7 +31,7 @@
  * Always set up appropriate handlers when using input streams.
  *
  */
-interface InputStream {
+abstract class InputStream {
   /**
    * Reads data from the stream. Returns a system allocated buffer
    * with up to [len] bytes. If no value is passed for [len] all
@@ -58,10 +58,9 @@ interface InputStream {
    * stream [output]. The default behavior is to close the output when
    * all the data from the input stream have been written. Specifying
    * `false` for the optional argument [close] keeps the output
-   * stream open after writing all data from the input stream. The
-   * default value for [close] is `true`.
+   * stream open after writing all data from the input stream.
    */
-  void pipe(OutputStream output, [bool close]);
+  void pipe(OutputStream output, [bool close = true]);
 
   /**
    * Close the underlying communication channel to avoid getting any
@@ -114,12 +113,15 @@ class Encoding {
  * string data. This data can be read either as string chunks or as
  * lines separated by line termination character sequences.
  */
-interface StringInputStream default _StringInputStream {
+abstract class StringInputStream {
   /**
    * Decodes a binary input stream into characters using the specified
-   * encoding. The default encoding is UTF-8 - `Encoding.UTF_8`.
+   * encoding.
    */
-  StringInputStream(InputStream input, [Encoding encoding]);
+  factory StringInputStream(InputStream input,
+                            [Encoding encoding = Encoding.UTF_8]) {
+    return new _StringInputStream(input, encoding);
+  }
 
   /**
    * Reads up to [len] characters from the stream. if [len] is not
@@ -188,12 +190,14 @@ interface StringInputStream default _StringInputStream {
  * A chunked input stream wraps a basic input stream and supplies
  * binary data in configurable chunk sizes.
  */
-interface ChunkedInputStream default _ChunkedInputStream {
+abstract class ChunkedInputStream {
   /**
    * Adds buffering to an input stream and provide the ability to read
    * the data in known size chunks.
    */
-  ChunkedInputStream(InputStream input, [int chunkSize]);
+  factory ChunkedInputStream(InputStream input, [int chunkSize = 0]) {
+    return new _ChunkedInputStream(input, chunkSize);
+  }
 
   /**
    * Reads [chunkSize] bytes from the stream. If [chunkSize] bytes are

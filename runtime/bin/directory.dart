@@ -5,26 +5,26 @@
 /**
  * [Directory] objects are used for working with directories.
  */
-interface Directory default _Directory {
+abstract class Directory {
   /**
    * Creates a directory object. The path is either an absolute path,
    * or it is a relative path which is interpreted relative to the directory
    * in which the Dart VM was started.
    */
-  Directory(String path);
+  factory Directory(String path) => new _Directory(path);
 
   /**
    * Creates a directory object from a Path object. The path is either
    * an absolute path, or it is a relative path which is interpreted
    * relative to the directory in which the Dart VM was started.
    */
-  Directory.fromPath(Path path);
+  factory Directory.fromPath(Path path) => new _Directory.fromPath(path);
 
   /**
    * Creates a directory object pointing to the current working
    * directory.
    */
-  Directory.current();
+  factory Directory.current() => new _Directory.current();
 
   /**
    * Check whether a directory with this name already exists. Returns
@@ -126,7 +126,7 @@ interface Directory default _Directory {
    * operation. Handlers for files and directories should be
    * registered on this DirectoryLister object.
    */
-  DirectoryLister list([bool recursive]);
+  DirectoryLister list([bool recursive = false]);
 
   /**
    * Gets the path of this directory.
@@ -143,7 +143,7 @@ interface Directory default _Directory {
  * called. If the listing operation is recursive, the error handler is
  * called if a subdirectory cannot be opened for listing.
  */
-interface DirectoryLister default _DirectoryLister {
+abstract class DirectoryLister {
   /**
    * Sets the directory handler that is called for all directories
    * during listing. The directory handler is called with the full

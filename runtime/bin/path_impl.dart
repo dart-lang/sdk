@@ -5,7 +5,7 @@
 class _Path implements Path {
   final String _path;
 
-  const _Path(String source) : _path = source;
+  _Path(String source) : _path = source;
   _Path.fromNative(String source) : _path = _clean(source);
 
   int hashCode() => _path.hashCode();

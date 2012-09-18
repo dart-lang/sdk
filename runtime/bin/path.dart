@@ -9,14 +9,13 @@
  * useful path manipulations and queries.  Joining of paths and normalization
  * interpret '.' and '..' in the usual way.
  */
-interface Path extends Hashable default _Path {
+abstract class Path extends Hashable {
   /**
    * Creates a Path from the String [source].  [source] is used as-is, so if
    * the string does not consist of segments separated by forward slashes, the
-   * behavior may not be as expected.  Paths are immutable, and constant
-   * Path objects may be constructed from constant Strings.
+   * behavior may not be as expected.  Paths are immutable.
    */
-  const Path(String source);
+  factory Path(String source) => new _Path(source);
 
   /**
    * Creates a Path from a String that uses the native filesystem's conventions.
@@ -24,7 +23,7 @@ interface Path extends Hashable default _Path {
    * A path starting with '/c:/' (or any other character instead of 'c') is
    * treated specially.  Backwards links ('..') cannot cancel the drive letter.
    */
-  Path.fromNative(String source);
+  factory Path.fromNative(String source) => new _Path.fromNative(source);
 
   /**
    * Is this path the empty string?

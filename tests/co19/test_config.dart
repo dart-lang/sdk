@@ -13,7 +13,7 @@ class Co19TestSuite extends StandardTestSuite {
   Co19TestSuite(Map configuration)
       : super(configuration,
               "co19",
-              const Path("tests/co19/src"),
+              new Path("tests/co19/src"),
               ["tests/co19/co19-compiler.status",
                "tests/co19/co19-runtime.status",
                "tests/co19/co19-dart2js.status"]);

@@ -238,8 +238,8 @@ void testContentType() {
     }
   }
 
-  _ContentType contentType;
-  contentType = new _ContentType();
+  ContentType contentType;
+  contentType = new ContentType();
   Expect.equals("", contentType.primaryType);
   Expect.equals("", contentType.subType);
   Expect.equals("/", contentType.value);

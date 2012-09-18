@@ -99,14 +99,14 @@ class Process {
   abstract void set onError(void callback(e));
 
   /**
-   * On Windows, [kill] kills the process, ignoring the [signal] flag. On
-   * Posix systems, [kill] sends [signal] to the process. Depending on the
-   * signal giving, it'll have different meanings. The default [signal] to
-   * send is [:ProcessSignal.SIGTERM:]. When the process terminates as a result
-   * of calling [kill] [onExit] is called. If the kill operation fails,
-   * [onError] is called.
+   * On Windows, [kill] kills the process, ignoring the [signal]
+   * flag. On Posix systems, [kill] sends [signal] to the
+   * process. Depending on the signal giving, it'll have different
+   * meanings. When the process terminates as a result of calling
+   * [kill] [onExit] is called. If the kill operation fails, [onError]
+   * is called.
    */
-  abstract void kill([ProcessSignal signal]);
+  abstract void kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
 
   /**
    * Terminates the streams of a process. [close] must be called on a
@@ -125,7 +125,7 @@ class Process {
  * [ProcessResult] represents the result of running a non-interactive
  * process started with [:Process.run:].
  */
-interface ProcessResult {
+abstract class ProcessResult {
   /**
    * Exit code for the process.
    */
@@ -229,7 +229,7 @@ class ProcessSignal {
 
 
 class ProcessException implements Exception {
-  const ProcessException([String this.message, int this.errorCode = 0]);
+  const ProcessException([String this.message = "", int this.errorCode = 0]);
   String toString() => "ProcessException: $message ($errorCode)";
 
   /**
