@@ -1276,7 +1276,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
     *fits = true;
     return Api::Success(isolate);
   }
-
+  // Slow path for Mints and Bigints.
   DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
@@ -1297,13 +1297,14 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
     *fits = (Api::SmiValue(integer) >= 0);
     return Api::Success(isolate);
   }
-
+  // Slow path for Mints and Bigints.
   DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  if (int_obj.IsSmi() || int_obj.IsMint()) {
+  ASSERT(!int_obj.IsSmi());
+  if (int_obj.IsMint()) {
     *fits = !int_obj.IsNegative();
   } else {
     *fits = BigintOperations::FitsIntoUint64(Bigint::Cast(int_obj));
@@ -1318,9 +1319,9 @@ DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
   CHECK_ISOLATE(isolate);
   if (Smi::IsValid64(value)) {
     NOHANDLESCOPE(isolate);
-    return Api::NewHandle(isolate, Smi::New(value));
+    return Api::NewHandle(isolate, Smi::New(static_cast<intptr_t>(value)));
   }
-
+  // Slow path for Mints and Bigints.
   DARTSCOPE_NOCHECKS(isolate);
   return Api::NewHandle(isolate, Integer::New(value));
 }
@@ -1343,13 +1344,14 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     *value = Api::SmiValue(integer);
     return Api::Success(isolate);
   }
-
+  // Slow path for Mints and Bigints.
   DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  if (int_obj.IsSmi() || int_obj.IsMint()) {
+  ASSERT(!int_obj.IsSmi());
+  if (int_obj.IsMint()) {
     *value = int_obj.AsInt64Value();
     return Api::Success(isolate);
   } else {
@@ -1376,17 +1378,16 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
       return Api::Success(isolate);
     }
   }
-
+  // Slow path for Mints and Bigints.
   DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  if (int_obj.IsSmi() || int_obj.IsMint()) {
-    if (!int_obj.IsNegative()) {
-      *value = int_obj.AsInt64Value();
-      return Api::Success(isolate);
-    }
+  ASSERT(!int_obj.IsSmi());
+  if (int_obj.IsMint() && !int_obj.IsNegative()) {
+    *value = int_obj.AsInt64Value();
+    return Api::Success(isolate);
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (BigintOperations::FitsIntoUint64(bigint)) {
@@ -1839,18 +1840,28 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   const Object& retval = Object::Handle(
       isolate,
       DartEntry::InvokeDynamic(instance, function, args, kNoArgumentNames));
-  if (retval.IsSmi() || retval.IsMint()) {
-    *len = Integer::Cast(retval).AsInt64Value();
+  if (retval.IsSmi()) {
+    *len = Smi::Cast(retval).Value();
     return Api::Success(isolate);
-  } else if (retval.IsBigint()) {
-    const Bigint& bigint = Bigint::Cast(retval);
-    if (BigintOperations::FitsIntoMint(bigint)) {
-      *len = BigintOperations::ToMint(bigint);
-      return Api::Success(isolate);
+  } else if (retval.IsMint() || retval.IsBigint()) {
+    if (retval.IsMint()) {
+      int64_t mint_value = Mint::Cast(retval).value();
+      if (mint_value >= kIntptrMin && mint_value <= kIntptrMax) {
+        *len = static_cast<intptr_t>(mint_value);
+      }
     } else {
-      return Api::NewError("Length of List object is greater than the "
-                           "maximum value that 'len' parameter can hold");
+      // Check for a non-canonical Mint range value.
+      ASSERT(retval.IsBigint());
+      const Bigint& bigint = Bigint::Handle();
+      if (BigintOperations::FitsIntoMint(bigint)) {
+        int64_t bigint_value = bigint.AsInt64Value();
+        if (bigint_value >= kIntptrMin && bigint_value <= kIntptrMax) {
+          *len = static_cast<intptr_t>(bigint_value);
+        }
+      }
     }
+    return Api::NewError("Length of List object is greater than the "
+                         "maximum value that 'len' parameter can hold");
   } else if (retval.IsError()) {
     return Api::NewHandle(isolate, retval.raw());
   } else {
