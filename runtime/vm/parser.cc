@@ -6584,7 +6584,8 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
-        if ((op_kind == Token::kIS) && type.IsMalformed()) {
+        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
+            type.IsMalformed()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test. However, no cast exception is thrown if the value
           // is null in a type cast.
