@@ -1058,6 +1058,9 @@ Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
 Language/14_Types/4_Interface_Types_A01_t01: Fail # BUG
 Language/14_Types/4_Interface_Types_A02_t01: Fail # BUG
 Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
