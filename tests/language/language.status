@@ -161,6 +161,8 @@ duplicate_implements_test/03: Fail, OK # we are going to remove interfaces
 duplicate_implements_test/04: Fail, OK # we are going to remove interfaces
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
+field7_negative_test: Fail, OK # language changed, test issue 5249
+field7a_negative_test: Fail, OK # language changed, test issue 5249
 const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
@@ -179,6 +181,8 @@ new_expression_type_args_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
+override_field_method3_negative_test: Fail, OK # test issue 5249
+override_field_method6_negative_test: Fail, OK # test issue 5249
 parameter_initializer6_negative_test: Fail # language change 4288
 prefix1_negative_test : Fail # language change 1031
 prefix4_negative_test : Fail # language change 1031

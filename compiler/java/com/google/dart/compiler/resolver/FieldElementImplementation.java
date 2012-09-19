@@ -5,8 +5,8 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
@@ -80,7 +80,7 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
       Modifiers modifiers) {
     return new FieldElementImplementation(node,
         node.getName().getSourceInfo(),
-        node.getName().getName(),
+        (node.getAccessor() != null && node.getAccessor().getModifiers().isSetter() ? "setter " : "") + node.getName().getName(),
         holder,
         metadata,
         modifiers);

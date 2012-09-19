@@ -638,6 +638,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return null;
       }
       Member member = itype.lookupMember(methodName);
+      if (member == null) {
+        member = itype.lookupMember("setter " + methodName);
+      }
       if (member == null && problemTarget != null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
           if (typeChecksForInferredTypes || !receiver.isInferred()) {
@@ -2275,6 +2278,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // Do not visit the name, it may not have been resolved.
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
+      if (member == null || ASTNodes.inSetterContext(node)) {
+        InterfaceType.Member member2 = cls.lookupMember("setter " + name);
+        if (member2 != null && (member == null || member2.getHolder() == member.getHolder() || types.isSubtype(member2.getHolder(), member.getHolder()))) {
+          member = member2;
+        }
+      }
       if (member == null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
           if (typeChecksForInferredTypes || !receiver.isInferred()) {
@@ -2331,6 +2340,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (inSetterContext) {
               if (setter == null) {
                 setter = Elements.lookupFieldElementSetter(enclosingClass, name);
+                if (setter == null) {
+                  setter = Elements.lookupFieldElementSetter(enclosingClass, "setter " + name);
+                }
                 if (setter == null) {
                   return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
                 }

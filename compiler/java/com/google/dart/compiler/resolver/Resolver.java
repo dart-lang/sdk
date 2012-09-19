@@ -1128,6 +1128,9 @@ public class Resolver {
       String name = x.getName();
       Element element = scope.findElement(scope.getLibrary(), name);
       if (element == null) {
+        element = scope.findElement(scope.getLibrary(), "setter " + name);
+      }
+      if (element == null) {
         // A private identifier could refer to a field in a different library. In this case
         // we want to provide a more useful error message in the type analyzer.
         if (DartIdentifier.isPrivateName(name)) {
@@ -1265,6 +1268,9 @@ public class Resolver {
         case CLASS:
           // Must be a static field.
           element = Elements.findElement(((ClassElement) qualifier), x.getPropertyName());
+          if (element == null) {
+            element = Elements.findElement(((ClassElement) qualifier), "setter " + x.getPropertyName());
+          }
           if (isIllegalPrivateAccess(x.getName(), qualifier, element, x.getPropertyName())) {
             // break;
             return null;
@@ -1480,6 +1486,9 @@ public class Resolver {
     public Element visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
       Scope scope = getContext().getScope();
       Element element = scope.findElement(scope.getLibrary(), x.getTarget().getName());
+      if (element == null) {
+        element = scope.findElement(scope.getLibrary(), "setter " + x.getTarget().getName());
+      }
       if (element == null && x.getTarget().getName().equals("assert")
           && x.getArguments().size() == 1) {
         element = scope.findElement(scope.getLibrary(), Elements.ASSERT_FUNCTION_NAME);

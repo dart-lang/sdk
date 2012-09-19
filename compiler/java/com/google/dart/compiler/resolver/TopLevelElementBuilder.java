@@ -30,6 +30,7 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -197,11 +198,29 @@ public class TopLevelElementBuilder {
   }
 
   private void declare(Element newElement, DartCompilerListener listener, Scope scope) {
-    Element oldElement = scope.declareElement(newElement.getName(), newElement);
+    String name = newElement.getName();
+    Element oldElement = scope.findLocalElement(name);
+    if (oldElement == null && newElement instanceof FieldElement) {
+      FieldElement eField = (FieldElement) newElement;
+      if (!eField.getModifiers().isAbstractField()) {
+        oldElement = scope.findLocalElement("setter " + name);
+      }
+      if (eField.getModifiers().isAbstractField()
+          && StringUtils.startsWith(name, "setter ")) {
+        Element other2 = scope.findLocalElement(StringUtils.removeStart(name, "setter "));
+        if (other2 instanceof FieldElement) {
+          FieldElement otherField = (FieldElement) other2;
+          if (!otherField.getModifiers().isAbstractField()) {
+            oldElement = otherField;
+          }
+        }
+      }
+    }
     if (shouldReportDuplicateDeclaration(oldElement, newElement)) {
       reportDuplicateDeclaration(listener, oldElement, newElement);
       reportDuplicateDeclaration(listener, newElement, oldElement);
     }
+    scope.declareElement(name, newElement);
   }
 
   private static boolean shouldReportDuplicateDeclaration(Element oldElement, Element newElement) {

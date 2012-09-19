@@ -81,17 +81,20 @@ Language/07_Classes/07_Classes_A02_t32: Fail, OK # constant constructors are not
 Language/07_Classes/07_Classes_A02_t34: Fail # Issue 5419
 Language/07_Classes/07_Classes_A09_t01: Fail, OK # warning expected if instance member has the same name as a static member
 Language/07_Classes/2_Getters_A01_t05: Fail # No issue: waiting to remove old getter syntax
-Language/07_Classes/3_Setters_A04_t01: Fail # Issue 5153
 Language/07_Classes/3_Setters_A04_t02: Fail, OK # getter and method with the same name
 Language/07_Classes/3_Setters_A04_t03: Fail, OK # getter and method with the same name
-Language/07_Classes/3_Setters_A04_t04: Fail # Issue 5153
-Language/07_Classes/3_Setters_A04_t05: Fail # Issue 5153
 Language/07_Classes/3_Setters_A04_t06: Fail OK # getter and method with the same name
-Language/07_Classes/3_Setters_A04_t07: Fail # Issue 5153
-Language/07_Classes/3_Setters_A04_t08: Fail # Issue 5153
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # Issue 5162
 Language/07_Classes/6_Constructors_A01_t01: Fail # Issue 5163
 Language/07_Classes/6_Constructors_A03_t03: Fail, OK # this should be a warning, not an error
+
+# co19 issue 217
+Language/07_Classes/07_Classes_A07_t03: Fail, OK
+Language/07_Classes/07_Classes_A07_t06: Fail, OK
+Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail, OK
+Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
+Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK
+
 
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # TODO(dartc-team): Please triage this failure.

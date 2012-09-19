@@ -88,6 +88,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * A setter definition that is prefixed with the static modifier defines a static setter.
+   * Otherwise, it defines an instance setter. The name of a setter is obtained by appending the
+   * string `=' to the identifier given in its signature.
+   * <p>
+   * Hence, a setter name can never conflict with, override or be overridden by a getter or method.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5153
+   */
+  public void test_setterNameImplicitEquals() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set foo(x) {}",
+        "  foo(x) {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo = 0;",
+        "  a.foo(0);",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4785
    */
@@ -1029,7 +1054,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  b.foo += 2;",
                 "  print(b.foo);",
                 "}"));
-    assertErrors(libraryResult.getTypeErrors());
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 13, 1));
   }
 
   public void test_getterOnlyProperty_noSetter() throws Exception {
@@ -1100,7 +1127,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  b.foo += 2;",
                 "  print(b.foo);",
                 "}"));
-    assertErrors(libraryResult.getTypeErrors());
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 13, 1));
   }
 
   public void test_assert_notUserFunction() throws Exception {
@@ -3266,6 +3295,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertNotNull(equalsElement);
   }
 
+  /**
+   * We can not override getter. But setter has name "setter=", so there are no conflict.
+   */
   public void test_supertypeHasMethod() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
@@ -3279,8 +3311,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  set bar();",
             "}");
       assertErrors(libraryResult.getTypeErrors(),
-          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 8, 7, 3),
-          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 9, 7, 3));
+          errEx(TypeErrorCode.SUPERTYPE_HAS_METHOD, 8, 7, 3));
   }
 
   /**
@@ -3361,6 +3392,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
   }
 
+  /**
+   * We can not override getter. But setter has name "setter=", so there are no conflict.
+   */
   public void test_supertypeHasGetterSetter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -3374,8 +3408,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  bar();",
         "}");
     assertErrors(libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3),
-        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 9, 3, 3));
+        errEx(TypeErrorCode.SUPERTYPE_HAS_FIELD, 8, 3, 3));
   }
 
   /**

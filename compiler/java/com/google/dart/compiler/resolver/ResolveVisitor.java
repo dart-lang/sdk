@@ -15,7 +15,6 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
-import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
@@ -132,7 +131,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     if (node == null) {
       return getTypeProvider().getDynamicType();
     }
-    assert node.getType() == null || node.getType() instanceof DynamicType;
+//    assert node.getType() == null || node.getType() instanceof DynamicType;
     Type type = getContext().resolveType(node, isStatic, isFactory, errorCode, wrongNumberErrorCode);
     if (type == null) {
       type = getTypeProvider().getDynamicType();
