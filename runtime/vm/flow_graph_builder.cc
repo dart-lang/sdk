@@ -2605,7 +2605,10 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
   }
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).
-  for_effect.Do(new CheckStackOverflowInstr(function.token_pos()));
+  Definition* check = new CheckStackOverflowInstr(function.token_pos());
+  // If we are inlining don't actually attach the stack check. We must still
+  // create the stack check inorder to allocate a deopt id.
+  if (!InInliningContext()) for_effect.Do(check);
   parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
