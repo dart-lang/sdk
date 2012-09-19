@@ -8,7 +8,9 @@ patch class NoSuchMethodError {
       return object.toString();
     }
     if (object is String) {
-      String escaped = object.replaceAll('"', '\\"');
+      // TODO(ahe): Remove hack when http://dartbug.com/4995 is fixed.
+      const hack = '\\' '"';
+      String escaped = object.replaceAll('"',  hack);
       return '"$escaped"';
     }
     return Object._toString(object);
