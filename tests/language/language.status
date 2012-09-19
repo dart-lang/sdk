@@ -64,6 +64,7 @@ named_parameters_aggregated_test/05: Fail # Compile-time error reported instead 
 
 lazy_static3_test: Fail # Issue 3558
 
+type_error_test: Fail # http://dartbug.com/5280
 
 
 # DartC specific tests that should not be run by the VM

@@ -1021,7 +1021,7 @@ boolConversionCheck(value) {
 stringTypeCheck(value) {
   if (value === null) return value;
   if (value is String) return value;
-  throw new TypeErrorImplementation('$value does not implement String');
+  throw new TypeErrorImplementation(value, 'String');
 }
 
 stringTypeCast(value) {
@@ -1034,7 +1034,7 @@ stringTypeCast(value) {
 doubleTypeCheck(value) {
   if (value === null) return value;
   if (value is double) return value;
-  throw new TypeErrorImplementation('$value does not implement double');
+  throw new TypeErrorImplementation(value, 'double');
 }
 
 doubleTypeCast(value) {
@@ -1046,7 +1046,7 @@ doubleTypeCast(value) {
 numTypeCheck(value) {
   if (value === null) return value;
   if (value is num) return value;
-  throw new TypeErrorImplementation('$value does not implement num');
+  throw new TypeErrorImplementation(value, 'num');
 }
 
 numTypeCast(value) {
@@ -1058,7 +1058,7 @@ numTypeCast(value) {
 boolTypeCheck(value) {
   if (value === null) return value;
   if (value is bool) return value;
-  throw new TypeErrorImplementation('$value does not implement bool');
+  throw new TypeErrorImplementation(value, 'bool');
 }
 
 boolTypeCast(value) {
@@ -1070,7 +1070,7 @@ boolTypeCast(value) {
 functionTypeCheck(value) {
   if (value === null) return value;
   if (value is Function) return value;
-  throw new TypeErrorImplementation('$value does not implement Function');
+  throw new TypeErrorImplementation(value, 'Function');
 }
 
 functionTypeCast(value) {
@@ -1082,7 +1082,7 @@ functionTypeCast(value) {
 intTypeCheck(value) {
   if (value === null) return value;
   if (value is int) return value;
-  throw new TypeErrorImplementation('$value does not implement int');
+  throw new TypeErrorImplementation(value, 'int');
 }
 
 intTypeCast(value) {
@@ -1094,7 +1094,7 @@ intTypeCast(value) {
 void propertyTypeError(value, property) {
   // Cuts the property name to the class name.
   String name = property.substring(3, property.length);
-  throw new TypeErrorImplementation('$value does not implement $name');
+  throw new TypeErrorImplementation(value, name);
 }
 
 void propertyTypeCastError(value, property) {
@@ -1223,7 +1223,7 @@ stringSuperNativeTypeCast(value, property) {
 listTypeCheck(value) {
   if (value === null) return value;
   if (value is List) return value;
-  throw new TypeErrorImplementation('$value does not implement List');
+  throw new TypeErrorImplementation(value, 'List');
 }
 
 listTypeCast(value) {
@@ -1270,9 +1270,11 @@ abstract class JavaScriptIndexingBehavior {
 
 /** Thrown by type assertions that fail. */
 class TypeErrorImplementation implements TypeError {
-  final String msg;
-  const TypeErrorImplementation(String this.msg);
-  String toString() => msg;
+  final String message;
+  TypeErrorImplementation(Object value, String type)
+    : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
+                "of type '$type'";
+  String toString() => message;
 }
 
 /** Thrown by the 'as' operator if the cast isn't valid. */
@@ -1302,7 +1304,7 @@ class FallThroughErrorImplementation implements FallThroughError {
 void assert(condition) {
   if (condition is Function) condition = condition();
   if (condition is !bool) {
-    throw new TypeErrorImplementation('$condition does not implement bool');
+    throw new TypeErrorImplementation(condition, 'bool');
   }
   // Compare to true to avoid boolean conversion check in checked
   // mode.
