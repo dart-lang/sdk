@@ -13,7 +13,11 @@ class Object {
   external String toString();
 
   external void noSuchMethod(String name, List args);
+
+  external Type runtimeType();
 }
+
+abstract class Type {}
 
 /**
  * Check whether two references are to the same object.
