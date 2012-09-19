@@ -104,9 +104,6 @@ isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
 
-[ $runtime == ie && $compiler == dart2js && $checked ]
-benchmark_smoke/benchmark_smoke_test: Fail
-
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
 node_test: Fail
