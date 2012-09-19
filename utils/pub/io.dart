@@ -543,9 +543,9 @@ Future<bool> get isGitInstalled {
     // TODO(rnystrom): The sleep is to pump the message queue. Can use
     // Future.immediate() when #3356 is fixed.
     return sleep(0).transform((_) => _isGitInstalledCache);
-
-    return _gitCommand.transform((git) => git != null);
   }
+
+  return _gitCommand.transform((git) => git != null);
 }
 
 /// Run a git process with [args] from [workingDir].

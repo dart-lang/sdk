@@ -302,7 +302,8 @@ def Main(argv):
   # Copy in 7zip for Windows.
   if utils.GuessOS() == 'win32':
     copytree(join(HOME, 'third_party', '7zip'),
-             join(join(UTIL, 'pub'), '7zip'))
+             join(join(UTIL, 'pub'), '7zip'),
+             ignore=ignore_patterns('.svn'))
 
     ReplaceInFiles([
         join(UTIL, 'pub', 'io.dart'),
