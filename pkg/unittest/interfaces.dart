@@ -25,19 +25,19 @@ typedef String ErrorFormatter(actual, Matcher matcher, String reason,
  */
 abstract class Description {
   /** Change the value of the description. */
-  Description replace(String text);
+  abstract Description replace(String text);
 
   /** This is used to add arbitrary text to the description. */
-  Description add(String text);
+  abstract Description add(String text);
 
   /** This is used to add a meaningful description of a value. */
-  Description addDescriptionOf(value);
+  abstract Description addDescriptionOf(value);
 
   /**
    * This is used to add a description of an [Iterable] [list],
    * with appropriate [start] and [end] markers and inter-element [separator].
    */
-  Description addAll(String start, String separator, String end,
+  abstract Description addAll(String start, String separator, String end,
                      Iterable list);
 }
 
@@ -56,10 +56,10 @@ abstract class Matcher {
    * and may be used to add details about the mismatch that are too
    * costly to determine in [describeMismatch].
    */
-  bool matches(item, MatchState matchState);
+  abstract bool matches(item, MatchState matchState);
 
   /** This builds a textual description of the matcher. */
-  Description describe(Description description);
+  abstract Description describe(Description description);
 
   /**
    * This builds a textual description of a specific mismatch. [item]
@@ -71,7 +71,7 @@ abstract class Matcher {
    * information that is not typically included but can be of help in
    * diagnosing failures, such as stack traces.
    */
-  Description describeMismatch(item, Description mismatchDescription,
+  abstract Description describeMismatch(item, Description mismatchDescription,
       MatchState matchState, bool verbose);
 }
 
@@ -83,7 +83,7 @@ abstract class Matcher {
  */
 abstract class FailureHandler {
   /** This handles failures given a textual decription */
-  void fail(String reason);
+  abstract void fail(String reason);
 
   /**
    * This handles failures given the actual [value], the [matcher]
@@ -93,7 +93,7 @@ abstract class FailureHandler {
    * these to create a detailed error message (typically by calling
    * an [ErrorFormatter]) and then call [fail] with this message.
    */
-  void failMatch(actual, Matcher matcher, String reason,
+  abstract void failMatch(actual, Matcher matcher, String reason,
                  MatchState matchState, bool verbose);
 }
 
