@@ -72,14 +72,7 @@ patch class double {
 }
 
 patch class NoSuchMethodError {
-  patch static String safeToString(Object object) {
-    if (object is int || object is double || object is bool || null == object) {
-      return object.toString();
-    }
-    if (object is String) {
-      String escaped = object.replaceAll('"', '\\"');
-      return '"$escaped"';
-    }
+  patch static String _objectToString(Object object) {
     return Primitives.objectToString(object);
   }
 }

@@ -3,16 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class NoSuchMethodError {
-  /* patch */ static String safeToString(Object object) {
-    if (object is int || object is double || object is bool || null == object) {
-      return object.toString();
-    }
-    if (object is String) {
-      // TODO(ahe): Remove hack when http://dartbug.com/4995 is fixed.
-      const hack = '\\' '"';
-      String escaped = object.replaceAll('"',  hack);
-      return '"$escaped"';
-    }
+  /* patch */ static String _objectToString(Object object) {
     return Object._toString(object);
   }
 }

@@ -10,6 +10,9 @@ main() {
   Expect.stringEquals('"\'\'"', NoSuchMethodError.safeToString("''"));
   Expect.stringEquals(r'"\""', NoSuchMethodError.safeToString('"'));
   Expect.stringEquals(r'"\"\""', NoSuchMethodError.safeToString('""'));
+
+  Expect.stringEquals(r'"\\\"\n\r"', NoSuchMethodError.safeToString('\\"\n\r'));
+
   Expect.stringEquals('null', NoSuchMethodError.safeToString(null));
   Expect.stringEquals('true', NoSuchMethodError.safeToString(true));
   Expect.stringEquals('false', NoSuchMethodError.safeToString(false));

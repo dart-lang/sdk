@@ -81,5 +81,22 @@ class NoSuchMethodError implements Error {
     }
   }
 
-  external static String safeToString(Object object);
+  static String safeToString(Object object) {
+    if (object is int || object is double || object is bool || null == object) {
+      return object.toString();
+    }
+    if (object is String) {
+      // TODO(ahe): Remove backslash when http://dartbug.com/4995 is fixed.
+      const backslash = '\\';
+      String escaped = object
+        .replaceAll('$backslash', '$backslash$backslash')
+        .replaceAll('\n', '${backslash}n')
+        .replaceAll('\r', '${backslash}r')
+        .replaceAll('"',  '$backslash"');
+      return '"$escaped"';
+    }
+    return _objectToString(object);
+  }
+
+  external static _objectToString(Object object);
 }
