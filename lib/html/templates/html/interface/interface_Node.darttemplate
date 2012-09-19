@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS {
+abstract class $ID$EXTENDS {
   NodeList get nodes;
 
   void set nodes(Collection<Node> value);

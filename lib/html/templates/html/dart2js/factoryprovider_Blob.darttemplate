@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory Blob(List blobParts = null, [String type, String endings]) {
+  static Blob createBlob([List blobParts = null, String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
     // array to ArrayBuffer if it is a total view.

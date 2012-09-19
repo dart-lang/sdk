@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS default _$(ID)FactoryProvider {
+abstract class $ID$EXTENDS {
 
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -13,5 +13,6 @@ interface $ID$EXTENDS default _$(ID)FactoryProvider {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  $ID(String type, [bool canBubble, bool cancelable]);
+  factory $ID(String type, [bool canBubble = true, bool cancelable = true]) =>
+      _$(ID)FactoryProvider.create$ID(type, canBubble, cancelable);
 $!MEMBERS}

@@ -3,17 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 $!COMMENT
-interface DocumentFragment extends Element default _$(ID)FactoryProvider {
+abstract class DocumentFragment extends Element {
 
-  DocumentFragment();
+  factory DocumentFragment() => _$(ID)FactoryProvider.createDocumentFragment();
 
-  DocumentFragment.html(String html);
+  factory DocumentFragment.html(String html) =>
+      _$(ID)FactoryProvider.createDocumentFragment_html(html);
 
   // TODO(nweiz): enable this when XML is ported
   // /** WARNING: Currently this doesn't work on Dartium (issue 649). */
   // DocumentFragment.xml(String xml);
 
-  DocumentFragment.svg(String svg);
+  factory DocumentFragment.svg(String svg) =>
+      new _$(ID)FactoryProvider.DocumentFragment.svg(svg);
 
   DocumentFragment clone(bool deep);
 

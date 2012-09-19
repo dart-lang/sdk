@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 $!COMMENT
-interface SVGElement extends Element default _$(ID)FactoryProvider {
+abstract class SVGElement implements Element {
 
-  SVGElement.tag(String tag);
-  SVGElement.svg(String svg);
+  factory SVGElement.tag(String tag) =>
+      _$(ID)FactoryProvider.create$(ID)_tag(tag);
+  factory SVGElement.svg(String svg) =>
+      _$(ID)FactoryProvider.create$(ID)_svg(svg);
 
   SVGElement clone(bool deep);
 

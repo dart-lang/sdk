@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS {
+abstract class $ID$EXTENDS {
 
   // TODO(nweiz): add this back once DocumentFragment is ported.
   // List<Element> queryAll(String selectors);

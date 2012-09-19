@@ -4,17 +4,19 @@
 
 class _IDBKeyRangeFactoryProvider {
 
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
+  static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
       _only(_class(), _translateKey(value));
 
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
+  static IDBKeyRange createIDBKeyRange_lowerBound(
+      /*IDBKey*/ bound, [bool open = false]) =>
       _lowerBound(_class(), _translateKey(bound), open);
 
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
+  static IDBKeyRange createIDBKeyRange_upperBound(
+      /*IDBKey*/ bound, [bool open = false]) =>
       _upperBound(_class(), _translateKey(bound), open);
 
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
+  static IDBKeyRange createIDBKeyRange_bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+      [bool lowerOpen = false, bool upperOpen = false]) =>
       _bound(_class(), _translateKey(lower), _translateKey(upper),
              lowerOpen, upperOpen);
 

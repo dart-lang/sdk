@@ -836,7 +836,7 @@ class _ElementFactoryProvider {
   };
 
   /** @domName Document.createElement */
-  factory Element.html(String html) {
+  static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
     //    creating them every call.
@@ -875,8 +875,10 @@ class _ElementFactoryProvider {
 $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  factory Element.tag(String tag) native "return document.createElement(tag)";
+  static Element createElement_tag(String tag)
+      native "return document.createElement(tag)";
 $else
-  factory Element.tag(String tag) => _document.$dom_createElement(tag);
+  static Element createElement_tag(String tag) =>
+      _document.$dom_createElement(tag);
 $endif
 }

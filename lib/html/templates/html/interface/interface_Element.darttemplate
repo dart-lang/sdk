@@ -9,7 +9,7 @@
 // Note, ElementList implements List (instead of List<Element>) so
 // that its implementing classes may be cast to Lists of more specific
 // type such as List<CanvasElement>.
-interface ElementList extends List {
+abstract class ElementList implements List {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
 
@@ -24,14 +24,14 @@ interface ElementList extends List {
  * Extends the regular Map interface by automatically coercing non-string
  * values to strings.
  */
-interface AttributeMap extends Map<String, String> {
+abstract class AttributeMap implements Map<String, String> {
   void operator []=(String key, value);
 }
 
 /**
  * All your element measurement needs in one place
  */
-interface ElementRect {
+abstract class ElementRect {
   // Relative to offsetParent
   ClientRect get client;
   ClientRect get offset;
@@ -42,12 +42,12 @@ interface ElementRect {
   List<ClientRect> get clientRects;
 }
 
-interface NodeSelector {
+abstract class NodeSelector {
   Element query(String selectors);
   List<Element> queryAll(String selectors);
 }
 
-interface CSSClassSet extends Set<String> {
+abstract class CSSClassSet implements Set<String> {
   /**
    * Adds the class [token] to the element if it is not on it, removes it if it
    * is.
@@ -62,9 +62,11 @@ interface CSSClassSet extends Set<String> {
 }
 
 $!COMMENT
-interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
-  Element.html(String html);
-  Element.tag(String tag);
+abstract class Element implements Node, NodeSelector {
+  factory Element.html(String html) =>
+      _$(ID)FactoryProvider.createElement_html(html);
+  factory Element.tag(String tag) =>
+      _$(ID)FactoryProvider.createElement_tag(tag);
 
   AttributeMap get attributes;
   void set attributes(Map<String, String> value);

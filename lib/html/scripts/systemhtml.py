@@ -333,14 +333,16 @@ def HtmlElementConstructorInfos(typename):
 def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name):
   for info in infos:
     constructor_info = info.ConstructorInfo(typename)
+
     inits = emitter.Emit(
         '\n'
-        '  factory $CONSTRUCTOR($PARAMS) {\n'
+        '  static $RETURN_TYPE $CONSTRUCTOR($PARAMS) {\n'
         '    $CLASS _e = _document.$dom_createElement("$TAG");\n'
         '$!INITS'
         '    return _e;\n'
         '  }\n',
-        CONSTRUCTOR=constructor_info.ConstructorFullName(),
+        RETURN_TYPE=constructor_info.type_name,
+        CONSTRUCTOR=constructor_info.ConstructorFactoryName(DartType),
         CLASS=class_name,
         TAG=info.tag,
         PARAMS=constructor_info.ParametersInterfaceDeclaration(DartType))
@@ -488,29 +490,30 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
     typename = self._html_interface_name
 
-    extends = []
-    suppressed_extends = []
+    implements = []
+    suppressed_implements = []
 
     for parent in self._interface.parents:
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(parent):
         # Parent is a DOM type.
-        extends.append(self._DartType(parent.type.id))
+        implements.append(self._DartType(parent.type.id))
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
-        extends.append(self._DartType(parent.type.id))
+        implements.append(self._DartType(parent.type.id))
       else:
-        suppressed_extends.append('%s.%s' %
+        suppressed_implements.append('%s.%s' %
             (self._common_prefix, self._DartType(parent.type.id)))
 
     comment = ' extends'
-    extends_str = ''
-    if extends:
-      extends_str += ' extends ' + ', '.join(extends)
+    implements_str = ''
+    if implements:
+      implements_str += ' implements ' + ', '.join(implements)
       comment = ','
-    if suppressed_extends:
-      extends_str += ' /*%s %s */' % (comment, ', '.join(suppressed_extends))
+    if suppressed_implements:
+      implements_str += ' /*%s %s */' % (comment,
+          ', '.join(suppressed_implements))
 
     factory_provider = None
     if typename in interface_factories:
@@ -546,16 +549,13 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
       else:
         factory_provider = info.factory_provider_name
 
-    if factory_provider:
-      extends_str += ' default ' + factory_provider
-
     # TODO(vsm): Add appropriate package / namespace syntax.
     (self._type_comment_emitter,
      self._members_emitter,
      self._top_level_emitter) = self._interface_emitter.Emit(
          interface_template + '$!TOP_LEVEL',
          ID=typename,
-         EXTENDS=extends_str)
+         EXTENDS=implements_str)
 
     self._type_comment_emitter.Emit("/// @domName $DOMNAME",
         DOMNAME=self._interface.doc_js_name)
@@ -572,25 +572,25 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     self._implementation_members_emitter = self._backend.StartInterface()
 
     for constructor_info in constructors:
-      self._members_emitter.Emit(
-          '\n'
-          '  $CTOR($PARAMS);\n',
-          CTOR=self._DartType(constructor_info.ConstructorFullName()),
-          PARAMS=constructor_info.ParametersInterfaceDeclaration(self._DartType))
+      constructor_info.GenerateFactoryInvocation(
+          self._DartType, self._members_emitter, factory_provider)
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
         self._interface, self._system._database)
     if element_type:
       self._members_emitter.Emit(
           '\n'
-          '  $CTOR(int length);\n'
+          '  factory $CTOR(int length) =>\n'
+          '    $FACTORY.create$(CTOR)(length);\n'
           '\n'
-          '  $CTOR.fromList(List<$TYPE> list);\n'
+          '  factory $CTOR.fromList(List<$TYPE> list) =>\n'
+          '    $FACTORY.create$(CTOR)_fromList(list);\n'
           '\n'
-          '  $CTOR.fromBuffer(ArrayBuffer buffer,'
-                            ' [int byteOffset, int length]);\n',
+          '  factory $CTOR.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => \n'
+          '    $FACTORY.create$(CTOR)_fromBuffer(buffer, byteOffset, length);\n',
         CTOR=self._interface.id,
-        TYPE=self._DartType(element_type))
+        TYPE=self._DartType(element_type),
+        FACTORY=factory_provider)
 
     self._GenerateEvents()
 
@@ -628,11 +628,15 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
       self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
           DOMINTERFACE=attribute.doc_js_interface_name,
           DOMNAME=dom_name)
-      modifier = 'final ' if read_only else ''
-      self._members_emitter.Emit('\n  $MODIFIER$TYPE $NAME;\n',
-                                 MODIFIER=modifier,
+      if read_only:
+        template = '\n  abstract $TYPE get $NAME;\n'
+      else:
+        template = '\n  $TYPE $NAME;\n'
+
+      self._members_emitter.Emit(template,
                                  NAME=html_name,
                                  TYPE=self._DartType(attribute.type.id))
+
     self._backend.AddAttribute(attribute, html_name, read_only)
 
   def AddSecondaryAttribute(self, interface, attribute):
@@ -700,7 +704,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     self._EmitEventGetter(events_interface, events_class)
 
     events_members = self._interface_emitter.Emit(
-        '\ninterface $INTERFACE extends $PARENTS {\n$!MEMBERS}\n',
+        '\nabstract class $INTERFACE implements $PARENTS {\n$!MEMBERS}\n',
         INTERFACE=events_interface,
         PARENTS=', '.join(
             self._shared.GetParentsEventsClasses(self._interface)))

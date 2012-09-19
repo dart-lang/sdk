@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS default _$(ID)FactoryProvider {
+abstract class $ID$EXTENDS {
 
-  $ID(num x, num y);
+  factory $ID(num x, num y) => _$(ID)FactoryProvider.create$ID(x, y);
 $!MEMBERS}

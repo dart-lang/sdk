@@ -5,9 +5,9 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS default _$(ID)FactoryProvider {
-  $ID();
-  $ID.css(String css);
+abstract class $ID$EXTENDS  {
+  factory $ID() => _$(ID)FactoryProvider.create$ID();
+  factory $ID.css(String css) => _$(ID)FactoryProvider.create$(ID)_css(css);
 
 $!MEMBERS
 

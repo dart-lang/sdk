@@ -4,74 +4,83 @@
 
 class _TypedArrayFactoryProvider {
 
-  factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
-  factory Float32Array.fromBuffer(ArrayBuffer buffer,
+  static Float32Array createFloat32Array(int length) => _F32(length);
+  static Float32Array createFloat32Array_fromList(List<num> list) =>
+      _F32(ensureNative(list));
+  static Float32Array createFloat32Array_fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) {
     if (length == null) return _F32_2(buffer, byteOffset);
     return _F32_3(buffer, byteOffset, length);
   }
 
-  factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
-  factory Float64Array.fromBuffer(ArrayBuffer buffer,
-                                  [int byteOffset = 0, int length]) {
+  static Float64Array createFloat64Array(int length) => _F64(length);
+  static Float64Array createFloat64Array_fromList(List<num> list) =>
+      _F64(ensureNative(list));
+  static Float64Array createFloat64Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _F64_2(buffer, byteOffset);
     return _F64_3(buffer, byteOffset, length);
   }
 
-  factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
-  factory Int8Array.fromBuffer(ArrayBuffer buffer,
-                               [int byteOffset = 0, int length]) {
+  static Int8Array createInt8Array(int length) => _I8(length);
+  static Int8Array createInt8Array_fromList(List<num> list) =>
+      _I8(ensureNative(list));
+  static Int8Array createInt8Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _I8_2(buffer, byteOffset);
     return _I8_3(buffer, byteOffset, length);
   }
 
-  factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
-  factory Int16Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) {
+  static Int16Array createInt16Array(int length) => _I16(length);
+  static Int16Array createInt16Array_fromList(List<num> list) =>
+      _I16(ensureNative(list));
+  static Int16Array createInt16Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _I16_2(buffer, byteOffset);
     return _I16_3(buffer, byteOffset, length);
   }
 
-  factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
-  factory Int32Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) {
+  static Int32Array createInt32Array(int length) => _I32(length);
+  static Int32Array createInt32Array_fromList(List<num> list) =>
+      _I32(ensureNative(list));
+  static Int32Array createInt32Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _I32_2(buffer, byteOffset);
     return _I32_3(buffer, byteOffset, length);
   }
 
-  factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) {
+  static Uint8Array createUint8Array(int length) => _U8(length);
+  static Uint8Array createUint8Array_fromList(List<num> list) =>
+      _U8(ensureNative(list));
+  static Uint8Array createUint8Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _U8_2(buffer, byteOffset);
     return _U8_3(buffer, byteOffset, length);
   }
 
-  factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer,
-                                 [int byteOffset = 0, int length]) {
+  static Uint16Array createUint16Array(int length) => _U16(length);
+  static Uint16Array createUint16Array_fromList(List<num> list) =>
+      _U16(ensureNative(list));
+  static Uint16Array createUint16Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _U16_2(buffer, byteOffset);
     return _U16_3(buffer, byteOffset, length);
   }
 
-  factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer,
-                                 [int byteOffset = 0, int length]) {
+  static Uint32Array createUint32Array(int length) => _U32(length);
+  static Uint32Array createUint32Array_fromList(List<num> list) =>
+      _U32(ensureNative(list));
+  static Uint32Array createUint32Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _U32_2(buffer, byteOffset);
     return _U32_3(buffer, byteOffset, length);
   }
 
-  factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
-                                       [int byteOffset = 0, int length]) {
+  static Uint8ClampedArray createUint8ClampedArray(int length) => _U8C(length);
+  static Uint8ClampedArray createUint8ClampedArray_fromList(List<num> list) =>
+      _U8C(ensureNative(list));
+  static Uint8ClampedArray createUint8ClampedArray_fromBuffer(
+        ArrayBuffer buffer, [int byteOffset = 0, int length]) {
     if (length == null) return _U8C_2(buffer, byteOffset);
     return _U8C_3(buffer, byteOffset, length);
   }

@@ -68,7 +68,7 @@ _callPortSync(num id, var message) {
 // WARNING: Do not edit - generated code.
 
 /// @domName AbstractWorker
-interface AbstractWorker extends EventTarget {
+abstract class AbstractWorker implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -85,7 +85,7 @@ interface AbstractWorker extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface AbstractWorkerEvents extends Events {
+abstract class AbstractWorkerEvents implements Events {
 
   EventListenerList get error;
 }
@@ -120,9 +120,14 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAnchorElement
-interface AnchorElement extends Element default _Elements {
+abstract class AnchorElement implements Element {
 
-  AnchorElement([String href]);
+  factory AnchorElement([String href]) {
+    if (!?href) {
+      return _Elements.createAnchorElement();
+    }
+    return _Elements.createAnchorElement(href);
+  }
 
   /** @domName HTMLAnchorElement.charset */
   String charset;
@@ -152,7 +157,7 @@ interface AnchorElement extends Element default _Elements {
   String name;
 
   /** @domName HTMLAnchorElement.origin */
-  final String origin;
+  abstract String get origin;
 
   /** @domName HTMLAnchorElement.pathname */
   String pathname;
@@ -283,7 +288,7 @@ class _HTMLAnchorElementImpl extends _HTMLElementImpl implements AnchorElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitAnimation
-interface Animation {
+abstract class Animation {
 
   static const int DIRECTION_ALTERNATE = 1;
 
@@ -298,31 +303,31 @@ interface Animation {
   static const int FILL_NONE = 0;
 
   /** @domName WebKitAnimation.delay */
-  final num delay;
+  abstract num get delay;
 
   /** @domName WebKitAnimation.direction */
-  final int direction;
+  abstract int get direction;
 
   /** @domName WebKitAnimation.duration */
-  final num duration;
+  abstract num get duration;
 
   /** @domName WebKitAnimation.elapsedTime */
   num elapsedTime;
 
   /** @domName WebKitAnimation.ended */
-  final bool ended;
+  abstract bool get ended;
 
   /** @domName WebKitAnimation.fillMode */
-  final int fillMode;
+  abstract int get fillMode;
 
   /** @domName WebKitAnimation.iterationCount */
-  final int iterationCount;
+  abstract int get iterationCount;
 
   /** @domName WebKitAnimation.name */
-  final String name;
+  abstract String get name;
 
   /** @domName WebKitAnimation.paused */
-  final bool paused;
+  abstract bool get paused;
 
   /** @domName WebKitAnimation.pause */
   void pause();
@@ -337,13 +342,13 @@ interface Animation {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitAnimationEvent
-interface AnimationEvent extends Event {
+abstract class AnimationEvent implements Event {
 
   /** @domName WebKitAnimationEvent.animationName */
-  final String animationName;
+  abstract String get animationName;
 
   /** @domName WebKitAnimationEvent.elapsedTime */
-  final num elapsedTime;
+  abstract num get elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -398,10 +403,10 @@ class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitAnimationList
-interface AnimationList {
+abstract class AnimationList {
 
   /** @domName WebKitAnimationList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName WebKitAnimationList.item */
   Animation item(int index);
@@ -426,7 +431,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements Anima
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAppletElement
-interface AppletElement extends Element {
+abstract class AppletElement implements Element {
 
   /** @domName HTMLAppletElement.align */
   String align;
@@ -521,9 +526,9 @@ class _HTMLAppletElementImpl extends _HTMLElementImpl implements AppletElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAreaElement
-interface AreaElement extends Element default _Elements {
+abstract class AreaElement implements Element {
 
-  AreaElement();
+  factory AreaElement() => _Elements.createAreaElement();
 
   /** @domName HTMLAreaElement.alt */
   String alt;
@@ -532,13 +537,13 @@ interface AreaElement extends Element default _Elements {
   String coords;
 
   /** @domName HTMLAreaElement.hash */
-  final String hash;
+  abstract String get hash;
 
   /** @domName HTMLAreaElement.host */
-  final String host;
+  abstract String get host;
 
   /** @domName HTMLAreaElement.hostname */
-  final String hostname;
+  abstract String get hostname;
 
   /** @domName HTMLAreaElement.href */
   String href;
@@ -547,19 +552,19 @@ interface AreaElement extends Element default _Elements {
   bool noHref;
 
   /** @domName HTMLAreaElement.pathname */
-  final String pathname;
+  abstract String get pathname;
 
   /** @domName HTMLAreaElement.ping */
   String ping;
 
   /** @domName HTMLAreaElement.port */
-  final String port;
+  abstract String get port;
 
   /** @domName HTMLAreaElement.protocol */
-  final String protocol;
+  abstract String get protocol;
 
   /** @domName HTMLAreaElement.search */
-  final String search;
+  abstract String get search;
 
   /** @domName HTMLAreaElement.shape */
   String shape;
@@ -625,12 +630,12 @@ class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName ArrayBuffer
-interface ArrayBuffer default _ArrayBufferFactoryProvider {
+abstract class ArrayBuffer {
 
-  ArrayBuffer(int length);
+  factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
   /** @domName ArrayBuffer.byteLength */
-  final int byteLength;
+  abstract int get byteLength;
 
   /** @domName ArrayBuffer.slice */
   ArrayBuffer slice(int begin, [int end]);
@@ -664,16 +669,16 @@ class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
 // WARNING: Do not edit - generated code.
 
 /// @domName ArrayBufferView
-interface ArrayBufferView {
+abstract class ArrayBufferView {
 
   /** @domName ArrayBufferView.buffer */
-  final ArrayBuffer buffer;
+  abstract ArrayBuffer get buffer;
 
   /** @domName ArrayBufferView.byteLength */
-  final int byteLength;
+  abstract int get byteLength;
 
   /** @domName ArrayBufferView.byteOffset */
-  final int byteOffset;
+  abstract int get byteOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -697,19 +702,19 @@ class _ArrayBufferViewImpl extends NativeFieldWrapperClass1 implements ArrayBuff
 // WARNING: Do not edit - generated code.
 
 /// @domName Attr
-interface Attr extends Node {
+abstract class Attr implements Node {
 
   /** @domName Attr.isId */
-  final bool isId;
+  abstract bool get isId;
 
   /** @domName Attr.name */
-  final String name;
+  abstract String get name;
 
   /** @domName Attr.ownerElement */
-  final Element ownerElement;
+  abstract Element get ownerElement;
 
   /** @domName Attr.specified */
-  final bool specified;
+  abstract bool get specified;
 
   /** @domName Attr.value */
   String value;
@@ -742,22 +747,22 @@ class _AttrImpl extends _NodeImpl implements Attr {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioBuffer
-interface AudioBuffer {
+abstract class AudioBuffer {
 
   /** @domName AudioBuffer.duration */
-  final num duration;
+  abstract num get duration;
 
   /** @domName AudioBuffer.gain */
   num gain;
 
   /** @domName AudioBuffer.length */
-  final int length;
+  abstract int get length;
 
   /** @domName AudioBuffer.numberOfChannels */
-  final int numberOfChannels;
+  abstract int get numberOfChannels;
 
   /** @domName AudioBuffer.sampleRate */
-  final num sampleRate;
+  abstract num get sampleRate;
 
   /** @domName AudioBuffer.getChannelData */
   Float32Array getChannelData(int channelIndex);
@@ -799,7 +804,7 @@ class _AudioBufferImpl extends NativeFieldWrapperClass1 implements AudioBuffer {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioBufferSourceNode
-interface AudioBufferSourceNode extends AudioSourceNode {
+abstract class AudioBufferSourceNode implements AudioSourceNode {
 
   static const int FINISHED_STATE = 3;
 
@@ -813,7 +818,7 @@ interface AudioBufferSourceNode extends AudioSourceNode {
   AudioBuffer buffer;
 
   /** @domName AudioBufferSourceNode.gain */
-  final AudioGain gain;
+  abstract AudioGain get gain;
 
   /** @domName AudioBufferSourceNode.loop */
   bool loop;
@@ -822,10 +827,10 @@ interface AudioBufferSourceNode extends AudioSourceNode {
   bool looping;
 
   /** @domName AudioBufferSourceNode.playbackRate */
-  final AudioParam playbackRate;
+  abstract AudioParam get playbackRate;
 
   /** @domName AudioBufferSourceNode.playbackState */
-  final int playbackState;
+  abstract int get playbackState;
 
   /** @domName AudioBufferSourceNode.noteGrainOn */
   void noteGrainOn(num when, num grainOffset, num grainDuration);
@@ -876,7 +881,7 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioChannelMerger
-interface AudioChannelMerger extends AudioNode {
+abstract class AudioChannelMerger implements AudioNode {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -894,7 +899,7 @@ class _AudioChannelMergerImpl extends _AudioNodeImpl implements AudioChannelMerg
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioChannelSplitter
-interface AudioChannelSplitter extends AudioNode {
+abstract class AudioChannelSplitter implements AudioNode {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -912,8 +917,8 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioContext
-interface AudioContext extends EventTarget default _AudioContextFactoryProvider {
-  AudioContext();
+abstract class AudioContext implements EventTarget {
+  factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -921,19 +926,19 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
   AudioContextEvents get on;
 
   /** @domName AudioContext.activeSourceCount */
-  final int activeSourceCount;
+  abstract int get activeSourceCount;
 
   /** @domName AudioContext.currentTime */
-  final num currentTime;
+  abstract num get currentTime;
 
   /** @domName AudioContext.destination */
-  final AudioDestinationNode destination;
+  abstract AudioDestinationNode get destination;
 
   /** @domName AudioContext.listener */
-  final AudioListener listener;
+  abstract AudioListener get listener;
 
   /** @domName AudioContext.sampleRate */
-  final num sampleRate;
+  abstract num get sampleRate;
 
   /** @domName AudioContext.createAnalyser */
   RealtimeAnalyserNode createAnalyser();
@@ -993,7 +998,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
   void startRendering();
 }
 
-interface AudioContextEvents extends Events {
+abstract class AudioContextEvents implements Events {
 
   EventListenerList get complete;
 }
@@ -1123,10 +1128,10 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioDestinationNode
-interface AudioDestinationNode extends AudioNode {
+abstract class AudioDestinationNode implements AudioNode {
 
   /** @domName AudioDestinationNode.numberOfChannels */
-  final int numberOfChannels;
+  abstract int get numberOfChannels;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1146,9 +1151,14 @@ class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinati
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAudioElement
-interface AudioElement extends MediaElement default _AudioElementFactoryProvider {
+abstract class AudioElement implements MediaElement {
 
-  AudioElement([String src]);
+  factory AudioElement([String src]) {
+    if (!?src) {
+      return _AudioElementFactoryProvider.createAudioElement();
+    }
+    return _AudioElementFactoryProvider.createAudioElement(src);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1166,7 +1176,7 @@ class _HTMLAudioElementImpl extends _HTMLMediaElementImpl implements AudioElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioGain
-interface AudioGain extends AudioParam {
+abstract class AudioGain implements AudioParam {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1184,10 +1194,10 @@ class _AudioGainImpl extends _AudioParamImpl implements AudioGain {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioGainNode
-interface AudioGainNode extends AudioNode {
+abstract class AudioGainNode implements AudioNode {
 
   /** @domName AudioGainNode.gain */
-  final AudioGain gain;
+  abstract AudioGain get gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1207,7 +1217,7 @@ class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioListener
-interface AudioListener {
+abstract class AudioListener {
 
   /** @domName AudioListener.dopplerFactor */
   num dopplerFactor;
@@ -1254,16 +1264,16 @@ class _AudioListenerImpl extends NativeFieldWrapperClass1 implements AudioListen
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioNode
-interface AudioNode {
+abstract class AudioNode {
 
   /** @domName AudioNode.context */
-  final AudioContext context;
+  abstract AudioContext get context;
 
   /** @domName AudioNode.numberOfInputs */
-  final int numberOfInputs;
+  abstract int get numberOfInputs;
 
   /** @domName AudioNode.numberOfOutputs */
-  final int numberOfOutputs;
+  abstract int get numberOfOutputs;
 
   /** @domName AudioNode.connect */
   void connect(destination, int output, [int input]);
@@ -1311,7 +1321,7 @@ class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioPannerNode
-interface AudioPannerNode extends AudioNode {
+abstract class AudioPannerNode implements AudioNode {
 
   static const int EQUALPOWER = 0;
 
@@ -1326,7 +1336,7 @@ interface AudioPannerNode extends AudioNode {
   static const int SOUNDFIELD = 2;
 
   /** @domName AudioPannerNode.coneGain */
-  final AudioGain coneGain;
+  abstract AudioGain get coneGain;
 
   /** @domName AudioPannerNode.coneInnerAngle */
   num coneInnerAngle;
@@ -1338,7 +1348,7 @@ interface AudioPannerNode extends AudioNode {
   num coneOuterGain;
 
   /** @domName AudioPannerNode.distanceGain */
-  final AudioGain distanceGain;
+  abstract AudioGain get distanceGain;
 
   /** @domName AudioPannerNode.distanceModel */
   int distanceModel;
@@ -1422,22 +1432,22 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioParam
-interface AudioParam {
+abstract class AudioParam {
 
   /** @domName AudioParam.defaultValue */
-  final num defaultValue;
+  abstract num get defaultValue;
 
   /** @domName AudioParam.maxValue */
-  final num maxValue;
+  abstract num get maxValue;
 
   /** @domName AudioParam.minValue */
-  final num minValue;
+  abstract num get minValue;
 
   /** @domName AudioParam.name */
-  final String name;
+  abstract String get name;
 
   /** @domName AudioParam.units */
-  final int units;
+  abstract int get units;
 
   /** @domName AudioParam.value */
   num value;
@@ -1502,13 +1512,13 @@ class _AudioParamImpl extends NativeFieldWrapperClass1 implements AudioParam {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioProcessingEvent
-interface AudioProcessingEvent extends Event {
+abstract class AudioProcessingEvent implements Event {
 
   /** @domName AudioProcessingEvent.inputBuffer */
-  final AudioBuffer inputBuffer;
+  abstract AudioBuffer get inputBuffer;
 
   /** @domName AudioProcessingEvent.outputBuffer */
-  final AudioBuffer outputBuffer;
+  abstract AudioBuffer get outputBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1530,7 +1540,7 @@ class _AudioProcessingEventImpl extends _EventImpl implements AudioProcessingEve
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioSourceNode
-interface AudioSourceNode extends AudioNode {
+abstract class AudioSourceNode implements AudioNode {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1548,9 +1558,9 @@ class _AudioSourceNodeImpl extends _AudioNodeImpl implements AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBRElement
-interface BRElement extends Element default _Elements {
+abstract class BRElement implements Element {
 
-  BRElement();
+  factory BRElement() => _Elements.createBRElement();
 
   /** @domName HTMLBRElement.clear */
   String clear;
@@ -1575,10 +1585,10 @@ class _HTMLBRElementImpl extends _HTMLElementImpl implements BRElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName BarInfo
-interface BarInfo {
+abstract class BarInfo {
 
   /** @domName BarInfo.visible */
-  final bool visible;
+  abstract bool get visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1598,9 +1608,9 @@ class _BarInfoImpl extends NativeFieldWrapperClass1 implements BarInfo {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBaseElement
-interface BaseElement extends Element default _Elements {
+abstract class BaseElement implements Element {
 
-  BaseElement();
+  factory BaseElement() => _Elements.createBaseElement();
 
   /** @domName HTMLBaseElement.href */
   String href;
@@ -1632,7 +1642,7 @@ class _HTMLBaseElementImpl extends _HTMLElementImpl implements BaseElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBaseFontElement
-interface BaseFontElement extends Element {
+abstract class BaseFontElement implements Element {
 
   /** @domName HTMLBaseFontElement.color */
   String color;
@@ -1671,7 +1681,7 @@ class _HTMLBaseFontElementImpl extends _HTMLElementImpl implements BaseFontEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName BatteryManager
-interface BatteryManager extends EventTarget {
+abstract class BatteryManager implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -1679,16 +1689,16 @@ interface BatteryManager extends EventTarget {
   BatteryManagerEvents get on;
 
   /** @domName BatteryManager.charging */
-  final bool charging;
+  abstract bool get charging;
 
   /** @domName BatteryManager.chargingTime */
-  final num chargingTime;
+  abstract num get chargingTime;
 
   /** @domName BatteryManager.dischargingTime */
-  final num dischargingTime;
+  abstract num get dischargingTime;
 
   /** @domName BatteryManager.level */
-  final num level;
+  abstract num get level;
 
   /** @domName BatteryManager.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -1700,7 +1710,7 @@ interface BatteryManager extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface BatteryManagerEvents extends Events {
+abstract class BatteryManagerEvents implements Events {
 
   EventListenerList get chargingChange;
 
@@ -1755,10 +1765,10 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 // WARNING: Do not edit - generated code.
 
 /// @domName BeforeLoadEvent
-interface BeforeLoadEvent extends Event {
+abstract class BeforeLoadEvent implements Event {
 
   /** @domName BeforeLoadEvent.url */
-  final String url;
+  abstract String get url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1778,7 +1788,7 @@ class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName BiquadFilterNode
-interface BiquadFilterNode extends AudioNode {
+abstract class BiquadFilterNode implements AudioNode {
 
   static const int ALLPASS = 7;
 
@@ -1797,13 +1807,13 @@ interface BiquadFilterNode extends AudioNode {
   static const int PEAKING = 5;
 
   /** @domName BiquadFilterNode.Q */
-  final AudioParam Q;
+  abstract AudioParam get Q;
 
   /** @domName BiquadFilterNode.frequency */
-  final AudioParam frequency;
+  abstract AudioParam get frequency;
 
   /** @domName BiquadFilterNode.gain */
-  final AudioParam gain;
+  abstract AudioParam get gain;
 
   /** @domName BiquadFilterNode.type */
   int type;
@@ -1839,15 +1849,23 @@ class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName Blob
-interface Blob default _BlobFactoryProvider {
+abstract class Blob {
 
-  Blob(List blobParts, [String type, String endings]);
+  factory Blob(List blobParts, [String type, String endings]) {
+    if (!?type) {
+      return _BlobFactoryProvider.createBlob(blobParts);
+    }
+    if (!?endings) {
+      return _BlobFactoryProvider.createBlob(blobParts, type);
+    }
+    return _BlobFactoryProvider.createBlob(blobParts, type, endings);
+  }
 
   /** @domName Blob.size */
-  final int size;
+  abstract int get size;
 
   /** @domName Blob.type */
-  final String type;
+  abstract String get type;
 
   /** @domName Blob.slice */
   Blob slice([int start, int end, String contentType]);
@@ -1917,9 +1935,9 @@ class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBodyElement
-interface BodyElement extends Element default _Elements {
+abstract class BodyElement implements Element {
 
-  BodyElement();
+  factory BodyElement() => _Elements.createBodyElement();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -1942,7 +1960,7 @@ interface BodyElement extends Element default _Elements {
   String vLink;
 }
 
-interface BodyElementEvents extends ElementEvents {
+abstract class BodyElementEvents implements ElementEvents {
 
   EventListenerList get beforeUnload;
 
@@ -2039,9 +2057,9 @@ class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLButtonElement
-interface ButtonElement extends Element default _Elements {
+abstract class ButtonElement implements Element {
 
-  ButtonElement();
+  factory ButtonElement() => _Elements.createButtonElement();
 
   /** @domName HTMLButtonElement.autofocus */
   bool autofocus;
@@ -2050,7 +2068,7 @@ interface ButtonElement extends Element default _Elements {
   bool disabled;
 
   /** @domName HTMLButtonElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLButtonElement.formAction */
   String formAction;
@@ -2068,7 +2086,7 @@ interface ButtonElement extends Element default _Elements {
   String formTarget;
 
   /** @domName HTMLButtonElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLButtonElement.name */
   String name;
@@ -2077,16 +2095,16 @@ interface ButtonElement extends Element default _Elements {
   String type;
 
   /** @domName HTMLButtonElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLButtonElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLButtonElement.value */
   String value;
 
   /** @domName HTMLButtonElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLButtonElement.checkValidity */
   bool checkValidity();
@@ -2164,7 +2182,7 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName CDATASection
-interface CDATASection extends Text {
+abstract class CDATASection implements Text {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2182,7 +2200,7 @@ class _CDATASectionImpl extends _TextImpl implements CDATASection {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSCharsetRule
-interface CSSCharsetRule extends CSSRule {
+abstract class CSSCharsetRule implements CSSRule {
 
   /** @domName CSSCharsetRule.encoding */
   String encoding;
@@ -2207,10 +2225,10 @@ class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSFontFaceRule
-interface CSSFontFaceRule extends CSSRule {
+abstract class CSSFontFaceRule implements CSSRule {
 
   /** @domName CSSFontFaceRule.style */
-  final CSSStyleDeclaration style;
+  abstract CSSStyleDeclaration get style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2230,16 +2248,16 @@ class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSImportRule
-interface CSSImportRule extends CSSRule {
+abstract class CSSImportRule implements CSSRule {
 
   /** @domName CSSImportRule.href */
-  final String href;
+  abstract String get href;
 
   /** @domName CSSImportRule.media */
-  final MediaList media;
+  abstract MediaList get media;
 
   /** @domName CSSImportRule.styleSheet */
-  final CSSStyleSheet styleSheet;
+  abstract CSSStyleSheet get styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2263,13 +2281,13 @@ class _CSSImportRuleImpl extends _CSSRuleImpl implements CSSImportRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSKeyframeRule
-interface CSSKeyframeRule extends CSSRule {
+abstract class CSSKeyframeRule implements CSSRule {
 
   /** @domName WebKitCSSKeyframeRule.keyText */
   String keyText;
 
   /** @domName WebKitCSSKeyframeRule.style */
-  final CSSStyleDeclaration style;
+  abstract CSSStyleDeclaration get style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2293,10 +2311,10 @@ class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSKeyframesRule
-interface CSSKeyframesRule extends CSSRule {
+abstract class CSSKeyframesRule implements CSSRule {
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
-  final CSSRuleList cssRules;
+  abstract CSSRuleList get cssRules;
 
   /** @domName WebKitCSSKeyframesRule.name */
   String name;
@@ -2338,9 +2356,14 @@ class _WebKitCSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRu
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSMatrix
-interface CSSMatrix default _CSSMatrixFactoryProvider {
+abstract class CSSMatrix {
 
-  CSSMatrix([String cssValue]);
+  factory CSSMatrix([String cssValue]) {
+    if (!?cssValue) {
+      return _CSSMatrixFactoryProvider.createCSSMatrix();
+    }
+    return _CSSMatrixFactoryProvider.createCSSMatrix(cssValue);
+  }
 
   /** @domName WebKitCSSMatrix.a */
   num a;
@@ -2562,13 +2585,13 @@ class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSMediaRule
-interface CSSMediaRule extends CSSRule {
+abstract class CSSMediaRule implements CSSRule {
 
   /** @domName CSSMediaRule.cssRules */
-  final CSSRuleList cssRules;
+  abstract CSSRuleList get cssRules;
 
   /** @domName CSSMediaRule.media */
-  final MediaList media;
+  abstract MediaList get media;
 
   /** @domName CSSMediaRule.deleteRule */
   void deleteRule(int index);
@@ -2600,13 +2623,13 @@ class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSPageRule
-interface CSSPageRule extends CSSRule {
+abstract class CSSPageRule implements CSSRule {
 
   /** @domName CSSPageRule.selectorText */
   String selectorText;
 
   /** @domName CSSPageRule.style */
-  final CSSStyleDeclaration style;
+  abstract CSSStyleDeclaration get style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2630,7 +2653,7 @@ class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSPrimitiveValue
-interface CSSPrimitiveValue extends CSSValue {
+abstract class CSSPrimitiveValue implements CSSValue {
 
   static const int CSS_ATTR = 22;
 
@@ -2691,7 +2714,7 @@ interface CSSPrimitiveValue extends CSSValue {
   static const int CSS_VW = 26;
 
   /** @domName CSSPrimitiveValue.primitiveType */
-  final int primitiveType;
+  abstract int get primitiveType;
 
   /** @domName CSSPrimitiveValue.getCounterValue */
   Counter getCounterValue();
@@ -2746,7 +2769,7 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSRule
-interface CSSRule {
+abstract class CSSRule {
 
   static const int CHARSET_RULE = 2;
 
@@ -2770,13 +2793,13 @@ interface CSSRule {
   String cssText;
 
   /** @domName CSSRule.parentRule */
-  final CSSRule parentRule;
+  abstract CSSRule get parentRule;
 
   /** @domName CSSRule.parentStyleSheet */
-  final CSSStyleSheet parentStyleSheet;
+  abstract CSSStyleSheet get parentStyleSheet;
 
   /** @domName CSSRule.type */
-  final int type;
+  abstract int get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2804,10 +2827,10 @@ class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSRuleList
-interface CSSRuleList {
+abstract class CSSRuleList {
 
   /** @domName CSSRuleList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName CSSRuleList.item */
   CSSRule item(int index);
@@ -2832,19 +2855,19 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSStyleDeclaration
-interface CSSStyleDeclaration default _CSSStyleDeclarationFactoryProvider {
-  CSSStyleDeclaration();
-  CSSStyleDeclaration.css(String css);
+abstract class CSSStyleDeclaration  {
+  factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
+  factory CSSStyleDeclaration.css(String css) => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration_css(css);
 
 
   /** @domName CSSStyleDeclaration.cssText */
   String cssText;
 
   /** @domName CSSStyleDeclaration.length */
-  final int length;
+  abstract int get length;
 
   /** @domName CSSStyleDeclaration.parentRule */
-  final CSSRule parentRule;
+  abstract CSSRule get parentRule;
 
   /** @domName CSSStyleDeclaration.getPropertyCSSValue */
   CSSValue getPropertyCSSValue(String propertyName);
@@ -7534,13 +7557,13 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSStyleRule
-interface CSSStyleRule extends CSSRule {
+abstract class CSSStyleRule implements CSSRule {
 
   /** @domName CSSStyleRule.selectorText */
   String selectorText;
 
   /** @domName CSSStyleRule.style */
-  final CSSStyleDeclaration style;
+  abstract CSSStyleDeclaration get style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7564,16 +7587,16 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSStyleSheet
-interface CSSStyleSheet extends StyleSheet {
+abstract class CSSStyleSheet implements StyleSheet {
 
   /** @domName CSSStyleSheet.cssRules */
-  final CSSRuleList cssRules;
+  abstract CSSRuleList get cssRules;
 
   /** @domName CSSStyleSheet.ownerRule */
-  final CSSRule ownerRule;
+  abstract CSSRule get ownerRule;
 
   /** @domName CSSStyleSheet.rules */
-  final CSSRuleList rules;
+  abstract CSSRuleList get rules;
 
   /** @domName CSSStyleSheet.addRule */
   int addRule(String selector, String style, [int index]);
@@ -7626,7 +7649,7 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSTransformValue
-interface CSSTransformValue extends CSSValueList {
+abstract class CSSTransformValue implements CSSValueList {
 
   static const int CSS_MATRIX = 11;
 
@@ -7671,7 +7694,7 @@ interface CSSTransformValue extends CSSValueList {
   static const int CSS_TRANSLATEZ = 12;
 
   /** @domName WebKitCSSTransformValue.operationType */
-  final int operationType;
+  abstract int get operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7691,7 +7714,7 @@ class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTrans
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSUnknownRule
-interface CSSUnknownRule extends CSSRule {
+abstract class CSSUnknownRule implements CSSRule {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7709,7 +7732,7 @@ class _CSSUnknownRuleImpl extends _CSSRuleImpl implements CSSUnknownRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSValue
-interface CSSValue {
+abstract class CSSValue {
 
   static const int CSS_CUSTOM = 3;
 
@@ -7723,7 +7746,7 @@ interface CSSValue {
   String cssText;
 
   /** @domName CSSValue.cssValueType */
-  final int cssValueType;
+  abstract int get cssValueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7747,10 +7770,10 @@ class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSValueList
-interface CSSValueList extends CSSValue {
+abstract class CSSValueList implements CSSValue {
 
   /** @domName CSSValueList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName CSSValueList.item */
   CSSValue item(int index);
@@ -7775,9 +7798,17 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLCanvasElement
-interface CanvasElement extends Element default _Elements {
+abstract class CanvasElement implements Element {
 
-  CanvasElement([int width, int height]);
+  factory CanvasElement([int width, int height]) {
+    if (!?width) {
+      return _Elements.createCanvasElement();
+    }
+    if (!?height) {
+      return _Elements.createCanvasElement(width);
+    }
+    return _Elements.createCanvasElement(width, height);
+  }
 
   /** @domName HTMLCanvasElement.height */
   int height;
@@ -7821,7 +7852,7 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName CanvasGradient
-interface CanvasGradient {
+abstract class CanvasGradient {
 
   /** @domName CanvasGradient.addColorStop */
   void addColorStop(num offset, String color);
@@ -7844,7 +7875,7 @@ class _CanvasGradientImpl extends NativeFieldWrapperClass1 implements CanvasGrad
 // WARNING: Do not edit - generated code.
 
 /// @domName CanvasPattern
-interface CanvasPattern {
+abstract class CanvasPattern {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7862,10 +7893,10 @@ class _CanvasPatternImpl extends NativeFieldWrapperClass1 implements CanvasPatte
 // WARNING: Do not edit - generated code.
 
 /// @domName CanvasRenderingContext
-interface CanvasRenderingContext {
+abstract class CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext.canvas */
-  final CanvasElement canvas;
+  abstract CanvasElement get canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7874,7 +7905,7 @@ interface CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 /// @domName CanvasRenderingContext2D
-interface CanvasRenderingContext2D extends CanvasRenderingContext {
+abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.fillStyle */
   Dynamic fillStyle;
@@ -7922,7 +7953,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   String textBaseline;
 
   /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
-  final num webkitBackingStorePixelRatio;
+  abstract num get webkitBackingStorePixelRatio;
 
   /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
   bool webkitImageSmoothingEnabled;
@@ -8580,13 +8611,13 @@ class _CanvasRenderingContextImpl extends NativeFieldWrapperClass1 implements Ca
 // WARNING: Do not edit - generated code.
 
 /// @domName CharacterData
-interface CharacterData extends Node {
+abstract class CharacterData implements Node {
 
   /** @domName CharacterData.data */
   String data;
 
   /** @domName CharacterData.length */
-  final int length;
+  abstract int get length;
 
   /** @domName CharacterData.appendData */
   void appendData(String data);
@@ -8635,25 +8666,25 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData {
 // WARNING: Do not edit - generated code.
 
 /// @domName ClientRect
-interface ClientRect {
+abstract class ClientRect {
 
   /** @domName ClientRect.bottom */
-  final num bottom;
+  abstract num get bottom;
 
   /** @domName ClientRect.height */
-  final num height;
+  abstract num get height;
 
   /** @domName ClientRect.left */
-  final num left;
+  abstract num get left;
 
   /** @domName ClientRect.right */
-  final num right;
+  abstract num get right;
 
   /** @domName ClientRect.top */
-  final num top;
+  abstract num get top;
 
   /** @domName ClientRect.width */
-  final num width;
+  abstract num get width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8683,10 +8714,10 @@ class _ClientRectImpl extends NativeFieldWrapperClass1 implements ClientRect {
 // WARNING: Do not edit - generated code.
 
 /// @domName ClientRectList
-interface ClientRectList {
+abstract class ClientRectList {
 
   /** @domName ClientRectList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName ClientRectList.item */
   ClientRect item(int index);
@@ -8711,7 +8742,7 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRect
 // WARNING: Do not edit - generated code.
 
 /// @domName Clipboard
-interface Clipboard {
+abstract class Clipboard {
 
   /** @domName Clipboard.dropEffect */
   String dropEffect;
@@ -8720,13 +8751,13 @@ interface Clipboard {
   String effectAllowed;
 
   /** @domName Clipboard.files */
-  final FileList files;
+  abstract FileList get files;
 
   /** @domName Clipboard.items */
-  final DataTransferItemList items;
+  abstract DataTransferItemList get items;
 
   /** @domName Clipboard.types */
-  final List types;
+  abstract List get types;
 
   /** @domName Clipboard.clearData */
   void clearData([String type]);
@@ -8778,16 +8809,16 @@ class _ClipboardImpl extends NativeFieldWrapperClass1 implements Clipboard {
 // WARNING: Do not edit - generated code.
 
 /// @domName CloseEvent
-interface CloseEvent extends Event {
+abstract class CloseEvent implements Event {
 
   /** @domName CloseEvent.code */
-  final int code;
+  abstract int get code;
 
   /** @domName CloseEvent.reason */
-  final String reason;
+  abstract String get reason;
 
   /** @domName CloseEvent.wasClean */
-  final bool wasClean;
+  abstract bool get wasClean;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8811,7 +8842,7 @@ class _CloseEventImpl extends _EventImpl implements CloseEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName Comment
-interface Comment extends CharacterData {
+abstract class Comment implements CharacterData {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8829,10 +8860,10 @@ class _CommentImpl extends _CharacterDataImpl implements Comment {
 // WARNING: Do not edit - generated code.
 
 /// @domName CompositionEvent
-interface CompositionEvent extends UIEvent {
+abstract class CompositionEvent implements UIEvent {
 
   /** @domName CompositionEvent.data */
-  final String data;
+  abstract String get data;
 
   /** @domName CompositionEvent.initCompositionEvent */
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
@@ -8857,13 +8888,13 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName Console
-interface Console {
+abstract class Console {
 
   /** @domName Console.memory */
-  final MemoryInfo memory;
+  abstract MemoryInfo get memory;
 
   /** @domName Console.profiles */
-  final List<ScriptProfile> profiles;
+  abstract List<ScriptProfile> get profiles;
 
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
@@ -8980,7 +9011,7 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLContentElement
-interface ContentElement extends Element {
+abstract class ContentElement implements Element {
 
   /** @domName HTMLContentElement.select */
   String select;
@@ -9005,7 +9036,7 @@ class _HTMLContentElementImpl extends _HTMLElementImpl implements ContentElement
 // WARNING: Do not edit - generated code.
 
 /// @domName ConvolverNode
-interface ConvolverNode extends AudioNode {
+abstract class ConvolverNode implements AudioNode {
 
   /** @domName ConvolverNode.buffer */
   AudioBuffer buffer;
@@ -9037,28 +9068,28 @@ class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName Coordinates
-interface Coordinates {
+abstract class Coordinates {
 
   /** @domName Coordinates.accuracy */
-  final num accuracy;
+  abstract num get accuracy;
 
   /** @domName Coordinates.altitude */
-  final num altitude;
+  abstract num get altitude;
 
   /** @domName Coordinates.altitudeAccuracy */
-  final num altitudeAccuracy;
+  abstract num get altitudeAccuracy;
 
   /** @domName Coordinates.heading */
-  final num heading;
+  abstract num get heading;
 
   /** @domName Coordinates.latitude */
-  final num latitude;
+  abstract num get latitude;
 
   /** @domName Coordinates.longitude */
-  final num longitude;
+  abstract num get longitude;
 
   /** @domName Coordinates.speed */
-  final num speed;
+  abstract num get speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9090,16 +9121,16 @@ class _CoordinatesImpl extends NativeFieldWrapperClass1 implements Coordinates {
 // WARNING: Do not edit - generated code.
 
 /// @domName Counter
-interface Counter {
+abstract class Counter {
 
   /** @domName Counter.identifier */
-  final String identifier;
+  abstract String get identifier;
 
   /** @domName Counter.listStyle */
-  final String listStyle;
+  abstract String get listStyle;
 
   /** @domName Counter.separator */
-  final String separator;
+  abstract String get separator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9123,7 +9154,7 @@ class _CounterImpl extends NativeFieldWrapperClass1 implements Counter {
 // WARNING: Do not edit - generated code.
 
 /// @domName Crypto
-interface Crypto {
+abstract class Crypto {
 
   /** @domName Crypto.getRandomValues */
   void getRandomValues(ArrayBufferView array);
@@ -9146,10 +9177,10 @@ class _CryptoImpl extends NativeFieldWrapperClass1 implements Crypto {
 // WARNING: Do not edit - generated code.
 
 /// @domName CustomEvent
-interface CustomEvent extends Event {
+abstract class CustomEvent implements Event {
 
   /** @domName CustomEvent.detail */
-  final Object detail;
+  abstract Object get detail;
 
   /** @domName CustomEvent.initCustomEvent */
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
@@ -9174,9 +9205,9 @@ class _CustomEventImpl extends _EventImpl implements CustomEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDListElement
-interface DListElement extends Element default _Elements {
+abstract class DListElement implements Element {
 
-  DListElement();
+  factory DListElement() => _Elements.createDListElement();
 
   /** @domName HTMLDListElement.compact */
   bool compact;
@@ -9201,7 +9232,7 @@ class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMApplicationCache
-interface DOMApplicationCache extends EventTarget {
+abstract class DOMApplicationCache implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -9221,7 +9252,7 @@ interface DOMApplicationCache extends EventTarget {
   static const int UPDATEREADY = 4;
 
   /** @domName DOMApplicationCache.status */
-  final int status;
+  abstract int get status;
 
   /** @domName DOMApplicationCache.abort */
   void abort();
@@ -9242,7 +9273,7 @@ interface DOMApplicationCache extends EventTarget {
   void update();
 }
 
-interface DOMApplicationCacheEvents extends Events {
+abstract class DOMApplicationCacheEvents implements Events {
 
   EventListenerList get cached;
 
@@ -9313,10 +9344,10 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMError
-interface DOMError {
+abstract class DOMError {
 
   /** @domName DOMError.name */
-  final String name;
+  abstract String get name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9336,7 +9367,7 @@ class _DOMErrorImpl extends NativeFieldWrapperClass1 implements DOMError {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMException
-interface DOMException {
+abstract class DOMException {
 
   static const int ABORT_ERR = 20;
 
@@ -9389,13 +9420,13 @@ interface DOMException {
   static const int WRONG_DOCUMENT_ERR = 4;
 
   /** @domName DOMException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName DOMException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName DOMException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName DOMException.toString */
   String toString();
@@ -9424,13 +9455,13 @@ class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMFileSystem
-interface DOMFileSystem {
+abstract class DOMFileSystem {
 
   /** @domName DOMFileSystem.name */
-  final String name;
+  abstract String get name;
 
   /** @domName DOMFileSystem.root */
-  final DirectoryEntry root;
+  abstract DirectoryEntry get root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9452,13 +9483,13 @@ class _DOMFileSystemImpl extends NativeFieldWrapperClass1 implements DOMFileSyst
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMFileSystemSync
-interface DOMFileSystemSync {
+abstract class DOMFileSystemSync {
 
   /** @domName DOMFileSystemSync.name */
-  final String name;
+  abstract String get name;
 
   /** @domName DOMFileSystemSync.root */
-  final DirectoryEntrySync root;
+  abstract DirectoryEntrySync get root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9480,7 +9511,7 @@ class _DOMFileSystemSyncImpl extends NativeFieldWrapperClass1 implements DOMFile
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMImplementation
-interface DOMImplementation {
+abstract class DOMImplementation {
 
   /** @domName DOMImplementation.createCSSStyleSheet */
   CSSStyleSheet createCSSStyleSheet(String title, String media);
@@ -9523,19 +9554,19 @@ class _DOMImplementationImpl extends NativeFieldWrapperClass1 implements DOMImpl
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMMimeType
-interface DOMMimeType {
+abstract class DOMMimeType {
 
   /** @domName DOMMimeType.description */
-  final String description;
+  abstract String get description;
 
   /** @domName DOMMimeType.enabledPlugin */
-  final DOMPlugin enabledPlugin;
+  abstract DOMPlugin get enabledPlugin;
 
   /** @domName DOMMimeType.suffixes */
-  final String suffixes;
+  abstract String get suffixes;
 
   /** @domName DOMMimeType.type */
-  final String type;
+  abstract String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9544,10 +9575,10 @@ interface DOMMimeType {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMMimeTypeArray
-interface DOMMimeTypeArray {
+abstract class DOMMimeTypeArray {
 
   /** @domName DOMMimeTypeArray.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DOMMimeTypeArray.item */
   DOMMimeType item(int index);
@@ -9594,9 +9625,9 @@ class _DOMMimeTypeImpl extends NativeFieldWrapperClass1 implements DOMMimeType {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMParser
-interface DOMParser default _DOMParserFactoryProvider {
+abstract class DOMParser {
 
-  DOMParser();
+  factory DOMParser() => _DOMParserFactoryProvider.createDOMParser();
 
   /** @domName DOMParser.parseFromString */
   Document parseFromString(String str, String contentType);
@@ -9619,19 +9650,19 @@ class _DOMParserImpl extends NativeFieldWrapperClass1 implements DOMParser {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMPlugin
-interface DOMPlugin {
+abstract class DOMPlugin {
 
   /** @domName DOMPlugin.description */
-  final String description;
+  abstract String get description;
 
   /** @domName DOMPlugin.filename */
-  final String filename;
+  abstract String get filename;
 
   /** @domName DOMPlugin.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DOMPlugin.name */
-  final String name;
+  abstract String get name;
 
   /** @domName DOMPlugin.item */
   DOMMimeType item(int index);
@@ -9646,10 +9677,10 @@ interface DOMPlugin {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMPluginArray
-interface DOMPluginArray {
+abstract class DOMPluginArray {
 
   /** @domName DOMPluginArray.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DOMPluginArray.item */
   DOMPlugin item(int index);
@@ -9705,40 +9736,40 @@ class _DOMPluginImpl extends NativeFieldWrapperClass1 implements DOMPlugin {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMSelection
-interface DOMSelection {
+abstract class DOMSelection {
 
   /** @domName DOMSelection.anchorNode */
-  final Node anchorNode;
+  abstract Node get anchorNode;
 
   /** @domName DOMSelection.anchorOffset */
-  final int anchorOffset;
+  abstract int get anchorOffset;
 
   /** @domName DOMSelection.baseNode */
-  final Node baseNode;
+  abstract Node get baseNode;
 
   /** @domName DOMSelection.baseOffset */
-  final int baseOffset;
+  abstract int get baseOffset;
 
   /** @domName DOMSelection.extentNode */
-  final Node extentNode;
+  abstract Node get extentNode;
 
   /** @domName DOMSelection.extentOffset */
-  final int extentOffset;
+  abstract int get extentOffset;
 
   /** @domName DOMSelection.focusNode */
-  final Node focusNode;
+  abstract Node get focusNode;
 
   /** @domName DOMSelection.focusOffset */
-  final int focusOffset;
+  abstract int get focusOffset;
 
   /** @domName DOMSelection.isCollapsed */
-  final bool isCollapsed;
+  abstract bool get isCollapsed;
 
   /** @domName DOMSelection.rangeCount */
-  final int rangeCount;
+  abstract int get rangeCount;
 
   /** @domName DOMSelection.type */
-  final String type;
+  abstract String get type;
 
   /** @domName DOMSelection.addRange */
   void addRange(Range range);
@@ -9853,7 +9884,7 @@ class _DOMSelectionImpl extends NativeFieldWrapperClass1 implements DOMSelection
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMSettableTokenList
-interface DOMSettableTokenList extends DOMTokenList {
+abstract class DOMSettableTokenList implements DOMTokenList {
 
   /** @domName DOMSettableTokenList.value */
   String value;
@@ -9878,10 +9909,10 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMStringList
-interface DOMStringList extends List<String> {
+abstract class DOMStringList implements List<String> {
 
   /** @domName DOMStringList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DOMStringList.contains */
   bool contains(String string);
@@ -9993,7 +10024,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringLi
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMStringMap
-interface DOMStringMap {
+abstract class DOMStringMap {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10002,10 +10033,10 @@ interface DOMStringMap {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMTokenList
-interface DOMTokenList {
+abstract class DOMTokenList {
 
   /** @domName DOMTokenList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DOMTokenList.add */
   void add(String token);
@@ -10055,9 +10086,9 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMURL
-interface DOMURL default _DOMURLFactoryProvider {
+abstract class DOMURL {
 
-  DOMURL();
+  factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10096,12 +10127,12 @@ class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDataListElement
-interface DataListElement extends Element default _Elements {
+abstract class DataListElement implements Element {
 
-  DataListElement();
+  factory DataListElement() => _Elements.createDataListElement();
 
   /** @domName HTMLDataListElement.options */
-  final HTMLCollection options;
+  abstract HTMLCollection get options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10121,13 +10152,13 @@ class _HTMLDataListElementImpl extends _HTMLElementImpl implements DataListEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName DataTransferItem
-interface DataTransferItem {
+abstract class DataTransferItem {
 
   /** @domName DataTransferItem.kind */
-  final String kind;
+  abstract String get kind;
 
   /** @domName DataTransferItem.type */
-  final String type;
+  abstract String get type;
 
   /** @domName DataTransferItem.getAsFile */
   Blob getAsFile();
@@ -10164,10 +10195,10 @@ class _DataTransferItemImpl extends NativeFieldWrapperClass1 implements DataTran
 // WARNING: Do not edit - generated code.
 
 /// @domName DataTransferItemList
-interface DataTransferItemList {
+abstract class DataTransferItemList {
 
   /** @domName DataTransferItemList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DataTransferItemList.add */
   void add(data_OR_file, [String type]);
@@ -10216,9 +10247,17 @@ class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements Data
 // WARNING: Do not edit - generated code.
 
 /// @domName DataView
-interface DataView extends ArrayBufferView default _DataViewFactoryProvider {
+abstract class DataView implements ArrayBufferView {
 
-  DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]);
+  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
+    if (!?byteOffset) {
+      return _DataViewFactoryProvider.createDataView(buffer);
+    }
+    if (!?byteLength) {
+      return _DataViewFactoryProvider.createDataView(buffer, byteOffset);
+    }
+    return _DataViewFactoryProvider.createDataView(buffer, byteOffset, byteLength);
+  }
 
   /** @domName DataView.getFloat32 */
   num getFloat32(int byteOffset, [bool littleEndian]);
@@ -10430,10 +10469,10 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 // WARNING: Do not edit - generated code.
 
 /// @domName Database
-interface Database {
+abstract class Database {
 
   /** @domName Database.version */
-  final String version;
+  abstract String get version;
 
   /** @domName Database.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
@@ -10475,13 +10514,13 @@ class _DatabaseImpl extends NativeFieldWrapperClass1 implements Database {
 // WARNING: Do not edit - generated code.
 
 /// @domName DatabaseSync
-interface DatabaseSync {
+abstract class DatabaseSync {
 
   /** @domName DatabaseSync.lastErrorMessage */
-  final String lastErrorMessage;
+  abstract String get lastErrorMessage;
 
   /** @domName DatabaseSync.version */
-  final String version;
+  abstract String get version;
 
   /** @domName DatabaseSync.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
@@ -10518,7 +10557,7 @@ class _DatabaseSyncImpl extends NativeFieldWrapperClass1 implements DatabaseSync
 // WARNING: Do not edit - generated code.
 
 /// @domName DedicatedWorkerContext
-interface DedicatedWorkerContext extends WorkerContext {
+abstract class DedicatedWorkerContext implements WorkerContext {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -10532,7 +10571,7 @@ interface DedicatedWorkerContext extends WorkerContext {
   void webkitPostMessage(Object message, [List transferList]);
 }
 
-interface DedicatedWorkerContextEvents extends WorkerContextEvents {
+abstract class DedicatedWorkerContextEvents implements WorkerContextEvents {
 
   EventListenerList get message;
 }
@@ -10565,10 +10604,10 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 // WARNING: Do not edit - generated code.
 
 /// @domName DelayNode
-interface DelayNode extends AudioNode {
+abstract class DelayNode implements AudioNode {
 
   /** @domName DelayNode.delayTime */
-  final AudioParam delayTime;
+  abstract AudioParam get delayTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10588,9 +10627,9 @@ class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDetailsElement
-interface DetailsElement extends Element default _Elements {
+abstract class DetailsElement implements Element {
 
-  DetailsElement();
+  factory DetailsElement() => _Elements.createDetailsElement();
 
   /** @domName HTMLDetailsElement.open */
   bool open;
@@ -10615,10 +10654,10 @@ class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement
 // WARNING: Do not edit - generated code.
 
 /// @domName DeviceMotionEvent
-interface DeviceMotionEvent extends Event {
+abstract class DeviceMotionEvent implements Event {
 
   /** @domName DeviceMotionEvent.interval */
-  final num interval;
+  abstract num get interval;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10638,19 +10677,19 @@ class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName DeviceOrientationEvent
-interface DeviceOrientationEvent extends Event {
+abstract class DeviceOrientationEvent implements Event {
 
   /** @domName DeviceOrientationEvent.absolute */
-  final bool absolute;
+  abstract bool get absolute;
 
   /** @domName DeviceOrientationEvent.alpha */
-  final num alpha;
+  abstract num get alpha;
 
   /** @domName DeviceOrientationEvent.beta */
-  final num beta;
+  abstract num get beta;
 
   /** @domName DeviceOrientationEvent.gamma */
-  final num gamma;
+  abstract num get gamma;
 
   /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
@@ -10681,7 +10720,7 @@ class _DeviceOrientationEventImpl extends _EventImpl implements DeviceOrientatio
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDirectoryElement
-interface DirectoryElement extends Element {
+abstract class DirectoryElement implements Element {
 
   /** @domName HTMLDirectoryElement.compact */
   bool compact;
@@ -10706,7 +10745,7 @@ class _HTMLDirectoryElementImpl extends _HTMLElementImpl implements DirectoryEle
 // WARNING: Do not edit - generated code.
 
 /// @domName DirectoryEntry
-interface DirectoryEntry extends Entry {
+abstract class DirectoryEntry implements Entry {
 
   /** @domName DirectoryEntry.createReader */
   DirectoryReader createReader();
@@ -10764,7 +10803,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 // WARNING: Do not edit - generated code.
 
 /// @domName DirectoryEntrySync
-interface DirectoryEntrySync extends EntrySync {
+abstract class DirectoryEntrySync implements EntrySync {
 
   /** @domName DirectoryEntrySync.createReader */
   DirectoryReaderSync createReader();
@@ -10802,7 +10841,7 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 // WARNING: Do not edit - generated code.
 
 /// @domName DirectoryReader
-interface DirectoryReader {
+abstract class DirectoryReader {
 
   /** @domName DirectoryReader.readEntries */
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]);
@@ -10825,7 +10864,7 @@ class _DirectoryReaderImpl extends NativeFieldWrapperClass1 implements Directory
 // WARNING: Do not edit - generated code.
 
 /// @domName DirectoryReaderSync
-interface DirectoryReaderSync {
+abstract class DirectoryReaderSync {
 
   /** @domName DirectoryReaderSync.readEntries */
   EntryArraySync readEntries();
@@ -10848,9 +10887,9 @@ class _DirectoryReaderSyncImpl extends NativeFieldWrapperClass1 implements Direc
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDivElement
-interface DivElement extends Element default _Elements {
+abstract class DivElement implements Element {
 
-  DivElement();
+  factory DivElement() => _Elements.createDivElement();
 
   /** @domName HTMLDivElement.align */
   String align;
@@ -10873,7 +10912,7 @@ class _HTMLDivElementImpl extends _HTMLElementImpl implements DivElement {
 // BSD-style license that can be found in the LICENSE file.
 
 /// @domName Document
-interface Document extends HtmlElement {
+abstract class Document extends HtmlElement {
 
 
   /**
@@ -10882,7 +10921,7 @@ interface Document extends HtmlElement {
   DocumentEvents get on;
 
   /** @domName HTMLDocument.activeElement */
-  final Element activeElement;
+  abstract Element get activeElement;
 
   /** @domName Document.body */
   Element body;
@@ -10894,61 +10933,61 @@ interface Document extends HtmlElement {
   String cookie;
 
   /** @domName Document.defaultView */
-  final Window window;
+  abstract Window get window;
 
   /** @domName Document.documentElement */
-  final Element documentElement;
+  abstract Element get documentElement;
 
   /** @domName Document.domain */
-  final String domain;
+  abstract String get domain;
 
   /** @domName Document.head */
-  final HeadElement head;
+  abstract HeadElement get head;
 
   /** @domName Document.lastModified */
-  final String lastModified;
+  abstract String get lastModified;
 
   /** @domName Document.preferredStylesheetSet */
-  final String preferredStylesheetSet;
+  abstract String get preferredStylesheetSet;
 
   /** @domName Document.readyState */
-  final String readyState;
+  abstract String get readyState;
 
   /** @domName Document.referrer */
-  final String referrer;
+  abstract String get referrer;
 
   /** @domName Document.selectedStylesheetSet */
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  final StyleSheetList styleSheets;
+  abstract StyleSheetList get styleSheets;
 
   /** @domName Document.title */
   String title;
 
   /** @domName Document.webkitCurrentFullScreenElement */
-  final Element webkitCurrentFullScreenElement;
+  abstract Element get webkitCurrentFullScreenElement;
 
   /** @domName Document.webkitFullScreenKeyboardInputAllowed */
-  final bool webkitFullScreenKeyboardInputAllowed;
+  abstract bool get webkitFullScreenKeyboardInputAllowed;
 
   /** @domName Document.webkitFullscreenElement */
-  final Element webkitFullscreenElement;
+  abstract Element get webkitFullscreenElement;
 
   /** @domName Document.webkitFullscreenEnabled */
-  final bool webkitFullscreenEnabled;
+  abstract bool get webkitFullscreenEnabled;
 
   /** @domName Document.webkitHidden */
-  final bool webkitHidden;
+  abstract bool get webkitHidden;
 
   /** @domName Document.webkitIsFullScreen */
-  final bool webkitIsFullScreen;
+  abstract bool get webkitIsFullScreen;
 
   /** @domName Document.webkitPointerLockElement */
-  final Element webkitPointerLockElement;
+  abstract Element get webkitPointerLockElement;
 
   /** @domName Document.webkitVisibilityState */
-  final String webkitVisibilityState;
+  abstract String get webkitVisibilityState;
 
   /** @domName Document.caretRangeFromPoint */
   Range caretRangeFromPoint(int x, int y);
@@ -11033,7 +11072,7 @@ interface Document extends HtmlElement {
 
 }
 
-interface DocumentEvents extends ElementEvents {
+abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get abort;
 
@@ -11138,17 +11177,19 @@ interface DocumentEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 /// @domName DocumentFragment
-interface DocumentFragment extends Element default _DocumentFragmentFactoryProvider {
+abstract class DocumentFragment extends Element {
 
-  DocumentFragment();
+  factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
-  DocumentFragment.html(String html);
+  factory DocumentFragment.html(String html) =>
+      _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
 
   // TODO(nweiz): enable this when XML is ported
   // /** WARNING: Currently this doesn't work on Dartium (issue 649). */
   // DocumentFragment.xml(String xml);
 
-  DocumentFragment.svg(String svg);
+  factory DocumentFragment.svg(String svg) =>
+      new _DocumentFragmentFactoryProvider.DocumentFragment.svg(svg);
 
   DocumentFragment clone(bool deep);
 
@@ -11806,25 +11847,25 @@ class _HTMLDocumentImpl extends _DocumentImpl implements Document {
 // WARNING: Do not edit - generated code.
 
 /// @domName DocumentType
-interface DocumentType extends Node {
+abstract class DocumentType implements Node {
 
   /** @domName DocumentType.entities */
-  final NamedNodeMap entities;
+  abstract NamedNodeMap get entities;
 
   /** @domName DocumentType.internalSubset */
-  final String internalSubset;
+  abstract String get internalSubset;
 
   /** @domName DocumentType.name */
-  final String name;
+  abstract String get name;
 
   /** @domName DocumentType.notations */
-  final NamedNodeMap notations;
+  abstract NamedNodeMap get notations;
 
   /** @domName DocumentType.publicId */
-  final String publicId;
+  abstract String get publicId;
 
   /** @domName DocumentType.systemId */
-  final String systemId;
+  abstract String get systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11854,25 +11895,25 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
 // WARNING: Do not edit - generated code.
 
 /// @domName DynamicsCompressorNode
-interface DynamicsCompressorNode extends AudioNode {
+abstract class DynamicsCompressorNode implements AudioNode {
 
   /** @domName DynamicsCompressorNode.attack */
-  final AudioParam attack;
+  abstract AudioParam get attack;
 
   /** @domName DynamicsCompressorNode.knee */
-  final AudioParam knee;
+  abstract AudioParam get knee;
 
   /** @domName DynamicsCompressorNode.ratio */
-  final AudioParam ratio;
+  abstract AudioParam get ratio;
 
   /** @domName DynamicsCompressorNode.reduction */
-  final AudioParam reduction;
+  abstract AudioParam get reduction;
 
   /** @domName DynamicsCompressorNode.release */
-  final AudioParam release;
+  abstract AudioParam get release;
 
   /** @domName DynamicsCompressorNode.threshold */
-  final AudioParam threshold;
+  abstract AudioParam get threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11902,7 +11943,7 @@ class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsComp
 // WARNING: Do not edit - generated code.
 
 /// @domName EXTTextureFilterAnisotropic
-interface EXTTextureFilterAnisotropic {
+abstract class EXTTextureFilterAnisotropic {
 
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
@@ -11928,7 +11969,7 @@ class _EXTTextureFilterAnisotropicImpl extends NativeFieldWrapperClass1 implemen
 // Note, ElementList implements List (instead of List<Element>) so
 // that its implementing classes may be cast to Lists of more specific
 // type such as List<CanvasElement>.
-interface ElementList extends List {
+abstract class ElementList implements List {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
 
@@ -11943,14 +11984,14 @@ interface ElementList extends List {
  * Extends the regular Map interface by automatically coercing non-string
  * values to strings.
  */
-interface AttributeMap extends Map<String, String> {
+abstract class AttributeMap implements Map<String, String> {
   void operator []=(String key, value);
 }
 
 /**
  * All your element measurement needs in one place
  */
-interface ElementRect {
+abstract class ElementRect {
   // Relative to offsetParent
   ClientRect get client;
   ClientRect get offset;
@@ -11961,12 +12002,12 @@ interface ElementRect {
   List<ClientRect> get clientRects;
 }
 
-interface NodeSelector {
+abstract class NodeSelector {
   Element query(String selectors);
   List<Element> queryAll(String selectors);
 }
 
-interface CSSClassSet extends Set<String> {
+abstract class CSSClassSet implements Set<String> {
   /**
    * Adds the class [token] to the element if it is not on it, removes it if it
    * is.
@@ -11981,9 +12022,11 @@ interface CSSClassSet extends Set<String> {
 }
 
 /// @domName Element
-interface Element extends Node, NodeSelector default _ElementFactoryProvider {
-  Element.html(String html);
-  Element.tag(String tag);
+abstract class Element implements Node, NodeSelector {
+  factory Element.html(String html) =>
+      _ElementFactoryProvider.createElement_html(html);
+  factory Element.tag(String tag) =>
+      _ElementFactoryProvider.createElement_tag(tag);
 
   AttributeMap get attributes;
   void set attributes(Map<String, String> value);
@@ -12039,7 +12082,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   ElementEvents get on;
 
   /** @domName HTMLElement.children */
-  final HTMLCollection $dom_children;
+  abstract HTMLCollection get $dom_children;
 
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
@@ -12060,13 +12103,13 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   String innerHTML;
 
   /** @domName HTMLElement.isContentEditable */
-  final bool isContentEditable;
+  abstract bool get isContentEditable;
 
   /** @domName HTMLElement.lang */
   String lang;
 
   /** @domName HTMLElement.outerHTML */
-  final String outerHTML;
+  abstract String get outerHTML;
 
   /** @domName HTMLElement.spellcheck */
   bool spellcheck;
@@ -12098,55 +12141,55 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   /** @domName Element.childElementCount */
-  final int $dom_childElementCount;
+  abstract int get $dom_childElementCount;
 
   /** @domName Element.className */
   String $dom_className;
 
   /** @domName Element.clientHeight */
-  final int $dom_clientHeight;
+  abstract int get $dom_clientHeight;
 
   /** @domName Element.clientLeft */
-  final int $dom_clientLeft;
+  abstract int get $dom_clientLeft;
 
   /** @domName Element.clientTop */
-  final int $dom_clientTop;
+  abstract int get $dom_clientTop;
 
   /** @domName Element.clientWidth */
-  final int $dom_clientWidth;
+  abstract int get $dom_clientWidth;
 
   /** @domName Element.dataset */
-  final Map<String, String> dataset;
+  abstract Map<String, String> get dataset;
 
   /** @domName Element.firstElementChild */
-  final Element $dom_firstElementChild;
+  abstract Element get $dom_firstElementChild;
 
   /** @domName Element.lastElementChild */
-  final Element $dom_lastElementChild;
+  abstract Element get $dom_lastElementChild;
 
   /** @domName Element.nextElementSibling */
-  final Element nextElementSibling;
+  abstract Element get nextElementSibling;
 
   /** @domName Element.offsetHeight */
-  final int $dom_offsetHeight;
+  abstract int get $dom_offsetHeight;
 
   /** @domName Element.offsetLeft */
-  final int $dom_offsetLeft;
+  abstract int get $dom_offsetLeft;
 
   /** @domName Element.offsetParent */
-  final Element offsetParent;
+  abstract Element get offsetParent;
 
   /** @domName Element.offsetTop */
-  final int $dom_offsetTop;
+  abstract int get $dom_offsetTop;
 
   /** @domName Element.offsetWidth */
-  final int $dom_offsetWidth;
+  abstract int get $dom_offsetWidth;
 
   /** @domName Element.previousElementSibling */
-  final Element previousElementSibling;
+  abstract Element get previousElementSibling;
 
   /** @domName Element.scrollHeight */
-  final int $dom_scrollHeight;
+  abstract int get $dom_scrollHeight;
 
   /** @domName Element.scrollLeft */
   int $dom_scrollLeft;
@@ -12155,16 +12198,16 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   int $dom_scrollTop;
 
   /** @domName Element.scrollWidth */
-  final int $dom_scrollWidth;
+  abstract int get $dom_scrollWidth;
 
   /** @domName Element.style */
-  final CSSStyleDeclaration style;
+  abstract CSSStyleDeclaration get style;
 
   /** @domName Element.tagName */
-  final String tagName;
+  abstract String get tagName;
 
   /** @domName Element.webkitRegionOverset */
-  final String webkitRegionOverset;
+  abstract String get webkitRegionOverset;
 
   /** @domName Element.blur */
   void blur();
@@ -12225,7 +12268,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
 }
 
-interface ElementEvents extends Events {
+abstract class ElementEvents implements Events {
 
   EventListenerList get abort;
 
@@ -13302,7 +13345,7 @@ class _ElementFactoryProvider {
   };
 
   /** @domName Document.createElement */
-  factory Element.html(String html) {
+  static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
     //    creating them every call.
@@ -13338,7 +13381,8 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  factory Element.tag(String tag) => _document.$dom_createElement(tag);
+  static Element createElement_tag(String tag) =>
+      _document.$dom_createElement(tag);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13418,7 +13462,7 @@ class _HTMLElementImpl extends _ElementImpl implements Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName ElementTimeControl
-interface ElementTimeControl {
+abstract class ElementTimeControl {
 
   /** @domName ElementTimeControl.beginElement */
   void beginElement();
@@ -13439,22 +13483,22 @@ interface ElementTimeControl {
 // WARNING: Do not edit - generated code.
 
 /// @domName ElementTraversal
-interface ElementTraversal {
+abstract class ElementTraversal {
 
   /** @domName ElementTraversal.childElementCount */
-  final int childElementCount;
+  abstract int get childElementCount;
 
   /** @domName ElementTraversal.firstElementChild */
-  final Element firstElementChild;
+  abstract Element get firstElementChild;
 
   /** @domName ElementTraversal.lastElementChild */
-  final Element lastElementChild;
+  abstract Element get lastElementChild;
 
   /** @domName ElementTraversal.nextElementSibling */
-  final Element nextElementSibling;
+  abstract Element get nextElementSibling;
 
   /** @domName ElementTraversal.previousElementSibling */
-  final Element previousElementSibling;
+  abstract Element get previousElementSibling;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13463,9 +13507,9 @@ interface ElementTraversal {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLEmbedElement
-interface EmbedElement extends Element default _Elements {
+abstract class EmbedElement implements Element {
 
-  EmbedElement();
+  factory EmbedElement() => _Elements.createEmbedElement();
 
   /** @domName HTMLEmbedElement.align */
   String align;
@@ -13525,16 +13569,16 @@ class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName Entity
-interface Entity extends Node {
+abstract class Entity implements Node {
 
   /** @domName Entity.notationName */
-  final String notationName;
+  abstract String get notationName;
 
   /** @domName Entity.publicId */
-  final String publicId;
+  abstract String get publicId;
 
   /** @domName Entity.systemId */
-  final String systemId;
+  abstract String get systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13558,7 +13602,7 @@ class _EntityImpl extends _NodeImpl implements Entity {
 // WARNING: Do not edit - generated code.
 
 /// @domName EntityReference
-interface EntityReference extends Node {
+abstract class EntityReference implements Node {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13583,22 +13627,22 @@ typedef bool EntriesCallback(EntryArray entries);
 // WARNING: Do not edit - generated code.
 
 /// @domName Entry
-interface Entry {
+abstract class Entry {
 
   /** @domName Entry.filesystem */
-  final DOMFileSystem filesystem;
+  abstract DOMFileSystem get filesystem;
 
   /** @domName Entry.fullPath */
-  final String fullPath;
+  abstract String get fullPath;
 
   /** @domName Entry.isDirectory */
-  final bool isDirectory;
+  abstract bool get isDirectory;
 
   /** @domName Entry.isFile */
-  final bool isFile;
+  abstract bool get isFile;
 
   /** @domName Entry.name */
-  final String name;
+  abstract String get name;
 
   /** @domName Entry.copyTo */
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
@@ -13625,10 +13669,10 @@ interface Entry {
 // WARNING: Do not edit - generated code.
 
 /// @domName EntryArray
-interface EntryArray {
+abstract class EntryArray {
 
   /** @domName EntryArray.length */
-  final int length;
+  abstract int get length;
 
   /** @domName EntryArray.item */
   Entry item(int index);
@@ -13653,10 +13697,10 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 // WARNING: Do not edit - generated code.
 
 /// @domName EntryArraySync
-interface EntryArraySync {
+abstract class EntryArraySync {
 
   /** @domName EntryArraySync.length */
-  final int length;
+  abstract int get length;
 
   /** @domName EntryArraySync.item */
   EntrySync item(int index);
@@ -13739,22 +13783,22 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 // WARNING: Do not edit - generated code.
 
 /// @domName EntrySync
-interface EntrySync {
+abstract class EntrySync {
 
   /** @domName EntrySync.filesystem */
-  final DOMFileSystemSync filesystem;
+  abstract DOMFileSystemSync get filesystem;
 
   /** @domName EntrySync.fullPath */
-  final String fullPath;
+  abstract String get fullPath;
 
   /** @domName EntrySync.isDirectory */
-  final bool isDirectory;
+  abstract bool get isDirectory;
 
   /** @domName EntrySync.isFile */
-  final bool isFile;
+  abstract bool get isFile;
 
   /** @domName EntrySync.name */
-  final String name;
+  abstract String get name;
 
   /** @domName EntrySync.copyTo */
   EntrySync copyTo(DirectoryEntrySync parent, String name);
@@ -13819,16 +13863,16 @@ typedef bool ErrorCallback(FileError error);
 // WARNING: Do not edit - generated code.
 
 /// @domName ErrorEvent
-interface ErrorEvent extends Event {
+abstract class ErrorEvent implements Event {
 
   /** @domName ErrorEvent.filename */
-  final String filename;
+  abstract String get filename;
 
   /** @domName ErrorEvent.lineno */
-  final int lineno;
+  abstract int get lineno;
 
   /** @domName ErrorEvent.message */
-  final String message;
+  abstract String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13852,7 +13896,7 @@ class _ErrorEventImpl extends _EventImpl implements ErrorEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName Event
-interface Event default _EventFactoryProvider {
+abstract class Event {
 
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -13860,7 +13904,8 @@ interface Event default _EventFactoryProvider {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  Event(String type, [bool canBubble, bool cancelable]);
+  factory Event(String type, [bool canBubble = true, bool cancelable = true]) =>
+      _EventFactoryProvider.createEvent(type, canBubble, cancelable);
 
   static const int AT_TARGET = 2;
 
@@ -13903,40 +13948,40 @@ interface Event default _EventFactoryProvider {
   static const int SELECT = 16384;
 
   /** @domName Event.bubbles */
-  final bool bubbles;
+  abstract bool get bubbles;
 
   /** @domName Event.cancelBubble */
   bool cancelBubble;
 
   /** @domName Event.cancelable */
-  final bool cancelable;
+  abstract bool get cancelable;
 
   /** @domName Event.clipboardData */
-  final Clipboard clipboardData;
+  abstract Clipboard get clipboardData;
 
   /** @domName Event.currentTarget */
-  final EventTarget currentTarget;
+  abstract EventTarget get currentTarget;
 
   /** @domName Event.defaultPrevented */
-  final bool defaultPrevented;
+  abstract bool get defaultPrevented;
 
   /** @domName Event.eventPhase */
-  final int eventPhase;
+  abstract int get eventPhase;
 
   /** @domName Event.returnValue */
   bool returnValue;
 
   /** @domName Event.srcElement */
-  final EventTarget srcElement;
+  abstract EventTarget get srcElement;
 
   /** @domName Event.target */
-  final EventTarget target;
+  abstract EventTarget get target;
 
   /** @domName Event.timeStamp */
-  final int timeStamp;
+  abstract int get timeStamp;
 
   /** @domName Event.type */
-  final String type;
+  abstract String get type;
 
   /** @domName Event.initEvent */
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
@@ -13957,20 +14002,20 @@ interface Event default _EventFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName EventException
-interface EventException {
+abstract class EventException {
 
   static const int DISPATCH_REQUEST_ERR = 1;
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   /** @domName EventException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName EventException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName EventException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName EventException.toString */
   String toString();
@@ -14044,9 +14089,9 @@ class _EventImpl extends NativeFieldWrapperClass1 implements Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName EventSource
-interface EventSource extends EventTarget default _EventSourceFactoryProvider {
+abstract class EventSource implements EventTarget {
 
-  EventSource(String scriptUrl);
+  factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -14060,13 +14105,13 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
   static const int OPEN = 1;
 
   /** @domName EventSource.URL */
-  final String URL;
+  abstract String get URL;
 
   /** @domName EventSource.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName EventSource.url */
-  final String url;
+  abstract String get url;
 
   /** @domName EventSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -14081,7 +14126,7 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface EventSourceEvents extends Events {
+abstract class EventSourceEvents implements Events {
 
   EventListenerList get error;
 
@@ -14131,7 +14176,7 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
 // WARNING: Do not edit - generated code.
 
-interface EventListenerList {
+abstract class EventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 
   EventListenerList remove(EventListener handler, [bool useCapture]);
@@ -14139,15 +14184,15 @@ interface EventListenerList {
   bool dispatch(Event evt);
 }
 
-interface Events {
+abstract class Events {
   EventListenerList operator [](String type);
 }
 
 /// @domName EventTarget
-interface EventTarget {
+abstract class EventTarget {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
-  final Events on;
+  abstract Events get on;
 
   /** @domName EventTarget.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -14233,33 +14278,33 @@ class _EventTargetImpl extends NativeFieldWrapperClass1 implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFieldSetElement
-interface FieldSetElement extends Element default _Elements {
+abstract class FieldSetElement implements Element {
 
-  FieldSetElement();
+  factory FieldSetElement() => _Elements.createFieldSetElement();
 
   /** @domName HTMLFieldSetElement.disabled */
   bool disabled;
 
   /** @domName HTMLFieldSetElement.elements */
-  final HTMLCollection elements;
+  abstract HTMLCollection get elements;
 
   /** @domName HTMLFieldSetElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLFieldSetElement.name */
   String name;
 
   /** @domName HTMLFieldSetElement.type */
-  final String type;
+  abstract String get type;
 
   /** @domName HTMLFieldSetElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLFieldSetElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLFieldSetElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLFieldSetElement.checkValidity */
   bool checkValidity();
@@ -14307,16 +14352,16 @@ class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName File
-interface File extends Blob {
+abstract class File implements Blob {
 
   /** @domName File.lastModifiedDate */
-  final Date lastModifiedDate;
+  abstract Date get lastModifiedDate;
 
   /** @domName File.name */
-  final String name;
+  abstract String get name;
 
   /** @domName File.webkitRelativePath */
-  final String webkitRelativePath;
+  abstract String get webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14332,7 +14377,7 @@ typedef bool FileCallback(File file);
 // WARNING: Do not edit - generated code.
 
 /// @domName FileEntry
-interface FileEntry extends Entry {
+abstract class FileEntry implements Entry {
 
   /** @domName FileEntry.createWriter */
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]);
@@ -14360,7 +14405,7 @@ class _FileEntryImpl extends _EntryImpl implements FileEntry {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileEntrySync
-interface FileEntrySync extends EntrySync {
+abstract class FileEntrySync implements EntrySync {
 
   /** @domName FileEntrySync.createWriter */
   FileWriterSync createWriter();
@@ -14388,7 +14433,7 @@ class _FileEntrySyncImpl extends _EntrySyncImpl implements FileEntrySync {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileError
-interface FileError {
+abstract class FileError {
 
   static const int ABORT_ERR = 3;
 
@@ -14415,7 +14460,7 @@ interface FileError {
   static const int TYPE_MISMATCH_ERR = 11;
 
   /** @domName FileError.code */
-  final int code;
+  abstract int get code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14435,7 +14480,7 @@ class _FileErrorImpl extends NativeFieldWrapperClass1 implements FileError {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileException
-interface FileException {
+abstract class FileException {
 
   static const int ABORT_ERR = 3;
 
@@ -14462,13 +14507,13 @@ interface FileException {
   static const int TYPE_MISMATCH_ERR = 11;
 
   /** @domName FileException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName FileException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName FileException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName FileException.toString */
   String toString();
@@ -14512,10 +14557,10 @@ class _FileImpl extends _BlobImpl implements File {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileList
-interface FileList extends List<File> {
+abstract class FileList implements List<File> {
 
   /** @domName FileList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName FileList.item */
   File item(int index);
@@ -14622,9 +14667,9 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements FileList {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileReader
-interface FileReader extends EventTarget default _FileReaderFactoryProvider {
+abstract class FileReader implements EventTarget {
 
-  FileReader();
+  factory FileReader() => _FileReaderFactoryProvider.createFileReader();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -14638,13 +14683,13 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
   static const int LOADING = 1;
 
   /** @domName FileReader.error */
-  final FileError error;
+  abstract FileError get error;
 
   /** @domName FileReader.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName FileReader.result */
-  final Object result;
+  abstract Object get result;
 
   /** @domName FileReader.abort */
   void abort();
@@ -14671,7 +14716,7 @@ interface FileReader extends EventTarget default _FileReaderFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface FileReaderEvents extends Events {
+abstract class FileReaderEvents implements Events {
 
   EventListenerList get abort;
 
@@ -14752,9 +14797,9 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileReaderSync
-interface FileReaderSync default _FileReaderSyncFactoryProvider {
+abstract class FileReaderSync {
 
-  FileReaderSync();
+  factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
 
   /** @domName FileReaderSync.readAsArrayBuffer */
   ArrayBuffer readAsArrayBuffer(Blob blob);
@@ -14808,7 +14853,7 @@ typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 // WARNING: Do not edit - generated code.
 
 /// @domName FileWriter
-interface FileWriter extends EventTarget {
+abstract class FileWriter implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -14822,16 +14867,16 @@ interface FileWriter extends EventTarget {
   static const int WRITING = 1;
 
   /** @domName FileWriter.error */
-  final FileError error;
+  abstract FileError get error;
 
   /** @domName FileWriter.length */
-  final int length;
+  abstract int get length;
 
   /** @domName FileWriter.position */
-  final int position;
+  abstract int get position;
 
   /** @domName FileWriter.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName FileWriter.abort */
   void abort();
@@ -14855,7 +14900,7 @@ interface FileWriter extends EventTarget {
   void write(Blob data);
 }
 
-interface FileWriterEvents extends Events {
+abstract class FileWriterEvents implements Events {
 
   EventListenerList get abort;
 
@@ -14933,13 +14978,13 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileWriterSync
-interface FileWriterSync {
+abstract class FileWriterSync {
 
   /** @domName FileWriterSync.length */
-  final int length;
+  abstract int get length;
 
   /** @domName FileWriterSync.position */
-  final int position;
+  abstract int get position;
 
   /** @domName FileWriterSync.seek */
   void seek(int position);
@@ -14976,18 +15021,21 @@ class _FileWriterSyncImpl extends NativeFieldWrapperClass1 implements FileWriter
 // WARNING: Do not edit - generated code.
 
 /// @domName Float32Array
-interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFactoryProvider {
+abstract class Float32Array implements ArrayBufferView, List<num> {
 
-  Float32Array(int length);
+  factory Float32Array(int length) =>
+    _TypedArrayFactoryProvider.createFloat32Array(length);
 
-  Float32Array.fromList(List<num> list);
+  factory Float32Array.fromList(List<num> list) =>
+    _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
-  Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Float32Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Float32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -15106,18 +15154,21 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName Float64Array
-interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFactoryProvider {
+abstract class Float64Array implements ArrayBufferView, List<num> {
 
-  Float64Array(int length);
+  factory Float64Array(int length) =>
+    _TypedArrayFactoryProvider.createFloat64Array(length);
 
-  Float64Array.fromList(List<num> list);
+  factory Float64Array.fromList(List<num> list) =>
+    _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
-  Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
 
   /** @domName Float64Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Float64Array.setElements */
   void setElements(Object array, [int offset]);
@@ -15236,7 +15287,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFontElement
-interface FontElement extends Element {
+abstract class FontElement implements Element {
 
   /** @domName HTMLFontElement.color */
   String color;
@@ -15275,9 +15326,14 @@ class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMFormData
-interface FormData default _FormDataFactoryProvider {
+abstract class FormData {
 
-  FormData([FormElement form]);
+  factory FormData([FormElement form]) {
+    if (!?form) {
+      return _FormDataFactoryProvider.createFormData();
+    }
+    return _FormDataFactoryProvider.createFormData(form);
+  }
 
   /** @domName DOMFormData.append */
   void append(String name, String value, String filename);
@@ -15300,9 +15356,9 @@ class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements FormData {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFormElement
-interface FormElement extends Element default _Elements {
+abstract class FormElement implements Element {
 
-  FormElement();
+  factory FormElement() => _Elements.createFormElement();
 
   /** @domName HTMLFormElement.acceptCharset */
   String acceptCharset;
@@ -15320,7 +15376,7 @@ interface FormElement extends Element default _Elements {
   String enctype;
 
   /** @domName HTMLFormElement.length */
-  final int length;
+  abstract int get length;
 
   /** @domName HTMLFormElement.method */
   String method;
@@ -15403,19 +15459,19 @@ class _HTMLFormElementImpl extends _HTMLElementImpl implements FormElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFrameElement
-interface FrameElement extends Element {
+abstract class FrameElement implements Element {
 
   /** @domName HTMLFrameElement.contentDocument */
-  final Document contentDocument;
+  abstract Document get contentDocument;
 
   /** @domName HTMLFrameElement.contentWindow */
-  final Window contentWindow;
+  abstract Window get contentWindow;
 
   /** @domName HTMLFrameElement.frameBorder */
   String frameBorder;
 
   /** @domName HTMLFrameElement.height */
-  final int height;
+  abstract int get height;
 
   /** @domName HTMLFrameElement.location */
   String location;
@@ -15442,7 +15498,7 @@ interface FrameElement extends Element {
   String src;
 
   /** @domName HTMLFrameElement.width */
-  final int width;
+  abstract int get width;
 
   /** @domName HTMLFrameElement.getSVGDocument */
   SVGDocument getSVGDocument();
@@ -15505,7 +15561,7 @@ class _HTMLFrameElementImpl extends _HTMLElementImpl implements FrameElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFrameSetElement
-interface FrameSetElement extends Element {
+abstract class FrameSetElement implements Element {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -15519,7 +15575,7 @@ interface FrameSetElement extends Element {
   String rows;
 }
 
-interface FrameSetElementEvents extends ElementEvents {
+abstract class FrameSetElementEvents implements ElementEvents {
 
   EventListenerList get beforeUnload;
 
@@ -15604,22 +15660,22 @@ class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName Gamepad
-interface Gamepad {
+abstract class Gamepad {
 
   /** @domName Gamepad.axes */
-  final List<num> axes;
+  abstract List<num> get axes;
 
   /** @domName Gamepad.buttons */
-  final List<num> buttons;
+  abstract List<num> get buttons;
 
   /** @domName Gamepad.id */
-  final String id;
+  abstract String get id;
 
   /** @domName Gamepad.index */
-  final int index;
+  abstract int get index;
 
   /** @domName Gamepad.timestamp */
-  final int timestamp;
+  abstract int get timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15647,10 +15703,10 @@ class _GamepadImpl extends NativeFieldWrapperClass1 implements Gamepad {
 // WARNING: Do not edit - generated code.
 
 /// @domName GamepadList
-interface GamepadList {
+abstract class GamepadList {
 
   /** @domName GamepadList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName GamepadList.item */
   Gamepad item(int index);
@@ -15675,7 +15731,7 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements GamepadList {
 // WARNING: Do not edit - generated code.
 
 /// @domName Geolocation
-interface Geolocation {
+abstract class Geolocation {
 
   /** @domName Geolocation.clearWatch */
   void clearWatch(int watchId);
@@ -15708,13 +15764,13 @@ class _GeolocationImpl extends NativeFieldWrapperClass1 implements Geolocation {
 // WARNING: Do not edit - generated code.
 
 /// @domName Geoposition
-interface Geoposition {
+abstract class Geoposition {
 
   /** @domName Geoposition.coords */
-  final Coordinates coords;
+  abstract Coordinates get coords;
 
   /** @domName Geoposition.timestamp */
-  final int timestamp;
+  abstract int get timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15736,9 +15792,9 @@ class _GeopositionImpl extends NativeFieldWrapperClass1 implements Geoposition {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHRElement
-interface HRElement extends Element default _Elements {
+abstract class HRElement implements Element {
 
-  HRElement();
+  factory HRElement() => _Elements.createHRElement();
 
   /** @domName HTMLHRElement.align */
   String align;
@@ -15784,10 +15840,10 @@ class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAllCollection
-interface HTMLAllCollection {
+abstract class HTMLAllCollection {
 
   /** @domName HTMLAllCollection.length */
-  final int length;
+  abstract int get length;
 
   /** @domName HTMLAllCollection.item */
   Node item(int index);
@@ -15822,10 +15878,10 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLCollection
-interface HTMLCollection extends List<Node> {
+abstract class HTMLCollection implements List<Node> {
 
   /** @domName HTMLCollection.length */
-  final int length;
+  abstract int get length;
 
   /** @domName HTMLCollection.item */
   Node item(int index);
@@ -15937,7 +15993,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOptionsCollection
-interface HTMLOptionsCollection extends HTMLCollection {
+abstract class HTMLOptionsCollection implements HTMLCollection {
 
   /** @domName HTMLOptionsCollection.length */
   int length;
@@ -15976,13 +16032,13 @@ class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOpti
 // WARNING: Do not edit - generated code.
 
 /// @domName HashChangeEvent
-interface HashChangeEvent extends Event {
+abstract class HashChangeEvent implements Event {
 
   /** @domName HashChangeEvent.newURL */
-  final String newURL;
+  abstract String get newURL;
 
   /** @domName HashChangeEvent.oldURL */
-  final String oldURL;
+  abstract String get oldURL;
 
   /** @domName HashChangeEvent.initHashChangeEvent */
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
@@ -16009,9 +16065,9 @@ class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadElement
-interface HeadElement extends Element default _Elements {
+abstract class HeadElement implements Element {
 
-  HeadElement();
+  factory HeadElement() => _Elements.createHeadElement();
 
   /** @domName HTMLHeadElement.profile */
   String profile;
@@ -16036,19 +16092,19 @@ class _HTMLHeadElementImpl extends _HTMLElementImpl implements HeadElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadingElement
-interface HeadingElement extends Element default _Elements {
+abstract class HeadingElement implements Element {
 
-  HeadingElement.h1();
+  factory HeadingElement.h1() => _Elements.createHeadingElement_h1();
 
-  HeadingElement.h2();
+  factory HeadingElement.h2() => _Elements.createHeadingElement_h2();
 
-  HeadingElement.h3();
+  factory HeadingElement.h3() => _Elements.createHeadingElement_h3();
 
-  HeadingElement.h4();
+  factory HeadingElement.h4() => _Elements.createHeadingElement_h4();
 
-  HeadingElement.h5();
+  factory HeadingElement.h5() => _Elements.createHeadingElement_h5();
 
-  HeadingElement.h6();
+  factory HeadingElement.h6() => _Elements.createHeadingElement_h6();
 
   /** @domName HTMLHeadingElement.align */
   String align;
@@ -16073,13 +16129,13 @@ class _HTMLHeadingElementImpl extends _HTMLElementImpl implements HeadingElement
 // WARNING: Do not edit - generated code.
 
 /// @domName History
-interface History {
+abstract class History {
 
   /** @domName History.length */
-  final int length;
+  abstract int get length;
 
   /** @domName History.state */
-  final Dynamic state;
+  abstract Dynamic get state;
 
   /** @domName History.back */
   void back();
@@ -16126,9 +16182,9 @@ class _HistoryImpl extends NativeFieldWrapperClass1 implements History {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHtmlElement
-interface HtmlElement extends Element default _Elements {
+abstract class HtmlElement implements Element {
 
-  HtmlElement();
+  factory HtmlElement() => _Elements.createHtmlElement();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16146,12 +16202,14 @@ class _HTMLHtmlElementImpl extends _HTMLElementImpl implements HtmlElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName XMLHttpRequest
-interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
-  HttpRequest.get(String url, onSuccess(HttpRequest request));
+abstract class HttpRequest implements EventTarget {
+  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
 
-  HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request));
+  factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
 
-  HttpRequest();
+  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -16169,28 +16227,28 @@ interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
   static const int UNSENT = 0;
 
   /** @domName XMLHttpRequest.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName XMLHttpRequest.response */
-  final Object response;
+  abstract Object get response;
 
   /** @domName XMLHttpRequest.responseText */
-  final String responseText;
+  abstract String get responseText;
 
   /** @domName XMLHttpRequest.responseType */
   String responseType;
 
   /** @domName XMLHttpRequest.responseXML */
-  final Document responseXML;
+  abstract Document get responseXML;
 
   /** @domName XMLHttpRequest.status */
-  final int status;
+  abstract int get status;
 
   /** @domName XMLHttpRequest.statusText */
-  final String statusText;
+  abstract String get statusText;
 
   /** @domName XMLHttpRequest.upload */
-  final HttpRequestUpload upload;
+  abstract HttpRequestUpload get upload;
 
   /** @domName XMLHttpRequest.withCredentials */
   bool withCredentials;
@@ -16226,7 +16284,7 @@ interface HttpRequest extends EventTarget default _HttpRequestFactoryProvider {
   void setRequestHeader(String header, String value);
 }
 
-interface HttpRequestEvents extends Events {
+abstract class HttpRequestEvents implements Events {
 
   EventListenerList get abort;
 
@@ -16249,20 +16307,20 @@ interface HttpRequestEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName XMLHttpRequestException
-interface HttpRequestException {
+abstract class HttpRequestException {
 
   static const int ABORT_ERR = 102;
 
   static const int NETWORK_ERR = 101;
 
   /** @domName XMLHttpRequestException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName XMLHttpRequestException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName XMLHttpRequestException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName XMLHttpRequestException.toString */
   String toString();
@@ -16363,13 +16421,13 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 // WARNING: Do not edit - generated code.
 
 /// @domName XMLHttpRequestProgressEvent
-interface HttpRequestProgressEvent extends ProgressEvent {
+abstract class HttpRequestProgressEvent implements ProgressEvent {
 
   /** @domName XMLHttpRequestProgressEvent.position */
-  final int position;
+  abstract int get position;
 
   /** @domName XMLHttpRequestProgressEvent.totalSize */
-  final int totalSize;
+  abstract int get totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16391,7 +16449,7 @@ class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements Htt
 // WARNING: Do not edit - generated code.
 
 /// @domName XMLHttpRequestUpload
-interface HttpRequestUpload extends EventTarget {
+abstract class HttpRequestUpload implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -16408,7 +16466,7 @@ interface HttpRequestUpload extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface HttpRequestUploadEvents extends Events {
+abstract class HttpRequestUploadEvents implements Events {
 
   EventListenerList get abort;
 
@@ -16463,7 +16521,7 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestU
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBAny
-interface IDBAny {
+abstract class IDBAny {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16481,7 +16539,7 @@ class _IDBAnyImpl extends NativeFieldWrapperClass1 implements IDBAny {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBCursor
-interface IDBCursor {
+abstract class IDBCursor {
 
   static const int NEXT = 0;
 
@@ -16492,16 +16550,16 @@ interface IDBCursor {
   static const int PREV_NO_DUPLICATE = 3;
 
   /** @domName IDBCursor.direction */
-  final String direction;
+  abstract String get direction;
 
   /** @domName IDBCursor.key */
-  final Dynamic key;
+  abstract Dynamic get key;
 
   /** @domName IDBCursor.primaryKey */
-  final Dynamic primaryKey;
+  abstract Dynamic get primaryKey;
 
   /** @domName IDBCursor.source */
-  final Dynamic source;
+  abstract Dynamic get source;
 
   /** @domName IDBCursor.advance */
   void advance(int count);
@@ -16557,10 +16615,10 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBCursorWithValue
-interface IDBCursorWithValue extends IDBCursor {
+abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  final Dynamic value;
+  abstract Dynamic get value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16580,7 +16638,7 @@ class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithVal
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBDatabase
-interface IDBDatabase extends EventTarget {
+abstract class IDBDatabase implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -16588,13 +16646,13 @@ interface IDBDatabase extends EventTarget {
   IDBDatabaseEvents get on;
 
   /** @domName IDBDatabase.name */
-  final String name;
+  abstract String get name;
 
   /** @domName IDBDatabase.objectStoreNames */
-  final List<String> objectStoreNames;
+  abstract List<String> get objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  final Dynamic version;
+  abstract Dynamic get version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -16621,7 +16679,7 @@ interface IDBDatabase extends EventTarget {
   IDBTransaction transaction(storeName_OR_storeNames, String mode);
 }
 
-interface IDBDatabaseEvents extends Events {
+abstract class IDBDatabaseEvents implements Events {
 
   EventListenerList get abort;
 
@@ -16636,7 +16694,7 @@ interface IDBDatabaseEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBDatabaseException
-interface IDBDatabaseException {
+abstract class IDBDatabaseException {
 
   static const int ABORT_ERR = 20;
 
@@ -16665,13 +16723,13 @@ interface IDBDatabaseException {
   static const int VER_ERR = 12;
 
   /** @domName IDBDatabaseException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName IDBDatabaseException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName IDBDatabaseException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName IDBDatabaseException.toString */
   String toString();
@@ -16770,7 +16828,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBFactory
-interface IDBFactory {
+abstract class IDBFactory {
 
   /** @domName IDBFactory.cmp */
   int cmp(/*IDBKey*/ first, /*IDBKey*/ second);
@@ -16817,22 +16875,22 @@ class _IDBFactoryImpl extends NativeFieldWrapperClass1 implements IDBFactory {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBIndex
-interface IDBIndex {
+abstract class IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  final Dynamic keyPath;
+  abstract Dynamic get keyPath;
 
   /** @domName IDBIndex.multiEntry */
-  final bool multiEntry;
+  abstract bool get multiEntry;
 
   /** @domName IDBIndex.name */
-  final String name;
+  abstract String get name;
 
   /** @domName IDBIndex.objectStore */
-  final IDBObjectStore objectStore;
+  abstract IDBObjectStore get objectStore;
 
   /** @domName IDBIndex.unique */
-  final bool unique;
+  abstract bool get unique;
 
   /** @domName IDBIndex.count */
   IDBRequest count([key_OR_range]);
@@ -17020,7 +17078,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBKey
-interface IDBKey {
+abstract class IDBKey {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17038,41 +17096,46 @@ class _IDBKeyImpl extends NativeFieldWrapperClass1 implements IDBKey {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBKeyRange
-interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
+abstract class IDBKeyRange {
 
   /**
    * @domName IDBKeyRange.only
    */
-  IDBKeyRange.only(/*IDBKey*/ value);
+  factory IDBKeyRange.only(/*IDBKey*/ value) =>
+      _IDBKeyRangeFactoryProvider.createIDBKeyRange_only(value);
 
   /**
    * @domName IDBKeyRange.lowerBound
    */
-  IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]);
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]) =>
+      _IDBKeyRangeFactoryProvider.createIDBKeyRange_lowerBound(bound, open);
 
   /**
    * @domName IDBKeyRange.upperBound
    */
-  IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]);
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]) =>
+      _IDBKeyRangeFactoryProvider.createIDBKeyRange_upperBound(bound, open);
 
   /**
    * @domName IDBKeyRange.bound
    */
-  IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                    [bool lowerOpen, bool upperOpen]);
+  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                            [bool lowerOpen, bool upperOpen]) =>
+      _IDBKeyRangeFactoryProvider.createIDBKeyRange_bound(
+          lower, upper, lowerOpen, upperOpen);
 
 
   /** @domName IDBKeyRange.lower */
-  final Dynamic lower;
+  abstract Dynamic get lower;
 
   /** @domName IDBKeyRange.lowerOpen */
-  final bool lowerOpen;
+  abstract bool get lowerOpen;
 
   /** @domName IDBKeyRange.upper */
-  final Dynamic upper;
+  abstract Dynamic get upper;
 
   /** @domName IDBKeyRange.upperOpen */
-  final bool upperOpen;
+  abstract bool get upperOpen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17138,22 +17201,22 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBObjectStore
-interface IDBObjectStore {
+abstract class IDBObjectStore {
 
   /** @domName IDBObjectStore.autoIncrement */
-  final bool autoIncrement;
+  abstract bool get autoIncrement;
 
   /** @domName IDBObjectStore.indexNames */
-  final List<String> indexNames;
+  abstract List<String> get indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  final Dynamic keyPath;
+  abstract Dynamic get keyPath;
 
   /** @domName IDBObjectStore.name */
-  final String name;
+  abstract String get name;
 
   /** @domName IDBObjectStore.transaction */
-  final IDBTransaction transaction;
+  abstract IDBTransaction get transaction;
 
   /** @domName IDBObjectStore.add */
   IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
@@ -17359,7 +17422,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBOpenDBRequest
-interface IDBOpenDBRequest extends IDBRequest, EventTarget {
+abstract class IDBOpenDBRequest implements IDBRequest, EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -17367,7 +17430,7 @@ interface IDBOpenDBRequest extends IDBRequest, EventTarget {
   IDBOpenDBRequestEvents get on;
 }
 
-interface IDBOpenDBRequestEvents extends IDBRequestEvents {
+abstract class IDBOpenDBRequestEvents implements IDBRequestEvents {
 
   EventListenerList get blocked;
 
@@ -17406,7 +17469,7 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBRequest
-interface IDBRequest extends EventTarget {
+abstract class IDBRequest implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -17414,25 +17477,25 @@ interface IDBRequest extends EventTarget {
   IDBRequestEvents get on;
 
   /** @domName IDBRequest.error */
-  final DOMError error;
+  abstract DOMError get error;
 
   /** @domName IDBRequest.errorCode */
-  final int errorCode;
+  abstract int get errorCode;
 
   /** @domName IDBRequest.readyState */
-  final String readyState;
+  abstract String get readyState;
 
   /** @domName IDBRequest.result */
-  final Dynamic result;
+  abstract Dynamic get result;
 
   /** @domName IDBRequest.source */
-  final Dynamic source;
+  abstract Dynamic get source;
 
   /** @domName IDBRequest.transaction */
-  final IDBTransaction transaction;
+  abstract IDBTransaction get transaction;
 
   /** @domName IDBRequest.webkitErrorMessage */
-  final String webkitErrorMessage;
+  abstract String get webkitErrorMessage;
 
   /** @domName IDBRequest.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -17444,7 +17507,7 @@ interface IDBRequest extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface IDBRequestEvents extends Events {
+abstract class IDBRequestEvents implements Events {
 
   EventListenerList get error;
 
@@ -17497,7 +17560,7 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBTransaction
-interface IDBTransaction extends EventTarget {
+abstract class IDBTransaction implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -17511,13 +17574,13 @@ interface IDBTransaction extends EventTarget {
   static const int VERSION_CHANGE = 2;
 
   /** @domName IDBTransaction.db */
-  final IDBDatabase db;
+  abstract IDBDatabase get db;
 
   /** @domName IDBTransaction.error */
-  final DOMError error;
+  abstract DOMError get error;
 
   /** @domName IDBTransaction.mode */
-  final String mode;
+  abstract String get mode;
 
   /** @domName IDBTransaction.abort */
   void abort();
@@ -17535,7 +17598,7 @@ interface IDBTransaction extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface IDBTransactionEvents extends Events {
+abstract class IDBTransactionEvents implements Events {
 
   EventListenerList get abort;
 
@@ -17588,13 +17651,13 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBUpgradeNeededEvent
-interface IDBUpgradeNeededEvent extends Event {
+abstract class IDBUpgradeNeededEvent implements Event {
 
   /** @domName IDBUpgradeNeededEvent.newVersion */
-  final int newVersion;
+  abstract int get newVersion;
 
   /** @domName IDBUpgradeNeededEvent.oldVersion */
-  final int oldVersion;
+  abstract int get oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17616,10 +17679,10 @@ class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededE
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBVersionChangeEvent
-interface IDBVersionChangeEvent extends Event {
+abstract class IDBVersionChangeEvent implements Event {
 
   /** @domName IDBVersionChangeEvent.version */
-  final String version;
+  abstract String get version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17639,7 +17702,7 @@ class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeE
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBVersionChangeRequest
-interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
+abstract class IDBVersionChangeRequest implements IDBRequest, EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -17647,7 +17710,7 @@ interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
   IDBVersionChangeRequestEvents get on;
 }
 
-interface IDBVersionChangeRequestEvents extends IDBRequestEvents {
+abstract class IDBVersionChangeRequestEvents implements IDBRequestEvents {
 
   EventListenerList get blocked;
 }
@@ -17682,15 +17745,15 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLIFrameElement
-interface IFrameElement extends Element default _Elements {
+abstract class IFrameElement implements Element {
 
-  IFrameElement();
+  factory IFrameElement() => _Elements.createIFrameElement();
 
   /** @domName HTMLIFrameElement.align */
   String align;
 
   /** @domName HTMLIFrameElement.contentWindow */
-  final Window contentWindow;
+  abstract Window get contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -17801,12 +17864,12 @@ typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 // WARNING: Do not edit - generated code.
 
 /// @domName IceCandidate
-interface IceCandidate default _IceCandidateFactoryProvider {
+abstract class IceCandidate {
 
-  IceCandidate(String label, String candidateLine);
+  factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
   /** @domName IceCandidate.label */
-  final String label;
+  abstract String get label;
 
   /** @domName IceCandidate.toSdp */
   String toSdp();
@@ -17831,16 +17894,16 @@ class _IceCandidateImpl extends NativeFieldWrapperClass1 implements IceCandidate
 // WARNING: Do not edit - generated code.
 
 /// @domName ImageData
-interface ImageData {
+abstract class ImageData {
 
   /** @domName ImageData.data */
-  final Uint8ClampedArray data;
+  abstract Uint8ClampedArray get data;
 
   /** @domName ImageData.height */
-  final int height;
+  abstract int get height;
 
   /** @domName ImageData.width */
-  final int width;
+  abstract int get width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17864,9 +17927,20 @@ class _ImageDataImpl extends NativeFieldWrapperClass1 implements ImageData {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLImageElement
-interface ImageElement extends Element default _Elements {
+abstract class ImageElement implements Element {
 
-  ImageElement([String src, int width, int height]);
+  factory ImageElement([String src, int width, int height]) {
+    if (!?src) {
+      return _Elements.createImageElement();
+    }
+    if (!?width) {
+      return _Elements.createImageElement(src);
+    }
+    if (!?height) {
+      return _Elements.createImageElement(src, width);
+    }
+    return _Elements.createImageElement(src, width, height);
+  }
 
   /** @domName HTMLImageElement.align */
   String align;
@@ -17878,7 +17952,7 @@ interface ImageElement extends Element default _Elements {
   String border;
 
   /** @domName HTMLImageElement.complete */
-  final bool complete;
+  abstract bool get complete;
 
   /** @domName HTMLImageElement.crossOrigin */
   String crossOrigin;
@@ -17902,10 +17976,10 @@ interface ImageElement extends Element default _Elements {
   String name;
 
   /** @domName HTMLImageElement.naturalHeight */
-  final int naturalHeight;
+  abstract int get naturalHeight;
 
   /** @domName HTMLImageElement.naturalWidth */
-  final int naturalWidth;
+  abstract int get naturalWidth;
 
   /** @domName HTMLImageElement.src */
   String src;
@@ -17920,10 +17994,10 @@ interface ImageElement extends Element default _Elements {
   int width;
 
   /** @domName HTMLImageElement.x */
-  final int x;
+  abstract int get x;
 
   /** @domName HTMLImageElement.y */
-  final int y;
+  abstract int get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18007,9 +18081,14 @@ class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLInputElement
-interface InputElement extends Element default _Elements {
+abstract class InputElement implements Element {
 
-  InputElement([String type]);
+  factory InputElement([String type]) {
+    if (!?type) {
+      return _Elements.createInputElement();
+    }
+    return _Elements.createInputElement(type);
+  }
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -18047,7 +18126,7 @@ interface InputElement extends Element default _Elements {
   FileList files;
 
   /** @domName HTMLInputElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLInputElement.formAction */
   String formAction;
@@ -18074,10 +18153,10 @@ interface InputElement extends Element default _Elements {
   bool indeterminate;
 
   /** @domName HTMLInputElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLInputElement.list */
-  final Element list;
+  abstract Element get list;
 
   /** @domName HTMLInputElement.max */
   String max;
@@ -18131,10 +18210,10 @@ interface InputElement extends Element default _Elements {
   String useMap;
 
   /** @domName HTMLInputElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLInputElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLInputElement.value */
   String value;
@@ -18146,7 +18225,7 @@ interface InputElement extends Element default _Elements {
   num valueAsNumber;
 
   /** @domName HTMLInputElement.webkitEntries */
-  final EntryArray webkitEntries;
+  abstract EntryArray get webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -18161,7 +18240,7 @@ interface InputElement extends Element default _Elements {
   int width;
 
   /** @domName HTMLInputElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLInputElement.checkValidity */
   bool checkValidity();
@@ -18182,7 +18261,7 @@ interface InputElement extends Element default _Elements {
   void stepUp([int n]);
 }
 
-interface InputElementEvents extends ElementEvents {
+abstract class InputElementEvents implements ElementEvents {
 
   EventListenerList get speechChange;
 }
@@ -18425,18 +18504,21 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName Int16Array
-interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+abstract class Int16Array implements ArrayBufferView, List<int> {
 
-  Int16Array(int length);
+  factory Int16Array(int length) =>
+    _TypedArrayFactoryProvider.createInt16Array(length);
 
-  Int16Array.fromList(List<int> list);
+  factory Int16Array.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
-  Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 
   /** @domName Int16Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Int16Array.setElements */
   void setElements(Object array, [int offset]);
@@ -18555,18 +18637,21 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName Int32Array
-interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+abstract class Int32Array implements ArrayBufferView, List<int> {
 
-  Int32Array(int length);
+  factory Int32Array(int length) =>
+    _TypedArrayFactoryProvider.createInt32Array(length);
 
-  Int32Array.fromList(List<int> list);
+  factory Int32Array.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
-  Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Int32Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Int32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -18685,18 +18770,21 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName Int8Array
-interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+abstract class Int8Array implements ArrayBufferView, List<int> {
 
-  Int8Array(int length);
+  factory Int8Array(int length) =>
+    _TypedArrayFactoryProvider.createInt8Array(length);
 
-  Int8Array.fromList(List<int> list);
+  factory Int8Array.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
-  Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 
   /** @domName Int8Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Int8Array.setElements */
   void setElements(Object array, [int offset]);
@@ -18815,7 +18903,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName JavaScriptAudioNode
-interface JavaScriptAudioNode extends AudioNode, EventTarget {
+abstract class JavaScriptAudioNode implements AudioNode, EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -18823,10 +18911,10 @@ interface JavaScriptAudioNode extends AudioNode, EventTarget {
   JavaScriptAudioNodeEvents get on;
 
   /** @domName JavaScriptAudioNode.bufferSize */
-  final int bufferSize;
+  abstract int get bufferSize;
 }
 
-interface JavaScriptAudioNodeEvents extends Events {
+abstract class JavaScriptAudioNodeEvents implements Events {
 
   EventListenerList get audioProcess;
 }
@@ -18863,7 +18951,7 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 // WARNING: Do not edit - generated code.
 
 /// @domName JavaScriptCallFrame
-interface JavaScriptCallFrame {
+abstract class JavaScriptCallFrame {
 
   static const int CATCH_SCOPE = 4;
 
@@ -18876,28 +18964,28 @@ interface JavaScriptCallFrame {
   static const int WITH_SCOPE = 2;
 
   /** @domName JavaScriptCallFrame.caller */
-  final JavaScriptCallFrame caller;
+  abstract JavaScriptCallFrame get caller;
 
   /** @domName JavaScriptCallFrame.column */
-  final int column;
+  abstract int get column;
 
   /** @domName JavaScriptCallFrame.functionName */
-  final String functionName;
+  abstract String get functionName;
 
   /** @domName JavaScriptCallFrame.line */
-  final int line;
+  abstract int get line;
 
   /** @domName JavaScriptCallFrame.scopeChain */
-  final List scopeChain;
+  abstract List get scopeChain;
 
   /** @domName JavaScriptCallFrame.sourceID */
-  final int sourceID;
+  abstract int get sourceID;
 
   /** @domName JavaScriptCallFrame.thisObject */
-  final Object thisObject;
+  abstract Object get thisObject;
 
   /** @domName JavaScriptCallFrame.type */
-  final String type;
+  abstract String get type;
 
   /** @domName JavaScriptCallFrame.evaluate */
   void evaluate(String script);
@@ -18946,28 +19034,28 @@ class _JavaScriptCallFrameImpl extends NativeFieldWrapperClass1 implements JavaS
 // WARNING: Do not edit - generated code.
 
 /// @domName KeyboardEvent
-interface KeyboardEvent extends UIEvent {
+abstract class KeyboardEvent implements UIEvent {
 
   /** @domName KeyboardEvent.altGraphKey */
-  final bool altGraphKey;
+  abstract bool get altGraphKey;
 
   /** @domName KeyboardEvent.altKey */
-  final bool altKey;
+  abstract bool get altKey;
 
   /** @domName KeyboardEvent.ctrlKey */
-  final bool ctrlKey;
+  abstract bool get ctrlKey;
 
   /** @domName KeyboardEvent.keyIdentifier */
-  final String keyIdentifier;
+  abstract String get keyIdentifier;
 
   /** @domName KeyboardEvent.keyLocation */
-  final int keyLocation;
+  abstract int get keyLocation;
 
   /** @domName KeyboardEvent.metaKey */
-  final bool metaKey;
+  abstract bool get metaKey;
 
   /** @domName KeyboardEvent.shiftKey */
-  final bool shiftKey;
+  abstract bool get shiftKey;
 
   /** @domName KeyboardEvent.initKeyboardEvent */
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
@@ -19004,9 +19092,9 @@ class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLKeygenElement
-interface KeygenElement extends Element default _Elements {
+abstract class KeygenElement implements Element {
 
-  KeygenElement();
+  factory KeygenElement() => _Elements.createKeygenElement();
 
   /** @domName HTMLKeygenElement.autofocus */
   bool autofocus;
@@ -19018,28 +19106,28 @@ interface KeygenElement extends Element default _Elements {
   bool disabled;
 
   /** @domName HTMLKeygenElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLKeygenElement.keytype */
   String keytype;
 
   /** @domName HTMLKeygenElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLKeygenElement.name */
   String name;
 
   /** @domName HTMLKeygenElement.type */
-  final String type;
+  abstract String get type;
 
   /** @domName HTMLKeygenElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLKeygenElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLKeygenElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLKeygenElement.checkValidity */
   bool checkValidity();
@@ -19099,9 +19187,9 @@ class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLIElement
-interface LIElement extends Element default _Elements {
+abstract class LIElement implements Element {
 
-  LIElement();
+  factory LIElement() => _Elements.createLIElement();
 
   /** @domName HTMLLIElement.type */
   String type;
@@ -19133,15 +19221,15 @@ class _HTMLLIElementImpl extends _HTMLElementImpl implements LIElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLabelElement
-interface LabelElement extends Element default _Elements {
+abstract class LabelElement implements Element {
 
-  LabelElement();
+  factory LabelElement() => _Elements.createLabelElement();
 
   /** @domName HTMLLabelElement.control */
-  final Element control;
+  abstract Element get control;
 
   /** @domName HTMLLabelElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLLabelElement.htmlFor */
   String htmlFor;
@@ -19170,15 +19258,15 @@ class _HTMLLabelElementImpl extends _HTMLElementImpl implements LabelElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLegendElement
-interface LegendElement extends Element default _Elements {
+abstract class LegendElement implements Element {
 
-  LegendElement();
+  factory LegendElement() => _Elements.createLegendElement();
 
   /** @domName HTMLLegendElement.align */
   String align;
 
   /** @domName HTMLLegendElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19202,9 +19290,9 @@ class _HTMLLegendElementImpl extends _HTMLElementImpl implements LegendElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLinkElement
-interface LinkElement extends Element default _Elements {
+abstract class LinkElement implements Element {
 
-  LinkElement();
+  factory LinkElement() => _Elements.createLinkElement();
 
   /** @domName HTMLLinkElement.charset */
   String charset;
@@ -19228,7 +19316,7 @@ interface LinkElement extends Element default _Elements {
   String rev;
 
   /** @domName HTMLLinkElement.sheet */
-  final StyleSheet sheet;
+  abstract StyleSheet get sheet;
 
   /** @domName HTMLLinkElement.sizes */
   DOMSettableTokenList sizes;
@@ -19297,7 +19385,7 @@ class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName LocalMediaStream
-interface LocalMediaStream extends MediaStream, EventTarget {
+abstract class LocalMediaStream implements MediaStream, EventTarget {
 
   /** @domName LocalMediaStream.stop */
   void stop();
@@ -19326,10 +19414,10 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 // WARNING: Do not edit - generated code.
 
 /// @domName Location
-interface Location {
+abstract class Location {
 
   /** @domName Location.ancestorOrigins */
-  final List<String> ancestorOrigins;
+  abstract List<String> get ancestorOrigins;
 
   /** @domName Location.hash */
   String hash;
@@ -19344,7 +19432,7 @@ interface Location {
   String href;
 
   /** @domName Location.origin */
-  final String origin;
+  abstract String get origin;
 
   /** @domName Location.pathname */
   String pathname;
@@ -19430,12 +19518,12 @@ class _LocationImpl extends NativeFieldWrapperClass1 implements Location {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMapElement
-interface MapElement extends Element default _Elements {
+abstract class MapElement implements Element {
 
-  MapElement();
+  factory MapElement() => _Elements.createMapElement();
 
   /** @domName HTMLMapElement.areas */
-  final HTMLCollection areas;
+  abstract HTMLCollection get areas;
 
   /** @domName HTMLMapElement.name */
   String name;
@@ -19462,7 +19550,7 @@ class _HTMLMapElementImpl extends _HTMLElementImpl implements MapElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMarqueeElement
-interface MarqueeElement extends Element {
+abstract class MarqueeElement implements Element {
 
   /** @domName HTMLMarqueeElement.behavior */
   String behavior;
@@ -19567,12 +19655,12 @@ class _HTMLMarqueeElementImpl extends _HTMLElementImpl implements MarqueeElement
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaController
-interface MediaController extends EventTarget default _MediaControllerFactoryProvider {
+abstract class MediaController implements EventTarget {
 
-  MediaController();
+  factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
   /** @domName MediaController.buffered */
-  final TimeRanges buffered;
+  abstract TimeRanges get buffered;
 
   /** @domName MediaController.currentTime */
   num currentTime;
@@ -19581,22 +19669,22 @@ interface MediaController extends EventTarget default _MediaControllerFactoryPro
   num defaultPlaybackRate;
 
   /** @domName MediaController.duration */
-  final num duration;
+  abstract num get duration;
 
   /** @domName MediaController.muted */
   bool muted;
 
   /** @domName MediaController.paused */
-  final bool paused;
+  abstract bool get paused;
 
   /** @domName MediaController.playbackRate */
   num playbackRate;
 
   /** @domName MediaController.played */
-  final TimeRanges played;
+  abstract TimeRanges get played;
 
   /** @domName MediaController.seekable */
-  final TimeRanges seekable;
+  abstract TimeRanges get seekable;
 
   /** @domName MediaController.volume */
   num volume;
@@ -19672,7 +19760,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMediaElement
-interface MediaElement extends Element {
+abstract class MediaElement implements Element {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -19701,7 +19789,7 @@ interface MediaElement extends Element {
   bool autoplay;
 
   /** @domName HTMLMediaElement.buffered */
-  final TimeRanges buffered;
+  abstract TimeRanges get buffered;
 
   /** @domName HTMLMediaElement.controller */
   MediaController controller;
@@ -19710,7 +19798,7 @@ interface MediaElement extends Element {
   bool controls;
 
   /** @domName HTMLMediaElement.currentSrc */
-  final String currentSrc;
+  abstract String get currentSrc;
 
   /** @domName HTMLMediaElement.currentTime */
   num currentTime;
@@ -19722,16 +19810,16 @@ interface MediaElement extends Element {
   num defaultPlaybackRate;
 
   /** @domName HTMLMediaElement.duration */
-  final num duration;
+  abstract num get duration;
 
   /** @domName HTMLMediaElement.ended */
-  final bool ended;
+  abstract bool get ended;
 
   /** @domName HTMLMediaElement.error */
-  final MediaError error;
+  abstract MediaError get error;
 
   /** @domName HTMLMediaElement.initialTime */
-  final num initialTime;
+  abstract num get initialTime;
 
   /** @domName HTMLMediaElement.loop */
   bool loop;
@@ -19743,55 +19831,55 @@ interface MediaElement extends Element {
   bool muted;
 
   /** @domName HTMLMediaElement.networkState */
-  final int networkState;
+  abstract int get networkState;
 
   /** @domName HTMLMediaElement.paused */
-  final bool paused;
+  abstract bool get paused;
 
   /** @domName HTMLMediaElement.playbackRate */
   num playbackRate;
 
   /** @domName HTMLMediaElement.played */
-  final TimeRanges played;
+  abstract TimeRanges get played;
 
   /** @domName HTMLMediaElement.preload */
   String preload;
 
   /** @domName HTMLMediaElement.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName HTMLMediaElement.seekable */
-  final TimeRanges seekable;
+  abstract TimeRanges get seekable;
 
   /** @domName HTMLMediaElement.seeking */
-  final bool seeking;
+  abstract bool get seeking;
 
   /** @domName HTMLMediaElement.src */
   String src;
 
   /** @domName HTMLMediaElement.startTime */
-  final num startTime;
+  abstract num get startTime;
 
   /** @domName HTMLMediaElement.textTracks */
-  final TextTrackList textTracks;
+  abstract TextTrackList get textTracks;
 
   /** @domName HTMLMediaElement.volume */
   num volume;
 
   /** @domName HTMLMediaElement.webkitAudioDecodedByteCount */
-  final int webkitAudioDecodedByteCount;
+  abstract int get webkitAudioDecodedByteCount;
 
   /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
   bool webkitClosedCaptionsVisible;
 
   /** @domName HTMLMediaElement.webkitHasClosedCaptions */
-  final bool webkitHasClosedCaptions;
+  abstract bool get webkitHasClosedCaptions;
 
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
 
   /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
-  final int webkitVideoDecodedByteCount;
+  abstract int get webkitVideoDecodedByteCount;
 
   /** @domName HTMLMediaElement.addTextTrack */
   TextTrack addTextTrack(String kind, [String label, String language]);
@@ -19818,7 +19906,7 @@ interface MediaElement extends Element {
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 }
 
-interface MediaElementEvents extends ElementEvents {
+abstract class MediaElementEvents implements ElementEvents {
 
   EventListenerList get canPlay;
 
@@ -19877,10 +19965,10 @@ interface MediaElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaElementAudioSourceNode
-interface MediaElementAudioSourceNode extends AudioSourceNode {
+abstract class MediaElementAudioSourceNode implements AudioSourceNode {
 
   /** @domName MediaElementAudioSourceNode.mediaElement */
-  final MediaElement mediaElement;
+  abstract MediaElement get mediaElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20110,7 +20198,7 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaError
-interface MediaError {
+abstract class MediaError {
 
   static const int MEDIA_ERR_ABORTED = 1;
 
@@ -20123,7 +20211,7 @@ interface MediaError {
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   /** @domName MediaError.code */
-  final int code;
+  abstract int get code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20143,7 +20231,7 @@ class _MediaErrorImpl extends NativeFieldWrapperClass1 implements MediaError {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaKeyError
-interface MediaKeyError {
+abstract class MediaKeyError {
 
   static const int MEDIA_KEYERR_CLIENT = 2;
 
@@ -20158,7 +20246,7 @@ interface MediaKeyError {
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   /** @domName MediaKeyError.code */
-  final int code;
+  abstract int get code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20178,28 +20266,28 @@ class _MediaKeyErrorImpl extends NativeFieldWrapperClass1 implements MediaKeyErr
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaKeyEvent
-interface MediaKeyEvent extends Event {
+abstract class MediaKeyEvent implements Event {
 
   /** @domName MediaKeyEvent.defaultURL */
-  final String defaultURL;
+  abstract String get defaultURL;
 
   /** @domName MediaKeyEvent.errorCode */
-  final MediaKeyError errorCode;
+  abstract MediaKeyError get errorCode;
 
   /** @domName MediaKeyEvent.initData */
-  final Uint8Array initData;
+  abstract Uint8Array get initData;
 
   /** @domName MediaKeyEvent.keySystem */
-  final String keySystem;
+  abstract String get keySystem;
 
   /** @domName MediaKeyEvent.message */
-  final Uint8Array message;
+  abstract Uint8Array get message;
 
   /** @domName MediaKeyEvent.sessionId */
-  final String sessionId;
+  abstract String get sessionId;
 
   /** @domName MediaKeyEvent.systemCode */
-  final int systemCode;
+  abstract int get systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20231,10 +20319,10 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaList
-interface MediaList extends List<String> {
+abstract class MediaList implements List<String> {
 
   /** @domName MediaList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName MediaList.mediaText */
   String mediaText;
@@ -20358,13 +20446,13 @@ class _MediaListImpl extends NativeFieldWrapperClass1 implements MediaList {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaQueryList
-interface MediaQueryList {
+abstract class MediaQueryList {
 
   /** @domName MediaQueryList.matches */
-  final bool matches;
+  abstract bool get matches;
 
   /** @domName MediaQueryList.media */
-  final String media;
+  abstract String get media;
 
   /** @domName MediaQueryList.addListener */
   void addListener(MediaQueryListListener listener);
@@ -20396,7 +20484,7 @@ class _MediaQueryListImpl extends NativeFieldWrapperClass1 implements MediaQuery
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaQueryListListener
-interface MediaQueryListListener {
+abstract class MediaQueryListListener {
 
   /** @domName MediaQueryListListener.queryChanged */
   void queryChanged(MediaQueryList list);
@@ -20408,21 +20496,21 @@ interface MediaQueryListListener {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaSource
-interface MediaSource extends EventTarget default _MediaSourceFactoryProvider {
+abstract class MediaSource implements EventTarget {
 
-  MediaSource();
+  factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
   /** @domName MediaSource.activeSourceBuffers */
-  final SourceBufferList activeSourceBuffers;
+  abstract SourceBufferList get activeSourceBuffers;
 
   /** @domName MediaSource.duration */
   num duration;
 
   /** @domName MediaSource.readyState */
-  final String readyState;
+  abstract String get readyState;
 
   /** @domName MediaSource.sourceBuffers */
-  final SourceBufferList sourceBuffers;
+  abstract SourceBufferList get sourceBuffers;
 
   /** @domName MediaSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -20480,9 +20568,9 @@ class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStream
-interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
+abstract class MediaStream implements EventTarget {
 
-  MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
+  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -20494,16 +20582,16 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
   static const int LIVE = 1;
 
   /** @domName MediaStream.audioTracks */
-  final MediaStreamTrackList audioTracks;
+  abstract MediaStreamTrackList get audioTracks;
 
   /** @domName MediaStream.label */
-  final String label;
+  abstract String get label;
 
   /** @domName MediaStream.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName MediaStream.videoTracks */
-  final MediaStreamTrackList videoTracks;
+  abstract MediaStreamTrackList get videoTracks;
 
   /** @domName MediaStream.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -20515,7 +20603,7 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface MediaStreamEvents extends Events {
+abstract class MediaStreamEvents implements Events {
 
   EventListenerList get ended;
 }
@@ -20526,10 +20614,10 @@ interface MediaStreamEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamAudioSourceNode
-interface MediaStreamAudioSourceNode extends AudioSourceNode {
+abstract class MediaStreamAudioSourceNode implements AudioSourceNode {
 
   /** @domName MediaStreamAudioSourceNode.mediaStream */
-  final MediaStream mediaStream;
+  abstract MediaStream get mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20549,10 +20637,10 @@ class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements Me
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamEvent
-interface MediaStreamEvent extends Event {
+abstract class MediaStreamEvent implements Event {
 
   /** @domName MediaStreamEvent.stream */
-  final MediaStream stream;
+  abstract MediaStream get stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20604,10 +20692,10 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamList
-interface MediaStreamList {
+abstract class MediaStreamList {
 
   /** @domName MediaStreamList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName MediaStreamList.item */
   MediaStream item(int index);
@@ -20632,7 +20720,7 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStre
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamTrack
-interface MediaStreamTrack extends EventTarget {
+abstract class MediaStreamTrack implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -20649,13 +20737,13 @@ interface MediaStreamTrack extends EventTarget {
   bool enabled;
 
   /** @domName MediaStreamTrack.kind */
-  final String kind;
+  abstract String get kind;
 
   /** @domName MediaStreamTrack.label */
-  final String label;
+  abstract String get label;
 
   /** @domName MediaStreamTrack.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName MediaStreamTrack.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -20667,7 +20755,7 @@ interface MediaStreamTrack extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface MediaStreamTrackEvents extends Events {
+abstract class MediaStreamTrackEvents implements Events {
 
   EventListenerList get ended;
 
@@ -20682,10 +20770,10 @@ interface MediaStreamTrackEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamTrackEvent
-interface MediaStreamTrackEvent extends Event {
+abstract class MediaStreamTrackEvent implements Event {
 
   /** @domName MediaStreamTrackEvent.track */
-  final MediaStreamTrack track;
+  abstract MediaStreamTrack get track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20743,7 +20831,7 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamTrackList
-interface MediaStreamTrackList extends EventTarget {
+abstract class MediaStreamTrackList implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -20751,7 +20839,7 @@ interface MediaStreamTrackList extends EventTarget {
   MediaStreamTrackListEvents get on;
 
   /** @domName MediaStreamTrackList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName MediaStreamTrackList.add */
   void add(MediaStreamTrack track);
@@ -20772,7 +20860,7 @@ interface MediaStreamTrackList extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface MediaStreamTrackListEvents extends Events {
+abstract class MediaStreamTrackListEvents implements Events {
 
   EventListenerList get addTrack;
 
@@ -20819,16 +20907,16 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 // WARNING: Do not edit - generated code.
 
 /// @domName MemoryInfo
-interface MemoryInfo {
+abstract class MemoryInfo {
 
   /** @domName MemoryInfo.jsHeapSizeLimit */
-  final int jsHeapSizeLimit;
+  abstract int get jsHeapSizeLimit;
 
   /** @domName MemoryInfo.totalJSHeapSize */
-  final int totalJSHeapSize;
+  abstract int get totalJSHeapSize;
 
   /** @domName MemoryInfo.usedJSHeapSize */
-  final int usedJSHeapSize;
+  abstract int get usedJSHeapSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20852,9 +20940,9 @@ class _MemoryInfoImpl extends NativeFieldWrapperClass1 implements MemoryInfo {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMenuElement
-interface MenuElement extends Element default _Elements {
+abstract class MenuElement implements Element {
 
-  MenuElement();
+  factory MenuElement() => _Elements.createMenuElement();
 
   /** @domName HTMLMenuElement.compact */
   bool compact;
@@ -20879,15 +20967,15 @@ class _HTMLMenuElementImpl extends _HTMLElementImpl implements MenuElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName MessageChannel
-interface MessageChannel default _MessageChannelFactoryProvider {
+abstract class MessageChannel {
 
-  MessageChannel();
+  factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
   /** @domName MessageChannel.port1 */
-  final MessagePort port1;
+  abstract MessagePort get port1;
 
   /** @domName MessageChannel.port2 */
-  final MessagePort port2;
+  abstract MessagePort get port2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20909,22 +20997,22 @@ class _MessageChannelImpl extends NativeFieldWrapperClass1 implements MessageCha
 // WARNING: Do not edit - generated code.
 
 /// @domName MessageEvent
-interface MessageEvent extends Event {
+abstract class MessageEvent implements Event {
 
   /** @domName MessageEvent.data */
-  final Object data;
+  abstract Object get data;
 
   /** @domName MessageEvent.lastEventId */
-  final String lastEventId;
+  abstract String get lastEventId;
 
   /** @domName MessageEvent.origin */
-  final String origin;
+  abstract String get origin;
 
   /** @domName MessageEvent.ports */
-  final List ports;
+  abstract List get ports;
 
   /** @domName MessageEvent.source */
-  final Window source;
+  abstract Window get source;
 
   /** @domName MessageEvent.initMessageEvent */
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts);
@@ -20962,7 +21050,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName MessagePort
-interface MessagePort extends EventTarget {
+abstract class MessagePort implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -20991,7 +21079,7 @@ interface MessagePort extends EventTarget {
   void webkitPostMessage(Object message, [List transfer]);
 }
 
-interface MessagePortEvents extends Events {
+abstract class MessagePortEvents implements Events {
 
   EventListenerList get message;
 }
@@ -21034,7 +21122,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMetaElement
-interface MetaElement extends Element {
+abstract class MetaElement implements Element {
 
   /** @domName HTMLMetaElement.content */
   String content;
@@ -21080,13 +21168,13 @@ class _HTMLMetaElementImpl extends _HTMLElementImpl implements MetaElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName Metadata
-interface Metadata {
+abstract class Metadata {
 
   /** @domName Metadata.modificationTime */
-  final Date modificationTime;
+  abstract Date get modificationTime;
 
   /** @domName Metadata.size */
-  final int size;
+  abstract int get size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21115,15 +21203,15 @@ class _MetadataImpl extends NativeFieldWrapperClass1 implements Metadata {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMeterElement
-interface MeterElement extends Element default _Elements {
+abstract class MeterElement implements Element {
 
-  MeterElement();
+  factory MeterElement() => _Elements.createMeterElement();
 
   /** @domName HTMLMeterElement.high */
   num high;
 
   /** @domName HTMLMeterElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLMeterElement.low */
   num low;
@@ -21182,7 +21270,7 @@ class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLModElement
-interface ModElement extends Element {
+abstract class ModElement implements Element {
 
   /** @domName HTMLModElement.cite */
   String cite;
@@ -21214,70 +21302,75 @@ class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName MouseEvent
-interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
+abstract class MouseEvent implements UIEvent {
 
-  MouseEvent(String type, Window view, int detail, int screenX, int screenY,
+  factory MouseEvent(String type, Window view, int detail, int screenX, int screenY,
       int clientX, int clientY, int button, [bool canBubble, bool cancelable,
       bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
-      EventTarget relatedTarget]);
+      EventTarget relatedTarget]) =>
+      _MouseEventFactoryProvider.createMouseEvent(
+          type, view, detail, screenX, screenY,
+          clientX, clientY, button, canBubble, cancelable,
+          ctrlKey, altKey, shiftKey, metaKey,
+          relatedTarget);
 
 
   /** @domName MouseEvent.altKey */
-  final bool altKey;
+  abstract bool get altKey;
 
   /** @domName MouseEvent.button */
-  final int button;
+  abstract int get button;
 
   /** @domName MouseEvent.clientX */
-  final int clientX;
+  abstract int get clientX;
 
   /** @domName MouseEvent.clientY */
-  final int clientY;
+  abstract int get clientY;
 
   /** @domName MouseEvent.ctrlKey */
-  final bool ctrlKey;
+  abstract bool get ctrlKey;
 
   /** @domName MouseEvent.dataTransfer */
-  final Clipboard dataTransfer;
+  abstract Clipboard get dataTransfer;
 
   /** @domName MouseEvent.fromElement */
-  final Node fromElement;
+  abstract Node get fromElement;
 
   /** @domName MouseEvent.metaKey */
-  final bool metaKey;
+  abstract bool get metaKey;
 
   /** @domName MouseEvent.offsetX */
-  final int offsetX;
+  abstract int get offsetX;
 
   /** @domName MouseEvent.offsetY */
-  final int offsetY;
+  abstract int get offsetY;
 
   /** @domName MouseEvent.relatedTarget */
-  final EventTarget relatedTarget;
+  abstract EventTarget get relatedTarget;
 
   /** @domName MouseEvent.screenX */
-  final int screenX;
+  abstract int get screenX;
 
   /** @domName MouseEvent.screenY */
-  final int screenY;
+  abstract int get screenY;
 
   /** @domName MouseEvent.shiftKey */
-  final bool shiftKey;
+  abstract bool get shiftKey;
 
   /** @domName MouseEvent.toElement */
-  final Node toElement;
+  abstract Node get toElement;
 
   /** @domName MouseEvent.webkitMovementX */
-  final int webkitMovementX;
+  abstract int get webkitMovementX;
 
   /** @domName MouseEvent.webkitMovementY */
-  final int webkitMovementY;
+  abstract int get webkitMovementY;
 
   /** @domName MouseEvent.x */
-  final int x;
+  abstract int get x;
 
   /** @domName MouseEvent.y */
-  final int y;
+  abstract int get y;
 
   /** @domName MouseEvent.initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
@@ -21345,7 +21438,7 @@ typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // WARNING: Do not edit - generated code.
 
 /// @domName MutationEvent
-interface MutationEvent extends Event {
+abstract class MutationEvent implements Event {
 
   static const int ADDITION = 2;
 
@@ -21354,19 +21447,19 @@ interface MutationEvent extends Event {
   static const int REMOVAL = 3;
 
   /** @domName MutationEvent.attrChange */
-  final int attrChange;
+  abstract int get attrChange;
 
   /** @domName MutationEvent.attrName */
-  final String attrName;
+  abstract String get attrName;
 
   /** @domName MutationEvent.newValue */
-  final String newValue;
+  abstract String get newValue;
 
   /** @domName MutationEvent.prevValue */
-  final String prevValue;
+  abstract String get prevValue;
 
   /** @domName MutationEvent.relatedNode */
-  final Node relatedNode;
+  abstract Node get relatedNode;
 
   /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
@@ -21399,9 +21492,9 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName MutationObserver
-interface MutationObserver default _MutationObserverFactoryProvider {
+abstract class MutationObserver {
 
-  MutationObserver(MutationCallback callback);
+  factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
 
   /** @domName MutationObserver.disconnect */
   void disconnect();
@@ -21500,34 +21593,34 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
 // WARNING: Do not edit - generated code.
 
 /// @domName MutationRecord
-interface MutationRecord {
+abstract class MutationRecord {
 
   /** @domName MutationRecord.addedNodes */
-  final NodeList addedNodes;
+  abstract NodeList get addedNodes;
 
   /** @domName MutationRecord.attributeName */
-  final String attributeName;
+  abstract String get attributeName;
 
   /** @domName MutationRecord.attributeNamespace */
-  final String attributeNamespace;
+  abstract String get attributeNamespace;
 
   /** @domName MutationRecord.nextSibling */
-  final Node nextSibling;
+  abstract Node get nextSibling;
 
   /** @domName MutationRecord.oldValue */
-  final String oldValue;
+  abstract String get oldValue;
 
   /** @domName MutationRecord.previousSibling */
-  final Node previousSibling;
+  abstract Node get previousSibling;
 
   /** @domName MutationRecord.removedNodes */
-  final NodeList removedNodes;
+  abstract NodeList get removedNodes;
 
   /** @domName MutationRecord.target */
-  final Node target;
+  abstract Node get target;
 
   /** @domName MutationRecord.type */
-  final String type;
+  abstract String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21563,10 +21656,10 @@ class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRe
 // WARNING: Do not edit - generated code.
 
 /// @domName NamedNodeMap
-interface NamedNodeMap extends List<Node> {
+abstract class NamedNodeMap implements List<Node> {
 
   /** @domName NamedNodeMap.length */
-  final int length;
+  abstract int get length;
 
   /** @domName NamedNodeMap.getNamedItem */
   Node getNamedItem(String name);
@@ -21703,55 +21796,55 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
 // WARNING: Do not edit - generated code.
 
 /// @domName Navigator
-interface Navigator {
+abstract class Navigator {
 
   /** @domName Navigator.appCodeName */
-  final String appCodeName;
+  abstract String get appCodeName;
 
   /** @domName Navigator.appName */
-  final String appName;
+  abstract String get appName;
 
   /** @domName Navigator.appVersion */
-  final String appVersion;
+  abstract String get appVersion;
 
   /** @domName Navigator.cookieEnabled */
-  final bool cookieEnabled;
+  abstract bool get cookieEnabled;
 
   /** @domName Navigator.geolocation */
-  final Geolocation geolocation;
+  abstract Geolocation get geolocation;
 
   /** @domName Navigator.language */
-  final String language;
+  abstract String get language;
 
   /** @domName Navigator.mimeTypes */
-  final DOMMimeTypeArray mimeTypes;
+  abstract DOMMimeTypeArray get mimeTypes;
 
   /** @domName Navigator.onLine */
-  final bool onLine;
+  abstract bool get onLine;
 
   /** @domName Navigator.platform */
-  final String platform;
+  abstract String get platform;
 
   /** @domName Navigator.plugins */
-  final DOMPluginArray plugins;
+  abstract DOMPluginArray get plugins;
 
   /** @domName Navigator.product */
-  final String product;
+  abstract String get product;
 
   /** @domName Navigator.productSub */
-  final String productSub;
+  abstract String get productSub;
 
   /** @domName Navigator.userAgent */
-  final String userAgent;
+  abstract String get userAgent;
 
   /** @domName Navigator.vendor */
-  final String vendor;
+  abstract String get vendor;
 
   /** @domName Navigator.vendorSub */
-  final String vendorSub;
+  abstract String get vendorSub;
 
   /** @domName Navigator.webkitBattery */
-  final BatteryManager webkitBattery;
+  abstract BatteryManager get webkitBattery;
 
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
@@ -21821,12 +21914,12 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 // WARNING: Do not edit - generated code.
 
 /// @domName NavigatorUserMediaError
-interface NavigatorUserMediaError {
+abstract class NavigatorUserMediaError {
 
   static const int PERMISSION_DENIED = 1;
 
   /** @domName NavigatorUserMediaError.code */
-  final int code;
+  abstract int get code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21860,7 +21953,7 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // WARNING: Do not edit - generated code.
 
 /// @domName Node
-interface Node extends EventTarget {
+abstract class Node implements EventTarget {
   NodeList get nodes;
 
   void set nodes(Collection<Node> value);
@@ -21915,31 +22008,31 @@ interface Node extends EventTarget {
   static const int TEXT_NODE = 3;
 
   /** @domName Node.attributes */
-  final NamedNodeMap $dom_attributes;
+  abstract NamedNodeMap get $dom_attributes;
 
   /** @domName Node.childNodes */
-  final NodeList $dom_childNodes;
+  abstract NodeList get $dom_childNodes;
 
   /** @domName Node.firstChild */
-  final Node $dom_firstChild;
+  abstract Node get $dom_firstChild;
 
   /** @domName Node.lastChild */
-  final Node $dom_lastChild;
+  abstract Node get $dom_lastChild;
 
   /** @domName Node.nextSibling */
-  final Node nextNode;
+  abstract Node get nextNode;
 
   /** @domName Node.nodeType */
-  final int $dom_nodeType;
+  abstract int get $dom_nodeType;
 
   /** @domName Node.ownerDocument */
-  final Document document;
+  abstract Document get document;
 
   /** @domName Node.parentNode */
-  final Node parent;
+  abstract Node get parent;
 
   /** @domName Node.previousSibling */
-  final Node previousNode;
+  abstract Node get previousNode;
 
   /** @domName Node.textContent */
   String text;
@@ -21982,7 +22075,7 @@ interface Node extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 /// @domName NodeFilter
-interface NodeFilter {
+abstract class NodeFilter {
 
   static const int FILTER_ACCEPT = 1;
 
@@ -22220,25 +22313,25 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 // WARNING: Do not edit - generated code.
 
 /// @domName NodeIterator
-interface NodeIterator {
+abstract class NodeIterator {
 
   /** @domName NodeIterator.expandEntityReferences */
-  final bool expandEntityReferences;
+  abstract bool get expandEntityReferences;
 
   /** @domName NodeIterator.filter */
-  final NodeFilter filter;
+  abstract NodeFilter get filter;
 
   /** @domName NodeIterator.pointerBeforeReferenceNode */
-  final bool pointerBeforeReferenceNode;
+  abstract bool get pointerBeforeReferenceNode;
 
   /** @domName NodeIterator.referenceNode */
-  final Node referenceNode;
+  abstract Node get referenceNode;
 
   /** @domName NodeIterator.root */
-  final Node root;
+  abstract Node get root;
 
   /** @domName NodeIterator.whatToShow */
-  final int whatToShow;
+  abstract int get whatToShow;
 
   /** @domName NodeIterator.detach */
   void detach();
@@ -22283,7 +22376,7 @@ class _NodeIteratorImpl extends NativeFieldWrapperClass1 implements NodeIterator
 // WARNING: Do not edit - generated code.
 
 /// @domName NodeList
-interface NodeList extends List<Node> {
+abstract class NodeList implements List<Node> {
 
   NodeList filter(bool f(Node element));
 
@@ -22293,7 +22386,7 @@ interface NodeList extends List<Node> {
 
 
   /** @domName NodeList.length */
-  final int length;
+  abstract int get length;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22482,13 +22575,13 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
 // WARNING: Do not edit - generated code.
 
 /// @domName Notation
-interface Notation extends Node {
+abstract class Notation implements Node {
 
   /** @domName Notation.publicId */
-  final String publicId;
+  abstract String get publicId;
 
   /** @domName Notation.systemId */
-  final String systemId;
+  abstract String get systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22510,9 +22603,14 @@ class _NotationImpl extends _NodeImpl implements Notation {
 // WARNING: Do not edit - generated code.
 
 /// @domName Notification
-interface Notification extends EventTarget default _NotificationFactoryProvider {
+abstract class Notification implements EventTarget {
 
-  Notification(String title, [Map options]);
+  factory Notification(String title, [Map options]) {
+    if (!?options) {
+      return _NotificationFactoryProvider.createNotification(title);
+    }
+    return _NotificationFactoryProvider.createNotification(title, options);
+  }
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -22523,7 +22621,7 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   String dir;
 
   /** @domName Notification.permission */
-  final String permission;
+  abstract String get permission;
 
   /** @domName Notification.replaceId */
   String replaceId;
@@ -22550,7 +22648,7 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   void show();
 }
 
-interface NotificationEvents extends Events {
+abstract class NotificationEvents implements Events {
 
   EventListenerList get click;
 
@@ -22569,7 +22667,7 @@ interface NotificationEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName NotificationCenter
-interface NotificationCenter {
+abstract class NotificationCenter {
 
   /** @domName NotificationCenter.checkPermission */
   int checkPermission();
@@ -22668,7 +22766,7 @@ typedef bool NotificationPermissionCallback(String permission);
 // WARNING: Do not edit - generated code.
 
 /// @domName OESStandardDerivatives
-interface OESStandardDerivatives {
+abstract class OESStandardDerivatives {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
@@ -22688,7 +22786,7 @@ class _OESStandardDerivativesImpl extends NativeFieldWrapperClass1 implements OE
 // WARNING: Do not edit - generated code.
 
 /// @domName OESTextureFloat
-interface OESTextureFloat {
+abstract class OESTextureFloat {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22706,7 +22804,7 @@ class _OESTextureFloatImpl extends NativeFieldWrapperClass1 implements OESTextur
 // WARNING: Do not edit - generated code.
 
 /// @domName OESVertexArrayObject
-interface OESVertexArrayObject {
+abstract class OESVertexArrayObject {
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
@@ -22746,9 +22844,9 @@ class _OESVertexArrayObjectImpl extends NativeFieldWrapperClass1 implements OESV
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOListElement
-interface OListElement extends Element default _Elements {
+abstract class OListElement implements Element {
 
-  OListElement();
+  factory OListElement() => _Elements.createOListElement();
 
   /** @domName HTMLOListElement.compact */
   bool compact;
@@ -22794,9 +22892,9 @@ class _HTMLOListElementImpl extends _HTMLElementImpl implements OListElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLObjectElement
-interface ObjectElement extends Element default _Elements {
+abstract class ObjectElement implements Element {
 
-  ObjectElement();
+  factory ObjectElement() => _Elements.createObjectElement();
 
   /** @domName HTMLObjectElement.align */
   String align;
@@ -22817,7 +22915,7 @@ interface ObjectElement extends Element default _Elements {
   String codeType;
 
   /** @domName HTMLObjectElement.contentDocument */
-  final Document contentDocument;
+  abstract Document get contentDocument;
 
   /** @domName HTMLObjectElement.data */
   String data;
@@ -22826,7 +22924,7 @@ interface ObjectElement extends Element default _Elements {
   bool declare;
 
   /** @domName HTMLObjectElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLObjectElement.height */
   String height;
@@ -22847,10 +22945,10 @@ interface ObjectElement extends Element default _Elements {
   String useMap;
 
   /** @domName HTMLObjectElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLObjectElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLObjectElement.vspace */
   int vspace;
@@ -22859,7 +22957,7 @@ interface ObjectElement extends Element default _Elements {
   String width;
 
   /** @domName HTMLObjectElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLObjectElement.checkValidity */
   bool checkValidity();
@@ -22959,10 +23057,10 @@ class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName OfflineAudioCompletionEvent
-interface OfflineAudioCompletionEvent extends Event {
+abstract class OfflineAudioCompletionEvent implements Event {
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
-  final AudioBuffer renderedBuffer;
+  abstract AudioBuffer get renderedBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22982,9 +23080,9 @@ class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudi
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOptGroupElement
-interface OptGroupElement extends Element default _Elements {
+abstract class OptGroupElement implements Element {
 
-  OptGroupElement();
+  factory OptGroupElement() => _Elements.createOptGroupElement();
 
   /** @domName HTMLOptGroupElement.disabled */
   bool disabled;
@@ -23016,9 +23114,23 @@ class _HTMLOptGroupElementImpl extends _HTMLElementImpl implements OptGroupEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOptionElement
-interface OptionElement extends Element default _OptionElementFactoryProvider {
+abstract class OptionElement implements Element {
 
-  OptionElement([String data, String value, bool defaultSelected, bool selected]);
+  factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
+    if (!?data) {
+      return _OptionElementFactoryProvider.createOptionElement();
+    }
+    if (!?value) {
+      return _OptionElementFactoryProvider.createOptionElement(data);
+    }
+    if (!?defaultSelected) {
+      return _OptionElementFactoryProvider.createOptionElement(data, value);
+    }
+    if (!?selected) {
+      return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected);
+    }
+    return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected, selected);
+  }
 
   /** @domName HTMLOptionElement.defaultSelected */
   bool defaultSelected;
@@ -23027,10 +23139,10 @@ interface OptionElement extends Element default _OptionElementFactoryProvider {
   bool disabled;
 
   /** @domName HTMLOptionElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLOptionElement.index */
-  final int index;
+  abstract int get index;
 
   /** @domName HTMLOptionElement.label */
   String label;
@@ -23081,7 +23193,7 @@ class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName Oscillator
-interface Oscillator extends AudioSourceNode {
+abstract class Oscillator implements AudioSourceNode {
 
   static const int CUSTOM = 4;
 
@@ -23102,13 +23214,13 @@ interface Oscillator extends AudioSourceNode {
   static const int UNSCHEDULED_STATE = 0;
 
   /** @domName Oscillator.detune */
-  final AudioParam detune;
+  abstract AudioParam get detune;
 
   /** @domName Oscillator.frequency */
-  final AudioParam frequency;
+  abstract AudioParam get frequency;
 
   /** @domName Oscillator.playbackState */
-  final int playbackState;
+  abstract int get playbackState;
 
   /** @domName Oscillator.type */
   int type;
@@ -23154,39 +23266,39 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOutputElement
-interface OutputElement extends Element default _Elements {
+abstract class OutputElement implements Element {
 
-  OutputElement();
+  factory OutputElement() => _Elements.createOutputElement();
 
   /** @domName HTMLOutputElement.defaultValue */
   String defaultValue;
 
   /** @domName HTMLOutputElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLOutputElement.htmlFor */
   DOMSettableTokenList htmlFor;
 
   /** @domName HTMLOutputElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLOutputElement.name */
   String name;
 
   /** @domName HTMLOutputElement.type */
-  final String type;
+  abstract String get type;
 
   /** @domName HTMLOutputElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLOutputElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLOutputElement.value */
   String value;
 
   /** @domName HTMLOutputElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLOutputElement.checkValidity */
   bool checkValidity();
@@ -23242,7 +23354,7 @@ class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName OverflowEvent
-interface OverflowEvent extends Event {
+abstract class OverflowEvent implements Event {
 
   static const int BOTH = 2;
 
@@ -23251,13 +23363,13 @@ interface OverflowEvent extends Event {
   static const int VERTICAL = 1;
 
   /** @domName OverflowEvent.horizontalOverflow */
-  final bool horizontalOverflow;
+  abstract bool get horizontalOverflow;
 
   /** @domName OverflowEvent.orient */
-  final int orient;
+  abstract int get orient;
 
   /** @domName OverflowEvent.verticalOverflow */
-  final bool verticalOverflow;
+  abstract bool get verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23281,7 +23393,7 @@ class _OverflowEventImpl extends _EventImpl implements OverflowEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName PagePopupController
-interface PagePopupController {
+abstract class PagePopupController {
 
   /** @domName PagePopupController.localizeNumberString */
   String localizeNumberString(String numberString);
@@ -23309,10 +23421,10 @@ class _PagePopupControllerImpl extends NativeFieldWrapperClass1 implements PageP
 // WARNING: Do not edit - generated code.
 
 /// @domName PageTransitionEvent
-interface PageTransitionEvent extends Event {
+abstract class PageTransitionEvent implements Event {
 
   /** @domName PageTransitionEvent.persisted */
-  final bool persisted;
+  abstract bool get persisted;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23332,9 +23444,9 @@ class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLParagraphElement
-interface ParagraphElement extends Element default _Elements {
+abstract class ParagraphElement implements Element {
 
-  ParagraphElement();
+  factory ParagraphElement() => _Elements.createParagraphElement();
 
   /** @domName HTMLParagraphElement.align */
   String align;
@@ -23359,9 +23471,9 @@ class _HTMLParagraphElementImpl extends _HTMLElementImpl implements ParagraphEle
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLParamElement
-interface ParamElement extends Element default _Elements {
+abstract class ParamElement implements Element {
 
-  ParamElement();
+  factory ParamElement() => _Elements.createParamElement();
 
   /** @domName HTMLParamElement.name */
   String name;
@@ -23407,9 +23519,9 @@ class _HTMLParamElementImpl extends _HTMLElementImpl implements ParamElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName PeerConnection00
-interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryProvider {
+abstract class PeerConnection00 implements EventTarget {
 
-  PeerConnection00(String serverConfiguration, IceCallback iceCallback);
+  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -23445,22 +23557,22 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   static const int SDP_PRANSWER = 0x200;
 
   /** @domName PeerConnection00.iceState */
-  final int iceState;
+  abstract int get iceState;
 
   /** @domName PeerConnection00.localDescription */
-  final SessionDescription localDescription;
+  abstract SessionDescription get localDescription;
 
   /** @domName PeerConnection00.localStreams */
-  final MediaStreamList localStreams;
+  abstract MediaStreamList get localStreams;
 
   /** @domName PeerConnection00.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName PeerConnection00.remoteDescription */
-  final SessionDescription remoteDescription;
+  abstract SessionDescription get remoteDescription;
 
   /** @domName PeerConnection00.remoteStreams */
-  final MediaStreamList remoteStreams;
+  abstract MediaStreamList get remoteStreams;
 
   /** @domName PeerConnection00.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -23499,7 +23611,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
   void startIce([Map iceOptions]);
 }
 
-interface PeerConnection00Events extends Events {
+abstract class PeerConnection00Events implements Events {
 
   EventListenerList get addStream;
 
@@ -23618,16 +23730,16 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 // WARNING: Do not edit - generated code.
 
 /// @domName Performance
-interface Performance extends EventTarget {
+abstract class Performance implements EventTarget {
 
   /** @domName Performance.memory */
-  final MemoryInfo memory;
+  abstract MemoryInfo get memory;
 
   /** @domName Performance.navigation */
-  final PerformanceNavigation navigation;
+  abstract PerformanceNavigation get navigation;
 
   /** @domName Performance.timing */
-  final PerformanceTiming timing;
+  abstract PerformanceTiming get timing;
 
   /** @domName Performance.webkitNow */
   num webkitNow();
@@ -23656,7 +23768,7 @@ class _PerformanceImpl extends _EventTargetImpl implements Performance {
 // WARNING: Do not edit - generated code.
 
 /// @domName PerformanceNavigation
-interface PerformanceNavigation {
+abstract class PerformanceNavigation {
 
   static const int TYPE_BACK_FORWARD = 2;
 
@@ -23667,10 +23779,10 @@ interface PerformanceNavigation {
   static const int TYPE_RESERVED = 255;
 
   /** @domName PerformanceNavigation.redirectCount */
-  final int redirectCount;
+  abstract int get redirectCount;
 
   /** @domName PerformanceNavigation.type */
-  final int type;
+  abstract int get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23692,70 +23804,70 @@ class _PerformanceNavigationImpl extends NativeFieldWrapperClass1 implements Per
 // WARNING: Do not edit - generated code.
 
 /// @domName PerformanceTiming
-interface PerformanceTiming {
+abstract class PerformanceTiming {
 
   /** @domName PerformanceTiming.connectEnd */
-  final int connectEnd;
+  abstract int get connectEnd;
 
   /** @domName PerformanceTiming.connectStart */
-  final int connectStart;
+  abstract int get connectStart;
 
   /** @domName PerformanceTiming.domComplete */
-  final int domComplete;
+  abstract int get domComplete;
 
   /** @domName PerformanceTiming.domContentLoadedEventEnd */
-  final int domContentLoadedEventEnd;
+  abstract int get domContentLoadedEventEnd;
 
   /** @domName PerformanceTiming.domContentLoadedEventStart */
-  final int domContentLoadedEventStart;
+  abstract int get domContentLoadedEventStart;
 
   /** @domName PerformanceTiming.domInteractive */
-  final int domInteractive;
+  abstract int get domInteractive;
 
   /** @domName PerformanceTiming.domLoading */
-  final int domLoading;
+  abstract int get domLoading;
 
   /** @domName PerformanceTiming.domainLookupEnd */
-  final int domainLookupEnd;
+  abstract int get domainLookupEnd;
 
   /** @domName PerformanceTiming.domainLookupStart */
-  final int domainLookupStart;
+  abstract int get domainLookupStart;
 
   /** @domName PerformanceTiming.fetchStart */
-  final int fetchStart;
+  abstract int get fetchStart;
 
   /** @domName PerformanceTiming.loadEventEnd */
-  final int loadEventEnd;
+  abstract int get loadEventEnd;
 
   /** @domName PerformanceTiming.loadEventStart */
-  final int loadEventStart;
+  abstract int get loadEventStart;
 
   /** @domName PerformanceTiming.navigationStart */
-  final int navigationStart;
+  abstract int get navigationStart;
 
   /** @domName PerformanceTiming.redirectEnd */
-  final int redirectEnd;
+  abstract int get redirectEnd;
 
   /** @domName PerformanceTiming.redirectStart */
-  final int redirectStart;
+  abstract int get redirectStart;
 
   /** @domName PerformanceTiming.requestStart */
-  final int requestStart;
+  abstract int get requestStart;
 
   /** @domName PerformanceTiming.responseEnd */
-  final int responseEnd;
+  abstract int get responseEnd;
 
   /** @domName PerformanceTiming.responseStart */
-  final int responseStart;
+  abstract int get responseStart;
 
   /** @domName PerformanceTiming.secureConnectionStart */
-  final int secureConnectionStart;
+  abstract int get secureConnectionStart;
 
   /** @domName PerformanceTiming.unloadEventEnd */
-  final int unloadEventEnd;
+  abstract int get unloadEventEnd;
 
   /** @domName PerformanceTiming.unloadEventStart */
-  final int unloadEventStart;
+  abstract int get unloadEventStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23815,9 +23927,9 @@ class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements Perform
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitPoint
-interface Point default _PointFactoryProvider {
+abstract class Point {
 
-  Point(num x, num y);
+  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
   /** @domName WebKitPoint.x */
   num x;
@@ -23849,10 +23961,10 @@ class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
 // WARNING: Do not edit - generated code.
 
 /// @domName PopStateEvent
-interface PopStateEvent extends Event {
+abstract class PopStateEvent implements Event {
 
   /** @domName PopStateEvent.state */
-  final Object state;
+  abstract Object get state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23879,7 +23991,7 @@ typedef bool PositionCallback(Geoposition position);
 // WARNING: Do not edit - generated code.
 
 /// @domName PositionError
-interface PositionError {
+abstract class PositionError {
 
   static const int PERMISSION_DENIED = 1;
 
@@ -23888,10 +24000,10 @@ interface PositionError {
   static const int TIMEOUT = 3;
 
   /** @domName PositionError.code */
-  final int code;
+  abstract int get code;
 
   /** @domName PositionError.message */
-  final String message;
+  abstract String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23920,9 +24032,9 @@ class _PositionErrorImpl extends NativeFieldWrapperClass1 implements PositionErr
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLPreElement
-interface PreElement extends Element default _Elements {
+abstract class PreElement implements Element {
 
-  PreElement();
+  factory PreElement() => _Elements.createPreElement();
 
   /** @domName HTMLPreElement.width */
   int width;
@@ -23954,16 +24066,16 @@ class _HTMLPreElementImpl extends _HTMLElementImpl implements PreElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName ProcessingInstruction
-interface ProcessingInstruction extends Node {
+abstract class ProcessingInstruction implements Node {
 
   /** @domName ProcessingInstruction.data */
   String data;
 
   /** @domName ProcessingInstruction.sheet */
-  final StyleSheet sheet;
+  abstract StyleSheet get sheet;
 
   /** @domName ProcessingInstruction.target */
-  final String target;
+  abstract String get target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23989,18 +24101,18 @@ class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruct
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLProgressElement
-interface ProgressElement extends Element default _Elements {
+abstract class ProgressElement implements Element {
 
-  ProgressElement();
+  factory ProgressElement() => _Elements.createProgressElement();
 
   /** @domName HTMLProgressElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLProgressElement.max */
   num max;
 
   /** @domName HTMLProgressElement.position */
-  final num position;
+  abstract num get position;
 
   /** @domName HTMLProgressElement.value */
   num value;
@@ -24033,16 +24145,16 @@ class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName ProgressEvent
-interface ProgressEvent extends Event {
+abstract class ProgressEvent implements Event {
 
   /** @domName ProgressEvent.lengthComputable */
-  final bool lengthComputable;
+  abstract bool get lengthComputable;
 
   /** @domName ProgressEvent.loaded */
-  final int loaded;
+  abstract int get loaded;
 
   /** @domName ProgressEvent.total */
-  final int total;
+  abstract int get total;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24066,7 +24178,7 @@ class _ProgressEventImpl extends _EventImpl implements ProgressEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLQuoteElement
-interface QuoteElement extends Element {
+abstract class QuoteElement implements Element {
 
   /** @domName HTMLQuoteElement.cite */
   String cite;
@@ -24091,16 +24203,16 @@ class _HTMLQuoteElementImpl extends _HTMLElementImpl implements QuoteElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName RGBColor
-interface RGBColor {
+abstract class RGBColor {
 
   /** @domName RGBColor.blue */
-  final CSSPrimitiveValue blue;
+  abstract CSSPrimitiveValue get blue;
 
   /** @domName RGBColor.green */
-  final CSSPrimitiveValue green;
+  abstract CSSPrimitiveValue get green;
 
   /** @domName RGBColor.red */
-  final CSSPrimitiveValue red;
+  abstract CSSPrimitiveValue get red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24131,18 +24243,18 @@ typedef bool RTCErrorCallback(String errorInformation);
 // WARNING: Do not edit - generated code.
 
 /// @domName RTCIceCandidate
-interface RTCIceCandidate default _RTCIceCandidateFactoryProvider {
+abstract class RTCIceCandidate {
 
-  RTCIceCandidate(Map dictionary);
+  factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
 
   /** @domName RTCIceCandidate.candidate */
-  final String candidate;
+  abstract String get candidate;
 
   /** @domName RTCIceCandidate.sdpMLineIndex */
-  final int sdpMLineIndex;
+  abstract int get sdpMLineIndex;
 
   /** @domName RTCIceCandidate.sdpMid */
-  final String sdpMid;
+  abstract String get sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24151,10 +24263,10 @@ interface RTCIceCandidate default _RTCIceCandidateFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName RTCIceCandidateEvent
-interface RTCIceCandidateEvent extends Event {
+abstract class RTCIceCandidateEvent implements Event {
 
   /** @domName RTCIceCandidateEvent.candidate */
-  final RTCIceCandidate candidate;
+  abstract RTCIceCandidate get candidate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24189,9 +24301,14 @@ class _RTCIceCandidateImpl extends NativeFieldWrapperClass1 implements RTCIceCan
 // WARNING: Do not edit - generated code.
 
 /// @domName RTCPeerConnection
-interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactoryProvider {
+abstract class RTCPeerConnection implements EventTarget {
 
-  RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]);
+  factory RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    if (!?mediaConstraints) {
+      return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers);
+    }
+    return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers, mediaConstraints);
+  }
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -24199,22 +24316,22 @@ interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactor
   RTCPeerConnectionEvents get on;
 
   /** @domName RTCPeerConnection.iceState */
-  final String iceState;
+  abstract String get iceState;
 
   /** @domName RTCPeerConnection.localDescription */
-  final RTCSessionDescription localDescription;
+  abstract RTCSessionDescription get localDescription;
 
   /** @domName RTCPeerConnection.localStreams */
-  final MediaStreamList localStreams;
+  abstract MediaStreamList get localStreams;
 
   /** @domName RTCPeerConnection.readyState */
-  final String readyState;
+  abstract String get readyState;
 
   /** @domName RTCPeerConnection.remoteDescription */
-  final RTCSessionDescription remoteDescription;
+  abstract RTCSessionDescription get remoteDescription;
 
   /** @domName RTCPeerConnection.remoteStreams */
-  final MediaStreamList remoteStreams;
+  abstract MediaStreamList get remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -24253,7 +24370,7 @@ interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactor
   void updateIce(Map configuration, Map mediaConstraints);
 }
 
-interface RTCPeerConnectionEvents extends Events {
+abstract class RTCPeerConnectionEvents implements Events {
 
   EventListenerList get addStream;
 
@@ -24338,9 +24455,9 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 // WARNING: Do not edit - generated code.
 
 /// @domName RTCSessionDescription
-interface RTCSessionDescription default _RTCSessionDescriptionFactoryProvider {
+abstract class RTCSessionDescription {
 
-  RTCSessionDescription(Map dictionary);
+  factory RTCSessionDescription(Map dictionary) => _RTCSessionDescriptionFactoryProvider.createRTCSessionDescription(dictionary);
 
   /** @domName RTCSessionDescription.sdp */
   String sdp;
@@ -24379,7 +24496,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-interface RadioNodeList extends NodeList {
+abstract class RadioNodeList implements NodeList {
 
   /** @domName RadioNodeList.value */
   String value;
@@ -24404,7 +24521,7 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
 // WARNING: Do not edit - generated code.
 
 /// @domName Range
-interface Range {
+abstract class Range {
 
   static const int END_TO_END = 2;
 
@@ -24423,22 +24540,22 @@ interface Range {
   static const int START_TO_START = 0;
 
   /** @domName Range.collapsed */
-  final bool collapsed;
+  abstract bool get collapsed;
 
   /** @domName Range.commonAncestorContainer */
-  final Node commonAncestorContainer;
+  abstract Node get commonAncestorContainer;
 
   /** @domName Range.endContainer */
-  final Node endContainer;
+  abstract Node get endContainer;
 
   /** @domName Range.endOffset */
-  final int endOffset;
+  abstract int get endOffset;
 
   /** @domName Range.startContainer */
-  final Node startContainer;
+  abstract Node get startContainer;
 
   /** @domName Range.startOffset */
-  final int startOffset;
+  abstract int get startOffset;
 
   /** @domName Range.cloneContents */
   DocumentFragment cloneContents();
@@ -24522,20 +24639,20 @@ interface Range {
 // WARNING: Do not edit - generated code.
 
 /// @domName RangeException
-interface RangeException {
+abstract class RangeException {
 
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
   /** @domName RangeException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName RangeException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName RangeException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName RangeException.toString */
   String toString();
@@ -24635,13 +24752,13 @@ class _RangeImpl extends NativeFieldWrapperClass1 implements Range {
 // WARNING: Do not edit - generated code.
 
 /// @domName RealtimeAnalyserNode
-interface RealtimeAnalyserNode extends AudioNode {
+abstract class RealtimeAnalyserNode implements AudioNode {
 
   /** @domName RealtimeAnalyserNode.fftSize */
   int fftSize;
 
   /** @domName RealtimeAnalyserNode.frequencyBinCount */
-  final int frequencyBinCount;
+  abstract int get frequencyBinCount;
 
   /** @domName RealtimeAnalyserNode.maxDecibels */
   num maxDecibels;
@@ -24701,19 +24818,19 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 // WARNING: Do not edit - generated code.
 
 /// @domName Rect
-interface Rect {
+abstract class Rect {
 
   /** @domName Rect.bottom */
-  final CSSPrimitiveValue bottom;
+  abstract CSSPrimitiveValue get bottom;
 
   /** @domName Rect.left */
-  final CSSPrimitiveValue left;
+  abstract CSSPrimitiveValue get left;
 
   /** @domName Rect.right */
-  final CSSPrimitiveValue right;
+  abstract CSSPrimitiveValue get right;
 
   /** @domName Rect.top */
-  final CSSPrimitiveValue top;
+  abstract CSSPrimitiveValue get top;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24746,7 +24863,7 @@ typedef bool RequestAnimationFrameCallback(int time);
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLError
-interface SQLError {
+abstract class SQLError {
 
   static const int CONSTRAINT_ERR = 6;
 
@@ -24765,10 +24882,10 @@ interface SQLError {
   static const int VERSION_ERR = 2;
 
   /** @domName SQLError.code */
-  final int code;
+  abstract int get code;
 
   /** @domName SQLError.message */
-  final String message;
+  abstract String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24790,7 +24907,7 @@ class _SQLErrorImpl extends NativeFieldWrapperClass1 implements SQLError {
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLException
-interface SQLException {
+abstract class SQLException {
 
   static const int CONSTRAINT_ERR = 6;
 
@@ -24809,10 +24926,10 @@ interface SQLException {
   static const int VERSION_ERR = 2;
 
   /** @domName SQLException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName SQLException.message */
-  final String message;
+  abstract String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24834,16 +24951,16 @@ class _SQLExceptionImpl extends NativeFieldWrapperClass1 implements SQLException
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLResultSet
-interface SQLResultSet {
+abstract class SQLResultSet {
 
   /** @domName SQLResultSet.insertId */
-  final int insertId;
+  abstract int get insertId;
 
   /** @domName SQLResultSet.rows */
-  final SQLResultSetRowList rows;
+  abstract SQLResultSetRowList get rows;
 
   /** @domName SQLResultSet.rowsAffected */
-  final int rowsAffected;
+  abstract int get rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24867,10 +24984,10 @@ class _SQLResultSetImpl extends NativeFieldWrapperClass1 implements SQLResultSet
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLResultSetRowList
-interface SQLResultSetRowList {
+abstract class SQLResultSetRowList {
 
   /** @domName SQLResultSetRowList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SQLResultSetRowList.item */
   Map item(int index);
@@ -24909,7 +25026,7 @@ typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLTransaction
-interface SQLTransaction {
+abstract class SQLTransaction {
 
   /** @domName SQLTransaction.executeSql */
   void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]);
@@ -24946,7 +25063,7 @@ class _SQLTransactionImpl extends NativeFieldWrapperClass1 implements SQLTransac
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLTransactionSync
-interface SQLTransactionSync {
+abstract class SQLTransactionSync {
 
   /** @domName SQLTransactionSync.executeSql */
   SQLResultSet executeSql(String sqlStatement, List arguments);
@@ -24976,10 +25093,10 @@ class _SQLTransactionSyncImpl extends NativeFieldWrapperClass1 implements SQLTra
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAElement
-interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGAElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGAElement.target */
-  final SVGAnimatedString target;
+  abstract SVGAnimatedString get target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25039,7 +25156,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAltGlyphDefElement
-interface SVGAltGlyphDefElement extends SVGElement {
+abstract class SVGAltGlyphDefElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25057,7 +25174,7 @@ class _SVGAltGlyphDefElementImpl extends _SVGElementImpl implements SVGAltGlyphD
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAltGlyphElement
-interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference {
+abstract class SVGAltGlyphElement implements SVGTextPositioningElement, SVGURIReference {
 
   /** @domName SVGAltGlyphElement.format */
   String format;
@@ -25091,7 +25208,7 @@ class _SVGAltGlyphElementImpl extends _SVGTextPositioningElementImpl implements 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAltGlyphItemElement
-interface SVGAltGlyphItemElement extends SVGElement {
+abstract class SVGAltGlyphItemElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25109,7 +25226,7 @@ class _SVGAltGlyphItemElementImpl extends _SVGElementImpl implements SVGAltGlyph
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAngle
-interface SVGAngle {
+abstract class SVGAngle {
 
   static const int SVG_ANGLETYPE_DEG = 2;
 
@@ -25122,7 +25239,7 @@ interface SVGAngle {
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   /** @domName SVGAngle.unitType */
-  final int unitType;
+  abstract int get unitType;
 
   /** @domName SVGAngle.value */
   num value;
@@ -25173,7 +25290,7 @@ class _SVGAngleImpl extends NativeFieldWrapperClass1 implements SVGAngle {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimateColorElement
-interface SVGAnimateColorElement extends SVGAnimationElement {
+abstract class SVGAnimateColorElement implements SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25191,7 +25308,7 @@ class _SVGAnimateColorElementImpl extends _SVGAnimationElementImpl implements SV
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimateElement
-interface SVGAnimateElement extends SVGAnimationElement {
+abstract class SVGAnimateElement implements SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25209,7 +25326,7 @@ class _SVGAnimateElementImpl extends _SVGAnimationElementImpl implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimateMotionElement
-interface SVGAnimateMotionElement extends SVGAnimationElement {
+abstract class SVGAnimateMotionElement implements SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25227,7 +25344,7 @@ class _SVGAnimateMotionElementImpl extends _SVGAnimationElementImpl implements S
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimateTransformElement
-interface SVGAnimateTransformElement extends SVGAnimationElement {
+abstract class SVGAnimateTransformElement implements SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25245,13 +25362,13 @@ class _SVGAnimateTransformElementImpl extends _SVGAnimationElementImpl implement
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedAngle
-interface SVGAnimatedAngle {
+abstract class SVGAnimatedAngle {
 
   /** @domName SVGAnimatedAngle.animVal */
-  final SVGAngle animVal;
+  abstract SVGAngle get animVal;
 
   /** @domName SVGAnimatedAngle.baseVal */
-  final SVGAngle baseVal;
+  abstract SVGAngle get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25273,10 +25390,10 @@ class _SVGAnimatedAngleImpl extends NativeFieldWrapperClass1 implements SVGAnima
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedBoolean
-interface SVGAnimatedBoolean {
+abstract class SVGAnimatedBoolean {
 
   /** @domName SVGAnimatedBoolean.animVal */
-  final bool animVal;
+  abstract bool get animVal;
 
   /** @domName SVGAnimatedBoolean.baseVal */
   bool baseVal;
@@ -25303,10 +25420,10 @@ class _SVGAnimatedBooleanImpl extends NativeFieldWrapperClass1 implements SVGAni
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedEnumeration
-interface SVGAnimatedEnumeration {
+abstract class SVGAnimatedEnumeration {
 
   /** @domName SVGAnimatedEnumeration.animVal */
-  final int animVal;
+  abstract int get animVal;
 
   /** @domName SVGAnimatedEnumeration.baseVal */
   int baseVal;
@@ -25333,10 +25450,10 @@ class _SVGAnimatedEnumerationImpl extends NativeFieldWrapperClass1 implements SV
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedInteger
-interface SVGAnimatedInteger {
+abstract class SVGAnimatedInteger {
 
   /** @domName SVGAnimatedInteger.animVal */
-  final int animVal;
+  abstract int get animVal;
 
   /** @domName SVGAnimatedInteger.baseVal */
   int baseVal;
@@ -25363,13 +25480,13 @@ class _SVGAnimatedIntegerImpl extends NativeFieldWrapperClass1 implements SVGAni
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedLength
-interface SVGAnimatedLength {
+abstract class SVGAnimatedLength {
 
   /** @domName SVGAnimatedLength.animVal */
-  final SVGLength animVal;
+  abstract SVGLength get animVal;
 
   /** @domName SVGAnimatedLength.baseVal */
-  final SVGLength baseVal;
+  abstract SVGLength get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25391,13 +25508,13 @@ class _SVGAnimatedLengthImpl extends NativeFieldWrapperClass1 implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedLengthList
-interface SVGAnimatedLengthList {
+abstract class SVGAnimatedLengthList {
 
   /** @domName SVGAnimatedLengthList.animVal */
-  final SVGLengthList animVal;
+  abstract SVGLengthList get animVal;
 
   /** @domName SVGAnimatedLengthList.baseVal */
-  final SVGLengthList baseVal;
+  abstract SVGLengthList get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25419,10 +25536,10 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedNumber
-interface SVGAnimatedNumber {
+abstract class SVGAnimatedNumber {
 
   /** @domName SVGAnimatedNumber.animVal */
-  final num animVal;
+  abstract num get animVal;
 
   /** @domName SVGAnimatedNumber.baseVal */
   num baseVal;
@@ -25449,13 +25566,13 @@ class _SVGAnimatedNumberImpl extends NativeFieldWrapperClass1 implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedNumberList
-interface SVGAnimatedNumberList {
+abstract class SVGAnimatedNumberList {
 
   /** @domName SVGAnimatedNumberList.animVal */
-  final SVGNumberList animVal;
+  abstract SVGNumberList get animVal;
 
   /** @domName SVGAnimatedNumberList.baseVal */
-  final SVGNumberList baseVal;
+  abstract SVGNumberList get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25477,13 +25594,13 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedPreserveAspectRatio
-interface SVGAnimatedPreserveAspectRatio {
+abstract class SVGAnimatedPreserveAspectRatio {
 
   /** @domName SVGAnimatedPreserveAspectRatio.animVal */
-  final SVGPreserveAspectRatio animVal;
+  abstract SVGPreserveAspectRatio get animVal;
 
   /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
-  final SVGPreserveAspectRatio baseVal;
+  abstract SVGPreserveAspectRatio get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25505,13 +25622,13 @@ class _SVGAnimatedPreserveAspectRatioImpl extends NativeFieldWrapperClass1 imple
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedRect
-interface SVGAnimatedRect {
+abstract class SVGAnimatedRect {
 
   /** @domName SVGAnimatedRect.animVal */
-  final SVGRect animVal;
+  abstract SVGRect get animVal;
 
   /** @domName SVGAnimatedRect.baseVal */
-  final SVGRect baseVal;
+  abstract SVGRect get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25533,10 +25650,10 @@ class _SVGAnimatedRectImpl extends NativeFieldWrapperClass1 implements SVGAnimat
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedString
-interface SVGAnimatedString {
+abstract class SVGAnimatedString {
 
   /** @domName SVGAnimatedString.animVal */
-  final String animVal;
+  abstract String get animVal;
 
   /** @domName SVGAnimatedString.baseVal */
   String baseVal;
@@ -25563,13 +25680,13 @@ class _SVGAnimatedStringImpl extends NativeFieldWrapperClass1 implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedTransformList
-interface SVGAnimatedTransformList {
+abstract class SVGAnimatedTransformList {
 
   /** @domName SVGAnimatedTransformList.animVal */
-  final SVGTransformList animVal;
+  abstract SVGTransformList get animVal;
 
   /** @domName SVGAnimatedTransformList.baseVal */
-  final SVGTransformList baseVal;
+  abstract SVGTransformList get baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25591,10 +25708,10 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimationElement
-interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
+abstract class SVGAnimationElement implements SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
 
   /** @domName SVGAnimationElement.targetElement */
-  final SVGElement targetElement;
+  abstract SVGElement get targetElement;
 
   /** @domName SVGAnimationElement.getCurrentTime */
   num getCurrentTime();
@@ -25647,16 +25764,16 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGCircleElement
-interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGCircleElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGCircleElement.cx */
-  final SVGAnimatedLength cx;
+  abstract SVGAnimatedLength get cx;
 
   /** @domName SVGCircleElement.cy */
-  final SVGAnimatedLength cy;
+  abstract SVGAnimatedLength get cy;
 
   /** @domName SVGCircleElement.r */
-  final SVGAnimatedLength r;
+  abstract SVGAnimatedLength get r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25718,10 +25835,10 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGClipPathElement
-interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGClipPathElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGClipPathElement.clipPathUnits */
-  final SVGAnimatedEnumeration clipPathUnits;
+  abstract SVGAnimatedEnumeration get clipPathUnits;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25779,7 +25896,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGColor
-interface SVGColor extends CSSValue {
+abstract class SVGColor implements CSSValue {
 
   static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
@@ -25790,10 +25907,10 @@ interface SVGColor extends CSSValue {
   static const int SVG_COLORTYPE_UNKNOWN = 0;
 
   /** @domName SVGColor.colorType */
-  final int colorType;
+  abstract int get colorType;
 
   /** @domName SVGColor.rgbColor */
-  final RGBColor rgbColor;
+  abstract RGBColor get rgbColor;
 
   /** @domName SVGColor.setColor */
   void setColor(int colorType, String rgbColor, String iccColor);
@@ -25830,7 +25947,7 @@ class _SVGColorImpl extends _CSSValueImpl implements SVGColor {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGComponentTransferFunctionElement
-interface SVGComponentTransferFunctionElement extends SVGElement {
+abstract class SVGComponentTransferFunctionElement implements SVGElement {
 
   static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
@@ -25845,25 +25962,25 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
   static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   /** @domName SVGComponentTransferFunctionElement.amplitude */
-  final SVGAnimatedNumber amplitude;
+  abstract SVGAnimatedNumber get amplitude;
 
   /** @domName SVGComponentTransferFunctionElement.exponent */
-  final SVGAnimatedNumber exponent;
+  abstract SVGAnimatedNumber get exponent;
 
   /** @domName SVGComponentTransferFunctionElement.intercept */
-  final SVGAnimatedNumber intercept;
+  abstract SVGAnimatedNumber get intercept;
 
   /** @domName SVGComponentTransferFunctionElement.offset */
-  final SVGAnimatedNumber offset;
+  abstract SVGAnimatedNumber get offset;
 
   /** @domName SVGComponentTransferFunctionElement.slope */
-  final SVGAnimatedNumber slope;
+  abstract SVGAnimatedNumber get slope;
 
   /** @domName SVGComponentTransferFunctionElement.tableValues */
-  final SVGAnimatedNumberList tableValues;
+  abstract SVGAnimatedNumberList get tableValues;
 
   /** @domName SVGComponentTransferFunctionElement.type */
-  final SVGAnimatedEnumeration type;
+  abstract SVGAnimatedEnumeration get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25895,13 +26012,13 @@ class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implement
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGCursorElement
-interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
+abstract class SVGCursorElement implements SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
 
   /** @domName SVGCursorElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGCursorElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25935,7 +26052,7 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGDefsElement
-interface SVGDefsElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGDefsElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25991,7 +26108,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGDescElement
-interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
+abstract class SVGDescElement implements SVGElement, SVGLangSpace, SVGStylable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26023,10 +26140,10 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGDocument
-interface SVGDocument extends Document {
+abstract class SVGDocument implements Document {
 
   /** @domName SVGDocument.rootElement */
-  final SVGSVGElement rootElement;
+  abstract SVGSVGElement get rootElement;
 
   /** @domName SVGDocument.createEvent */
   Event $dom_createEvent(String eventType);
@@ -26049,10 +26166,12 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 // BSD-style license that can be found in the LICENSE file.
 
 /// @domName SVGElement
-interface SVGElement extends Element default _SVGElementFactoryProvider {
+abstract class SVGElement implements Element {
 
-  SVGElement.tag(String tag);
-  SVGElement.svg(String svg);
+  factory SVGElement.tag(String tag) =>
+      _SVGElementFactoryProvider.createSVGElement_tag(tag);
+  factory SVGElement.svg(String svg) =>
+      _SVGElementFactoryProvider.createSVGElement_svg(svg);
 
   SVGElement clone(bool deep);
 
@@ -26061,10 +26180,10 @@ interface SVGElement extends Element default _SVGElementFactoryProvider {
   String id;
 
   /** @domName SVGElement.ownerSVGElement */
-  final SVGSVGElement ownerSVGElement;
+  abstract SVGSVGElement get ownerSVGElement;
 
   /** @domName SVGElement.viewportElement */
-  final SVGElement viewportElement;
+  abstract SVGElement get viewportElement;
 
   /** @domName SVGElement.xmlbase */
   String xmlbase;
@@ -26143,7 +26262,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGElementInstance
-interface SVGElementInstance extends EventTarget {
+abstract class SVGElementInstance implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -26151,31 +26270,31 @@ interface SVGElementInstance extends EventTarget {
   SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
-  final SVGElementInstanceList childNodes;
+  abstract SVGElementInstanceList get childNodes;
 
   /** @domName SVGElementInstance.correspondingElement */
-  final SVGElement correspondingElement;
+  abstract SVGElement get correspondingElement;
 
   /** @domName SVGElementInstance.correspondingUseElement */
-  final SVGUseElement correspondingUseElement;
+  abstract SVGUseElement get correspondingUseElement;
 
   /** @domName SVGElementInstance.firstChild */
-  final SVGElementInstance firstChild;
+  abstract SVGElementInstance get firstChild;
 
   /** @domName SVGElementInstance.lastChild */
-  final SVGElementInstance lastChild;
+  abstract SVGElementInstance get lastChild;
 
   /** @domName SVGElementInstance.nextSibling */
-  final SVGElementInstance nextSibling;
+  abstract SVGElementInstance get nextSibling;
 
   /** @domName SVGElementInstance.parentNode */
-  final SVGElementInstance parentNode;
+  abstract SVGElementInstance get parentNode;
 
   /** @domName SVGElementInstance.previousSibling */
-  final SVGElementInstance previousSibling;
+  abstract SVGElementInstance get previousSibling;
 }
 
-interface SVGElementInstanceEvents extends Events {
+abstract class SVGElementInstanceEvents implements Events {
 
   EventListenerList get abort;
 
@@ -26376,10 +26495,10 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGElementInstanceList
-interface SVGElementInstanceList {
+abstract class SVGElementInstanceList {
 
   /** @domName SVGElementInstanceList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SVGElementInstanceList.item */
   SVGElementInstance item(int index);
@@ -26404,19 +26523,19 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SV
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGEllipseElement
-interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGEllipseElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGEllipseElement.cx */
-  final SVGAnimatedLength cx;
+  abstract SVGAnimatedLength get cx;
 
   /** @domName SVGEllipseElement.cy */
-  final SVGAnimatedLength cy;
+  abstract SVGAnimatedLength get cy;
 
   /** @domName SVGEllipseElement.rx */
-  final SVGAnimatedLength rx;
+  abstract SVGAnimatedLength get rx;
 
   /** @domName SVGEllipseElement.ry */
-  final SVGAnimatedLength ry;
+  abstract SVGAnimatedLength get ry;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26480,7 +26599,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGException
-interface SVGException {
+abstract class SVGException {
 
   static const int SVG_INVALID_VALUE_ERR = 1;
 
@@ -26489,13 +26608,13 @@ interface SVGException {
   static const int SVG_WRONG_TYPE_ERR = 0;
 
   /** @domName SVGException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName SVGException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName SVGException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName SVGException.toString */
   String toString();
@@ -26524,10 +26643,10 @@ class _SVGExceptionImpl extends NativeFieldWrapperClass1 implements SVGException
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGExternalResourcesRequired
-interface SVGExternalResourcesRequired {
+abstract class SVGExternalResourcesRequired {
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  abstract SVGAnimatedBoolean get externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26536,7 +26655,7 @@ interface SVGExternalResourcesRequired {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEBlendElement
-interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEBlendElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -26551,13 +26670,13 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   /** @domName SVGFEBlendElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEBlendElement.in2 */
-  final SVGAnimatedString in2;
+  abstract SVGAnimatedString get in2;
 
   /** @domName SVGFEBlendElement.mode */
-  final SVGAnimatedEnumeration mode;
+  abstract SVGAnimatedEnumeration get mode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26597,7 +26716,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEColorMatrixElement
-interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEColorMatrixElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -26610,13 +26729,13 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFEColorMatrixElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEColorMatrixElement.type */
-  final SVGAnimatedEnumeration type;
+  abstract SVGAnimatedEnumeration get type;
 
   /** @domName SVGFEColorMatrixElement.values */
-  final SVGAnimatedNumberList values;
+  abstract SVGAnimatedNumberList get values;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26656,10 +26775,10 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEComponentTransferElement
-interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEComponentTransferElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEComponentTransferElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26695,7 +26814,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFECompositeElement
-interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFECompositeElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
@@ -26712,25 +26831,25 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   /** @domName SVGFECompositeElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFECompositeElement.in2 */
-  final SVGAnimatedString in2;
+  abstract SVGAnimatedString get in2;
 
   /** @domName SVGFECompositeElement.k1 */
-  final SVGAnimatedNumber k1;
+  abstract SVGAnimatedNumber get k1;
 
   /** @domName SVGFECompositeElement.k2 */
-  final SVGAnimatedNumber k2;
+  abstract SVGAnimatedNumber get k2;
 
   /** @domName SVGFECompositeElement.k3 */
-  final SVGAnimatedNumber k3;
+  abstract SVGAnimatedNumber get k3;
 
   /** @domName SVGFECompositeElement.k4 */
-  final SVGAnimatedNumber k4;
+  abstract SVGAnimatedNumber get k4;
 
   /** @domName SVGFECompositeElement.operator */
-  final SVGAnimatedEnumeration operator;
+  abstract SVGAnimatedEnumeration get operator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26778,7 +26897,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEConvolveMatrixElement
-interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEConvolveMatrixElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -26789,40 +26908,40 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
   static const int SVG_EDGEMODE_WRAP = 2;
 
   /** @domName SVGFEConvolveMatrixElement.bias */
-  final SVGAnimatedNumber bias;
+  abstract SVGAnimatedNumber get bias;
 
   /** @domName SVGFEConvolveMatrixElement.divisor */
-  final SVGAnimatedNumber divisor;
+  abstract SVGAnimatedNumber get divisor;
 
   /** @domName SVGFEConvolveMatrixElement.edgeMode */
-  final SVGAnimatedEnumeration edgeMode;
+  abstract SVGAnimatedEnumeration get edgeMode;
 
   /** @domName SVGFEConvolveMatrixElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
-  final SVGAnimatedNumberList kernelMatrix;
+  abstract SVGAnimatedNumberList get kernelMatrix;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
-  final SVGAnimatedNumber kernelUnitLengthX;
+  abstract SVGAnimatedNumber get kernelUnitLengthX;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
-  final SVGAnimatedNumber kernelUnitLengthY;
+  abstract SVGAnimatedNumber get kernelUnitLengthY;
 
   /** @domName SVGFEConvolveMatrixElement.orderX */
-  final SVGAnimatedInteger orderX;
+  abstract SVGAnimatedInteger get orderX;
 
   /** @domName SVGFEConvolveMatrixElement.orderY */
-  final SVGAnimatedInteger orderY;
+  abstract SVGAnimatedInteger get orderY;
 
   /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
-  final SVGAnimatedBoolean preserveAlpha;
+  abstract SVGAnimatedBoolean get preserveAlpha;
 
   /** @domName SVGFEConvolveMatrixElement.targetX */
-  final SVGAnimatedInteger targetX;
+  abstract SVGAnimatedInteger get targetX;
 
   /** @domName SVGFEConvolveMatrixElement.targetY */
-  final SVGAnimatedInteger targetY;
+  abstract SVGAnimatedInteger get targetY;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26880,22 +26999,22 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEDiffuseLightingElement
-interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEDiffuseLightingElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
-  final SVGAnimatedNumber diffuseConstant;
+  abstract SVGAnimatedNumber get diffuseConstant;
 
   /** @domName SVGFEDiffuseLightingElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
-  final SVGAnimatedNumber kernelUnitLengthX;
+  abstract SVGAnimatedNumber get kernelUnitLengthX;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
-  final SVGAnimatedNumber kernelUnitLengthY;
+  abstract SVGAnimatedNumber get kernelUnitLengthY;
 
   /** @domName SVGFEDiffuseLightingElement.surfaceScale */
-  final SVGAnimatedNumber surfaceScale;
+  abstract SVGAnimatedNumber get surfaceScale;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26939,7 +27058,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEDisplacementMapElement
-interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEDisplacementMapElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_CHANNEL_A = 4;
 
@@ -26952,19 +27071,19 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   /** @domName SVGFEDisplacementMapElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEDisplacementMapElement.in2 */
-  final SVGAnimatedString in2;
+  abstract SVGAnimatedString get in2;
 
   /** @domName SVGFEDisplacementMapElement.scale */
-  final SVGAnimatedNumber scale;
+  abstract SVGAnimatedNumber get scale;
 
   /** @domName SVGFEDisplacementMapElement.xChannelSelector */
-  final SVGAnimatedEnumeration xChannelSelector;
+  abstract SVGAnimatedEnumeration get xChannelSelector;
 
   /** @domName SVGFEDisplacementMapElement.yChannelSelector */
-  final SVGAnimatedEnumeration yChannelSelector;
+  abstract SVGAnimatedEnumeration get yChannelSelector;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27008,13 +27127,13 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEDistantLightElement
-interface SVGFEDistantLightElement extends SVGElement {
+abstract class SVGFEDistantLightElement implements SVGElement {
 
   /** @domName SVGFEDistantLightElement.azimuth */
-  final SVGAnimatedNumber azimuth;
+  abstract SVGAnimatedNumber get azimuth;
 
   /** @domName SVGFEDistantLightElement.elevation */
-  final SVGAnimatedNumber elevation;
+  abstract SVGAnimatedNumber get elevation;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27036,22 +27155,22 @@ class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDist
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEDropShadowElement
-interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEDropShadowElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEDropShadowElement.dx */
-  final SVGAnimatedNumber dx;
+  abstract SVGAnimatedNumber get dx;
 
   /** @domName SVGFEDropShadowElement.dy */
-  final SVGAnimatedNumber dy;
+  abstract SVGAnimatedNumber get dy;
 
   /** @domName SVGFEDropShadowElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEDropShadowElement.stdDeviationX */
-  final SVGAnimatedNumber stdDeviationX;
+  abstract SVGAnimatedNumber get stdDeviationX;
 
   /** @domName SVGFEDropShadowElement.stdDeviationY */
-  final SVGAnimatedNumber stdDeviationY;
+  abstract SVGAnimatedNumber get stdDeviationY;
 
   /** @domName SVGFEDropShadowElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
@@ -27100,7 +27219,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEFloodElement
-interface SVGFEFloodElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEFloodElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27134,7 +27253,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEFuncAElement
-interface SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
+abstract class SVGFEFuncAElement implements SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27152,7 +27271,7 @@ class _SVGFEFuncAElementImpl extends _SVGComponentTransferFunctionElementImpl im
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEFuncBElement
-interface SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
+abstract class SVGFEFuncBElement implements SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27170,7 +27289,7 @@ class _SVGFEFuncBElementImpl extends _SVGComponentTransferFunctionElementImpl im
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEFuncGElement
-interface SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
+abstract class SVGFEFuncGElement implements SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27188,7 +27307,7 @@ class _SVGFEFuncGElementImpl extends _SVGComponentTransferFunctionElementImpl im
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEFuncRElement
-interface SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
+abstract class SVGFEFuncRElement implements SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27206,16 +27325,16 @@ class _SVGFEFuncRElementImpl extends _SVGComponentTransferFunctionElementImpl im
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEGaussianBlurElement
-interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEGaussianBlurElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEGaussianBlurElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationX */
-  final SVGAnimatedNumber stdDeviationX;
+  abstract SVGAnimatedNumber get stdDeviationX;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationY */
-  final SVGAnimatedNumber stdDeviationY;
+  abstract SVGAnimatedNumber get stdDeviationY;
 
   /** @domName SVGFEGaussianBlurElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
@@ -27260,10 +27379,10 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEImageElement
-interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEImageElement implements SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEImageElement.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27311,7 +27430,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEMergeElement
-interface SVGFEMergeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEMergeElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27345,10 +27464,10 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEMergeNodeElement
-interface SVGFEMergeNodeElement extends SVGElement {
+abstract class SVGFEMergeNodeElement implements SVGElement {
 
   /** @domName SVGFEMergeNodeElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27368,7 +27487,7 @@ class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNo
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEMorphologyElement
-interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEMorphologyElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -27377,16 +27496,16 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   /** @domName SVGFEMorphologyElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFEMorphologyElement.operator */
-  final SVGAnimatedEnumeration operator;
+  abstract SVGAnimatedEnumeration get operator;
 
   /** @domName SVGFEMorphologyElement.radiusX */
-  final SVGAnimatedNumber radiusX;
+  abstract SVGAnimatedNumber get radiusX;
 
   /** @domName SVGFEMorphologyElement.radiusY */
-  final SVGAnimatedNumber radiusY;
+  abstract SVGAnimatedNumber get radiusY;
 
   /** @domName SVGFEMorphologyElement.setRadius */
   void setRadius(num radiusX, num radiusY);
@@ -27433,16 +27552,16 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEOffsetElement
-interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFEOffsetElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEOffsetElement.dx */
-  final SVGAnimatedNumber dx;
+  abstract SVGAnimatedNumber get dx;
 
   /** @domName SVGFEOffsetElement.dy */
-  final SVGAnimatedNumber dy;
+  abstract SVGAnimatedNumber get dy;
 
   /** @domName SVGFEOffsetElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27482,16 +27601,16 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFEPointLightElement
-interface SVGFEPointLightElement extends SVGElement {
+abstract class SVGFEPointLightElement implements SVGElement {
 
   /** @domName SVGFEPointLightElement.x */
-  final SVGAnimatedNumber x;
+  abstract SVGAnimatedNumber get x;
 
   /** @domName SVGFEPointLightElement.y */
-  final SVGAnimatedNumber y;
+  abstract SVGAnimatedNumber get y;
 
   /** @domName SVGFEPointLightElement.z */
-  final SVGAnimatedNumber z;
+  abstract SVGAnimatedNumber get z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27515,19 +27634,19 @@ class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointL
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFESpecularLightingElement
-interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFESpecularLightingElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFESpecularLightingElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 
   /** @domName SVGFESpecularLightingElement.specularConstant */
-  final SVGAnimatedNumber specularConstant;
+  abstract SVGAnimatedNumber get specularConstant;
 
   /** @domName SVGFESpecularLightingElement.specularExponent */
-  final SVGAnimatedNumber specularExponent;
+  abstract SVGAnimatedNumber get specularExponent;
 
   /** @domName SVGFESpecularLightingElement.surfaceScale */
-  final SVGAnimatedNumber surfaceScale;
+  abstract SVGAnimatedNumber get surfaceScale;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27569,31 +27688,31 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFESpotLightElement
-interface SVGFESpotLightElement extends SVGElement {
+abstract class SVGFESpotLightElement implements SVGElement {
 
   /** @domName SVGFESpotLightElement.limitingConeAngle */
-  final SVGAnimatedNumber limitingConeAngle;
+  abstract SVGAnimatedNumber get limitingConeAngle;
 
   /** @domName SVGFESpotLightElement.pointsAtX */
-  final SVGAnimatedNumber pointsAtX;
+  abstract SVGAnimatedNumber get pointsAtX;
 
   /** @domName SVGFESpotLightElement.pointsAtY */
-  final SVGAnimatedNumber pointsAtY;
+  abstract SVGAnimatedNumber get pointsAtY;
 
   /** @domName SVGFESpotLightElement.pointsAtZ */
-  final SVGAnimatedNumber pointsAtZ;
+  abstract SVGAnimatedNumber get pointsAtZ;
 
   /** @domName SVGFESpotLightElement.specularExponent */
-  final SVGAnimatedNumber specularExponent;
+  abstract SVGAnimatedNumber get specularExponent;
 
   /** @domName SVGFESpotLightElement.x */
-  final SVGAnimatedNumber x;
+  abstract SVGAnimatedNumber get x;
 
   /** @domName SVGFESpotLightElement.y */
-  final SVGAnimatedNumber y;
+  abstract SVGAnimatedNumber get y;
 
   /** @domName SVGFESpotLightElement.z */
-  final SVGAnimatedNumber z;
+  abstract SVGAnimatedNumber get z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27627,10 +27746,10 @@ class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLig
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFETileElement
-interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFETileElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFETileElement.in1 */
-  final SVGAnimatedString in1;
+  abstract SVGAnimatedString get in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27666,7 +27785,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFETurbulenceElement
-interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+abstract class SVGFETurbulenceElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -27681,22 +27800,22 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyX */
-  final SVGAnimatedNumber baseFrequencyX;
+  abstract SVGAnimatedNumber get baseFrequencyX;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyY */
-  final SVGAnimatedNumber baseFrequencyY;
+  abstract SVGAnimatedNumber get baseFrequencyY;
 
   /** @domName SVGFETurbulenceElement.numOctaves */
-  final SVGAnimatedInteger numOctaves;
+  abstract SVGAnimatedInteger get numOctaves;
 
   /** @domName SVGFETurbulenceElement.seed */
-  final SVGAnimatedNumber seed;
+  abstract SVGAnimatedNumber get seed;
 
   /** @domName SVGFETurbulenceElement.stitchTiles */
-  final SVGAnimatedEnumeration stitchTiles;
+  abstract SVGAnimatedEnumeration get stitchTiles;
 
   /** @domName SVGFETurbulenceElement.type */
-  final SVGAnimatedEnumeration type;
+  abstract SVGAnimatedEnumeration get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27742,31 +27861,31 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFilterElement
-interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+abstract class SVGFilterElement implements SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   /** @domName SVGFilterElement.filterResX */
-  final SVGAnimatedInteger filterResX;
+  abstract SVGAnimatedInteger get filterResX;
 
   /** @domName SVGFilterElement.filterResY */
-  final SVGAnimatedInteger filterResY;
+  abstract SVGAnimatedInteger get filterResY;
 
   /** @domName SVGFilterElement.filterUnits */
-  final SVGAnimatedEnumeration filterUnits;
+  abstract SVGAnimatedEnumeration get filterUnits;
 
   /** @domName SVGFilterElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGFilterElement.primitiveUnits */
-  final SVGAnimatedEnumeration primitiveUnits;
+  abstract SVGAnimatedEnumeration get primitiveUnits;
 
   /** @domName SVGFilterElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGFilterElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGFilterElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 
   /** @domName SVGFilterElement.setFilterRes */
   void setFilterRes(int filterResX, int filterResY);
@@ -27823,22 +27942,22 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFilterPrimitiveStandardAttributes
-interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
+abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  abstract SVGAnimatedString get result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27847,13 +27966,13 @@ interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFitToViewBox
-interface SVGFitToViewBox {
+abstract class SVGFitToViewBox {
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
+  abstract SVGAnimatedRect get viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27862,7 +27981,7 @@ interface SVGFitToViewBox {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFontElement
-interface SVGFontElement extends SVGElement {
+abstract class SVGFontElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27880,7 +27999,7 @@ class _SVGFontElementImpl extends _SVGElementImpl implements SVGFontElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFontFaceElement
-interface SVGFontFaceElement extends SVGElement {
+abstract class SVGFontFaceElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27898,7 +28017,7 @@ class _SVGFontFaceElementImpl extends _SVGElementImpl implements SVGFontFaceElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFontFaceFormatElement
-interface SVGFontFaceFormatElement extends SVGElement {
+abstract class SVGFontFaceFormatElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27916,7 +28035,7 @@ class _SVGFontFaceFormatElementImpl extends _SVGElementImpl implements SVGFontFa
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFontFaceNameElement
-interface SVGFontFaceNameElement extends SVGElement {
+abstract class SVGFontFaceNameElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27934,7 +28053,7 @@ class _SVGFontFaceNameElementImpl extends _SVGElementImpl implements SVGFontFace
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFontFaceSrcElement
-interface SVGFontFaceSrcElement extends SVGElement {
+abstract class SVGFontFaceSrcElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27952,7 +28071,7 @@ class _SVGFontFaceSrcElementImpl extends _SVGElementImpl implements SVGFontFaceS
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGFontFaceUriElement
-interface SVGFontFaceUriElement extends SVGElement {
+abstract class SVGFontFaceUriElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27970,19 +28089,19 @@ class _SVGFontFaceUriElementImpl extends _SVGElementImpl implements SVGFontFaceU
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGForeignObjectElement
-interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGForeignObjectElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGForeignObjectElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGForeignObjectElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGForeignObjectElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGForeignObjectElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28046,7 +28165,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGGElement
-interface SVGGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGGElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28102,7 +28221,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGGlyphElement
-interface SVGGlyphElement extends SVGElement {
+abstract class SVGGlyphElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28120,7 +28239,7 @@ class _SVGGlyphElementImpl extends _SVGElementImpl implements SVGGlyphElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGGlyphRefElement
-interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
+abstract class SVGGlyphRefElement implements SVGElement, SVGURIReference, SVGStylable {
 
   /** @domName SVGGlyphRefElement.dx */
   num dx;
@@ -28188,7 +28307,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGGradientElement
-interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired, SVGStylable {
+abstract class SVGGradientElement implements SVGElement, SVGURIReference, SVGExternalResourcesRequired, SVGStylable {
 
   static const int SVG_SPREADMETHOD_PAD = 1;
 
@@ -28199,13 +28318,13 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   /** @domName SVGGradientElement.gradientTransform */
-  final SVGAnimatedTransformList gradientTransform;
+  abstract SVGAnimatedTransformList get gradientTransform;
 
   /** @domName SVGGradientElement.gradientUnits */
-  final SVGAnimatedEnumeration gradientUnits;
+  abstract SVGAnimatedEnumeration get gradientUnits;
 
   /** @domName SVGGradientElement.spreadMethod */
-  final SVGAnimatedEnumeration spreadMethod;
+  abstract SVGAnimatedEnumeration get spreadMethod;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28239,7 +28358,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGHKernElement
-interface SVGHKernElement extends SVGElement {
+abstract class SVGHKernElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28257,22 +28376,22 @@ class _SVGHKernElementImpl extends _SVGElementImpl implements SVGHKernElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGImageElement
-interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGImageElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGImageElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGImageElement.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGImageElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGImageElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGImageElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28340,7 +28459,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLangSpace
-interface SVGLangSpace {
+abstract class SVGLangSpace {
 
   /** @domName SVGLangSpace.xmllang */
   String xmllang;
@@ -28355,7 +28474,7 @@ interface SVGLangSpace {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLength
-interface SVGLength {
+abstract class SVGLength {
 
   static const int SVG_LENGTHTYPE_CM = 6;
 
@@ -28380,7 +28499,7 @@ interface SVGLength {
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   /** @domName SVGLength.unitType */
-  final int unitType;
+  abstract int get unitType;
 
   /** @domName SVGLength.value */
   num value;
@@ -28431,10 +28550,10 @@ class _SVGLengthImpl extends NativeFieldWrapperClass1 implements SVGLength {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLengthList
-interface SVGLengthList {
+abstract class SVGLengthList {
 
   /** @domName SVGLengthList.numberOfItems */
-  final int numberOfItems;
+  abstract int get numberOfItems;
 
   /** @domName SVGLengthList.appendItem */
   SVGLength appendItem(SVGLength item);
@@ -28489,19 +28608,19 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLineElement
-interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGLineElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGLineElement.x1 */
-  final SVGAnimatedLength x1;
+  abstract SVGAnimatedLength get x1;
 
   /** @domName SVGLineElement.x2 */
-  final SVGAnimatedLength x2;
+  abstract SVGAnimatedLength get x2;
 
   /** @domName SVGLineElement.y1 */
-  final SVGAnimatedLength y1;
+  abstract SVGAnimatedLength get y1;
 
   /** @domName SVGLineElement.y2 */
-  final SVGAnimatedLength y2;
+  abstract SVGAnimatedLength get y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28565,19 +28684,19 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLinearGradientElement
-interface SVGLinearGradientElement extends SVGGradientElement {
+abstract class SVGLinearGradientElement implements SVGGradientElement {
 
   /** @domName SVGLinearGradientElement.x1 */
-  final SVGAnimatedLength x1;
+  abstract SVGAnimatedLength get x1;
 
   /** @domName SVGLinearGradientElement.x2 */
-  final SVGAnimatedLength x2;
+  abstract SVGAnimatedLength get x2;
 
   /** @domName SVGLinearGradientElement.y1 */
-  final SVGAnimatedLength y1;
+  abstract SVGAnimatedLength get y1;
 
   /** @domName SVGLinearGradientElement.y2 */
-  final SVGAnimatedLength y2;
+  abstract SVGAnimatedLength get y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28603,13 +28722,13 @@ class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements S
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLocatable
-interface SVGLocatable {
+abstract class SVGLocatable {
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  abstract SVGElement get farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  abstract SVGElement get nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
   SVGRect getBBox();
@@ -28630,7 +28749,7 @@ interface SVGLocatable {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGMPathElement
-interface SVGMPathElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
+abstract class SVGMPathElement implements SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28652,7 +28771,7 @@ class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGMarkerElement
-interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
+abstract class SVGMarkerElement implements SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -28667,25 +28786,25 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   /** @domName SVGMarkerElement.markerHeight */
-  final SVGAnimatedLength markerHeight;
+  abstract SVGAnimatedLength get markerHeight;
 
   /** @domName SVGMarkerElement.markerUnits */
-  final SVGAnimatedEnumeration markerUnits;
+  abstract SVGAnimatedEnumeration get markerUnits;
 
   /** @domName SVGMarkerElement.markerWidth */
-  final SVGAnimatedLength markerWidth;
+  abstract SVGAnimatedLength get markerWidth;
 
   /** @domName SVGMarkerElement.orientAngle */
-  final SVGAnimatedAngle orientAngle;
+  abstract SVGAnimatedAngle get orientAngle;
 
   /** @domName SVGMarkerElement.orientType */
-  final SVGAnimatedEnumeration orientType;
+  abstract SVGAnimatedEnumeration get orientType;
 
   /** @domName SVGMarkerElement.refX */
-  final SVGAnimatedLength refX;
+  abstract SVGAnimatedLength get refX;
 
   /** @domName SVGMarkerElement.refY */
-  final SVGAnimatedLength refY;
+  abstract SVGAnimatedLength get refY;
 
   /** @domName SVGMarkerElement.setOrientToAngle */
   void setOrientToAngle(SVGAngle angle);
@@ -28747,25 +28866,25 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGMaskElement
-interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+abstract class SVGMaskElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   /** @domName SVGMaskElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGMaskElement.maskContentUnits */
-  final SVGAnimatedEnumeration maskContentUnits;
+  abstract SVGAnimatedEnumeration get maskContentUnits;
 
   /** @domName SVGMaskElement.maskUnits */
-  final SVGAnimatedEnumeration maskUnits;
+  abstract SVGAnimatedEnumeration get maskUnits;
 
   /** @domName SVGMaskElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGMaskElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGMaskElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28819,7 +28938,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGMatrix
-interface SVGMatrix {
+abstract class SVGMatrix {
 
   /** @domName SVGMatrix.a */
   num a;
@@ -28934,7 +29053,7 @@ class _SVGMatrixImpl extends NativeFieldWrapperClass1 implements SVGMatrix {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGMetadataElement
-interface SVGMetadataElement extends SVGElement {
+abstract class SVGMetadataElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28952,7 +29071,7 @@ class _SVGMetadataElementImpl extends _SVGElementImpl implements SVGMetadataElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGMissingGlyphElement
-interface SVGMissingGlyphElement extends SVGElement {
+abstract class SVGMissingGlyphElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28970,7 +29089,7 @@ class _SVGMissingGlyphElementImpl extends _SVGElementImpl implements SVGMissingG
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGNumber
-interface SVGNumber {
+abstract class SVGNumber {
 
   /** @domName SVGNumber.value */
   num value;
@@ -28995,10 +29114,10 @@ class _SVGNumberImpl extends NativeFieldWrapperClass1 implements SVGNumber {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGNumberList
-interface SVGNumberList {
+abstract class SVGNumberList {
 
   /** @domName SVGNumberList.numberOfItems */
-  final int numberOfItems;
+  abstract int get numberOfItems;
 
   /** @domName SVGNumberList.appendItem */
   SVGNumber appendItem(SVGNumber item);
@@ -29053,7 +29172,7 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPaint
-interface SVGPaint extends SVGColor {
+abstract class SVGPaint implements SVGColor {
 
   static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 
@@ -29076,10 +29195,10 @@ interface SVGPaint extends SVGColor {
   static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
   /** @domName SVGPaint.paintType */
-  final int paintType;
+  abstract int get paintType;
 
   /** @domName SVGPaint.uri */
-  final String uri;
+  abstract String get uri;
 
   /** @domName SVGPaint.setPaint */
   void setPaint(int paintType, String uri, String rgbColor, String iccColor);
@@ -29111,22 +29230,22 @@ class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathElement
-interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGPathElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPathElement.animatedNormalizedPathSegList */
-  final SVGPathSegList animatedNormalizedPathSegList;
+  abstract SVGPathSegList get animatedNormalizedPathSegList;
 
   /** @domName SVGPathElement.animatedPathSegList */
-  final SVGPathSegList animatedPathSegList;
+  abstract SVGPathSegList get animatedPathSegList;
 
   /** @domName SVGPathElement.normalizedPathSegList */
-  final SVGPathSegList normalizedPathSegList;
+  abstract SVGPathSegList get normalizedPathSegList;
 
   /** @domName SVGPathElement.pathLength */
-  final SVGAnimatedNumber pathLength;
+  abstract SVGAnimatedNumber get pathLength;
 
   /** @domName SVGPathElement.pathSegList */
-  final SVGPathSegList pathSegList;
+  abstract SVGPathSegList get pathSegList;
 
   /** @domName SVGPathElement.createSVGPathSegArcAbs */
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
@@ -29302,7 +29421,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSeg
-interface SVGPathSeg {
+abstract class SVGPathSeg {
 
   static const int PATHSEG_ARC_ABS = 10;
 
@@ -29345,10 +29464,10 @@ interface SVGPathSeg {
   static const int PATHSEG_UNKNOWN = 0;
 
   /** @domName SVGPathSeg.pathSegType */
-  final int pathSegType;
+  abstract int get pathSegType;
 
   /** @domName SVGPathSeg.pathSegTypeAsLetter */
-  final String pathSegTypeAsLetter;
+  abstract String get pathSegTypeAsLetter;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29357,7 +29476,7 @@ interface SVGPathSeg {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegArcAbs
-interface SVGPathSegArcAbs extends SVGPathSeg {
+abstract class SVGPathSegArcAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegArcAbs.angle */
   num angle;
@@ -29424,7 +29543,7 @@ class _SVGPathSegArcAbsImpl extends _SVGPathSegImpl implements SVGPathSegArcAbs 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegArcRel
-interface SVGPathSegArcRel extends SVGPathSeg {
+abstract class SVGPathSegArcRel implements SVGPathSeg {
 
   /** @domName SVGPathSegArcRel.angle */
   num angle;
@@ -29491,7 +29610,7 @@ class _SVGPathSegArcRelImpl extends _SVGPathSegImpl implements SVGPathSegArcRel 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegClosePath
-interface SVGPathSegClosePath extends SVGPathSeg {
+abstract class SVGPathSegClosePath implements SVGPathSeg {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29509,7 +29628,7 @@ class _SVGPathSegClosePathImpl extends _SVGPathSegImpl implements SVGPathSegClos
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoCubicAbs
-interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
+abstract class SVGPathSegCurvetoCubicAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoCubicAbs.x */
   num x;
@@ -29569,7 +29688,7 @@ class _SVGPathSegCurvetoCubicAbsImpl extends _SVGPathSegImpl implements SVGPathS
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoCubicRel
-interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
+abstract class SVGPathSegCurvetoCubicRel implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoCubicRel.x */
   num x;
@@ -29629,7 +29748,7 @@ class _SVGPathSegCurvetoCubicRelImpl extends _SVGPathSegImpl implements SVGPathS
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoCubicSmoothAbs
-interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
+abstract class SVGPathSegCurvetoCubicSmoothAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
   num x;
@@ -29675,7 +29794,7 @@ class _SVGPathSegCurvetoCubicSmoothAbsImpl extends _SVGPathSegImpl implements SV
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoCubicSmoothRel
-interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
+abstract class SVGPathSegCurvetoCubicSmoothRel implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
   num x;
@@ -29721,7 +29840,7 @@ class _SVGPathSegCurvetoCubicSmoothRelImpl extends _SVGPathSegImpl implements SV
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoQuadraticAbs
-interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
+abstract class SVGPathSegCurvetoQuadraticAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoQuadraticAbs.x */
   num x;
@@ -29767,7 +29886,7 @@ class _SVGPathSegCurvetoQuadraticAbsImpl extends _SVGPathSegImpl implements SVGP
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoQuadraticRel
-interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
+abstract class SVGPathSegCurvetoQuadraticRel implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoQuadraticRel.x */
   num x;
@@ -29813,7 +29932,7 @@ class _SVGPathSegCurvetoQuadraticRelImpl extends _SVGPathSegImpl implements SVGP
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothAbs
-interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
+abstract class SVGPathSegCurvetoQuadraticSmoothAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
   num x;
@@ -29845,7 +29964,7 @@ class _SVGPathSegCurvetoQuadraticSmoothAbsImpl extends _SVGPathSegImpl implement
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothRel
-interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
+abstract class SVGPathSegCurvetoQuadraticSmoothRel implements SVGPathSeg {
 
   /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
   num x;
@@ -29890,7 +30009,7 @@ class _SVGPathSegImpl extends NativeFieldWrapperClass1 implements SVGPathSeg {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegLinetoAbs
-interface SVGPathSegLinetoAbs extends SVGPathSeg {
+abstract class SVGPathSegLinetoAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegLinetoAbs.x */
   num x;
@@ -29922,7 +30041,7 @@ class _SVGPathSegLinetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegLine
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegLinetoHorizontalAbs
-interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
+abstract class SVGPathSegLinetoHorizontalAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegLinetoHorizontalAbs.x */
   num x;
@@ -29947,7 +30066,7 @@ class _SVGPathSegLinetoHorizontalAbsImpl extends _SVGPathSegImpl implements SVGP
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegLinetoHorizontalRel
-interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
+abstract class SVGPathSegLinetoHorizontalRel implements SVGPathSeg {
 
   /** @domName SVGPathSegLinetoHorizontalRel.x */
   num x;
@@ -29972,7 +30091,7 @@ class _SVGPathSegLinetoHorizontalRelImpl extends _SVGPathSegImpl implements SVGP
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegLinetoRel
-interface SVGPathSegLinetoRel extends SVGPathSeg {
+abstract class SVGPathSegLinetoRel implements SVGPathSeg {
 
   /** @domName SVGPathSegLinetoRel.x */
   num x;
@@ -30004,7 +30123,7 @@ class _SVGPathSegLinetoRelImpl extends _SVGPathSegImpl implements SVGPathSegLine
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegLinetoVerticalAbs
-interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
+abstract class SVGPathSegLinetoVerticalAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegLinetoVerticalAbs.y */
   num y;
@@ -30029,7 +30148,7 @@ class _SVGPathSegLinetoVerticalAbsImpl extends _SVGPathSegImpl implements SVGPat
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegLinetoVerticalRel
-interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
+abstract class SVGPathSegLinetoVerticalRel implements SVGPathSeg {
 
   /** @domName SVGPathSegLinetoVerticalRel.y */
   num y;
@@ -30054,10 +30173,10 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegList
-interface SVGPathSegList {
+abstract class SVGPathSegList {
 
   /** @domName SVGPathSegList.numberOfItems */
-  final int numberOfItems;
+  abstract int get numberOfItems;
 
   /** @domName SVGPathSegList.appendItem */
   SVGPathSeg appendItem(SVGPathSeg newItem);
@@ -30112,7 +30231,7 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegMovetoAbs
-interface SVGPathSegMovetoAbs extends SVGPathSeg {
+abstract class SVGPathSegMovetoAbs implements SVGPathSeg {
 
   /** @domName SVGPathSegMovetoAbs.x */
   num x;
@@ -30144,7 +30263,7 @@ class _SVGPathSegMovetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegMove
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegMovetoRel
-interface SVGPathSegMovetoRel extends SVGPathSeg {
+abstract class SVGPathSegMovetoRel implements SVGPathSeg {
 
   /** @domName SVGPathSegMovetoRel.x */
   num x;
@@ -30176,28 +30295,28 @@ class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMove
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPatternElement
-interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
+abstract class SVGPatternElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
   /** @domName SVGPatternElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGPatternElement.patternContentUnits */
-  final SVGAnimatedEnumeration patternContentUnits;
+  abstract SVGAnimatedEnumeration get patternContentUnits;
 
   /** @domName SVGPatternElement.patternTransform */
-  final SVGAnimatedTransformList patternTransform;
+  abstract SVGAnimatedTransformList get patternTransform;
 
   /** @domName SVGPatternElement.patternUnits */
-  final SVGAnimatedEnumeration patternUnits;
+  abstract SVGAnimatedEnumeration get patternUnits;
 
   /** @domName SVGPatternElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGPatternElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGPatternElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30259,7 +30378,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPoint
-interface SVGPoint {
+abstract class SVGPoint {
 
   /** @domName SVGPoint.x */
   num x;
@@ -30296,10 +30415,10 @@ class _SVGPointImpl extends NativeFieldWrapperClass1 implements SVGPoint {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPointList
-interface SVGPointList {
+abstract class SVGPointList {
 
   /** @domName SVGPointList.numberOfItems */
-  final int numberOfItems;
+  abstract int get numberOfItems;
 
   /** @domName SVGPointList.appendItem */
   SVGPoint appendItem(SVGPoint item);
@@ -30354,13 +30473,13 @@ class _SVGPointListImpl extends NativeFieldWrapperClass1 implements SVGPointList
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPolygonElement
-interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGPolygonElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPolygonElement.animatedPoints */
-  final SVGPointList animatedPoints;
+  abstract SVGPointList get animatedPoints;
 
   /** @domName SVGPolygonElement.points */
-  final SVGPointList points;
+  abstract SVGPointList get points;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30420,13 +30539,13 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPolylineElement
-interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGPolylineElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPolylineElement.animatedPoints */
-  final SVGPointList animatedPoints;
+  abstract SVGPointList get animatedPoints;
 
   /** @domName SVGPolylineElement.points */
-  final SVGPointList points;
+  abstract SVGPointList get points;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30486,7 +30605,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPreserveAspectRatio
-interface SVGPreserveAspectRatio {
+abstract class SVGPreserveAspectRatio {
 
   static const int SVG_MEETORSLICE_MEET = 1;
 
@@ -30546,22 +30665,22 @@ class _SVGPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SV
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGRadialGradientElement
-interface SVGRadialGradientElement extends SVGGradientElement {
+abstract class SVGRadialGradientElement implements SVGGradientElement {
 
   /** @domName SVGRadialGradientElement.cx */
-  final SVGAnimatedLength cx;
+  abstract SVGAnimatedLength get cx;
 
   /** @domName SVGRadialGradientElement.cy */
-  final SVGAnimatedLength cy;
+  abstract SVGAnimatedLength get cy;
 
   /** @domName SVGRadialGradientElement.fx */
-  final SVGAnimatedLength fx;
+  abstract SVGAnimatedLength get fx;
 
   /** @domName SVGRadialGradientElement.fy */
-  final SVGAnimatedLength fy;
+  abstract SVGAnimatedLength get fy;
 
   /** @domName SVGRadialGradientElement.r */
-  final SVGAnimatedLength r;
+  abstract SVGAnimatedLength get r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30589,7 +30708,7 @@ class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements S
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGRect
-interface SVGRect {
+abstract class SVGRect {
 
   /** @domName SVGRect.height */
   num height;
@@ -30610,25 +30729,25 @@ interface SVGRect {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGRectElement
-interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGRectElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGRectElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGRectElement.rx */
-  final SVGAnimatedLength rx;
+  abstract SVGAnimatedLength get rx;
 
   /** @domName SVGRectElement.ry */
-  final SVGAnimatedLength ry;
+  abstract SVGAnimatedLength get ry;
 
   /** @domName SVGRectElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGRectElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGRectElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30721,7 +30840,7 @@ class _SVGRectImpl extends NativeFieldWrapperClass1 implements SVGRect {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGRenderingIntent
-interface SVGRenderingIntent {
+abstract class SVGRenderingIntent {
 
   static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
@@ -30749,9 +30868,8 @@ class _SVGRenderingIntentImpl extends NativeFieldWrapperClass1 implements SVGRen
 // BSD-style license that can be found in the LICENSE file.
 
 /// @domName SVGSVGElement
-interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
-    default _SVGSVGElementFactoryProvider {
-  SVGSVGElement();
+abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
+  factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
 
 
   /** @domName SVGSVGElement.contentScriptType */
@@ -30764,40 +30882,40 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   num currentScale;
 
   /** @domName SVGSVGElement.currentTranslate */
-  final SVGPoint currentTranslate;
+  abstract SVGPoint get currentTranslate;
 
   /** @domName SVGSVGElement.currentView */
-  final SVGViewSpec currentView;
+  abstract SVGViewSpec get currentView;
 
   /** @domName SVGSVGElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGSVGElement.pixelUnitToMillimeterX */
-  final num pixelUnitToMillimeterX;
+  abstract num get pixelUnitToMillimeterX;
 
   /** @domName SVGSVGElement.pixelUnitToMillimeterY */
-  final num pixelUnitToMillimeterY;
+  abstract num get pixelUnitToMillimeterY;
 
   /** @domName SVGSVGElement.screenPixelToMillimeterX */
-  final num screenPixelToMillimeterX;
+  abstract num get screenPixelToMillimeterX;
 
   /** @domName SVGSVGElement.screenPixelToMillimeterY */
-  final num screenPixelToMillimeterY;
+  abstract num get screenPixelToMillimeterY;
 
   /** @domName SVGSVGElement.useCurrentView */
-  final bool useCurrentView;
+  abstract bool get useCurrentView;
 
   /** @domName SVGSVGElement.viewport */
-  final SVGRect viewport;
+  abstract SVGRect get viewport;
 
   /** @domName SVGSVGElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGSVGElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGSVGElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 
   /** @domName SVGSVGElement.animationsPaused */
   bool animationsPaused();
@@ -31011,7 +31129,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGScriptElement
-interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
+abstract class SVGScriptElement implements SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 
   /** @domName SVGScriptElement.type */
   String type;
@@ -31040,7 +31158,7 @@ class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGSetElement
-interface SVGSetElement extends SVGAnimationElement {
+abstract class SVGSetElement implements SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31058,10 +31176,10 @@ class _SVGSetElementImpl extends _SVGAnimationElementImpl implements SVGSetEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGStopElement
-interface SVGStopElement extends SVGElement, SVGStylable {
+abstract class SVGStopElement implements SVGElement, SVGStylable {
 
   /** @domName SVGStopElement.offset */
-  final SVGAnimatedNumber offset;
+  abstract SVGAnimatedNumber get offset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31087,10 +31205,10 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGStringList
-interface SVGStringList {
+abstract class SVGStringList {
 
   /** @domName SVGStringList.numberOfItems */
-  final int numberOfItems;
+  abstract int get numberOfItems;
 
   /** @domName SVGStringList.appendItem */
   String appendItem(String item);
@@ -31145,13 +31263,13 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGStylable
-interface SVGStylable {
+abstract class SVGStylable {
 
   /** @domName SVGStylable.className */
-  final SVGAnimatedString $dom_svgClassName;
+  abstract SVGAnimatedString get $dom_svgClassName;
 
   /** @domName SVGStylable.style */
-  final CSSStyleDeclaration style;
+  abstract CSSStyleDeclaration get style;
 
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name);
@@ -31163,7 +31281,7 @@ interface SVGStylable {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGStyleElement
-interface SVGStyleElement extends SVGElement, SVGLangSpace {
+abstract class SVGStyleElement implements SVGElement, SVGLangSpace {
 
   /** @domName SVGStyleElement.disabled */
   bool disabled;
@@ -31217,7 +31335,7 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGSwitchElement
-interface SVGSwitchElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGSwitchElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31273,7 +31391,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGSymbolElement
-interface SVGSymbolElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
+abstract class SVGSymbolElement implements SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31311,7 +31429,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTRefElement
-interface SVGTRefElement extends SVGTextPositioningElement, SVGURIReference {
+abstract class SVGTRefElement implements SVGTextPositioningElement, SVGURIReference {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31331,7 +31449,7 @@ class _SVGTRefElementImpl extends _SVGTextPositioningElementImpl implements SVGT
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTSpanElement
-interface SVGTSpanElement extends SVGTextPositioningElement {
+abstract class SVGTSpanElement implements SVGTextPositioningElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31349,16 +31467,16 @@ class _SVGTSpanElementImpl extends _SVGTextPositioningElementImpl implements SVG
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTests
-interface SVGTests {
+abstract class SVGTests {
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  abstract SVGStringList get requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  abstract SVGStringList get requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  abstract SVGStringList get systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension);
@@ -31370,7 +31488,7 @@ interface SVGTests {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTextContentElement
-interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+abstract class SVGTextContentElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   static const int LENGTHADJUST_SPACING = 1;
 
@@ -31379,10 +31497,10 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   /** @domName SVGTextContentElement.lengthAdjust */
-  final SVGAnimatedEnumeration lengthAdjust;
+  abstract SVGAnimatedEnumeration get lengthAdjust;
 
   /** @domName SVGTextContentElement.textLength */
-  final SVGAnimatedLength textLength;
+  abstract SVGAnimatedLength get textLength;
 
   /** @domName SVGTextContentElement.getCharNumAtPosition */
   int getCharNumAtPosition(SVGPoint point);
@@ -31473,7 +31591,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTextElement
-interface SVGTextElement extends SVGTextPositioningElement, SVGTransformable {
+abstract class SVGTextElement implements SVGTextPositioningElement, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31505,7 +31623,7 @@ class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGT
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTextPathElement
-interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
+abstract class SVGTextPathElement implements SVGTextContentElement, SVGURIReference {
 
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
@@ -31520,13 +31638,13 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   /** @domName SVGTextPathElement.method */
-  final SVGAnimatedEnumeration method;
+  abstract SVGAnimatedEnumeration get method;
 
   /** @domName SVGTextPathElement.spacing */
-  final SVGAnimatedEnumeration spacing;
+  abstract SVGAnimatedEnumeration get spacing;
 
   /** @domName SVGTextPathElement.startOffset */
-  final SVGAnimatedLength startOffset;
+  abstract SVGAnimatedLength get startOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31552,22 +31670,22 @@ class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGT
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTextPositioningElement
-interface SVGTextPositioningElement extends SVGTextContentElement {
+abstract class SVGTextPositioningElement implements SVGTextContentElement {
 
   /** @domName SVGTextPositioningElement.dx */
-  final SVGAnimatedLengthList dx;
+  abstract SVGAnimatedLengthList get dx;
 
   /** @domName SVGTextPositioningElement.dy */
-  final SVGAnimatedLengthList dy;
+  abstract SVGAnimatedLengthList get dy;
 
   /** @domName SVGTextPositioningElement.rotate */
-  final SVGAnimatedNumberList rotate;
+  abstract SVGAnimatedNumberList get rotate;
 
   /** @domName SVGTextPositioningElement.x */
-  final SVGAnimatedLengthList x;
+  abstract SVGAnimatedLengthList get x;
 
   /** @domName SVGTextPositioningElement.y */
-  final SVGAnimatedLengthList y;
+  abstract SVGAnimatedLengthList get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31595,7 +31713,7 @@ class _SVGTextPositioningElementImpl extends _SVGTextContentElementImpl implemen
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTitleElement
-interface SVGTitleElement extends SVGElement, SVGLangSpace, SVGStylable {
+abstract class SVGTitleElement implements SVGElement, SVGLangSpace, SVGStylable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31627,7 +31745,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTransform
-interface SVGTransform {
+abstract class SVGTransform {
 
   static const int SVG_TRANSFORM_MATRIX = 1;
 
@@ -31644,13 +31762,13 @@ interface SVGTransform {
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   /** @domName SVGTransform.angle */
-  final num angle;
+  abstract num get angle;
 
   /** @domName SVGTransform.matrix */
-  final SVGMatrix matrix;
+  abstract SVGMatrix get matrix;
 
   /** @domName SVGTransform.type */
-  final int type;
+  abstract int get type;
 
   /** @domName SVGTransform.setMatrix */
   void setMatrix(SVGMatrix matrix);
@@ -31704,10 +31822,10 @@ class _SVGTransformImpl extends NativeFieldWrapperClass1 implements SVGTransform
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTransformList
-interface SVGTransformList {
+abstract class SVGTransformList {
 
   /** @domName SVGTransformList.numberOfItems */
-  final int numberOfItems;
+  abstract int get numberOfItems;
 
   /** @domName SVGTransformList.appendItem */
   SVGTransform appendItem(SVGTransform item);
@@ -31772,10 +31890,10 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTransformable
-interface SVGTransformable extends SVGLocatable {
+abstract class SVGTransformable implements SVGLocatable {
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  abstract SVGAnimatedTransformList get transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31784,10 +31902,10 @@ interface SVGTransformable extends SVGLocatable {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGURIReference
-interface SVGURIReference {
+abstract class SVGURIReference {
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  abstract SVGAnimatedString get href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31796,7 +31914,7 @@ interface SVGURIReference {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGUnitTypes
-interface SVGUnitTypes {
+abstract class SVGUnitTypes {
 
   static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
@@ -31820,25 +31938,25 @@ class _SVGUnitTypesImpl extends NativeFieldWrapperClass1 implements SVGUnitTypes
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGUseElement
-interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+abstract class SVGUseElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGUseElement.animatedInstanceRoot */
-  final SVGElementInstance animatedInstanceRoot;
+  abstract SVGElementInstance get animatedInstanceRoot;
 
   /** @domName SVGUseElement.height */
-  final SVGAnimatedLength height;
+  abstract SVGAnimatedLength get height;
 
   /** @domName SVGUseElement.instanceRoot */
-  final SVGElementInstance instanceRoot;
+  abstract SVGElementInstance get instanceRoot;
 
   /** @domName SVGUseElement.width */
-  final SVGAnimatedLength width;
+  abstract SVGAnimatedLength get width;
 
   /** @domName SVGUseElement.x */
-  final SVGAnimatedLength x;
+  abstract SVGAnimatedLength get x;
 
   /** @domName SVGUseElement.y */
-  final SVGAnimatedLength y;
+  abstract SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31908,7 +32026,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGVKernElement
-interface SVGVKernElement extends SVGElement {
+abstract class SVGVKernElement implements SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31926,10 +32044,10 @@ class _SVGVKernElementImpl extends _SVGElementImpl implements SVGVKernElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGViewElement
-interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
+abstract class SVGViewElement implements SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
 
   /** @domName SVGViewElement.viewTarget */
-  final SVGStringList viewTarget;
+  abstract SVGStringList get viewTarget;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31959,31 +32077,31 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGViewSpec
-interface SVGViewSpec {
+abstract class SVGViewSpec {
 
   /** @domName SVGViewSpec.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGViewSpec.preserveAspectRatioString */
-  final String preserveAspectRatioString;
+  abstract String get preserveAspectRatioString;
 
   /** @domName SVGViewSpec.transform */
-  final SVGTransformList transform;
+  abstract SVGTransformList get transform;
 
   /** @domName SVGViewSpec.transformString */
-  final String transformString;
+  abstract String get transformString;
 
   /** @domName SVGViewSpec.viewBox */
-  final SVGAnimatedRect viewBox;
+  abstract SVGAnimatedRect get viewBox;
 
   /** @domName SVGViewSpec.viewBoxString */
-  final String viewBoxString;
+  abstract String get viewBoxString;
 
   /** @domName SVGViewSpec.viewTarget */
-  final SVGElement viewTarget;
+  abstract SVGElement get viewTarget;
 
   /** @domName SVGViewSpec.viewTargetString */
-  final String viewTargetString;
+  abstract String get viewTargetString;
 
   /** @domName SVGViewSpec.zoomAndPan */
   int zoomAndPan;
@@ -32024,7 +32142,7 @@ class _SVGViewSpecImpl extends NativeFieldWrapperClass1 implements SVGViewSpec {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGZoomAndPan
-interface SVGZoomAndPan {
+abstract class SVGZoomAndPan {
 
   static const int SVG_ZOOMANDPAN_DISABLE = 1;
 
@@ -32042,22 +32160,22 @@ interface SVGZoomAndPan {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGZoomEvent
-interface SVGZoomEvent extends UIEvent {
+abstract class SVGZoomEvent implements UIEvent {
 
   /** @domName SVGZoomEvent.newScale */
-  final num newScale;
+  abstract num get newScale;
 
   /** @domName SVGZoomEvent.newTranslate */
-  final SVGPoint newTranslate;
+  abstract SVGPoint get newTranslate;
 
   /** @domName SVGZoomEvent.previousScale */
-  final num previousScale;
+  abstract num get previousScale;
 
   /** @domName SVGZoomEvent.previousTranslate */
-  final SVGPoint previousTranslate;
+  abstract SVGPoint get previousTranslate;
 
   /** @domName SVGZoomEvent.zoomRectScreen */
-  final SVGRect zoomRectScreen;
+  abstract SVGRect get zoomRectScreen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32085,31 +32203,31 @@ class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName Screen
-interface Screen {
+abstract class Screen {
 
   /** @domName Screen.availHeight */
-  final int availHeight;
+  abstract int get availHeight;
 
   /** @domName Screen.availLeft */
-  final int availLeft;
+  abstract int get availLeft;
 
   /** @domName Screen.availTop */
-  final int availTop;
+  abstract int get availTop;
 
   /** @domName Screen.availWidth */
-  final int availWidth;
+  abstract int get availWidth;
 
   /** @domName Screen.colorDepth */
-  final int colorDepth;
+  abstract int get colorDepth;
 
   /** @domName Screen.height */
-  final int height;
+  abstract int get height;
 
   /** @domName Screen.pixelDepth */
-  final int pixelDepth;
+  abstract int get pixelDepth;
 
   /** @domName Screen.width */
-  final int width;
+  abstract int get width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32143,9 +32261,9 @@ class _ScreenImpl extends NativeFieldWrapperClass1 implements Screen {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLScriptElement
-interface ScriptElement extends Element default _Elements {
+abstract class ScriptElement implements Element {
 
-  ScriptElement();
+  factory ScriptElement() => _Elements.createScriptElement();
 
   /** @domName HTMLScriptElement.async */
   bool async;
@@ -32219,16 +32337,16 @@ class _HTMLScriptElementImpl extends _HTMLElementImpl implements ScriptElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName ScriptProfile
-interface ScriptProfile {
+abstract class ScriptProfile {
 
   /** @domName ScriptProfile.head */
-  final ScriptProfileNode head;
+  abstract ScriptProfileNode get head;
 
   /** @domName ScriptProfile.title */
-  final String title;
+  abstract String get title;
 
   /** @domName ScriptProfile.uid */
-  final int uid;
+  abstract int get uid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32252,31 +32370,31 @@ class _ScriptProfileImpl extends NativeFieldWrapperClass1 implements ScriptProfi
 // WARNING: Do not edit - generated code.
 
 /// @domName ScriptProfileNode
-interface ScriptProfileNode {
+abstract class ScriptProfileNode {
 
   /** @domName ScriptProfileNode.callUID */
-  final int callUID;
+  abstract int get callUID;
 
   /** @domName ScriptProfileNode.functionName */
-  final String functionName;
+  abstract String get functionName;
 
   /** @domName ScriptProfileNode.lineNumber */
-  final int lineNumber;
+  abstract int get lineNumber;
 
   /** @domName ScriptProfileNode.numberOfCalls */
-  final int numberOfCalls;
+  abstract int get numberOfCalls;
 
   /** @domName ScriptProfileNode.selfTime */
-  final num selfTime;
+  abstract num get selfTime;
 
   /** @domName ScriptProfileNode.totalTime */
-  final num totalTime;
+  abstract num get totalTime;
 
   /** @domName ScriptProfileNode.url */
-  final String url;
+  abstract String get url;
 
   /** @domName ScriptProfileNode.visible */
-  final bool visible;
+  abstract bool get visible;
 
   /** @domName ScriptProfileNode.children */
   List<ScriptProfileNode> children();
@@ -32315,9 +32433,9 @@ class _ScriptProfileNodeImpl extends NativeFieldWrapperClass1 implements ScriptP
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSelectElement
-interface SelectElement extends Element default _Elements {
+abstract class SelectElement implements Element {
 
-  SelectElement();
+  factory SelectElement() => _Elements.createSelectElement();
 
   /** @domName HTMLSelectElement.autofocus */
   bool autofocus;
@@ -32326,10 +32444,10 @@ interface SelectElement extends Element default _Elements {
   bool disabled;
 
   /** @domName HTMLSelectElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLSelectElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLSelectElement.length */
   int length;
@@ -32341,7 +32459,7 @@ interface SelectElement extends Element default _Elements {
   String name;
 
   /** @domName HTMLSelectElement.options */
-  final HTMLOptionsCollection options;
+  abstract HTMLOptionsCollection get options;
 
   /** @domName HTMLSelectElement.required */
   bool required;
@@ -32350,25 +32468,25 @@ interface SelectElement extends Element default _Elements {
   int selectedIndex;
 
   /** @domName HTMLSelectElement.selectedOptions */
-  final HTMLCollection selectedOptions;
+  abstract HTMLCollection get selectedOptions;
 
   /** @domName HTMLSelectElement.size */
   int size;
 
   /** @domName HTMLSelectElement.type */
-  final String type;
+  abstract String get type;
 
   /** @domName HTMLSelectElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLSelectElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLSelectElement.value */
   String value;
 
   /** @domName HTMLSelectElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLSelectElement.checkValidity */
   bool checkValidity();
@@ -32458,9 +32576,9 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SessionDescription
-interface SessionDescription default _SessionDescriptionFactoryProvider {
+abstract class SessionDescription {
 
-  SessionDescription(String sdp);
+  factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
 
   /** @domName SessionDescription.addCandidate */
   void addCandidate(IceCandidate candidate);
@@ -32488,7 +32606,7 @@ class _SessionDescriptionImpl extends NativeFieldWrapperClass1 implements Sessio
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLShadowElement
-interface ShadowElement extends Element {
+abstract class ShadowElement implements Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32506,12 +32624,12 @@ class _HTMLShadowElementImpl extends _HTMLElementImpl implements ShadowElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName ShadowRoot
-interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
+abstract class ShadowRoot implements DocumentFragment {
 
-  ShadowRoot(Element host);
+  factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
   /** @domName ShadowRoot.activeElement */
-  final Element activeElement;
+  abstract Element get activeElement;
 
   /** @domName ShadowRoot.applyAuthorStyles */
   bool applyAuthorStyles;
@@ -32582,12 +32700,17 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 // WARNING: Do not edit - generated code.
 
 /// @domName SharedWorker
-interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvider {
+abstract class SharedWorker implements AbstractWorker {
 
-  SharedWorker(String scriptURL, [String name]);
+  factory SharedWorker(String scriptURL, [String name]) {
+    if (!?name) {
+      return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
+    }
+    return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL, name);
+  }
 
   /** @domName SharedWorker.port */
-  final MessagePort port;
+  abstract MessagePort get port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32596,7 +32719,7 @@ interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvid
 // WARNING: Do not edit - generated code.
 
 /// @domName SharedWorkerContext
-interface SharedWorkerContext extends WorkerContext {
+abstract class SharedWorkerContext implements WorkerContext {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -32604,10 +32727,10 @@ interface SharedWorkerContext extends WorkerContext {
   SharedWorkerContextEvents get on;
 
   /** @domName SharedWorkerContext.name */
-  final String name;
+  abstract String get name;
 }
 
-interface SharedWorkerContextEvents extends WorkerContextEvents {
+abstract class SharedWorkerContextEvents implements WorkerContextEvents {
 
   EventListenerList get connect;
 }
@@ -32649,10 +32772,10 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
 // WARNING: Do not edit - generated code.
 
 /// @domName SourceBuffer
-interface SourceBuffer {
+abstract class SourceBuffer {
 
   /** @domName SourceBuffer.buffered */
-  final TimeRanges buffered;
+  abstract TimeRanges get buffered;
 
   /** @domName SourceBuffer.timestampOffset */
   num timestampOffset;
@@ -32689,10 +32812,10 @@ class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer
 // WARNING: Do not edit - generated code.
 
 /// @domName SourceBufferList
-interface SourceBufferList extends EventTarget {
+abstract class SourceBufferList implements EventTarget {
 
   /** @domName SourceBufferList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SourceBufferList.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -32732,9 +32855,9 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSourceElement
-interface SourceElement extends Element default _Elements {
+abstract class SourceElement implements Element {
 
-  SourceElement();
+  factory SourceElement() => _Elements.createSourceElement();
 
   /** @domName HTMLSourceElement.media */
   String media;
@@ -32773,9 +32896,9 @@ class _HTMLSourceElementImpl extends _HTMLElementImpl implements SourceElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSpanElement
-interface SpanElement extends Element default _Elements {
+abstract class SpanElement implements Element {
 
-  SpanElement();
+  factory SpanElement() => _Elements.createSpanElement();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32793,9 +32916,9 @@ class _HTMLSpanElementImpl extends _HTMLElementImpl implements SpanElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechGrammar
-interface SpeechGrammar default _SpeechGrammarFactoryProvider {
+abstract class SpeechGrammar {
 
-  SpeechGrammar();
+  factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
 
   /** @domName SpeechGrammar.src */
   String src;
@@ -32827,12 +32950,12 @@ class _SpeechGrammarImpl extends NativeFieldWrapperClass1 implements SpeechGramm
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechGrammarList
-interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
+abstract class SpeechGrammarList {
 
-  SpeechGrammarList();
+  factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
   /** @domName SpeechGrammarList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SpeechGrammarList.addFromString */
   void addFromString(String string, [num weight]);
@@ -32887,10 +33010,10 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechInputEvent
-interface SpeechInputEvent extends Event {
+abstract class SpeechInputEvent implements Event {
 
   /** @domName SpeechInputEvent.results */
-  final SpeechInputResultList results;
+  abstract SpeechInputResultList get results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32910,13 +33033,13 @@ class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechInputResult
-interface SpeechInputResult {
+abstract class SpeechInputResult {
 
   /** @domName SpeechInputResult.confidence */
-  final num confidence;
+  abstract num get confidence;
 
   /** @domName SpeechInputResult.utterance */
-  final String utterance;
+  abstract String get utterance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32938,10 +33061,10 @@ class _SpeechInputResultImpl extends NativeFieldWrapperClass1 implements SpeechI
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechInputResultList
-interface SpeechInputResultList {
+abstract class SpeechInputResultList {
 
   /** @domName SpeechInputResultList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SpeechInputResultList.item */
   SpeechInputResult item(int index);
@@ -32966,9 +33089,9 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Spe
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognition
-interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactoryProvider {
+abstract class SpeechRecognition implements EventTarget {
 
-  SpeechRecognition();
+  factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -33006,7 +33129,7 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
   void stop();
 }
 
-interface SpeechRecognitionEvents extends Events {
+abstract class SpeechRecognitionEvents implements Events {
 
   EventListenerList get audioEnd;
 
@@ -33039,13 +33162,13 @@ interface SpeechRecognitionEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionAlternative
-interface SpeechRecognitionAlternative {
+abstract class SpeechRecognitionAlternative {
 
   /** @domName SpeechRecognitionAlternative.confidence */
-  final num confidence;
+  abstract num get confidence;
 
   /** @domName SpeechRecognitionAlternative.transcript */
-  final String transcript;
+  abstract String get transcript;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33067,7 +33190,7 @@ class _SpeechRecognitionAlternativeImpl extends NativeFieldWrapperClass1 impleme
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionError
-interface SpeechRecognitionError extends Event {
+abstract class SpeechRecognitionError implements Event {
 
   static const int ABORTED = 2;
 
@@ -33088,10 +33211,10 @@ interface SpeechRecognitionError extends Event {
   static const int SERVICE_NOT_ALLOWED = 6;
 
   /** @domName SpeechRecognitionError.code */
-  final int code;
+  abstract int get code;
 
   /** @domName SpeechRecognitionError.message */
-  final String message;
+  abstract String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33113,16 +33236,16 @@ class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitio
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionEvent
-interface SpeechRecognitionEvent extends Event {
+abstract class SpeechRecognitionEvent implements Event {
 
   /** @domName SpeechRecognitionEvent.result */
-  final SpeechRecognitionResult result;
+  abstract SpeechRecognitionResult get result;
 
   /** @domName SpeechRecognitionEvent.resultHistory */
-  final SpeechRecognitionResultList resultHistory;
+  abstract SpeechRecognitionResultList get resultHistory;
 
   /** @domName SpeechRecognitionEvent.resultIndex */
-  final int resultIndex;
+  abstract int get resultIndex;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33214,16 +33337,16 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionResult
-interface SpeechRecognitionResult {
+abstract class SpeechRecognitionResult {
 
   /** @domName SpeechRecognitionResult.emma */
-  final Document emma;
+  abstract Document get emma;
 
   /** @domName SpeechRecognitionResult.finalValue */
-  final bool finalValue;
+  abstract bool get finalValue;
 
   /** @domName SpeechRecognitionResult.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SpeechRecognitionResult.item */
   SpeechRecognitionAlternative item(int index);
@@ -33252,10 +33375,10 @@ class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements S
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionResultList
-interface SpeechRecognitionResultList {
+abstract class SpeechRecognitionResultList {
 
   /** @domName SpeechRecognitionResultList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName SpeechRecognitionResultList.item */
   SpeechRecognitionResult item(int index);
@@ -33278,10 +33401,10 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
 // BSD-style license that can be found in the LICENSE file.
 
 /// @domName Storage
-interface Storage extends Map<String, String> {
+abstract class Storage implements Map<String, String> {
 
   /** @domName Storage.length */
-  final int $dom_length;
+  abstract int get $dom_length;
 
   /** @domName Storage.clear */
   void $dom_clear();
@@ -33306,22 +33429,22 @@ interface Storage extends Map<String, String> {
 // WARNING: Do not edit - generated code.
 
 /// @domName StorageEvent
-interface StorageEvent extends Event {
+abstract class StorageEvent implements Event {
 
   /** @domName StorageEvent.key */
-  final String key;
+  abstract String get key;
 
   /** @domName StorageEvent.newValue */
-  final String newValue;
+  abstract String get newValue;
 
   /** @domName StorageEvent.oldValue */
-  final String oldValue;
+  abstract String get oldValue;
 
   /** @domName StorageEvent.storageArea */
-  final Storage storageArea;
+  abstract Storage get storageArea;
 
   /** @domName StorageEvent.url */
-  final String url;
+  abstract String get url;
 
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
@@ -33420,7 +33543,7 @@ class _StorageImpl extends NativeFieldWrapperClass1 implements Storage {
 // WARNING: Do not edit - generated code.
 
 /// @domName StorageInfo
-interface StorageInfo {
+abstract class StorageInfo {
 
   static const int PERSISTENT = 1;
 
@@ -33480,9 +33603,9 @@ typedef bool StringCallback(String data);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLStyleElement
-interface StyleElement extends Element default _Elements {
+abstract class StyleElement implements Element {
 
-  StyleElement();
+  factory StyleElement() => _Elements.createStyleElement();
 
   /** @domName HTMLStyleElement.disabled */
   bool disabled;
@@ -33494,7 +33617,7 @@ interface StyleElement extends Element default _Elements {
   bool scoped;
 
   /** @domName HTMLStyleElement.sheet */
-  final StyleSheet sheet;
+  abstract StyleSheet get sheet;
 
   /** @domName HTMLStyleElement.type */
   String type;
@@ -33533,10 +33656,10 @@ class _HTMLStyleElementImpl extends _HTMLElementImpl implements StyleElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName StyleMedia
-interface StyleMedia {
+abstract class StyleMedia {
 
   /** @domName StyleMedia.type */
-  final String type;
+  abstract String get type;
 
   /** @domName StyleMedia.matchMedium */
   bool matchMedium(String mediaquery);
@@ -33561,28 +33684,28 @@ class _StyleMediaImpl extends NativeFieldWrapperClass1 implements StyleMedia {
 // WARNING: Do not edit - generated code.
 
 /// @domName StyleSheet
-interface StyleSheet {
+abstract class StyleSheet {
 
   /** @domName StyleSheet.disabled */
   bool disabled;
 
   /** @domName StyleSheet.href */
-  final String href;
+  abstract String get href;
 
   /** @domName StyleSheet.media */
-  final MediaList media;
+  abstract MediaList get media;
 
   /** @domName StyleSheet.ownerNode */
-  final Node ownerNode;
+  abstract Node get ownerNode;
 
   /** @domName StyleSheet.parentStyleSheet */
-  final StyleSheet parentStyleSheet;
+  abstract StyleSheet get parentStyleSheet;
 
   /** @domName StyleSheet.title */
-  final String title;
+  abstract String get title;
 
   /** @domName StyleSheet.type */
-  final String type;
+  abstract String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33616,10 +33739,10 @@ class _StyleSheetImpl extends NativeFieldWrapperClass1 implements StyleSheet {
 // WARNING: Do not edit - generated code.
 
 /// @domName StyleSheetList
-interface StyleSheetList extends List<StyleSheet> {
+abstract class StyleSheetList implements List<StyleSheet> {
 
   /** @domName StyleSheetList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName StyleSheetList.item */
   StyleSheet item(int index);
@@ -33726,9 +33849,9 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements StyleSheet
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableCaptionElement
-interface TableCaptionElement extends Element default _Elements {
+abstract class TableCaptionElement implements Element {
 
-  TableCaptionElement();
+  factory TableCaptionElement() => _Elements.createTableCaptionElement();
 
   /** @domName HTMLTableCaptionElement.align */
   String align;
@@ -33753,9 +33876,9 @@ class _HTMLTableCaptionElementImpl extends _HTMLElementImpl implements TableCapt
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableCellElement
-interface TableCellElement extends Element default _Elements {
+abstract class TableCellElement implements Element {
 
-  TableCellElement();
+  factory TableCellElement() => _Elements.createTableCellElement();
 
   /** @domName HTMLTableCellElement.abbr */
   String abbr;
@@ -33770,7 +33893,7 @@ interface TableCellElement extends Element default _Elements {
   String bgColor;
 
   /** @domName HTMLTableCellElement.cellIndex */
-  final int cellIndex;
+  abstract int get cellIndex;
 
   /** @domName HTMLTableCellElement.ch */
   String ch;
@@ -33876,9 +33999,9 @@ class _HTMLTableCellElementImpl extends _HTMLElementImpl implements TableCellEle
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableColElement
-interface TableColElement extends Element default _Elements {
+abstract class TableColElement implements Element {
 
-  TableColElement();
+  factory TableColElement() => _Elements.createTableColElement();
 
   /** @domName HTMLTableColElement.align */
   String align;
@@ -33938,9 +34061,9 @@ class _HTMLTableColElementImpl extends _HTMLElementImpl implements TableColEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableElement
-interface TableElement extends Element default _Elements {
+abstract class TableElement implements Element {
 
-  TableElement();
+  factory TableElement() => _Elements.createTableElement();
 
   /** @domName HTMLTableElement.align */
   String align;
@@ -33964,7 +34087,7 @@ interface TableElement extends Element default _Elements {
   String frame;
 
   /** @domName HTMLTableElement.rows */
-  final HTMLCollection rows;
+  abstract HTMLCollection get rows;
 
   /** @domName HTMLTableElement.rules */
   String rules;
@@ -33973,7 +34096,7 @@ interface TableElement extends Element default _Elements {
   String summary;
 
   /** @domName HTMLTableElement.tBodies */
-  final HTMLCollection tBodies;
+  abstract HTMLCollection get tBodies;
 
   /** @domName HTMLTableElement.tFoot */
   TableSectionElement tFoot;
@@ -34097,9 +34220,9 @@ class _HTMLTableElementImpl extends _HTMLElementImpl implements TableElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableRowElement
-interface TableRowElement extends Element default _Elements {
+abstract class TableRowElement implements Element {
 
-  TableRowElement();
+  factory TableRowElement() => _Elements.createTableRowElement();
 
   /** @domName HTMLTableRowElement.align */
   String align;
@@ -34108,7 +34231,7 @@ interface TableRowElement extends Element default _Elements {
   String bgColor;
 
   /** @domName HTMLTableRowElement.cells */
-  final HTMLCollection cells;
+  abstract HTMLCollection get cells;
 
   /** @domName HTMLTableRowElement.ch */
   String ch;
@@ -34117,10 +34240,10 @@ interface TableRowElement extends Element default _Elements {
   String chOff;
 
   /** @domName HTMLTableRowElement.rowIndex */
-  final int rowIndex;
+  abstract int get rowIndex;
 
   /** @domName HTMLTableRowElement.sectionRowIndex */
-  final int sectionRowIndex;
+  abstract int get sectionRowIndex;
 
   /** @domName HTMLTableRowElement.vAlign */
   String vAlign;
@@ -34177,7 +34300,7 @@ class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableSectionElement
-interface TableSectionElement extends Element {
+abstract class TableSectionElement implements Element {
 
   /** @domName HTMLTableSectionElement.align */
   String align;
@@ -34189,7 +34312,7 @@ interface TableSectionElement extends Element {
   String chOff;
 
   /** @domName HTMLTableSectionElement.rows */
-  final HTMLCollection rows;
+  abstract HTMLCollection get rows;
 
   /** @domName HTMLTableSectionElement.vAlign */
   String vAlign;
@@ -34238,12 +34361,12 @@ class _HTMLTableSectionElementImpl extends _HTMLElementImpl implements TableSect
 // WARNING: Do not edit - generated code.
 
 /// @domName Text
-interface Text extends CharacterData default _TextFactoryProvider {
+abstract class Text implements CharacterData {
 
-  Text(String data);
+  factory Text(String data) => _TextFactoryProvider.createText(data);
 
   /** @domName Text.wholeText */
-  final String wholeText;
+  abstract String get wholeText;
 
   /** @domName Text.replaceWholeText */
   Text replaceWholeText(String content);
@@ -34258,9 +34381,9 @@ interface Text extends CharacterData default _TextFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTextAreaElement
-interface TextAreaElement extends Element default _Elements {
+abstract class TextAreaElement implements Element {
 
-  TextAreaElement();
+  factory TextAreaElement() => _Elements.createTextAreaElement();
 
   /** @domName HTMLTextAreaElement.autofocus */
   bool autofocus;
@@ -34275,10 +34398,10 @@ interface TextAreaElement extends Element default _Elements {
   bool disabled;
 
   /** @domName HTMLTextAreaElement.form */
-  final FormElement form;
+  abstract FormElement get form;
 
   /** @domName HTMLTextAreaElement.labels */
-  final NodeList labels;
+  abstract NodeList get labels;
 
   /** @domName HTMLTextAreaElement.maxLength */
   int maxLength;
@@ -34308,22 +34431,22 @@ interface TextAreaElement extends Element default _Elements {
   int selectionStart;
 
   /** @domName HTMLTextAreaElement.textLength */
-  final int textLength;
+  abstract int get textLength;
 
   /** @domName HTMLTextAreaElement.type */
-  final String type;
+  abstract String get type;
 
   /** @domName HTMLTextAreaElement.validationMessage */
-  final String validationMessage;
+  abstract String get validationMessage;
 
   /** @domName HTMLTextAreaElement.validity */
-  final ValidityState validity;
+  abstract ValidityState get validity;
 
   /** @domName HTMLTextAreaElement.value */
   String value;
 
   /** @domName HTMLTextAreaElement.willValidate */
-  final bool willValidate;
+  abstract bool get willValidate;
 
   /** @domName HTMLTextAreaElement.wrap */
   String wrap;
@@ -34448,10 +34571,10 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 // WARNING: Do not edit - generated code.
 
 /// @domName TextEvent
-interface TextEvent extends UIEvent {
+abstract class TextEvent implements UIEvent {
 
   /** @domName TextEvent.data */
-  final String data;
+  abstract String get data;
 
   /** @domName TextEvent.initTextEvent */
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
@@ -34491,10 +34614,10 @@ class _TextImpl extends _CharacterDataImpl implements Text {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextMetrics
-interface TextMetrics {
+abstract class TextMetrics {
 
   /** @domName TextMetrics.width */
-  final num width;
+  abstract num get width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34514,7 +34637,7 @@ class _TextMetricsImpl extends NativeFieldWrapperClass1 implements TextMetrics {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrack
-interface TextTrack extends EventTarget {
+abstract class TextTrack implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -34522,19 +34645,19 @@ interface TextTrack extends EventTarget {
   TextTrackEvents get on;
 
   /** @domName TextTrack.activeCues */
-  final TextTrackCueList activeCues;
+  abstract TextTrackCueList get activeCues;
 
   /** @domName TextTrack.cues */
-  final TextTrackCueList cues;
+  abstract TextTrackCueList get cues;
 
   /** @domName TextTrack.kind */
-  final String kind;
+  abstract String get kind;
 
   /** @domName TextTrack.label */
-  final String label;
+  abstract String get label;
 
   /** @domName TextTrack.language */
-  final String language;
+  abstract String get language;
 
   /** @domName TextTrack.mode */
   String mode;
@@ -34555,7 +34678,7 @@ interface TextTrack extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface TextTrackEvents extends Events {
+abstract class TextTrackEvents implements Events {
 
   EventListenerList get cueChange;
 }
@@ -34566,9 +34689,9 @@ interface TextTrackEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackCue
-interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider {
+abstract class TextTrackCue implements EventTarget {
 
-  TextTrackCue(num startTime, num endTime, String text);
+  factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -34606,7 +34729,7 @@ interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider 
   String text;
 
   /** @domName TextTrackCue.track */
-  final TextTrack track;
+  abstract TextTrack get track;
 
   /** @domName TextTrackCue.vertical */
   String vertical;
@@ -34624,7 +34747,7 @@ interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface TextTrackCueEvents extends Events {
+abstract class TextTrackCueEvents implements Events {
 
   EventListenerList get enter;
 
@@ -34711,10 +34834,10 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackCueList
-interface TextTrackCueList {
+abstract class TextTrackCueList {
 
   /** @domName TextTrackCueList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName TextTrackCueList.getCueById */
   TextTrackCue getCueById(String id);
@@ -34786,7 +34909,7 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackList
-interface TextTrackList extends EventTarget {
+abstract class TextTrackList implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -34794,7 +34917,7 @@ interface TextTrackList extends EventTarget {
   TextTrackListEvents get on;
 
   /** @domName TextTrackList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName TextTrackList.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -34809,7 +34932,7 @@ interface TextTrackList extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface TextTrackListEvents extends Events {
+abstract class TextTrackListEvents implements Events {
 
   EventListenerList get addTrack;
 }
@@ -34848,10 +34971,10 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 // WARNING: Do not edit - generated code.
 
 /// @domName TimeRanges
-interface TimeRanges {
+abstract class TimeRanges {
 
   /** @domName TimeRanges.length */
-  final int length;
+  abstract int get length;
 
   /** @domName TimeRanges.end */
   num end(int index);
@@ -34888,9 +35011,9 @@ typedef void TimeoutHandler();
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTitleElement
-interface TitleElement extends Element default _Elements {
+abstract class TitleElement implements Element {
 
-  TitleElement();
+  factory TitleElement() => _Elements.createTitleElement();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34908,43 +35031,43 @@ class _HTMLTitleElementImpl extends _HTMLElementImpl implements TitleElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName Touch
-interface Touch {
+abstract class Touch {
 
   /** @domName Touch.clientX */
-  final int clientX;
+  abstract int get clientX;
 
   /** @domName Touch.clientY */
-  final int clientY;
+  abstract int get clientY;
 
   /** @domName Touch.identifier */
-  final int identifier;
+  abstract int get identifier;
 
   /** @domName Touch.pageX */
-  final int pageX;
+  abstract int get pageX;
 
   /** @domName Touch.pageY */
-  final int pageY;
+  abstract int get pageY;
 
   /** @domName Touch.screenX */
-  final int screenX;
+  abstract int get screenX;
 
   /** @domName Touch.screenY */
-  final int screenY;
+  abstract int get screenY;
 
   /** @domName Touch.target */
-  final EventTarget target;
+  abstract EventTarget get target;
 
   /** @domName Touch.webkitForce */
-  final num webkitForce;
+  abstract num get webkitForce;
 
   /** @domName Touch.webkitRadiusX */
-  final int webkitRadiusX;
+  abstract int get webkitRadiusX;
 
   /** @domName Touch.webkitRadiusY */
-  final int webkitRadiusY;
+  abstract int get webkitRadiusY;
 
   /** @domName Touch.webkitRotationAngle */
-  final num webkitRotationAngle;
+  abstract num get webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34953,28 +35076,28 @@ interface Touch {
 // WARNING: Do not edit - generated code.
 
 /// @domName TouchEvent
-interface TouchEvent extends UIEvent {
+abstract class TouchEvent implements UIEvent {
 
   /** @domName TouchEvent.altKey */
-  final bool altKey;
+  abstract bool get altKey;
 
   /** @domName TouchEvent.changedTouches */
-  final TouchList changedTouches;
+  abstract TouchList get changedTouches;
 
   /** @domName TouchEvent.ctrlKey */
-  final bool ctrlKey;
+  abstract bool get ctrlKey;
 
   /** @domName TouchEvent.metaKey */
-  final bool metaKey;
+  abstract bool get metaKey;
 
   /** @domName TouchEvent.shiftKey */
-  final bool shiftKey;
+  abstract bool get shiftKey;
 
   /** @domName TouchEvent.targetTouches */
-  final TouchList targetTouches;
+  abstract TouchList get targetTouches;
 
   /** @domName TouchEvent.touches */
-  final TouchList touches;
+  abstract TouchList get touches;
 
   /** @domName TouchEvent.initTouchEvent */
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -35044,10 +35167,10 @@ class _TouchImpl extends NativeFieldWrapperClass1 implements Touch {
 // WARNING: Do not edit - generated code.
 
 /// @domName TouchList
-interface TouchList extends List<Touch> {
+abstract class TouchList implements List<Touch> {
 
   /** @domName TouchList.length */
-  final int length;
+  abstract int get length;
 
   /** @domName TouchList.item */
   Touch item(int index);
@@ -35154,9 +35277,9 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTrackElement
-interface TrackElement extends Element default _Elements {
+abstract class TrackElement implements Element {
 
-  TrackElement();
+  factory TrackElement() => _Elements.createTrackElement();
 
   static const int ERROR = 3;
 
@@ -35176,7 +35299,7 @@ interface TrackElement extends Element default _Elements {
   String label;
 
   /** @domName HTMLTrackElement.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName HTMLTrackElement.src */
   String src;
@@ -35185,7 +35308,7 @@ interface TrackElement extends Element default _Elements {
   String srclang;
 
   /** @domName HTMLTrackElement.track */
-  final TextTrack track;
+  abstract TextTrack get track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35227,10 +35350,10 @@ class _HTMLTrackElementImpl extends _HTMLElementImpl implements TrackElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName TrackEvent
-interface TrackEvent extends Event {
+abstract class TrackEvent implements Event {
 
   /** @domName TrackEvent.track */
-  final Object track;
+  abstract Object get track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35250,13 +35373,13 @@ class _TrackEventImpl extends _EventImpl implements TrackEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitTransitionEvent
-interface TransitionEvent extends Event {
+abstract class TransitionEvent implements Event {
 
   /** @domName WebKitTransitionEvent.elapsedTime */
-  final num elapsedTime;
+  abstract num get elapsedTime;
 
   /** @domName WebKitTransitionEvent.propertyName */
-  final String propertyName;
+  abstract String get propertyName;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35278,22 +35401,22 @@ class _WebKitTransitionEventImpl extends _EventImpl implements TransitionEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName TreeWalker
-interface TreeWalker {
+abstract class TreeWalker {
 
   /** @domName TreeWalker.currentNode */
   Node currentNode;
 
   /** @domName TreeWalker.expandEntityReferences */
-  final bool expandEntityReferences;
+  abstract bool get expandEntityReferences;
 
   /** @domName TreeWalker.filter */
-  final NodeFilter filter;
+  abstract NodeFilter get filter;
 
   /** @domName TreeWalker.root */
-  final Node root;
+  abstract Node get root;
 
   /** @domName TreeWalker.whatToShow */
-  final int whatToShow;
+  abstract int get whatToShow;
 
   /** @domName TreeWalker.firstChild */
   Node firstChild();
@@ -35358,34 +35481,34 @@ class _TreeWalkerImpl extends NativeFieldWrapperClass1 implements TreeWalker {
 // WARNING: Do not edit - generated code.
 
 /// @domName UIEvent
-interface UIEvent extends Event {
+abstract class UIEvent implements Event {
 
   /** @domName UIEvent.charCode */
-  final int charCode;
+  abstract int get charCode;
 
   /** @domName UIEvent.detail */
-  final int detail;
+  abstract int get detail;
 
   /** @domName UIEvent.keyCode */
-  final int keyCode;
+  abstract int get keyCode;
 
   /** @domName UIEvent.layerX */
-  final int layerX;
+  abstract int get layerX;
 
   /** @domName UIEvent.layerY */
-  final int layerY;
+  abstract int get layerY;
 
   /** @domName UIEvent.pageX */
-  final int pageX;
+  abstract int get pageX;
 
   /** @domName UIEvent.pageY */
-  final int pageY;
+  abstract int get pageY;
 
   /** @domName UIEvent.view */
-  final Window view;
+  abstract Window get view;
 
   /** @domName UIEvent.which */
-  final int which;
+  abstract int get which;
 
   /** @domName UIEvent.initUIEvent */
   void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
@@ -35426,9 +35549,9 @@ class _UIEventImpl extends _EventImpl implements UIEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLUListElement
-interface UListElement extends Element default _Elements {
+abstract class UListElement implements Element {
 
-  UListElement();
+  factory UListElement() => _Elements.createUListElement();
 
   /** @domName HTMLUListElement.compact */
   bool compact;
@@ -35460,18 +35583,21 @@ class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint16Array
-interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+abstract class Uint16Array implements ArrayBufferView, List<int> {
 
-  Uint16Array(int length);
+  factory Uint16Array(int length) =>
+    _TypedArrayFactoryProvider.createUint16Array(length);
 
-  Uint16Array.fromList(List<int> list);
+  factory Uint16Array.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
-  Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 
   /** @domName Uint16Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Uint16Array.setElements */
   void setElements(Object array, [int offset]);
@@ -35590,18 +35716,21 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint32Array
-interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+abstract class Uint32Array implements ArrayBufferView, List<int> {
 
-  Uint32Array(int length);
+  factory Uint32Array(int length) =>
+    _TypedArrayFactoryProvider.createUint32Array(length);
 
-  Uint32Array.fromList(List<int> list);
+  factory Uint32Array.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
-  Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Uint32Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Uint32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -35720,18 +35849,21 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint8Array
-interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+abstract class Uint8Array implements ArrayBufferView, List<int> {
 
-  Uint8Array(int length);
+  factory Uint8Array(int length) =>
+    _TypedArrayFactoryProvider.createUint8Array(length);
 
-  Uint8Array.fromList(List<int> list);
+  factory Uint8Array.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
-  Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 
   /** @domName Uint8Array.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Uint8Array.setElements */
   void setElements(Object array, [int offset]);
@@ -35850,16 +35982,19 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName Uint8ClampedArray
-interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
+abstract class Uint8ClampedArray implements Uint8Array {
 
-  Uint8ClampedArray(int length);
+  factory Uint8ClampedArray(int length) =>
+    _TypedArrayFactoryProvider.createUint8ClampedArray(length);
 
-  Uint8ClampedArray.fromList(List<int> list);
+  factory Uint8ClampedArray.fromList(List<int> list) =>
+    _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
-  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+    _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   /** @domName Uint8ClampedArray.length */
-  final int length;
+  abstract int get length;
 
   /** @domName Uint8ClampedArray.setElements */
   void setElements(Object array, [int offset]);
@@ -35902,7 +36037,7 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLUnknownElement
-interface UnknownElement extends Element {
+abstract class UnknownElement implements Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35920,34 +36055,34 @@ class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement
 // WARNING: Do not edit - generated code.
 
 /// @domName ValidityState
-interface ValidityState {
+abstract class ValidityState {
 
   /** @domName ValidityState.customError */
-  final bool customError;
+  abstract bool get customError;
 
   /** @domName ValidityState.patternMismatch */
-  final bool patternMismatch;
+  abstract bool get patternMismatch;
 
   /** @domName ValidityState.rangeOverflow */
-  final bool rangeOverflow;
+  abstract bool get rangeOverflow;
 
   /** @domName ValidityState.rangeUnderflow */
-  final bool rangeUnderflow;
+  abstract bool get rangeUnderflow;
 
   /** @domName ValidityState.stepMismatch */
-  final bool stepMismatch;
+  abstract bool get stepMismatch;
 
   /** @domName ValidityState.tooLong */
-  final bool tooLong;
+  abstract bool get tooLong;
 
   /** @domName ValidityState.typeMismatch */
-  final bool typeMismatch;
+  abstract bool get typeMismatch;
 
   /** @domName ValidityState.valid */
-  final bool valid;
+  abstract bool get valid;
 
   /** @domName ValidityState.valueMissing */
-  final bool valueMissing;
+  abstract bool get valueMissing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35983,9 +36118,9 @@ class _ValidityStateImpl extends NativeFieldWrapperClass1 implements ValiditySta
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLVideoElement
-interface VideoElement extends MediaElement default _Elements {
+abstract class VideoElement implements MediaElement {
 
-  VideoElement();
+  factory VideoElement() => _Elements.createVideoElement();
 
   /** @domName HTMLVideoElement.height */
   int height;
@@ -35994,22 +36129,22 @@ interface VideoElement extends MediaElement default _Elements {
   String poster;
 
   /** @domName HTMLVideoElement.videoHeight */
-  final int videoHeight;
+  abstract int get videoHeight;
 
   /** @domName HTMLVideoElement.videoWidth */
-  final int videoWidth;
+  abstract int get videoWidth;
 
   /** @domName HTMLVideoElement.webkitDecodedFrameCount */
-  final int webkitDecodedFrameCount;
+  abstract int get webkitDecodedFrameCount;
 
   /** @domName HTMLVideoElement.webkitDisplayingFullscreen */
-  final bool webkitDisplayingFullscreen;
+  abstract bool get webkitDisplayingFullscreen;
 
   /** @domName HTMLVideoElement.webkitDroppedFrameCount */
-  final int webkitDroppedFrameCount;
+  abstract int get webkitDroppedFrameCount;
 
   /** @domName HTMLVideoElement.webkitSupportsFullscreen */
-  final bool webkitSupportsFullscreen;
+  abstract bool get webkitSupportsFullscreen;
 
   /** @domName HTMLVideoElement.width */
   int width;
@@ -36081,7 +36216,7 @@ typedef bool VoidCallback();
 // WARNING: Do not edit - generated code.
 
 /// @domName WaveShaperNode
-interface WaveShaperNode extends AudioNode {
+abstract class WaveShaperNode implements AudioNode {
 
   /** @domName WaveShaperNode.curve */
   Float32Array curve;
@@ -36106,7 +36241,7 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName WaveTable
-interface WaveTable {
+abstract class WaveTable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36124,16 +36259,16 @@ class _WaveTableImpl extends NativeFieldWrapperClass1 implements WaveTable {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLActiveInfo
-interface WebGLActiveInfo {
+abstract class WebGLActiveInfo {
 
   /** @domName WebGLActiveInfo.name */
-  final String name;
+  abstract String get name;
 
   /** @domName WebGLActiveInfo.size */
-  final int size;
+  abstract int get size;
 
   /** @domName WebGLActiveInfo.type */
-  final int type;
+  abstract int get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36157,7 +36292,7 @@ class _WebGLActiveInfoImpl extends NativeFieldWrapperClass1 implements WebGLActi
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLBuffer
-interface WebGLBuffer {
+abstract class WebGLBuffer {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36175,7 +36310,7 @@ class _WebGLBufferImpl extends NativeFieldWrapperClass1 implements WebGLBuffer {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLCompressedTextureS3TC
-interface WebGLCompressedTextureS3TC {
+abstract class WebGLCompressedTextureS3TC {
 
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
@@ -36201,7 +36336,7 @@ class _WebGLCompressedTextureS3TCImpl extends NativeFieldWrapperClass1 implement
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLContextAttributes
-interface WebGLContextAttributes {
+abstract class WebGLContextAttributes {
 
   /** @domName WebGLContextAttributes.alpha */
   bool alpha;
@@ -36261,10 +36396,10 @@ class _WebGLContextAttributesImpl extends NativeFieldWrapperClass1 implements We
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLContextEvent
-interface WebGLContextEvent extends Event {
+abstract class WebGLContextEvent implements Event {
 
   /** @domName WebGLContextEvent.statusMessage */
-  final String statusMessage;
+  abstract String get statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36284,7 +36419,7 @@ class _WebGLContextEventImpl extends _EventImpl implements WebGLContextEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLDebugRendererInfo
-interface WebGLDebugRendererInfo {
+abstract class WebGLDebugRendererInfo {
 
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
@@ -36306,7 +36441,7 @@ class _WebGLDebugRendererInfoImpl extends NativeFieldWrapperClass1 implements We
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLDebugShaders
-interface WebGLDebugShaders {
+abstract class WebGLDebugShaders {
 
   /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader);
@@ -36329,7 +36464,7 @@ class _WebGLDebugShadersImpl extends NativeFieldWrapperClass1 implements WebGLDe
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLDepthTexture
-interface WebGLDepthTexture {
+abstract class WebGLDepthTexture {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
@@ -36349,7 +36484,7 @@ class _WebGLDepthTextureImpl extends NativeFieldWrapperClass1 implements WebGLDe
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLFramebuffer
-interface WebGLFramebuffer {
+abstract class WebGLFramebuffer {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36367,7 +36502,7 @@ class _WebGLFramebufferImpl extends NativeFieldWrapperClass1 implements WebGLFra
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLLoseContext
-interface WebGLLoseContext {
+abstract class WebGLLoseContext {
 
   /** @domName WebGLLoseContext.loseContext */
   void loseContext();
@@ -36395,7 +36530,7 @@ class _WebGLLoseContextImpl extends NativeFieldWrapperClass1 implements WebGLLos
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLProgram
-interface WebGLProgram {
+abstract class WebGLProgram {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36413,7 +36548,7 @@ class _WebGLProgramImpl extends NativeFieldWrapperClass1 implements WebGLProgram
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLRenderbuffer
-interface WebGLRenderbuffer {
+abstract class WebGLRenderbuffer {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36431,7 +36566,7 @@ class _WebGLRenderbufferImpl extends NativeFieldWrapperClass1 implements WebGLRe
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLRenderingContext
-interface WebGLRenderingContext extends CanvasRenderingContext {
+abstract class WebGLRenderingContext implements CanvasRenderingContext {
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
@@ -37024,10 +37159,10 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static const int ZERO = 0;
 
   /** @domName WebGLRenderingContext.drawingBufferHeight */
-  final int drawingBufferHeight;
+  abstract int get drawingBufferHeight;
 
   /** @domName WebGLRenderingContext.drawingBufferWidth */
-  final int drawingBufferWidth;
+  abstract int get drawingBufferWidth;
 
   /** @domName WebGLRenderingContext.activeTexture */
   void activeTexture(int texture);
@@ -37832,7 +37967,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLShader
-interface WebGLShader {
+abstract class WebGLShader {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37850,16 +37985,16 @@ class _WebGLShaderImpl extends NativeFieldWrapperClass1 implements WebGLShader {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLShaderPrecisionFormat
-interface WebGLShaderPrecisionFormat {
+abstract class WebGLShaderPrecisionFormat {
 
   /** @domName WebGLShaderPrecisionFormat.precision */
-  final int precision;
+  abstract int get precision;
 
   /** @domName WebGLShaderPrecisionFormat.rangeMax */
-  final int rangeMax;
+  abstract int get rangeMax;
 
   /** @domName WebGLShaderPrecisionFormat.rangeMin */
-  final int rangeMin;
+  abstract int get rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37883,7 +38018,7 @@ class _WebGLShaderPrecisionFormatImpl extends NativeFieldWrapperClass1 implement
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLTexture
-interface WebGLTexture {
+abstract class WebGLTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37901,7 +38036,7 @@ class _WebGLTextureImpl extends NativeFieldWrapperClass1 implements WebGLTexture
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLUniformLocation
-interface WebGLUniformLocation {
+abstract class WebGLUniformLocation {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37919,7 +38054,7 @@ class _WebGLUniformLocationImpl extends NativeFieldWrapperClass1 implements WebG
 // WARNING: Do not edit - generated code.
 
 /// @domName WebGLVertexArrayObjectOES
-interface WebGLVertexArrayObjectOES {
+abstract class WebGLVertexArrayObjectOES {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37937,7 +38072,7 @@ class _WebGLVertexArrayObjectOESImpl extends NativeFieldWrapperClass1 implements
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSFilterValue
-interface WebKitCSSFilterValue extends CSSValueList {
+abstract class WebKitCSSFilterValue implements CSSValueList {
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -37964,7 +38099,7 @@ interface WebKitCSSFilterValue extends CSSValueList {
   static const int CSS_FILTER_SEPIA = 3;
 
   /** @domName WebKitCSSFilterValue.operationType */
-  final int operationType;
+  abstract int get operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37984,16 +38119,16 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitNamedFlow
-interface WebKitNamedFlow extends EventTarget {
+abstract class WebKitNamedFlow implements EventTarget {
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
-  final int firstEmptyRegionIndex;
+  abstract int get firstEmptyRegionIndex;
 
   /** @domName WebKitNamedFlow.name */
-  final String name;
+  abstract String get name;
 
   /** @domName WebKitNamedFlow.overset */
-  final bool overset;
+  abstract bool get overset;
 
   /** @domName WebKitNamedFlow.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -38047,9 +38182,9 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebSocket
-interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
+abstract class WebSocket implements EventTarget {
 
-  WebSocket(String url);
+  factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -38065,25 +38200,25 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   static const int OPEN = 1;
 
   /** @domName WebSocket.URL */
-  final String URL;
+  abstract String get URL;
 
   /** @domName WebSocket.binaryType */
   String binaryType;
 
   /** @domName WebSocket.bufferedAmount */
-  final int bufferedAmount;
+  abstract int get bufferedAmount;
 
   /** @domName WebSocket.extensions */
-  final String extensions;
+  abstract String get extensions;
 
   /** @domName WebSocket.protocol */
-  final String protocol;
+  abstract String get protocol;
 
   /** @domName WebSocket.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName WebSocket.url */
-  final String url;
+  abstract String get url;
 
   /** @domName WebSocket.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -38101,7 +38236,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   void send(data);
 }
 
-interface WebSocketEvents extends Events {
+abstract class WebSocketEvents implements Events {
 
   EventListenerList get close;
 
@@ -38184,19 +38319,19 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 // WARNING: Do not edit - generated code.
 
 /// @domName WheelEvent
-interface WheelEvent extends MouseEvent {
+abstract class WheelEvent implements MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
-  final bool webkitDirectionInvertedFromDevice;
+  abstract bool get webkitDirectionInvertedFromDevice;
 
   /** @domName WheelEvent.wheelDelta */
-  final int wheelDelta;
+  abstract int get wheelDelta;
 
   /** @domName WheelEvent.wheelDeltaX */
-  final int wheelDeltaX;
+  abstract int get wheelDeltaX;
 
   /** @domName WheelEvent.wheelDeltaY */
-  final int wheelDeltaY;
+  abstract int get wheelDeltaY;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -38227,7 +38362,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMWindow
-interface Window extends EventTarget {
+abstract class Window implements EventTarget {
 
   /**
    * Register a [port] on this window under the given [name].  This
@@ -38278,19 +38413,19 @@ interface Window extends EventTarget {
   static const int TEMPORARY = 0;
 
   /** @domName DOMWindow.applicationCache */
-  final DOMApplicationCache applicationCache;
+  abstract DOMApplicationCache get applicationCache;
 
   /** @domName DOMWindow.clientInformation */
-  final Navigator clientInformation;
+  abstract Navigator get clientInformation;
 
   /** @domName DOMWindow.closed */
-  final bool closed;
+  abstract bool get closed;
 
   /** @domName DOMWindow.console */
-  final Console console;
+  abstract Console get console;
 
   /** @domName DOMWindow.crypto */
-  final Crypto crypto;
+  abstract Crypto get crypto;
 
   /** @domName DOMWindow.defaultStatus */
   String defaultStatus;
@@ -38299,133 +38434,133 @@ interface Window extends EventTarget {
   String defaultstatus;
 
   /** @domName DOMWindow.devicePixelRatio */
-  final num devicePixelRatio;
+  abstract num get devicePixelRatio;
 
   /** @domName DOMWindow.document */
-  final Document document;
+  abstract Document get document;
 
   /** @domName DOMWindow.event */
-  final Event event;
+  abstract Event get event;
 
   /** @domName DOMWindow.frames */
-  final Window frames;
+  abstract Window get frames;
 
   /** @domName DOMWindow.history */
-  final History history;
+  abstract History get history;
 
   /** @domName DOMWindow.innerHeight */
-  final int innerHeight;
+  abstract int get innerHeight;
 
   /** @domName DOMWindow.innerWidth */
-  final int innerWidth;
+  abstract int get innerWidth;
 
   /** @domName DOMWindow.length */
-  final int length;
+  abstract int get length;
 
   /** @domName DOMWindow.localStorage */
-  final Storage localStorage;
+  abstract Storage get localStorage;
 
   /** @domName DOMWindow.location */
   Location location;
 
   /** @domName DOMWindow.locationbar */
-  final BarInfo locationbar;
+  abstract BarInfo get locationbar;
 
   /** @domName DOMWindow.menubar */
-  final BarInfo menubar;
+  abstract BarInfo get menubar;
 
   /** @domName DOMWindow.name */
   String name;
 
   /** @domName DOMWindow.navigator */
-  final Navigator navigator;
+  abstract Navigator get navigator;
 
   /** @domName DOMWindow.offscreenBuffering */
-  final bool offscreenBuffering;
+  abstract bool get offscreenBuffering;
 
   /** @domName DOMWindow.opener */
-  final Window opener;
+  abstract Window get opener;
 
   /** @domName DOMWindow.outerHeight */
-  final int outerHeight;
+  abstract int get outerHeight;
 
   /** @domName DOMWindow.outerWidth */
-  final int outerWidth;
+  abstract int get outerWidth;
 
   /** @domName DOMWindow.pagePopupController */
-  final PagePopupController pagePopupController;
+  abstract PagePopupController get pagePopupController;
 
   /** @domName DOMWindow.pageXOffset */
-  final int pageXOffset;
+  abstract int get pageXOffset;
 
   /** @domName DOMWindow.pageYOffset */
-  final int pageYOffset;
+  abstract int get pageYOffset;
 
   /** @domName DOMWindow.parent */
-  final Window parent;
+  abstract Window get parent;
 
   /** @domName DOMWindow.performance */
-  final Performance performance;
+  abstract Performance get performance;
 
   /** @domName DOMWindow.personalbar */
-  final BarInfo personalbar;
+  abstract BarInfo get personalbar;
 
   /** @domName DOMWindow.screen */
-  final Screen screen;
+  abstract Screen get screen;
 
   /** @domName DOMWindow.screenLeft */
-  final int screenLeft;
+  abstract int get screenLeft;
 
   /** @domName DOMWindow.screenTop */
-  final int screenTop;
+  abstract int get screenTop;
 
   /** @domName DOMWindow.screenX */
-  final int screenX;
+  abstract int get screenX;
 
   /** @domName DOMWindow.screenY */
-  final int screenY;
+  abstract int get screenY;
 
   /** @domName DOMWindow.scrollX */
-  final int scrollX;
+  abstract int get scrollX;
 
   /** @domName DOMWindow.scrollY */
-  final int scrollY;
+  abstract int get scrollY;
 
   /** @domName DOMWindow.scrollbars */
-  final BarInfo scrollbars;
+  abstract BarInfo get scrollbars;
 
   /** @domName DOMWindow.self */
-  final Window self;
+  abstract Window get self;
 
   /** @domName DOMWindow.sessionStorage */
-  final Storage sessionStorage;
+  abstract Storage get sessionStorage;
 
   /** @domName DOMWindow.status */
   String status;
 
   /** @domName DOMWindow.statusbar */
-  final BarInfo statusbar;
+  abstract BarInfo get statusbar;
 
   /** @domName DOMWindow.styleMedia */
-  final StyleMedia styleMedia;
+  abstract StyleMedia get styleMedia;
 
   /** @domName DOMWindow.toolbar */
-  final BarInfo toolbar;
+  abstract BarInfo get toolbar;
 
   /** @domName DOMWindow.top */
-  final Window top;
+  abstract Window get top;
 
   /** @domName DOMWindow.webkitIndexedDB */
-  final IDBFactory webkitIndexedDB;
+  abstract IDBFactory get webkitIndexedDB;
 
   /** @domName DOMWindow.webkitNotifications */
-  final NotificationCenter webkitNotifications;
+  abstract NotificationCenter get webkitNotifications;
 
   /** @domName DOMWindow.webkitStorageInfo */
-  final StorageInfo webkitStorageInfo;
+  abstract StorageInfo get webkitStorageInfo;
 
   /** @domName DOMWindow.window */
-  final Window window;
+  abstract Window get window;
 
   /** @domName DOMWindow.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -38558,7 +38693,7 @@ interface Window extends EventTarget {
 
 }
 
-interface WindowEvents extends Events {
+abstract class WindowEvents implements Events {
 
   EventListenerList get abort;
 
@@ -39096,9 +39231,9 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 // WARNING: Do not edit - generated code.
 
 /// @domName Worker
-interface Worker extends AbstractWorker default _WorkerFactoryProvider {
+abstract class Worker implements AbstractWorker {
 
-  Worker(String scriptUrl);
+  factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -39115,7 +39250,7 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
   void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 }
 
-interface WorkerEvents extends AbstractWorkerEvents {
+abstract class WorkerEvents implements AbstractWorkerEvents {
 
   EventListenerList get message;
 }
@@ -39126,7 +39261,7 @@ interface WorkerEvents extends AbstractWorkerEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName WorkerContext
-interface WorkerContext extends EventTarget {
+abstract class WorkerContext implements EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -39138,19 +39273,19 @@ interface WorkerContext extends EventTarget {
   static const int TEMPORARY = 0;
 
   /** @domName WorkerContext.location */
-  final WorkerLocation location;
+  abstract WorkerLocation get location;
 
   /** @domName WorkerContext.navigator */
-  final WorkerNavigator navigator;
+  abstract WorkerNavigator get navigator;
 
   /** @domName WorkerContext.self */
-  final WorkerContext self;
+  abstract WorkerContext get self;
 
   /** @domName WorkerContext.webkitIndexedDB */
-  final IDBFactory webkitIndexedDB;
+  abstract IDBFactory get webkitIndexedDB;
 
   /** @domName WorkerContext.webkitNotifications */
-  final NotificationCenter webkitNotifications;
+  abstract NotificationCenter get webkitNotifications;
 
   /** @domName WorkerContext.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -39198,7 +39333,7 @@ interface WorkerContext extends EventTarget {
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 }
 
-interface WorkerContextEvents extends Events {
+abstract class WorkerContextEvents implements Events {
 
   EventListenerList get error;
 }
@@ -39291,31 +39426,31 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
 // WARNING: Do not edit - generated code.
 
 /// @domName WorkerLocation
-interface WorkerLocation {
+abstract class WorkerLocation {
 
   /** @domName WorkerLocation.hash */
-  final String hash;
+  abstract String get hash;
 
   /** @domName WorkerLocation.host */
-  final String host;
+  abstract String get host;
 
   /** @domName WorkerLocation.hostname */
-  final String hostname;
+  abstract String get hostname;
 
   /** @domName WorkerLocation.href */
-  final String href;
+  abstract String get href;
 
   /** @domName WorkerLocation.pathname */
-  final String pathname;
+  abstract String get pathname;
 
   /** @domName WorkerLocation.port */
-  final String port;
+  abstract String get port;
 
   /** @domName WorkerLocation.protocol */
-  final String protocol;
+  abstract String get protocol;
 
   /** @domName WorkerLocation.search */
-  final String search;
+  abstract String get search;
 
   /** @domName WorkerLocation.toString */
   String toString();
@@ -39354,22 +39489,22 @@ class _WorkerLocationImpl extends NativeFieldWrapperClass1 implements WorkerLoca
 // WARNING: Do not edit - generated code.
 
 /// @domName WorkerNavigator
-interface WorkerNavigator {
+abstract class WorkerNavigator {
 
   /** @domName WorkerNavigator.appName */
-  final String appName;
+  abstract String get appName;
 
   /** @domName WorkerNavigator.appVersion */
-  final String appVersion;
+  abstract String get appVersion;
 
   /** @domName WorkerNavigator.onLine */
-  final bool onLine;
+  abstract bool get onLine;
 
   /** @domName WorkerNavigator.platform */
-  final String platform;
+  abstract String get platform;
 
   /** @domName WorkerNavigator.userAgent */
-  final String userAgent;
+  abstract String get userAgent;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39397,9 +39532,9 @@ class _WorkerNavigatorImpl extends NativeFieldWrapperClass1 implements WorkerNav
 // WARNING: Do not edit - generated code.
 
 /// @domName XMLSerializer
-interface XMLSerializer default _XMLSerializerFactoryProvider {
+abstract class XMLSerializer {
 
-  XMLSerializer();
+  factory XMLSerializer() => _XMLSerializerFactoryProvider.createXMLSerializer();
 
   /** @domName XMLSerializer.serializeToString */
   String serializeToString(Node node);
@@ -39422,9 +39557,9 @@ class _XMLSerializerImpl extends NativeFieldWrapperClass1 implements XMLSerializ
 // WARNING: Do not edit - generated code.
 
 /// @domName XPathEvaluator
-interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
+abstract class XPathEvaluator {
 
-  XPathEvaluator();
+  factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
 
   /** @domName XPathEvaluator.createExpression */
   XPathExpression createExpression(String expression, XPathNSResolver resolver);
@@ -39457,20 +39592,20 @@ class _XPathEvaluatorImpl extends NativeFieldWrapperClass1 implements XPathEvalu
 // WARNING: Do not edit - generated code.
 
 /// @domName XPathException
-interface XPathException {
+abstract class XPathException {
 
   static const int INVALID_EXPRESSION_ERR = 51;
 
   static const int TYPE_ERR = 52;
 
   /** @domName XPathException.code */
-  final int code;
+  abstract int get code;
 
   /** @domName XPathException.message */
-  final String message;
+  abstract String get message;
 
   /** @domName XPathException.name */
-  final String name;
+  abstract String get name;
 
   /** @domName XPathException.toString */
   String toString();
@@ -39499,7 +39634,7 @@ class _XPathExceptionImpl extends NativeFieldWrapperClass1 implements XPathExcep
 // WARNING: Do not edit - generated code.
 
 /// @domName XPathExpression
-interface XPathExpression {
+abstract class XPathExpression {
 
   /** @domName XPathExpression.evaluate */
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult);
@@ -39522,7 +39657,7 @@ class _XPathExpressionImpl extends NativeFieldWrapperClass1 implements XPathExpr
 // WARNING: Do not edit - generated code.
 
 /// @domName XPathNSResolver
-interface XPathNSResolver {
+abstract class XPathNSResolver {
 
   /** @domName XPathNSResolver.lookupNamespaceURI */
   String lookupNamespaceURI(String prefix);
@@ -39545,7 +39680,7 @@ class _XPathNSResolverImpl extends NativeFieldWrapperClass1 implements XPathNSRe
 // WARNING: Do not edit - generated code.
 
 /// @domName XPathResult
-interface XPathResult {
+abstract class XPathResult {
 
   static const int ANY_TYPE = 0;
 
@@ -39568,25 +39703,25 @@ interface XPathResult {
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   /** @domName XPathResult.booleanValue */
-  final bool booleanValue;
+  abstract bool get booleanValue;
 
   /** @domName XPathResult.invalidIteratorState */
-  final bool invalidIteratorState;
+  abstract bool get invalidIteratorState;
 
   /** @domName XPathResult.numberValue */
-  final num numberValue;
+  abstract num get numberValue;
 
   /** @domName XPathResult.resultType */
-  final int resultType;
+  abstract int get resultType;
 
   /** @domName XPathResult.singleNodeValue */
-  final Node singleNodeValue;
+  abstract Node get singleNodeValue;
 
   /** @domName XPathResult.snapshotLength */
-  final int snapshotLength;
+  abstract int get snapshotLength;
 
   /** @domName XPathResult.stringValue */
-  final String stringValue;
+  abstract String get stringValue;
 
   /** @domName XPathResult.iterateNext */
   Node iterateNext();
@@ -39628,9 +39763,9 @@ class _XPathResultImpl extends NativeFieldWrapperClass1 implements XPathResult {
 // WARNING: Do not edit - generated code.
 
 /// @domName XSLTProcessor
-interface XSLTProcessor default _XSLTProcessorFactoryProvider {
+abstract class XSLTProcessor {
 
-  XSLTProcessor();
+  factory XSLTProcessor() => _XSLTProcessorFactoryProvider.createXSLTProcessor();
 
   /** @domName XSLTProcessor.clearParameters */
   void clearParameters();
@@ -39686,7 +39821,7 @@ class _XSLTProcessorImpl extends NativeFieldWrapperClass1 implements XSLTProcess
 // BSD-style license that can be found in the LICENSE file.
 
 class _ArrayBufferFactoryProvider {
-  factory ArrayBuffer(int length) => _createArrayBuffer(length);
+  static ArrayBuffer createArrayBuffer(int length) => _createArrayBuffer(length);
   static ArrayBuffer _createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39694,7 +39829,7 @@ class _ArrayBufferFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioElementFactoryProvider {
-  factory AudioElement([String src]) => _createAudioElement(src);
+  static AudioElement createAudioElement([String src]) => _createAudioElement(src);
   static AudioElement _createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39702,7 +39837,7 @@ class _AudioElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _BlobFactoryProvider {
-  factory Blob(List blobParts, [String type, String endings]) => _createBlob(blobParts, type, endings);
+  static Blob createBlob(List blobParts, [String type, String endings]) => _createBlob(blobParts, type, endings);
   static Blob _createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39710,7 +39845,7 @@ class _BlobFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _CSSMatrixFactoryProvider {
-  factory CSSMatrix([String cssValue]) => _createCSSMatrix(cssValue);
+  static CSSMatrix createCSSMatrix([String cssValue]) => _createCSSMatrix(cssValue);
   static CSSMatrix _createCSSMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39718,7 +39853,7 @@ class _CSSMatrixFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _DOMParserFactoryProvider {
-  factory DOMParser() => _createDOMParser();
+  static DOMParser createDOMParser() => _createDOMParser();
   static DOMParser _createDOMParser() native "DOMParser_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39726,7 +39861,7 @@ class _DOMParserFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _DOMURLFactoryProvider {
-  factory DOMURL() => _createDOMURL();
+  static DOMURL createDOMURL() => _createDOMURL();
   static DOMURL _createDOMURL() native "DOMURL_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39734,7 +39869,7 @@ class _DOMURLFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _DataViewFactoryProvider {
-  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _createDataView(buffer, byteOffset, byteLength);
+  static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _createDataView(buffer, byteOffset, byteLength);
   static DataView _createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39744,130 +39879,130 @@ class _DataViewFactoryProvider {
 class _Elements {
 
 
-  factory AnchorElement([String href]) {
+  static AnchorElement createAnchorElement([String href]) {
     _HTMLAnchorElementImpl _e = _document.$dom_createElement("a");
     if (href != null) _e.href = href;
     return _e;
   }
 
-  factory AreaElement() {
+  static AreaElement createAreaElement() {
     _HTMLAreaElementImpl _e = _document.$dom_createElement("area");
     return _e;
   }
 
-  factory BRElement() {
+  static BRElement createBRElement() {
     _HTMLBRElementImpl _e = _document.$dom_createElement("br");
     return _e;
   }
 
-  factory BaseElement() {
+  static BaseElement createBaseElement() {
     _HTMLBaseElementImpl _e = _document.$dom_createElement("base");
     return _e;
   }
 
-  factory BodyElement() {
+  static BodyElement createBodyElement() {
     _HTMLBodyElementImpl _e = _document.$dom_createElement("body");
     return _e;
   }
 
-  factory ButtonElement() {
+  static ButtonElement createButtonElement() {
     _HTMLButtonElementImpl _e = _document.$dom_createElement("button");
     return _e;
   }
 
-  factory CanvasElement([int width, int height]) {
+  static CanvasElement createCanvasElement([int width, int height]) {
     _HTMLCanvasElementImpl _e = _document.$dom_createElement("canvas");
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
     return _e;
   }
 
-  factory DListElement() {
+  static DListElement createDListElement() {
     _HTMLDListElementImpl _e = _document.$dom_createElement("dl");
     return _e;
   }
 
-  factory DataListElement() {
+  static DataListElement createDataListElement() {
     _HTMLDataListElementImpl _e = _document.$dom_createElement("datalist");
     return _e;
   }
 
-  factory DetailsElement() {
+  static DetailsElement createDetailsElement() {
     _HTMLDetailsElementImpl _e = _document.$dom_createElement("details");
     return _e;
   }
 
-  factory DivElement() {
+  static DivElement createDivElement() {
     _HTMLDivElementImpl _e = _document.$dom_createElement("div");
     return _e;
   }
 
-  factory EmbedElement() {
+  static EmbedElement createEmbedElement() {
     _HTMLEmbedElementImpl _e = _document.$dom_createElement("embed");
     return _e;
   }
 
-  factory FieldSetElement() {
+  static FieldSetElement createFieldSetElement() {
     _HTMLFieldSetElementImpl _e = _document.$dom_createElement("fieldset");
     return _e;
   }
 
-  factory FormElement() {
+  static FormElement createFormElement() {
     _HTMLFormElementImpl _e = _document.$dom_createElement("form");
     return _e;
   }
 
-  factory HRElement() {
+  static HRElement createHRElement() {
     _HTMLHRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
   }
 
-  factory HeadElement() {
+  static HeadElement createHeadElement() {
     _HTMLHeadElementImpl _e = _document.$dom_createElement("head");
     return _e;
   }
 
-  factory HeadingElement.h1() {
+  static HeadingElement createHeadingElement_h1() {
     _HTMLHeadingElementImpl _e = _document.$dom_createElement("h1");
     return _e;
   }
 
-  factory HeadingElement.h2() {
+  static HeadingElement createHeadingElement_h2() {
     _HTMLHeadingElementImpl _e = _document.$dom_createElement("h2");
     return _e;
   }
 
-  factory HeadingElement.h3() {
+  static HeadingElement createHeadingElement_h3() {
     _HTMLHeadingElementImpl _e = _document.$dom_createElement("h3");
     return _e;
   }
 
-  factory HeadingElement.h4() {
+  static HeadingElement createHeadingElement_h4() {
     _HTMLHeadingElementImpl _e = _document.$dom_createElement("h4");
     return _e;
   }
 
-  factory HeadingElement.h5() {
+  static HeadingElement createHeadingElement_h5() {
     _HTMLHeadingElementImpl _e = _document.$dom_createElement("h5");
     return _e;
   }
 
-  factory HeadingElement.h6() {
+  static HeadingElement createHeadingElement_h6() {
     _HTMLHeadingElementImpl _e = _document.$dom_createElement("h6");
     return _e;
   }
 
-  factory HtmlElement() {
+  static HtmlElement createHtmlElement() {
     _HTMLHtmlElementImpl _e = _document.$dom_createElement("html");
     return _e;
   }
 
-  factory IFrameElement() {
+  static IFrameElement createIFrameElement() {
     _HTMLIFrameElementImpl _e = _document.$dom_createElement("iframe");
     return _e;
   }
 
-  factory ImageElement([String src, int width, int height]) {
+  static ImageElement createImageElement([String src, int width, int height]) {
     _HTMLImageElementImpl _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
     if (width != null) _e.width = width;
@@ -39875,163 +40010,163 @@ class _Elements {
     return _e;
   }
 
-  factory InputElement([String type]) {
+  static InputElement createInputElement([String type]) {
     _HTMLInputElementImpl _e = _document.$dom_createElement("input");
     if (type != null) _e.type = type;
     return _e;
   }
 
-  factory KeygenElement() {
+  static KeygenElement createKeygenElement() {
     _HTMLKeygenElementImpl _e = _document.$dom_createElement("keygen");
     return _e;
   }
 
-  factory LIElement() {
+  static LIElement createLIElement() {
     _HTMLLIElementImpl _e = _document.$dom_createElement("li");
     return _e;
   }
 
-  factory LabelElement() {
+  static LabelElement createLabelElement() {
     _HTMLLabelElementImpl _e = _document.$dom_createElement("label");
     return _e;
   }
 
-  factory LegendElement() {
+  static LegendElement createLegendElement() {
     _HTMLLegendElementImpl _e = _document.$dom_createElement("legend");
     return _e;
   }
 
-  factory LinkElement() {
+  static LinkElement createLinkElement() {
     _HTMLLinkElementImpl _e = _document.$dom_createElement("link");
     return _e;
   }
 
-  factory MapElement() {
+  static MapElement createMapElement() {
     _HTMLMapElementImpl _e = _document.$dom_createElement("map");
     return _e;
   }
 
-  factory MenuElement() {
+  static MenuElement createMenuElement() {
     _HTMLMenuElementImpl _e = _document.$dom_createElement("menu");
     return _e;
   }
 
-  factory MeterElement() {
+  static MeterElement createMeterElement() {
     _HTMLMeterElementImpl _e = _document.$dom_createElement("meter");
     return _e;
   }
 
-  factory OListElement() {
+  static OListElement createOListElement() {
     _HTMLOListElementImpl _e = _document.$dom_createElement("ol");
     return _e;
   }
 
-  factory ObjectElement() {
+  static ObjectElement createObjectElement() {
     _HTMLObjectElementImpl _e = _document.$dom_createElement("object");
     return _e;
   }
 
-  factory OptGroupElement() {
+  static OptGroupElement createOptGroupElement() {
     _HTMLOptGroupElementImpl _e = _document.$dom_createElement("optgroup");
     return _e;
   }
 
-  factory OutputElement() {
+  static OutputElement createOutputElement() {
     _HTMLOutputElementImpl _e = _document.$dom_createElement("output");
     return _e;
   }
 
-  factory ParagraphElement() {
+  static ParagraphElement createParagraphElement() {
     _HTMLParagraphElementImpl _e = _document.$dom_createElement("p");
     return _e;
   }
 
-  factory ParamElement() {
+  static ParamElement createParamElement() {
     _HTMLParamElementImpl _e = _document.$dom_createElement("param");
     return _e;
   }
 
-  factory PreElement() {
+  static PreElement createPreElement() {
     _HTMLPreElementImpl _e = _document.$dom_createElement("pre");
     return _e;
   }
 
-  factory ProgressElement() {
+  static ProgressElement createProgressElement() {
     _HTMLProgressElementImpl _e = _document.$dom_createElement("progress");
     return _e;
   }
 
-  factory ScriptElement() {
+  static ScriptElement createScriptElement() {
     _HTMLScriptElementImpl _e = _document.$dom_createElement("script");
     return _e;
   }
 
-  factory SelectElement() {
+  static SelectElement createSelectElement() {
     _HTMLSelectElementImpl _e = _document.$dom_createElement("select");
     return _e;
   }
 
-  factory SourceElement() {
+  static SourceElement createSourceElement() {
     _HTMLSourceElementImpl _e = _document.$dom_createElement("source");
     return _e;
   }
 
-  factory SpanElement() {
+  static SpanElement createSpanElement() {
     _HTMLSpanElementImpl _e = _document.$dom_createElement("span");
     return _e;
   }
 
-  factory StyleElement() {
+  static StyleElement createStyleElement() {
     _HTMLStyleElementImpl _e = _document.$dom_createElement("style");
     return _e;
   }
 
-  factory TableCaptionElement() {
+  static TableCaptionElement createTableCaptionElement() {
     _HTMLTableCaptionElementImpl _e = _document.$dom_createElement("caption");
     return _e;
   }
 
-  factory TableCellElement() {
+  static TableCellElement createTableCellElement() {
     _HTMLTableCellElementImpl _e = _document.$dom_createElement("td");
     return _e;
   }
 
-  factory TableColElement() {
+  static TableColElement createTableColElement() {
     _HTMLTableColElementImpl _e = _document.$dom_createElement("col");
     return _e;
   }
 
-  factory TableElement() {
+  static TableElement createTableElement() {
     _HTMLTableElementImpl _e = _document.$dom_createElement("table");
     return _e;
   }
 
-  factory TableRowElement() {
+  static TableRowElement createTableRowElement() {
     _HTMLTableRowElementImpl _e = _document.$dom_createElement("tr");
     return _e;
   }
 
-  factory TextAreaElement() {
+  static TextAreaElement createTextAreaElement() {
     _HTMLTextAreaElementImpl _e = _document.$dom_createElement("textarea");
     return _e;
   }
 
-  factory TitleElement() {
+  static TitleElement createTitleElement() {
     _HTMLTitleElementImpl _e = _document.$dom_createElement("title");
     return _e;
   }
 
-  factory TrackElement() {
+  static TrackElement createTrackElement() {
     _HTMLTrackElementImpl _e = _document.$dom_createElement("track");
     return _e;
   }
 
-  factory UListElement() {
+  static UListElement createUListElement() {
     _HTMLUListElementImpl _e = _document.$dom_createElement("ul");
     return _e;
   }
 
-  factory VideoElement() {
+  static VideoElement createVideoElement() {
     _HTMLVideoElementImpl _e = _document.$dom_createElement("video");
     return _e;
   }
@@ -40041,7 +40176,7 @@ class _Elements {
 // BSD-style license that can be found in the LICENSE file.
 
 class _EventSourceFactoryProvider {
-  factory EventSource(String scriptUrl) => _createEventSource(scriptUrl);
+  static EventSource createEventSource(String scriptUrl) => _createEventSource(scriptUrl);
   static EventSource _createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40049,7 +40184,7 @@ class _EventSourceFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileReaderFactoryProvider {
-  factory FileReader() => _createFileReader();
+  static FileReader createFileReader() => _createFileReader();
   static FileReader _createFileReader() native "FileReader_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40057,7 +40192,7 @@ class _FileReaderFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileReaderSyncFactoryProvider {
-  factory FileReaderSync() => _createFileReaderSync();
+  static FileReaderSync createFileReaderSync() => _createFileReaderSync();
   static FileReaderSync _createFileReaderSync() native "FileReaderSync_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40065,7 +40200,7 @@ class _FileReaderSyncFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _FormDataFactoryProvider {
-  factory FormData([FormElement form]) => _createFormData(form);
+  static FormData createFormData([FormElement form]) => _createFormData(form);
   static FormData _createFormData([FormElement form]) native "DOMFormData_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40073,14 +40208,14 @@ class _FormDataFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _HttpRequestFactoryProvider {
-  factory HttpRequest() => _createHttpRequest();
+  static HttpRequest createHttpRequest() => _createHttpRequest();
   static HttpRequest _createHttpRequest() native "XMLHttpRequest_constructor_Callback";
 
-  factory HttpRequest.get(String url,
+  static HttpRequest createHttpRequest_get(String url,
                                      onSuccess(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onSuccess, false);
 
-  factory HttpRequest.getWithCredentials(String url,
+  static HttpRequest createHttpRequest_getWithCredentials(String url,
                                      onSuccess(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onSuccess, true);
 }
@@ -40089,7 +40224,7 @@ class _HttpRequestFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _IceCandidateFactoryProvider {
-  factory IceCandidate(String label, String candidateLine) => _createIceCandidate(label, candidateLine);
+  static IceCandidate createIceCandidate(String label, String candidateLine) => _createIceCandidate(label, candidateLine);
   static IceCandidate _createIceCandidate(String label, String candidateLine) native "IceCandidate_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40097,7 +40232,7 @@ class _IceCandidateFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _MediaControllerFactoryProvider {
-  factory MediaController() => _createMediaController();
+  static MediaController createMediaController() => _createMediaController();
   static MediaController _createMediaController() native "MediaController_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40105,7 +40240,7 @@ class _MediaControllerFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _MediaSourceFactoryProvider {
-  factory MediaSource() => _createMediaSource();
+  static MediaSource createMediaSource() => _createMediaSource();
   static MediaSource _createMediaSource() native "MediaSource_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40113,7 +40248,7 @@ class _MediaSourceFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _MediaStreamFactoryProvider {
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _createMediaStream(audioTracks, videoTracks);
+  static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _createMediaStream(audioTracks, videoTracks);
   static MediaStream _createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40121,7 +40256,7 @@ class _MediaStreamFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _MessageChannelFactoryProvider {
-  factory MessageChannel() => _createMessageChannel();
+  static MessageChannel createMessageChannel() => _createMessageChannel();
   static MessageChannel _createMessageChannel() native "MessageChannel_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40129,7 +40264,7 @@ class _MessageChannelFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _MutationObserverFactoryProvider {
-  factory MutationObserver(MutationCallback callback) => _createMutationObserver(callback);
+  static MutationObserver createMutationObserver(MutationCallback callback) => _createMutationObserver(callback);
   static MutationObserver _createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40137,7 +40272,7 @@ class _MutationObserverFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _NotificationFactoryProvider {
-  factory Notification(String title, [Map options]) => _createNotification(title, options);
+  static Notification createNotification(String title, [Map options]) => _createNotification(title, options);
   static Notification _createNotification(String title, [Map options]) native "Notification_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40145,7 +40280,7 @@ class _NotificationFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _OptionElementFactoryProvider {
-  factory OptionElement([String data, String value, bool defaultSelected, bool selected]) => _createOptionElement(data, value, defaultSelected, selected);
+  static OptionElement createOptionElement([String data, String value, bool defaultSelected, bool selected]) => _createOptionElement(data, value, defaultSelected, selected);
   static OptionElement _createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40153,7 +40288,7 @@ class _OptionElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _PeerConnection00FactoryProvider {
-  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _createPeerConnection00(serverConfiguration, iceCallback);
+  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) => _createPeerConnection00(serverConfiguration, iceCallback);
   static PeerConnection00 _createPeerConnection00(String serverConfiguration, IceCallback iceCallback) native "PeerConnection00_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40161,7 +40296,7 @@ class _PeerConnection00FactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _RTCIceCandidateFactoryProvider {
-  factory RTCIceCandidate(Map dictionary) => _createRTCIceCandidate(dictionary);
+  static RTCIceCandidate createRTCIceCandidate(Map dictionary) => _createRTCIceCandidate(dictionary);
   static RTCIceCandidate _createRTCIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40169,7 +40304,7 @@ class _RTCIceCandidateFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _RTCPeerConnectionFactoryProvider {
-  factory RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) => _createRTCPeerConnection(rtcIceServers, mediaConstraints);
+  static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) => _createRTCPeerConnection(rtcIceServers, mediaConstraints);
   static RTCPeerConnection _createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40177,7 +40312,7 @@ class _RTCPeerConnectionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _RTCSessionDescriptionFactoryProvider {
-  factory RTCSessionDescription(Map dictionary) => _createRTCSessionDescription(dictionary);
+  static RTCSessionDescription createRTCSessionDescription(Map dictionary) => _createRTCSessionDescription(dictionary);
   static RTCSessionDescription _createRTCSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40185,7 +40320,7 @@ class _RTCSessionDescriptionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _SessionDescriptionFactoryProvider {
-  factory SessionDescription(String sdp) => _createSessionDescription(sdp);
+  static SessionDescription createSessionDescription(String sdp) => _createSessionDescription(sdp);
   static SessionDescription _createSessionDescription(String sdp) native "SessionDescription_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40193,7 +40328,7 @@ class _SessionDescriptionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _ShadowRootFactoryProvider {
-  factory ShadowRoot(Element host) => _createShadowRoot(host);
+  static ShadowRoot createShadowRoot(Element host) => _createShadowRoot(host);
   static ShadowRoot _createShadowRoot(Element host) native "ShadowRoot_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40201,7 +40336,7 @@ class _ShadowRootFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _SharedWorkerFactoryProvider {
-  factory SharedWorker(String scriptURL, [String name]) => _createSharedWorker(scriptURL, name);
+  static SharedWorker createSharedWorker(String scriptURL, [String name]) => _createSharedWorker(scriptURL, name);
   static SharedWorker _createSharedWorker(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40209,7 +40344,7 @@ class _SharedWorkerFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _SpeechGrammarFactoryProvider {
-  factory SpeechGrammar() => _createSpeechGrammar();
+  static SpeechGrammar createSpeechGrammar() => _createSpeechGrammar();
   static SpeechGrammar _createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40217,7 +40352,7 @@ class _SpeechGrammarFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _SpeechGrammarListFactoryProvider {
-  factory SpeechGrammarList() => _createSpeechGrammarList();
+  static SpeechGrammarList createSpeechGrammarList() => _createSpeechGrammarList();
   static SpeechGrammarList _createSpeechGrammarList() native "SpeechGrammarList_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40225,7 +40360,7 @@ class _SpeechGrammarListFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _SpeechRecognitionFactoryProvider {
-  factory SpeechRecognition() => _createSpeechRecognition();
+  static SpeechRecognition createSpeechRecognition() => _createSpeechRecognition();
   static SpeechRecognition _createSpeechRecognition() native "SpeechRecognition_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40233,7 +40368,7 @@ class _SpeechRecognitionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _TextTrackCueFactoryProvider {
-  factory TextTrackCue(num startTime, num endTime, String text) => _createTextTrackCue(startTime, endTime, text);
+  static TextTrackCue createTextTrackCue(num startTime, num endTime, String text) => _createTextTrackCue(startTime, endTime, text);
   static TextTrackCue _createTextTrackCue(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40241,7 +40376,7 @@ class _TextTrackCueFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _WorkerFactoryProvider {
-  factory Worker(String scriptUrl) => _createWorker(scriptUrl);
+  static Worker createWorker(String scriptUrl) => _createWorker(scriptUrl);
   static Worker _createWorker(String scriptUrl) native "Worker_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40249,7 +40384,7 @@ class _WorkerFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _XMLSerializerFactoryProvider {
-  factory XMLSerializer() => _createXMLSerializer();
+  static XMLSerializer createXMLSerializer() => _createXMLSerializer();
   static XMLSerializer _createXMLSerializer() native "XMLSerializer_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40257,7 +40392,7 @@ class _XMLSerializerFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _XPathEvaluatorFactoryProvider {
-  factory XPathEvaluator() => _createXPathEvaluator();
+  static XPathEvaluator createXPathEvaluator() => _createXPathEvaluator();
   static XPathEvaluator _createXPathEvaluator() native "XPathEvaluator_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40265,7 +40400,7 @@ class _XPathEvaluatorFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _XSLTProcessorFactoryProvider {
-  factory XSLTProcessor() => _createXSLTProcessor();
+  static XSLTProcessor createXSLTProcessor() => _createXSLTProcessor();
   static XSLTProcessor _createXSLTProcessor() native "XSLTProcessor_constructor_Callback";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -40281,7 +40416,7 @@ typedef void EventListener(Event event);
  * Defines the standard key locations returned by
  * KeyboardEvent.getKeyLocation.
  */
-interface KeyLocation {
+abstract class KeyLocation {
 
   /**
    * The event key is not distinguished as the left or right version
@@ -40327,7 +40462,7 @@ interface KeyLocation {
  * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
  * unicode mapping.
  */
-interface KeyName {
+abstract class KeyName {
 
   /** The Accept (Commit, OK) key */
   static const String ACCEPT = "Accept";
@@ -40818,7 +40953,7 @@ interface KeyName {
 /**
  * Contains the set of standard values returned by HTMLDocument.getReadyState.
  */
-interface ReadyState {
+abstract class ReadyState {
   /**
    * Indicates the document is still loading and parsing.
    */
@@ -40948,7 +41083,7 @@ class _HttpRequestUtils {
 // BSD-style license that can be found in the LICENSE file.
 
 class _EventFactoryProvider {
-  factory Event(String type, [bool canBubble = true,
+  static Event createEvent(String type, [bool canBubble = true,
       bool cancelable = true]) {
     final _EventImpl e = _document.$dom_createEvent("Event");
     e.$dom_initEvent(type, canBubble, cancelable);
@@ -40957,7 +41092,7 @@ class _EventFactoryProvider {
 }
 
 class _MouseEventFactoryProvider {
-  factory MouseEvent(String type, Window view, int detail,
+  static MouseEvent createMouseEvent(String type, Window view, int detail,
       int screenX, int screenY, int clientX, int clientY, int button,
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
@@ -40971,22 +41106,23 @@ class _MouseEventFactoryProvider {
 }
 
 class _CSSStyleDeclarationFactoryProvider {
-  factory CSSStyleDeclaration.css(String css) {
+  static CSSStyleDeclaration createCSSStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
-  } 
+  }
 
-  factory CSSStyleDeclaration() {
+  static CSSStyleDeclaration createCSSStyleDeclaration() {
     return new CSSStyleDeclaration.css('');
   }
 }
 
 class _DocumentFragmentFactoryProvider {
   /** @domName Document.createDocumentFragment */
-  factory DocumentFragment() => document.createDocumentFragment();
+  static DocumentFragment createDocumentFragment() =>
+      document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html) {
+  static DocumentFragment createDocumentFragment_html(String html) {
     final fragment = new DocumentFragment();
     fragment.innerHTML = html;
     return fragment;
@@ -41004,7 +41140,7 @@ class _DocumentFragmentFactoryProvider {
   //   return fragment;
   // }
 
-  factory DocumentFragment.svg(String svg) {
+  static DocumentFragment createDocumentFragment_svg(String svg) {
     final fragment = new DocumentFragment();
     final e = new SVGSVGElement();
     e.innerHTML = svg;
@@ -41017,13 +41153,13 @@ class _DocumentFragmentFactoryProvider {
 }
 
 class _SVGElementFactoryProvider {
-  factory SVGElement.tag(String tag) {
+  static SVGElement createSVGElement_tag(String tag) {
     final Element temp =
       _document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 
-  factory SVGElement.svg(String svg) {
+  static SVGElement createSVGElement_svg(String svg) {
     Element parentTag;
     final match = _START_TAG_REGEXP.firstMatch(svg);
     if (match != null && match.group(1).toLowerCase() == 'svg') {
@@ -41042,7 +41178,7 @@ class _SVGElementFactoryProvider {
 }
 
 class _SVGSVGElementFactoryProvider {
-  factory SVGSVGElement() {
+  static SVGSVGElement createSVGSVGElement() {
     final el = new SVGElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
@@ -41054,7 +41190,7 @@ class _SVGSVGElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioContextFactoryProvider {
-  factory AudioContext() => _createAudioContext();
+  static AudioContext createAudioContext() => _createAudioContext();
   static _createAudioContext([int numberOfChannels,
                               int numberOfFrames,
                               int sampleRate])
@@ -41063,81 +41199,85 @@ class _AudioContextFactoryProvider {
 
 class _IDBKeyRangeFactoryProvider {
 
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
+  static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
       _IDBKeyRangeImpl.only(value);
 
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
+  static IDBKeyRange createIDBKeyRange_lowerBound(
+      /*IDBKey*/ bound, [bool open = false]) =>
       _IDBKeyRangeImpl.lowerBound(bound, open);
 
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
+  static IDBKeyRange createIDBKeyRange_upperBound(
+      /*IDBKey*/ bound, [bool open = false]) =>
       _IDBKeyRangeImpl.upperBound(bound, open);
 
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
+  static IDBKeyRange createIDBKeyRange_bound(
+      /*IDBKey*/ lower, /*IDBKey*/ upper,
+      [bool lowerOpen = false, bool upperOpen = false]) =>
       _IDBKeyRangeImpl.bound(lower, upper, lowerOpen, upperOpen);
 }
 
 class _TypedArrayFactoryProvider {
-  factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
-  factory Float32Array.fromBuffer(ArrayBuffer buffer,
-                                  [int byteOffset = 0, int length]) =>
-      _F32(buffer, byteOffset, length);
+  static Float32Array createFloat32Array(int length) => _F32(length);
+  static Float32Array createFloat32Array_fromList(List<num> list) =>
+      _F32(ensureNative(list));
+  static Float32Array createFloat32Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _F32(buffer, byteOffset, length);
   static _F32(arg0, [arg1, arg2]) native "Float32Array_constructor_Callback";
 
-  factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
-  factory Float64Array.fromBuffer(ArrayBuffer buffer,
-                                  [int byteOffset = 0, int length]) =>
-      _F64(buffer, byteOffset, length);
+  static Float64Array createFloat64Array(int length) => _F64(length);
+  static Float64Array createFloat64Array_fromList(List<num> list) =>
+      _F64(ensureNative(list));
+  static Float64Array createFloat64Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _F64(buffer, byteOffset, length);
   static _F64(arg0, [arg1, arg2]) native "Float64Array_constructor_Callback";
 
-  factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
-  factory Int8Array.fromBuffer(ArrayBuffer buffer,
-                               [int byteOffset = 0, int length]) =>
-      _I8(buffer, byteOffset, length);
+  static Int8Array createInt8Array(int length) => _I8(length);
+  static Int8Array createInt8Array_fromList(List<num> list) =>
+      _I8(ensureNative(list));
+  static Int8Array createInt8Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _I8(buffer, byteOffset, length);
   static _I8(arg0, [arg1, arg2]) native "Int8Array_constructor_Callback";
 
-  factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
-  factory Int16Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) =>
-      _I16(buffer, byteOffset, length);
+  static Int16Array createInt16Array(int length) => _I16(length);
+  static Int16Array createInt16Array_fromList(List<num> list) =>
+      _I16(ensureNative(list));
+  static Int16Array createInt16Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _I16(buffer, byteOffset, length);
   static _I16(arg0, [arg1, arg2]) native "Int16Array_constructor_Callback";
 
-  factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
-  factory Int32Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) =>
-      _I32(buffer, byteOffset, length);
+  static Int32Array createInt32Array(int length) => _I32(length);
+  static Int32Array createInt32Array_fromList(List<num> list) =>
+      _I32(ensureNative(list));
+  static Int32Array createInt32Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _I32(buffer, byteOffset, length);
   static _I32(arg0, [arg1, arg2]) native "Int32Array_constructor_Callback";
 
-  factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer,
-                                [int byteOffset = 0, int length]) =>
-      _U8(buffer, byteOffset, length);
+  static Uint8Array createUint8Array(int length) => _U8(length);
+  static Uint8Array createUint8Array_fromList(List<num> list) =>
+      _U8(ensureNative(list));
+  static Uint8Array createUint8Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _U8(buffer, byteOffset, length);
   static _U8(arg0, [arg1, arg2]) native "Uint8Array_constructor_Callback";
 
-  factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer,
-                                 [int byteOffset = 0, int length]) =>
-      _U16(buffer, byteOffset, length);
+  static Uint16Array createUint16Array(int length) => _U16(length);
+  static Uint16Array createUint16Array_fromList(List<num> list) =>
+      _U16(ensureNative(list));
+  static Uint16Array createUint16Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _U16(buffer, byteOffset, length);
   static _U16(arg0, [arg1, arg2]) native "Uint16Array_constructor_Callback";
 
-  factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer,
-                                 [int byteOffset = 0, int length]) =>
-      _U32(buffer, byteOffset, length);
+  static Uint32Array createUint32Array(int length) => _U32(length);
+  static Uint32Array createUint32Array_fromList(List<num> list) =>
+      _U32(ensureNative(list));
+  static Uint32Array createUint32Array_fromBuffer(ArrayBuffer buffer,
+      [int byteOffset = 0, int length]) => _U32(buffer, byteOffset, length);
   static _U32(arg0, [arg1, arg2]) native "Uint32Array_constructor_Callback";
 
-  factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
-                                       [int byteOffset = 0, int length]) =>
+  static Uint8ClampedArray createUint8ClampedArray(int length) => _U8C(length);
+  static Uint8ClampedArray createUint8ClampedArrayUint8ClampedArray_fromList(
+      List<num> list) => _U8C(ensureNative(list));
+  static Uint8ClampedArray createUint8ClampedArrayUint8ClampedArray_fromBuffer(
+      ArrayBuffer buffer, [int byteOffset = 0, int length]) =>
       _U8C(buffer, byteOffset, length);
   static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
 
@@ -41145,17 +41285,17 @@ class _TypedArrayFactoryProvider {
 }
 
 class _PointFactoryProvider {
-  factory Point(num x, num y) => _createWebKitPoint(x, y);
+  static Point createPoint(num x, num y) => _createWebKitPoint(x, y);
   static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
 }
 
 class _WebSocketFactoryProvider {
-  factory WebSocket(String url) => _createWebSocket(url);
+  static WebSocket createWebSocket(String url) => _createWebSocket(url);
   static _createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 
 class _TextFactoryProvider {
-  factory Text(String data) => _document.$dom_createTextNode(data);
+  static Text createText(String data) => _document.$dom_createTextNode(data);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

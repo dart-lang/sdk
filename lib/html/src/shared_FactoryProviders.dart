@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _EventFactoryProvider {
-  factory Event(String type, [bool canBubble = true,
+  static Event createEvent(String type, [bool canBubble = true,
       bool cancelable = true]) {
     final _EventImpl e = _document.$dom_createEvent("Event");
     e.$dom_initEvent(type, canBubble, cancelable);
@@ -12,7 +12,7 @@ class _EventFactoryProvider {
 }
 
 class _MouseEventFactoryProvider {
-  factory MouseEvent(String type, Window view, int detail,
+  static MouseEvent createMouseEvent(String type, Window view, int detail,
       int screenX, int screenY, int clientX, int clientY, int button,
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
@@ -26,22 +26,23 @@ class _MouseEventFactoryProvider {
 }
 
 class _CSSStyleDeclarationFactoryProvider {
-  factory CSSStyleDeclaration.css(String css) {
+  static CSSStyleDeclaration createCSSStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
-  } 
+  }
 
-  factory CSSStyleDeclaration() {
+  static CSSStyleDeclaration createCSSStyleDeclaration() {
     return new CSSStyleDeclaration.css('');
   }
 }
 
 class _DocumentFragmentFactoryProvider {
   /** @domName Document.createDocumentFragment */
-  factory DocumentFragment() => document.createDocumentFragment();
+  static DocumentFragment createDocumentFragment() =>
+      document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html) {
+  static DocumentFragment createDocumentFragment_html(String html) {
     final fragment = new DocumentFragment();
     fragment.innerHTML = html;
     return fragment;
@@ -59,7 +60,7 @@ class _DocumentFragmentFactoryProvider {
   //   return fragment;
   // }
 
-  factory DocumentFragment.svg(String svg) {
+  static DocumentFragment createDocumentFragment_svg(String svg) {
     final fragment = new DocumentFragment();
     final e = new SVGSVGElement();
     e.innerHTML = svg;
@@ -72,13 +73,13 @@ class _DocumentFragmentFactoryProvider {
 }
 
 class _SVGElementFactoryProvider {
-  factory SVGElement.tag(String tag) {
+  static SVGElement createSVGElement_tag(String tag) {
     final Element temp =
       _document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 
-  factory SVGElement.svg(String svg) {
+  static SVGElement createSVGElement_svg(String svg) {
     Element parentTag;
     final match = _START_TAG_REGEXP.firstMatch(svg);
     if (match != null && match.group(1).toLowerCase() == 'svg') {
@@ -97,7 +98,7 @@ class _SVGElementFactoryProvider {
 }
 
 class _SVGSVGElementFactoryProvider {
-  factory SVGSVGElement() {
+  static SVGSVGElement createSVGSVGElement() {
     final el = new SVGElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";

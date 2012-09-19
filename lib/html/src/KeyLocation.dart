@@ -6,7 +6,7 @@
  * Defines the standard key locations returned by
  * KeyboardEvent.getKeyLocation.
  */
-interface KeyLocation {
+abstract class KeyLocation {
 
   /**
    * The event key is not distinguished as the left or right version

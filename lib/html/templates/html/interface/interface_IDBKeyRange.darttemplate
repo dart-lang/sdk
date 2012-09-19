@@ -5,27 +5,32 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS default _IDBKeyRangeFactoryProvider {
+abstract class $ID$EXTENDS {
 
   /**
    * @domName IDBKeyRange.only
    */
-  IDBKeyRange.only(/*IDBKey*/ value);
+  factory IDBKeyRange.only(/*IDBKey*/ value) =>
+      _IDBKeyRangeFactoryProvider.create$(ID)_only(value);
 
   /**
    * @domName IDBKeyRange.lowerBound
    */
-  IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]);
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]) =>
+      _IDBKeyRangeFactoryProvider.create$(ID)_lowerBound(bound, open);
 
   /**
    * @domName IDBKeyRange.upperBound
    */
-  IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]);
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]) =>
+      _IDBKeyRangeFactoryProvider.create$(ID)_upperBound(bound, open);
 
   /**
    * @domName IDBKeyRange.bound
    */
-  IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                    [bool lowerOpen, bool upperOpen]);
+  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                            [bool lowerOpen, bool upperOpen]) =>
+      _IDBKeyRangeFactoryProvider.create$(ID)_bound(
+          lower, upper, lowerOpen, upperOpen);
 
 $!MEMBERS}

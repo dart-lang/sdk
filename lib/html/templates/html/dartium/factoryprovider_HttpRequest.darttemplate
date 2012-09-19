@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory $INTERFACE($PARAMETERS) => _create$INTERFACE($ARGUMENTS);
+  static $INTERFACE create$INTERFACE($PARAMETERS) => _create$INTERFACE($ARGUMENTS);
   static $INTERFACE _create$INTERFACE($PARAMETERS) native "$NATIVE_NAME";
 
-  factory HttpRequest.get(String url,
+  static HttpRequest createHttpRequest_get(String url,
                                      onSuccess(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onSuccess, false);
 
-  factory HttpRequest.getWithCredentials(String url,
+  static HttpRequest createHttpRequest_getWithCredentials(String url,
                                      onSuccess(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onSuccess, true);
 }

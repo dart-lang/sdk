@@ -5,11 +5,16 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS default _$(ID)FactoryProvider {
+abstract class $ID$EXTENDS {
 
-  $ID(String type, Window view, int detail, int screenX, int screenY,
+  factory $ID(String type, Window view, int detail, int screenX, int screenY,
       int clientX, int clientY, int button, [bool canBubble, bool cancelable,
       bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
-      EventTarget relatedTarget]);
+      EventTarget relatedTarget]) =>
+      _$(ID)FactoryProvider.create$ID(
+          type, view, detail, screenX, screenY,
+          clientX, clientY, button, canBubble, cancelable,
+          ctrlKey, altKey, shiftKey, metaKey,
+          relatedTarget);
 
 $!MEMBERS}
