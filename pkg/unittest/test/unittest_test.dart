@@ -139,6 +139,16 @@ runTest() {
       test('testTwo', () {
         _defer(expectAsync0(() {}));
       });
+    } else if (testName == 'middle exception test') {
+      test('testOne', () { expect(true, isTrue); });
+      test('testTwo', () { expect(true, isFalse); });
+      test('testThree', () {
+        var done = expectAsync0((){});
+        _defer(() {
+          expect(true, isTrue);
+          done();
+        });
+      });
     }
   });
 }
@@ -170,7 +180,8 @@ main() {
     'excess callback test',
     'completion test',
     'async exception test',
-    'late exception test'
+    'late exception test',
+    'middle exception test'
   ];
 
   expected = [
@@ -188,7 +199,8 @@ main() {
         message: 'Callback called more times than expected (2 > 1).'),
     buildStatusString(1, 0, 0, tests[9], 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
-    buildStatusString(1, 0, 1, 'testOne', message: 'Callback called after already being marked as done (1).:testTwo:')
+    buildStatusString(1, 0, 1, 'testOne', message: 'Callback called after already being marked as done (1).:testTwo:'),
+    buildStatusString(2, 1, 0, 'testOne::testTwo:Expected: false but: was <true>.:testThree')
   ];
 
   actual = [];

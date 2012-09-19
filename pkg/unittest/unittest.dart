@@ -759,7 +759,8 @@ _registerException(testNum, e, [trace]) {
   } else {
     _tests[testNum].error('Caught $e', trace);
   }
-  if (testNum == _currentTest) {
+  if (testNum == _currentTest &&
+      _tests[testNum].callbackFunctionsOutstanding > 0) {
     _nextTestCase();
   }
 }
@@ -789,6 +790,7 @@ _nextBatch() {
 
 /** Publish results on the page and notify controller. */
 _completeTests() {
+  if (!_initialized) return;
   int testsPassed_ = 0;
   int testsFailed_ = 0;
   int testsErrors_ = 0;
