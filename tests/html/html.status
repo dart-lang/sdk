@@ -41,7 +41,6 @@ documentfragment_test: Pass, Timeout
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
-htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 unknownelement_test: Fail # Issue 4189
@@ -166,7 +165,6 @@ xhr_test: Fail
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
 measurement_test: Fail
-htmloptionscollection_test: Fail # Issue 3813.
 unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js && $runtime == none ]
