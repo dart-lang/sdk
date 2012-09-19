@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+window_open_test: Fail, Pass # http://dartbug.com/5151
+
 event_test: Skip  # Issue 1996
 webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
@@ -200,12 +202,3 @@ js_interop_2_test: Fail # Issue 4658.
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'
 cross_frame_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
 window_open_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
-
-[ $system == macos && $compiler == dart2js && $runtime == chrome ]
-window_open_test: Fail # No testrunner or layoutTestController on Chrome on Mac
-
-[ $compiler == dart2js && $runtime == ff ]
-window_open_test: Skip # Need to investigate if this should be pass or fail
-
-[ $compiler == dart2js && ($runtime == ie || $runtime == safari || $runtime == opera) ]
-window_open_test: Fail

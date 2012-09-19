@@ -19,23 +19,16 @@ class HtmlConfiguration extends Configuration {
 
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
-  EventListener _onMessageClosure;
 
   void onInit() {
     _onErrorClosure =
         (e) => handleExternalError(e, '(DOM callback has errors)');
-    _onMessageClosure = (m) {
-      if (m.data == 'unittest-suite-external-error') {
-        handleExternalError('<unknown>', '(external error detected)');
-      }
-    };
   }
 
   void onStart() {
     window.postMessage('unittest-suite-wait-for-done', '*');
     // Listen for uncaught errors.
     window.on.error.add(_onErrorClosure);
-    window.on.message.add(_onMessageClosure);
   }
 
   void onTestResult(TestCase testCase) {}
@@ -43,7 +36,6 @@ class HtmlConfiguration extends Configuration {
   void onDone(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     window.on.error.remove(_onErrorClosure);
-    window.on.message.remove(_onMessageClosure);
     _showResultsInPage(passed, failed, errors, results, _isLayoutTest,
         uncaughtError);
     window.postMessage('unittest-suite-done', '*');
