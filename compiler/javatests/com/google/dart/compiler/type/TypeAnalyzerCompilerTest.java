@@ -1328,6 +1328,18 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
+  
+  public void test_identicalFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "const A = 1;",
+            "const B = 2;",
+            "const C = identical(A, B);",
+            ""));
+    assertErrors(libraryResult.getErrors());
+  }
 
   /**
    * It is a compile-time error to use type variables in "const" instance creation.

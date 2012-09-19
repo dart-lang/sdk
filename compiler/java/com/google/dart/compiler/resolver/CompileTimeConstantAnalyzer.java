@@ -597,6 +597,12 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
+      Element element = x.getElement();
+      // "identical"
+      if (Elements.isFunctionIdentical(element)) {
+        x.visitChildren(this);
+        return null;
+      }
       // No need to traverse, always disallowed.
       expectedConstant(x);
       return null;

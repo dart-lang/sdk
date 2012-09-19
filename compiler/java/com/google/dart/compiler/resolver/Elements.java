@@ -732,6 +732,20 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
+   * @return <code>true</code> if given {@link Element} if {@link MethodElement} for
+   *         function "identical".
+   */
+  public static boolean isFunctionIdentical(Element element) {
+    if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
+      return Objects.equal(methodElement.getName(), "identical")
+          && methodElement.getEnclosingElement() instanceof LibraryElement
+          && methodElement.getEnclosingElement().getName().equals("dart://core/core.dart");
+    }
+    return false;
+  }
+
+  /**
    * @return <code>true</code> if normal field or abstract field with getter.
    */
   public static boolean isFieldWithGetter(FieldElement fieldElement) {
