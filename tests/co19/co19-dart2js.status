@@ -1059,11 +1059,40 @@ Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
-# Language/14_Types/*: Skip # ~3 failures
 Language/14_Types/4_Interface_Types_A01_t01: Fail # BUG
 Language/14_Types/4_Interface_Types_A02_t01: Fail # BUG
 Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
-Language/15_Reference/*: Skip # Not clear how many failures
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # inherited from dart2js
+Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
 LibTest/core/*: Skip # ~4 failures
 LibTest/isolate/*: Skip # ~5 failures
 
