@@ -34,11 +34,11 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
 
 void FlowGraph::DiscoverBlocks() {
   // Initialize state.
-  preorder_.TruncateTo(0);
-  postorder_.TruncateTo(0);
-  reverse_postorder_.TruncateTo(0);
-  parent_.TruncateTo(0);
-  assigned_vars_.TruncateTo(0);
+  preorder_.Clear();
+  postorder_.Clear();
+  reverse_postorder_.Clear();
+  parent_.Clear();
+  assigned_vars_.Clear();
   // Perform a depth-first traversal of the graph to build preorder and
   // postorder block orders.
   graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
@@ -198,8 +198,8 @@ bool FlowGraph::ValidateUseLists() {
 
 static void ClearUseLists(Definition* defn) {
   ASSERT(defn != NULL);
-  DEBUG_ASSERT(defn->input_use_list() == NULL);
-  DEBUG_ASSERT(defn->env_use_list() == NULL);
+  ASSERT(defn->input_use_list() == NULL);
+  ASSERT(defn->env_use_list() == NULL);
   defn->set_input_use_list(NULL);
   defn->set_env_use_list(NULL);
 }
@@ -209,9 +209,9 @@ static void RecordInputUses(Instruction* instr) {
   ASSERT(instr != NULL);
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     Value* use = instr->InputAt(i);
-    DEBUG_ASSERT(use->instruction() == NULL);
-    DEBUG_ASSERT(use->use_index() == -1);
-    DEBUG_ASSERT(use->next_use() == NULL);
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(0 == MembershipCount(use,
                                       use->definition()->input_use_list()));
     use->set_instruction(instr);
@@ -227,9 +227,9 @@ static void RecordEnvUses(Instruction* instr) {
   intptr_t use_index = 0;
   for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();
-    DEBUG_ASSERT(use->instruction() == NULL);
-    DEBUG_ASSERT(use->use_index() == -1);
-    DEBUG_ASSERT(use->next_use() == NULL);
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(0 == MembershipCount(use, use->definition()->env_use_list()));
     use->set_instruction(instr);
     use->set_use_index(use_index++);
@@ -270,9 +270,9 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
         PhiInstr* phi = (*join->phis())[i];
         if (phi == NULL) continue;
         Value* use = phi->InputAt(pred_index);
-        DEBUG_ASSERT(use->instruction() == NULL);
-        DEBUG_ASSERT(use->use_index() == -1);
-        DEBUG_ASSERT(use->next_use() == NULL);
+        ASSERT(use->instruction() == NULL);
+        ASSERT(use->use_index() == -1);
+        ASSERT(use->next_use() == NULL);
         DEBUG_ASSERT(0 == MembershipCount(use,
                                           use->definition()->input_use_list()));
         use->set_instruction(phi);
@@ -299,7 +299,7 @@ void FlowGraph::ComputeUseLists() {
 void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
   current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
-  ComputeDominators(&preorder_, &parent_, &dominance_frontier);
+  ComputeDominators(&dominance_frontier);
   InsertPhis(preorder_, assigned_vars_, dominance_frontier);
   GrowableArray<PhiInstr*> live_phis;
   // Rename uses to reference inserted phis where appropriate.
@@ -314,20 +314,10 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
 // block.  As a side effect of the algorithm, sets the immediate dominator
 // of each basic block.
 //
-// preorder: an input list of basic block entries in preorder.  The
-//     algorithm relies on the block ordering.
-//
-// parent: an input parameter encoding a depth-first spanning tree of
-//     the control flow graph.  The array maps the preorder block
-//     number of a block to the preorder block number of its spanning
-//     tree parent.
-//
 // dominance_frontier: an output parameter encoding the dominance frontier.
 //     The array maps the preorder block number of a block to the set of
 //     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraph::ComputeDominators(
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* dominance_frontier) {
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
@@ -340,7 +330,7 @@ void FlowGraph::ComputeDominators(
   // See http://www.cs.princeton.edu/~rwerneck/dominators/ .
 
   // All arrays are maps between preorder basic-block numbers.
-  intptr_t size = parent->length();
+  intptr_t size = parent_.length();
   GrowableArray<intptr_t> idom(size);  // Immediate dominator.
   GrowableArray<intptr_t> semi(size);  // Semidominator.
   GrowableArray<intptr_t> label(size);  // Label for link-eval forest.
@@ -356,17 +346,22 @@ void FlowGraph::ComputeDominators(
   // Initialize idom, semi, and label used by SEMI-NCA.  Initialize the
   // dominance frontier output array.
   for (intptr_t i = 0; i < size; ++i) {
-    idom.Add((*parent)[i]);
+    idom.Add(parent_[i]);
     semi.Add(i);
     label.Add(i);
     dominance_frontier->Add(new BitVector(size));
   }
 
   // Loop over the blocks in reverse preorder (not including the graph
-  // entry).
+  // entry).  Clear the dominated blocks in the graph entry in case
+  // ComputeDominators is used to recompute them.
+  preorder_[0]->ClearDominatedBlocks();
   for (intptr_t block_index = size - 1; block_index >= 1; --block_index) {
     // Loop over the predecessors.
-    BlockEntryInstr* block = (*preorder)[block_index];
+    BlockEntryInstr* block = preorder_[block_index];
+    // Clear the immediately dominated blocks in case ComputeDominators is
+    // used to recompute them.
+    block->ClearDominatedBlocks();
     for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       ASSERT(pred != NULL);
@@ -376,7 +371,7 @@ void FlowGraph::ComputeDominators(
       intptr_t pred_index = pred->preorder_number();
       intptr_t best = pred_index;
       if (pred_index > block_index) {
-        CompressPath(block_index, pred_index, parent, &label);
+        CompressPath(block_index, pred_index, &parent_, &label);
         best = label[pred_index];
       }
 
@@ -396,8 +391,8 @@ void FlowGraph::ComputeDominators(
       dom_index = idom[dom_index];
     }
     idom[block_index] = dom_index;
-    (*preorder)[block_index]->set_dominator((*preorder)[dom_index]);
-    (*preorder)[dom_index]->AddDominatedBlock((*preorder)[block_index]);
+    preorder_[block_index]->set_dominator(preorder_[dom_index]);
+    preorder_[dom_index]->AddDominatedBlock(preorder_[block_index]);
   }
 
   // 3. Now compute the dominance frontier for all blocks.  This is
@@ -406,7 +401,7 @@ void FlowGraph::ComputeDominators(
   // required to avoid adding a block twice to the same block's dominance
   // frontier because we use a set to represent the dominance frontier.
   for (intptr_t block_index = 0; block_index < size; ++block_index) {
-    BlockEntryInstr* block = (*preorder)[block_index];
+    BlockEntryInstr* block = preorder_[block_index];
     intptr_t count = block->PredecessorCount();
     if (count <= 1) continue;
     for (intptr_t i = 0; i < count; ++i) {

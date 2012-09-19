@@ -116,13 +116,12 @@ class FlowGraph : public ZoneAllocated {
 #endif  // DEBUG
 
  private:
+  friend class ConstantPropagator;
+
   void DiscoverBlocks();
 
   // SSA transformation methods and fields.
-  void ComputeDominators(
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* dominance_frontier);
+  void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
 
   void CompressPath(
       intptr_t start_index,

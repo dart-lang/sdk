@@ -9,6 +9,7 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
+#include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/scopes.h"
@@ -1773,6 +1774,694 @@ void DominatorBasedCSE::OptimizeRecursive(
       OptimizeRecursive(child, map);  // Reuse map for the last child.
     }
   }
+}
+
+
+ConstantPropagator::ConstantPropagator(FlowGraph* graph)
+    : FlowGraphVisitor(GrowableArray<BlockEntryInstr*>()),
+      graph_(graph),
+      unknown_(Object::ZoneHandle(Object::transition_sentinel())),
+      non_constant_(Object::ZoneHandle(Object::sentinel())),
+      reachable_(new BitVector(graph->preorder().length())),
+      definition_marks_(new BitVector(graph->max_virtual_register_number())),
+      block_worklist_(),
+      definition_worklist_() {}
+
+
+void ConstantPropagator::SetReachable(BlockEntryInstr* block) {
+  if (!reachable_->Contains(block->preorder_number())) {
+    reachable_->Add(block->preorder_number());
+    block_worklist_.Add(block);
+  }
+}
+
+
+void ConstantPropagator::SetValue(Definition* definition, const Object& value) {
+  // We would like to assert we only go up (toward non-constant) in the lattice.
+  //
+  // ASSERT(IsUnknown(definition->constant_value()) ||
+  //        IsNonConstant(value) ||
+  //        (definition->constant_value().raw() == value.raw()));
+  //
+  // But the final disjunct is not true (e.g., mint or double constants are
+  // heap-allocated and so not necessarily pointer-equal on each iteration).
+  if (definition->constant_value().raw() != value.raw()) {
+    definition->constant_value() = value.raw();
+    if (definition->input_use_list() != NULL) {
+      ASSERT(definition->HasSSATemp());
+      if (!definition_marks_->Contains(definition->ssa_temp_index())) {
+        definition_worklist_.Add(definition);
+        definition_marks_->Add(definition->ssa_temp_index());
+      }
+    }
+  }
+}
+
+
+// Compute the join of two values in the lattice, assign it to the first.
+void ConstantPropagator::Join(Object* left, const Object& right) {
+  // Join(non-constant, X) = non-constant
+  // Join(X, unknown)      = X
+  if (IsNonConstant(*left) || IsUnknown(right)) return;
+
+  // Join(unknown, X)      = X
+  // Join(X, non-constant) = non-constant
+  if (IsUnknown(*left) || IsNonConstant(right)) {
+    *left = right.raw();
+    return;
+  }
+
+  // Join(X, X) = X
+  // TODO(kmillikin): support equality for doubles, mints, etc.
+  if (left->raw() == right.raw()) return;
+
+  // Join(X, Y) = non-constant
+  *left = non_constant_.raw();
+}
+
+
+// --------------------------------------------------------------------------
+// Analysis of blocks.  Called at most once per block.  The block is already
+// marked as reachable.  All instructions in the block are analyzed.
+void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
+  block->constant_null()->Accept(this);
+  for (Environment::ShallowIterator it(block->start_env());
+       !it.Done();
+       it.Advance()) {
+    it.CurrentValue()->definition()->Accept(this);
+  }
+  ASSERT(ForwardInstructionIterator(block).Done());
+
+  SetReachable(block->normal_entry());
+}
+
+
+void ConstantPropagator::VisitJoinEntry(JoinEntryInstr* block) {
+  ZoneGrowableArray<PhiInstr*>* phis = block->phis();
+  if (phis != NULL) {
+    for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+      PhiInstr* phi = (*phis)[phi_idx];
+      if (phi == NULL) continue;
+      phi->Accept(this);
+    }
+  }
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+
+void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+
+void ConstantPropagator::VisitParallelMove(ParallelMoveInstr* instr) {
+  // Parallel moves have not yet been inserted in the graph.
+  UNREACHABLE();
+}
+
+
+// --------------------------------------------------------------------------
+// Analysis of control instructions.  Unconditional successors are
+// reachable.  Conditional successors are reachable depending on the
+// constant value of the condition.
+void ConstantPropagator::VisitReturn(ReturnInstr* instr) {
+  // Nothing to do.
+}
+
+
+void ConstantPropagator::VisitThrow(ThrowInstr* instr) {
+  // Nothing to do.
+}
+
+
+void ConstantPropagator::VisitReThrow(ReThrowInstr* instr) {
+  // Nothing to do.
+}
+
+
+void ConstantPropagator::VisitGoto(GotoInstr* instr) {
+  SetReachable(instr->successor());
+}
+
+
+void ConstantPropagator::VisitBranch(BranchInstr* instr) {
+  instr->comparison()->Accept(this);
+  const Object& value = instr->comparison()->constant_value();
+  if (IsNonConstant(value)) {
+    SetReachable(instr->true_successor());
+    SetReachable(instr->false_successor());
+  } else if (value.raw() == Bool::True()) {
+    SetReachable(instr->true_successor());
+  } else if (!IsUnknown(value)) {  // Any other constant.
+    SetReachable(instr->false_successor());
+  }
+}
+
+
+// --------------------------------------------------------------------------
+// Analysis of definitions.  Compute the constant value.  If it has changed
+// and the definition has input uses, add the definition to the definition
+// worklist so that the used can be processed.
+void ConstantPropagator::VisitPhi(PhiInstr* instr) {
+  // Compute the join over all the reachable predecessor values.
+  JoinEntryInstr* block = instr->block();
+  Object& value = Object::ZoneHandle(Unknown());
+  for (intptr_t pred_idx = 0; pred_idx < instr->InputCount(); ++pred_idx) {
+    if (reachable_->Contains(
+            block->PredecessorAt(pred_idx)->preorder_number())) {
+      Join(&value,
+           instr->InputAt(pred_idx)->definition()->constant_value());
+    }
+  }
+  SetValue(instr, value);
+}
+
+
+void ConstantPropagator::VisitParameter(ParameterInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
+}
+
+
+void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // We are ignoring the instantiator and instantiator_type_arguments, but
+    // still monotonic and safe.
+    // TODO(kmillikin): Handle constants.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle assertion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitArgumentDefinitionTest(
+    ArgumentDefinitionTestInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitCurrentContext(CurrentContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitClosureCall(ClosureCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitInstanceCall(InstanceCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitPolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitLoadLocal(LoadLocalInstr* instr) {
+  UNREACHABLE();
+}
+
+
+void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
+  UNREACHABLE();
+}
+
+
+void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    bool result = (left.raw() == right.raw());
+    if (instr->kind() == Token::kNE_STRICT) result = !result;
+    SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+  }
+}
+
+
+void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(kmillikin): Handle equality comparison of constants.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(kmillikin): Handle relational comparison of constants.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
+}
+
+
+void ConstantPropagator::VisitStoreInstanceField(
+    StoreInstanceFieldInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
+}
+
+
+void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStoreStaticField(StoreStaticFieldInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
+}
+
+
+void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    SetValue(instr, Bool::ZoneHandle(Bool::Get(value.raw() != Bool::True())));
+  }
+}
+
+
+void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle instanceof on constants.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitCreateArray(CreateArrayInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitCreateClosure(CreateClosureInstr* instr) {
+  // TODO(kmillikin): Treat closures as constants.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitAllocateObjectWithBoundsCheck(
+    AllocateObjectWithBoundsCheckInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStoreVMField(StoreVMFieldInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
+}
+
+
+void ConstantPropagator::VisitInstantiateTypeArguments(
+    InstantiateTypeArgumentsInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitExtractConstructorTypeArguments(
+    ExtractConstructorTypeArgumentsInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitExtractConstructorInstantiator(
+    ExtractConstructorInstantiatorInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    if (left.IsSmi() && right.IsSmi()) {
+      switch (instr->op_kind()) {
+        case Token::kADD:
+        case Token::kSUB:
+        case Token::kMUL:
+        case Token::kTRUNCDIV:
+        case Token::kMOD: {
+          const Object& result =
+              Integer::ZoneHandle(Integer::BinaryOp(instr->op_kind(),
+                                                    Smi::Cast(left),
+                                                    Smi::Cast(right)));
+          SetValue(instr, result);
+          break;
+        }
+        default:
+          // TODO(kmillikin): support other smi operations.
+          SetValue(instr, non_constant_);
+      }
+    } else {
+      // TODO(kmillikin): support other types.
+      SetValue(instr, non_constant_);
+    }
+  }
+}
+
+
+void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(kmillikin): Handle binary operations.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle unary operations.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitCheckStackOverflow(
+    CheckStackOverflowInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle check.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle check.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
+  SetValue(instr, instr->value());
+}
+
+
+void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(kmillikin): Handle check.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnboxedDoubleBinaryOp(
+    UnboxedDoubleBinaryOpInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(kmillikin): Handle binary operation.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitMathSqrt(MathSqrtInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle sqrt.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnboxDouble(UnboxDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
+  // TODO(kmillikin): Handle checks.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::Analyze() {
+  GraphEntryInstr* entry = graph_->graph_entry();
+  reachable_->Add(entry->preorder_number());
+  block_worklist_.Add(entry);
+
+  while (true) {
+    if (block_worklist_.is_empty()) {
+      if (definition_worklist_.is_empty()) break;
+      Definition* definition = definition_worklist_.Last();
+      definition_worklist_.RemoveLast();
+      definition_marks_->Remove(definition->ssa_temp_index());
+      Value* use = definition->input_use_list();
+      while (use != NULL) {
+        use->instruction()->Accept(this);
+        use = use->next_use();
+      }
+    } else {
+      BlockEntryInstr* block = block_worklist_.Last();
+      block_worklist_.RemoveLast();
+      block->Accept(this);
+    }
+  }
+}
+
+
+void ConstantPropagator::Transform() {
+  // We will recompute dominators, block ordering, block ids, block last
+  // instructions, previous pointers, predecessors, etc. after eliminating
+  // unreachable code.  We do not maintain those properties during the
+  // transformation.
+  for (BlockIterator b = graph_->reverse_postorder_iterator();
+       !b.Done();
+       b.Advance()) {
+    BlockEntryInstr* block = b.Current();
+    if (!reachable_->Contains(block->preorder_number())) {
+      continue;
+    }
+    for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
+      Definition* defn = i.Current()->AsDefinition();
+      BranchInstr* branch = i.Current()->AsBranch();
+      if (defn != NULL) {
+        if (IsConstant(defn->constant_value())) {
+          if (!defn->IsConstant() &&
+              !defn->IsPushArgument() &&
+              !defn->IsStoreLocal() &&
+              !defn->IsStoreIndexed() &&
+              !defn->IsStoreInstanceField() &&
+              !defn->IsStoreStaticField() &&
+              !defn->IsStoreVMField()) {
+            // TODO(kmillikin): propagate constants to replace instructions
+            // without side effects.
+          }
+        }
+      } else if (branch != NULL) {
+        TargetEntryInstr* if_true = branch->true_successor();
+        TargetEntryInstr* if_false = branch->false_successor();
+        JoinEntryInstr* join = NULL;
+        Instruction* next = NULL;
+
+        if (!reachable_->Contains(if_true->preorder_number())) {
+          ASSERT(reachable_->Contains(if_false->preorder_number()));
+          ASSERT(branch->comparison()->IsStrictCompare());
+          ASSERT(if_false->parallel_move() == NULL);
+          ASSERT(if_false->loop_info() == NULL);
+          join = new JoinEntryInstr(if_false->try_index());
+          next = if_false->next();
+        } else if (!reachable_->Contains(if_false->preorder_number())) {
+          ASSERT(branch->comparison()->IsStrictCompare());
+          ASSERT(if_true->parallel_move() == NULL);
+          ASSERT(if_true->loop_info() == NULL);
+          join = new JoinEntryInstr(if_true->try_index());
+          next = if_true->next();
+        }
+
+        if (join != NULL) {
+          // Replace the branch with a jump to the reachable successor.
+          // Drop the comparison, which does not have side effects as long
+          // as it is a strict compare (the only one we can determine is
+          // constant with the current analysis).
+          GotoInstr* jump = new GotoInstr(join);
+          // Removing the branch from the graph will leave the iterator in a
+          // state where current is detached from the graph.  Since current
+          // has no successors and neither does its replacement, that's
+          // safe.
+          Instruction* previous = branch->previous();
+          branch->set_previous(NULL);
+          previous->set_next(jump);
+          // Replace the false target entry with the new join entry. We will
+          // recompute the dominators after this pass.
+          join->set_next(next);
+        }
+      }
+    }
+  }
+  graph_->DiscoverBlocks();
+  GrowableArray<BitVector*> dominance_frontier;
+  graph_->ComputeDominators(&dominance_frontier);
+
+  // Garbage collect phi inputs corresponding to unreachable predecessors.
+  // This is required because we assume that predecessor and phi indexes
+  // align.  Note that this does not necessarily eliminate all useless phis
+  // (e.g., it does not eliminate phis that were originally inserted solely
+  // due to an assignment on the now-unreachable path).
+  for (BlockIterator it = graph_->reverse_postorder_iterator();
+       !it.Done();
+       it.Advance()) {
+    JoinEntryInstr* join = it.Current()->AsJoinEntry();
+    if (join != NULL) join->EliminateUnreachablePhiInputs();
+  }
+
+  graph_->ComputeUseLists();
 }
 
 
