@@ -479,7 +479,7 @@ toRadixString(receiver, radix) {
     return UNINTERCEPTED(receiver.toRadixString(radix));
   }
   checkNum(radix);
-
+  if (radix < 2 || radix > 36) throw new IllegalArgumentException(radix);
   return JS('String', @'#.toString(#)', receiver, radix);
 }
 
