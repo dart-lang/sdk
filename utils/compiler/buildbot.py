@@ -79,8 +79,8 @@ def GetBuildInfo():
       runtime = web_pattern.group(2)
       system = web_pattern.group(3)
       mode = 'release'
-      shard_index = web_pattern.group(3)
-      total_shards = web_pattern.group(4)
+      shard_index = web_pattern.group(4)
+      total_shards = web_pattern.group(5)
     elif dart2js_pattern:
       compiler = 'dart2js'
       runtime = 'd8'
