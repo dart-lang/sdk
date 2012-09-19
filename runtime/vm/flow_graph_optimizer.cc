@@ -29,27 +29,47 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
+static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
+                                      Instruction* current,
+                                      Instruction* replacement) {
+  if ((replacement != NULL) && current->IsDefinition()) {
+    Definition* current_defn = current->AsDefinition();
+    Definition* replacement_defn = replacement->AsDefinition();
+    ASSERT(replacement_defn != NULL);
+    current_defn->ReplaceUsesWith(replacement_defn);
+
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
+                current_defn->ssa_temp_index(),
+                replacement_defn->ssa_temp_index());
+    }
+  } else if (FLAG_trace_optimization) {
+    ASSERT(!current->IsDefinition() ||
+           ((current->AsDefinition()->input_use_list() == NULL) &&
+            (current->AsDefinition()->env_use_list() == NULL)));
+    if (current->IsDefinition()) {
+      OS::Print("Removing v%"Pd".\n",
+                current->AsDefinition()->ssa_temp_index());
+    } else {
+      OS::Print("Removing %s\n", current->DebugName());
+    }
+  }
+  it->RemoveCurrentFromGraph();
+}
+
+
 void FlowGraphOptimizer::OptimizeComputations() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      Definition* defn = it.Current()->AsDefinition();
-      if (defn != NULL) {
-        Definition* result = defn->Canonicalize();
-        if (result != defn) {
-          if (result != NULL) {
-            defn->ReplaceUsesWith(result);
-            if (FLAG_trace_optimization) {
-              OS::Print("Replacing v%"Pd" with v%"Pd"\n",
-                        defn->ssa_temp_index(),
-                        result->ssa_temp_index());
-            }
-          } else if (FLAG_trace_optimization) {
-              OS::Print("Removing v%"Pd".\n", defn->ssa_temp_index());
-          }
-          it.RemoveCurrentFromGraph();
-        }
+      Instruction* current = it.Current();
+      Instruction* replacement = current->Canonicalize();
+      if (replacement != current) {
+        // For non-definitions Canonicalize should return either NULL or
+        // this.
+        ASSERT((replacement == NULL) || current->IsDefinition());
+        ReplaceCurrentInstruction(&it, current, replacement);
       }
     }
   }
@@ -414,27 +434,31 @@ bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
 }
 
 
-void FlowGraphOptimizer::InsertBefore(Instruction* instr,
-                                      Definition* defn,
+void FlowGraphOptimizer::InsertBefore(Instruction* next,
+                                      Instruction* instr,
                                       Environment* env,
                                       Definition::UseKind use_kind) {
-  if (env != NULL) env->DeepCopyTo(defn);
+  if (env != NULL) env->DeepCopyTo(instr);
   if (use_kind == Definition::kValue) {
-    defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    ASSERT(instr->IsDefinition());
+    instr->AsDefinition()->set_ssa_temp_index(
+        flow_graph_->alloc_ssa_temp_index());
   }
-  defn->InsertBefore(instr);
+  instr->InsertBefore(next);
 }
 
 
-void FlowGraphOptimizer::InsertAfter(Instruction* instr,
-                                     Definition* defn,
+void FlowGraphOptimizer::InsertAfter(Instruction* prev,
+                                     Instruction* instr,
                                      Environment* env,
                                      Definition::UseKind use_kind) {
-  if (env != NULL) env->DeepCopyTo(defn);
+  if (env != NULL) env->DeepCopyTo(instr);
   if (use_kind == Definition::kValue) {
-    defn->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    ASSERT(instr->IsDefinition());
+    instr->AsDefinition()->set_ssa_temp_index(
+        flow_graph_->alloc_ssa_temp_index());
   }
-  defn->InsertAfter(instr);
+  instr->InsertAfter(prev);
 }
 
 
@@ -1425,7 +1449,7 @@ static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
 
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
-                 Definition* current) {
+                 Instruction* current) {
   // TODO(fschneider): Avoid repeated deoptimization when
   // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
@@ -1450,7 +1474,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
 void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                       BlockEntryInstr* header,
                                       BlockEntryInstr* pre_header,
-                                      Definition* current) {
+                                      Instruction* current) {
   PhiInstr* phi = current->InputAt(0)->definition()->AsPhi();
   if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
     return;
@@ -1507,10 +1531,8 @@ void LICM::Optimize(FlowGraph* flow_graph) {
       for (ForwardInstructionIterator it(block);
            !it.Done();
            it.Advance()) {
-        Definition* current = it.Current()->AsDefinition();
-        if (current != NULL &&
-            !current->IsPushArgument() &&
-            !current->AffectedBySideEffect()) {
+        Instruction* current = it.Current();
+        if (!current->IsPushArgument() && !current->AffectedBySideEffect()) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -1730,30 +1752,24 @@ void DominatorBasedCSE::Optimize(FlowGraph* graph) {
     }
   }
 
-  DirectChainedHashMap<Definition*> map;
+  DirectChainedHashMap<Instruction*> map;
   OptimizeRecursive(graph->graph_entry(), &map);
 }
 
 
 void DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* block,
-    DirectChainedHashMap<Definition*>* map) {
+    DirectChainedHashMap<Instruction*>* map) {
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    Definition* defn = it.Current()->AsDefinition();
-    if ((defn == NULL) || defn->AffectedBySideEffect()) continue;
-    Definition* result = map->Lookup(defn);
-    if (result == NULL) {
-      map->Insert(defn);
+    Instruction* current = it.Current();
+    if (current->AffectedBySideEffect()) continue;
+    Instruction* replacement = map->Lookup(current);
+    if (replacement == NULL) {
+      map->Insert(current);
       continue;
     }
     // Replace current with lookup result.
-    defn->ReplaceUsesWith(result);
-    it.RemoveCurrentFromGraph();
-    if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
-                defn->ssa_temp_index(),
-                result->ssa_temp_index());
-    }
+    ReplaceCurrentInstruction(&it, current, replacement);
   }
 
   // Process children in the dominator tree recursively.
@@ -1761,7 +1777,7 @@ void DominatorBasedCSE::OptimizeRecursive(
   for (intptr_t i = 0; i < num_children; ++i) {
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
-      DirectChainedHashMap<Definition*> child_map(*map);  // Copy map.
+      DirectChainedHashMap<Instruction*> child_map(*map);  // Copy map.
       OptimizeRecursive(child, &child_map);
     } else {
       OptimizeRecursive(child, map);  // Reuse map for the last child.
@@ -1989,7 +2005,7 @@ void ConstantPropagator::VisitCurrentContext(CurrentContextInstr* instr) {
 
 
 void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) {
-  SetValue(instr, non_constant_);
+  // Nothing to do. Not a value.
 }
 
 
@@ -2169,7 +2185,7 @@ void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
 
 
 void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) {
-  SetValue(instr, non_constant_);
+  // Nothing to do. Not a value.
 }
 
 
@@ -2179,7 +2195,7 @@ void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
 
 
 void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) {
-  SetValue(instr, non_constant_);
+  // Nothing to do. Not a value.
 }
 
 
@@ -2240,7 +2256,7 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
 
 void ConstantPropagator::VisitCheckStackOverflow(
     CheckStackOverflowInstr* instr) {
-  SetValue(instr, non_constant_);
+  // Nothing to do. Not a value.
 }
 
 
@@ -2262,24 +2278,12 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 
 
 void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle check.
-    SetValue(instr, non_constant_);
-  }
+  // Nothing to do. Not a value.
 }
 
 
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle check.
-    SetValue(instr, non_constant_);
-  }
+  // Nothing to do. Has no value.
 }
 
 
@@ -2289,14 +2293,7 @@ void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
 
 
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
-  if (IsNonConstant(left) || IsNonConstant(right)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle check.
-    SetValue(instr, non_constant_);
-  }
+  // Nothing to do. Not a value.
 }
 
 
@@ -2347,8 +2344,7 @@ void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
 
 
 void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
-  // TODO(kmillikin): Handle checks.
-  SetValue(instr, non_constant_);
+  // Nothing to do. Not a value.
 }
 
 

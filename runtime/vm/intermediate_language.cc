@@ -35,7 +35,7 @@ Definition::Definition()
 }
 
 
-intptr_t Definition::Hashcode() const {
+intptr_t Instruction::Hashcode() const {
   intptr_t result = tag();
   for (intptr_t i = 0; i < InputCount(); ++i) {
     Value* value = InputAt(i);
@@ -46,7 +46,7 @@ intptr_t Definition::Hashcode() const {
 }
 
 
-bool Definition::Equals(Definition* other) const {
+bool Instruction::Equals(Instruction* other) const {
   if (tag() != other->tag()) return false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (!InputAt(i)->Equals(other->InputAt(i))) return false;
@@ -60,7 +60,7 @@ bool Value::Equals(Value* other) const {
 }
 
 
-bool CheckClassInstr::AttributesEqual(Definition* other) const {
+bool CheckClassInstr::AttributesEqual(Instruction* other) const {
   CheckClassInstr* other_check = other->AsCheckClass();
   ASSERT(other_check != NULL);
   if (unary_checks().NumberOfChecks() !=
@@ -78,28 +78,28 @@ bool CheckClassInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
+bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
   CheckArrayBoundInstr* other_check = other->AsCheckArrayBound();
   ASSERT(other_check != NULL);
   return array_type() == other_check->array_type();
 }
 
 
-bool StrictCompareInstr::AttributesEqual(Definition* other) const {
+bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
   return kind() == other_op->kind();
 }
 
 
-bool BinarySmiOpInstr::AttributesEqual(Definition* other) const {
+bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
   ASSERT(other_op != NULL);
   return op_kind() == other_op->op_kind();
 }
 
 
-bool LoadFieldInstr::AttributesEqual(Definition* other) const {
+bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
@@ -109,7 +109,7 @@ bool LoadFieldInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool LoadStaticFieldInstr::AttributesEqual(Definition* other) const {
+bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
@@ -119,7 +119,7 @@ bool LoadStaticFieldInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool ConstantInstr::AttributesEqual(Definition* other) const {
+bool ConstantInstr::AttributesEqual(Instruction* other) const {
   ConstantInstr* other_constant = other->AsConstant();
   ASSERT(other_constant != NULL);
   return (value().raw() == other_constant->value().raw());
@@ -245,7 +245,7 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
 }
 
 
-void Definition::InsertBefore(Instruction* next) {
+void Instruction::InsertBefore(Instruction* next) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   next_ = next;
@@ -255,7 +255,7 @@ void Definition::InsertBefore(Instruction* next) {
 }
 
 
-void Definition::InsertAfter(Instruction* prev) {
+void Instruction::InsertAfter(Instruction* prev) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   previous_ = prev;
@@ -265,7 +265,7 @@ void Definition::InsertAfter(Instruction* prev) {
 }
 
 
-BlockEntryInstr* Definition::GetBlock() const {
+BlockEntryInstr* Instruction::GetBlock() const {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   ASSERT(previous() != NULL);
@@ -1286,7 +1286,12 @@ RawAbstractType* CheckEitherNonSmiInstr::CompileType() const {
 }
 
 
-// Optimizations that eliminate or simplify individual computations.
+// Optimizations that eliminate or simplify individual instructions.
+Instruction* Instruction::Canonicalize() {
+  return this;
+}
+
+
 Definition* Definition::Canonicalize() {
   return this;
 }
@@ -1308,7 +1313,7 @@ Definition* StrictCompareInstr::Canonicalize() {
 }
 
 
-Definition* CheckClassInstr::Canonicalize() {
+Instruction* CheckClassInstr::Canonicalize() {
   const intptr_t v_cid = value()->ResultCid();
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   if ((num_checks == 1) &&
@@ -1320,12 +1325,12 @@ Definition* CheckClassInstr::Canonicalize() {
 }
 
 
-Definition* CheckSmiInstr::Canonicalize() {
+Instruction* CheckSmiInstr::Canonicalize() {
   return (value()->ResultCid() == kSmiCid) ?  NULL : this;
 }
 
 
-Definition* CheckEitherNonSmiInstr::Canonicalize() {
+Instruction* CheckEitherNonSmiInstr::Canonicalize() {
   if ((left()->ResultCid() == kDoubleCid) ||
       (right()->ResultCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.

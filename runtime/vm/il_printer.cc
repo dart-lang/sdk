@@ -154,6 +154,26 @@ static void PrintUse(BufferFormatter* f, const Definition& definition) {
 }
 
 
+void Instruction::PrintTo(BufferFormatter* f) const {
+  f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+  PrintOperandsTo(f);
+  f->Print(")");
+}
+
+
+void Instruction::PrintOperandsTo(BufferFormatter* f) const {
+  for (int i = 0; i < InputCount(); ++i) {
+    if (i > 0) f->Print(", ");
+    if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
+  }
+}
+
+
+void Instruction::PrintToVisualizer(BufferFormatter* f) const {
+  PrintTo(f);
+}
+
+
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (is_used()) {
@@ -513,22 +533,6 @@ void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s ", DebugName());
-  value()->PrintTo(f);
-}
-
-
-void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s" , DebugName());
-}
-
-
-void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s ", DebugName());
-}
-
-
 void GotoInstr::PrintTo(BufferFormatter* f) const {
   if (HasParallelMove()) {
     parallel_move()->PrintTo(f);
@@ -745,22 +749,6 @@ void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   value()->PrintTo(f);
-}
-
-
-void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-  value()->PrintTo(f);
-}
-
-
-void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-}
-
-
-void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
 }
 
 

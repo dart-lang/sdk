@@ -290,7 +290,7 @@ void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
 // Loads context saved in 'context_variable' into the current context.
 void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
   Value* load_saved_context = Bind(BuildLoadLocal(variable));
-  Do(new StoreContextInstr(load_saved_context));
+  AddInstruction(new StoreContextInstr(load_saved_context));
 }
 
 
@@ -1187,7 +1187,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.Do(
+  for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
@@ -1220,7 +1220,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   InlineBailout("EffectGraphVisitor::VisitDoWhileNode (control)");
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.Do(
+  for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
@@ -1276,7 +1276,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.Do(
+  for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
@@ -1575,7 +1575,7 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
   InlineBailout("EffectGraphVisitor::VisitCloneContextNode (context)");
   Value* context = Bind(new CurrentContextInstr());
   Value* clone = Bind(new CloneContextInstr(node->token_pos(), context));
-  ReturnDefinition(new StoreContextInstr(clone));
+  AddInstruction(new StoreContextInstr(clone));
 }
 
 
@@ -2295,7 +2295,7 @@ void EffectGraphVisitor::UnchainContext() {
       new LoadFieldInstr(context,
                          Context::parent_offset(),
                          Type::ZoneHandle()));  // Not an instance, no type.
-  Do(new StoreContextInstr(parent));
+  AddInstruction(new StoreContextInstr(parent));
 }
 
 
@@ -2325,10 +2325,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       Do(BuildStoreTemp(*owner()->parsed_function().saved_context_var(),
                         current_context));
       Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
-      Do(new StoreContextInstr(null_context));
+      AddInstruction(new StoreContextInstr(null_context));
     }
 
-    Do(new ChainContextInstr(allocated_context));
+    AddInstruction(new ChainContextInstr(allocated_context));
     owner()->set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy
@@ -2450,7 +2450,8 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   // NOTE: The implicit variables ':saved_context', ':exception_var'
   // and ':stacktrace_var' can never be captured variables.
   // Restores CTX from local variable ':saved_context'.
-  Do(new CatchEntryInstr(node->exception_var(), node->stacktrace_var()));
+  AddInstruction(
+      new CatchEntryInstr(node->exception_var(), node->stacktrace_var()));
   BuildLoadContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner(), temp_index());
@@ -2605,10 +2606,10 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
   }
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).
-  Definition* check = new CheckStackOverflowInstr(function.token_pos());
+  Instruction* check = new CheckStackOverflowInstr(function.token_pos());
   // If we are inlining don't actually attach the stack check. We must still
   // create the stack check inorder to allocate a deopt id.
-  if (!InInliningContext()) for_effect.Do(check);
+  if (!InInliningContext()) for_effect.AddInstruction(check);
   parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.

@@ -386,8 +386,9 @@ class Instruction : public ZoneAllocated {
   virtual const char* DebugName() const = 0;
 
   // Printing support.
-  virtual void PrintTo(BufferFormatter* f) const = 0;
-  virtual void PrintToVisualizer(BufferFormatter* f) const = 0;
+  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   bool Is##type() { return (As##type() != NULL); }                             \
@@ -442,9 +443,47 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return Isolate::kNoDeoptId;
   }
 
+  // Returns a replacement for the instruction or NULL if the instruction can
+  // be eliminated.  By default returns the this instruction which means no
+  // change.
+  virtual Instruction* Canonicalize();
+
+  // Insert this instruction before 'next'.
+  void InsertBefore(Instruction* next);
+
+  // Insert this instruction after 'prev'.
+  void InsertAfter(Instruction* prev);
+
+  // Returns true if the instruction is affected by side effects.
+  // Only instructions that are not affected by side effects can participate
+  // in redundancy elimination or loop invariant code motion.
+  // TODO(fschneider): Make this abstract and implement for all instructions
+  // instead of returning the safe default (true).
+  virtual bool AffectedBySideEffect() const { return true; }
+
+  // Get the block entry for this instruction.
+  virtual BlockEntryInstr* GetBlock() const;
+
   // Id for instructions used in CSE.
   intptr_t expr_id() const { return expr_id_; }
   void set_expr_id(intptr_t expr_id) { expr_id_ = expr_id; }
+
+  // Returns a hash code for use with hash maps.
+  virtual intptr_t Hashcode() const;
+
+  // Compares two instructions.  Returns true, iff:
+  // 1. They have the same tag.
+  // 2. All input operands are Equals.
+  // 3. They satisfy AttributesEqual.
+  bool Equals(Instruction* other) const;
+
+  // Compare attributes of a instructions (except input operands and tag).
+  // All instructions that participate in CSE have to override this function.
+  // This function can assume that the argument has the same type as this.
+  virtual bool AttributesEqual(Instruction* other) const {
+    UNREACHABLE();
+    return false;
+  }
 
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
@@ -1007,23 +1046,11 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  // Returns true if the definition is affected by side effects.
-  // Only instructions that are not affected by side effects can participate
-  // in redundancy elimination or loop invariant code motion.
-  // TODO(fschneider): Make this abstract and implement for all definitions
-  // instead of returning the safe default (true).
-  virtual bool AffectedBySideEffect() const { return true; }
-
   Value* input_use_list() { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
 
   Value* env_use_list() { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
-
-  // Returns a replacement for the definition or NULL if the definition can
-  // be eliminated.  By default returns the definition (input parameter)
-  // which means no change.
-  virtual Definition* Canonicalize();
 
   // Replace uses of this definition with uses of other definition or value.
   // Precondition: use lists must be properly calculated.
@@ -1036,34 +1063,8 @@ class Definition : public Instruction {
   // NULL iterator.
   void ReplaceWith(Definition* other, ForwardInstructionIterator* iterator);
 
-  // Insert this definition before 'next'.
-  void InsertBefore(Instruction* next);
-
-  // Insert this definition after 'prev'.
-  void InsertAfter(Instruction* prev);
-
-  // Compares two definitions.  Returns true, iff:
-  // 1. They have the same tag.
-  // 2. All input operands are Equals.
-  // 3. They satisfy AttributesEqual.
-  bool Equals(Definition* other) const;
-
-  // Compare attributes of a definition (except input operands and tag).
-  // All definition that participate in CSE have to override this function.
-  // This function can assume that the argument has the same type as this.
-  virtual bool AttributesEqual(Definition* other) const {
-    UNREACHABLE();
-    return false;
-  }
-
-  // Returns a hash code for use with hash maps.
-  virtual intptr_t Hashcode() const;
-
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
-
-  // Get the block entry for that instruction.
-  virtual BlockEntryInstr* GetBlock() const;
 
   // Printing support. These functions are sometimes overridden for custom
   // formatting. Otherwise, it prints in the format "opcode(op1, op2, op3)".
@@ -1076,6 +1077,11 @@ class Definition : public Instruction {
   //    - a constant (any non-sentinel value)
   //    - unknown sentinel
   Object& constant_value() const { return constant_value_; }
+
+  // Definitions can be canonicalized only into definitions to ensure
+  // this check statically we override base Canonicalize with a Canonicalize
+  // returning Definition (return type is covariant).
+  virtual Definition* Canonicalize();
 
  private:
   intptr_t temp_index_;
@@ -1299,9 +1305,6 @@ class ReturnInstr : public TemplateInstruction<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
-
  private:
   const intptr_t token_pos_;
 
@@ -1323,9 +1326,6 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   virtual bool HasSideEffect() const { return true; }
 
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
-
  private:
   const intptr_t token_pos_;
 
@@ -1346,9 +1346,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
-
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   const intptr_t token_pos_;
@@ -1479,6 +1476,29 @@ class BranchInstr : public ControlInstruction {
 };
 
 
+class StoreContextInstr : public TemplateInstruction<1> {
+ public:
+  explicit StoreContextInstr(Value* value) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  DECLARE_INSTRUCTION(StoreContext);
+  virtual RawAbstractType* CompileType() const;
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
+};
+
+
 template<intptr_t N>
 class TemplateDefinition : public Definition {
  public:
@@ -1527,7 +1547,7 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual intptr_t ResultCid() const;
 
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
  private:
@@ -1688,29 +1708,6 @@ class CurrentContextInstr : public TemplateDefinition<0> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
-};
-
-
-class StoreContextInstr : public TemplateDefinition<1> {
- public:
-  explicit StoreContextInstr(Value* value) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  DECLARE_INSTRUCTION(StoreContext);
-  virtual RawAbstractType* CompileType() const;
-
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
 };
 
 
@@ -1949,7 +1946,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual Definition* Canonicalize();
@@ -2311,7 +2308,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual bool AffectedBySideEffect() const { return !field().is_final(); }
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const Field& field_;
@@ -2672,7 +2669,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   virtual intptr_t ResultCid() const { return result_cid_; }
 
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool AffectedBySideEffect() const { return !immutable_; }
 
@@ -2859,7 +2856,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 };
 
 
-class ChainContextInstr : public TemplateDefinition<1> {
+class ChainContextInstr : public TemplateInstruction<1> {
  public:
   explicit ChainContextInstr(Value* context_value) {
     ASSERT(context_value != NULL);
@@ -2869,13 +2866,13 @@ class ChainContextInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(ChainContext)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   Value* context_value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextInstr);
@@ -2900,7 +2897,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
+  virtual intptr_t ResultCid() const { return kContextCid; }
 
  private:
   const intptr_t token_pos_;
@@ -2909,7 +2906,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
 };
 
 
-class CatchEntryInstr : public TemplateDefinition<0> {
+class CatchEntryInstr : public TemplateInstruction<0> {
  public:
   CatchEntryInstr(const LocalVariable& exception_var,
                   const LocalVariable& stacktrace_var)
@@ -2921,13 +2918,13 @@ class CatchEntryInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(CatchEntry)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const LocalVariable& exception_var_;
@@ -2937,7 +2934,7 @@ class CatchEntryInstr : public TemplateDefinition<0> {
 };
 
 
-class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
+class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
   CheckEitherNonSmiInstr(Value* left,
                          Value* right,
@@ -2952,13 +2949,13 @@ class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(CheckEitherNonSmi)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool AffectedBySideEffect() const { return false; }
 
@@ -2966,7 +2963,7 @@ class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
 
   Value* right() const { return inputs_[1]; }
 
-  virtual Definition* Canonicalize();
+  virtual Instruction* Canonicalize();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
@@ -2990,7 +2987,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual intptr_t ResultCid() const;
 
@@ -3034,7 +3031,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   }
 
   virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(UnboxDouble)
   virtual RawAbstractType* CompileType() const;
@@ -3058,7 +3055,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual bool AttributesEqual(Definition* other) const {
+  virtual bool AttributesEqual(Instruction* other) const {
     return true;
   }
 
@@ -3115,7 +3112,7 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
 
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual bool AttributesEqual(Definition* other) const {
+  virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsUnboxedDoubleBinaryOp()->op_kind();
   }
 
@@ -3180,7 +3177,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual intptr_t ResultCid() const;
 
@@ -3270,7 +3267,7 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckStackOverflowInstr : public TemplateDefinition<0> {
+class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
   explicit CheckStackOverflowInstr(intptr_t token_pos)
       : token_pos_(token_pos) {}
@@ -3280,11 +3277,11 @@ class CheckStackOverflowInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(CheckStackOverflow)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3346,7 +3343,7 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
 };
 
 
-class CheckClassInstr : public TemplateDefinition<1> {
+class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
                   InstanceCallInstr* instance_call,
@@ -3360,13 +3357,13 @@ class CheckClassInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(CheckClass)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool AffectedBySideEffect() const { return false; }
 
@@ -3374,7 +3371,7 @@ class CheckClassInstr : public TemplateDefinition<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  virtual Definition* Canonicalize();
+  virtual Instruction* Canonicalize();
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3385,7 +3382,7 @@ class CheckClassInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckSmiInstr : public TemplateDefinition<1> {
+class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id) {
     ASSERT(value != NULL);
@@ -3397,17 +3394,17 @@ class CheckSmiInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(CheckSmi)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual Definition* Canonicalize();
+  virtual Instruction* Canonicalize();
 
   Value* value() const { return inputs_[0]; }
 
@@ -3416,7 +3413,7 @@ class CheckSmiInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckArrayBoundInstr : public TemplateDefinition<2> {
+class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
   CheckArrayBoundInstr(Value* array,
                        Value* index,
@@ -3433,13 +3430,13 @@ class CheckArrayBoundInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(CheckArrayBound)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool AffectedBySideEffect() const { return false; }
 

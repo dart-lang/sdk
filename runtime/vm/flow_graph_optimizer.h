@@ -36,10 +36,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitEqualityCompare(EqualityCompareInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
 
-  // TODO(fschneider): Once we get rid of the distinction between Instruction
-  // and computation, this can be made private again.
-  void InsertBefore(Instruction* instr,
-                    Definition* defn,
+  void InsertBefore(Instruction* next,
+                    Instruction* instr,
                     Environment* env,
                     Definition::UseKind use_kind);
 
@@ -55,8 +53,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void AddCheckClass(InstanceCallInstr* call, Value* value);
 
-  void InsertAfter(Instruction* instr,
-                   Definition* defn,
+  void InsertAfter(Instruction* prev,
+                   Instruction* instr,
                    Environment* env,
                    Definition::UseKind use_kind);
 
@@ -134,12 +132,12 @@ class LICM : public AllStatic {
  private:
   static void Hoist(ForwardInstructionIterator* it,
                     BlockEntryInstr* pre_header,
-                    Definition* current);
+                    Instruction* current);
 
   static void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                          BlockEntryInstr* header,
                                          BlockEntryInstr* pre_header,
-                                         Definition* current);
+                                         Instruction* current);
 };
 
 
@@ -152,7 +150,7 @@ class DominatorBasedCSE : public AllStatic {
  private:
   static void OptimizeRecursive(
       BlockEntryInstr* entry,
-      DirectChainedHashMap<Definition*>* map);
+      DirectChainedHashMap<Instruction*>* map);
 };
 
 
