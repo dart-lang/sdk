@@ -381,10 +381,7 @@ Future<InputStream> httpGet(uri) {
       return;
     }
 
-    // TODO(nweiz): remove this extra pipe when issue 4974 is fixed.
-    var sink = new ListInputStream();
-    pipeInputToInput(response.inputStream, sink);
-    completer.complete(sink);
+    completer.complete(response.inputStream);
   };
 
   return completer.future;
@@ -586,12 +583,17 @@ Future<bool> extractTarGz(InputStream stream, destination) {
       ["--extract", "--gunzip", "--directory", _getPath(destination)]);
   var completer = new Completer<int>();
 
-  stream.pipe(process.stdin);
-  process.stdout.pipe(stdout, close: false);
-  process.stderr.pipe(stderr, close: false);
+  // Wait for the process to be fully started before writing to its
+  // stdin stream.
+  process.onStart = () {
+    stream.pipe(process.stdin);
+    process.stdout.pipe(stdout, close: false);
+    process.stderr.pipe(stderr, close: false);
 
-  process.onExit = completer.complete;
-  process.onError = completer.completeException;
+    process.onExit = completer.complete;
+    process.onError = completer.completeException;
+  };
+
   return completer.future.transform((exitCode) => exitCode == 0);
 }
 
