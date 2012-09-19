@@ -189,6 +189,50 @@ main() {
         var args = parser.parse([]);
         expect(a, isNull);
       });
+      
+      test('for multiple present, allowMultiple, options are invoked with '
+           'value as a list', () {
+        var a;
+        var parser = new ArgParser();
+        parser.addOption('a', allowMultiple: true, 
+            callback: (value) => a = value);
+          
+        var args = parser.parse(['--a=v', '--a=x']);
+        expect(a, equals(['v', 'x']));
+      });
+      
+      test('for single present, allowMultiple, options are invoked with '
+           ' value as a single element list', () {
+        var a;
+        var parser = new ArgParser();
+        parser.addOption('a', allowMultiple: true,
+            callback: (value) => a = value);
+        
+        var args = parser.parse(['--a=v']);
+        expect(a, equals(['v']));
+      });
+      
+      test('for absent, allowMultiple, options are invoked with default '
+           'value as a list.', () {
+        var a;
+        var parser = new ArgParser();
+        parser.addOption('a', allowMultiple: true, defaultsTo: 'v',
+            callback: (value) => a = value);
+        
+        var args = parser.parse([]);
+        expect(a, equals(['v']));
+      });
+      
+      test('for absent, allowMultiple, options are invoked with value '
+           'as an empty list.', () {
+        var a;
+        var parser = new ArgParser();
+        parser.addOption('a', allowMultiple: true,
+            callback: (value) => a = value);
+        
+        var args = parser.parse([]);
+        expect(a, isEmpty);
+      });
     });
 
     group('abbreviations', () {
