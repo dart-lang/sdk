@@ -637,7 +637,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       }
     });
 
-    generateTypeTests(classElement, (Element other) {
+    generateIsTestsOn(classElement, (Element other) {
       String code;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
         code = 'function() { return true; }';
@@ -696,35 +696,48 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     buffer.add('\n};\n\n');
   }
 
-  void generateTypeTests(ClassElement cls,
-                         void generateTypeTest(ClassElement element)) {
+  /**
+   * Generate "is tests" for [cls]: itself, and the "is tests" for the
+   * classes it implements. We don't need to add the "is tests" of the
+   * super class because they will be inherited at runtime.
+   */
+  void generateIsTestsOn(ClassElement cls,
+                         void emitIsTest(ClassElement element)) {
     if (checkedClasses.contains(cls)) {
-      generateTypeTest(cls);
+      emitIsTest(cls);
     }
-    generateInterfacesIsTests(cls, generateTypeTest, new Set<Element>());
+    Set<Element> generated = new Set<Element>();
+    for (DartType interfaceType in cls.interfaces) {
+      generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
+    }
   }
 
+  /**
+   * Generate "is tests" where [cls] is being implemented.
+   */
   void generateInterfacesIsTests(ClassElement cls,
-                                 void generateTypeTest(ClassElement element),
+                                 void emitIsTest(ClassElement element),
                                  Set<Element> alreadyGenerated) {
+    void tryEmitTest(ClassElement cls) {
+      if (!alreadyGenerated.contains(cls) && checkedClasses.contains(cls)) {
+        alreadyGenerated.add(cls);
+        emitIsTest(cls);
+      }
+    };
+
+    tryEmitTest(cls);
+
     for (DartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
-      if (!alreadyGenerated.contains(element) &&
-          checkedClasses.contains(element)) {
-        alreadyGenerated.add(element);
-        generateTypeTest(element);
-      }
-      generateInterfacesIsTests(element, generateTypeTest, alreadyGenerated);
+      tryEmitTest(element);
+      generateInterfacesIsTests(element, emitIsTest, alreadyGenerated);
+    }
 
-      // Since [element] is implemented by [cls], we need to also emit
-      // is checks for the superclass and its supertypes.
-      ClassElement superclass = element.superclass;
-      if (!alreadyGenerated.contains(superclass) &&
-          checkedClasses.contains(superclass)) {
-        alreadyGenerated.add(superclass);
-        generateTypeTest(superclass);
-      }
-      generateInterfacesIsTests(superclass, generateTypeTest, alreadyGenerated);
+    // We need to also emit "is checks" for the superclass and its supertypes.
+    ClassElement superclass = cls.superclass;
+    if (superclass != null) {
+      tryEmitTest(superclass);
+      generateInterfacesIsTests(superclass, emitIsTest, alreadyGenerated);
     }
   }
 
