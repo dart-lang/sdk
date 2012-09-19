@@ -2,12 +2,45 @@
 // This file introduces / supplements and forces Dart declarations.
 
 module default {
+  // TODO(efortuna): Clean up these comments once we have dealt with the extra
+  // methods on these list-like classes.
+  ClientRectList implements sequence<ClientRect>;
+  CSSRuleList implements sequence<CSSRule>;
+  CSSValueList implements sequence<CSSValue>;
+  DOMMimeTypeArray implements sequence<DOMMimeType>; // has namedItem field.
+  // Additional methods: namedItem field and refresh
+  DOMPluginArray implements sequence<DOMPlugin>;
+  EntryArray implements sequence<Entry>;
+  EntryArraySync implements sequence<EntrySync>;
   FileList implements sequence<File>;
-  HTMLCollection implements sequence<Node>;
+  GamepadList implements sequence<Gamepad>;
+  HTMLAllCollection implements sequence<Node>; // namedItem and tags
+  HTMLCollection implements sequence<Node>; // namedItem
   MediaList implements sequence<DOMString>;
+  MediaStreamList implements sequence<MediaStream>;
   NamedNodeMap implements sequence<Node>;
   NodeList implements sequence<Node>;
+  RadioNodeList implements sequence<Node>;
+  // Additional methods: animVal and baseVal
+  SVGAnimatedLengthList implements sequence<SVGAnimatedLength>;
+  // Additional methods: animVal and baseVal
+  SVGAnimatedNumberList implements sequence<SVGAnimatedNumber>;
+  // Additional methods: animVal and baseVal
+  SVGAnimatedTransformList implements sequence<SVGAnimateTransformElement>;
+  SVGElementInstanceList implements sequence<SVGElementInstance>;
+  SVGLengthList implements sequence<SVGLength>; // initialize
+  SVGNumberList implements sequence<SVGNumber>; // initialize
+  SVGPathSegList implements sequence<SVGPathSeg>;
+  SVGStringList implements sequence<DOMString>; // initialize
+  SVGTransformList implements sequence<SVGTransform>; // initialize
+  SourceBufferList implements sequence<SourceBuffer>; // has eventlisteners
+  // Additional methods: addFromString addFromUri
+  SpeechGrammarList implements sequence<SpeechGrammar>;
+  SpeechInputResultList implements sequence<SpeechInputResult>;
+  SpeechRecognitionResultList implements sequence<SpeechRecognitionResult>;
   StyleSheetList implements sequence<StyleSheet>;
+  TextTrackList implements sequence<TextTrack>; // event listeners
+  TextTrackCueList implements sequence<TextTrackCue>; // getCueById
   TouchList implements sequence<Touch>;
 
   Float32Array implements sequence<double>;
@@ -21,6 +54,20 @@ module default {
 
   // Is List<int> because inherits from Uint8Array:
   // Uint8ClampedArray implements sequence<int>;
+  
+  // TODO(efortuna): Determine what the correct type of the list items are part
+  //of the commented out Lists so we can properly inherit from List.
+  //MediaQueryList implements sequence<Object>;
+  //SQLResultSetRowList implements sequence<Map>;
+  //EventListenerList implements sequence<EventListener>;
+  // TODO(efortuna): The following are not yet implemented because they are
+  // mutable or have additional/unusual methods that we need to deal with.
+  //DataTransferItemList implements sequence<DataTransferItem>; mutable
+  //DOMTokenList implements sequence<DOMString>; mutable
+  //DOMSettableTokenList implements sequence<DOMString>; mutable
+  // Additional methods: has event listener and mutable
+  //MediaStreamTrackList implements sequence<MediaStreamTrack>;
+  //WebKitAnimationList implements sequence<WebKitAnimation>;
 }
 
 module core {

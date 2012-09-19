@@ -2827,7 +2827,7 @@ class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSRuleList
-abstract class CSSRuleList {
+abstract class CSSRuleList implements List<CSSRule> {
 
   /** @domName CSSRuleList.length */
   abstract int get length;
@@ -2844,6 +2844,88 @@ abstract class CSSRuleList {
 class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
 
   int get length native "CSSRuleList_length_Getter";
+
+  CSSRule operator[](int index) native "CSSRuleList_item_Callback";
+
+  void operator[]=(int index, CSSRule value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<CSSRule> mixins.
+  // CSSRule is the element type.
+
+  // From Iterable<CSSRule>:
+
+  Iterator<CSSRule> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<CSSRule>(this);
+  }
+
+  // From Collection<CSSRule>:
+
+  void add(CSSRule value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(CSSRule value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<CSSRule> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
+
+  Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
+
+  Collection<CSSRule> filter(bool f(CSSRule element)) =>
+     _Collections.filter(this, <CSSRule>[], f);
+
+  bool every(bool f(CSSRule element)) => _Collections.every(this, f);
+
+  bool some(bool f(CSSRule element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<CSSRule>:
+
+  void sort(int compare(CSSRule a, CSSRule b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(CSSRule element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(CSSRule element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  CSSRule last() => this[length - 1];
+
+  CSSRule removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [CSSRule initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<CSSRule> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <CSSRule>[]);
+
+  // -- end List<CSSRule> mixins.
 
   CSSRule item(int index) native "CSSRuleList_item_Callback";
 
@@ -7770,7 +7852,7 @@ class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 // WARNING: Do not edit - generated code.
 
 /// @domName CSSValueList
-abstract class CSSValueList implements CSSValue {
+abstract class CSSValueList implements CSSValue, List<CSSValue> {
 
   /** @domName CSSValueList.length */
   abstract int get length;
@@ -7787,6 +7869,88 @@ abstract class CSSValueList implements CSSValue {
 class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
 
   int get length native "CSSValueList_length_Getter";
+
+  CSSValue operator[](int index) native "CSSValueList_item_Callback";
+
+  void operator[]=(int index, CSSValue value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<CSSValue> mixins.
+  // CSSValue is the element type.
+
+  // From Iterable<CSSValue>:
+
+  Iterator<CSSValue> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<CSSValue>(this);
+  }
+
+  // From Collection<CSSValue>:
+
+  void add(CSSValue value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(CSSValue value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<CSSValue> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
+
+  Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
+
+  Collection<CSSValue> filter(bool f(CSSValue element)) =>
+     _Collections.filter(this, <CSSValue>[], f);
+
+  bool every(bool f(CSSValue element)) => _Collections.every(this, f);
+
+  bool some(bool f(CSSValue element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<CSSValue>:
+
+  void sort(int compare(CSSValue a, CSSValue b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(CSSValue element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(CSSValue element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  CSSValue last() => this[length - 1];
+
+  CSSValue removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [CSSValue initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<CSSValue> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <CSSValue>[]);
+
+  // -- end List<CSSValue> mixins.
 
   CSSValue item(int index) native "CSSValueList_item_Callback";
 
@@ -8714,7 +8878,7 @@ class _ClientRectImpl extends NativeFieldWrapperClass1 implements ClientRect {
 // WARNING: Do not edit - generated code.
 
 /// @domName ClientRectList
-abstract class ClientRectList {
+abstract class ClientRectList implements List<ClientRect> {
 
   /** @domName ClientRectList.length */
   abstract int get length;
@@ -8731,6 +8895,88 @@ abstract class ClientRectList {
 class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRectList {
 
   int get length native "ClientRectList_length_Getter";
+
+  ClientRect operator[](int index) native "ClientRectList_item_Callback";
+
+  void operator[]=(int index, ClientRect value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<ClientRect> mixins.
+  // ClientRect is the element type.
+
+  // From Iterable<ClientRect>:
+
+  Iterator<ClientRect> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<ClientRect>(this);
+  }
+
+  // From Collection<ClientRect>:
+
+  void add(ClientRect value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(ClientRect value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<ClientRect> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
+
+  Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
+
+  Collection<ClientRect> filter(bool f(ClientRect element)) =>
+     _Collections.filter(this, <ClientRect>[], f);
+
+  bool every(bool f(ClientRect element)) => _Collections.every(this, f);
+
+  bool some(bool f(ClientRect element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<ClientRect>:
+
+  void sort(int compare(ClientRect a, ClientRect b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(ClientRect element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(ClientRect element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  ClientRect last() => this[length - 1];
+
+  ClientRect removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [ClientRect initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<ClientRect> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <ClientRect>[]);
+
+  // -- end List<ClientRect> mixins.
 
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
@@ -9575,7 +9821,7 @@ abstract class DOMMimeType {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMMimeTypeArray
-abstract class DOMMimeTypeArray {
+abstract class DOMMimeTypeArray implements List<DOMMimeType> {
 
   /** @domName DOMMimeTypeArray.length */
   abstract int get length;
@@ -9595,6 +9841,88 @@ abstract class DOMMimeTypeArray {
 class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeTypeArray {
 
   int get length native "DOMMimeTypeArray_length_Getter";
+
+  DOMMimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
+
+  void operator[]=(int index, DOMMimeType value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<DOMMimeType> mixins.
+  // DOMMimeType is the element type.
+
+  // From Iterable<DOMMimeType>:
+
+  Iterator<DOMMimeType> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<DOMMimeType>(this);
+  }
+
+  // From Collection<DOMMimeType>:
+
+  void add(DOMMimeType value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(DOMMimeType value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<DOMMimeType> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
+
+  Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
+
+  Collection<DOMMimeType> filter(bool f(DOMMimeType element)) =>
+     _Collections.filter(this, <DOMMimeType>[], f);
+
+  bool every(bool f(DOMMimeType element)) => _Collections.every(this, f);
+
+  bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<DOMMimeType>:
+
+  void sort(int compare(DOMMimeType a, DOMMimeType b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(DOMMimeType element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(DOMMimeType element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  DOMMimeType last() => this[length - 1];
+
+  DOMMimeType removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [DOMMimeType initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<DOMMimeType> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <DOMMimeType>[]);
+
+  // -- end List<DOMMimeType> mixins.
 
   DOMMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
 
@@ -9677,7 +10005,7 @@ abstract class DOMPlugin {
 // WARNING: Do not edit - generated code.
 
 /// @domName DOMPluginArray
-abstract class DOMPluginArray {
+abstract class DOMPluginArray implements List<DOMPlugin> {
 
   /** @domName DOMPluginArray.length */
   abstract int get length;
@@ -9700,6 +10028,88 @@ abstract class DOMPluginArray {
 class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginArray {
 
   int get length native "DOMPluginArray_length_Getter";
+
+  DOMPlugin operator[](int index) native "DOMPluginArray_item_Callback";
+
+  void operator[]=(int index, DOMPlugin value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<DOMPlugin> mixins.
+  // DOMPlugin is the element type.
+
+  // From Iterable<DOMPlugin>:
+
+  Iterator<DOMPlugin> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<DOMPlugin>(this);
+  }
+
+  // From Collection<DOMPlugin>:
+
+  void add(DOMPlugin value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(DOMPlugin value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<DOMPlugin> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
+
+  Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
+
+  Collection<DOMPlugin> filter(bool f(DOMPlugin element)) =>
+     _Collections.filter(this, <DOMPlugin>[], f);
+
+  bool every(bool f(DOMPlugin element)) => _Collections.every(this, f);
+
+  bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<DOMPlugin>:
+
+  void sort(int compare(DOMPlugin a, DOMPlugin b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(DOMPlugin element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(DOMPlugin element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  DOMPlugin last() => this[length - 1];
+
+  DOMPlugin removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [DOMPlugin initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<DOMPlugin> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <DOMPlugin>[]);
+
+  // -- end List<DOMPlugin> mixins.
 
   DOMPlugin item(int index) native "DOMPluginArray_item_Callback";
 
@@ -13669,7 +14079,7 @@ abstract class Entry {
 // WARNING: Do not edit - generated code.
 
 /// @domName EntryArray
-abstract class EntryArray {
+abstract class EntryArray implements List<Entry> {
 
   /** @domName EntryArray.length */
   abstract int get length;
@@ -13687,6 +14097,88 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 
   int get length native "EntryArray_length_Getter";
 
+  Entry operator[](int index) native "EntryArray_item_Callback";
+
+  void operator[]=(int index, Entry value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Entry> mixins.
+  // Entry is the element type.
+
+  // From Iterable<Entry>:
+
+  Iterator<Entry> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Entry>(this);
+  }
+
+  // From Collection<Entry>:
+
+  void add(Entry value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Entry value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Entry> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Entry element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Entry element)) => _Collections.map(this, [], f);
+
+  Collection<Entry> filter(bool f(Entry element)) =>
+     _Collections.filter(this, <Entry>[], f);
+
+  bool every(bool f(Entry element)) => _Collections.every(this, f);
+
+  bool some(bool f(Entry element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Entry>:
+
+  void sort(int compare(Entry a, Entry b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Entry element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Entry element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Entry last() => this[length - 1];
+
+  Entry removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Entry initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Entry> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Entry>[]);
+
+  // -- end List<Entry> mixins.
+
   Entry item(int index) native "EntryArray_item_Callback";
 
 }
@@ -13697,7 +14189,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 // WARNING: Do not edit - generated code.
 
 /// @domName EntryArraySync
-abstract class EntryArraySync {
+abstract class EntryArraySync implements List<EntrySync> {
 
   /** @domName EntryArraySync.length */
   abstract int get length;
@@ -13714,6 +14206,88 @@ abstract class EntryArraySync {
 class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements EntryArraySync {
 
   int get length native "EntryArraySync_length_Getter";
+
+  EntrySync operator[](int index) native "EntryArraySync_item_Callback";
+
+  void operator[]=(int index, EntrySync value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<EntrySync> mixins.
+  // EntrySync is the element type.
+
+  // From Iterable<EntrySync>:
+
+  Iterator<EntrySync> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<EntrySync>(this);
+  }
+
+  // From Collection<EntrySync>:
+
+  void add(EntrySync value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(EntrySync value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<EntrySync> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
+
+  Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
+
+  Collection<EntrySync> filter(bool f(EntrySync element)) =>
+     _Collections.filter(this, <EntrySync>[], f);
+
+  bool every(bool f(EntrySync element)) => _Collections.every(this, f);
+
+  bool some(bool f(EntrySync element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<EntrySync>:
+
+  void sort(int compare(EntrySync a, EntrySync b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(EntrySync element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(EntrySync element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  EntrySync last() => this[length - 1];
+
+  EntrySync removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [EntrySync initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<EntrySync> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <EntrySync>[]);
+
+  // -- end List<EntrySync> mixins.
 
   EntrySync item(int index) native "EntryArraySync_item_Callback";
 
@@ -15703,7 +16277,7 @@ class _GamepadImpl extends NativeFieldWrapperClass1 implements Gamepad {
 // WARNING: Do not edit - generated code.
 
 /// @domName GamepadList
-abstract class GamepadList {
+abstract class GamepadList implements List<Gamepad> {
 
   /** @domName GamepadList.length */
   abstract int get length;
@@ -15720,6 +16294,88 @@ abstract class GamepadList {
 class _GamepadListImpl extends NativeFieldWrapperClass1 implements GamepadList {
 
   int get length native "GamepadList_length_Getter";
+
+  Gamepad operator[](int index) native "GamepadList_item_Callback";
+
+  void operator[]=(int index, Gamepad value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Gamepad> mixins.
+  // Gamepad is the element type.
+
+  // From Iterable<Gamepad>:
+
+  Iterator<Gamepad> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Gamepad>(this);
+  }
+
+  // From Collection<Gamepad>:
+
+  void add(Gamepad value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Gamepad value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Gamepad> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
+
+  Collection<Gamepad> filter(bool f(Gamepad element)) =>
+     _Collections.filter(this, <Gamepad>[], f);
+
+  bool every(bool f(Gamepad element)) => _Collections.every(this, f);
+
+  bool some(bool f(Gamepad element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Gamepad>:
+
+  void sort(int compare(Gamepad a, Gamepad b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Gamepad element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Gamepad element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Gamepad last() => this[length - 1];
+
+  Gamepad removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Gamepad initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Gamepad> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Gamepad>[]);
+
+  // -- end List<Gamepad> mixins.
 
   Gamepad item(int index) native "GamepadList_item_Callback";
 
@@ -15840,7 +16496,7 @@ class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAllCollection
-abstract class HTMLAllCollection {
+abstract class HTMLAllCollection implements List<Node> {
 
   /** @domName HTMLAllCollection.length */
   abstract int get length;
@@ -15863,6 +16519,88 @@ abstract class HTMLAllCollection {
 class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAllCollection {
 
   int get length native "HTMLAllCollection_length_Getter";
+
+  Node operator[](int index) native "HTMLAllCollection_item_Callback";
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  void sort(int compare(Node a, Node b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node last() => this[length - 1];
+
+  Node removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
 
   Node item(int index) native "HTMLAllCollection_item_Callback";
 
@@ -20692,7 +21430,7 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamList
-abstract class MediaStreamList {
+abstract class MediaStreamList implements List<MediaStream> {
 
   /** @domName MediaStreamList.length */
   abstract int get length;
@@ -20709,6 +21447,88 @@ abstract class MediaStreamList {
 class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStreamList {
 
   int get length native "MediaStreamList_length_Getter";
+
+  MediaStream operator[](int index) native "MediaStreamList_item_Callback";
+
+  void operator[]=(int index, MediaStream value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<MediaStream> mixins.
+  // MediaStream is the element type.
+
+  // From Iterable<MediaStream>:
+
+  Iterator<MediaStream> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<MediaStream>(this);
+  }
+
+  // From Collection<MediaStream>:
+
+  void add(MediaStream value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(MediaStream value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<MediaStream> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
+
+  Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
+
+  Collection<MediaStream> filter(bool f(MediaStream element)) =>
+     _Collections.filter(this, <MediaStream>[], f);
+
+  bool every(bool f(MediaStream element)) => _Collections.every(this, f);
+
+  bool some(bool f(MediaStream element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<MediaStream>:
+
+  void sort(int compare(MediaStream a, MediaStream b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(MediaStream element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(MediaStream element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  MediaStream last() => this[length - 1];
+
+  MediaStream removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [MediaStream initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<MediaStream> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <MediaStream>[]);
+
+  // -- end List<MediaStream> mixins.
 
   MediaStream item(int index) native "MediaStreamList_item_Callback";
 
@@ -24496,7 +25316,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-abstract class RadioNodeList implements NodeList {
+abstract class RadioNodeList implements NodeList, List<Node> {
 
   /** @domName RadioNodeList.value */
   String value;
@@ -24512,6 +25332,88 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
   String get value native "RadioNodeList_value_Getter";
 
   void set value(String) native "RadioNodeList_value_Setter";
+
+  Node operator[](int index) native "RadioNodeList_item_Callback";
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  void sort(int compare(Node a, Node b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node last() => this[length - 1];
+
+  Node removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25508,7 +26410,7 @@ class _SVGAnimatedLengthImpl extends NativeFieldWrapperClass1 implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedLengthList
-abstract class SVGAnimatedLengthList {
+abstract class SVGAnimatedLengthList implements List<SVGAnimatedLength> {
 
   /** @domName SVGAnimatedLengthList.animVal */
   abstract SVGLengthList get animVal;
@@ -25527,6 +26429,88 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
   SVGLengthList get animVal native "SVGAnimatedLengthList_animVal_Getter";
 
   SVGLengthList get baseVal native "SVGAnimatedLengthList_baseVal_Getter";
+
+  SVGAnimatedLength operator[](int index) native "SVGAnimatedLengthList_item_Callback";
+
+  void operator[]=(int index, SVGAnimatedLength value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGAnimatedLength> mixins.
+  // SVGAnimatedLength is the element type.
+
+  // From Iterable<SVGAnimatedLength>:
+
+  Iterator<SVGAnimatedLength> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGAnimatedLength>(this);
+  }
+
+  // From Collection<SVGAnimatedLength>:
+
+  void add(SVGAnimatedLength value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGAnimatedLength value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGAnimatedLength> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
+
+  Collection<SVGAnimatedLength> filter(bool f(SVGAnimatedLength element)) =>
+     _Collections.filter(this, <SVGAnimatedLength>[], f);
+
+  bool every(bool f(SVGAnimatedLength element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGAnimatedLength element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGAnimatedLength>:
+
+  void sort(int compare(SVGAnimatedLength a, SVGAnimatedLength b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGAnimatedLength element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGAnimatedLength element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGAnimatedLength last() => this[length - 1];
+
+  SVGAnimatedLength removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGAnimatedLength initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGAnimatedLength> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGAnimatedLength>[]);
+
+  // -- end List<SVGAnimatedLength> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25566,7 +26550,7 @@ class _SVGAnimatedNumberImpl extends NativeFieldWrapperClass1 implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedNumberList
-abstract class SVGAnimatedNumberList {
+abstract class SVGAnimatedNumberList implements List<SVGAnimatedNumber> {
 
   /** @domName SVGAnimatedNumberList.animVal */
   abstract SVGNumberList get animVal;
@@ -25585,6 +26569,88 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
   SVGNumberList get animVal native "SVGAnimatedNumberList_animVal_Getter";
 
   SVGNumberList get baseVal native "SVGAnimatedNumberList_baseVal_Getter";
+
+  SVGAnimatedNumber operator[](int index) native "SVGAnimatedNumberList_item_Callback";
+
+  void operator[]=(int index, SVGAnimatedNumber value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGAnimatedNumber> mixins.
+  // SVGAnimatedNumber is the element type.
+
+  // From Iterable<SVGAnimatedNumber>:
+
+  Iterator<SVGAnimatedNumber> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGAnimatedNumber>(this);
+  }
+
+  // From Collection<SVGAnimatedNumber>:
+
+  void add(SVGAnimatedNumber value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGAnimatedNumber value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGAnimatedNumber> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGAnimatedNumber element)) => _Collections.map(this, [], f);
+
+  Collection<SVGAnimatedNumber> filter(bool f(SVGAnimatedNumber element)) =>
+     _Collections.filter(this, <SVGAnimatedNumber>[], f);
+
+  bool every(bool f(SVGAnimatedNumber element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGAnimatedNumber element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGAnimatedNumber>:
+
+  void sort(int compare(SVGAnimatedNumber a, SVGAnimatedNumber b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGAnimatedNumber element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGAnimatedNumber element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGAnimatedNumber last() => this[length - 1];
+
+  SVGAnimatedNumber removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGAnimatedNumber initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGAnimatedNumber> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGAnimatedNumber>[]);
+
+  // -- end List<SVGAnimatedNumber> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25680,7 +26746,7 @@ class _SVGAnimatedStringImpl extends NativeFieldWrapperClass1 implements SVGAnim
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGAnimatedTransformList
-abstract class SVGAnimatedTransformList {
+abstract class SVGAnimatedTransformList implements List<SVGAnimateTransformElement> {
 
   /** @domName SVGAnimatedTransformList.animVal */
   abstract SVGTransformList get animVal;
@@ -25699,6 +26765,88 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
   SVGTransformList get animVal native "SVGAnimatedTransformList_animVal_Getter";
 
   SVGTransformList get baseVal native "SVGAnimatedTransformList_baseVal_Getter";
+
+  SVGAnimateTransformElement operator[](int index) native "SVGAnimatedTransformList_item_Callback";
+
+  void operator[]=(int index, SVGAnimateTransformElement value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGAnimateTransformElement> mixins.
+  // SVGAnimateTransformElement is the element type.
+
+  // From Iterable<SVGAnimateTransformElement>:
+
+  Iterator<SVGAnimateTransformElement> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGAnimateTransformElement>(this);
+  }
+
+  // From Collection<SVGAnimateTransformElement>:
+
+  void add(SVGAnimateTransformElement value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGAnimateTransformElement value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGAnimateTransformElement> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGAnimateTransformElement element)) => _Collections.map(this, [], f);
+
+  Collection<SVGAnimateTransformElement> filter(bool f(SVGAnimateTransformElement element)) =>
+     _Collections.filter(this, <SVGAnimateTransformElement>[], f);
+
+  bool every(bool f(SVGAnimateTransformElement element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGAnimateTransformElement element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGAnimateTransformElement>:
+
+  void sort(int compare(SVGAnimateTransformElement a, SVGAnimateTransformElement b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGAnimateTransformElement element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGAnimateTransformElement element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGAnimateTransformElement last() => this[length - 1];
+
+  SVGAnimateTransformElement removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGAnimateTransformElement initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGAnimateTransformElement> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGAnimateTransformElement>[]);
+
+  // -- end List<SVGAnimateTransformElement> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26495,7 +27643,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGElementInstanceList
-abstract class SVGElementInstanceList {
+abstract class SVGElementInstanceList implements List<SVGElementInstance> {
 
   /** @domName SVGElementInstanceList.length */
   abstract int get length;
@@ -26512,6 +27660,88 @@ abstract class SVGElementInstanceList {
 class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SVGElementInstanceList {
 
   int get length native "SVGElementInstanceList_length_Getter";
+
+  SVGElementInstance operator[](int index) native "SVGElementInstanceList_item_Callback";
+
+  void operator[]=(int index, SVGElementInstance value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGElementInstance> mixins.
+  // SVGElementInstance is the element type.
+
+  // From Iterable<SVGElementInstance>:
+
+  Iterator<SVGElementInstance> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGElementInstance>(this);
+  }
+
+  // From Collection<SVGElementInstance>:
+
+  void add(SVGElementInstance value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGElementInstance value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGElementInstance> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGElementInstance element)) => _Collections.map(this, [], f);
+
+  Collection<SVGElementInstance> filter(bool f(SVGElementInstance element)) =>
+     _Collections.filter(this, <SVGElementInstance>[], f);
+
+  bool every(bool f(SVGElementInstance element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGElementInstance element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGElementInstance>:
+
+  void sort(int compare(SVGElementInstance a, SVGElementInstance b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGElementInstance element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGElementInstance element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGElementInstance last() => this[length - 1];
+
+  SVGElementInstance removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGElementInstance initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGElementInstance> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGElementInstance>[]);
+
+  // -- end List<SVGElementInstance> mixins.
 
   SVGElementInstance item(int index) native "SVGElementInstanceList_item_Callback";
 
@@ -28550,7 +29780,7 @@ class _SVGLengthImpl extends NativeFieldWrapperClass1 implements SVGLength {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGLengthList
-abstract class SVGLengthList {
+abstract class SVGLengthList implements List<SVGLength> {
 
   /** @domName SVGLengthList.numberOfItems */
   abstract int get numberOfItems;
@@ -28585,6 +29815,88 @@ abstract class SVGLengthList {
 class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthList {
 
   int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
+
+  SVGLength operator[](int index) native "SVGLengthList_item_Callback";
+
+  void operator[]=(int index, SVGLength value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGLength> mixins.
+  // SVGLength is the element type.
+
+  // From Iterable<SVGLength>:
+
+  Iterator<SVGLength> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGLength>(this);
+  }
+
+  // From Collection<SVGLength>:
+
+  void add(SVGLength value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGLength value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGLength> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
+
+  Collection<SVGLength> filter(bool f(SVGLength element)) =>
+     _Collections.filter(this, <SVGLength>[], f);
+
+  bool every(bool f(SVGLength element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGLength element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGLength>:
+
+  void sort(int compare(SVGLength a, SVGLength b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGLength element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGLength element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGLength last() => this[length - 1];
+
+  SVGLength removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGLength initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGLength> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGLength>[]);
+
+  // -- end List<SVGLength> mixins.
 
   SVGLength appendItem(SVGLength item) native "SVGLengthList_appendItem_Callback";
 
@@ -29114,7 +30426,7 @@ class _SVGNumberImpl extends NativeFieldWrapperClass1 implements SVGNumber {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGNumberList
-abstract class SVGNumberList {
+abstract class SVGNumberList implements List<SVGNumber> {
 
   /** @domName SVGNumberList.numberOfItems */
   abstract int get numberOfItems;
@@ -29149,6 +30461,88 @@ abstract class SVGNumberList {
 class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberList {
 
   int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
+
+  SVGNumber operator[](int index) native "SVGNumberList_item_Callback";
+
+  void operator[]=(int index, SVGNumber value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGNumber> mixins.
+  // SVGNumber is the element type.
+
+  // From Iterable<SVGNumber>:
+
+  Iterator<SVGNumber> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGNumber>(this);
+  }
+
+  // From Collection<SVGNumber>:
+
+  void add(SVGNumber value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGNumber value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGNumber> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGNumber element)) => _Collections.map(this, [], f);
+
+  Collection<SVGNumber> filter(bool f(SVGNumber element)) =>
+     _Collections.filter(this, <SVGNumber>[], f);
+
+  bool every(bool f(SVGNumber element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGNumber element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGNumber>:
+
+  void sort(int compare(SVGNumber a, SVGNumber b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGNumber element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGNumber element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGNumber last() => this[length - 1];
+
+  SVGNumber removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGNumber initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGNumber> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGNumber>[]);
+
+  // -- end List<SVGNumber> mixins.
 
   SVGNumber appendItem(SVGNumber item) native "SVGNumberList_appendItem_Callback";
 
@@ -30173,7 +31567,7 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGPathSegList
-abstract class SVGPathSegList {
+abstract class SVGPathSegList implements List<SVGPathSeg> {
 
   /** @domName SVGPathSegList.numberOfItems */
   abstract int get numberOfItems;
@@ -30208,6 +31602,88 @@ abstract class SVGPathSegList {
 class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSegList {
 
   int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
+
+  SVGPathSeg operator[](int index) native "SVGPathSegList_item_Callback";
+
+  void operator[]=(int index, SVGPathSeg value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGPathSeg> mixins.
+  // SVGPathSeg is the element type.
+
+  // From Iterable<SVGPathSeg>:
+
+  Iterator<SVGPathSeg> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGPathSeg>(this);
+  }
+
+  // From Collection<SVGPathSeg>:
+
+  void add(SVGPathSeg value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGPathSeg value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGPathSeg> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGPathSeg element)) => _Collections.map(this, [], f);
+
+  Collection<SVGPathSeg> filter(bool f(SVGPathSeg element)) =>
+     _Collections.filter(this, <SVGPathSeg>[], f);
+
+  bool every(bool f(SVGPathSeg element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGPathSeg element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGPathSeg>:
+
+  void sort(int compare(SVGPathSeg a, SVGPathSeg b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGPathSeg element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGPathSeg element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGPathSeg last() => this[length - 1];
+
+  SVGPathSeg removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGPathSeg initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGPathSeg> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGPathSeg>[]);
+
+  // -- end List<SVGPathSeg> mixins.
 
   SVGPathSeg appendItem(SVGPathSeg newItem) native "SVGPathSegList_appendItem_Callback";
 
@@ -31205,7 +32681,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGStringList
-abstract class SVGStringList {
+abstract class SVGStringList implements List<String> {
 
   /** @domName SVGStringList.numberOfItems */
   abstract int get numberOfItems;
@@ -31240,6 +32716,88 @@ abstract class SVGStringList {
 class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringList {
 
   int get numberOfItems native "SVGStringList_numberOfItems_Getter";
+
+  String operator[](int index) native "SVGStringList_item_Callback";
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(String element)) => _Collections.forEach(this, f);
+
+  Collection map(f(String element)) => _Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     _Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => _Collections.every(this, f);
+
+  bool some(bool f(String element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<String>:
+
+  void sort(int compare(String a, String b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  String last() => this[length - 1];
+
+  String removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
 
   String appendItem(String item) native "SVGStringList_appendItem_Callback";
 
@@ -31822,7 +33380,7 @@ class _SVGTransformImpl extends NativeFieldWrapperClass1 implements SVGTransform
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGTransformList
-abstract class SVGTransformList {
+abstract class SVGTransformList implements List<SVGTransform> {
 
   /** @domName SVGTransformList.numberOfItems */
   abstract int get numberOfItems;
@@ -31863,6 +33421,88 @@ abstract class SVGTransformList {
 class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTransformList {
 
   int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
+
+  SVGTransform operator[](int index) native "SVGTransformList_item_Callback";
+
+  void operator[]=(int index, SVGTransform value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SVGTransform> mixins.
+  // SVGTransform is the element type.
+
+  // From Iterable<SVGTransform>:
+
+  Iterator<SVGTransform> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SVGTransform>(this);
+  }
+
+  // From Collection<SVGTransform>:
+
+  void add(SVGTransform value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SVGTransform value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SVGTransform> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SVGTransform element)) => _Collections.map(this, [], f);
+
+  Collection<SVGTransform> filter(bool f(SVGTransform element)) =>
+     _Collections.filter(this, <SVGTransform>[], f);
+
+  bool every(bool f(SVGTransform element)) => _Collections.every(this, f);
+
+  bool some(bool f(SVGTransform element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SVGTransform>:
+
+  void sort(int compare(SVGTransform a, SVGTransform b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SVGTransform element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SVGTransform element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SVGTransform last() => this[length - 1];
+
+  SVGTransform removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SVGTransform initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SVGTransform> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SVGTransform>[]);
+
+  // -- end List<SVGTransform> mixins.
 
   SVGTransform appendItem(SVGTransform item) native "SVGTransformList_appendItem_Callback";
 
@@ -32812,7 +34452,7 @@ class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer
 // WARNING: Do not edit - generated code.
 
 /// @domName SourceBufferList
-abstract class SourceBufferList implements EventTarget {
+abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
 
   /** @domName SourceBufferList.length */
   abstract int get length;
@@ -32835,9 +34475,91 @@ abstract class SourceBufferList implements EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList {
+class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBufferList {
 
   int get length native "SourceBufferList_length_Getter";
+
+  SourceBuffer operator[](int index) native "SourceBufferList_item_Callback";
+
+  void operator[]=(int index, SourceBuffer value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SourceBuffer> mixins.
+  // SourceBuffer is the element type.
+
+  // From Iterable<SourceBuffer>:
+
+  Iterator<SourceBuffer> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SourceBuffer>(this);
+  }
+
+  // From Collection<SourceBuffer>:
+
+  void add(SourceBuffer value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SourceBuffer value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SourceBuffer> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
+
+  Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
+     _Collections.filter(this, <SourceBuffer>[], f);
+
+  bool every(bool f(SourceBuffer element)) => _Collections.every(this, f);
+
+  bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SourceBuffer>:
+
+  void sort(int compare(SourceBuffer a, SourceBuffer b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SourceBuffer element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SourceBuffer element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SourceBuffer last() => this[length - 1];
+
+  SourceBuffer removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SourceBuffer initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SourceBuffer> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
+
+  // -- end List<SourceBuffer> mixins.
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
 
@@ -32950,7 +34672,7 @@ class _SpeechGrammarImpl extends NativeFieldWrapperClass1 implements SpeechGramm
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechGrammarList
-abstract class SpeechGrammarList {
+abstract class SpeechGrammarList implements List<SpeechGrammar> {
 
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
@@ -32975,6 +34697,88 @@ abstract class SpeechGrammarList {
 class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechGrammarList {
 
   int get length native "SpeechGrammarList_length_Getter";
+
+  SpeechGrammar operator[](int index) native "SpeechGrammarList_item_Callback";
+
+  void operator[]=(int index, SpeechGrammar value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SpeechGrammar> mixins.
+  // SpeechGrammar is the element type.
+
+  // From Iterable<SpeechGrammar>:
+
+  Iterator<SpeechGrammar> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SpeechGrammar>(this);
+  }
+
+  // From Collection<SpeechGrammar>:
+
+  void add(SpeechGrammar value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SpeechGrammar value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SpeechGrammar> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
+
+  Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
+     _Collections.filter(this, <SpeechGrammar>[], f);
+
+  bool every(bool f(SpeechGrammar element)) => _Collections.every(this, f);
+
+  bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SpeechGrammar>:
+
+  void sort(int compare(SpeechGrammar a, SpeechGrammar b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SpeechGrammar element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SpeechGrammar element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SpeechGrammar last() => this[length - 1];
+
+  SpeechGrammar removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SpeechGrammar initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SpeechGrammar> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
+
+  // -- end List<SpeechGrammar> mixins.
 
   void addFromString(string, [weight]) {
     if (?weight) {
@@ -33061,7 +34865,7 @@ class _SpeechInputResultImpl extends NativeFieldWrapperClass1 implements SpeechI
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechInputResultList
-abstract class SpeechInputResultList {
+abstract class SpeechInputResultList implements List<SpeechInputResult> {
 
   /** @domName SpeechInputResultList.length */
   abstract int get length;
@@ -33078,6 +34882,88 @@ abstract class SpeechInputResultList {
 class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements SpeechInputResultList {
 
   int get length native "SpeechInputResultList_length_Getter";
+
+  SpeechInputResult operator[](int index) native "SpeechInputResultList_item_Callback";
+
+  void operator[]=(int index, SpeechInputResult value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SpeechInputResult> mixins.
+  // SpeechInputResult is the element type.
+
+  // From Iterable<SpeechInputResult>:
+
+  Iterator<SpeechInputResult> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SpeechInputResult>(this);
+  }
+
+  // From Collection<SpeechInputResult>:
+
+  void add(SpeechInputResult value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SpeechInputResult value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SpeechInputResult> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
+
+  Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
+     _Collections.filter(this, <SpeechInputResult>[], f);
+
+  bool every(bool f(SpeechInputResult element)) => _Collections.every(this, f);
+
+  bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SpeechInputResult>:
+
+  void sort(int compare(SpeechInputResult a, SpeechInputResult b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SpeechInputResult element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SpeechInputResult element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SpeechInputResult last() => this[length - 1];
+
+  SpeechInputResult removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SpeechInputResult initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SpeechInputResult> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
+
+  // -- end List<SpeechInputResult> mixins.
 
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
@@ -33375,7 +35261,7 @@ class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements S
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognitionResultList
-abstract class SpeechRecognitionResultList {
+abstract class SpeechRecognitionResultList implements List<SpeechRecognitionResult> {
 
   /** @domName SpeechRecognitionResultList.length */
   abstract int get length;
@@ -33392,6 +35278,88 @@ abstract class SpeechRecognitionResultList {
 class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResultList {
 
   int get length native "SpeechRecognitionResultList_length_Getter";
+
+  SpeechRecognitionResult operator[](int index) native "SpeechRecognitionResultList_item_Callback";
+
+  void operator[]=(int index, SpeechRecognitionResult value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<SpeechRecognitionResult> mixins.
+  // SpeechRecognitionResult is the element type.
+
+  // From Iterable<SpeechRecognitionResult>:
+
+  Iterator<SpeechRecognitionResult> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<SpeechRecognitionResult>(this);
+  }
+
+  // From Collection<SpeechRecognitionResult>:
+
+  void add(SpeechRecognitionResult value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(SpeechRecognitionResult value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<SpeechRecognitionResult> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
+
+  Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
+
+  Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
+     _Collections.filter(this, <SpeechRecognitionResult>[], f);
+
+  bool every(bool f(SpeechRecognitionResult element)) => _Collections.every(this, f);
+
+  bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<SpeechRecognitionResult>:
+
+  void sort(int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(SpeechRecognitionResult element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  SpeechRecognitionResult last() => this[length - 1];
+
+  SpeechRecognitionResult removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [SpeechRecognitionResult initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
+
+  // -- end List<SpeechRecognitionResult> mixins.
 
   SpeechRecognitionResult item(int index) native "SpeechRecognitionResultList_item_Callback";
 
@@ -34834,7 +36802,7 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackCueList
-abstract class TextTrackCueList {
+abstract class TextTrackCueList implements List<TextTrackCue> {
 
   /** @domName TextTrackCueList.length */
   abstract int get length;
@@ -34854,6 +36822,88 @@ abstract class TextTrackCueList {
 class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrackCueList {
 
   int get length native "TextTrackCueList_length_Getter";
+
+  TextTrackCue operator[](int index) native "TextTrackCueList_item_Callback";
+
+  void operator[]=(int index, TextTrackCue value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<TextTrackCue> mixins.
+  // TextTrackCue is the element type.
+
+  // From Iterable<TextTrackCue>:
+
+  Iterator<TextTrackCue> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<TextTrackCue>(this);
+  }
+
+  // From Collection<TextTrackCue>:
+
+  void add(TextTrackCue value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(TextTrackCue value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<TextTrackCue> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
+
+  Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
+
+  Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
+     _Collections.filter(this, <TextTrackCue>[], f);
+
+  bool every(bool f(TextTrackCue element)) => _Collections.every(this, f);
+
+  bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<TextTrackCue>:
+
+  void sort(int compare(TextTrackCue a, TextTrackCue b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(TextTrackCue element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(TextTrackCue element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  TextTrackCue last() => this[length - 1];
+
+  TextTrackCue removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [TextTrackCue initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<TextTrackCue> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
+
+  // -- end List<TextTrackCue> mixins.
 
   TextTrackCue getCueById(String id) native "TextTrackCueList_getCueById_Callback";
 
@@ -34909,7 +36959,7 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackList
-abstract class TextTrackList implements EventTarget {
+abstract class TextTrackList implements List<TextTrack>, EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -34948,12 +36998,94 @@ class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvent
 
 // WARNING: Do not edit - generated code.
 
-class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
+class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackList {
 
   _TextTrackListEventsImpl get on =>
     new _TextTrackListEventsImpl(this);
 
   int get length native "TextTrackList_length_Getter";
+
+  TextTrack operator[](int index) native "TextTrackList_item_Callback";
+
+  void operator[]=(int index, TextTrack value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<TextTrack> mixins.
+  // TextTrack is the element type.
+
+  // From Iterable<TextTrack>:
+
+  Iterator<TextTrack> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<TextTrack>(this);
+  }
+
+  // From Collection<TextTrack>:
+
+  void add(TextTrack value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(TextTrack value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<TextTrack> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
+
+  Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
+
+  Collection<TextTrack> filter(bool f(TextTrack element)) =>
+     _Collections.filter(this, <TextTrack>[], f);
+
+  bool every(bool f(TextTrack element)) => _Collections.every(this, f);
+
+  bool some(bool f(TextTrack element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<TextTrack>:
+
+  void sort(int compare(TextTrack a, TextTrack b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(TextTrack element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(TextTrack element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  TextTrack last() => this[length - 1];
+
+  TextTrack removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [TextTrack initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<TextTrack> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <TextTrack>[]);
+
+  // -- end List<TextTrack> mixins.
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
