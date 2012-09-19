@@ -18,6 +18,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
+import com.google.dart.compiler.ast.DartAssertStatement;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -139,7 +140,6 @@ public class DartParser extends CompletionHooksParserBase {
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String AS_KEYWORD = "as";
-  private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EXPORT_KEYWORD = "export";
@@ -166,7 +166,6 @@ public class DartParser extends CompletionHooksParserBase {
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
     AS_KEYWORD,
-    ASSERT_KEYWORD,
     DYNAMIC_KEYWORD,
     EXPORT_KEYWORD,
     EXTERNAL_KEYWORD,
@@ -3921,6 +3920,16 @@ public class DartParser extends CompletionHooksParserBase {
     return idents;
   }
 
+  private DartAssertStatement parseAssertStatement() {
+    beginAssertStatement();
+    expect(Token.ASSERT);
+    expect(Token.LPAREN);
+    DartExpression condition = parseExpression();
+    expectCloseParen();
+    expectStatmentTerminator();
+    return done(new DartAssertStatement(condition));
+  }
+
   /**
    * <pre>
    * abruptCompletingStatement
@@ -4078,9 +4087,12 @@ public class DartParser extends CompletionHooksParserBase {
     }
     // Check possible statement kind.
     switch (peek(0)) {
+      case ASSERT:
+        return parseAssertStatement();
+
       case IF:
         return parseIfStatement();
-
+        
       case SWITCH:
         return parseSwitchStatement();
 

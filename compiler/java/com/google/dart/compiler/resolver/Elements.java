@@ -48,10 +48,6 @@ import java.util.Set;
  * Utility and factory methods for elements.
  */
 public class Elements {
-  /**
-   * Name of the artificial function used for resolution of "assert" statement.
-   */
-  public static final String ASSERT_FUNCTION_NAME = "assert__forStatement" + System.currentTimeMillis();
 
   private Elements() {} // Prevent subclassing and instantiation.
 
@@ -733,20 +729,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
       return Objects.equal(scopeLibrary, getDeclaringLibrary(element));
     }
     return true;
-  }
-
-  /**
-   * @return <code>true</code> if given {@link Element} if {@link MethodElement} for artificial
-   *         "assert" statement.
-   */
-  public static boolean isArtificialAssertMethod(Element element) {
-    if (element instanceof MethodElement) {
-      MethodElement methodElement = (MethodElement) element;
-      return Objects.equal(methodElement.getName(), ASSERT_FUNCTION_NAME)
-          && methodElement.getEnclosingElement() instanceof LibraryElement
-          && methodElement.getEnclosingElement().getName().equals("dart://core/core.dart");
-    }
-    return false;
   }
 
   /**

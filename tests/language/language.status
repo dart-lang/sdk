@@ -102,6 +102,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+assert_lexical_scope_test: Fail, OK # test issue 5276
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 bad_constructor_test/04: Fail # Constructor name clashes with other member
@@ -193,6 +194,7 @@ prefix9_negative_test : Fail # language change 1031
 prefix10_negative_test : Fail # language change 1031
 prefix11_negative_test : Fail # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
+pseudo_kw_test: Fail, OK # test issue 5276
 pseudo_kw_illegal_test/09: Fail, OK # 'interface' is not a built-in identifier
 pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
 pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier

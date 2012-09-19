@@ -1180,57 +1180,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  assert(true, false);", // not single argument
         "  assert;", // incomplete
         "}",
-        "foo() => assert(true);", // 'assert' is statement, not expression
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 13, 3, 6),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 14, 3, 6),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 13, 10, 4),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 14, 9, 1),
         errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
         errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
         errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
-        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12),
-        errEx(TypeErrorCode.ASSERT_IS_STATEMENT, 16, 10, 12));
-  }
-
-  public void test_assert_isUserFunction() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "assert(x) {}",
-        "main() {",
-        "  assert(true);",
-        "  assert(false);",
-        "  assert('message');",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-  }
-
-  public void test_assert_asLocalVariable() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  bool assert;",
-        "  assert;",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-  }
-  
-  public void test_assert_asInheritedGetter() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  get assert() {}",
-        "}",
-        "class B extends A {",
-        "  foo() {",
-        "    assert;",
-        "  }",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
+        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12));
   }
 
   /**

@@ -95,6 +95,17 @@ Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK
 
+# co19 issue 218
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, OK
+Language/11_Statements/15_Assert_A05_t02: Fail, OK
+Language/11_Statements/15_Assert_A05_t03: Fail, OK
+Language/11_Statements/15_Assert_A05_t01: Fail, OK
+Language/11_Statements/15_Assert_A05_t04: Fail, OK
+Language/11_Statements/15_Assert_A05_t05: Fail, OK
+
 
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # TODO(dartc-team): Please triage this failure.

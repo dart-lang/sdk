@@ -104,6 +104,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
   protected void beginArrayLiteral() {
     begin();
   }
+  
+  protected void beginAssertStatement() {
+    begin();
+  }
 
   protected void beginBinaryExpression() {
     begin();

@@ -12,7 +12,6 @@ import com.google.dart.compiler.SubSystem;
  */
 public enum TypeErrorCode implements ErrorCode {
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
-  ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
   CANNOT_ASSIGN_TO("cannot assign to '%s'"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),

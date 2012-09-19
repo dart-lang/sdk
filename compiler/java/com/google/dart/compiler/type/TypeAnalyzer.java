@@ -27,6 +27,7 @@ import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
+import com.google.dart.compiler.ast.DartAssertStatement;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -76,7 +77,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartReturnBlock;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
@@ -1414,22 +1414,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
-    @Override
-    public Type visitReturnBlock(DartReturnBlock node) {
-      // 'assert' is statement
-      if (node.getStatements().size() == 1
-          && node.getStatements().get(0) instanceof DartReturnStatement) {
-        DartReturnStatement statement = (DartReturnStatement) node.getStatements().get(0);
-        DartExpression value = statement.getValue();
-        if (value != null && Elements.isArtificialAssertMethod(value.getElement())) {
-          typeError(value, TypeErrorCode.ASSERT_IS_STATEMENT);
-          return voidType;
-        }
-      }
-      // continue
-      return super.visitReturnBlock(node);
-    }
-
     private Type typeAsVoid(DartNode node) {
       node.visitChildren(this);
       return voidType;
@@ -2572,6 +2556,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
       blockOldTypes.addFirst(new BlockTypeContext());
       return typeAsVoid(node);
     }
+    
+    @Override
+    public Type visitAssertStatement(DartAssertStatement node) {
+      DartExpression condition = node.getCondition();
+      checkAssertCondition(condition);
+      // infer types, which are valid until the end of the enclosing control block
+      if (node.getParent() instanceof DartBlock) {
+        DartBlock restoreBlock = getBlockForAssertTypesInference(node);
+        VariableElementsRestorer variableRestorer = restoreOnBlockExit.get(restoreBlock);
+        if (variableRestorer == null) {
+          variableRestorer = new VariableElementsRestorer();
+          restoreOnBlockExit.put(restoreBlock, variableRestorer);
+        }
+        restoreOnBlockExit.put(restoreBlock, variableRestorer);
+        inferVariableTypesFromIsConditions(condition, variableRestorer);
+      }
+      // done for "assert"
+      return voidType;
+    }
 
     @Override
     public Type visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
@@ -2579,28 +2582,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = target.getName();
       Element element = target.getElement();
       node.setElement(element);
-      // special support for "assert"
-      if (Elements.isArtificialAssertMethod(element)) {
-        if (node.getArguments().size() == 1) {
-          DartExpression condition = node.getArguments().get(0);
-          checkAssertCondition(condition);
-          // infer types, which are valid until the end of the enclosing control block
-          if (node.getParent() instanceof DartExprStmt
-              && node.getParent().getParent() instanceof DartBlock) {
-            DartBlock restoreBlock = getBlockForAssertTypesInference(node);
-            VariableElementsRestorer variableRestorer = restoreOnBlockExit.get(restoreBlock);
-            if (variableRestorer == null) {
-              variableRestorer = new VariableElementsRestorer();
-              restoreOnBlockExit.put(restoreBlock, variableRestorer);
-            }
-            restoreOnBlockExit.put(restoreBlock, variableRestorer);
-            inferVariableTypesFromIsConditions(condition, variableRestorer);
-          }
-          // done for "assert"
-          return voidType;
-        }
-      }
-      // normal invocation
       Type type;
       switch (ElementKind.of(element)) {
         case FIELD:
