@@ -67,12 +67,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http:
 LibTest/core/double/operator_remainder_A01_t03: fail # http://dartbug.com/5179
 LibTest/core/double/remainder_A01_t03: fail # http://dartbug.com/5179
 
-Language/07_Classes/10_Superinterfaces_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/10_Superinterfaces_A07_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/01_Constants_A15_t38: Fail # TODO(dartc-team): Please triage this failure.
-
-
 Language/07_Classes/07_Classes_A03_t01: Fail, OK # 'default' is no longer supported
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # the default constructor invokes a non-existent zero argument constructor
 Language/07_Classes/07_Classes_A02_t01: Fail # Issue 5419
@@ -110,80 +104,78 @@ Language/03_Overview/1_Scoping_A02_t05: Fail, OK
 Language/09_Generics/09_Generics_A04_t04: Fail, OK
 Language/09_Generics/09_Generics_A04_t05: Fail, OK
 
-
-
-Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A01_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(dartc-team): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/06_Functions/06_Functions_A01_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(dartc-team): Please triage this failure.
-Language/06_Functions/06_Functions_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t39: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t41: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t43: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t45: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t07: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t10: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t11: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t01: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t02: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t03: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t04: Fail # TODO(dartc-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t05: Fail # TODO(dartc-team): Please triage this failure.
-LibTest/core/Futures/wait_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/7_Static_Methods_A01_t03: Fail, OK # this should be a warning, not an error
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # Issue 5240
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail, OK # this should be a warning, not an error
+Language/10_Expressions/30_Type_Cast_A01_t04: Fail, OK # the expected error is not specified
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail, OK # part directive with invalid URI
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail, OK # testing an unspecified error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail, OK # contains semantic error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail, OK # contains semantic error
+Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail, OK # contains semantic error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # contains syntax error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # should be error
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error 
+Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # should be error
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # Issue 5292
+Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail, OK # invalid directive syntax
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail, OK # invalid directive syntax
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail, OK # invalid directive syntax
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail, OK # invalid directive syntax
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail, OK # invalid directive syntax
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail, OK # script tag after comments
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Issue 5302
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # Issue 5302
+Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # Issue 5289
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
+Language/03_Overview/2_Privacy_A01_t12: Fail, OK # deprecated import directive without parens
+Language/06_Functions/06_Functions_A01_t03: Fail # Issue 5288
+Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail, OK # deprecated use of "default"
+Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail, OK # should expect error
+Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail, OK # should expect error
+Language/10_Expressions/05_Strings_A02_t39: Fail, OK # no longer an error
+Language/10_Expressions/05_Strings_A02_t41: Fail, OK # no longer an error
+Language/10_Expressions/05_Strings_A02_t43: Fail, OK # no longer an error
+Language/10_Expressions/05_Strings_A02_t45: Fail, OK # no longer an error
+Language/10_Expressions/05_Strings_A02_t46: Fail # Issue 5296
+Language/10_Expressions/05_Strings_A02_t47: Fail, OK # no longer an error
+Language/10_Expressions/05_Strings_A02_t48: Fail # Issue 5296
+Language/10_Expressions/05_Strings_A02_t49: Fail, OK # no longer an error
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # Issue 5293
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # Issue 5293
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Issue 5294
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
+Language/10_Expressions/16_Assignment_A04_t05: Fail # Issue 5295
+Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 5299
+Language/11_Statements/02_Expression_Statements_A01_t09: Fail, OK # maps with type arguments are allowed
+Language/11_Statements/02_Expression_Statements_A01_t10: Fail, OK # maps with type arguments are allowed
+Language/11_Statements/02_Expression_Statements_A01_t11: Fail, OK # maps with type arguments are allowed
+Language/11_Statements/09_Try_A06_t01: Fail, OK # deprecated catch syntax
+Language/11_Statements/09_Try_A06_t02: Fail, OK # deprecated catch syntax
+Language/11_Statements/09_Try_A06_t03: Fail, OK # deprecated catch syntax
+Language/11_Statements/09_Try_A06_t04: Fail, OK # deprecated catch syntax
+Language/11_Statements/09_Try_A06_t05: Fail, OK # deprecated catch syntax
+LibTest/core/Futures/wait_A03_t01: Fail, OK # deprecated catch syntax
 
 # The following tests use NoSuchMethodException instead of NoSuchMethodError.
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # co19 issue 195
