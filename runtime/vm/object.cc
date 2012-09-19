@@ -1105,6 +1105,11 @@ void Object::Print() const {
 }
 
 
+RawString* Object::DictionaryName() const {
+  return String::null();
+}
+
+
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   // TODO(iposva): Get a proper halt instruction from the assembler which
   // would be needed here for code objects.
@@ -5999,28 +6004,11 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   Object& entry = Class::Handle();
   String& entry_name = String::Handle();
   Object& new_entry = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  LibraryPrefix& prefix = LibraryPrefix::Handle();
   for (intptr_t i = 0; i < dict_size; i++) {
     entry = dict.At(i);
     if (!entry.IsNull()) {
-      if (entry.IsClass()) {
-        cls ^= entry.raw();
-        entry_name = cls.Name();
-      } else if (entry.IsFunction()) {
-        func ^= entry.raw();
-        entry_name = func.name();
-      } else if (entry.IsField()) {
-        field ^= entry.raw();
-        entry_name = field.name();
-      } else if (entry.IsLibraryPrefix()) {
-        prefix ^= entry.raw();
-        entry_name = prefix.name();
-      } else {
-        UNREACHABLE();
-      }
+      entry_name = entry.DictionaryName();
+      ASSERT(!entry_name.IsNull());
       intptr_t hash = entry_name.Hash();
       intptr_t index = hash % new_dict_size;
       new_entry = new_dict.At(index);
@@ -6044,11 +6032,8 @@ void Library::AddObject(const Object& obj, const String& name) const {
          obj.IsFunction() ||
          obj.IsField() ||
          obj.IsLibraryPrefix());
-  ASSERT((LookupLocalObject(name) == Object::null()) ||
-         ((obj.IsLibraryPrefix() ||
-           (obj.IsClass() &&
-            Class::CheckedHandle(obj.raw()).IsCanonicalSignatureClass())) &&
-          (LookupLocalObject(name) == Object::null())));
+  ASSERT(name.Equals(String::Handle(obj.DictionaryName())));
+  ASSERT(LookupLocalObject(name) == Object::null());
   const Array& dict = Array::Handle(dictionary());
   intptr_t dict_size = dict.Length() - 1;
   intptr_t index = name.Hash() % dict_size;
@@ -6092,18 +6077,9 @@ RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
-    if (entry.IsClass()) {
-      entry_name = Class::Cast(entry).Name();
-    } else if (entry.IsFunction()) {
-      entry_name = Function::Cast(entry).name();
-    } else if (entry.IsField()) {
-      entry_name = Field::Cast(entry).name();
-    } else if (entry.IsLibraryPrefix()) {
-      entry_name = LibraryPrefix::Cast(entry).name();
-    } else {
-      UNREACHABLE();
-    }
-    if (entry_name.Equals(name)) {
+    entry_name = entry.DictionaryName();
+    ASSERT(!entry_name.IsNull());
+     if (entry_name.Equals(name)) {
       return entry.raw();
     }
     *index = (*index + 1) % dict_size;

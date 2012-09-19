@@ -189,6 +189,13 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     }
   }
 
+  // Returns the name that is used to identify an object in the
+  // namespace dictionary.
+  // Object::DictionaryName() returns String::null(). Only subclasses
+  // of Object that need to be entered in the library and library prefix
+  // namespaces need to provide an implementation.
+  virtual RawString* DictionaryName() const;
+
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
 
@@ -459,8 +466,9 @@ class Class : public Object {
   }
 
   RawString* Name() const;
-
   RawString* UserVisibleName() const;
+
+  virtual RawString* DictionaryName() const { return Name(); }
 
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
@@ -1336,6 +1344,7 @@ class Function : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;
   RawString* QualifiedUserVisibleName() const;
+  virtual RawString* DictionaryName() const { return name(); }
 
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
   // internal signature of the given function.
@@ -1757,6 +1766,7 @@ class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;
+  virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
@@ -2176,6 +2186,8 @@ class Library : public Object {
 class LibraryPrefix : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  virtual RawString* DictionaryName() const { return name(); }
+
   RawArray* libraries() const { return raw_ptr()->libraries_; }
   intptr_t num_libs() const { return raw_ptr()->num_libs_; }
 
