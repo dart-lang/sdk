@@ -9,7 +9,6 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/locations.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -21,18 +20,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
-
-
-Definition::Definition()
-    : temp_index_(-1),
-      ssa_temp_index_(-1),
-      propagated_type_(AbstractType::Handle()),
-      propagated_cid_(kIllegalCid),
-      input_use_list_(NULL),
-      env_use_list_(NULL),
-      use_kind_(kValue),  // Phis and parameters rely on this default.
-      constant_value_(Object::ZoneHandle(ConstantPropagator::Unknown())) {
-}
 
 
 intptr_t Definition::Hashcode() const {
@@ -482,54 +469,6 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
 }
 
 
-void JoinEntryInstr::EliminateUnreachablePhiInputs() {
-  if (phis_ == NULL || phis_->is_empty()) return;
-
-  // Loop over the predecessors, reorganize phi inputs.
-  // TODO(kmillikin): Replace phis that have a single remaining input with
-  // the input.  This requires being a bit careful about use lists.
-  intptr_t input_count = predecessors_.length();
-  for (intptr_t new_idx = 0; new_idx < input_count; ++new_idx) {
-    BlockEntryInstr* pred = predecessors_[new_idx];
-    // Linear search for the old predecessor index.  We can't directly
-    // compare block entries, because unreachable code elimination has
-    // replaced some targets with joins.
-    intptr_t old_idx = 0;
-    for (; old_idx < stale_predecessors_.length(); ++old_idx) {
-      if (stale_predecessors_[old_idx]->next() == pred->next()) break;
-    }
-    ASSERT(old_idx < stale_predecessors_.length());
-    // If the index has changed, adjust all phi inputs.
-    if (old_idx != new_idx) {
-      ASSERT(new_idx < old_idx);
-      // Swap each phi's inputs so the input at new_idx is correct.
-      // Preserve the previous value in case it is from a reachable
-      // predecessor.
-      for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
-        PhiInstr* phi = (*phis_)[phi_idx];
-        if (phi == NULL) continue;
-        Value* temp = phi->InputAt(new_idx);
-        phi->SetInputAt(new_idx, phi->InputAt(old_idx));
-        phi->SetInputAt(old_idx, temp);
-      }
-      // The old input at new_idx is now found at old_idx.  It may be a
-      // reachable predecessor so swap the old predecessors too.
-      BlockEntryInstr* temp = stale_predecessors_[new_idx];
-      stale_predecessors_[new_idx] = stale_predecessors_[old_idx];
-      stale_predecessors_[old_idx] = temp;
-    }
-  }
-  // Now truncate each phi if necessary.
-  if (input_count < stale_predecessors_.length()) {
-    for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
-      PhiInstr* phi = (*phis_)[phi_idx];
-      if (phi == NULL) continue;
-      phi->inputs_.TruncateTo(input_count);
-    }
-  }
-}
-
-
 // ==== Recording assigned variables.
 void Definition::RecordAssignedVars(BitVector* assigned_vars,
                                     intptr_t fixed_parameter_count) {
@@ -639,17 +578,6 @@ intptr_t ParameterInstr::GetPropagatedCid() {
 
 
 // ==== Postorder graph traversal.
-static bool IsMarked(BlockEntryInstr* block,
-                     GrowableArray<BlockEntryInstr*>* preorder) {
-  // Detect that a block has been visited as part of the current
-  // DiscoverBlocks (we can call DiscoverBlocks multiple times).  The block
-  // will be 'marked' by (1) having a preorder number in the range of the
-  // preorder array and (2) being in the preorder array at that index.
-  intptr_t i = block->preorder_number();
-  return (i >= 0) && (i < preorder->length()) && ((*preorder)[i] == block);
-}
-
-
 void GraphEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
@@ -659,7 +587,7 @@ void GraphEntryInstr::DiscoverBlocks(
     intptr_t variable_count,
     intptr_t fixed_parameter_count) {
   // We only visit this block once, first of all blocks.
-  ASSERT(!IsMarked(this, preorder));
+  ASSERT(preorder_number() == -1);
   ASSERT(current_block == NULL);
   ASSERT(preorder->is_empty());
   ASSERT(postorder->is_empty());
@@ -707,22 +635,15 @@ void BlockEntryInstr::DiscoverBlocks(
   // is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
   ASSERT(!preorder->is_empty());
-  // Blocks with a single predecessor cannot have been reached before.
-  ASSERT(!IsTargetEntry() || !IsMarked(this, preorder));
 
-  // 1. If the block has already been reached, add current_block as a
-  // basic-block predecessor and we are done.
-  if (IsMarked(this, preorder)) {
-    AddPredecessor(current_block);
-    return;
-  }
-
-  // 2. Otherwise, clear the predecessors which might have been computed on
-  // some earlier call to DiscoverBlocks and record this predecessor.  For
-  // joins save the original predecessors, if any, so we can garbage collect
-  // phi inputs from unreachable predecessors without recomputing SSA.
-  ClearPredecessors();
+  // 1. Record control-flow-graph basic-block predecessors.
   AddPredecessor(current_block);
+
+  // 2. If the block has already been reached by the traversal, we are
+  // done.  Blocks with a single predecessor cannot have been reached
+  // before.
+  ASSERT(!IsTargetEntry() || (preorder_number() == -1));
+  if (preorder_number() >= 0) return;
 
   // 3. The current block is the spanning-tree parent.
   parent->Add(current_block->preorder_number());
