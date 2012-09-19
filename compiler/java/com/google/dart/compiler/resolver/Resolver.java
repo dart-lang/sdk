@@ -628,6 +628,19 @@ public class Resolver {
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParameters();
       Set<FieldElement> initializedFields = Sets.newHashSet();
+      
+      // remember field with initializers
+      if (previousEnclosingElement instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) previousEnclosingElement;
+        for (Element classMember : classElement.getMembers()) {
+          if (ElementKind.of(classMember) == ElementKind.FIELD) {
+            FieldElement fieldMember = (FieldElement) classMember;
+            if (fieldMember.getModifiers().isFinal() && fieldMember.getModifiers().isInitialized()) {
+              initializedFields.add(fieldMember);
+            }
+          }
+        }
+      }
 
       // First declare all normal parameters in the scope, putting them in the
       // scope of the default expressions so we can report better errors.

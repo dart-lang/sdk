@@ -4920,7 +4920,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED, 5, 4, 1));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5148
@@ -4935,6 +4935,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         result.getErrors(),
         errEx(ResolverErrorCode.STATIC_METHOD_MUST_HAVE_BODY, 3, 3, 13));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5162
+   */
+  public void test_initializeFinalInstanceVariable_atDeclaration_inInitializer() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final f = 0;",
+        "  A() : f = 1 {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 4, 9, 5));
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
