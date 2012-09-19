@@ -1093,7 +1093,11 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
-LibTest/core/*: Skip # ~4 failures
+LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
+LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
+LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
+LibTest/core/Queue/Queue.from_A01_t02: Fail # BUG with Iterable.iterator
+LibTest/core/Set/Set.from_A01_t02: Fail # BUG with Iterable.iterator
 LibTest/isolate/*: Skip # ~5 failures
 
 
