@@ -17,6 +17,7 @@
 
 const List<String> CO19_STATUS_FILES = const <String>[
     'tests/co19/co19-compiler.status',
+    'tests/co19/co19-dart2dart.status',
     'tests/co19/co19-dart2js.status',
     'tests/co19/co19-runtime.status'];
 

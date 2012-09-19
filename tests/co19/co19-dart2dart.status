@@ -1,0 +1,187 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2dart ]
+Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
+Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
+Language/03_Overview/1_Scoping_A02_t30: Fail # New import syntax
+Language/03_Overview/1_Scoping_A03_t02: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t01: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t08: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
+Language/03_Overview/2_Privacy_A01_t16: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t21: Fail # New import syntax
+Language/06_Functions/06_Functions_A01_t03: Fail # New import syntax
+# TODO(antonm): adjust suppressions to drop Pass expectations which
+# are currently due to runtime suppressions.
+Language/07_Classes/07_Classes_A03_t07: Pass
+Language/07_Classes/07_Classes_A03_t08: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A03_t09: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t19: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t21: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t22: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t24: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A04_t25: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A03*: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t02: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t03: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t04: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t05: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t06: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t07: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t08: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t09: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t10: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t11: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t12: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t13: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t14: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t17: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t18: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A05_t02: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # inherited from dart2js
+Language/07_Classes/1_Instance_Methods_A05_t02: Pass
+Language/07_Classes/1_Instance_Methods_A05_t03: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Pass
+Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Pass
+Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # inherited from dart2js
+Language/07_Classes/6_Constructors/2_Factories_A05_t02: Pass
+Language/07_Classes/6_Constructors_A03_t03: Fail # BUG in dart2dart: need to emit a ctor.
+Language/08_Interfaces/*: Skip # ~30 failures, interfaces are going away, let's not waste time
+Language/09_Generics/09_Generics_A04_t03: Fail # BUG: omitting name in const named ctor invocation.
+Language/09_Generics/09_Generics_A04_t04: Fail # inherited from dart2js
+# Language/10_Expressions/*: Skip # ~49 failures
+Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
+# INVESTIGATE: for [] === null dart2dart emits back []=== which gets parsed by DartVM as []=, not clear who is to blame here
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail
+Language/10_Expressions/20_Equality_A06_t01: Fail
+# end of INVESTIGATE
+# INVESTIGATE: another problem with []: const [] is emitted back as const[] which confuses vm.
+Language/10_Expressions/06_Lists_A07_t01: Fail
+Language/10_Expressions/06_Lists_A07_t02: Fail
+# end of INVESTIGATE
+Language/10_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # inherited from dart2js
+Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # inherited from dart2js
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # inherited from dart2js
+Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Pass
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t01: Fail # BUG: operator * is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t02: Fail # BUG: operator / is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t03: Fail # BUG: operator ~/ is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t04: Fail # BUG: operator % is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t06: Fail # BUG: operator - is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t07: Fail # BUG: operator << is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t08: Fail # BUG: operator >> is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t09: Fail # BUG: operator ^ is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t10: Fail # BUG: operator & is not emitted back
+Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t11: Fail # BUG: operator | is not emitted back
+Language/10_Expressions/20_Equality_A03_t02: Pass
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
+Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK # co19 issue 184
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # inherited from dart2js
+Language/10_Expressions/28_Identifier_Reference_A08_t02: Fail # inherited from dart2js
+Language/10_Expressions/28_Identifier_Reference_A08_t32: Fail # inherited from dart2js
+Language/10_Expressions/29_Type_Test_A04_t01: Fail # inherited from dart2js
+Language/10_Expressions/29_Type_Test_A05_t01: Pass
+Language/10_Expressions/29_Type_Test_A05_t02: Pass
+Language/10_Expressions/29_Type_Test_A05_t03: Pass
+Language/10_Expressions/30_Type_Cast_A01_t02: Pass
+Language/10_Expressions/30_Type_Cast_A03_t01: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A03_t02: Fail # http://dartbug.com/5029
+Language/10_Expressions/30_Type_Cast_A04_t01: Pass
+Language/10_Expressions/30_Type_Cast_A04_t02: Pass
+Language/10_Expressions/30_Type_Cast_A05_t01: Fail # http://dartbug.com/5029
+Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
+Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
+Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A01_t01: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A02_t10: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A02_t25: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
+Language/14_Types/4_Interface_Types_A01_t01: Fail # BUG
+Language/14_Types/4_Interface_Types_A02_t01: Fail # BUG
+Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # inherited from dart2js
+Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
+LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
+LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
+LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test: encoded file name
