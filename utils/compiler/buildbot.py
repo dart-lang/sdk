@@ -25,20 +25,26 @@ DART_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 DART2JS_BUILDER = (
-    r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?-?(\d*)-?(\d*)')
+    r'dart2js-(linux|mac|windows)-(debug|release)(-(checked|host-checked))?(-(host-checked))?-?(\d*)-?(\d*)')
+# TODO(ricow): rename all builders from web- to dart2js-.
 WEB_BUILDER = (
-    r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)-?(\d*)-?(\d*)')
+    r'(dart2js|web)-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)-?(\d*)-?(\d*)')
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
-  """Returns a tuple (compiler, runtime, mode, system, option) where:
+  """Returns a tuple (compiler, runtime, mode, system, checked, host_checked,
+                      shard_index, total_shards, is_buildbot) where:
     - compiler: 'dart2js' or None when the builder has an incorrect name
     - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'win7'
-    - option: 'checked'
+    - checked: True if we should run in checked mode, otherwise False
+    - host_checked: True if we should run in host checked mode, otherwise False
+    - shard_index: The shard we are running, None when not specified.
+    - total_shards: The total number of shards, None when not specified.
+    - is_buildbot: True if we are on a buildbot (or emulating it).
   """
   parser = optparse.OptionParser()
   parser.add_option('-n', '--name', dest='name', help='The name of the build'
@@ -50,7 +56,8 @@ def GetBuildInfo():
   mode = None
   system = None
   builder_name = os.environ.get(BUILDER_NAME)
-  option = None
+  checked = False
+  host_checked = False
   shard_index = None
   total_shards = None
   is_buildbot = True
@@ -67,22 +74,31 @@ def GetBuildInfo():
     dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
     web_pattern = re.match(WEB_BUILDER, builder_name)
 
-    if dart2js_pattern:
+    if web_pattern:
+      compiler = 'dart2js'
+      runtime = web_pattern.group(2)
+      system = web_pattern.group(3)
+      mode = 'release'
+      shard_index = web_pattern.group(3)
+      total_shards = web_pattern.group(4)
+    elif dart2js_pattern:
       compiler = 'dart2js'
       runtime = 'd8'
       system = dart2js_pattern.group(1)
       mode = dart2js_pattern.group(2)
-      option = dart2js_pattern.group(4)
-      shard_index = dart2js_pattern.group(5)
-      total_shards = dart2js_pattern.group(6)
-
-    elif web_pattern:
-      compiler = 'dart2js'
-      runtime = web_pattern.group(1)
-      system = web_pattern.group(2)
-      mode = 'release'
-      shard_index = web_pattern.group(3)
-      total_shards = web_pattern.group(4)
+      # The valid naming parts for checked and host-checked are:
+      # Empty: checked=False, host_checked=False
+      # -checked: checked=True, host_checked=False
+      # -host-checked: checked=False, host_checked=True
+      # -checked-host-checked: checked=True, host_checked=True
+      if dart2js_pattern.group(4) == 'checked':
+        checked = True
+      if dart2js_pattern.group(4) == 'host-checked':
+        host_checked = True
+      if dart2js_pattern.group(6) == 'host-checked':
+        host_checked = True
+      shard_index = dart2js_pattern.group(7)
+      total_shards = dart2js_pattern.group(8)
 
   if system == 'windows':
     system = 'win7'
@@ -93,8 +109,8 @@ def GetBuildInfo():
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
     sys.exit(1)
-  return (compiler, runtime, mode, system, option, shard_index, total_shards,
-          is_buildbot)
+  return (compiler, runtime, mode, system, checked, host_checked, shard_index,
+          total_shards, is_buildbot)
 
 
 def NeedsXterm(compiler, runtime):
@@ -158,13 +174,12 @@ def BuildSDK(mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
+def TestCompiler(runtime, mode, system, flags, is_buildbot):
   """ test the compiler.
    Args:
      - runtime: either 'd8', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
-     - option: 'checked'
      - flags: extra flags to pass to test.dart
      - is_buildbot: true if we are running on a real buildbot instead of
        emulating one.
@@ -231,8 +246,6 @@ def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
     except IndexError:
       # Failed to obtain version information. Continue running tests.
       pass
-
-  if option == 'checked': flags = flags + ['--host-checked']
 
   if runtime == 'd8':
     # The dart2js compiler isn't self-hosted (yet) so we run its
@@ -317,13 +330,16 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  (compiler, runtime, mode, system, option, shard_index, total_shards,
-      is_buildbot) = GetBuildInfo()
+  (compiler, runtime, mode, system, checked, host_checked, shard_index,
+   total_shards, is_buildbot) = GetBuildInfo()
   shard_description = ""
   if shard_index:
     shard_description = " shard %s of %s" % (shard_index, total_shards)
-  print "compiler: %s, runtime: %s mode: %s, system: %s, option: %s%s" % (
-      compiler, runtime, mode, system, option, shard_description)
+  print ("compiler: %s, runtime: %s mode: %s, system: %s,"
+        " checked: %s, host-checked: %s%s") % (compiler, runtime, mode, system,
+                                              checked, host_checked,
+                                              shard_description)
+
   if compiler is None:
     return 1
 
@@ -344,18 +360,19 @@ def main():
   if shard_index:
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
 
-  # First we run all the regular tests.
-  status = TestCompiler(runtime, mode, system, option, test_flags,
-                        is_buildbot)
+  if checked: test_flags += ['--checked']
 
-  if (status == 0
-      and (system == 'linux' or runtime != 'chrome')
-      and runtime != 'opera'
-      and runtime != 'ff'
-      and runtime != 'ie'
-      and runtime != 'safari'):
-    status = TestCompiler(runtime, mode, system, option,
-                          test_flags + ['--checked'], is_buildbot)
+  if host_checked: test_flags += ['--host-checked']
+
+  status = TestCompiler(runtime, mode, system, test_flags, is_buildbot)
+
+  # TODO(ricow): We currently have only one browser runtime that runs checked
+  # mode test where this is not reflected by the name, namely dart2js on chrome
+  # linux. We should eliminate this (by splitting this onto two builders -
+  # potentially on the same vm).
+  if (status == 0 and system == 'linux' and runtime == 'chrome'):
+    status = TestCompiler(runtime, mode, system, test_flags + ['--checked'],
+                          is_buildbot)
 
   if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
   if status != 0: print '@@@STEP_FAILURE@@@'
