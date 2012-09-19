@@ -607,7 +607,6 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
   virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
@@ -634,6 +633,7 @@ class BlockEntryInstr : public Instruction {
   void AddDominatedBlock(BlockEntryInstr* block) {
     dominated_blocks_.Add(block);
   }
+  void ClearDominatedBlocks() { dominated_blocks_.Clear(); }
 
   bool Dominates(BlockEntryInstr* other) const;
 
@@ -697,6 +697,9 @@ class BlockEntryInstr : public Instruction {
         loop_info_(NULL) { }
 
  private:
+  virtual void ClearPredecessors() = 0;
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
+
   const intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
@@ -785,8 +788,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     UNREACHABLE();
     return NULL;
   }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
-
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
@@ -820,6 +821,9 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  virtual void ClearPredecessors() { UNREACHABLE(); }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
+
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;
@@ -843,9 +847,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     return predecessors_[index];
   }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    predecessors_.Add(predecessor);
-  }
 
   // Returns -1 if pred is not in the list.
   intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
@@ -862,10 +863,28 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
+  // After recomputing predecessors to eliminate unreachable ones,
+  // reorganize phi inputs to match the predecessor order and to eliminate
+  // unreachable inputs.
+  void EliminateUnreachablePhiInputs();
+
  private:
+  virtual void ClearPredecessors() {
+    // Keep a 'backup' of any existing predecessors to enable garbage
+    // collection of phis after eliminating unreachable code and recomputing
+    // predecessors.
+    stale_predecessors_.Clear();
+    stale_predecessors_.AddArray(predecessors_);
+    predecessors_.Clear();
+  }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    predecessors_.Add(predecessor);
+  }
+
   GrowableArray<BlockEntryInstr*> predecessors_;
   ZoneGrowableArray<PhiInstr*>* phis_;
   intptr_t phi_count_;
+  GrowableArray<BlockEntryInstr*> stale_predecessors_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -893,10 +912,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
-    predecessor_ = predecessor;
-  }
 
   // Returns true if this Block is an entry of a catch handler.
   bool IsCatchEntry() const {
@@ -916,6 +931,12 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
+
   BlockEntryInstr* predecessor_;
   const intptr_t catch_try_index_;
 
@@ -928,15 +949,7 @@ class Definition : public Instruction {
  public:
   enum UseKind { kEffect, kValue };
 
-  Definition()
-      : temp_index_(-1),
-        ssa_temp_index_(-1),
-        propagated_type_(AbstractType::Handle()),
-        propagated_cid_(kIllegalCid),
-        input_use_list_(NULL),
-        env_use_list_(NULL),
-        use_kind_(kValue) {  // Phis and parameters rely on this default.
-  }
+  Definition();
 
   virtual Definition* AsDefinition() { return this; }
 
@@ -1058,6 +1071,12 @@ class Definition : public Instruction {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
+  // A value in the constant propagation lattice.
+  //    - non-constant sentinel
+  //    - a constant (any non-sentinel value)
+  //    - unknown sentinel
+  Object& constant_value() const { return constant_value_; }
+
  private:
   intptr_t temp_index_;
   intptr_t ssa_temp_index_;
@@ -1068,6 +1087,8 @@ class Definition : public Instruction {
   Value* input_use_list_;
   Value* env_use_list_;
   UseKind use_kind_;
+
+  Object& constant_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -1139,6 +1160,8 @@ class PhiInstr : public Definition {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  friend class JoinEntryInstr;  // Direct access to inputs_ array.
+
   JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;
   bool is_alive_;
