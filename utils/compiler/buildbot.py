@@ -26,16 +26,14 @@ DART_PATH = os.path.dirname(
 
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)-(debug|release)(-(checked|host-checked))?(-(host-checked))?-?(\d*)-?(\d*)')
-# TODO(ricow): rename all builders from web- to dart2js-.
 WEB_BUILDER = (
-    r'(dart2js|web)-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)-?(\d*)-?(\d*)')
+    r'dart2js-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?')
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
-def GetBuildInfo():
-  """Returns a tuple (compiler, runtime, mode, system, checked, host_checked,
-                      shard_index, total_shards, is_buildbot) where:
+class BuildInfo(object):
+  """ Encapsulation of build information.
     - compiler: 'dart2js' or None when the builder has an incorrect name
     - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
     - mode: 'debug' or 'release'
@@ -45,6 +43,37 @@ def GetBuildInfo():
     - shard_index: The shard we are running, None when not specified.
     - total_shards: The total number of shards, None when not specified.
     - is_buildbot: True if we are on a buildbot (or emulating it).
+    - test_set: Specification of a non standard test set, default None
+  """
+  def __init__(self, compiler, runtime, mode, system, checked=False,
+               host_checked=False, shard_index=None, total_shards=None,
+               is_buildbot=False, test_set=None):
+    self.compiler = compiler
+    self.runtime = runtime
+    self.mode = mode
+    self.system = system
+    self.checked = checked
+    self.host_checked = host_checked
+    self.shard_index = shard_index
+    self.total_shards = total_shards
+    self.is_buildbot = is_buildbot
+    self.test_set = test_set
+
+  def PrintBuildInfo(self):
+    shard_description = ""
+    if self.shard_index:
+      shard_description = " shard %s of %s" % (self.shard_index,
+                                               self.total_shards)
+    print ("compiler: %s, runtime: %s mode: %s, system: %s,"
+           " checked: %s, host-checked: %s, test-set: %s%s"
+           ) % (self.compiler, self.runtime, self.mode, self.system,
+                self.checked, self.host_checked, self.test_set,
+                shard_description)
+
+
+def GetBuildInfo():
+  """Returns a BuildInfo object for the current buildbot based on the
+     name of the builder.
   """
   parser = optparse.OptionParser()
   parser.add_option('-n', '--name', dest='name', help='The name of the build'
@@ -61,6 +90,8 @@ def GetBuildInfo():
   shard_index = None
   total_shards = None
   is_buildbot = True
+  test_set = None
+
   if not builder_name:
     # We are not running on a buildbot.
     is_buildbot = False
@@ -76,11 +107,10 @@ def GetBuildInfo():
 
     if web_pattern:
       compiler = 'dart2js'
-      runtime = web_pattern.group(2)
-      system = web_pattern.group(3)
+      runtime = web_pattern.group(1)
+      system = web_pattern.group(2)
       mode = 'release'
-      shard_index = web_pattern.group(4)
-      total_shards = web_pattern.group(5)
+      test_set = web_pattern.group(4)
     elif dart2js_pattern:
       compiler = 'dart2js'
       runtime = 'd8'
@@ -108,9 +138,8 @@ def GetBuildInfo():
       system == 'linux' and platform.system() != 'Linux'):
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
-    sys.exit(1)
-  return (compiler, runtime, mode, system, checked, host_checked, shard_index,
-          total_shards, is_buildbot)
+  return BuildInfo(compiler, runtime, mode, system, checked, host_checked,
+                   shard_index, total_shards, is_buildbot, test_set)
 
 
 def NeedsXterm(compiler, runtime):
@@ -174,7 +203,7 @@ def BuildSDK(mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestCompiler(runtime, mode, system, flags, is_buildbot):
+def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
   """ test the compiler.
    Args:
      - runtime: either 'd8', or one of the browsers, see GetBuildInfo
@@ -183,28 +212,17 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot):
      - flags: extra flags to pass to test.dart
      - is_buildbot: true if we are running on a real buildbot instead of
        emulating one.
+     - test_set: Specification of a non standard test set, default None
   """
 
   # Make sure we are in the dart directory
   os.chdir(DART_PATH)
 
   if system.startswith('win') and runtime == 'ie':
-    # TODO(ahe): This pre-dates the shard feature and should be
-    # removed. If we want to have a fast and a slow bot, that should
-    # be accomplished by having several shards distributed on multiple
-    # virtual builders.
-
-    # We don't do proper sharding on the IE bots, since the runtime is
-    # long for both. We have a "fast bot" and a "slow bot" that run specific
-    # tests instead.
-    for i in flags:
-      if i.startswith('--shard='):
-        bot_num = i.split('=')[1]
     # There should not be more than one InternetExplorerDriver instance
     # running at a time. For details, see
     # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-    flags = (filter(lambda(item): not item.startswith('--shard'), flags) +
-        ['-j1'])
+    flags += ['-j1']
 
   def GetPath(runtime):
     """ Helper to get the path to the Chrome or Firefox executable for a
@@ -261,18 +279,17 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot):
     extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
     TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
   else:
-    # TODO(ahe): See comment above regarding how to use sharding to
-    # accomplish the same.
-    if bot_num == '1':
+    # TODO(ricow): Enable standard sharding for IE bots when we have more vms.
+    if test_set == 'html':
       TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
-    else:
+    elif test_set == 'all':
       TestStep("dart2js", mode, system, 'dart2js', runtime, ['dartc',
           'samples', 'standalone', 'corelib', 'co19', 'language', 'isolate',
           'vm', 'json', 'benchmark_smoke', 'dartdoc', 'utils', 'pub', 'lib'],
           flags)
       extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
       TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
-          flags)
+               flags)
 
   return 0
 
@@ -330,51 +347,55 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  (compiler, runtime, mode, system, checked, host_checked, shard_index,
-   total_shards, is_buildbot) = GetBuildInfo()
-  shard_description = ""
-  if shard_index:
-    shard_description = " shard %s of %s" % (shard_index, total_shards)
-  print ("compiler: %s, runtime: %s mode: %s, system: %s,"
-        " checked: %s, host-checked: %s%s") % (compiler, runtime, mode, system,
-                                              checked, host_checked,
-                                              shard_description)
+  build_info = GetBuildInfo()
 
-  if compiler is None:
+  # Print out the buildinfo for easy debugging.
+  build_info.PrintBuildInfo()
+
+  if build_info.compiler is None:
     return 1
 
   if GetShouldClobber():
     print '@@@BUILD_STEP Clobber@@@'
-    status = ClobberBuilder(mode)
+    status = ClobberBuilder(build_info.mode)
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
   print '@@@BUILD_STEP build sdk@@@'
-  status = BuildSDK(mode, system)
+  status = BuildSDK(build_info.mode, build_info.system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
 
   test_flags = []
-  if shard_index:
-    test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
+  if build_info.shard_index:
+    test_flags = ['--shards=%s' % build_info.total_shards,
+                  '--shard=%s' % build_info.shard_index]
 
-  if checked: test_flags += ['--checked']
+  if build_info.checked: test_flags += ['--checked']
 
-  if host_checked: test_flags += ['--host-checked']
+  if build_info.host_checked: test_flags += ['--host-checked']
 
-  status = TestCompiler(runtime, mode, system, test_flags, is_buildbot)
+  status = TestCompiler(build_info.runtime, build_info.mode,
+                        build_info.system, test_flags,
+                        build_info.is_buildbot, build_info.test_set)
 
   # TODO(ricow): We currently have only one browser runtime that runs checked
   # mode test where this is not reflected by the name, namely dart2js on chrome
   # linux. We should eliminate this (by splitting this onto two builders -
   # potentially on the same vm).
-  if (status == 0 and system == 'linux' and runtime == 'chrome'):
-    status = TestCompiler(runtime, mode, system, test_flags + ['--checked'],
-                          is_buildbot)
+  # When this is fixed we should simply pass build_info to TestCompiler.
+  if (status == 0 and build_info.system == 'linux' and
+      build_info.runtime == 'chrome'):
+    status = TestCompiler(build_info.runtime, build_info.mode,
+                          build_info.system,
+                          test_flags  + ['--checked'],
+                          build_info.is_buildbot,
+                          build_info.test_set)
 
-  if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
+  if build_info.runtime != 'd8': CleanUpTemporaryFiles(build_info.system,
+                                                       build_info.runtime)
   if status != 0: print '@@@STEP_FAILURE@@@'
   return status
 
