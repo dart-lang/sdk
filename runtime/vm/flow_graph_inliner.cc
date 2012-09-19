@@ -130,12 +130,16 @@ class CallSiteInliner : public FlowGraphVisitor {
       }
 
       // Replace formal parameters with actuals.
-      for (intptr_t i = 0; i < arguments->length(); ++i) {
-        Value* val = callee_graph->graph_entry()->start_env()->ValueAt(i);
-        ParameterInstr* param = val->definition()->AsParameter();
-        ASSERT(param != NULL);
-        param->ReplaceUsesWith((*arguments)[i]->definition());
+      intptr_t arg_index = 0;
+      GrowableArray<Definition*>* defns =
+          callee_graph->graph_entry()->initial_definitions();
+      for (intptr_t i = 0; i < defns->length(); ++i) {
+        ParameterInstr* param = (*defns)[i]->AsParameter();
+        if (param != NULL) {
+          param->ReplaceUsesWith((*arguments)[arg_index++]->definition());
+        }
       }
+      ASSERT(arg_index == arguments->length());
 
       // Replace callee's null constant with caller's null constant.
       callee_graph->graph_entry()->constant_null()->ReplaceUsesWith(

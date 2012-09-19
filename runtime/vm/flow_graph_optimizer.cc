@@ -126,10 +126,9 @@ void FlowGraphOptimizer::SelectRepresentations() {
   // Process all instructions and insert conversions where needed.
   GraphEntryInstr* graph_entry = block_order_[0]->AsGraphEntry();
 
-  // Visit incoming parameters.
-  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
-    Value* val = graph_entry->start_env()->ValueAt(i);
-    InsertConversionsFor(val->definition());
+  // Visit incoming parameters and constants.
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
+    InsertConversionsFor((*graph_entry->initial_definitions())[i]);
   }
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -1289,17 +1288,11 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
 
 
 void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
-  if (graph_entry->start_env() == NULL) {
-    return;
-  }
   // Visit incoming parameters.
-  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
-    Value* val = graph_entry->start_env()->ValueAt(i);
-    ParameterInstr* param = val->definition()->AsParameter();
-    if (param != NULL) {
-      ASSERT(param->index() == i);
-      VisitParameter(param);
-    }
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
+    ParameterInstr* param =
+        (*graph_entry->initial_definitions())[i]->AsParameter();
+    if (param != NULL) VisitParameter(param);
   }
 }
 

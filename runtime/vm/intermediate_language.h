@@ -803,11 +803,10 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
-  Environment* start_env() const { return start_env_; }
-  void set_start_env(Environment* env) { start_env_ = env; }
-
-  ConstantInstr* constant_null() const { return constant_null_; }
-  void set_constant_null(ConstantInstr* instr) { constant_null_ = instr; }
+  GrowableArray<Definition*>* initial_definitions() {
+    return &initial_definitions_;
+  }
+  ConstantInstr* constant_null();
 
   intptr_t spill_slot_count() const { return spill_slot_count_; }
   void set_spill_slot_count(intptr_t count) {
@@ -823,8 +822,7 @@ class GraphEntryInstr : public BlockEntryInstr {
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
-  Environment* start_env_;
-  ConstantInstr* constant_null_;
+  GrowableArray<Definition*> initial_definitions_;
   intptr_t spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);

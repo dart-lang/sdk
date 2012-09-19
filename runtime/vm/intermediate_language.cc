@@ -138,9 +138,16 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
     : BlockEntryInstr(CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
-      start_env_(NULL),
-      constant_null_(NULL),
+      initial_definitions_(),
       spill_slot_count_(0) {
+}
+
+
+ConstantInstr* GraphEntryInstr::constant_null() {
+  ASSERT(initial_definitions_.length() > 0 &&
+         initial_definitions_[0]->IsConstant() &&
+         initial_definitions_[0]->AsConstant()->value().IsNull());
+  return initial_definitions_[0]->AsConstant();
 }
 
 

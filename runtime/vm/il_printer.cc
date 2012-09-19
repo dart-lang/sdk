@@ -446,21 +446,14 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+  const GrowableArray<Definition*>& defns = initial_definitions_;
   f->Print("B%"Pd"[graph]", block_id());
-  if ((constant_null() != NULL) || (start_env() != NULL)) {
+  if (defns.length() > 0) {
     f->Print(" {");
-    if (constant_null() != NULL) {
+    for (intptr_t i = 0; i < defns.length(); ++i) {
+      Definition* def = defns[i];
       f->Print("\n      ");
-      constant_null()->PrintTo(f);
-    }
-    if (start_env() != NULL) {
-      for (intptr_t i = 0; i < start_env()->Length(); ++i) {
-        Definition* def = start_env()->ValueAt(i)->definition();
-        if (def->IsParameter()) {
-          f->Print("\n      ");
-          def->PrintTo(f);
-        }
-      }
+      def->PrintTo(f);
     }
     f->Print("\n}");
   }
@@ -704,9 +697,15 @@ void FlowGraphVisualizer::PrintFunction() {
 // "result instruction(op1, op2)" where result is a temporary name
 // or _ for instruction without result.
 void GraphEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
+  const GrowableArray<Definition*>& defns = initial_definitions_;
   f->Print("_ [graph]");
-  if (start_env_ != NULL) {
-    start_env_->PrintTo(f);
+  if (defns.length() > 0) {
+    f->Print(" init={ ");
+    for (intptr_t i = 0; i < defns.length(); ++i) {
+      if (i > 0) f->Print(", ");
+      defns[i]->PrintTo(f);
+    }
+    f->Print(" }");
   }
 }
 

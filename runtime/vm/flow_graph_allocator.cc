@@ -187,19 +187,13 @@ void FlowGraphAllocator::ComputeInitialSets() {
     }
   }
 
-  // Process incoming parameters.
-  GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
-  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
-    Value* val = graph_entry->start_env()->ValueAt(i);
-    intptr_t vreg = val->definition()->ssa_temp_index();
+  // Process initial definitions, ie, constants and incoming parameters.
+  GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
+    intptr_t vreg = (*graph_entry->initial_definitions())[i]->ssa_temp_index();
     kill_[graph_entry->postorder_number()]->Add(vreg);
     live_in_[graph_entry->postorder_number()]->Remove(vreg);
   }
-
-  // Process global constants.
-  intptr_t vreg = graph_entry->constant_null()->ssa_temp_index();
-  kill_[graph_entry->postorder_number()]->Add(vreg);
-  live_in_[graph_entry->postorder_number()]->Remove(vreg);
 
   // Update initial live_in sets to match live_out sets. Has to be
   // done in a separate path because of backwards branches.
@@ -520,67 +514,53 @@ void FlowGraphAllocator::BuildLiveRanges() {
     ConnectIncomingPhiMoves(block);
   }
 
-  // Process incoming parameters.  Do this after all other instructions so
-  // that safepoints for all calls have already been found.
-  GraphEntryInstr* graph_entry = postorder_.Last()->AsGraphEntry();
-  for (intptr_t i = 0; i < graph_entry->start_env()->Length(); i++) {
-    Value* val = graph_entry->start_env()->ValueAt(i);
-    ParameterInstr* param = val->definition()->AsParameter();
-    if (param == NULL) continue;
-
-    // Handle the parameters specially.  They are spilled on entry.
-    LiveRange* range = GetLiveRange(param->ssa_temp_index());
+  // Process incoming parameters and constants.  Do this after all other
+  // instructions so that safepoints for all calls have already been found.
+  GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
+    Definition* defn = (*graph_entry->initial_definitions())[i];
+    LiveRange* range = GetLiveRange(defn->ssa_temp_index());
     range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
     range->DefineAt(graph_entry->start_pos());
+    if (defn->IsParameter()) {
+      ParameterInstr* param = defn->AsParameter();
+      // Assert that copied and non-copied parameters are mutually exclusive.
+      // This might change in the future and, if so, the index will be wrong.
+      ASSERT((flow_graph_.num_copied_params() == 0) ||
+             (flow_graph_.num_non_copied_params() == 0));
+      // Slot index for the leftmost copied parameter is 0.
+      intptr_t slot_index = param->index();
+      // Slot index for the rightmost fixed parameter is -1.
+      slot_index -= flow_graph_.num_non_copied_params();
 
-    // Assert that copied and non-copied parameters are mutually exclusive.
-    // This might change in the future and, if so, the index will be wrong.
-    ASSERT((flow_graph_.num_copied_params() == 0) ||
-           (flow_graph_.num_non_copied_params() == 0));
-    // Slot index for the leftmost copied parameter is 0.
-    intptr_t slot_index = param->index();
-    // Slot index for the rightmost fixed parameter is -1.
-    slot_index -= flow_graph_.num_non_copied_params();
-
-    range->set_assigned_location(Location::StackSlot(slot_index));
-    range->set_spill_slot(Location::StackSlot(slot_index));
-    if (flow_graph_.num_copied_params() > 0) {
-      ASSERT(spill_slots_.length() == slot_index);
-      spill_slots_.Add(range->End());
+      range->set_assigned_location(Location::StackSlot(slot_index));
+      range->set_spill_slot(Location::StackSlot(slot_index));
+      if (flow_graph_.num_copied_params() > 0) {
+        ASSERT(spill_slots_.length() == slot_index);
+        spill_slots_.Add(range->End());
+      }
+      AssignSafepoints(range);
+    } else {
+      ConstantInstr* constant = defn->AsConstant();
+      ASSERT(constant != NULL);
+      range->set_assigned_location(Location::Constant(constant->value()));
+      range->set_spill_slot(Location::Constant(constant->value()));
     }
-
-    AssignSafepoints(range);
-
     range->finger()->Initialize(range);
     UsePosition* use =
         range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
     if (use != NULL) {
       LiveRange* tail =
           SplitBetween(range, graph_entry->start_pos(), use->pos());
-      // All incoming parameters are tagged.
+      // Parameters and constants are tagged, so allocated to CPU registers.
       CompleteRange(tail, Location::kRegister);
     }
     ConvertAllUses(range);
-    if (flow_graph_.num_copied_params() > 0) {
+
+    if (defn->IsParameter() && flow_graph_.num_copied_params() > 0) {
       MarkAsObjectAtSafepoints(range);
     }
   }
-
-  // Process global constants.
-  ConstantInstr* null_defn = graph_entry->constant_null();
-  LiveRange* range = GetLiveRange(null_defn->ssa_temp_index());
-  range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
-  range->DefineAt(graph_entry->start_pos());
-  range->set_assigned_location(Location::Constant(null_defn->value()));
-  range->set_spill_slot(Location::Constant(null_defn->value()));
-  range->finger()->Initialize(range);
-  UsePosition* use =
-      range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
-  if (use != NULL) {
-    LiveRange* tail = SplitBetween(range, graph_entry->start_pos(), use->pos());
-    CompleteRange(tail, Location::kRegister);
-  }
-  ConvertAllUses(range);
 }
 
 

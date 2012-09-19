@@ -105,13 +105,9 @@ static void ResetUseListsInInstruction(Instruction* instr) {
 
 
 bool FlowGraph::ResetUseLists() {
-  // Reset global constants.
-  ResetUseListsInInstruction(graph_entry_->constant_null());
-
-  // Reset definitions referenced from the start environment.
-  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
-    Value* env_use = graph_entry_->start_env()->ValueAt(i);
-    ResetUseListsInInstruction(env_use->definition());
+  // Reset initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ResetUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
   }
 
   // Reset phis in join entries and the instructions in each block.
@@ -168,13 +164,9 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
 
 
 bool FlowGraph::ValidateUseLists() {
-  // Validate global constants.
-  ValidateUseListsInInstruction(graph_entry_->constant_null());
-
-  // Validate definitions referenced from the start environment.
-  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
-    Value* env_use = graph_entry_->start_env()->ValueAt(i);
-    ValidateUseListsInInstruction(env_use->definition());
+  // Validate initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ValidateUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
   }
 
   // Validate phis in join entries and the instructions in each block.
@@ -286,10 +278,9 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
 
 void FlowGraph::ComputeUseLists() {
   DEBUG_ASSERT(ResetUseLists());
-  // Clear global constants and definitions in the start environment.
-  ClearUseLists(graph_entry_->constant_null());
-  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
-    ClearUseLists(graph_entry_->start_env()->ValueAt(i)->definition());
+  // Clear initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ClearUseLists((*graph_entry_->initial_definitions())[i]);
   }
   ComputeUseListsRecursive(graph_entry_);
   DEBUG_ASSERT(ValidateUseLists());
@@ -495,33 +486,30 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     Bailout("Catch-entry support in SSA.");
   }
 
-  // Name global constants.
+  // Initial renaming environment.
+  GrowableArray<Definition*> env(variable_count());
+
+  // Add global constants to the initial definitions.
   ConstantInstr* constant_null = new ConstantInstr(Object::ZoneHandle());
   constant_null->set_ssa_temp_index(alloc_ssa_temp_index());
-  graph_entry_->set_constant_null(constant_null);
+  graph_entry_->initial_definitions()->Add(constant_null);
 
-  // Initialize start environment.
-  GrowableArray<Definition*> start_env(variable_count());
+  // Add incoming parameters to the initial definitions and the renaming
+  // environment.
   for (intptr_t i = 0; i < parameter_count(); ++i) {
     ParameterInstr* param = new ParameterInstr(i, graph_entry_);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-    start_env.Add(param);
+    graph_entry_->initial_definitions()->Add(param);
+    env.Add(param);
   }
 
-  // All locals are initialized with #null.  Use the global definition, uses
-  // will be created in the Environment constructor.
-  while (start_env.length() < variable_count()) {
-    start_env.Add(graph_entry_->constant_null());
+  // Initialize all locals with #null in the renaming environment.
+  for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
+    env.Add(constant_null);
   }
-  graph_entry_->set_start_env(
-      Environment::From(start_env,
-                        num_non_copied_params_,
-                        parsed_function_.function()));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  GrowableArray<Definition*> env(variable_count());
-  env.AddArray(start_env);
   RenameRecursive(normal_entry, &env, live_phis);
 }
 
