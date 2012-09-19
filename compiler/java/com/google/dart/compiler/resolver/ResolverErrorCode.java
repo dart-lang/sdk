@@ -188,6 +188,7 @@ public enum ResolverErrorCode implements ErrorCode {
   SUPER_IN_STATIC_METHOD("Cannot use 'super' in a static method"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
   SUPER_ON_TOP_LEVEL("Cannot use 'super' in a top-level element"),
+  SWITCH_CASE_FALL_THROUGH(ErrorSeverity.WARNING, "Switch case should end with break, continue, return or throw"),
   THIS_IN_STATIC_METHOD("Cannot use 'this' in a static method"),
   THIS_IN_INITIALIZER_AS_EXPRESSION("Cannot reference 'this' as expression in initializer list"),
   THIS_ON_TOP_LEVEL("Cannot use 'this' in a top-level element"),

@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
+import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
@@ -24,6 +25,7 @@ import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
+import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -61,6 +63,7 @@ import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -1005,11 +1008,37 @@ public class Resolver {
       // The scope of a label on the case statement is the case statement itself. These labels
       // need to be resolved before the continue <label>; statements can be resolved.
       for (DartSwitchMember member : x.getMembers()) {
-        recordSwitchMamberLabel(member);
+        recordSwitchMemberLabel(member);
       }
       x.visitChildren(this);
       getContext().popScope();
       return null;
+    }
+
+    @Override
+    public Element visitCase(DartCase node) {
+      super.visitCase(node);
+      List<DartStatement> statements = node.getStatements();
+      // the last statement should be: break, continue, return, throw
+      if (!statements.isEmpty()) {
+        DartStatement lastStatement = statements.get(statements.size() - 1);
+        if (!isValidLastSwitchCaseStatement(lastStatement)) {
+          onError(lastStatement, ResolverErrorCode.SWITCH_CASE_FALL_THROUGH);
+        }
+      }
+      // done
+      return null;
+    }
+
+    private boolean isValidLastSwitchCaseStatement(DartStatement statement) {
+      if (statement instanceof DartExprStmt) {
+        DartExprStmt exprStmt = (DartExprStmt) statement;
+        if (exprStmt.getExpression() instanceof DartThrowExpression) {
+          return true;
+        }
+      }
+      return statement instanceof DartBreakStatement || statement instanceof DartContinueStatement
+          || statement instanceof DartReturnStatement;
     }
 
     @Override
@@ -1020,7 +1049,7 @@ public class Resolver {
       return null;
     }
 
-    private void recordSwitchMamberLabel(DartSwitchMember x) {
+    private void recordSwitchMemberLabel(DartSwitchMember x) {
       List<DartLabel> labels = x.getLabels();
       for (DartLabel label : labels) {
         LabelElement labelElement =  Elements.switchMemberLabelElement(label, label.getName(),

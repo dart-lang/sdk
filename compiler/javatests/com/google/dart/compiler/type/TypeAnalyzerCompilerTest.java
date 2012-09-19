@@ -124,6 +124,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "    case 0: qwerty: {",
         "      break qwerty;",
         "    }",
+        "    break;",
         "  }",
         "}",
         "");
@@ -436,6 +437,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2862
+   */
+  public void test_switchCase_fallThrough() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(int x) {",
+        "  while (true) {",
+        "    switch (x) {",
+        "      case 0:",
+        "        break;",
+        "      case 1:",
+        "        continue;",
+        "      case 2:",
+        "        return;",
+        "      case 3:",
+        "        throw new Exception();",
+        "      case 4:",
+        "        bar();",
+        "    }",
+        "  }",
+        "}",
+        "bar() {}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6));
   }
 
   /**
