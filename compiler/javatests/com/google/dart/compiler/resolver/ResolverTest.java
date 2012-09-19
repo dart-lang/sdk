@@ -1215,8 +1215,8 @@ public class ResolverTest extends ResolverTestCase {
         "  static foo() { new T(); }", // can't ref type variable in method
         "  static bar() { T variable = 1; }",
         "}"),
-        errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 22 , 1),
-        errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 18, 1));
+        errEx(ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 22 , 1),
+        errEx(ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 18, 1));
   }
 
   public void testConstClass() {

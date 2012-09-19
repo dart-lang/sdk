@@ -106,6 +106,12 @@ Language/11_Statements/15_Assert_A05_t01: Fail, OK
 Language/11_Statements/15_Assert_A05_t04: Fail, OK
 Language/11_Statements/15_Assert_A05_t05: Fail, OK
 
+# co19 issue 219
+Language/03_Overview/1_Scoping_A02_t05: Fail, OK
+Language/09_Generics/09_Generics_A04_t04: Fail, OK
+Language/09_Generics/09_Generics_A04_t05: Fail, OK
+
+
 
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # TODO(dartc-team): Please triage this failure.

@@ -226,34 +226,9 @@ public class ResolutionContext implements ResolutionErrorListener {
       case TYPE_VARIABLE: {
         TypeVariableElement typeVariableElement = (TypeVariableElement) element;
         if (!isFactory && isStatic &&
-            typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
-
-          // Check that type variable is not shadowing any element in enclosing context.
-          Scope libraryScope = scope.getLibrary().getScope();
-          String name = element.getName();
-          Element existingElement = libraryScope.findElement(scope.getLibrary(), name);
-
-          switch(ElementKind.of(existingElement)) {
-            case CLASS:
-            case FUNCTION_TYPE_ALIAS:
-            return instantiateParameterizedType((ClassElement)existingElement,
-                                                diagnosticNode,
-                                                typeArguments,
-                                                isStatic,
-                                                isFactory,
-                                                errorCode,
-                                                wrongNumberErrorCode);
-            case NONE:
-            default:
-              if (errorCode.getSubSystem().equals(SubSystem.RESOLVER)) {
-                onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-                    identifier);
-              } else {
-                onError(identifier, TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-                    identifier);
-              }
-              return typeProvider.getDynamicType();
-          }
+          typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
+          onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, identifier);
+          return typeProvider.getDynamicType();
         }
         return makeTypeVariable(typeVariableElement, typeArguments);
       }

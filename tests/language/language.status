@@ -178,8 +178,6 @@ library6_negative_test: Fail # still a valid test? Issue 3650
 list_literal4_test: Fail # Issue 1343
 map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-new_expression_type_args_test/01: Fail # language change 1031
-new_expression_type_args_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
@@ -204,7 +202,14 @@ syntax_test/none: Fail # Bug 2107  Static type warnings in none case (INSTANTIAT
 throw7_negative_test: Fail # Issue 3654
 type_variable_bounds_test/00: Fail # issue 3079
 type_variable_bounds_test/07: Fail # language change 1031
-type_variable_static_context_negative_test: Fail # language change 1031
+
+# test issue 5291
+type_parameter_test/01: Fail, OK
+type_parameter_test/02: Fail, OK
+type_parameter_test/03: Fail, OK
+type_parameter_test/04: Fail, OK
+type_variable_scope2_test: Fail, OK
+
 
 #
 # Add new dartc annotations above in alphabetical order
