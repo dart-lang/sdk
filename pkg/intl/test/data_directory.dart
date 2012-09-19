@@ -16,10 +16,10 @@ String get _sep => Platform.pathSeparator;
 get dataDirectory {
   var current = new Directory.current().path;
   if (new RegExp('.*${_sep}test').hasMatch(current)) {
-    return '..${_sep}data${_sep}dates${_sep}';
+    return '..${_sep}lib${_sep}src${_sep}data${_sep}dates${_sep}';
   }
   if (new RegExp('.*${_sep}intl').hasMatch(current)) {
-    return 'data${_sep}dates${_sep}';
+    return 'lib${_sep}src${_sep}data${_sep}dates${_sep}';
   }
-  return 'pkg${_sep}intl${_sep}data${_sep}dates${_sep}';
+  return 'pkg${_sep}intl${_sep}lib${_sep}src${_sep}data${_sep}dates${_sep}';
 }

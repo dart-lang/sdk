@@ -5,6 +5,8 @@
 #ifndef VM_SCAVENGER_H_
 #define VM_SCAVENGER_H_
 
+#include <map>
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/flags.h"
@@ -87,6 +89,12 @@ class Scavenger {
 
   void WriteProtect(bool read_only);
 
+  void SetPeer(RawObject* raw_obj, void* peer);
+
+  void* GetPeer(RawObject* raw_obj);
+
+  int64_t PeerCount() const;
+
  private:
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);
@@ -125,11 +133,16 @@ class Scavenger {
     return end_ < to_->end();
   }
 
+  void ProcessPeerReferents();
+
   VirtualMemory* space_;
   MemoryRegion* to_;
   MemoryRegion* from_;
 
   Heap* heap_;
+
+  typedef std::map<RawObject*, void*> PeerTable;
+  PeerTable peer_table_;
 
   // Current allocation top and end. These values are being accessed directly
   // from generated code.

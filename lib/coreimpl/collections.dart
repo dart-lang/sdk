@@ -138,7 +138,7 @@ class Collections {
         Maps._emitMap(o, result, visiting);
       }
     } else { // o is neither a collection nor a map
-      result.add(o == null ? 'null' : o);  // TODO(jjb): remove the null check
+      result.add(o);
     }
   }
 

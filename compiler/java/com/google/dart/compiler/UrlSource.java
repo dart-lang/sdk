@@ -118,6 +118,15 @@ public abstract class UrlSource implements Source {
     return absoluteUri.toString();
   }
 
+  /**
+   * Get the translated URI for this source.
+   * 
+   * @return the translated URI
+   */
+  public URI getTranslatedUri() {
+    return translatedUri;
+  }
+  
   @Override
   public URI getUri() {
     return absoluteUri;

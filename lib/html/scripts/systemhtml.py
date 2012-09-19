@@ -12,6 +12,7 @@ from systemdart2js import *
 from systeminterface import *
 
 _js_custom_members = set([
+    'CSSStyleDeclaration.setProperty',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
@@ -1222,10 +1223,12 @@ class HtmlDart2JSSystem(System):
     return HtmlDart2JSClassGenerator(self, interface)
 
   def GenerateLibraries(self, dart_files):
+    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
     self._GenerateLibFile(
         'html_dart2js.darttemplate',
         os.path.join(self._output_dir, 'html_dart2js.dart'),
-        dart_files)
+        dart_files,
+        AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
 
   def Finish(self):
     pass

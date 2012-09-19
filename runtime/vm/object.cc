@@ -44,6 +44,7 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 
 static const char* kGetterPrefix = "get:";
@@ -7114,7 +7115,7 @@ const char* PcDescriptors::ToCString() const {
 // - No two ic-call descriptors have the same deoptimization id (type feedback).
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
-void PcDescriptors::Verify(bool check_ids) const {
+void PcDescriptors::Verify(const Function& function) const {
 #if defined(DEBUG)
   // TODO(srdjan): Implement a more efficient way to check, currently drop
   // the check for too large number of descriptors.
@@ -7124,15 +7125,15 @@ void PcDescriptors::Verify(bool check_ids) const {
     }
     return;
   }
+  // Only check ids for unoptimized code that is optimizable.
+  if (!function.is_optimizable()) return;
   for (intptr_t i = 0; i < Length(); i++) {
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
-    if (check_ids) {
-      if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
-          (DescriptorKind(i) == PcDescriptors::kIcCall)) {
-        deopt_id = DeoptId(i);
-      }
+    if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
+        (DescriptorKind(i) == PcDescriptors::kIcCall)) {
+      deopt_id = DeoptId(i);
     }
     for (intptr_t k = i + 1; k < Length(); k++) {
       if (kind == DescriptorKind(k)) {
@@ -7767,6 +7768,23 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
     }
   }
   return max_id;
+}
+
+
+RawArray* Code::ExtractTypeFeedbackArray() const {
+  ASSERT(!IsNull() && !is_optimized());
+  GrowableArray<intptr_t> deopt_ids;
+  const GrowableObjectArray& ic_data_objs =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const intptr_t max_id =
+      ExtractIcDataArraysAtCalls(&deopt_ids, ic_data_objs);
+  const Array& result = Array::Handle(Array::New(max_id + 1));
+  for (intptr_t i = 0; i < deopt_ids.length(); i++) {
+    intptr_t result_index = deopt_ids[i];
+    ASSERT(result.At(result_index) == Object::null());
+    result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
+  }
+  return result.raw();
 }
 
 
@@ -8533,7 +8551,18 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsMalformed());
-  if (IsNull()) {
+  const Class& cls = Class::Handle(clazz());
+  if (cls.IsNullClass()) {
+    if (!IsNull()) {
+      // We can only encounter Object::sentinel() or
+      // Object::transition_sentinel() if type checks were not eliminated at
+      // compile time. Both sentinels are instances of the Null class, but they
+      // are not the Object::null() instance.
+      ASSERT((raw() == Object::transition_sentinel()) ||
+             (raw() == Object::sentinel()));
+      ASSERT(!FLAG_eliminate_type_checks);
+      return true;  // We are doing an instance of test as part of a type check.
+    }
     // The null instance can be returned from a void function.
     if (other.IsVoidType()) {
       return true;
@@ -8558,10 +8587,6 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   if (other.IsVoidType()) {
     return false;
   }
-  const Class& cls = Class::Handle(clazz());
-  // We must not encounter Object::sentinel() or Object::transition_sentinel(),
-  // both instances of class NullClass, but not instance Object::null().
-  ASSERT(!cls.IsNullClass());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {
@@ -8724,6 +8749,131 @@ int64_t Integer::AsInt64Value() const {
 int Integer::CompareWith(const Integer& other) const {
   UNIMPLEMENTED();
   return 0;
+}
+
+
+// Return the most compact presentation of an integer.
+RawInteger* Integer::AsInteger(const Integer& value) {
+  if (value.IsSmi()) return value.raw();
+  if (value.IsMint()) {
+    Mint& mint = Mint::Handle();
+    mint ^= value.raw();
+    if (Smi::IsValid64(mint.value())) {
+      return Smi::New(mint.value());
+    } else {
+      return value.raw();
+    }
+  }
+  ASSERT(value.IsBigint());
+  Bigint& big_value = Bigint::Handle();
+  big_value ^= value.raw();
+  if (BigintOperations::FitsIntoSmi(big_value)) {
+    return BigintOperations::ToSmi(big_value);
+  } else if (BigintOperations::FitsIntoMint(big_value)) {
+    return Mint::New(BigintOperations::ToMint(big_value));
+  } else {
+    return big_value.raw();
+  }
+}
+
+
+RawInteger* Integer::BinaryOp(Token::Kind operation,
+                              const Integer& left,
+                              const Integer& right) {
+  // In 32-bit mode, the result of any operation between two Smis will fit in a
+  // 32-bit signed result, except the product of two Smis, which will be 64-bit.
+  // In 64-bit mode, the result of any operation between two Smis will fit in a
+  // 64-bit signed result, except the product of two Smis (unless the Smis are
+  // 32-bit or less).
+  if (left.IsSmi() && right.IsSmi()) {
+    Smi& left_smi = Smi::Handle();
+    Smi& right_smi = Smi::Handle();
+    left_smi ^= left.raw();
+    right_smi ^= right.raw();
+    const intptr_t left_value = left_smi.Value();
+    const intptr_t right_value = right_smi.Value();
+    switch (operation) {
+      case Token::kADD:
+        return Integer::New(left_value + right_value);
+      case Token::kSUB:
+        return Integer::New(left_value - right_value);
+      case Token::kMUL: {
+        if (Smi::kBits < 32) {
+          // In 32-bit mode, the product of two Smis fits in a 64-bit result.
+          return Integer::New(static_cast<int64_t>(left_value) *
+                              static_cast<int64_t>(right_value));
+        } else {
+          // In 64-bit mode, the product of two 32-bit signed integers fits in a
+          // 64-bit result.
+          ASSERT(sizeof(intptr_t) == sizeof(int64_t));
+          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
+            return Integer::New(left_value * right_value);
+          }
+        }
+        // Perform a Bigint multiplication below.
+        break;
+      }
+      case Token::kTRUNCDIV:
+        return Integer::New(left_value / right_value);
+      case Token::kMOD: {
+        const intptr_t remainder = left_value % right_value;
+        if (remainder < 0) {
+          if (right_value < 0) {
+            return Integer::New(remainder - right_value);
+          } else {
+            return Integer::New(remainder + right_value);
+          }
+        }
+        return Integer::New(remainder);
+      }
+      default:
+        UNIMPLEMENTED();
+    }
+  }
+  // In 32-bit mode, the result of any operation between two 63-bit signed
+  // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
+  // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
+  if ((Smi::kBits < 32) && !left.IsBigint() && !right.IsBigint()) {
+    const int64_t left_value = left.AsInt64Value();
+    if (Utils::IsInt(63, left_value)) {
+      const int64_t right_value = right.AsInt64Value();
+      if (Utils::IsInt(63, right_value)) {
+        switch (operation) {
+        case Token::kADD:
+          return Integer::New(left_value + right_value);
+        case Token::kSUB:
+          return Integer::New(left_value - right_value);
+        case Token::kMUL: {
+          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
+            return Integer::New(left_value * right_value);
+          }
+          // Perform a Bigint multiplication below.
+          break;
+        }
+        case Token::kTRUNCDIV:
+          return Integer::New(left_value / right_value);
+        case Token::kMOD: {
+          const int64_t remainder = left_value % right_value;
+          if (remainder < 0) {
+            if (right_value < 0) {
+              return Integer::New(remainder - right_value);
+            } else {
+              return Integer::New(remainder + right_value);
+            }
+          }
+          return Integer::New(remainder);
+        }
+        default:
+          UNIMPLEMENTED();
+        }
+      }
+    }
+  }
+  const Bigint& left_big = Bigint::Handle(Bigint::AsBigint(left));
+  const Bigint& right_big = Bigint::Handle(Bigint::AsBigint(right));
+  const Bigint& result =
+      Bigint::Handle(Bigint::BinaryOp(operation, left_big, right_big));
+  return Integer::Handle(AsInteger(result)).raw();
 }
 
 
@@ -9026,6 +9176,48 @@ const char* Double::ToCString() const {
   buffer[kBufferSize - 1] = '\0';
   DoubleToCString(value(), buffer, kBufferSize);
   return buffer;
+}
+
+
+// Returns value in form of a RawBigint.
+RawBigint* Bigint::AsBigint(const Integer& value) {
+  ASSERT(!value.IsNull());
+  if (value.IsSmi()) {
+    Smi& smi = Smi::Handle();
+    smi ^= value.raw();
+    return BigintOperations::NewFromSmi(smi);
+  } else if (value.IsMint()) {
+    Mint& mint = Mint::Handle();
+    mint ^= value.raw();
+    return BigintOperations::NewFromInt64(mint.value());
+  } else {
+    ASSERT(value.IsBigint());
+    Bigint& big = Bigint::Handle();
+    big ^= value.raw();
+    ASSERT(!BigintOperations::FitsIntoSmi(big));
+    return big.raw();
+  }
+}
+
+
+RawBigint* Bigint::BinaryOp(Token::Kind operation,
+                            const Bigint& left,
+                            const Bigint& right) {
+  switch (operation) {
+    case Token::kADD:
+      return BigintOperations::Add(left, right);
+    case Token::kSUB:
+      return BigintOperations::Subtract(left, right);
+    case Token::kMUL:
+      return BigintOperations::Multiply(left, right);
+    case Token::kTRUNCDIV:
+      return BigintOperations::Divide(left, right);
+    case Token::kMOD:
+      return BigintOperations::Modulo(left, right);
+    default:
+      UNIMPLEMENTED();
+      return Bigint::null();
+  }
 }
 
 

@@ -93,7 +93,8 @@ class VersionSolver {
   Future<List<PackageId>> solve() {
     // Kick off the work by adding the root package at its concrete version to
     // the dependency graph.
-    var ref = new PackageRef(new RootSource(_root), _root.version, _root.name);
+    var ref = new PackageRef(
+        _root.name, new RootSource(_root), _root.version, _root.name);
     enqueue(new AddConstraint('(entrypoint)', ref));
     _pubspecs.cache(ref.atVersion(_root.version), _root.pubspec);
 
@@ -150,8 +151,7 @@ class VersionSolver {
    * version constraints.
    */
   Future<Version> getBestVersion(Dependency dependency) {
-    return dependency.source.getVersions(dependency.description)
-        .transform((versions) {
+    return dependency.getVersions().transform((versions) {
       var best = null;
       for (var version in versions) {
         if (dependency.useLatestVersion ||
@@ -209,7 +209,7 @@ class VersionSolver {
         description = lockedPackage.description;
       }
 
-      return new PackageId(dep.source, dep.version, description);
+      return new PackageId(dep.name, dep.source, dep.version, description);
     });
   }
 }
@@ -235,6 +235,9 @@ abstract class WorkItem {
  * added to the graph. If [version] is `null`, it is being removed.
  */
 class ChangeVersion implements WorkItem {
+  /// The name of the package whose version is being changed.
+  final String package;
+
   /**
    * The source of the package whose version is changing.
    */
@@ -250,12 +253,7 @@ class ChangeVersion implements WorkItem {
    */
   final Version version;
 
-  /**
-   * The name of the package whose version is changing.
-   */
-  String get package => source.packageName(description);
-
-  ChangeVersion(this.source, this.description, this.version) {
+  ChangeVersion(this.package, this.source, this.description, this.version) {
     if (source == null) throw "null source";
   }
 
@@ -304,7 +302,7 @@ class ChangeVersion implements WorkItem {
           new Future<Map<String, PackageRef>>.immediate(<String, PackageRef>{});
     }
 
-    var id = new PackageId(source, version, description);
+    var id = new PackageId(package, source, version, description);
     return solver._pubspecs.load(id).transform((pubspec) {
       var dependencies = <String, PackageRef>{};
       for (var dependency in pubspec.dependencies) {
@@ -356,7 +354,7 @@ class ChangeConstraint implements WorkItem {
 
     // If the dependency has been cut free from the graph, just remove it.
     if (!newDependency.isDependedOn) {
-      solver.enqueue(new ChangeVersion(source, description, null));
+      solver.enqueue(new ChangeVersion(name, source, description, null));
       return null;
     }
 
@@ -364,7 +362,7 @@ class ChangeConstraint implements WorkItem {
     // anything since it's already at the best version.
     if (name == solver._root.name) {
       solver.enqueue(new ChangeVersion(
-          source, description, solver._root.version));
+          name, source, description, solver._root.version));
       return null;
     }
 
@@ -374,7 +372,8 @@ class ChangeConstraint implements WorkItem {
     if (lockedPackage != null) {
       var lockedVersion = lockedPackage.version;
       if (newConstraint.allows(lockedVersion)) {
-        solver.enqueue(new ChangeVersion(source, description, lockedVersion));
+        solver.enqueue(
+            new ChangeVersion(name, source, description, lockedVersion));
         return null;
       }
     }
@@ -385,7 +384,7 @@ class ChangeConstraint implements WorkItem {
       if (best == null) {
         undo(solver);
       } else if (newDependency.version != best) {
-        solver.enqueue(new ChangeVersion(source, description, best));
+        solver.enqueue(new ChangeVersion(name, source, description, best));
       }
     });
   }
@@ -464,7 +463,7 @@ class UnlockPackage implements WorkItem {
     return solver.getBestVersion(package).transform((best) {
       if (best == null) return null;
       solver.enqueue(new ChangeVersion(
-          package.source, package.description, best));
+          package.name, package.source, package.description, best));
     });
   }
 }
@@ -581,6 +580,9 @@ class Dependency {
 
   /** Creates a copy of this dependency. */
   Dependency clone() => new Dependency._clone(this);
+
+  /// Return a list of available versions for this dependency.
+  Future<List<Version>> getVersions() => source.getVersions(name, description);
 
   /**
    * Places [ref] as a constraint from [package] onto this.

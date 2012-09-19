@@ -116,8 +116,6 @@ class FlowGraphCompiler : public ValueObject {
                           const Array& argument_names,
                           LocationSummary* locs);
 
-  void GenerateInlinedMathSqrt(Label* done);
-
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
                                Label* is_instance_lbl,

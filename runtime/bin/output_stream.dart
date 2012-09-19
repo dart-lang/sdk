@@ -13,7 +13,7 @@
  * writing in sync with the rate the system can actually write data to
  * the underlying communication channel.
  */
-interface OutputStream {
+abstract class OutputStream {
   /**
    * Writes the content of [buffer] to the stream. If [copyBuffer] is
    * false ownership of the specified buffer is passed to the system

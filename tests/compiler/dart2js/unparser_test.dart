@@ -35,6 +35,7 @@ interface Map {}
 interface Closure {}
 interface Dynamic_ {}
 interface Null {}
+interface TypeError {}
 class Math {
   static double parseDouble(String s) => 1.0;
 }
@@ -727,7 +728,7 @@ main() {
 }
 ''';
   var expectedResult =
-      'main(){var A=7;void B(A,C){void D(E,F){var G=A;}D(C,A);}B(A,8);}';
+      'main(){var A=7; B(A,C){ D(E,F){var G=A;}D(C,A);}B(A,8);}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }

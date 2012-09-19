@@ -61,7 +61,8 @@ class SystemCache {
           // TODO(rnystrom): Once there are cached packages and this path is
           // being used, figure out how version numbers should be acquired.
           return subpaths.map((subpath) =>
-            new PackageId(source, Version.none, basename(subpath)));
+            new PackageId(
+                basename(subpath), source, Version.none, basename(subpath)));
         });
       });
       return Futures.wait(sources).transform(flatten);

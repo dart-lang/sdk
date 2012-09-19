@@ -30,6 +30,7 @@ import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -434,15 +435,31 @@ public class MemberBuilder {
       Element element = null;
       if (currentHolder != null) {
           element = currentHolder.lookupLocalElement(name);
+          if (element == null) {
+            element = currentHolder.lookupLocalElement("setter " + name);
+          }
       } else {
         // Top level nodes are not handled gracefully
-        element = topLevelContext.getScope().findElement(context.getScope().getLibrary(), name);
+        Scope scope = topLevelContext.getScope();
+        LibraryElement library = context.getScope().getLibrary();
+        element = scope.findElement(library, name);
+        if (element == null) {
+          element = scope.findElement(library, "setter " + name);
+        }
       }
 
       FieldElementImplementation fieldElement = null;
       if (element == null || element.getKind().equals(ElementKind.FIELD)
           && element.getModifiers().isAbstractField()) {
         fieldElement = (FieldElementImplementation) element;
+      }
+
+      if (accessorNode.getModifiers().isGetter() && fieldElement != null && fieldElement.getSetter() != null) {
+        MethodNodeElement oldSetter = fieldElement.getSetter();
+        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getObsoleteMetadata(),
+            fieldNode.getModifiers());
+        fieldElement.setSetter(oldSetter);
+        addField(currentHolder, fieldElement);
       }
 
       if (fieldElement == null) {
@@ -608,8 +625,30 @@ public class MemberBuilder {
     }
       
     private void checkUniqueName(EnclosingElement holder, Element e) {
+      if (ElementKind.of(holder) == ElementKind.LIBRARY) {
+        return;
+      }
       Element other = lookupElementByName(holder, e.getName(), e.getModifiers());
       assert e != other : "forgot to call checkUniqueName() before adding to the class?";
+      
+      if (other == null && e instanceof FieldElement) {
+        FieldElement eField = (FieldElement) e;
+        if (!eField.getModifiers().isAbstractField()) {
+          other = lookupElementByName(holder, "setter " + e.getName(), e.getModifiers());
+        }
+        if (eField.getModifiers().isAbstractField()
+            && StringUtils.startsWith(e.getName(), "setter ")) {
+          Element other2 = lookupElementByName(holder,
+              StringUtils.removeStart(e.getName(), "setter "), e.getModifiers());
+          if (other2 instanceof FieldElement) {
+            FieldElement otherField = (FieldElement) other2;
+            if (!otherField.getModifiers().isAbstractField()) {
+              other = otherField;
+            }
+          }
+        }
+      }
+      
       if (other != null) {
         ElementKind eKind = ElementKind.of(e);
         ElementKind oKind = ElementKind.of(other);

@@ -154,6 +154,26 @@ static void PrintUse(BufferFormatter* f, const Definition& definition) {
 }
 
 
+void Instruction::PrintTo(BufferFormatter* f) const {
+  f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+  PrintOperandsTo(f);
+  f->Print(")");
+}
+
+
+void Instruction::PrintOperandsTo(BufferFormatter* f) const {
+  for (int i = 0; i < InputCount(); ++i) {
+    if (i > 0) f->Print(", ");
+    if (InputAt(i) != NULL) InputAt(i)->PrintTo(f);
+  }
+}
+
+
+void Instruction::PrintToVisualizer(BufferFormatter* f) const {
+  PrintTo(f);
+}
+
+
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (is_used()) {
@@ -446,21 +466,14 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+  const GrowableArray<Definition*>& defns = initial_definitions_;
   f->Print("B%"Pd"[graph]", block_id());
-  if ((constant_null() != NULL) || (start_env() != NULL)) {
+  if (defns.length() > 0) {
     f->Print(" {");
-    if (constant_null() != NULL) {
+    for (intptr_t i = 0; i < defns.length(); ++i) {
+      Definition* def = defns[i];
       f->Print("\n      ");
-      constant_null()->PrintTo(f);
-    }
-    if (start_env() != NULL) {
-      for (intptr_t i = 0; i < start_env()->Length(); ++i) {
-        Definition* def = start_env()->ValueAt(i)->definition();
-        if (def->IsParameter()) {
-          f->Print("\n      ");
-          def->PrintTo(f);
-        }
-      }
+      def->PrintTo(f);
     }
     f->Print("\n}");
   }
@@ -517,22 +530,6 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 
 void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-}
-
-
-void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s ", DebugName());
-  value()->PrintTo(f);
-}
-
-
-void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s" , DebugName());
-}
-
-
-void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("%s ", DebugName());
 }
 
 
@@ -704,9 +701,15 @@ void FlowGraphVisualizer::PrintFunction() {
 // "result instruction(op1, op2)" where result is a temporary name
 // or _ for instruction without result.
 void GraphEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
+  const GrowableArray<Definition*>& defns = initial_definitions_;
   f->Print("_ [graph]");
-  if (start_env_ != NULL) {
-    start_env_->PrintTo(f);
+  if (defns.length() > 0) {
+    f->Print(" init={ ");
+    for (intptr_t i = 0; i < defns.length(); ++i) {
+      if (i > 0) f->Print(", ");
+      defns[i]->PrintTo(f);
+    }
+    f->Print(" }");
   }
 }
 
@@ -749,22 +752,6 @@ void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
-void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-  value()->PrintTo(f);
-}
-
-
-void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-}
-
-
-void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-}
-
-
 void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ goto B%"Pd"", successor()->block_id());
 }
@@ -787,9 +774,14 @@ void ParallelMoveInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void Environment::PrintTo(BufferFormatter* f) const {
   f->Print(" env={ ");
+  int arg_count = 0;
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->Print(", ");
-    values_[i]->PrintTo(f);
+    if (values_[i]->definition()->IsPushArgument()) {
+      f->Print("a%d", arg_count++);
+    } else {
+      values_[i]->PrintTo(f);
+    }
     if ((locations_ != NULL) && !locations_[i].IsInvalid()) {
       f->Print(" [");
       locations_[i].PrintTo(f);

@@ -155,7 +155,7 @@ class Dartdoc {
   Path dartdocPath;
 
   /** Path to generate HTML files into. */
-  Path outputDir = const Path('docs');
+  Path outputDir = new Path('docs');
 
   /**
    * The title used for the overall generated output. Set this to change it.

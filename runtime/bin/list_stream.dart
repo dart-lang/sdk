@@ -12,12 +12,12 @@
  * method must be called when the last data has been written to the
  * [ListInputStream].
  */
-interface ListInputStream extends InputStream default _ListInputStream {
+abstract class ListInputStream implements InputStream {
   /**
    * Create an empty [ListInputStream] to which data can be written
    * using the [write] method.
    */
-  ListInputStream();
+  factory ListInputStream() =>  new _ListInputStream();
 
   /**
    * Write more data to be streamed over to the [ListInputStream].
@@ -36,11 +36,11 @@ interface ListInputStream extends InputStream default _ListInputStream {
  * [ListOutputStream] makes it possible to use the [OutputStream]
  * interface to write data to a [List] of integers.
  */
-interface ListOutputStream extends OutputStream default _ListOutputStream {
+abstract class ListOutputStream implements OutputStream {
   /**
    * Create a [ListOutputStream].
    */
-  ListOutputStream();
+  factory ListOutputStream() => new _ListOutputStream();
 
   /**
    * Reads all available data from the stream. If no data is available `null`

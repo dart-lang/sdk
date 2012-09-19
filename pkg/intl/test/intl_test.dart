@@ -4,9 +4,10 @@
 
 #library('intl_test');
 
-#import('../intl.dart');
+#import('../lib/intl.dart');
+// TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
 #import('../../unittest/unittest.dart');
-#import('../date_symbol_data_local.dart');
+#import('../lib/date_symbol_data_local.dart');
 
 main() {
   test("Locale setting doesn't verify the core locale", () {
@@ -24,5 +25,14 @@ main() {
       var format = de.date().add_d();
       expect(format.locale, equals('de'));
      });
+  });
+
+  test("Canonicalizing locales", () {
+    expect(Intl.canonicalizedLocale('en-us'), 'en_US');
+    expect(Intl.canonicalizedLocale('en_us'), 'en_US');
+    expect(Intl.canonicalizedLocale('en_US'), 'en_US');
+    expect(Intl.canonicalizedLocale('xx-yyy'), 'xx_YYY');
+    expect(Intl.canonicalizedLocale('xx_YYY'), 'xx_YYY');
+    expect(Intl.canonicalizedLocale('C'), 'en_ISO');
   });
 }

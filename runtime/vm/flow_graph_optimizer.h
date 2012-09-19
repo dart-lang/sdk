@@ -36,10 +36,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitEqualityCompare(EqualityCompareInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
 
-  // TODO(fschneider): Once we get rid of the distinction between Instruction
-  // and computation, this can be made private again.
-  void InsertBefore(Instruction* instr,
-                    Definition* defn,
+  void InsertBefore(Instruction* next,
+                    Instruction* instr,
                     Environment* env,
                     Definition::UseKind use_kind);
 
@@ -55,8 +53,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void AddCheckClass(InstanceCallInstr* call, Value* value);
 
-  void InsertAfter(Instruction* instr,
-                   Definition* defn,
+  void InsertAfter(Instruction* prev,
+                   Instruction* instr,
                    Environment* env,
                    Definition::UseKind use_kind);
 
@@ -134,12 +132,12 @@ class LICM : public AllStatic {
  private:
   static void Hoist(ForwardInstructionIterator* it,
                     BlockEntryInstr* pre_header,
-                    Definition* current);
+                    Instruction* current);
 
   static void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                          BlockEntryInstr* header,
                                          BlockEntryInstr* pre_header,
-                                         Definition* current);
+                                         Instruction* current);
 };
 
 
@@ -152,7 +150,67 @@ class DominatorBasedCSE : public AllStatic {
  private:
   static void OptimizeRecursive(
       BlockEntryInstr* entry,
-      DirectChainedHashMap<Definition*>* map);
+      DirectChainedHashMap<Instruction*>* map);
+};
+
+
+// Sparse conditional constant propagation and unreachable code elimination.
+// Assumes that use lists are computed and preserves them.
+class ConstantPropagator : public FlowGraphVisitor {
+ public:
+  ConstantPropagator(FlowGraph* graph,
+                     const GrowableArray<BlockEntryInstr*>& ignored);
+
+  static void Optimize(FlowGraph* graph);
+
+  // Used to initialize the abstract value of definitions.
+  static RawObject* Unknown() { return Object::transition_sentinel(); }
+
+ private:
+  void Analyze();
+  void Transform();
+
+  void SetReachable(BlockEntryInstr* block);
+  void SetValue(Definition* definition, const Object& value);
+
+  // Assign the join (least upper bound) of a pair of abstract values to the
+  // first one.
+  void Join(Object* left, const Object& right);
+
+  bool IsUnknown(const Object& value) {
+    return value.raw() == unknown_.raw();
+  }
+  bool IsNonConstant(const Object& value) {
+    return value.raw() == non_constant_.raw();
+  }
+  bool IsConstant(const Object& value) {
+    return !IsNonConstant(value) && !IsUnknown(value);
+  }
+
+  virtual void VisitBlocks() { UNREACHABLE(); }
+
+#define DECLARE_VISIT(type) virtual void Visit##type(type##Instr* instr);
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+#undef DECLARE_VISIT
+
+  FlowGraph* graph_;
+
+  // Sentinels for unknown constant and non-constant values.
+  const Object& unknown_;
+  const Object& non_constant_;
+
+  // Analysis results. For each block, a reachability bit.  Indexed by
+  // preorder number.
+  BitVector* reachable_;
+
+  // Definitions can move up the lattice twice, so we use a mark bit to
+  // indicate that they are already on the worklist in order to avoid adding
+  // them again.  Indexed by SSA temp index.
+  BitVector* definition_marks_;
+
+  // Worklists of blocks and definitions.
+  GrowableArray<BlockEntryInstr*> block_worklist_;
+  GrowableArray<Definition*> definition_worklist_;
 };
 
 

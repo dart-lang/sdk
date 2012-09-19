@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+const bool REMOVE_ASSERTS = false;
+
 class ElementAst {
   final Node ast;
   final TreeElements treeElements;
 
   ElementAst(this.ast, this.treeElements);
 
-  factory ElementAst.rewrite(ast, treeElements) {
-    final rewriter = new FunctionBodyRewriter(treeElements);
+  factory ElementAst.rewrite(compiler, ast, treeElements) {
+    final rewriter = new FunctionBodyRewriter(compiler, treeElements);
     return new ElementAst(rewriter.visit(ast), rewriter.cloneTreeElements);
   }
 
@@ -60,10 +62,25 @@ class VariableListAst extends ElementAst {
 }
 
 class FunctionBodyRewriter extends CloningVisitor {
-  FunctionBodyRewriter(originalTreeElements) : super(originalTreeElements);
+  final Compiler compiler;
+
+  FunctionBodyRewriter(this.compiler, originalTreeElements)
+      : super(originalTreeElements);
 
   visitFunctionExpression(FunctionExpression node) {
-    shouldOmit(Statement statement) => statement is EmptyStatement;
+    shouldOmit(Statement statement) {
+      if (statement is EmptyStatement) return true;
+      if (statement is ExpressionStatement) {
+        Send send = statement.expression.asSend();
+        if (send !== null) {
+          Element element = originalTreeElements[send];
+          if (REMOVE_ASSERTS && element === compiler.assertMethod) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
 
     rewriteBody(Statement body) {
       if (body is !Block) return visit(body);
@@ -88,6 +105,72 @@ class DartBackend extends Backend {
 
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
+
+  /**
+   * Tells whether it is safe to remove type declarations from variables,
+   * functions parameters. It becomes not safe if:
+   * 1) TypeError is used somewhere in the code,
+   * 2) The code has typedefs in right hand side of IS checks,
+   * 3) The code has classes which extend typedefs, have type arguments typedefs
+   *    or type variable bounds typedefs.
+   * These restrictions can be less strict.
+   */
+  bool isSafeToRemoveTypeDeclarations(
+      Map<ClassElement, Set<Element>> classMembers) {
+    Set<DartType> processedTypes = new Set<DartType>();
+    List<DartType> workQueue = new List<DartType>();
+    workQueue.addAll(
+        classMembers.getKeys().map((classElement) => classElement.type));
+    workQueue.addAll(compiler.resolverWorld.isChecks);
+    DartType typeErrorType =
+        compiler.coreLibrary.find(new SourceString('TypeError')).type;
+    if (workQueue.indexOf(typeErrorType) != -1) {
+      return false;
+    }
+
+    void processTypeArguments(Element classElement, NodeList typeArguments) {
+      if (typeArguments == null) return;
+      for (Node typeArgument in typeArguments.nodes) {
+        if (typeArgument is TypeVariable) {
+          typeArgument = typeArgument.bound;
+        }
+        if (typeArgument == null) continue;
+        assert(typeArgument is TypeAnnotation);
+        DartType argumentType =
+            compiler.resolveTypeAnnotation(classElement, typeArgument);
+        assert(argumentType !== null);
+        workQueue.add(argumentType);
+      }
+    }
+
+    while (!workQueue.isEmpty()) {
+      DartType type = workQueue.removeLast();
+      if (processedTypes.contains(type)) continue;
+      processedTypes.add(type);
+      if (type is TypedefType) return false;
+      if (type is InterfaceType) {
+        ClassElement element = type.element;
+        ClassNode node = element.parseNode(compiler);
+        // Check class type args.
+        processTypeArguments(element, node.typeParameters);
+        // Check superclass type args.
+        if (node.superclass !== null) {
+          NodeList typeArguments = node.superclass.typeArguments;
+          processTypeArguments(element, node.superclass.typeArguments);
+        }
+        // Check interfaces type args.
+        for (Node interfaceNode in node.interfaces) {
+          processTypeArguments(
+              element, (interfaceNode as TypeAnnotation).typeArguments);
+        }
+        // Check all supertypes.
+        if (element.allSupertypes !== null) {
+          workQueue.addAll(element.allSupertypes.toList());
+        }
+      }
+    }
+    return true;
+  }
 
   DartBackend(Compiler compiler, this.cutDeclarationTypes)
       : tasks = <CompilerTask>[],
@@ -198,7 +281,7 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst.rewrite(parse(element), treeElements);
+      var elementAst = new ElementAst.rewrite(compiler, parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
@@ -233,13 +316,15 @@ class DartBackend extends Backend {
       }
     }
     topLevelElements.forEach(makePlaceholders);
-
     // Create renames.
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
+    bool shouldCutDeclarationTypes = cutDeclarationTypes
+        || (compiler.enableMinification
+            && isSafeToRemoveTypeDeclarations(classMembers));
     renamePlaceholders(
         compiler, collector, renames, imports,
-        fixedMemberNames, cutDeclarationTypes);
+        fixedMemberNames, shouldCutDeclarationTypes);
 
     // Sort elements.
     final sortedTopLevels = sortElements(topLevelElements);

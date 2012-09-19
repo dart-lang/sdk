@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _ChunkedInputStream implements ChunkedInputStream {
-  _ChunkedInputStream(InputStream this._input, [int chunkSize])
-      : _chunkSize = chunkSize, _bufferList = new _BufferList() {
-    if (_chunkSize === null) {
-      _chunkSize = 0;
-    }
+  _ChunkedInputStream(InputStream this._input, int this._chunkSize)
+      : _bufferList = new _BufferList() {
     _input.onClosed = _onClosed;
   }
 

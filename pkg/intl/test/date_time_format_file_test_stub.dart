@@ -9,8 +9,8 @@
 
 #library('date_time_format_file_test');
 
-#import('../date_format.dart');
-#import('../date_symbol_data_file.dart');
+#import('../lib/date_format.dart');
+#import('../lib/date_symbol_data_file.dart');
 #import('dart:io');
 #import('date_time_format_test_core.dart');
 #import('data_directory.dart');

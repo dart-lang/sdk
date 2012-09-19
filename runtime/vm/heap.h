@@ -156,6 +156,17 @@ class Heap {
 
   static const char* GCReasonToString(GCReason gc_reason);
 
+  // Associates a peer with an object.  If an object has a peer, it is
+  // replaced.  A value of NULL disassociate an object from its peer.
+  void SetPeer(RawObject* raw_obj, void* peer);
+
+  // Retrieves the peer associated with an object.  Returns NULL if
+  // there is no association.
+  void* GetPeer(RawObject* raw_obj);
+
+  // Returns the number of objects with a peer.
+  int64_t PeerCount() const;
+
  private:
   Heap();
 

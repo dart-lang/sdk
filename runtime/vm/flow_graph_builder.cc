@@ -66,7 +66,6 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 
 Value* EffectGraphVisitor::Bind(Definition* definition) {
   ASSERT(is_open());
-  ASSERT(!owner()->InInliningContext() || !definition->CanDeoptimize());
   DeallocateTempIndex(definition->InputCount());
   definition->set_use_kind(Definition::kValue);
   definition->set_temp_index(AllocateTempIndex());
@@ -82,7 +81,6 @@ Value* EffectGraphVisitor::Bind(Definition* definition) {
 
 void EffectGraphVisitor::Do(Definition* definition) {
   ASSERT(is_open());
-  ASSERT(!owner()->InInliningContext() || !definition->CanDeoptimize());
   DeallocateTempIndex(definition->InputCount());
   definition->set_use_kind(Definition::kEffect);
   if (is_empty()) {
@@ -292,7 +290,7 @@ void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
 // Loads context saved in 'context_variable' into the current context.
 void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
   Value* load_saved_context = Bind(BuildLoadLocal(variable));
-  Do(new StoreContextInstr(load_saved_context));
+  AddInstruction(new StoreContextInstr(load_saved_context));
 }
 
 
@@ -417,8 +415,6 @@ void TestGraphVisitor::ReturnDefinition(Definition* definition) {
 
 // Special handling for AND/OR.
 void TestGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
-  InlineBailout("TestGraphVisitor::VisitBinaryOpNode");
-
   // Operators "&&" and "||" cannot be overloaded therefore do not call
   // operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
@@ -471,7 +467,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Append(for_value);
 
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
-    InlineBailout("EffectGraphVisitor::VisitReturnNode (finally)");
+    InlineBailout("EffectGraphVisitor::VisitReturnNode (exception)");
     EffectGraphVisitor for_effect(owner(), temp_index());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
     Append(for_effect);
@@ -572,9 +568,10 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 
   // Propagated types are not set yet.
   // More checks will possibly be eliminated during type propagation.
-  const bool eliminated = value->CompileTypeIsMoreSpecificThan(dst_type);
-  // Note: 'eliminated' is true for a null constant value, since its type,
-  // i.e. bottom type, is more specific than any type.
+  bool is_null, is_instance;
+  const bool eliminated =
+      (value->CanComputeIsNull(&is_null) && is_null) ||
+      (value->CanComputeIsInstanceOf(dst_type, &is_instance) && is_instance);
   if (FLAG_trace_type_check_elimination) {
     FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,
@@ -628,7 +625,6 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     }
     return;
   }
-  InlineBailout("EffectGraphVisitor::VisitBinaryOpNode (deopt)");
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -675,7 +671,6 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
     if (FLAG_enable_type_checks) {
-      InlineBailout("ValueGraphVisitor::VisitBinaryOpNode (type check)");
       right_value =
           for_right.Bind(new AssertBooleanInstr(node->right()->token_pos(),
                                                 right_value));
@@ -745,7 +740,6 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     Value* value,
     const AbstractType& dst_type,
     const String& dst_name) {
-  InlineBailout("EffectGraphVisitor::BuildAssertAssignable (deopt)");
   // Build the type check computation.
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
@@ -843,7 +837,6 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     ReturnDefinition(result);
     return;
   }
-  InlineBailout("ValueGraphVisitor::BuildTypeTest (deopt)");
 
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
@@ -858,6 +851,8 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
                             &instantiator,
                             &instantiator_type_arguments);
   }
+  // TODO(zerny): Remove this when issues 5216 and 5217 are fixed.
+  InlineBailout("instance of");
   InstanceOfInstr* instance_of =
       new InstanceOfInstr(node->token_pos(),
                           for_left_value.value(),
@@ -911,7 +906,6 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     ReturnDefinition(comp);
     return;
   }
-  InlineBailout("EffectGraphVisitor::VisitComparisonNode (deopt)");
 
   if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
     ValueGraphVisitor for_left_value(owner(), temp_index());
@@ -973,7 +967,6 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     ReturnDefinition(negate);
     return;
   }
-  InlineBailout("EffectGraphVisitor::VisitUnaryOpNode (deopt)");
 
   ValueGraphVisitor for_value(owner(), temp_index());
   node->operand()->Visit(&for_value);
@@ -1093,7 +1086,7 @@ void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
 // Note: The specification of switch/case is under discussion and may change
 // drastically.
 void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitCaseNode");
+  InlineBailout("EffectGraphVisitor::VisitCaseNode (control)");
   const intptr_t len = node->case_expressions()->length();
   // Create case statements instructions.
   EffectGraphVisitor for_case_statements(owner(), temp_index());
@@ -1186,7 +1179,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitWhileNode");
+  InlineBailout("EffectGraphVisitor::VisitWhileNode (control)");
   TestGraphVisitor for_test(owner(),
                             temp_index(),
                             node->condition()->token_pos());
@@ -1194,7 +1187,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.Do(
+  for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
@@ -1224,10 +1217,10 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // f) loop-exit-target
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitDoWhileNode");
+  InlineBailout("EffectGraphVisitor::VisitDoWhileNode (control)");
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.Do(
+  for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
@@ -1275,7 +1268,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 // h) loop-exit-target
 // i) break-join
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitForNode");
+  InlineBailout("EffectGraphVisitor::VisitForNode (control)");
   EffectGraphVisitor for_initializer(owner(), temp_index());
   node->initializer()->Visit(&for_initializer);
   Append(for_initializer);
@@ -1283,7 +1276,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.Do(
+  for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
@@ -1347,7 +1340,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitJumpNode");
+  InlineBailout("EffectGraphVisitor::VisitJumpNode (control)");
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
     EffectGraphVisitor for_effect(owner(), temp_index());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
@@ -1512,7 +1505,6 @@ void EffectGraphVisitor::BuildPushArguments(
 
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitInstanceCallNode (deopt)");
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
@@ -1534,7 +1526,6 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitStaticCallNode (deopt)");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
   BuildPushArguments(*node->arguments(), arguments);
@@ -1549,7 +1540,6 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 
 ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
     ClosureCallNode* node) {
-  InlineBailout("EffectGraphVisitor::BuildClosureCall (deopt)");
   ValueGraphVisitor for_closure(owner(), temp_index());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
@@ -1582,10 +1572,10 @@ void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitCloneContextNode (deopt)");
+  InlineBailout("EffectGraphVisitor::VisitCloneContextNode (context)");
   Value* context = Bind(new CurrentContextInstr());
   Value* clone = Bind(new CloneContextInstr(node->token_pos(), context));
-  ReturnDefinition(new StoreContextInstr(clone));
+  AddInstruction(new StoreContextInstr(clone));
 }
 
 
@@ -1613,7 +1603,6 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
     // Although the type arguments may be uninstantiated at compile time, they
     // may represent the identity vector and may be replaced by the instantiated
     // type arguments of the instantiator at run time.
-    InlineBailout("EffectGraphVisitor::BuildObjectAllocation (deopt)");
     allocate_comp = new AllocateObjectWithBoundsCheckInstr(node,
                                                            type_arguments,
                                                            instantiator);
@@ -1634,7 +1623,6 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
 void EffectGraphVisitor::BuildConstructorCall(
     ConstructorCallNode* node,
     PushArgumentInstr* push_alloc_value) {
-  InlineBailout("EffectGraphVisitor::BuildConstructorCall (deopt)");
   Value* ctor_arg = Bind(
       new ConstantInstr(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll))));
   PushArgumentInstr* push_ctor_arg = PushArgument(ctor_arg);
@@ -1677,7 +1665,6 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
 
 void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
-  InlineBailout("EffectGraphVisitor::VisitConstructorCallNode (deopt)");
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new ZoneGrowableArray<PushArgumentInstr*>();
     PushArgumentInstr* push_type_arguments = PushArgument(
@@ -1775,7 +1762,6 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
       instantiator_class.type_arguments_instance_field_offset();
   ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
 
-  InlineBailout("EffectGraphVisitor::BuildInstantiatorTypeArguments (deopt)");
   return Bind(new LoadFieldInstr(
       instantiator,
       type_arguments_instance_field_offset,
@@ -1789,7 +1775,6 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
     return Bind(new ConstantInstr(type_arguments));
   }
-  InlineBailout("EffectGraphVisitor::BuildInstantiatedTypeArguments (deopt)");
   // The type arguments are uninstantiated.
   Value* instantiator_value =
       BuildInstantiatorTypeArguments(token_pos, NULL);
@@ -1909,7 +1894,6 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 
 void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitInstanceGetterNode (deopt)");
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
@@ -1950,7 +1934,6 @@ void EffectGraphVisitor::BuildInstanceSetterArguments(
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitInstanceSetterNode (deopt)");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildInstanceSetterArguments(node, arguments, kResultNotNeeded);
@@ -1967,7 +1950,6 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 
 void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  InlineBailout("ValueGraphVisitor::VisitInstanceSetterNode (deopt)");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildInstanceSetterArguments(node, arguments, kResultNeeded);
@@ -1984,7 +1966,6 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitStaticGetterNode (deopt)");
   const String& getter_name =
       String::Handle(Field::GetterName(node->field_name()));
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
@@ -2014,7 +1995,6 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
 
 void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                            bool result_is_needed) {
-  InlineBailout("EffectGraphVisitor::VisitStaticSetter (deopt)");
   const String& setter_name =
       String::Handle(Field::SetterName(node->field_name()));
   // A super setter is an instance setter whose setter function is
@@ -2223,7 +2203,6 @@ void ValueGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
 
 
 void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitLoadIndexedNode (deopt)");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   ValueGraphVisitor for_array(owner(), temp_index());
@@ -2252,7 +2231,6 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
 Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     StoreIndexedNode* node,
     bool result_is_needed) {
-  InlineBailout("EffectGraphVisitor::BuildStoreIndexedValues (deopt)");
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(3);
   ValueGraphVisitor for_array(owner(), temp_index());
@@ -2311,13 +2289,13 @@ bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
 
 
 void EffectGraphVisitor::UnchainContext() {
-  InlineBailout("EffectGraphVisitor::UnchainContext (deopt)");
+  InlineBailout("EffectGraphVisitor::UnchainContext (context)");
   Value* context = Bind(new CurrentContextInstr());
   Value* parent = Bind(
       new LoadFieldInstr(context,
                          Context::parent_offset(),
                          Type::ZoneHandle()));  // Not an instance, no type.
-  Do(new StoreContextInstr(parent));
+  AddInstruction(new StoreContextInstr(parent));
 }
 
 
@@ -2330,7 +2308,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       (scope != NULL) ? scope->num_context_variables() : 0;
   int previous_context_level = owner()->context_level();
   if (num_context_variables > 0) {
-    InlineBailout("EffectGraphVisitor::VisitSequenceNode (deopt)");
+    InlineBailout("EffectGraphVisitor::VisitSequenceNode (context)");
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
     // Allocate context computation (uses current CTX)
@@ -2347,10 +2325,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       Do(BuildStoreTemp(*owner()->parsed_function().saved_context_var(),
                         current_context));
       Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
-      Do(new StoreContextInstr(null_context));
+      AddInstruction(new StoreContextInstr(null_context));
     }
 
-    Do(new ChainContextInstr(allocated_context));
+    AddInstruction(new ChainContextInstr(allocated_context));
     owner()->set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy
@@ -2468,11 +2446,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
 
 void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitCatchClauseNode");
+  InlineBailout("EffectGraphVisitor::VisitCatchClauseNode (exception)");
   // NOTE: The implicit variables ':saved_context', ':exception_var'
   // and ':stacktrace_var' can never be captured variables.
   // Restores CTX from local variable ':saved_context'.
-  Do(new CatchEntryInstr(node->exception_var(), node->stacktrace_var()));
+  AddInstruction(
+      new CatchEntryInstr(node->exception_var(), node->stacktrace_var()));
   BuildLoadContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner(), temp_index());
@@ -2482,7 +2461,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 
 
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitTryCatchNode");
+  InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
   intptr_t old_try_index = owner()->try_index();
   intptr_t try_index = owner()->AllocateTryIndex();
   owner()->set_try_index(try_index);
@@ -2540,6 +2519,9 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
+  // TODO(kmillikin) non-local control flow is not handled correctly
+  // by the inliner.
+  InlineBailout("EffectGraphVisitor::BuildThrowNode (exception)");
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
@@ -2574,7 +2556,7 @@ void ValueGraphVisitor::VisitThrowNode(ThrowNode* node) {
 
 
 void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitInlinedFinallyNode");
+  InlineBailout("EffectGraphVisitor::VisitInlinedFinallyNode (exception)");
   const intptr_t try_index = owner()->try_index();
   if (try_index >= 0) {
     // We are about to generate code for an inlined finally block. Exceptions
@@ -2619,9 +2601,15 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
       CatchClauseNode::kInvalidTryIndex);
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
+  if (InInliningContext()) {
+    exits_ = new ZoneGrowableArray<ReturnInstr*>();
+  }
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).
-  for_effect.Do(new CheckStackOverflowInstr(function.token_pos()));
+  Instruction* check = new CheckStackOverflowInstr(function.token_pos());
+  // If we are inlining don't actually attach the stack check. We must still
+  // create the stack check inorder to allocate a deopt id.
+  if (!InInliningContext()) for_effect.AddInstruction(check);
   parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.

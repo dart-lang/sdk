@@ -64,11 +64,14 @@ named_parameters_aggregated_test/05: Fail # Compile-time error reported instead 
 
 lazy_static3_test: Fail # Issue 3558
 
+type_error_test: Fail # http://dartbug.com/5280
 
 
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
+
+compile_time_constant10_test/none: Fail # issue 5214
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
@@ -151,6 +154,7 @@ class_literal_test/27 : Fail # language change 3368
 class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+compile_time_constant10_test/none: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
@@ -158,6 +162,8 @@ duplicate_implements_test/03: Fail, OK # we are going to remove interfaces
 duplicate_implements_test/04: Fail, OK # we are going to remove interfaces
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
+field7_negative_test: Fail, OK # language changed, test issue 5249
+field7a_negative_test: Fail, OK # language changed, test issue 5249
 const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
@@ -176,6 +182,8 @@ new_expression_type_args_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
+override_field_method3_negative_test: Fail, OK # test issue 5249
+override_field_method6_negative_test: Fail, OK # test issue 5249
 parameter_initializer6_negative_test: Fail # language change 4288
 prefix1_negative_test : Fail # language change 1031
 prefix4_negative_test : Fail # language change 1031
@@ -217,6 +225,7 @@ import_core_no_prefix_test: Fail # Issue 4607
 import_core_no_prefix_test: Fail # Issue 4607
 
 [ $runtime == vm ]
+first_class_types_test: Fail # Issue 3902
 call_nonexistent_static_test/01: Fail # Issues 3094
 call_nonexistent_static_test/02: Fail # Issues 3088
 call_nonexistent_static_test/03: Fail # Issues 3085
@@ -253,6 +262,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+getter_no_setter2_test/01: Fail, Pass # Test works only for minified output.
 metadata_test: Fail
 prefix_new_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
@@ -346,7 +356,6 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 gc_test: Fail
-getter_no_setter2_test/01: Fail # Issue 4898
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
@@ -375,6 +384,7 @@ get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 
+compile_time_constant10_test/none: Fail # Triage this.
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -391,3 +401,5 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+
+type_error_test: Fail, OK # VM bug: http://dartbug.com/5280

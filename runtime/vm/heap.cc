@@ -362,6 +362,30 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
 }
 
 
+void Heap::SetPeer(RawObject* raw_obj, void* peer) {
+  if (raw_obj->IsNewObject()) {
+    new_space_->SetPeer(raw_obj, peer);
+  } else {
+    ASSERT(raw_obj->IsOldObject());
+    old_space_->SetPeer(raw_obj, peer);
+  }
+}
+
+
+void* Heap::GetPeer(RawObject* raw_obj) {
+  if (raw_obj->IsNewObject()) {
+    return new_space_->GetPeer(raw_obj);
+  }
+  ASSERT(raw_obj->IsOldObject());
+  return old_space_->GetPeer(raw_obj);
+}
+
+
+int64_t Heap::PeerCount() const {
+  return new_space_->PeerCount() + old_space_->PeerCount();
+}
+
+
 #if defined(DEBUG)
 NoGCScope::NoGCScope() : StackResource(Isolate::Current()) {
   isolate()->IncrementNoGCScopeDepth();

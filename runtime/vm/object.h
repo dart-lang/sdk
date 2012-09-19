@@ -2371,7 +2371,7 @@ class PcDescriptors : public Object {
   uword GetPcForKind(Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
-  void Verify(bool check_ids) const;
+  void Verify(const Function& function) const;
 
   static void PrintHeaderString();
 
@@ -2719,6 +2719,9 @@ class Code : public Object {
   intptr_t ExtractIcDataArraysAtCalls(
       GrowableArray<intptr_t>* node_ids,
       const GrowableObjectArray& ic_data_objs) const;
+
+  // Returns an array indexed by deopt id, containing the extracted ICData.
+  RawArray* ExtractTypeFeedbackArray() const;
 
  private:
   // An object finder visitor interface.
@@ -3245,6 +3248,11 @@ class Integer : public Number {
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
 
+  static RawInteger* AsInteger(const Integer& value);
+  static RawInteger* BinaryOp(Token::Kind operation,
+                              const Integer& left,
+                              const Integer& right);
+
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
 };
@@ -3385,6 +3393,11 @@ class Bigint : public Integer {
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
+
+  static RawBigint* AsBigint(const Integer& value);
+  static RawBigint* BinaryOp(Token::Kind operation,
+                             const Bigint& left,
+                             const Bigint& right);
 
  private:
   Chunk GetChunkAt(intptr_t i) const {

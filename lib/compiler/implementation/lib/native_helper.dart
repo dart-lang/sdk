@@ -63,8 +63,9 @@ String typeNameInIE(obj) {
   return name;
 }
 
-String constructorNameFallback(obj) {
-  var constructor = JS('var', "#.constructor", obj);
+String constructorNameFallback(object) {
+  if (object === null) return 'Null';
+  var constructor = JS('var', "#.constructor", object);
   if (JS('String', "typeof(#)", constructor) === 'function') {
     // The constructor isn't null or undefined at this point. Try
     // to grab hold of its name.
@@ -81,7 +82,7 @@ String constructorNameFallback(obj) {
       return name;
     }
   }
-  String string = JS('String', 'Object.prototype.toString.call(#)', obj);
+  String string = JS('String', 'Object.prototype.toString.call(#)', object);
   return JS('String', '#.substring(8, # - 1)', string, string.length);
 }
 

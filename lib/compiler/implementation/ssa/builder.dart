@@ -1242,15 +1242,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
 
-    // If the class has type variables, create the runtime type
-    // information with the type parameters provided.
+    // Create the runtime type information, if needed.
     InterfaceType type = classElement.computeType(compiler);
-    if (compiler.world.needsRti(type.element)) {
-      List<HInstruction> rtiInputs = <HInstruction>[];
+      List<HInstruction> inputs = <HInstruction>[];
+      if (compiler.world.needsRti(classElement)) {
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        rtiInputs.add(localsHandler.directLocals[typeVariable.element]);
+        inputs.add(localsHandler.directLocals[typeVariable.element]);
       });
-      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
+      callSetRuntimeTypeInfo(classElement, inputs, newObject);
     }
 
     // Generate calls to the constructor bodies.
@@ -2014,8 +2013,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return pop();
   }
 
-  String getTargetName(ErroneousElement error, [String prefix = '']) {
-    return '$prefix${error.targetName.slowToString()}';
+  String getTargetName(ErroneousElement error, [String prefix]) {
+    String result = error.targetName.slowToString();
+    if (?prefix) {
+      result = '$prefix $result';
+    }
+    return result;
   }
 
   void generateInstanceGetterWithCompiledReceiver(Send send,
@@ -2072,7 +2075,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'get '),
+                                getTargetName(element, 'get'),
                                 const EmptyLink<Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
@@ -2119,7 +2122,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static setter.
       generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'set '),
+                                getTargetName(element, 'set'),
                                 send.arguments);
     } else {
       stack.add(value);
@@ -2398,24 +2401,33 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // If the invoke is on foreign code, don't visit the first
     // argument, which is the type, and the second argument,
     // which is the foreign code.
-    if (link.isEmpty() || link.isEmpty()) {
+    if (link.isEmpty() || link.tail.isEmpty()) {
       compiler.cancel('At least two arguments expected',
                       node: node.argumentsNode);
     }
-    link = link.tail.tail;
     List<HInstruction> inputs = <HInstruction>[];
-    addGenericSendArgumentsToList(link, inputs);
-    Node type = node.arguments.head;
-    Node literal = node.arguments.tail.head;
-    if (literal is !StringNode || literal.dynamic.isInterpolation) {
-      compiler.cancel('JS code must be a string literal', node: literal);
-    }
+    Node type = link.head;
+    Node code = link.tail.head;
+    addGenericSendArgumentsToList(link.tail.tail, inputs);
+
     if (type is !LiteralString) {
-      compiler.cancel(
-          'The type of a JS expression must be a string literal', node: type);
+      // The type must not be a juxtaposition or interpolation.
+      compiler.cancel('The type of a JS expression must be a string literal',
+                      node: type);
     }
-    push(new HForeign(
-        literal.dynamic.dartString, type.dynamic.dartString, inputs));
+    LiteralString typeString = type;
+
+    if (code is StringNode) {
+      StringNode codeString = code;
+      if (!codeString.isInterpolation) {
+        // codeString may not be an interpolation, but may be a juxtaposition.
+        push(new HForeign(codeString.dartString,
+                          typeString.dartString,
+                          inputs));
+        return;
+      }
+    }
+    compiler.cancel('JS code must be a string literal', node: literal);
   }
 
   void handleForeignUnintercepted(Send node) {
@@ -2437,8 +2449,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           'More than one expression in JS_HAS_EQUALS()', node: node);
     }
     addGenericSendArgumentsToList(node.arguments, inputs);
-    String name =
-        backend.namer.instanceMethodNameByArity(Elements.OPERATOR_EQUALS, 1);
+    String name = backend.namer.publicInstanceMethodNameByArity(
+        Elements.OPERATOR_EQUALS, 1);
     push(new HForeign(new DartString.literal('!!#.$name'),
                       const LiteralDartString('bool'),
                       inputs));
@@ -2638,7 +2650,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void handleListConstructor(InterfaceType type,
                              Node currentNode,
                              HInstruction newObject) {
-    if (type.arguments.isEmpty()) return;
+    if (!compiler.world.needsRti(type.element)) return;
     List<HInstruction> inputs = <HInstruction>[];
     type.arguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument, currentNode));
@@ -2647,22 +2659,52 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void callSetRuntimeTypeInfo(ClassElement element,
-                              List<HInstruction> inputs,
+                              List<HInstruction> rtiInputs,
                               HInstruction newObject) {
-    List<String> typeVariables = <String>[];
-    element.typeVariables.forEach((TypeVariableType typeVariable) {
-      typeVariables.add("'$typeVariable': #");
-    });
+    bool needsRti = compiler.world.needsRti(element) && !rtiInputs.isEmpty();
+    bool runtimeTypeIsUsed = compiler.enabledRuntimeType;
+    if (!needsRti && !runtimeTypeIsUsed) return;
 
-    String jsCode = '{ ${Strings.join(typeVariables, ', ')} }';
-    HInstruction typeInfo = new HForeign(new LiteralDartString(jsCode),
-                                         new LiteralDartString('Object'),
-                                         inputs);
-    add(typeInfo);
+    HInstruction createForeign(String template,
+                               List<HInstruction> arguments,
+                               [String type = 'String']) {
+      return new HForeign(new LiteralDartString(template),
+                          new LiteralDartString(type),
+                          arguments);
+    }
+
+    // Construct the runtime type information.
+    StringBuffer runtimeCode = new StringBuffer();
+    List<HInstruction> runtimeCodeInputs = <HInstruction>[];
+    if (runtimeTypeIsUsed) {
+      String runtimeTypeString =
+          RuntimeTypeInformation.generateRuntimeTypeString(element,
+                                                           rtiInputs.length);
+      HInstruction runtimeType = createForeign(runtimeTypeString, rtiInputs);
+      add(runtimeType);
+      runtimeCodeInputs.add(runtimeType);
+      runtimeCode.add('runtimeType: #');
+    }
+    if (needsRti) {
+      if (runtimeTypeIsUsed) runtimeCode.add(', ');
+      String typeVariablesString =
+          RuntimeTypeInformation.generateTypeVariableString(element,
+                                                            rtiInputs.length);
+      HInstruction typeInfo = createForeign(typeVariablesString, rtiInputs);
+      add(typeInfo);
+      runtimeCodeInputs.add(typeInfo);
+      runtimeCode.add('#');
+    }
+    HInstruction runtimeInfo =
+        createForeign("{$runtimeCode}", runtimeCodeInputs, 'Object');
+    add(runtimeInfo);
+
+    // Set the runtime type information on the object.
     Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
     HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
     add(typeInfoSetter);
-    add(new HInvokeStatic(<HInstruction>[typeInfoSetter, newObject, typeInfo]));
+    add(new HInvokeStatic(
+        <HInstruction>[typeInfoSetter, newObject, runtimeInfo]));
   }
 
   visitNewSend(Send node) {
@@ -3193,7 +3235,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction oldVariable = pop();
       if (variable.isErroneous()) {
         generateThrowNoSuchMethod(node,
-                                  getTargetName(variable, 'set '),
+                                  getTargetName(variable, 'set'),
                                   argumentValues: <HInstruction>[oldVariable]);
         pop();
       } else {

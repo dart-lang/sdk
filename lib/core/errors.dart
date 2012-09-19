@@ -57,11 +57,11 @@ class NoSuchMethodError implements Error {
       if (i > 0) {
         sb.add(", ");
       }
-      sb.add(_arguments[i]);
+      sb.add(safeToString(_arguments[i]));
     }
     if (_existingArgumentNames === null) {
       return "NoSuchMethodError : method not found: '$_functionName'\n"
-          "Receiver: $_receiver\n"
+          "Receiver: ${safeToString(_receiver)}\n"
           "Arguments: [$sb]";
     } else {
       String actualParameters = sb.toString();
@@ -74,9 +74,12 @@ class NoSuchMethodError implements Error {
       }
       String formalParameters = sb.toString();
       return "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$_functionName'\nReceiver: $_receiver\n"
+          "method named '$_functionName'\n"
+          "Receiver: ${safeToString(_receiver)}\n"
           "Tried calling: $_functionName($actualParameters)\n"
           "Found: $_functionName($formalParameters)";
     }
   }
+
+  external static String safeToString(Object object);
 }

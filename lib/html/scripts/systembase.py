@@ -31,6 +31,7 @@ class System(object):
     self._type_registry = options.type_registry
     self._renamer = options.renamer
     self._output_dir = options.output_dir
+    self._auxiliary_dir = options.auxiliary_dir
 
   def ProcessInterface(self, interface):
     """Processes an interface that is not a callback function."""
@@ -217,13 +218,14 @@ class BaseGenerator(object):
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, emitters, type_registry, renamer,
-               output_dir):
+               output_dir, auxiliary_dir):
     self.templates = templates
     self.database = database
     self.emitters = emitters
     self.type_registry = type_registry
     self.renamer = renamer
     self.output_dir = output_dir
+    self.auxiliary_dir = auxiliary_dir
 
 
 def IsReadOnly(attribute):

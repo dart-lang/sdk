@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,39 +6,50 @@
 
 abstract class num implements Comparable, Hashable {
   // Arithmetic operations.
-  abstract num operator +(num other);
-  abstract num operator -(num other);
-  abstract num operator *(num other);
-  abstract num operator %(num other);
-  abstract double operator /(num other);
+  num operator +(num other);
+  num operator -(num other);
+  num operator *(num other);
+  num operator %(num other);
+  double operator /(num other);
   // Truncating division.
-  abstract num operator ~/(num other);
+  num operator ~/(num other);
   // The unary '-' operator.
-  abstract num operator -();
-  abstract num remainder(num other);
+  num operator -();
+  num remainder(num other);
 
   // Relational operations.
-  abstract bool operator <(num other);
-  abstract bool operator <=(num other);
-  abstract bool operator >(num other);
-  abstract bool operator >=(num other);
+  bool operator <(num other);
+  bool operator <=(num other);
+  bool operator >(num other);
+  bool operator >=(num other);
 
   // Predicates.
-  abstract bool isNaN();
-  abstract bool isNegative();
-  abstract bool isInfinite();
+  bool isNaN();
+  bool isNegative();
+  bool isInfinite();
 
-  abstract num abs();
-  abstract num round();
-  abstract num floor();
-  abstract num ceil();
-  abstract num truncate();
+  num abs();
+  num round();
+  num floor();
+  num ceil();
+  num truncate();
 
-  abstract int toInt();
-  abstract double toDouble();
+  int toInt();
+  double toDouble();
 
-  abstract String toStringAsFixed(int fractionDigits);
-  abstract String toStringAsExponential(int fractionDigits);
-  abstract String toStringAsPrecision(int precision);
-  abstract String toRadixString(int radix);
+  String toStringAsFixed(int fractionDigits);
+  String toStringAsExponential(int fractionDigits);
+  String toStringAsPrecision(int precision);
+
+  /**
+   * Converts a [num] to a string representation in the given [radix].
+   *
+   * The [num] in converted to an [int] using [toInt]. That [int] is
+   * then converted to a string representation with the given
+   * [radix]. In the string representation, lower-case letters are
+   * used for digits above '9'.
+   *
+   * The [radix] argument must be an integer between 2 and 36.
+   */
+  String toRadixString(int radix);
 }

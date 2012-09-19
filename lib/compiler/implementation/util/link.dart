@@ -19,7 +19,7 @@ interface Link<T> extends Iterable<T> default LinkFactory<T> {
 
   void forEach(void f(T element));
 
-  bool equals(other);
+  bool operator ==(other);
 }
 
 interface EmptyLink<T> extends Link<T> default LinkTail<T> {

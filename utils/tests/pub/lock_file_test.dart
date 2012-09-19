@@ -18,7 +18,7 @@ class MockSource extends Source {
   final bool shouldCache = false;
 
   void validateDescription(String description, [bool fromLockFile=false]) {
-    description.endsWith(' desc');
+    if (!description.endsWith(' desc')) throw new FormatException();
   }
 
   String packageName(String description) {
@@ -141,18 +141,6 @@ packages:
         }, throwsFormatException);
       });
 
-      test("throws if the source name doesn't match the given name", () {
-        expect(() {
-          new LockFile.parse('''
-packages:
-  foo:
-    version: 1.2.3
-    source: mock
-    description: notfoo desc
-''', sources);
-        }, throwsFormatException);
-      });
-
       test("ignores extra stuff in file", () {
         var lockFile = new LockFile.parse('''
 extra:
@@ -170,10 +158,10 @@ packages:
     group('serialize()', () {
       test('dumps the lockfile to YAML', () {
         var lockfile = new LockFile.empty();
-        lockfile.packages['foo'] =
-          new PackageId(mockSource, new Version.parse('1.2.3'), 'foo desc');
-        lockfile.packages['bar'] =
-          new PackageId(mockSource, new Version.parse('3.2.1'), 'bar desc');
+        lockfile.packages['foo'] = new PackageId(
+            'foo', mockSource, new Version.parse('1.2.3'), 'foo desc');
+        lockfile.packages['bar'] = new PackageId(
+            'foo', mockSource, new Version.parse('3.2.1'), 'bar desc');
 
         expect(loadYaml(lockfile.serialize()), equals({
           'packages': {

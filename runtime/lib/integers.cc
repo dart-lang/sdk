@@ -17,52 +17,6 @@ DEFINE_FLAG(bool, trace_intrinsified_natives, false,
 
 // Smi natives.
 
-// Return the most compact presentation of an integer.
-static RawInteger* AsInteger(const Integer& value) {
-  if (value.IsSmi()) return value.raw();
-  if (value.IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= value.raw();
-    if (Smi::IsValid64(mint.value())) {
-      return Smi::New(mint.value());
-    } else {
-      return value.raw();
-    }
-  }
-  ASSERT(value.IsBigint());
-  Bigint& big_value = Bigint::Handle();
-  big_value ^= value.raw();
-  if (BigintOperations::FitsIntoSmi(big_value)) {
-    return BigintOperations::ToSmi(big_value);
-  } else if (BigintOperations::FitsIntoMint(big_value)) {
-    return Mint::New(BigintOperations::ToMint(big_value));
-  } else {
-    return big_value.raw();
-  }
-}
-
-
-// Returns value in form of a RawBigint.
-static RawBigint* AsBigint(const Integer& value) {
-  ASSERT(!value.IsNull());
-  if (value.IsSmi()) {
-    Smi& smi = Smi::Handle();
-    smi ^= value.raw();
-    return BigintOperations::NewFromSmi(smi);
-  } else if (value.IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= value.raw();
-    return BigintOperations::NewFromInt64(mint.value());
-  } else {
-    ASSERT(value.IsBigint());
-    Bigint& big = Bigint::Handle();
-    big ^= value.raw();
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    return big.raw();
-  }
-}
-
-
 static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
   return !op1.IsBigint() && !op2.IsBigint();
 }
@@ -106,8 +60,8 @@ static RawInteger* IntegerBitOperation(Token::Kind kind,
         UNIMPLEMENTED();
     }
   } else {
-    Bigint& op1 = Bigint::Handle(AsBigint(op1_int));
-    Bigint& op2 = Bigint::Handle(AsBigint(op2_int));
+    Bigint& op1 = Bigint::Handle(Bigint::AsBigint(op1_int));
+    Bigint& op2 = Bigint::Handle(Bigint::AsBigint(op2_int));
     switch (kind) {
       case Token::kBIT_AND:
         return BigintOperations::BitAnd(op1, op2);
@@ -152,7 +106,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_AND, left, right));
-  return AsInteger(result);
+  return Integer::AsInteger(result);
 }
 
 
@@ -167,7 +121,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_OR, left, right));
-  return AsInteger(result);
+  return Integer::AsInteger(result);
 }
 
 
@@ -182,128 +136,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_XOR, left, right));
-  return AsInteger(result);
-}
-
-
-static RawBigint* BinaryOpWithTwoBigints(Token::Kind operation,
-                                         const Bigint& left,
-                                         const Bigint& right) {
-  switch (operation) {
-    case Token::kADD:
-      return BigintOperations::Add(left, right);
-    case Token::kSUB:
-      return BigintOperations::Subtract(left, right);
-    case Token::kMUL:
-      return BigintOperations::Multiply(left, right);
-    case Token::kTRUNCDIV:
-      return BigintOperations::Divide(left, right);
-    case Token::kMOD:
-      return BigintOperations::Modulo(left, right);
-    default:
-      UNIMPLEMENTED();
-      return Bigint::null();
-  }
-}
-
-
-static RawInteger* IntegerBinopHelper(Token::Kind operation,
-                                      const Integer& left_int,
-                                      const Integer& right_int) {
-  // In 32-bit mode, the result of any operation between two Smis will fit in a
-  // 32-bit signed result, except the product of two Smis, which will be 64-bit.
-  // In 64-bit mode, the result of any operation between two Smis will fit in a
-  // 64-bit signed result, except the product of two Smis (unless the Smis are
-  // 32-bit or less).
-  if (left_int.IsSmi() && right_int.IsSmi()) {
-    Smi& left_smi = Smi::Handle();
-    Smi& right_smi = Smi::Handle();
-    left_smi ^= left_int.raw();
-    right_smi ^= right_int.raw();
-    const intptr_t left_value = left_smi.Value();
-    const intptr_t right_value = right_smi.Value();
-    switch (operation) {
-      case Token::kADD:
-        return Integer::New(left_value + right_value);
-      case Token::kSUB:
-        return Integer::New(left_value - right_value);
-      case Token::kMUL: {
-        if (Smi::kBits < 32) {
-          // In 32-bit mode, the product of two Smis fits in a 64-bit result.
-          return Integer::New(static_cast<int64_t>(left_value) *
-                              static_cast<int64_t>(right_value));
-        } else {
-          // In 64-bit mode, the product of two 32-bit signed integers fits in a
-          // 64-bit result.
-          ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
-            return Integer::New(left_value * right_value);
-          }
-        }
-        // Perform a Bigint multiplication below.
-        break;
-      }
-      case Token::kTRUNCDIV:
-        return Integer::New(left_value / right_value);
-      case Token::kMOD: {
-        const intptr_t remainder = left_value % right_value;
-        if (remainder < 0) {
-          if (right_value < 0) {
-            return Integer::New(remainder - right_value);
-          } else {
-            return Integer::New(remainder + right_value);
-          }
-        }
-        return Integer::New(remainder);
-      }
-      default:
-        UNIMPLEMENTED();
-    }
-  }
-  // In 32-bit mode, the result of any operation between two 63-bit signed
-  // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
-  // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
-  if ((Smi::kBits < 32) && !left_int.IsBigint() && !right_int.IsBigint()) {
-    const int64_t left_value = left_int.AsInt64Value();
-    if (Utils::IsInt(63, left_value)) {
-      const int64_t right_value = right_int.AsInt64Value();
-      if (Utils::IsInt(63, right_value)) {
-        switch (operation) {
-        case Token::kADD:
-          return Integer::New(left_value + right_value);
-        case Token::kSUB:
-          return Integer::New(left_value - right_value);
-        case Token::kMUL: {
-          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
-            return Integer::New(left_value * right_value);
-          }
-          // Perform a Bigint multiplication below.
-          break;
-        }
-        case Token::kTRUNCDIV:
-          return Integer::New(left_value / right_value);
-        case Token::kMOD: {
-          const int64_t remainder = left_value % right_value;
-          if (remainder < 0) {
-            if (right_value < 0) {
-              return Integer::New(remainder - right_value);
-            } else {
-              return Integer::New(remainder + right_value);
-            }
-          }
-          return Integer::New(remainder);
-        }
-        default:
-          UNIMPLEMENTED();
-        }
-      }
-    }
-  }
-  const Bigint& left_big = Bigint::Handle(AsBigint(left_int));
-  const Bigint& right_big = Bigint::Handle(AsBigint(right_int));
-  const Bigint& result =
-      Bigint::Handle(BinaryOpWithTwoBigints(operation, left_big, right_big));
-  return Integer::Handle(AsInteger(result)).raw();
+  return Integer::AsInteger(result);
 }
 
 
@@ -316,7 +149,7 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
     OS::Print("Integer_addFromInteger %s + %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return IntegerBinopHelper(Token::kADD, left_int, right_int);
+  return Integer::BinaryOp(Token::kADD, left_int, right_int);
 }
 
 
@@ -329,7 +162,7 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
     OS::Print("Integer_subFromInteger %s - %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return IntegerBinopHelper(Token::kSUB, left_int, right_int);
+  return Integer::BinaryOp(Token::kSUB, left_int, right_int);
 }
 
 
@@ -342,7 +175,7 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
     OS::Print("Integer_mulFromInteger %s * %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return IntegerBinopHelper(Token::kMUL, left_int, right_int);
+  return Integer::BinaryOp(Token::kMUL, left_int, right_int);
 }
 
 
@@ -352,7 +185,7 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
   ASSERT(!right_int.IsZero());
-  return IntegerBinopHelper(Token::kTRUNCDIV, left_int, right_int);
+  return Integer::BinaryOp(Token::kTRUNCDIV, left_int, right_int);
 }
 
 
@@ -369,7 +202,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
     // Should have been caught before calling into runtime.
     UNIMPLEMENTED();
   }
-  return IntegerBinopHelper(Token::kMOD, left_int, right_int);
+  return Integer::BinaryOp(Token::kMOD, left_int, right_int);
 }
 
 
@@ -427,7 +260,7 @@ static RawInteger* SmiShiftOperation(Token::Kind kind,
         if ((cnt + right_value) >= Smi::kBits) {
           if ((cnt + right_value) >= Mint::kBits) {
             return BigintOperations::ShiftLeft(
-                Bigint::Handle(AsBigint(left)), right_value);
+                Bigint::Handle(Bigint::AsBigint(left)), right_value);
           } else {
             int64_t left_64 = left_value;
             return Integer::New(left_64 << right_value);
@@ -504,7 +337,7 @@ DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   ASSERT(CheckInteger(value));
   Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHR, value, amount));
-  return AsInteger(result);
+  return Integer::AsInteger(result);
 }
 
 
@@ -520,7 +353,7 @@ DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
   }
   Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHL, value, amount));
-  return AsInteger(result);
+  return Integer::AsInteger(result);
 }
 
 
@@ -553,7 +386,7 @@ DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
   const Bigint& result = Bigint::Handle(BigintOperations::BitNot(value));
   ASSERT(CheckInteger(value));
   ASSERT(CheckInteger(result));
-  return AsInteger(result);
+  return Integer::AsInteger(result);
 }
 
 }  // namespace dart

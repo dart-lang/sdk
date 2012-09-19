@@ -13,6 +13,7 @@
     'double_patch.dart',
     'error.cc',
     'error.dart',
+    'errors_patch.dart',
     'error.h',
     'expando_patch.dart',
     'integers.cc',

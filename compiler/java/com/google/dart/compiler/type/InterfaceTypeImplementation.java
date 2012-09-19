@@ -10,6 +10,7 @@ import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -179,6 +180,9 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
       if (setter == null) {
         setter = Elements.lookupFieldElementSetter(holder.getElement(), member.getName());
         if (setter == null) {
+          setter = Elements.lookupFieldElementSetter(holder.getElement(), "setter " + member.getName());
+        }
+        if (setter == null) {
           return null;
         }
       }
@@ -200,7 +204,9 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
       FieldElement field = (FieldElement) element;
       MethodElement getter = field.getGetter();
       if (getter == null) {
-        getter = Elements.lookupFieldElementGetter(holder.getElement(), member.getName());
+        String name = member.getName();
+        name = StringUtils.stripStart(name, "setter ");
+        getter = Elements.lookupFieldElementGetter(holder.getElement(), name);
         if (getter == null) {
           return null;
         }

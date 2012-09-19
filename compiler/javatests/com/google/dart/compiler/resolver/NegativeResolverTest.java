@@ -346,13 +346,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "class foo {}",
             "class bar{}"),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 5, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 2, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 5, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 7, 3));
   }
 
   public void test_nameShadow_topLevel_class_getterSetter() {
@@ -364,21 +358,13 @@ public class NegativeResolverTest extends CompilerTestCase {
             "get foo() {}",
             "set bar(x) {}"),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 5, 5, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3));
     assertEquals(
         "duplicate top-level declaration top-level variable 'foo' at Test.dart line:4 col:5",
         errors.get(0).getMessage());
     assertEquals(
         "duplicate top-level declaration class 'foo' at Test.dart line:2 col:7",
         errors.get(1).getMessage());
-    assertEquals(
-        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:5 col:5",
-        errors.get(2).getMessage());
-    assertEquals(
-        "duplicate top-level declaration class 'bar' at Test.dart line:3 col:7",
-        errors.get(3).getMessage());
   }
 
   public void test_nameShadow_topLevel_getter_setter() {
@@ -393,6 +379,26 @@ public class NegativeResolverTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "set bar(x) {}",
         "get bar() {}"));
+  }
+  
+  public void test_nameShadow_topLevel_setter_variable() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "set bar(x) {}",
+            "var bar;"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
+  }
+
+  public void test_nameShadow_topLevel_variable_setter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var bar;",
+            "set bar(x) {}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
   }
 
   public void test_nameShadow_topLevel_getters() {
@@ -420,10 +426,10 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
     assertEquals(
-        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:3 col:5",
+        "duplicate top-level declaration top-level variable 'setter bar' at Test.dart line:3 col:5",
         errors.get(0).getMessage());
     assertEquals(
-        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:2 col:5",
+        "duplicate top-level declaration top-level variable 'setter bar' at Test.dart line:2 col:5",
         errors.get(1).getMessage());
   }
 
@@ -678,7 +684,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  get foo() {}",
             "  var foo;",
             "}"),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3));
   }
 
@@ -698,7 +704,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   /**
-   * Method shadows setter.
+   * Method does not shadow setter, because "=" is implicitly appended to the setter name.
    */
   public void test_nameShadow_setter_method() {
     checkSourceErrors(
@@ -707,9 +713,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "class A {",
             "  set foo(x) {}",
             "  foo() {}",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 3, 3));
+            "}"));
   }
 
   /**
@@ -787,7 +791,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   /**
-   * Setter shadows method.
+   * Setter does not shadow method, because "=" is implicitly appended to the setter name.
    */
   public void test_nameShadow_method_setter() {
     checkSourceErrors(
@@ -796,9 +800,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "class A {",
             "  foo() {}",
             "  set foo(x) {}",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3));
+            "}"));
   }
 
   public void test_nameShadow_functionExpressionParameters() {

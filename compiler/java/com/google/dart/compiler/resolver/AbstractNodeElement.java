@@ -4,8 +4,8 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;

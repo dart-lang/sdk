@@ -913,32 +913,6 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
-void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
-  Label smi_to_double, double_op, call_method;
-  __ movl(EAX, Address(ESP, 0));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, &smi_to_double);
-  __ CompareClassId(EAX, kDoubleCid, EBX);
-  __ j(NOT_EQUAL, &call_method);
-  __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
-  __ Bind(&double_op);
-  __ sqrtsd(XMM0, XMM1);
-  AssemblerMacros::TryAllocate(assembler_,
-                               double_class_,
-                               &call_method,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
-  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
-  __ Drop(1);
-  __ jmp(done);
-  __ Bind(&smi_to_double);
-  __ SmiUntag(EAX);
-  __ cvtsi2sd(XMM1, EAX);
-  __ jmp(&double_op);
-  __ Bind(&call_method);
-}
-
-
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
   if (TryIntrinsify()) {

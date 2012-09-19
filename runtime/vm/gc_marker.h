@@ -41,6 +41,7 @@ class GCMarker : public ValueObject {
   void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
   void ProcessWeakProperty(RawWeakProperty* raw_weak, MarkingVisitor* visitor);
+  void ProcessPeerReferents(PageSpace* page_space);
 
   Heap* heap_;
 

@@ -72,7 +72,7 @@ class World {
       }
     } else {
       final messageWithPrefix = options.useColors
-          ? (color + prefix + _NO_COLOR + message) : (prefix + message);
+          ? "$color$prefix$_NO_COLOR$message" : "$prefix$message";
 
       var text = messageWithPrefix;
       if (span != null) {
@@ -98,7 +98,7 @@ class World {
     }
 
     if (throwing) {
-      throw new CompilerException(prefix + message, span);
+      throw new CompilerException("$prefix$message", span);
     }
   }
 

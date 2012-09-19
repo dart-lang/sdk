@@ -499,6 +499,9 @@ class PlaceholderCollector extends AbstractVisitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
+    bool isKeyword(Identifier id) =>
+        id !== null && Keyword.keywords[id.source.slowToString()] !== null;
+
     Element element = treeElements[node];
     // May get null here in case of A(int this.f());
     if (element !== null) {
@@ -514,7 +517,14 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
     node.visitChildren(this);
-    makeOmitDeclarationTypePlaceholder(node.returnType);
+    // Make sure we don't omit return type of methods which names are
+    // identifiers, because the following works fine:
+    // int interface() => 1;
+    // But omitting 'int' makes VM unhappy.
+    // TODO(smok): Remove it when http://dartbug.com/5278 is fixed.
+    if (node.name === null || !isKeyword(node.name.asIdentifier())) {
+      makeOmitDeclarationTypePlaceholder(node.returnType);
+    }
     collectFunctionParameters(node.parameters);
   }
 

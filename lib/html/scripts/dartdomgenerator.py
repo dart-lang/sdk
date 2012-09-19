@@ -68,17 +68,15 @@ def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
   renamer = HtmlRenamer(webkit_database)
   type_registry = TypeRegistry(webkit_database, renamer)
 
-  def CreateGeneratorOptions(template_paths, conditions, type_registry, output_dir,
-                             renamer=None):
+  def CreateGeneratorOptions(template_paths, conditions, output_dir):
     template_loader = TemplateLoader(template_dir, template_paths, conditions)
     return GeneratorOptions(
         template_loader, webkit_database, emitters, type_registry, renamer,
-        output_dir)
+        output_dir, auxiliary_dir)
 
   def Generate(backend, output_dir):
     options = CreateGeneratorOptions(
-        ['html/interface', 'html/impl', 'html', ''], {},
-        type_registry, output_dir, renamer)
+        ['html/interface', 'html/impl', 'html', ''], {}, output_dir)
     html_system = HtmlInterfacesSystem(options, backend)
     generator.Generate(webkit_database, html_system,
                        super_database=common_database,
@@ -87,34 +85,28 @@ def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
   if dart2js_output_dir:
     options = CreateGeneratorOptions(
         ['html/dart2js', 'html/impl', 'html', ''],
-        {'DARTIUM': False, 'DART2JS': True},
-        type_registry, dart2js_output_dir, renamer)
+        {'DARTIUM': False, 'DART2JS': True}, dart2js_output_dir)
     backend = HtmlDart2JSSystem(options)
     Generate(backend, dart2js_output_dir)
 
   if dartium_output_dir:
     options = CreateGeneratorOptions(
         ['html/dartium', 'html/impl', ''],
-        {'DARTIUM': True, 'DART2JS': False},
-        type_registry, dartium_output_dir, renamer)
-    backend = NativeImplementationSystem(options, auxiliary_dir)
+        {'DARTIUM': True, 'DART2JS': False}, dartium_output_dir)
+    backend = NativeImplementationSystem(options)
     Generate(backend, dartium_output_dir)
 
   _logger.info('Flush...')
   emitters.Flush()
 
-def GenerateSingleFile(systems):
-  if 'htmldart2js' in systems:
-    _logger.info('Copy html_dart2js to dart2js/')
-    subprocess.call(['cd ../generated ; '
-                     '../../../tools/copy_dart.py ../dart2js html_dart2js.dart'],
-                    shell=True)
-
-  if 'htmldartium' in systems:
-    _logger.info('Copy html_dartium to dartium/')
-    subprocess.call(['cd ../generated ; '
-                     '../../../tools/copy_dart.py ../dartium html_dartium.dart'],
-                    shell=True)
+def GenerateSingleFile(library_path, output_dir):
+  library_dir = os.path.dirname(library_path)
+  library_filename = os.path.basename(library_path)
+  copy_dart_script = os.path.relpath('../../../tools/copy_dart.py', library_dir)
+  output_dir = os.path.relpath(output_dir, library_dir)
+  command = ' '.join(['cd', library_dir, ';',
+                      copy_dart_script, output_dir, library_filename])
+  subprocess.call([command], shell=True)
 
 def main():
   parser = optparse.OptionParser()
@@ -145,9 +137,18 @@ def main():
   dartium_output_dir = None
   if 'htmldartium' in systems:
     dartium_output_dir = os.path.join(output_dir, 'dartium')
+
   Generate(database_dir, options.use_database_cache, dart2js_output_dir,
            dartium_output_dir)
-  GenerateSingleFile(systems)
+
+  if 'htmldart2js' in systems:
+    _logger.info('Copy html_dart2js to dart2js/')
+    GenerateSingleFile(os.path.join(dart2js_output_dir, 'html_dart2js.dart'),
+                       '../dart2js')
+  if 'htmldartium' in systems:
+    _logger.info('Copy html_dartium to dartium/')
+    GenerateSingleFile(os.path.join(dartium_output_dir, 'html_dartium.dart'),
+                       '../dartium')
 
 if __name__ == '__main__':
   sys.exit(main())

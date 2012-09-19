@@ -8,7 +8,6 @@
 #source("collections.dart");
 #source("date.dart");
 #source("dual_pivot_quicksort.dart");
-#source("duration_implementation.dart");
 #source("exceptions.dart");
 #source("future_implementation.dart");
 #source("hash_map_set.dart");

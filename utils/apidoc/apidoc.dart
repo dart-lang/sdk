@@ -30,7 +30,7 @@ void main() {
   final args = new Options().arguments;
 
   int mode = doc.MODE_STATIC;
-  Path outputDir = const Path('docs');
+  Path outputDir = new Path('docs');
   bool generateAppCache = false;
 
   // Parse the command-line arguments.

@@ -10,7 +10,6 @@
  * test assertions.
  */
 class Expect {
-
   /**
    * Checks whether the expected and actual values are equal (using `==`).
    */

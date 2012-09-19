@@ -9,6 +9,7 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/flow_graph_optimizer.h"
 #include "vm/locations.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -22,7 +23,19 @@ namespace dart {
 DECLARE_FLAG(bool, enable_type_checks);
 
 
-intptr_t Definition::Hashcode() const {
+Definition::Definition()
+    : temp_index_(-1),
+      ssa_temp_index_(-1),
+      propagated_type_(AbstractType::Handle()),
+      propagated_cid_(kIllegalCid),
+      input_use_list_(NULL),
+      env_use_list_(NULL),
+      use_kind_(kValue),  // Phis and parameters rely on this default.
+      constant_value_(Object::ZoneHandle(ConstantPropagator::Unknown())) {
+}
+
+
+intptr_t Instruction::Hashcode() const {
   intptr_t result = tag();
   for (intptr_t i = 0; i < InputCount(); ++i) {
     Value* value = InputAt(i);
@@ -33,7 +46,7 @@ intptr_t Definition::Hashcode() const {
 }
 
 
-bool Definition::Equals(Definition* other) const {
+bool Instruction::Equals(Instruction* other) const {
   if (tag() != other->tag()) return false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (!InputAt(i)->Equals(other->InputAt(i))) return false;
@@ -47,7 +60,7 @@ bool Value::Equals(Value* other) const {
 }
 
 
-bool CheckClassInstr::AttributesEqual(Definition* other) const {
+bool CheckClassInstr::AttributesEqual(Instruction* other) const {
   CheckClassInstr* other_check = other->AsCheckClass();
   ASSERT(other_check != NULL);
   if (unary_checks().NumberOfChecks() !=
@@ -65,28 +78,28 @@ bool CheckClassInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool CheckArrayBoundInstr::AttributesEqual(Definition* other) const {
+bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
   CheckArrayBoundInstr* other_check = other->AsCheckArrayBound();
   ASSERT(other_check != NULL);
   return array_type() == other_check->array_type();
 }
 
 
-bool StrictCompareInstr::AttributesEqual(Definition* other) const {
+bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
   return kind() == other_op->kind();
 }
 
 
-bool BinarySmiOpInstr::AttributesEqual(Definition* other) const {
+bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
   ASSERT(other_op != NULL);
   return op_kind() == other_op->op_kind();
 }
 
 
-bool LoadFieldInstr::AttributesEqual(Definition* other) const {
+bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
@@ -96,7 +109,7 @@ bool LoadFieldInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool LoadStaticFieldInstr::AttributesEqual(Definition* other) const {
+bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
@@ -106,7 +119,7 @@ bool LoadStaticFieldInstr::AttributesEqual(Definition* other) const {
 }
 
 
-bool ConstantInstr::AttributesEqual(Definition* other) const {
+bool ConstantInstr::AttributesEqual(Instruction* other) const {
   ConstantInstr* other_constant = other->AsConstant();
   ASSERT(other_constant != NULL);
   return (value().raw() == other_constant->value().raw());
@@ -138,9 +151,16 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
     : BlockEntryInstr(CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
-      start_env_(NULL),
-      constant_null_(NULL),
+      initial_definitions_(),
       spill_slot_count_(0) {
+}
+
+
+ConstantInstr* GraphEntryInstr::constant_null() {
+  ASSERT(initial_definitions_.length() > 0 &&
+         initial_definitions_[0]->IsConstant() &&
+         initial_definitions_[0]->AsConstant()->value().IsNull());
+  return initial_definitions_[0]->AsConstant();
 }
 
 
@@ -225,7 +245,7 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
 }
 
 
-void Definition::InsertBefore(Instruction* next) {
+void Instruction::InsertBefore(Instruction* next) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   next_ = next;
@@ -235,7 +255,7 @@ void Definition::InsertBefore(Instruction* next) {
 }
 
 
-void Definition::InsertAfter(Instruction* prev) {
+void Instruction::InsertAfter(Instruction* prev) {
   ASSERT(previous_ == NULL);
   ASSERT(next_ == NULL);
   previous_ = prev;
@@ -245,7 +265,7 @@ void Definition::InsertAfter(Instruction* prev) {
 }
 
 
-BlockEntryInstr* Definition::GetBlock() const {
+BlockEntryInstr* Instruction::GetBlock() const {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   ASSERT(previous() != NULL);
@@ -291,30 +311,53 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-// Returns true if the compile type of this value is more specific than the
-// given dst_type.
 // TODO(regis): Support a set of compile types for the given value.
-bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
-  // No type is more specific than a malformed type.
-  if (dst_type.IsMalformed()) {
+bool Value::CanComputeIsNull(bool* is_null) const {
+  ASSERT(is_null != NULL);
+  // For now, we can only return a meaningful result if the value is constant.
+  if (!BindsToConstant()) {
     return false;
   }
 
-  // If the value is the null constant, its type (NullType) is more specific
-  // than the destination type, even if the destination type is the void type,
-  // since a void function is allowed to return null.
+  // Return true if the constant value is Object::null.
   if (BindsToConstantNull()) {
+    *is_null = true;
     return true;
   }
 
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
-  // In case of a null constant, we have already returned true above, else we
-  // return false here.
-  if (dst_type.IsVoidType()) {
+  // Consider the compile type of the value to check for sentinels, which are
+  // also treated as null.
+  const AbstractType& compile_type = AbstractType::Handle(CompileType());
+  ASSERT(!compile_type.IsMalformed());
+  ASSERT(!compile_type.IsVoidType());
+
+  // There are only three instances that can be of type Null:
+  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
+  // The inline code and run time code performing the type check will only
+  // encounter the 2 sentinel values if type check elimination was disabled.
+  // Otherwise, the type check of a sentinel value will be eliminated here,
+  // because these sentinel values can only be encountered as constants, never
+  // as actual value of a heap object being type checked.
+  if (compile_type.IsNullType()) {
+    *is_null = true;
+    return true;
+  }
+
+  return false;
+}
+
+
+// TODO(regis): Support a set of compile types for the given value.
+bool Value::CanComputeIsInstanceOf(const AbstractType& type,
+                                   bool* is_instance) const {
+  ASSERT(is_instance != NULL);
+  // We cannot give an answer if the given type is malformed.
+  if (type.IsMalformed()) {
     return false;
   }
+
+  // We should never test for an instance of null.
+  ASSERT(!type.IsNullType());
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = AbstractType::Handle(CompileType());
@@ -324,33 +367,57 @@ bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
   // of a void function, which was checked to be null at the return statement
   // inside the function.
   if (compile_type.IsVoidType()) {
+    ASSERT(FLAG_enable_type_checks);
+    *is_instance = true;
     return true;
   }
 
-  // If the compile type of the value is NullType, the type test is eliminated.
-  // There are only three instances that can be of Class Null:
-  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-  // The inline code and run time code performing the type check will never
-  // encounter the 2 sentinel values. The type check of a sentinel value
-  // will always be eliminated here, because these sentinel values can only
-  // be encountered as constants, never as actual value of a heap object
-  // being type checked.
+  // The Null type is only a subtype of Object and of Dynamic.
+  // Functions that do not explicitly return a value, implicitly return null,
+  // except generative constructors, which return the object being constructed.
+  // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
+    *is_instance =
+        type.IsObjectType() || type.IsDynamicType() || type.IsVoidType();
     return true;
   }
+
+  // Until we support a set of compile types, we can only give answers for
+  // constant values. Indeed, a variable of the proper compile time type may
+  // still hold null at run time and therefore fail the test.
+  if (!BindsToConstant()) {
+    return false;
+  }
+
+  // A non-null constant is not an instance of void.
+  if (type.IsVoidType()) {
+    *is_instance = false;
+    return true;
+  }
+
+  // Since the value is a constant, its type is instantiated.
+  ASSERT(compile_type.IsInstantiated());
 
   // The run time type of the value is guaranteed to be a subtype of the
-  // compile time type of the value. However, establishing here that
-  // the compile time type is a subtype of the destination type does not
-  // guarantee that the run time type will also be a subtype of the destination
-  // type, because the subtype relation is not transitive.
-  // However, the 'more specific than' relation is transitive and is used
-  // here. In other words, if the compile type of the value is more specific
-  // than the destination type, the run time type of the value, which is
-  // guaranteed to be a subtype of the compile type, is also guaranteed to be
-  // a subtype of the destination type and the type check can therefore be
-  // eliminated.
-  return compile_type.IsMoreSpecificThan(dst_type, NULL);
+  // compile time type of the value. However, establishing here that the
+  // compile time type is a subtype of the given type does not guarantee that
+  // the run time type will also be a subtype of the given type, because the
+  // subtype relation is not transitive when an uninstantiated type is
+  // involved.
+  Error& malformed_error = Error::Handle();
+  if (type.IsInstantiated()) {
+    // Perform the test on the compile-time type and provide the answer, unless
+    // the type test produced a malformed error (e.g. an upper bound error).
+    *is_instance = compile_type.IsSubtypeOf(type, &malformed_error);
+  } else {
+    // However, the 'more specific than' relation is transitive and used here.
+    // In other words, if the compile type of the value is more specific than
+    // the given type, the run time type of the value, which is guaranteed to be
+    // a subtype of the compile type, is also guaranteed to be a subtype of the
+    // given type.
+    *is_instance = compile_type.IsMoreSpecificThan(type, &malformed_error);
+  }
+  return malformed_error.IsNull();
 }
 
 
@@ -419,6 +486,54 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
     if (predecessors_[i] == pred) return i;
   }
   return -1;
+}
+
+
+void JoinEntryInstr::EliminateUnreachablePhiInputs() {
+  if (phis_ == NULL || phis_->is_empty()) return;
+
+  // Loop over the predecessors, reorganize phi inputs.
+  // TODO(kmillikin): Replace phis that have a single remaining input with
+  // the input.  This requires being a bit careful about use lists.
+  intptr_t input_count = predecessors_.length();
+  for (intptr_t new_idx = 0; new_idx < input_count; ++new_idx) {
+    BlockEntryInstr* pred = predecessors_[new_idx];
+    // Linear search for the old predecessor index.  We can't directly
+    // compare block entries, because unreachable code elimination has
+    // replaced some targets with joins.
+    intptr_t old_idx = 0;
+    for (; old_idx < stale_predecessors_.length(); ++old_idx) {
+      if (stale_predecessors_[old_idx]->next() == pred->next()) break;
+    }
+    ASSERT(old_idx < stale_predecessors_.length());
+    // If the index has changed, adjust all phi inputs.
+    if (old_idx != new_idx) {
+      ASSERT(new_idx < old_idx);
+      // Swap each phi's inputs so the input at new_idx is correct.
+      // Preserve the previous value in case it is from a reachable
+      // predecessor.
+      for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
+        PhiInstr* phi = (*phis_)[phi_idx];
+        if (phi == NULL) continue;
+        Value* temp = phi->InputAt(new_idx);
+        phi->SetInputAt(new_idx, phi->InputAt(old_idx));
+        phi->SetInputAt(old_idx, temp);
+      }
+      // The old input at new_idx is now found at old_idx.  It may be a
+      // reachable predecessor so swap the old predecessors too.
+      BlockEntryInstr* temp = stale_predecessors_[new_idx];
+      stale_predecessors_[new_idx] = stale_predecessors_[old_idx];
+      stale_predecessors_[old_idx] = temp;
+    }
+  }
+  // Now truncate each phi if necessary.
+  if (input_count < stale_predecessors_.length()) {
+    for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
+      PhiInstr* phi = (*phis_)[phi_idx];
+      if (phi == NULL) continue;
+      phi->inputs_.TruncateTo(input_count);
+    }
+  }
 }
 
 
@@ -531,6 +646,17 @@ intptr_t ParameterInstr::GetPropagatedCid() {
 
 
 // ==== Postorder graph traversal.
+static bool IsMarked(BlockEntryInstr* block,
+                     GrowableArray<BlockEntryInstr*>* preorder) {
+  // Detect that a block has been visited as part of the current
+  // DiscoverBlocks (we can call DiscoverBlocks multiple times).  The block
+  // will be 'marked' by (1) having a preorder number in the range of the
+  // preorder array and (2) being in the preorder array at that index.
+  intptr_t i = block->preorder_number();
+  return (i >= 0) && (i < preorder->length()) && ((*preorder)[i] == block);
+}
+
+
 void GraphEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
@@ -540,7 +666,7 @@ void GraphEntryInstr::DiscoverBlocks(
     intptr_t variable_count,
     intptr_t fixed_parameter_count) {
   // We only visit this block once, first of all blocks.
-  ASSERT(preorder_number() == -1);
+  ASSERT(!IsMarked(this, preorder));
   ASSERT(current_block == NULL);
   ASSERT(preorder->is_empty());
   ASSERT(postorder->is_empty());
@@ -588,15 +714,22 @@ void BlockEntryInstr::DiscoverBlocks(
   // is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
   ASSERT(!preorder->is_empty());
+  // Blocks with a single predecessor cannot have been reached before.
+  ASSERT(!IsTargetEntry() || !IsMarked(this, preorder));
 
-  // 1. Record control-flow-graph basic-block predecessors.
+  // 1. If the block has already been reached, add current_block as a
+  // basic-block predecessor and we are done.
+  if (IsMarked(this, preorder)) {
+    AddPredecessor(current_block);
+    return;
+  }
+
+  // 2. Otherwise, clear the predecessors which might have been computed on
+  // some earlier call to DiscoverBlocks and record this predecessor.  For
+  // joins save the original predecessors, if any, so we can garbage collect
+  // phi inputs from unreachable predecessors without recomputing SSA.
+  ClearPredecessors();
   AddPredecessor(current_block);
-
-  // 2. If the block has already been reached by the traversal, we are
-  // done.  Blocks with a single predecessor cannot have been reached
-  // before.
-  ASSERT(!IsTargetEntry() || (preorder_number() == -1));
-  if (preorder_number() >= 0) return;
 
   // 3. The current block is the spanning-tree parent.
   parent->Add(current_block->preorder_number());
@@ -1123,12 +1256,6 @@ RawAbstractType* UnarySmiOpInstr::CompileType() const {
 }
 
 
-RawAbstractType* NumberNegateInstr::CompileType() const {
-  // Implemented only for doubles.
-  return Type::Double();
-}
-
-
 RawAbstractType* DoubleToDoubleInstr::CompileType() const {
   return Type::Double();
 }
@@ -1159,7 +1286,12 @@ RawAbstractType* CheckEitherNonSmiInstr::CompileType() const {
 }
 
 
-// Optimizations that eliminate or simplify individual computations.
+// Optimizations that eliminate or simplify individual instructions.
+Instruction* Instruction::Canonicalize() {
+  return this;
+}
+
+
 Definition* Definition::Canonicalize() {
   return this;
 }
@@ -1174,9 +1306,6 @@ Definition* StrictCompareInstr::Canonicalize() {
   if ((kind() == Token::kEQ_STRICT) &&
       (right_constant.raw() == Bool::True()) &&
       (left()->ResultCid() == kBoolCid)) {
-    // Remove the constant from the graph.
-    Definition* right_defn = right()->definition();
-    right_defn->RemoveFromGraph();
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
   }
@@ -1184,7 +1313,7 @@ Definition* StrictCompareInstr::Canonicalize() {
 }
 
 
-Definition* CheckClassInstr::Canonicalize() {
+Instruction* CheckClassInstr::Canonicalize() {
   const intptr_t v_cid = value()->ResultCid();
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   if ((num_checks == 1) &&
@@ -1196,12 +1325,12 @@ Definition* CheckClassInstr::Canonicalize() {
 }
 
 
-Definition* CheckSmiInstr::Canonicalize() {
+Instruction* CheckSmiInstr::Canonicalize() {
   return (value()->ResultCid() == kSmiCid) ?  NULL : this;
 }
 
 
-Definition* CheckEitherNonSmiInstr::Canonicalize() {
+Instruction* CheckEitherNonSmiInstr::Canonicalize() {
   if ((left()->ResultCid() == kDoubleCid) ||
       (right()->ResultCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.
@@ -1656,12 +1785,13 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Environment* Environment::From(const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
-                               const Environment* outer) {
+                               const Function& function) {
   Environment* env =
       new Environment(definitions.length(),
                       fixed_parameter_count,
                       Isolate::kNoDeoptId,
-                      (outer == NULL) ? NULL : outer->DeepCopy());
+                      function,
+                      NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new Value(definitions[i]));
   }
@@ -1674,6 +1804,7 @@ Environment* Environment::DeepCopy() const {
       new Environment(values_.length(),
                       fixed_parameter_count_,
                       deopt_id_,
+                      function_,
                       (outer_ == NULL) ? NULL : outer_->DeepCopy());
   for (intptr_t i = 0; i < values_.length(); ++i) {
     copy->values_.Add(values_[i]->Copy());
@@ -1693,6 +1824,22 @@ void Environment::DeepCopyTo(Instruction* instr) const {
     value->AddToEnvUseList();
   }
   instr->set_env(copy);
+}
+
+
+// Copies the environment as outer on an inlined instruction and updates the
+// environment use lists.
+void Environment::DeepCopyToOuter(Instruction* instr) const {
+  ASSERT(instr->env()->outer() == NULL);
+  Environment* copy = DeepCopy();
+  intptr_t use_index = instr->env()->Length();  // Start index after inner.
+  for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
+    Value* value = it.CurrentValue();
+    value->set_instruction(instr);
+    value->set_use_index(use_index++);
+    value->AddToEnvUseList();
+  }
+  instr->env()->outer_ = copy;
 }
 
 

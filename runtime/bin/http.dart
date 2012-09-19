@@ -5,7 +5,7 @@
 /**
  * HTTP status codes.
  */
-interface HttpStatus {
+abstract class HttpStatus {
   static const int CONTINUE = 100;
   static const int SWITCHING_PROTOCOLS = 101;
   static const int OK = 200;
@@ -55,8 +55,8 @@ interface HttpStatus {
 /**
  * HTTP server.
  */
-interface HttpServer default _HttpServer {
-  HttpServer();
+abstract class HttpServer {
+  factory HttpServer() => new _HttpServer();
 
   /**
    * Start listening for HTTP requests on the specified [host] and
@@ -122,7 +122,7 @@ interface HttpServer default _HttpServer {
  * For all operation on HTTP headers the header name is
  * case-insensitive.
  */
-interface HttpHeaders default _HttpHeaders {
+abstract class HttpHeaders {
   static const ACCEPT = "Accept";
   static const ACCEPT_CHARSET = "Accept-Charset";
   static const ACCEPT_ENCODING = "Accept-Encoding";
@@ -354,17 +354,19 @@ interface HttpHeaders default _HttpHeaders {
  *       // Use v.value and v.parameters
  *     });
  */
-interface HeaderValue default _HeaderValue {
+abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value part.
    */
-  HeaderValue([String value]);
+  factory HeaderValue([String value = ""]) => new _HeaderValue(value);
 
   /**
    * Creates a new header value object from parsing a header value
    * string with both value and optional parameters.
    */
-  HeaderValue.fromString(String value);
+  factory HeaderValue.fromString(String value) {
+    return new _HeaderValue.fromString(value);
+  }
 
   /**
    * Gets and sets the header value.
@@ -388,13 +390,14 @@ interface HeaderValue default _HeaderValue {
 /**
  * Representation of a content type.
  */
-interface ContentType extends HeaderValue default _ContentType {
+abstract class ContentType implements HeaderValue {
   /**
    * Creates a new content type object setting the primary type and
-   * sub type. If either is not passed their values will be the empty
-   * string.
+   * sub type.
    */
-  ContentType([String primaryType, String subType]);
+  factory ContentType([String primaryType = "", String subType = ""]) {
+    return new _ContentType(primaryType, subType);
+  }
 
   /**
    * Creates a new content type object from parsing a Content-Type
@@ -407,7 +410,9 @@ interface ContentType extends HeaderValue default _ContentType {
    * will create a content type object with primary type [:text:], sub
    * type [:html:] and parameter [:charset:] with value [:utf-8:].
    */
-  ContentType.fromString(String value);
+  factory ContentType.fromString(String value) {
+    return new _ContentType.fromString(value);
+  }
 
   /**
    * Gets and sets the content type in the form "primaryType/subType".
@@ -438,17 +443,19 @@ interface ContentType extends HeaderValue default _ContentType {
  * and when receiving cookies in the client as Set-Cookie headers all
  * fields can be used.
  */
-interface Cookie default _Cookie {
+abstract class Cookie {
   /**
    * Creates a new cookie optionally setting the name and value.
    */
-  Cookie([String name, String value]);
+  factory Cookie([String name, String value]) => new _Cookie(name, value);
 
   /**
    * Creates a new cookie by parsing a header value from a Set-Cookie
    * header.
    */
-  Cookie.fromSetCookieValue(String value);
+  factory Cookie.fromSetCookieValue(String value) {
+    return new _Cookie.fromSetCookieValue(value);
+  }
 
   /**
    * Gets and sets the name.
@@ -503,7 +510,7 @@ interface Cookie default _Cookie {
 /**
  * Http request delivered to the HTTP server callback.
  */
-interface HttpRequest default _HttpRequest {
+abstract class HttpRequest {
   /**
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
@@ -573,7 +580,7 @@ interface HttpRequest default _HttpRequest {
 /**
  * HTTP response to be send back to the client.
  */
-interface HttpResponse default _HttpResponse {
+abstract class HttpResponse {
   /**
    * Gets and sets the content length of the response. If the size of
    * the response is not known in advance set the content length to
@@ -649,10 +656,10 @@ interface HttpResponse default _HttpResponse {
  * must be closed as part of completing the request. Use [:HttpClient.shutdown:]
  * to force close the idle sockets.
  */
-interface HttpClient default _HttpClient {
+abstract class HttpClient {
   static const int DEFAULT_HTTP_PORT = 80;
 
-  HttpClient();
+  factory HttpClient() => new _HttpClient();
 
   /**
    * Opens a HTTP connection. The returned [HttpClientConnection] is
@@ -717,7 +724,7 @@ interface HttpClient default _HttpClient {
  * empty body. If [onResponse] is not set the response will be read
  * and discarded.
  */
-interface HttpClientConnection {
+abstract class HttpClientConnection {
   /**
    * Sets the handler that is called when the connection is established.
    */
@@ -786,7 +793,7 @@ interface HttpClientConnection {
 /**
  * HTTP request for a client connection.
  */
-interface HttpClientRequest default _HttpClientRequest {
+abstract class HttpClientRequest {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
@@ -826,7 +833,7 @@ interface HttpClientRequest default _HttpClientRequest {
 /**
  * HTTP response for a client connection.
  */
-interface HttpClientResponse default _HttpClientResponse {
+abstract class HttpClientResponse {
   /**
    * Returns the status code.
    */
@@ -876,7 +883,7 @@ interface HttpClientResponse default _HttpClientResponse {
 /**
  * Connection information.
  */
-interface HttpConnectionInfo {
+abstract class HttpConnectionInfo {
   String get remoteHost;
   int get remotePort;
   int get localPort;
@@ -886,7 +893,7 @@ interface HttpConnectionInfo {
 /**
  * Redirect information.
  */
-interface RedirectInfo {
+abstract class RedirectInfo {
   /**
    * Returns the status code used for the redirect.
    */
@@ -911,7 +918,7 @@ interface RedirectInfo {
  * together with the detached socket is returned in an instance of
  * this class.
  */
-interface DetachedSocket default _DetachedSocket {
+abstract class DetachedSocket {
   Socket get socket;
   List<int> get unparsedData;
 }

@@ -89,18 +89,23 @@ class Value : public ZoneAllocated {
 
   const char* DebugName() const { return "Value"; }
 
-  // Returns true if the value represents a constant.
+  // Return true if the value represents a constant.
   bool BindsToConstant() const;
 
-  // Returns true if the value represents the constant null.
+  // Return true if the value represents the constant null.
   bool BindsToConstantNull() const;
 
   // Assert if BindsToConstant() is false, otherwise returns the constant value.
   const Object& BoundConstant() const;
 
-  // Reminder: The type of the constant null is the bottom type, which is more
-  // specific than any type.
-  bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
+  // Compute a run-time null test at compile-time and set result in is_null.
+  // Return false if the computation is not possible at compile time.
+  bool CanComputeIsNull(bool* is_null) const;
+
+  // Compute a run-time type test at compile-time and set result in is_instance.
+  // Return false if the computation is not possible at compile time.
+  bool CanComputeIsInstanceOf(const AbstractType& type,
+                              bool* is_instance) const;
 
   // Compile time constants, Bool, Smi and Nulls do not need to update
   // the store buffer.
@@ -235,7 +240,6 @@ class EmbeddedArray<T, 0> {
   M(BinarySmiOp)                                                               \
   M(BinaryMintOp)                                                              \
   M(UnarySmiOp)                                                                \
-  M(NumberNegate)                                                              \
   M(CheckStackOverflow)                                                        \
   M(DoubleToDouble)                                                            \
   M(SmiToDouble)                                                               \
@@ -382,8 +386,9 @@ class Instruction : public ZoneAllocated {
   virtual const char* DebugName() const = 0;
 
   // Printing support.
-  virtual void PrintTo(BufferFormatter* f) const = 0;
-  virtual void PrintToVisualizer(BufferFormatter* f) const = 0;
+  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   bool Is##type() { return (As##type() != NULL); }                             \
@@ -438,9 +443,47 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return Isolate::kNoDeoptId;
   }
 
+  // Returns a replacement for the instruction or NULL if the instruction can
+  // be eliminated.  By default returns the this instruction which means no
+  // change.
+  virtual Instruction* Canonicalize();
+
+  // Insert this instruction before 'next'.
+  void InsertBefore(Instruction* next);
+
+  // Insert this instruction after 'prev'.
+  void InsertAfter(Instruction* prev);
+
+  // Returns true if the instruction is affected by side effects.
+  // Only instructions that are not affected by side effects can participate
+  // in redundancy elimination or loop invariant code motion.
+  // TODO(fschneider): Make this abstract and implement for all instructions
+  // instead of returning the safe default (true).
+  virtual bool AffectedBySideEffect() const { return true; }
+
+  // Get the block entry for this instruction.
+  virtual BlockEntryInstr* GetBlock() const;
+
   // Id for instructions used in CSE.
   intptr_t expr_id() const { return expr_id_; }
   void set_expr_id(intptr_t expr_id) { expr_id_ = expr_id; }
+
+  // Returns a hash code for use with hash maps.
+  virtual intptr_t Hashcode() const;
+
+  // Compares two instructions.  Returns true, iff:
+  // 1. They have the same tag.
+  // 2. All input operands are Equals.
+  // 3. They satisfy AttributesEqual.
+  bool Equals(Instruction* other) const;
+
+  // Compare attributes of a instructions (except input operands and tag).
+  // All instructions that participate in CSE have to override this function.
+  // This function can assume that the argument has the same type as this.
+  virtual bool AttributesEqual(Instruction* other) const {
+    UNREACHABLE();
+    return false;
+  }
 
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
@@ -603,7 +646,6 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
   virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
@@ -630,6 +672,7 @@ class BlockEntryInstr : public Instruction {
   void AddDominatedBlock(BlockEntryInstr* block) {
     dominated_blocks_.Add(block);
   }
+  void ClearDominatedBlocks() { dominated_blocks_.Clear(); }
 
   bool Dominates(BlockEntryInstr* other) const;
 
@@ -693,6 +736,9 @@ class BlockEntryInstr : public Instruction {
         loop_info_(NULL) { }
 
  private:
+  virtual void ClearPredecessors() = 0;
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
+
   const intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
@@ -781,8 +827,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     UNREACHABLE();
     return NULL;
   }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
-
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
@@ -799,11 +843,10 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
-  Environment* start_env() const { return start_env_; }
-  void set_start_env(Environment* env) { start_env_ = env; }
-
-  ConstantInstr* constant_null() const { return constant_null_; }
-  void set_constant_null(ConstantInstr* instr) { constant_null_ = instr; }
+  GrowableArray<Definition*>* initial_definitions() {
+    return &initial_definitions_;
+  }
+  ConstantInstr* constant_null();
 
   intptr_t spill_slot_count() const { return spill_slot_count_; }
   void set_spill_slot_count(intptr_t count) {
@@ -817,10 +860,12 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  virtual void ClearPredecessors() { UNREACHABLE(); }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
+
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
-  Environment* start_env_;
-  ConstantInstr* constant_null_;
+  GrowableArray<Definition*> initial_definitions_;
   intptr_t spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
@@ -841,9 +886,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     return predecessors_[index];
   }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    predecessors_.Add(predecessor);
-  }
 
   // Returns -1 if pred is not in the list.
   intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
@@ -860,10 +902,28 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
+  // After recomputing predecessors to eliminate unreachable ones,
+  // reorganize phi inputs to match the predecessor order and to eliminate
+  // unreachable inputs.
+  void EliminateUnreachablePhiInputs();
+
  private:
+  virtual void ClearPredecessors() {
+    // Keep a 'backup' of any existing predecessors to enable garbage
+    // collection of phis after eliminating unreachable code and recomputing
+    // predecessors.
+    stale_predecessors_.Clear();
+    stale_predecessors_.AddArray(predecessors_);
+    predecessors_.Clear();
+  }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    predecessors_.Add(predecessor);
+  }
+
   GrowableArray<BlockEntryInstr*> predecessors_;
   ZoneGrowableArray<PhiInstr*>* phis_;
   intptr_t phi_count_;
+  GrowableArray<BlockEntryInstr*> stale_predecessors_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -891,10 +951,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    ASSERT(predecessor_ == NULL);
-    predecessor_ = predecessor;
-  }
 
   // Returns true if this Block is an entry of a catch handler.
   bool IsCatchEntry() const {
@@ -914,6 +970,12 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
+
   BlockEntryInstr* predecessor_;
   const intptr_t catch_try_index_;
 
@@ -926,15 +988,7 @@ class Definition : public Instruction {
  public:
   enum UseKind { kEffect, kValue };
 
-  Definition()
-      : temp_index_(-1),
-        ssa_temp_index_(-1),
-        propagated_type_(AbstractType::Handle()),
-        propagated_cid_(kIllegalCid),
-        input_use_list_(NULL),
-        env_use_list_(NULL),
-        use_kind_(kValue) {  // Phis and parameters rely on this default.
-  }
+  Definition();
 
   virtual Definition* AsDefinition() { return this; }
 
@@ -992,23 +1046,11 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  // Returns true if the definition is affected by side effects.
-  // Only instructions that are not affected by side effects can participate
-  // in redundancy elimination or loop invariant code motion.
-  // TODO(fschneider): Make this abstract and implement for all definitions
-  // instead of returning the safe default (true).
-  virtual bool AffectedBySideEffect() const { return true; }
-
   Value* input_use_list() { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
 
   Value* env_use_list() { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
-
-  // Returns a replacement for the definition or NULL if the definition can
-  // be eliminated.  By default returns the definition (input parameter)
-  // which means no change.
-  virtual Definition* Canonicalize();
 
   // Replace uses of this definition with uses of other definition or value.
   // Precondition: use lists must be properly calculated.
@@ -1021,40 +1063,25 @@ class Definition : public Instruction {
   // NULL iterator.
   void ReplaceWith(Definition* other, ForwardInstructionIterator* iterator);
 
-  // Insert this definition before 'next'.
-  void InsertBefore(Instruction* next);
-
-  // Insert this definition after 'prev'.
-  void InsertAfter(Instruction* prev);
-
-  // Compares two definitions.  Returns true, iff:
-  // 1. They have the same tag.
-  // 2. All input operands are Equals.
-  // 3. They satisfy AttributesEqual.
-  bool Equals(Definition* other) const;
-
-  // Compare attributes of a definition (except input operands and tag).
-  // All definition that participate in CSE have to override this function.
-  // This function can assume that the argument has the same type as this.
-  virtual bool AttributesEqual(Definition* other) const {
-    UNREACHABLE();
-    return false;
-  }
-
-  // Returns a hash code for use with hash maps.
-  virtual intptr_t Hashcode() const;
-
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
-
-  // Get the block entry for that instruction.
-  virtual BlockEntryInstr* GetBlock() const;
 
   // Printing support. These functions are sometimes overridden for custom
   // formatting. Otherwise, it prints in the format "opcode(op1, op2, op3)".
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
+
+  // A value in the constant propagation lattice.
+  //    - non-constant sentinel
+  //    - a constant (any non-sentinel value)
+  //    - unknown sentinel
+  Object& constant_value() const { return constant_value_; }
+
+  // Definitions can be canonicalized only into definitions to ensure
+  // this check statically we override base Canonicalize with a Canonicalize
+  // returning Definition (return type is covariant).
+  virtual Definition* Canonicalize();
 
  private:
   intptr_t temp_index_;
@@ -1066,6 +1093,8 @@ class Definition : public Instruction {
   Value* input_use_list_;
   Value* env_use_list_;
   UseKind use_kind_;
+
+  Object& constant_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -1137,6 +1166,8 @@ class PhiInstr : public Definition {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  friend class JoinEntryInstr;  // Direct access to inputs_ array.
+
   JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;
   bool is_alive_;
@@ -1274,9 +1305,6 @@ class ReturnInstr : public TemplateInstruction<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
-
  private:
   const intptr_t token_pos_;
 
@@ -1298,9 +1326,6 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   virtual bool HasSideEffect() const { return true; }
 
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
-
  private:
   const intptr_t token_pos_;
 
@@ -1321,9 +1346,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
-
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   const intptr_t token_pos_;
@@ -1454,6 +1476,29 @@ class BranchInstr : public ControlInstruction {
 };
 
 
+class StoreContextInstr : public TemplateInstruction<1> {
+ public:
+  explicit StoreContextInstr(Value* value) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  DECLARE_INSTRUCTION(StoreContext);
+  virtual RawAbstractType* CompileType() const;
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
+};
+
+
 template<intptr_t N>
 class TemplateDefinition : public Definition {
  public:
@@ -1502,7 +1547,7 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual intptr_t ResultCid() const;
 
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
  private:
@@ -1663,29 +1708,6 @@ class CurrentContextInstr : public TemplateDefinition<0> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
-};
-
-
-class StoreContextInstr : public TemplateDefinition<1> {
- public:
-  explicit StoreContextInstr(Value* value) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  DECLARE_INSTRUCTION(StoreContext);
-  virtual RawAbstractType* CompileType() const;
-
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
 };
 
 
@@ -1924,7 +1946,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual Definition* Canonicalize();
@@ -2286,7 +2308,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual bool AffectedBySideEffect() const { return !field().is_final(); }
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const Field& field_;
@@ -2647,7 +2669,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   virtual intptr_t ResultCid() const { return result_cid_; }
 
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool AffectedBySideEffect() const { return !immutable_; }
 
@@ -2834,7 +2856,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 };
 
 
-class ChainContextInstr : public TemplateDefinition<1> {
+class ChainContextInstr : public TemplateInstruction<1> {
  public:
   explicit ChainContextInstr(Value* context_value) {
     ASSERT(context_value != NULL);
@@ -2844,13 +2866,13 @@ class ChainContextInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(ChainContext)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   Value* context_value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextInstr);
@@ -2875,7 +2897,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
+  virtual intptr_t ResultCid() const { return kContextCid; }
 
  private:
   const intptr_t token_pos_;
@@ -2884,7 +2906,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
 };
 
 
-class CatchEntryInstr : public TemplateDefinition<0> {
+class CatchEntryInstr : public TemplateInstruction<0> {
  public:
   CatchEntryInstr(const LocalVariable& exception_var,
                   const LocalVariable& stacktrace_var)
@@ -2896,13 +2918,13 @@ class CatchEntryInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(CatchEntry)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const LocalVariable& exception_var_;
@@ -2912,7 +2934,7 @@ class CatchEntryInstr : public TemplateDefinition<0> {
 };
 
 
-class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
+class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
   CheckEitherNonSmiInstr(Value* left,
                          Value* right,
@@ -2927,13 +2949,13 @@ class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(CheckEitherNonSmi)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool AffectedBySideEffect() const { return false; }
 
@@ -2941,7 +2963,7 @@ class CheckEitherNonSmiInstr : public TemplateDefinition<2> {
 
   Value* right() const { return inputs_[1]; }
 
-  virtual Definition* Canonicalize();
+  virtual Instruction* Canonicalize();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
@@ -2965,7 +2987,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual intptr_t ResultCid() const;
 
@@ -2995,7 +3017,8 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const {
-    return value()->ResultCid() != kDoubleCid;
+    return (value()->ResultCid() != kDoubleCid)
+        && (value()->ResultCid() != kSmiCid);
   }
 
   virtual bool HasSideEffect() const { return false; }
@@ -3008,7 +3031,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   }
 
   virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(UnboxDouble)
   virtual RawAbstractType* CompileType() const;
@@ -3032,7 +3055,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual bool AttributesEqual(Definition* other) const {
+  virtual bool AttributesEqual(Instruction* other) const {
     return true;
   }
 
@@ -3089,7 +3112,7 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
 
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual bool AttributesEqual(Definition* other) const {
+  virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsUnboxedDoubleBinaryOp()->op_kind();
   }
 
@@ -3154,7 +3177,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual intptr_t ResultCid() const;
 
@@ -3244,38 +3267,7 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 };
 
 
-// Handles non-Smi NEGATE operations
-class NumberNegateInstr : public TemplateDefinition<1> {
- public:
-  NumberNegateInstr(InstanceCallInstr* instance_call, Value* value)
-      : instance_call_(instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  const ICData* ic_data() const { return instance_call()->ic_data(); }
-
-  DECLARE_INSTRUCTION(NumberNegate)
-  virtual RawAbstractType* CompileType() const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
-
- private:
-  InstanceCallInstr* instance_call_;
-
-  DISALLOW_COPY_AND_ASSIGN(NumberNegateInstr);
-};
-
-
-class CheckStackOverflowInstr : public TemplateDefinition<0> {
+class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
   explicit CheckStackOverflowInstr(intptr_t token_pos)
       : token_pos_(token_pos) {}
@@ -3285,11 +3277,11 @@ class CheckStackOverflowInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(CheckStackOverflow)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3351,7 +3343,7 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
 };
 
 
-class CheckClassInstr : public TemplateDefinition<1> {
+class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
                   InstanceCallInstr* instance_call,
@@ -3365,13 +3357,13 @@ class CheckClassInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(CheckClass)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool AffectedBySideEffect() const { return false; }
 
@@ -3379,7 +3371,7 @@ class CheckClassInstr : public TemplateDefinition<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  virtual Definition* Canonicalize();
+  virtual Instruction* Canonicalize();
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3390,7 +3382,7 @@ class CheckClassInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckSmiInstr : public TemplateDefinition<1> {
+class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id) {
     ASSERT(value != NULL);
@@ -3402,17 +3394,17 @@ class CheckSmiInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(CheckSmi)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual Definition* Canonicalize();
+  virtual Instruction* Canonicalize();
 
   Value* value() const { return inputs_[0]; }
 
@@ -3421,7 +3413,7 @@ class CheckSmiInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckArrayBoundInstr : public TemplateDefinition<2> {
+class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
   CheckArrayBoundInstr(Value* array,
                        Value* index,
@@ -3438,13 +3430,13 @@ class CheckArrayBoundInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(CheckArrayBound)
   virtual RawAbstractType* CompileType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kIllegalCid; }
-
-  virtual bool AttributesEqual(Definition* other) const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool AffectedBySideEffect() const { return false; }
 
@@ -3493,6 +3485,16 @@ class Environment : public ZoneAllocated {
       environment_->values_[index_] = value;
     }
 
+    Location CurrentLocation() const {
+      ASSERT(!Done());
+      return environment_->locations_[index_];
+    }
+
+    void SetCurrentLocation(Location loc) {
+      ASSERT(!Done());
+      environment_->locations_[index_] = loc;
+    }
+
    private:
     Environment* environment_;
     intptr_t index_;
@@ -3524,6 +3526,16 @@ class Environment : public ZoneAllocated {
       iterator_.SetCurrentValue(value);
     }
 
+    Location CurrentLocation() const {
+      ASSERT(!Done());
+      return iterator_.CurrentLocation();
+    }
+
+    void SetCurrentLocation(Location loc) {
+      ASSERT(!Done());
+      iterator_.SetCurrentLocation(loc);
+    }
+
    private:
     void SkipDone() {
       while (!Done() && iterator_.Done()) {
@@ -3537,7 +3549,7 @@ class Environment : public ZoneAllocated {
   // Construct an environment by constructing uses from an array of definitions.
   static Environment* From(const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
-                           const Environment* outer);
+                           const Function& function);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);
@@ -3582,7 +3594,10 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
+  const Function& function() const { return function_; }
+
   void DeepCopyTo(Instruction* instr) const;
+  void DeepCopyToOuter(Instruction* instr) const;
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -3592,11 +3607,13 @@ class Environment : public ZoneAllocated {
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t deopt_id,
+              const Function& function,
               Environment* outer)
       : values_(length),
         locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
         deopt_id_(deopt_id),
+        function_(function),
         outer_(outer) { }
 
   Environment* DeepCopy() const;
@@ -3605,6 +3622,7 @@ class Environment : public ZoneAllocated {
   Location* locations_;
   const intptr_t fixed_parameter_count_;
   intptr_t deopt_id_;
+  const Function& function_;
   Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

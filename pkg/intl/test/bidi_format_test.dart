@@ -5,7 +5,7 @@
 
 #library('bidi_format_test');
 
-#import('../intl.dart');
+#import('../lib/intl.dart');
 #import('../../../pkg/unittest/unittest.dart');
 
 /**

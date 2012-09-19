@@ -42,27 +42,27 @@
  * simpler to add them to test.dart.  Existing test suites should be
  * moved to here, if possible.
 */
-final TEST_SUITE_DIRECTORIES = const [
-    const Path('pkg'),
-    const Path('runtime/tests/vm'),
-    const Path('samples/tests/samples'),
-    const Path('tests/benchmark_smoke'),
-    const Path('tests/compiler/dart2js'),
-    const Path('tests/compiler/dart2js_extra'),
-    const Path('tests/compiler/dart2js_foreign'),
-    const Path('tests/compiler/dart2js_native'),
-    const Path('tests/corelib'),
-    const Path('tests/dom'),
-    const Path('tests/html'),
-    const Path('tests/isolate'),
-    const Path('tests/json'),
-    const Path('tests/language'),
-    const Path('tests/lib'),
-    const Path('tests/standalone'),
-    const Path('tests/utils'),
-    const Path('utils/tests/css'),
-    const Path('utils/tests/peg'),
-    const Path('utils/tests/pub'),
+final TEST_SUITE_DIRECTORIES = [
+    new Path('pkg'),
+    new Path('runtime/tests/vm'),
+    new Path('samples/tests/samples'),
+    new Path('tests/benchmark_smoke'),
+    new Path('tests/compiler/dart2js'),
+    new Path('tests/compiler/dart2js_extra'),
+    new Path('tests/compiler/dart2js_foreign'),
+    new Path('tests/compiler/dart2js_native'),
+    new Path('tests/corelib'),
+    new Path('tests/dom'),
+    new Path('tests/html'),
+    new Path('tests/isolate'),
+    new Path('tests/json'),
+    new Path('tests/language'),
+    new Path('tests/lib'),
+    new Path('tests/standalone'),
+    new Path('tests/utils'),
+    new Path('utils/tests/css'),
+    new Path('utils/tests/peg'),
+    new Path('utils/tests/pub'),
 ];
 
 main() {

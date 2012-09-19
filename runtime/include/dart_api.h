@@ -2729,4 +2729,37 @@ DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function);
 // Support for generating flow graph compiler debugging output into a file.
 DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function);
 
+// --- Peers ---
+
+/**
+ * The peer field is a lazily allocated field intendend for storage of
+ * an uncommonly used values.  Most instances types can have a peer
+ * field allocated.  The exceptions are subtypes of Null, num, and
+ * bool.
+ */
+
+/**
+ * Returns the value of peer field of 'object' in 'peer'.
+ *
+ * \param object An object.
+ * \param peer An out parameter that returns the value of the peer
+ *   field.
+ *
+ * \return Returns an error if 'object' is a subtype of Null, num, or
+ *   bool.
+ */
+DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer);
+
+/**
+ * Sets the value of the peer field of 'object' to the value of
+ * 'peer'.
+ *
+ * \param object An object.
+ * \param peer A value to store in the peer field.
+ *
+ * \return Returns an error if 'object' is a subtype of Null, num, or
+ *   bool.
+ */
+DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
+
 #endif  // INCLUDE_DART_API_H_

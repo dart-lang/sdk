@@ -397,10 +397,25 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
         throw 'Unknown source "$sourceName"';
       }
 
-      result[source.packageName(dependency[sourceName])] = dependency;
+      result[_packageName(sourceName, dependency[sourceName])] = dependency;
     }
     return result;
   });
+}
+
+/// Return the name for the package described by [description] and from
+/// [sourceName].
+String _packageName(String sourceName, description) {
+  switch (sourceName) {
+  case "git":
+    var url = description is String ? description : description['url'];
+    return basename(url.replaceFirst(const RegExp(@"(\.git)?/?$"), ""));
+  case "hosted":
+    if (description is String) return description;
+    return description['name'];
+  default:
+    return description;
+  }
 }
 
 /**

@@ -122,6 +122,7 @@ class Compiler implements DiagnosticListener {
   ClassElement nullClass;
   ClassElement listClass;
   Element assertMethod;
+  Element identicalFunction;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -164,9 +165,11 @@ class Compiler implements DiagnosticListener {
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
+  bool enabledRuntimeType = false;
 
   Stopwatch progress;
 
@@ -367,6 +370,7 @@ class Compiler implements DiagnosticListener {
     libraries['dart:coreimpl'] = coreImplLibrary;
 
     assertMethod = jsHelperLibrary.find(const SourceString('assert'));
+    identicalFunction = coreLibrary.find(const SourceString('identical'));
 
     initializeSpecialClasses();
   }

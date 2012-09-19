@@ -14,9 +14,8 @@ from generator import *
 
 class NativeImplementationSystem(systembase.System):
 
-  def __init__(self, options, auxiliary_dir):
+  def __init__(self, options):
     super(NativeImplementationSystem, self).__init__(options)
-    self._auxiliary_dir = auxiliary_dir
     self._cpp_header_files = []
     self._cpp_impl_files = []
 

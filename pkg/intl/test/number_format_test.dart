@@ -7,8 +7,8 @@
 #library('number_format_test');
 
 #import('../../../pkg/unittest/unittest.dart');
-#import('../number_format.dart');
-#import('../intl.dart');
+#import('../lib/number_format.dart');
+#import('../lib/intl.dart');
 
 /**
  * Tests the Numeric formatting library in dart.

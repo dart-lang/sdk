@@ -106,8 +106,7 @@ class Entrypoint {
    * completes when all dependencies are installed.
    */
   Future installDependencies() {
-    return _validatePubspec()
-      .chain((_) => _loadLockFile())
+    return _loadLockFile()
       .chain((lockFile) => resolveVersions(cache.sources, root, lockFile))
       .chain(_installDependencies);
   }
@@ -118,8 +117,7 @@ class Entrypoint {
    * [Future] that completes when all dependencies are installed.
    */
   Future updateAllDependencies() {
-    return _validatePubspec()
-      .chain((_) => resolveVersions(cache.sources, root, new LockFile.empty()))
+    return resolveVersions(cache.sources, root, new LockFile.empty())
       .chain(_installDependencies);
   }
 
@@ -129,7 +127,7 @@ class Entrypoint {
    * [Future] that completes when all dependencies are installed.
    */
   Future updateDependencies(List<String> dependencies) {
-    return _validatePubspec().chain((_) => _loadLockFile()).chain((lockFile) {
+    return _loadLockFile().chain((lockFile) {
       var versionSolver = new VersionSolver(cache.sources, root, lockFile);
       for (var dependency in dependencies) {
         versionSolver.useLatestVersion(dependency);
@@ -296,27 +294,6 @@ class Entrypoint {
     return exists(to).chain((exists) {
       if (exists) return new Future.immediate(null);
       return createSymlink(path, to);
-    });
-  }
-
-  /**
-   * Validate that the pubspec for the entrypoint exists and specifies the name
-   * of the root package.
-   */
-  Future _validatePubspec() {
-    var future = new Future.immediate(null);;
-    if (root.pubspec.isEmpty) {
-      future = exists(join(root.dir, "pubspec.yaml")).transform((exists) {
-        if (exists) return;
-        throw 'Could not find a file named "pubspec.yaml" in the directory '
-          '$path.';
-      });
-    }
-
-    return future.transform((_) {
-      if (root.pubspec.name != null) return;
-      throw '"pubspec.yaml" is missing the required "name" field (e.g. "name: '
-        '${root.name}").';
     });
   }
 }

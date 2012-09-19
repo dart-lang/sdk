@@ -389,24 +389,33 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   // TODO(floitsch): provide better error-messages.
   Constant visitSend(Send send) {
     Element element = elements[send];
-    if (Elements.isStaticOrTopLevelField(element)) {
-      Constant result;
-      if (element.modifiers !== null) {
-        if (element.modifiers.isConst()) {
-          result = compiler.compileConstant(element);
-        } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
-          result = compiler.compileVariable(element);
+    if (send.isPropertyAccess) {
+      if (Elements.isStaticOrTopLevelFunction(element)) {
+        compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
+        Constant constant = new FunctionConstant(element);
+        compiler.constantHandler.registerCompileTimeConstant(constant);
+        compiler.enqueuer.codegen.registerStaticUse(element);
+        return constant;
+      } else if (Elements.isStaticOrTopLevelField(element)) {
+        Constant result;
+        if (element.modifiers !== null) {
+          if (element.modifiers.isConst()) {
+            result = compiler.compileConstant(element);
+          } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
+            result = compiler.compileVariable(element);
+          }
         }
+        if (result !== null) return result;
       }
-      if (result == null) return signalNotCompileTimeConstant(send);
-      return result;
-    } else if (Elements.isStaticOrTopLevelFunction(element)
-               && send.isPropertyAccess) {
-      compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
-      Constant constant = new FunctionConstant(element);
-      compiler.constantHandler.registerCompileTimeConstant(constant);
-      compiler.enqueuer.codegen.registerStaticUse(element);
-      return constant;
+      return signalNotCompileTimeConstant(send);
+    } else if (send.isCall) {
+      if (element === compiler.identicalFunction && send.argumentCount() == 2) {
+        Constant left = evaluate(send.argumentsNode.nodes.head);
+        Constant right = evaluate(send.argumentsNode.nodes.tail.head);
+        Constant result = constantSystem.identity.fold(left, right);
+        if (result !== null) return result;
+      }
+      return signalNotCompileTimeConstant(send);
     } else if (send.isPrefix) {
       assert(send.isOperator);
       Constant receiverConstant = evaluate(send.receiver);
@@ -494,9 +503,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           }
           break;
         case "===":
-          if (left.isPrimitive() && right.isPrimitive()) {
-            folded = constantSystem.identity.fold(left, right);
-          }
+          folded = constantSystem.identity.fold(left, right);
           break;
         case "!=":
           if (left.isPrimitive() && right.isPrimitive()) {
@@ -509,14 +516,12 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           }
           break;
         case "!==":
-          if (left.isPrimitive() && right.isPrimitive()) {
-            BoolConstant areIdentical =
-                constantSystem.identity.fold(left, right);
-            if (areIdentical === null) {
-              folded = null;
-            } else {
-              folded = areIdentical.negate();
-            }
+          BoolConstant areIdentical =
+              constantSystem.identity.fold(left, right);
+          if (areIdentical === null) {
+            folded = null;
+          } else {
+            folded = areIdentical.negate();
           }
           break;
       }

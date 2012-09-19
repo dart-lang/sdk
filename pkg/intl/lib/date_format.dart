@@ -159,11 +159,11 @@
 #import('dart:math');
 #import('intl.dart');
 #import('date_symbols.dart');
-#import('lib/intl_helpers.dart');
-#import('lib/date_format_internal.dart');
+#import('src/intl_helpers.dart');
+#import('src/date_format_internal.dart');
 
-#source('lib/date_format_field.dart');
-#source('lib/date_format_helpers.dart');
+#source('src/date_format_field.dart');
+#source('src/date_format_helpers.dart');
 
 class DateFormat {
 

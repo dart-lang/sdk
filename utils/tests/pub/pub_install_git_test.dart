@@ -14,7 +14,8 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -43,11 +44,12 @@ main() {
 
     git('foo.git', [
       libDir('foo'),
-      appPubspec([{"git": "../bar.git"}])
+      libPubspec('foo', '1.0.0', [{"git": "../bar.git"}])
     ]).scheduleCreate();
 
     git('bar.git', [
-      libDir('bar')
+      libDir('bar'),
+      libPubspec('bar', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -78,18 +80,88 @@ main() {
     run();
   });
 
-  test('requires the repository name to match the name in the pubspec', () {
+  test('doesn\'t require the repository name to match the name in the '
+      'pubspec', () {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('weirdname'),
+      libPubspec('weirdname', '1.0.0')
     ]).scheduleCreate();
 
     dir(appPath, [
       pubspec({
         "name": "myapp",
         "dependencies": {
-          "weird-name": {"git": "../foo.git"}
+          "weirdname": {"git": "../foo.git"}
+        }
+      })
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('weirdname', [
+        file('weirdname.dart', 'main() => "weirdname";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('requires the dependency to have a pubspec', () {
+    ensureGit();
+
+    git('foo.git', [
+      libDir('foo')
+    ]).scheduleCreate();
+
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
+
+    // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
+    // fixed.
+    schedulePub(args: ['install'],
+        error: const RegExp(@'^Package "foo" doesn' @"'" 't have a '
+            'pubspec.yaml file.'),
+        exitCode: 1);
+
+    run();
+  });
+
+  test('requires the dependency to have a pubspec with a name field', () {
+    ensureGit();
+
+    git('foo.git', [
+      libDir('foo'),
+      pubspec({})
+    ]).scheduleCreate();
+
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
+
+    // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
+    // fixed.
+    schedulePub(args: ['install'],
+        error: const RegExp(@'^Package "foo"' @"'" 's pubspec.yaml file is '
+            @'missing the required "name" field \(e\.g\. "name: foo"\)\.'),
+        exitCode: 1);
+
+    run();
+  });
+
+  test('requires the dependency name to match the remote pubspec name', () {
+    ensureGit();
+
+    git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "weirdname": {"git": "../foo.git"}
         }
       })
     ]).scheduleCreate();
@@ -97,9 +169,9 @@ main() {
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.
     schedulePub(args: ['install'],
-        error: const RegExp(@'^FormatException: The name you specified for '
-            @'your dependency, "weird-name", doesn' @"'" @'t match the name '
-            @'"foo" \(from "\.\./foo\.git"\)\.'),
+        error: const RegExp(@'^The name you specified for your dependency, '
+            @'"weirdname", doesn' @"'" @'t match the name "foo" in its '
+            @'pubspec\.'),
         exitCode: 1);
 
     run();
@@ -109,7 +181,8 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -135,7 +208,8 @@ main() {
     file('$appPath/pubspec.lock', '').scheduleDelete();
 
     git('foo.git', [
-      libDir('foo', 'foo 2')
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCommit();
 
     schedulePub(args: ['install'],
@@ -164,7 +238,8 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -200,13 +275,15 @@ main() {
     ensureGit();
 
     var repo = git('foo.git', [
-      libDir('foo', 'foo 1')
+      libDir('foo', 'foo 1'),
+      libPubspec('foo', '1.0.0')
     ]);
     repo.scheduleCreate();
     var commit = repo.revParse('HEAD');
 
     git('foo.git', [
-      libDir('foo', 'foo 2')
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCommit();
 
     appDir([{"git": {"url": "../foo.git", "ref": commit}}]).scheduleCreate();
@@ -227,13 +304,15 @@ main() {
     ensureGit();
 
     var repo = git('foo.git', [
-      libDir('foo', 'foo 1')
+      libDir('foo', 'foo 1'),
+      libPubspec('foo', '1.0.0')
     ]);
     repo.scheduleCreate();
     repo.scheduleGit(["branch", "old"]);
 
     git('foo.git', [
-      libDir('foo', 'foo 2')
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCommit();
 
     appDir([{"git": {"url": "../foo.git", "ref": "old"}}]).scheduleCreate();
@@ -254,7 +333,8 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -273,7 +353,8 @@ main() {
     dir(packagesPath).scheduleDelete();
 
     git('foo.git', [
-      libDir('foo', 'foo 2')
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCommit();
 
     // This install shouldn't update the foo.git dependency due to the lockfile.
@@ -293,7 +374,8 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '0.5.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -370,7 +452,8 @@ main() {
       ensureGit();
 
       git('foo.git', [
-        libDir('foo')
+        libDir('foo'),
+        libPubspec('foo', '1.0.0')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git/"}]).scheduleCreate();

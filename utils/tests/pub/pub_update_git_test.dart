@@ -14,11 +14,13 @@ main() {
     ensureGit();
 
     git('foo.git', [
-      libDir('foo')
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCreate();
 
     git('bar.git', [
-      libDir('bar')
+      libDir('bar'),
+      libPubspec('bar', '1.0.0')
     ]).scheduleCreate();
 
     appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
@@ -36,11 +38,13 @@ main() {
     ]).scheduleValidate();
 
     git('foo.git', [
-      libDir('foo', 'foo 2')
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
     ]).scheduleCommit();
 
     git('bar.git', [
-      libDir('bar', 'bar 2')
+      libDir('bar', 'bar 2'),
+      libPubspec('bar', '1.0.0')
     ]).scheduleCommit();
 
     schedulePub(args: ['update'],
@@ -58,16 +62,93 @@ main() {
     run();
   });
 
+  test("updates Git packages to an incompatible pubspec", () {
+    ensureGit();
+
+    git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
+    ]).scheduleCreate();
+
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      libDir('zoo'),
+      libPubspec('zoo', '1.0.0')
+    ]).scheduleCommit();
+
+    schedulePub(args: ['update'],
+        error: const RegExp(@'The name you specified for your dependency, '
+            @'"foo", doesn' @"'" @'t match the name "zoo" in its pubspec.'),
+        exitCode: 1);
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  solo_test("updates Git packages to a nonexistent pubspec", () {
+    ensureGit();
+
+    var repo = git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
+    ]);
+    repo.scheduleCreate();
+
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    repo.scheduleGit(['rm', 'pubspec.yaml']);
+    repo.scheduleGit(['commit', '-m', 'delete']);
+
+    schedulePub(args: ['update'],
+        error: const RegExp(@'Package "foo" doesn' @"'" @'t have a '
+            @'pubspec.yaml file.'),
+        exitCode: 1);
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
   group("with an argument", () {
     test("updates one locked Git package but no others", () {
       ensureGit();
 
       git('foo.git', [
-        libDir('foo')
+        libDir('foo'),
+        libPubspec('foo', '1.0.0')
       ]).scheduleCreate();
 
       git('bar.git', [
-        libDir('bar')
+        libDir('bar'),
+        libPubspec('bar', '1.0.0')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
@@ -85,11 +166,13 @@ main() {
       ]).scheduleValidate();
 
       git('foo.git', [
-        libDir('foo', 'foo 2')
+        libDir('foo', 'foo 2'),
+        libPubspec('foo', '1.0.0')
       ]).scheduleCommit();
 
       git('bar.git', [
-        libDir('bar', 'bar 2')
+        libDir('bar', 'bar 2'),
+        libPubspec('bar', '1.0.0')
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],
@@ -117,7 +200,8 @@ main() {
       ]).scheduleCreate();
 
       git('foo-dep.git', [
-        libDir('foo-dep')
+        libDir('foo-dep'),
+        libPubspec('foo-dep', '1.0.0')
       ]).scheduleCreate();
 
       appDir([{"git": "../foo.git"}]).scheduleCreate();
@@ -140,7 +224,8 @@ main() {
       ]).scheduleCreate();
 
       git('foo-dep.git', [
-        libDir('foo-dep', 'foo-dep 2')
+        libDir('foo-dep', 'foo-dep 2'),
+        libPubspec('foo-dep', '1.0.0')
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],

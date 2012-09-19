@@ -15,22 +15,23 @@
  */
 class Package {
   /**
-   * Loads the package whose root directory is [packageDir].
+   * Loads the package whose root directory is [packageDir]. [name] is the
+   * expected name of that package (e.g. the name given in the dependency), or
+   * null if the package being loaded is the entrypoint package.
    */
-  static Future<Package> load(String packageDir, SourceRegistry sources) {
+  static Future<Package> load(String name, String packageDir,
+      SourceRegistry sources) {
     var pubspecPath = join(packageDir, 'pubspec.yaml');
 
     return fileExists(pubspecPath).chain((exists) {
-      if (exists) {
-        return readTextFile(pubspecPath).transform((contents) {
-          return new Pubspec.parse(contents, sources);
-        });
-      } else {
-        // If there is no pubspec, we implicitly treat that as a package with
-        // no dependencies.
-        return new Future.immediate(new Pubspec.empty());
+      if (!exists) throw new PubspecNotFoundException(name);
+      return readTextFile(pubspecPath);
+    }).transform((contents) {
+      var pubspec = new Pubspec.parse(contents, sources);
+      if (pubspec.name == null) throw new PubspecHasNoNameException(name);
+      if (name != null && pubspec.name != name) {
+        throw new PubspecNameMismatchException(name, pubspec.name);
       }
-    }).transform((pubspec) {
       return new Package._(packageDir, pubspec);
     });
   }
@@ -94,6 +95,9 @@ class Package {
  * concerned, those packages are different.
  */
 class PackageId implements Comparable, Hashable {
+  /// The name of the package being identified.
+  final String name;
+
   /**
    * The [Source] used to look up this package given its [description].
    */
@@ -112,13 +116,7 @@ class PackageId implements Comparable, Hashable {
    */
   final description;
 
-  PackageId(this.source, this.version, this.description);
-
-  /**
-   * The name of the package being identified. This will be the human-friendly
-   * name like "uilib".
-   */
-  String get name => source.packageName(description);
+  PackageId(this.name, this.source, this.version, this.description);
 
   int hashCode() => name.hashCode() ^
                     source.name.hashCode() ^
@@ -165,6 +163,9 @@ class PackageId implements Comparable, Hashable {
  * packages.
  */
 class PackageRef {
+  /// The name of the package being identified.
+  final String name;
+
   /**
    * The [Source] used to look up the package.
    */
@@ -181,12 +182,7 @@ class PackageRef {
    */
   final description;
 
-  /**
-   * The name of the package being referenced.
-   */
-  String get name => source.packageName(description);
-
-  PackageRef(this.source, this.constraint, this.description);
+  PackageRef(this.name, this.source, this.constraint, this.description);
 
   String toString() => "$name $constraint from $source ($description)";
 
@@ -195,5 +191,32 @@ class PackageRef {
    * concrete version.
    */
   PackageId atVersion(Version version) =>
-    new PackageId(source, version, description);
+    new PackageId(name, source, version, description);
+}
+
+class PubspecNotFoundException implements Exception {
+  final String name;
+
+  PubspecNotFoundException(this.name);
+
+  String toString() => 'Package "$name" doesn\'t have a pubspec.yaml file.';
+}
+
+class PubspecHasNoNameException implements Exception {
+  final String name;
+
+  PubspecHasNoNameException(this.name);
+
+  String toString() => 'Package "$name"\'s pubspec.yaml file is missing the '
+    'required "name" field (e.g. "name: $name").';
+}
+
+class PubspecNameMismatchException implements Exception {
+  final String expectedName;
+  final String actualName;
+
+  PubspecNameMismatchException(this.expectedName, this.actualName);
+
+  String toString() => 'The name you specified for your dependency, '
+    '"$expectedName", doesn\'t match the name "$actualName" in its pubspec.';
 }

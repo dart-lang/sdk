@@ -10,7 +10,7 @@
  */
 
 #library('messages_de_DE');
-#import('../../intl.dart');
+#import('../../lib/intl.dart');
 
 runAt(time, day) => Intl.message('Ausgedruckt am $time am $day.', name: 'runAt',
     args: [time, day]);

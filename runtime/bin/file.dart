@@ -22,16 +22,16 @@ class FileMode {
  * streams using [openInputStream] and [openOutputStream] or open the
  * file for random access operations using [open].
  */
-interface File default _File {
+abstract class File {
   /**
    * Create a File object.
    */
-  File(String name);
+  factory File(String name) => new _File(name);
 
   /**
    * Create a File object from a Path object.
    */
-  File.fromPath(Path path);
+  factory File.fromPath(Path path) => new _File.fromPath(path);
 
   /**
    * Check if the file exists. Does not block and returns a
@@ -125,10 +125,8 @@ interface File default _File {
    *
    * FileMode.APPEND: same as FileMode.WRITE except that the file is
    * not truncated.
-   *
-   * The default value for [mode] is [:FileMode.READ:].
    */
-  Future<RandomAccessFile> open([FileMode mode]);
+  Future<RandomAccessFile> open([FileMode mode = FileMode.READ]);
 
   /**
    * Synchronously open the file for random access operations. The
@@ -136,11 +134,9 @@ interface File default _File {
    * can be performed. Opened RandomAccessFiles must be closed using
    * the [close] method.
    *
-   * The default value for [mode] is [:FileMode.READ:].
-   *
    * See [open] for information on the [mode] argument.
    */
-  RandomAccessFile openSync([FileMode mode]);
+  RandomAccessFile openSync([FileMode mode = FileMode.READ]);
 
   /**
    * Get the canonical full path corresponding to the file name.
@@ -172,10 +168,8 @@ interface File default _File {
    *
    * FileMode.APPEND: create the stream and set the position to the end of
    * the underlying file.
-   *
-   * By default the mode is FileMode.WRITE.
    */
-  OutputStream openOutputStream([FileMode mode]);
+  OutputStream openOutputStream([FileMode mode = FileMode.WRITE]);
 
   /**
    * Read the entire file contents as a list of bytes. Returns a
@@ -191,34 +185,33 @@ interface File default _File {
 
   /**
    * Read the entire file contents as text using the given
-   * [encoding]. The default encoding is [:Encoding.UTF_8:].
+   * [encoding].
    *
    * Returns a [:Future<String>:] that completes with the string once
    * the file contents has been read.
    */
-  Future<String> readAsText([Encoding encoding]);
+  Future<String> readAsText([Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Synchronously read the entire file contents as text using the
-   * given [encoding]. The default encoding is [:Encoding.UTF_8:].
+   * given [encoding].
    */
-  String readAsTextSync([Encoding encoding]);
+  String readAsTextSync([Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Read the entire file contents as lines of text using the give
-   * [encoding]. The default encoding is [:Encoding.UTF_8:].
+   * [encoding].
    *
    * Returns a [:Future<List<String>>:] that completes with the lines
    * once the file contents has been read.
    */
-  Future<List<String>> readAsLines([Encoding encoding]);
+  Future<List<String>> readAsLines([Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Synchronously read the entire file contents as lines of text
-   * using the given [encoding] The default encoding is
-   * [:Encoding.UTF_8:].
+   * using the given [encoding].
    */
-  List<String> readAsLinesSync([Encoding encoding]);
+  List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Get the name of the file.
@@ -232,7 +225,7 @@ interface File default _File {
  * file. [RandomAccessFile] objects are obtained by calling the
  * [:open:] method on a [File] object.
  */
-interface RandomAccessFile {
+abstract class RandomAccessFile {
   /**
    * Close the file. Returns a [:Future<RandomAccessFile>:] that
    * completes with this RandomAccessFile when it has been closed.
@@ -295,19 +288,20 @@ interface RandomAccessFile {
   int writeListSync(List<int> buffer, int offset, int bytes);
 
   /**
-   * Write a string to the file using the given [encoding]. The
-   * default encoding is UTF-8 - [:Encoding.UTF_8:]. Returns a
+   * Write a string to the file using the given [encoding]. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the write completes.
    */
-  Future<RandomAccessFile> writeString(String string, [Encoding encoding]);
+  Future<RandomAccessFile> writeString(String string,
+                                       [Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Synchronously write a single string to the file using the given
    * [encoding]. Returns the number of characters successfully
-   * written. The default encoding is UTF-8 - [:Encoding.UTF_8:].
+   * written.
    */
-  int writeStringSync(String string, [Encoding encoding]);
+  int writeStringSync(String string,
+                      [Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Get the current byte position in the file. Returns a

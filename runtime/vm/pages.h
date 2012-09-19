@@ -5,6 +5,8 @@
 #ifndef VM_PAGES_H_
 #define VM_PAGES_H_
 
+#include <map>
+
 #include "vm/freelist.h"
 #include "vm/globals.h"
 #include "vm/virtual_memory.h"
@@ -201,6 +203,16 @@ class PageSpace {
 
   void WriteProtect(bool read_only);
 
+  typedef std::map<RawObject*, void*> PeerTable;
+
+  void SetPeer(RawObject* raw_obj, void* peer);
+
+  void* GetPeer(RawObject* raw_obj);
+
+  int64_t PeerCount() const;
+
+  PeerTable* GetPeerTable() { return &peer_table_; }
+
  private:
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
@@ -226,6 +238,8 @@ class PageSpace {
   HeapPage* pages_;
   HeapPage* pages_tail_;
   HeapPage* large_pages_;
+
+  PeerTable peer_table_;
 
   // Page being used for bump allocation.
   // The value has different meanings:

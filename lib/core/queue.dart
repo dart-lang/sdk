@@ -7,18 +7,18 @@
  * can iterate over the elements of a queue through [forEach] or with
  * an [Iterator].
  */
-interface Queue<E> extends Collection<E> default DoubleLinkedQueue<E> {
+abstract class Queue<E> extends Collection<E> {
 
   /**
    * Creates a queue.
    */
-  Queue();
+  factory Queue() => new DoubleLinkedQueue<E>();
 
   /**
    * Creates a queue with the elements of [other]. The order in
    * the queue will be the order provided by the iterator of [other].
    */
-  Queue.from(Iterable<E> other);
+  factory Queue.from(Iterable<E> other) => new DoubleLinkedQueue<E>.from(other);
 
   /**
    * Removes and returns the first element of this queue. Throws an

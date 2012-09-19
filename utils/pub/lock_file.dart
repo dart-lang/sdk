@@ -63,7 +63,7 @@ class LockFile {
         var description = spec['description'];
         source.validateDescription(description, fromLockFile: true);
 
-        var id = new PackageId(source, version, description);
+        var id = new PackageId(name, source, version, description);
 
         // Validate the name.
         if (name != id.name) {

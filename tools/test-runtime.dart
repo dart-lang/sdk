@@ -25,14 +25,14 @@
  * simpler to add them to test.dart.  Existing test suites should be
  * moved to here, if possible.
 */
-final TEST_SUITE_DIRECTORIES = const [
-  const Path('runtime/tests/vm'),
-  const Path('tests/corelib'),
-  const Path('tests/isolate'),
-  const Path('tests/language'),
-  const Path('tests/lib'),
-  const Path('tests/standalone'),
-  const Path('tests/utils'),
+final TEST_SUITE_DIRECTORIES = [
+  new Path('runtime/tests/vm'),
+  new Path('tests/corelib'),
+  new Path('tests/isolate'),
+  new Path('tests/language'),
+  new Path('tests/lib'),
+  new Path('tests/standalone'),
+  new Path('tests/utils'),
 ];
 
 main() {

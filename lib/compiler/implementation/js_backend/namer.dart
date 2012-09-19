@@ -120,7 +120,8 @@ class Namer {
     }
   }
 
-  String instanceMethodNameByArity(SourceString name, int arity) {
+  String publicInstanceMethodNameByArity(SourceString name, int arity) {
+    assert(!name.isPrivate());
     return '${name.slowToString()}\$$arity';
   }
 

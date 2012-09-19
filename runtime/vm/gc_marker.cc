@@ -378,6 +378,23 @@ void GCMarker::ProcessWeakProperty(RawWeakProperty* raw_weak,
 }
 
 
+void GCMarker::ProcessPeerReferents(PageSpace* page_space) {
+  PageSpace::PeerTable* peer_table = page_space->GetPeerTable();
+  PageSpace::PeerTable::iterator it = peer_table->begin();
+  while (it != peer_table->end()) {
+    RawObject* raw_obj = it->first;
+    ASSERT(raw_obj->IsHeapObject());
+    if (raw_obj->IsMarked()) {
+      // The object has survived.  Do nothing.
+      ++it;
+    } else {
+      // The object has become garbage.  Remove its record.
+      peer_table->erase(it++);
+    }
+  }
+}
+
+
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
                            bool invoke_api_callbacks) {
@@ -390,6 +407,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
   MarkingWeakVisitor mark_weak;
   IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
   mark.Finalize();
+  ProcessPeerReferents(page_space);
   Epilogue(isolate, invoke_api_callbacks);
 }
 

@@ -11,7 +11,7 @@ class StringBufferImpl implements StringBuffer {
   /**
    * Creates the string buffer with an initial content.
    */
-  StringBufferImpl([Object content = ""]) {
+  StringBufferImpl(Object content) {
     clear();
     add(content);
   }

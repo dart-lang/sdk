@@ -68,8 +68,8 @@ class HtmlDiff {
    * calling [HtmlDiff.run].
    */
   static void initialize(Path libDir) {
-    _compilation = new Compilation.library(
-        const <Path>[const Path(HTML_LIBRARY_NAME)], libDir);
+    _compilation = new Compilation.library(<Path>[new Path(HTML_LIBRARY_NAME)],
+                                           libDir);
     _mirrors = _compilation.mirrors;
   }
 

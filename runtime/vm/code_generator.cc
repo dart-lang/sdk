@@ -1482,9 +1482,6 @@ void DeoptimizeAll() {
       function = optimized_code.function();
       unoptimized_code = function.unoptimized_code();
       ASSERT(!unoptimized_code.IsNull());
-      uword continue_at_pc =
-          unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
-      ASSERT(continue_at_pc != 0);
       // The switch to unoptimized code may have already occured.
       if (function.HasOptimizedCode()) {
         function.SwitchToUnoptimizedCode();
@@ -1609,9 +1606,9 @@ END_LEAF_RUNTIME_ENTRY
 
 
 
-static void DeoptimizeWithDeoptInfo(const Code& code,
-                                    const DeoptInfo& deopt_info,
-                                    const StackFrame& caller_frame) {
+static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
+                                        const DeoptInfo& deopt_info,
+                                        const StackFrame& caller_frame) {
   const intptr_t len = deopt_info.Length();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
   for (intptr_t i = 0; i < len; i++) {
@@ -1644,12 +1641,13 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
           deopt_instructions[i]->ToCString());
     }
   }
+  return deopt_context.GetCallerFp();
 }
 
 
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
-DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
+DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   Isolate* isolate = Isolate::Current();
   Zone zone(isolate);
   HANDLESCOPE(isolate);
@@ -1672,25 +1670,14 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
                       &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
-  uword continue_at_pc = 0;
-  if (deopt_reason == kDeoptAtCall) {
-    continue_at_pc = unoptimized_code.GetDeoptAfterPcAtDeoptId(deopt_id);
-  } else {
-    continue_at_pc = unoptimized_code.GetDeoptBeforePcAtDeoptId(deopt_id);
-  }
-  ASSERT(continue_at_pc != 0);
-  if (FLAG_trace_deopt) {
-    OS::Print("  -> continue at %#"Px"\n", continue_at_pc);
-    // TODO(srdjan): If we could allow GC, we could print the line where
-    // deoptimization occured.
-  }
   const Array& deopt_info_array =
       Array::Handle(optimized_code.deopt_info_array());
   ASSERT(!deopt_info_array.IsNull());
   DeoptInfo& deopt_info = DeoptInfo::Handle();
   deopt_info ^= deopt_info_array.At(deopt_index);
   ASSERT(!deopt_info.IsNull());
-  DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame);
+  const intptr_t caller_fp =
+      DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame);
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
@@ -1707,6 +1694,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   if (function.HasOptimizedCode()) {
     function.SwitchToUnoptimizedCode();
   }
+  return caller_fp;
 }
 END_LEAF_RUNTIME_ENTRY
 

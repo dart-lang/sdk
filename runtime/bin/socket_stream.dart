@@ -6,21 +6,20 @@
  * [SocketInputStream] makes it possible to stream over data received
  * from a [Socket].
  */
-interface SocketInputStream extends InputStream default _SocketInputStream {
+abstract class SocketInputStream implements InputStream {
   /**
    * Create a [SocketInputStream] for streaming from a [Socket].
    */
-  SocketInputStream(Socket socket);
-
+  factory SocketInputStream(Socket socket) => new _SocketInputStream(socket);
 }
 
 /**
  * [SocketOutputStream] makes it possible to stream data to a
  * [Socket].
  */
-interface SocketOutputStream extends OutputStream default _SocketOutputStream {
+abstract class SocketOutputStream implements OutputStream {
   /**
    * Create a [SocketOutputStream] for streaming to a [Socket].
    */
-  SocketOutputStream(Socket socket);
+  factory SocketOutputStream(Socket socket) => new _SocketOutputStream(socket);
 }

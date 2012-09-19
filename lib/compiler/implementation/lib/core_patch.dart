@@ -23,6 +23,11 @@ patch class Object {
   patch void noSuchMethod(String name, List args) {
     throw new NoSuchMethodError(this, name, args);
   }
+
+  patch Type runtimeType() {
+    String key = getRuntimeTypeString(this);
+    return getOrCreateCachedRuntimeType(key);
+  }
 }
 
 
@@ -64,4 +69,17 @@ patch class int {
 
 patch class double {
   patch static double parse(String string) => Primitives.parseDouble(string);
+}
+
+patch class NoSuchMethodError {
+  patch static String safeToString(Object object) {
+    if (object is int || object is double || object is bool || null == object) {
+      return object.toString();
+    }
+    if (object is String) {
+      String escaped = object.replaceAll('"', '\\"');
+      return '"$escaped"';
+    }
+    return Primitives.objectToString(object);
+  }
 }

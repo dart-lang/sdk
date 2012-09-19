@@ -412,7 +412,7 @@ function(cls, fields, methods) {
 
     // In order to have the toString method on every native class,
     // we must patch the JS Object prototype with a helper method.
-    String toStringName = backend.namer.instanceMethodNameByArity(
+    String toStringName = backend.namer.publicInstanceMethodNameByArity(
         const SourceString('toString'), 0);
     objectProperties[toStringName] =
         'function() { return $toStringHelperName(this); }';

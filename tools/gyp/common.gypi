@@ -29,6 +29,7 @@
   ],
   'includes': [
     'xcode.gypi',
+    'msvs.gypi',
     'configurations.gypi',
     'source_filter.gypi',
   ],

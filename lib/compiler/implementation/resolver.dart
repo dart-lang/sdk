@@ -1751,10 +1751,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
-    SourceString name = const SourceString('toString');
-    LibraryElement library = enclosingElement.getLibrary();
-    Selector selector = new Selector.call(name, library, 0);
-    world.registerDynamicInvocation(name, selector);
+    registerImplicitInvocation(const SourceString('toString'), 0);
     node.visitChildren(this);
   }
 
@@ -1815,7 +1812,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     mapping[node] = target;
   }
 
+  registerImplicitInvocation(SourceString name, int arity) {
+    Selector selector = new Selector.call(name, null, arity);
+    world.registerDynamicInvocation(name, selector);
+  }
+
   visitForIn(ForIn node) {
+    for (final name in const [
+        const SourceString('iterator'),
+        const SourceString('next'),
+        const SourceString('hasNext')]) {
+      registerImplicitInvocation(name, 0);
+    }
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;

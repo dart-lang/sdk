@@ -34,11 +34,11 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
 
 void FlowGraph::DiscoverBlocks() {
   // Initialize state.
-  preorder_.TruncateTo(0);
-  postorder_.TruncateTo(0);
-  reverse_postorder_.TruncateTo(0);
-  parent_.TruncateTo(0);
-  assigned_vars_.TruncateTo(0);
+  preorder_.Clear();
+  postorder_.Clear();
+  reverse_postorder_.Clear();
+  parent_.Clear();
+  assigned_vars_.Clear();
   // Perform a depth-first traversal of the graph to build preorder and
   // postorder block orders.
   graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
@@ -105,13 +105,9 @@ static void ResetUseListsInInstruction(Instruction* instr) {
 
 
 bool FlowGraph::ResetUseLists() {
-  // Reset global constants.
-  ResetUseListsInInstruction(graph_entry_->constant_null());
-
-  // Reset definitions referenced from the start environment.
-  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
-    Value* env_use = graph_entry_->start_env()->ValueAt(i);
-    ResetUseListsInInstruction(env_use->definition());
+  // Reset initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ResetUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
   }
 
   // Reset phis in join entries and the instructions in each block.
@@ -168,13 +164,9 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
 
 
 bool FlowGraph::ValidateUseLists() {
-  // Validate global constants.
-  ValidateUseListsInInstruction(graph_entry_->constant_null());
-
-  // Validate definitions referenced from the start environment.
-  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
-    Value* env_use = graph_entry_->start_env()->ValueAt(i);
-    ValidateUseListsInInstruction(env_use->definition());
+  // Validate initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ValidateUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
   }
 
   // Validate phis in join entries and the instructions in each block.
@@ -198,8 +190,8 @@ bool FlowGraph::ValidateUseLists() {
 
 static void ClearUseLists(Definition* defn) {
   ASSERT(defn != NULL);
-  DEBUG_ASSERT(defn->input_use_list() == NULL);
-  DEBUG_ASSERT(defn->env_use_list() == NULL);
+  ASSERT(defn->input_use_list() == NULL);
+  ASSERT(defn->env_use_list() == NULL);
   defn->set_input_use_list(NULL);
   defn->set_env_use_list(NULL);
 }
@@ -209,9 +201,9 @@ static void RecordInputUses(Instruction* instr) {
   ASSERT(instr != NULL);
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     Value* use = instr->InputAt(i);
-    DEBUG_ASSERT(use->instruction() == NULL);
-    DEBUG_ASSERT(use->use_index() == -1);
-    DEBUG_ASSERT(use->next_use() == NULL);
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(0 == MembershipCount(use,
                                       use->definition()->input_use_list()));
     use->set_instruction(instr);
@@ -227,9 +219,9 @@ static void RecordEnvUses(Instruction* instr) {
   intptr_t use_index = 0;
   for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();
-    DEBUG_ASSERT(use->instruction() == NULL);
-    DEBUG_ASSERT(use->use_index() == -1);
-    DEBUG_ASSERT(use->next_use() == NULL);
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(0 == MembershipCount(use, use->definition()->env_use_list()));
     use->set_instruction(instr);
     use->set_use_index(use_index++);
@@ -270,9 +262,9 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
         PhiInstr* phi = (*join->phis())[i];
         if (phi == NULL) continue;
         Value* use = phi->InputAt(pred_index);
-        DEBUG_ASSERT(use->instruction() == NULL);
-        DEBUG_ASSERT(use->use_index() == -1);
-        DEBUG_ASSERT(use->next_use() == NULL);
+        ASSERT(use->instruction() == NULL);
+        ASSERT(use->use_index() == -1);
+        ASSERT(use->next_use() == NULL);
         DEBUG_ASSERT(0 == MembershipCount(use,
                                           use->definition()->input_use_list()));
         use->set_instruction(phi);
@@ -286,10 +278,9 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
 
 void FlowGraph::ComputeUseLists() {
   DEBUG_ASSERT(ResetUseLists());
-  // Clear global constants and definitions in the start environment.
-  ClearUseLists(graph_entry_->constant_null());
-  for (intptr_t i = 0; i < graph_entry_->start_env()->Length(); ++i) {
-    ClearUseLists(graph_entry_->start_env()->ValueAt(i)->definition());
+  // Clear initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ClearUseLists((*graph_entry_->initial_definitions())[i]);
   }
   ComputeUseListsRecursive(graph_entry_);
   DEBUG_ASSERT(ValidateUseLists());
@@ -299,7 +290,7 @@ void FlowGraph::ComputeUseLists() {
 void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
   current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
-  ComputeDominators(&preorder_, &parent_, &dominance_frontier);
+  ComputeDominators(&dominance_frontier);
   InsertPhis(preorder_, assigned_vars_, dominance_frontier);
   GrowableArray<PhiInstr*> live_phis;
   // Rename uses to reference inserted phis where appropriate.
@@ -314,20 +305,10 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
 // block.  As a side effect of the algorithm, sets the immediate dominator
 // of each basic block.
 //
-// preorder: an input list of basic block entries in preorder.  The
-//     algorithm relies on the block ordering.
-//
-// parent: an input parameter encoding a depth-first spanning tree of
-//     the control flow graph.  The array maps the preorder block
-//     number of a block to the preorder block number of its spanning
-//     tree parent.
-//
 // dominance_frontier: an output parameter encoding the dominance frontier.
 //     The array maps the preorder block number of a block to the set of
 //     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraph::ComputeDominators(
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* dominance_frontier) {
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
@@ -340,7 +321,7 @@ void FlowGraph::ComputeDominators(
   // See http://www.cs.princeton.edu/~rwerneck/dominators/ .
 
   // All arrays are maps between preorder basic-block numbers.
-  intptr_t size = parent->length();
+  intptr_t size = parent_.length();
   GrowableArray<intptr_t> idom(size);  // Immediate dominator.
   GrowableArray<intptr_t> semi(size);  // Semidominator.
   GrowableArray<intptr_t> label(size);  // Label for link-eval forest.
@@ -356,17 +337,22 @@ void FlowGraph::ComputeDominators(
   // Initialize idom, semi, and label used by SEMI-NCA.  Initialize the
   // dominance frontier output array.
   for (intptr_t i = 0; i < size; ++i) {
-    idom.Add((*parent)[i]);
+    idom.Add(parent_[i]);
     semi.Add(i);
     label.Add(i);
     dominance_frontier->Add(new BitVector(size));
   }
 
   // Loop over the blocks in reverse preorder (not including the graph
-  // entry).
+  // entry).  Clear the dominated blocks in the graph entry in case
+  // ComputeDominators is used to recompute them.
+  preorder_[0]->ClearDominatedBlocks();
   for (intptr_t block_index = size - 1; block_index >= 1; --block_index) {
     // Loop over the predecessors.
-    BlockEntryInstr* block = (*preorder)[block_index];
+    BlockEntryInstr* block = preorder_[block_index];
+    // Clear the immediately dominated blocks in case ComputeDominators is
+    // used to recompute them.
+    block->ClearDominatedBlocks();
     for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       ASSERT(pred != NULL);
@@ -376,7 +362,7 @@ void FlowGraph::ComputeDominators(
       intptr_t pred_index = pred->preorder_number();
       intptr_t best = pred_index;
       if (pred_index > block_index) {
-        CompressPath(block_index, pred_index, parent, &label);
+        CompressPath(block_index, pred_index, &parent_, &label);
         best = label[pred_index];
       }
 
@@ -396,8 +382,8 @@ void FlowGraph::ComputeDominators(
       dom_index = idom[dom_index];
     }
     idom[block_index] = dom_index;
-    (*preorder)[block_index]->set_dominator((*preorder)[dom_index]);
-    (*preorder)[dom_index]->AddDominatedBlock((*preorder)[block_index]);
+    preorder_[block_index]->set_dominator(preorder_[dom_index]);
+    preorder_[dom_index]->AddDominatedBlock(preorder_[block_index]);
   }
 
   // 3. Now compute the dominance frontier for all blocks.  This is
@@ -406,7 +392,7 @@ void FlowGraph::ComputeDominators(
   // required to avoid adding a block twice to the same block's dominance
   // frontier because we use a set to represent the dominance frontier.
   for (intptr_t block_index = 0; block_index < size; ++block_index) {
-    BlockEntryInstr* block = (*preorder)[block_index];
+    BlockEntryInstr* block = preorder_[block_index];
     intptr_t count = block->PredecessorCount();
     if (count <= 1) continue;
     for (intptr_t i = 0; i < count; ++i) {
@@ -495,31 +481,30 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
     Bailout("Catch-entry support in SSA.");
   }
 
-  // Name global constants.
+  // Initial renaming environment.
+  GrowableArray<Definition*> env(variable_count());
+
+  // Add global constants to the initial definitions.
   ConstantInstr* constant_null = new ConstantInstr(Object::ZoneHandle());
   constant_null->set_ssa_temp_index(alloc_ssa_temp_index());
-  graph_entry_->set_constant_null(constant_null);
+  graph_entry_->initial_definitions()->Add(constant_null);
 
-  // Initialize start environment.
-  GrowableArray<Definition*> start_env(variable_count());
+  // Add incoming parameters to the initial definitions and the renaming
+  // environment.
   for (intptr_t i = 0; i < parameter_count(); ++i) {
     ParameterInstr* param = new ParameterInstr(i, graph_entry_);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-    start_env.Add(param);
+    graph_entry_->initial_definitions()->Add(param);
+    env.Add(param);
   }
 
-  // All locals are initialized with #null.  Use the global definition, uses
-  // will be created in the Environment constructor.
-  while (start_env.length() < variable_count()) {
-    start_env.Add(graph_entry_->constant_null());
+  // Initialize all locals with #null in the renaming environment.
+  for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
+    env.Add(constant_null);
   }
-  graph_entry_->set_start_env(
-      Environment::From(start_env, num_non_copied_params_, NULL));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  GrowableArray<Definition*> env(variable_count());
-  env.AddArray(start_env);
   RenameRecursive(normal_entry, &env, live_phis);
 }
 
@@ -547,8 +532,12 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // Attach current environment to the instruction. First, each instruction
     // gets a full copy of the environment. Later we optimize this by
     // eliminating unnecessary environments.
-    current->set_env(
-        Environment::From(*env, num_non_copied_params_, NULL));
+    current->set_env(Environment::From(*env,
+                                       num_non_copied_params_,
+                                       parsed_function_.function()));
+    if (current->CanDeoptimize()) {
+      current->env()->set_deopt_id(current->deopt_id());
+    }
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -777,6 +766,12 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
   BlockEntryInstr* caller_entry = GetBlockEntry(call);
   TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
   ZoneGrowableArray<ReturnInstr*>* callee_exits = callee_graph->exits();
+
+  // 0. Attach the outer environment on each instruction in the callee graph.
+  for (ForwardInstructionIterator it(callee_entry); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->CanDeoptimize()) call->env()->DeepCopyToOuter(instr);
+  }
 
   // 1. Insert the callee graph into the caller graph.
   if (callee_exits->is_empty()) {

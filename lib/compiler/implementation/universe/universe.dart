@@ -207,6 +207,8 @@ class Selector implements Hashable {
     if (positionalArgumentCount < requiredParameterCount) return false;
 
     if (!parameters.optionalParametersAreNamed) {
+      // TODO(5074): Remove this check once we don't accept the
+      // deprecated parameter specification.
       if (!Compiler.REJECT_NAMED_ARGUMENT_AS_POSITIONAL) {
         return optionalParametersAppliesDEPRECATED(element, compiler);
       } else {
@@ -219,6 +221,7 @@ class Selector implements Hashable {
       }
     } else {
       if (positionalArgumentCount > requiredParameterCount) return false;
+      assert(positionalArgumentCount == requiredParameterCount);
       if (namedArgumentCount > optionalParameterCount) return false;
       Set<SourceString> nameSet = new Set<SourceString>();
       parameters.optionalParameters.forEach((Element element) {
@@ -226,9 +229,9 @@ class Selector implements Hashable {
       });
       for (SourceString name in namedArguments) {
         if (!nameSet.contains(name)) return false;
-        // TODO(ngeoffray): By removing from the set we are checking
+        // TODO(5213): By removing from the set we are checking
         // that we are not passing the name twice. We should have this
-        // check in the resolver instead.
+        // check in the resolver also.
         nameSet.remove(name);
       }
       return true;
@@ -345,6 +348,8 @@ class Selector implements Hashable {
     });
 
     if (!parameters.optionalParametersAreNamed) {
+      // TODO(5074): Remove this check once we don't accept the
+      // deprecated parameter specification.
       if (!Compiler.REJECT_NAMED_ARGUMENT_AS_POSITIONAL) {
         addOptionalArgumentsToListDEPRECATED(
             arguments, list, element, compileArgument, compileConstant,

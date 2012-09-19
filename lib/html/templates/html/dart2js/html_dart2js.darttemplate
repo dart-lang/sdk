@@ -12,27 +12,27 @@
 
 $!GENERATED_DART_FILES
 
-#source('../../html/src/EventListener.dart');
-#source('../../html/src/KeyLocation.dart');
-#source('../../html/src/KeyName.dart');
-#source('../../html/src/ReadyState.dart');
-#source('../../html/src/Timer.dart');
-#source('../../html/src/_Collections.dart');
-#source('../../html/src/_HttpRequestUtils.dart');
-#source('../../html/src/Isolates.dart');
-#source('../../html/src/Measurement.dart');
-#source('../../html/src/Serialization.dart');
-#source('../../html/src/shared_FactoryProviders.dart');
-#source('../../html/src/dart2js_Conversions.dart');
-#source('../../html/src/dart2js_DOMImplementation.dart');
-#source('../../html/src/dart2js_FactoryProviders.dart');
-#source('../../html/src/dart2js_IDBKeyRangeFactoryProvider.dart');
-#source('../../html/src/dart2js_LocationWrapper.dart');
-#source('../../html/src/dart2js_TypedArrayFactoryProvider.dart');
-#source('../../html/src/_Testing.dart');
-#source('../../html/src/Device.dart');
-#source('../../html/src/_ListIterators.dart');
-#source('../../html/src/_Lists.dart');
+#source('$AUXILIARY_DIR/EventListener.dart');
+#source('$AUXILIARY_DIR/KeyLocation.dart');
+#source('$AUXILIARY_DIR/KeyName.dart');
+#source('$AUXILIARY_DIR/ReadyState.dart');
+#source('$AUXILIARY_DIR/Timer.dart');
+#source('$AUXILIARY_DIR/_Collections.dart');
+#source('$AUXILIARY_DIR/_HttpRequestUtils.dart');
+#source('$AUXILIARY_DIR/Isolates.dart');
+#source('$AUXILIARY_DIR/Measurement.dart');
+#source('$AUXILIARY_DIR/Serialization.dart');
+#source('$AUXILIARY_DIR/shared_FactoryProviders.dart');
+#source('$AUXILIARY_DIR/dart2js_Conversions.dart');
+#source('$AUXILIARY_DIR/dart2js_DOMImplementation.dart');
+#source('$AUXILIARY_DIR/dart2js_FactoryProviders.dart');
+#source('$AUXILIARY_DIR/dart2js_IDBKeyRangeFactoryProvider.dart');
+#source('$AUXILIARY_DIR/dart2js_LocationWrapper.dart');
+#source('$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart');
+#source('$AUXILIARY_DIR/_Testing.dart');
+#source('$AUXILIARY_DIR/Device.dart');
+#source('$AUXILIARY_DIR/_ListIterators.dart');
+#source('$AUXILIARY_DIR/_Lists.dart');
 
 
 Window get window() native "return window;";

@@ -1050,7 +1050,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4238
    */
-  //TODO(pquitslund): re-enable (dartbug.com/4925).
   public void test_typesPropagation_html_query() throws Exception {
     appSource.setContent(
         APP,
