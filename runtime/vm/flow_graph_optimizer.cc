@@ -1509,7 +1509,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 
   // Host CheckSmi instruction and make this phi smi one.
   Hoist(it, pre_header, current);
-  current->SetInputAt(non_smi_input, phi->InputAt(non_smi_input));
+  current->SetInputAt(0, phi->InputAt(non_smi_input));
   phi->SetPropagatedCid(kSmiCid);
 }
 
