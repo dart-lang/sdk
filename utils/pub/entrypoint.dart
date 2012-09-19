@@ -137,11 +137,11 @@ class Entrypoint {
   }
 
   /**
-   * Installs all dependencies listed in [packageVersions] and writes a
-   * [LockFile].
+   * Removes the old packages directory, installs all dependencies listed in
+   * [packageVersions], and writes a [LockFile].
    */
   Future _installDependencies(List<PackageId> packageVersions) {
-    return _removeUnusedDependencies(packageVersions).chain((_) {
+    return cleanDir(path).chain((_) {
       return Futures.wait(packageVersions.map((id) {
         if (id.source is RootSource) return new Future.immediate(id);
         return install(id);
@@ -179,27 +179,6 @@ class Entrypoint {
     future.then((text) =>
         completer.complete(new LockFile.parse(text, cache.sources)));
     return completer.future;
-  }
-
-  /**
-   * Removes all dependencies that are no longer depended on from the `packages`
-   * directory. [packageIds] is a list of all packages that are still depended
-   * on.
-   */
-  Future _removeUnusedDependencies(List<PackageId> packageIds) {
-    var dependenciesToKeep = packageIds.map((id) => id.name);
-
-    return dirExists(path).chain((exists) {
-      if (exists) return listDir(path);
-      return new Future.immediate([]);
-    }).chain((existingDependencies) {
-      existingDependencies = existingDependencies.map(basename);
-      var dependenciesToRemove =
-          new List.from(setMinus(existingDependencies, dependenciesToKeep));
-      return Futures.wait(dependenciesToRemove.map((dependency) {
-        return deleteDir(join(path, dependency));
-      }));
-    });
   }
 
   /**
