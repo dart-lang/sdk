@@ -391,7 +391,7 @@ def main():
   if build_info.host_checked: test_flags += ['--host-checked']
 
   status = TestCompiler(build_info.runtime, build_info.mode,
-                        build_info.system, test_flags,
+                        build_info.system, list(test_flags),
                         build_info.is_buildbot, build_info.test_set)
 
   # See comment in GetHasHardCodedCheckedMode, this is a hack.
