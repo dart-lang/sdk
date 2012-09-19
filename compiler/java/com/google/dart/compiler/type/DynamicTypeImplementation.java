@@ -35,7 +35,7 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
 
   @Override
   public String toString() {
-    return "Dynamic";
+    return "dynamic";
   }
 
   @Override
