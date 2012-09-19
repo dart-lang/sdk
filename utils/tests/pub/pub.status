@@ -10,14 +10,12 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
-# Right now, Pub update creates symlinks which aren't supported on Windows.
+# Git on Windows is cripplingly slow and will make these tests time out (#5271).
 [ $system == windows ]
-pub_test: Skip
-pub_install_test: Skip
 pub_install_git_test: Skip
-pub_install_hosted_test: Skip
-pub_install_sdk_test: Skip
-pub_update_test: Skip
 pub_update_git_test: Skip
-pub_update_hosted_test: Skip
 
+# Getting non-determinstic network errors with these on Windows (#5272).
+[ $system == windows ]
+pub_install_hosted_test: Skip
+pub_update_hosted_test: Skip

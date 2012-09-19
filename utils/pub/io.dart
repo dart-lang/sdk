@@ -10,7 +10,13 @@
 #import('dart:io');
 #import('dart:isolate');
 #import('dart:uri');
+
 #import('utils.dart');
+
+bool _isGitInstalledCache;
+
+/// The cached Git command.
+String _gitCommandCache;
 
 /** Gets the current working directory. */
 String get workingDir => new File('.').fullPathSync();
@@ -270,8 +276,8 @@ Future<File> createSymlink(from, to) {
     // command is not.) I'm using a junction point (/j) here instead of a soft
     // link (/d) because the latter requires some privilege shenanigans that
     // I'm not sure how to specify from the command line.
-    command = 'cmd';
-    args = ['/c', 'mklink', '/j', to, from];
+    command = 'mklink';
+    args = ['/j', to, from];
   }
 
   return runProcess(command, args).transform((result) {
@@ -365,7 +371,8 @@ Future<InputStream> httpGet(uri) {
     if (e is SocketIOException &&
         (e.osError.errorCode == 8 ||
          e.osError.errorCode == -2 ||
-         e.osError.errorCode == -5)) {
+         e.osError.errorCode == -5 ||
+         e.osError.errorCode == 11004)) {
       e = 'Could not resolve URL "${uri.origin}".';
     }
 
@@ -438,6 +445,16 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
     [workingDir, Map<String, String> environment, bool pipeStdout = false,
     bool pipeStderr = false]) {
   int exitCode;
+
+  // TODO(rnystrom): Should dart:io just handle this?
+  // Spawning a process on Windows will not look for the executable in the
+  // system path. So, if executable looks like it needs that (i.e. it doesn't
+  // have any path separators in it), then spawn it through a shell.
+  if ((Platform.operatingSystem == "windows") &&
+      (executable.indexOf('\\') == -1)) {
+    args = flatten(["/c", executable, args]);
+    executable = "cmd";
+  }
 
   final options = new ProcessOptions();
   if (workingDir != null) {
@@ -520,15 +537,20 @@ Future timeout(Future input, int milliSeconds, String message) {
   return completer.future;
 }
 
-/// The cached Git command.
-String _gitCommandCache;
-
 /// Tests whether or not the git command-line app is available for use.
-Future<bool> get isGitInstalled => _gitCommand.transform((git) => git != null);
+Future<bool> get isGitInstalled {
+  if (_isGitInstalledCache != null) {
+    // TODO(rnystrom): The sleep is to pump the message queue. Can use
+    // Future.immediate() when #3356 is fixed.
+    return sleep(0).transform((_) => _isGitInstalledCache);
+
+    return _gitCommand.transform((git) => git != null);
+  }
+}
 
 /// Run a git process with [args] from [workingDir].
 Future<PubProcessResult> runGit(List<String> args, [String workingDir]) =>
-  _gitCommand.chain((git) => runProcess(git, args, workingDir));
+    _gitCommand.chain((git) => runProcess(git, args, workingDir));
 
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.
@@ -579,8 +601,14 @@ Future<bool> _tryGitCommand(String command) {
  * directory or a path. Returns whether or not the extraction was successful.
  */
 Future<bool> extractTarGz(InputStream stream, destination) {
+  destination = _getPath(destination);
+
+  if (Platform.operatingSystem == "windows") {
+    return _extractTarGzWindows(stream, destination);
+  }
+
   var process = Process.start("tar",
-      ["--extract", "--gunzip", "--directory", _getPath(destination)]);
+      ["--extract", "--gunzip", "--directory", destination]);
   var completer = new Completer<int>();
 
   // Wait for the process to be fully started before writing to its
@@ -593,6 +621,33 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     process.onExit = completer.complete;
     process.onError = completer.completeException;
   };
+
+  return completer.future.transform((exitCode) => exitCode == 0);
+}
+
+Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
+  // Find 7zip.
+  var scriptDir = new Path(new Options().script).directoryPath;
+
+  // Note: This line of code gets munged by create_sdk.py to be the correct
+  // relative path to 7zip in the SDK.
+  var pathTo7zip = '../../third_party/7zip/7za.exe';
+
+  var command = scriptDir.append(pathTo7zip).canonicalize().toNativePath();
+
+  // 7zip can't unarchive from gzip -> tar -> destination all in one step so
+  // we spawn it twice and pipe them together.
+  var completer = new Completer<int>();
+  var gzipProcess = Process.start(command, ["e", "-si", "-tgzip", '-so']);
+  var tarProcess = Process.start(command,
+      ["e", "-si", "-ttar", '-o"$destination"']);
+
+  stream.pipe(gzipProcess.stdin);
+  gzipProcess.stdout.pipe(tarProcess.stdin);
+
+  tarProcess.onExit = completer.complete;
+  gzipProcess.onError = completer.completeException;
+  gzipProcess.onError = completer.completeException;
 
   return completer.future.transform((exitCode) => exitCode == 0);
 }

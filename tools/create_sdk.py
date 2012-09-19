@@ -299,6 +299,18 @@ def Main(argv):
   copytree(join(HOME, 'utils', 'pub'), join(UTIL, 'pub'),
            ignore=ignore_patterns('.svn', 'sdk'))
 
+  # Copy in 7zip for Windows.
+  if utils.GuessOS() == 'win32':
+    copytree(join(HOME, 'third_party', '7zip'),
+             join(join(UTIL, 'pub'), '7zip'))
+
+    ReplaceInFiles([
+        join(UTIL, 'pub', 'io.dart'),
+      ], [
+        ("var pathTo7zip = '../../third_party/7zip/7za.exe';",
+         "var pathTo7zip = '7zip/7za.exe';"),
+      ])
+
   revision = utils.GetSVNRevision()
 
   # Copy dart2js.
