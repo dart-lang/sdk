@@ -281,7 +281,8 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst.rewrite(compiler, parse(element), treeElements);
+      var elementAst =
+          new ElementAst.rewrite(compiler, parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
