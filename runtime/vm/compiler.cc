@@ -39,6 +39,7 @@ DEFINE_FLAG(bool, cp, true,
     "Do conditional constant propagation/unreachable code elimination.");
 DEFINE_FLAG(bool, cse, true, "Do common subexpression elimination.");
 DEFINE_FLAG(bool, licm, true, "Do loop invariant code motion.");
+DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
@@ -181,8 +182,10 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         }
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(flow_graph);
-        propagator.PropagateTypes();
+        if (FLAG_propagate_types) {
+          FlowGraphTypePropagator propagator(flow_graph);
+          propagator.PropagateTypes();
+        }
 
         // Verify that the use lists are still valid.
         DEBUG_ASSERT(flow_graph->ValidateUseLists());

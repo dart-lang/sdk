@@ -18,7 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, reject_named_argument_as_positional);

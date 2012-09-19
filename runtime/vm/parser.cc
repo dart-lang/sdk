@@ -39,7 +39,7 @@ static void CheckedModeHandler(bool value) {
 
 DEFINE_FLAG_HANDLER(CheckedModeHandler,
                     enable_checked_mode,
-                    "Enabled checked mode.");
+                    "Enable checked mode.");
 
 #if defined(DEBUG)
 
