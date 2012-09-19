@@ -1038,7 +1038,6 @@ Language/10_Expressions/30_Type_Cast_A03_t02: Fail # http://dartbug.com/5029
 Language/10_Expressions/30_Type_Cast_A04_t01: Pass
 Language/10_Expressions/30_Type_Cast_A04_t02: Pass
 Language/10_Expressions/30_Type_Cast_A05_t01: Fail # http://dartbug.com/5029
-Language/11_Statements/05_For/2_For_in_A01_t05: Fail # BUG: Iterable.iterator doesn't make into resolved
 Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
@@ -1096,8 +1095,6 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
 LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
 LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
 LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
-LibTest/core/Queue/Queue.from_A01_t02: Fail # BUG with Iterable.iterator
-LibTest/core/Set/Set.from_A01_t02: Fail # BUG with Iterable.iterator
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
