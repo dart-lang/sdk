@@ -1042,7 +1042,23 @@ Language/11_Statements/05_For/2_For_in_A01_t05: Fail # BUG: Iterable.iterator do
 Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/*: Skip # ~11 failures
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A01_t01: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A02_t10: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A02_t25: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
 Language/14_Types/*: Skip # ~3 failures
 Language/15_Reference/*: Skip # Not clear how many failures
 LibTest/core/*: Skip # ~4 failures
