@@ -16,20 +16,20 @@ abstract class $ID$EXTENDS {
   /**
    * @domName IDBKeyRange.lowerBound
    */
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]) =>
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
       _IDBKeyRangeFactoryProvider.create$(ID)_lowerBound(bound, open);
 
   /**
    * @domName IDBKeyRange.upperBound
    */
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]) =>
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
       _IDBKeyRangeFactoryProvider.create$(ID)_upperBound(bound, open);
 
   /**
    * @domName IDBKeyRange.bound
    */
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen, bool upperOpen]) =>
+                            [bool lowerOpen = false, bool upperOpen = false]) =>
       _IDBKeyRangeFactoryProvider.create$(ID)_bound(
           lower, upper, lowerOpen, upperOpen);
 

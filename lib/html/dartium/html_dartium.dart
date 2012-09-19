@@ -17845,20 +17845,20 @@ abstract class IDBKeyRange {
   /**
    * @domName IDBKeyRange.lowerBound
    */
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]) =>
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
       _IDBKeyRangeFactoryProvider.createIDBKeyRange_lowerBound(bound, open);
 
   /**
    * @domName IDBKeyRange.upperBound
    */
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]) =>
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
       _IDBKeyRangeFactoryProvider.createIDBKeyRange_upperBound(bound, open);
 
   /**
    * @domName IDBKeyRange.bound
    */
   factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen, bool upperOpen]) =>
+                            [bool lowerOpen = false, bool upperOpen = false]) =>
       _IDBKeyRangeFactoryProvider.createIDBKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
@@ -22125,9 +22125,10 @@ class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
 abstract class MouseEvent implements UIEvent {
 
   factory MouseEvent(String type, Window view, int detail, int screenX, int screenY,
-      int clientX, int clientY, int button, [bool canBubble, bool cancelable,
-      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
-      EventTarget relatedTarget]) =>
+      int clientX, int clientY, int button, [bool canBubble = true,
+      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
+      bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) =>
       _MouseEventFactoryProvider.createMouseEvent(
           type, view, detail, screenX, screenY,
           clientX, clientY, button, canBubble, cancelable,
