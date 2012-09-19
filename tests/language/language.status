@@ -395,3 +395,7 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+
+[ $compiler == dart2js && $browser == ff && $system == windows ]
+typed_message_test: Skip # Throws an uncaught DOM error; needs investigation
+

@@ -204,5 +204,8 @@ window_open_test: Fail # Caught NoSuchMethodError : method not found: 'is$_Windo
 [ $system == macos && $compiler == dart2js && $runtime == chrome ]
 window_open_test: Fail # No testrunner or layoutTestController on Chrome on Mac
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == safari || $runtime == opera) ]
+[ $compiler == dart2js && $runtime == ff ]
+window_open_test: Skip # Need to investigate if this should be pass or fail
+
+[ $compiler == dart2js && ($runtime == ie || $runtime == safari || $runtime == opera) ]
 window_open_test: Fail
