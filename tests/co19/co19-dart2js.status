@@ -1098,7 +1098,11 @@ LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
 LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
 LibTest/core/Queue/Queue.from_A01_t02: Fail # BUG with Iterable.iterator
 LibTest/core/Set/Set.from_A01_t02: Fail # BUG with Iterable.iterator
-LibTest/isolate/*: Skip # ~5 failures
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test: encoded file name
 
 
 [ $compiler == dart2js && $browser ]
