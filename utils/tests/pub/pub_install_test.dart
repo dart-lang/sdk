@@ -175,6 +175,36 @@ main() {
       run();
     });
 
+    test('"web/" and its subdirectories', () {
+      dir(appPath, [
+        appPubspec([]),
+        libDir('foo'),
+        dir("web", [dir("subweb")])
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(appPath, [
+        dir("web", [
+          dir("packages", [
+            dir("myapp", [
+              file('foo.dart', 'main() => "foo";')
+            ])
+          ]),
+          dir("subweb", [
+            dir("packages", [
+              dir("myapp", [
+                file('foo.dart', 'main() => "foo";')
+              ])
+            ])
+          ])
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
     test('"bin/"', () {
       dir(appPath, [
         appPubspec([]),

@@ -217,11 +217,13 @@ class Entrypoint {
     var binDir = join(root.dir, 'bin');
     var testDir = join(root.dir, 'test');
     var exampleDir = join(root.dir, 'example');
+    var webDir = join(root.dir, 'web');
     return dirExists(binDir).chain((exists) {
       if (!exists) return new Future.immediate(null);
       return _linkSecondaryPackageDir(binDir);
     }).chain((_) => _linkSecondaryPackageDirsRecursively(testDir))
-      .chain((_) => _linkSecondaryPackageDirsRecursively(exampleDir));
+      .chain((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
+      .chain((_) => _linkSecondaryPackageDirsRecursively(webDir));
   }
 
   /**
