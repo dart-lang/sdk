@@ -20,98 +20,156 @@
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 #import('../lib/dartdoc.dart');
+#import('../../args/lib/args.dart');
 
 /**
  * Run this from the `pkg/dartdoc` directory.
  */
 main() {
+  // Need this because ArgParser.getUsage doesn't show command invocation.
+  final USAGE = 'Usage dartdoc [options] <entrypoint(s)>\n[options] include:';
+
   final args = new Options().arguments;
 
   final dartdoc = new Dartdoc();
+
+  final argParser = new ArgParser();
+
+  argParser.addFlag('no-code',
+      help: 'Do not include source code in the documentation.',
+      defaultsTo: false, negatable: false,
+      callback: (noCode) => dartdoc.includeSource = !noCode);
+
+  argParser.addOption('mode', abbr: 'm',
+      help: 'Define how HTML pages are generated.',
+      allowed: ['static', 'live-nav'], allowedHelp: {
+        'static': 'Generates completely static HTML containing\n'
+          'everything you need to browse the docs. The only\n'
+          'client side behavior is trivial stuff like syntax\n'
+          'highlighting code, and the find-as-you-type search\n'
+          'box.',
+        'live-nav': '(Default) Generated docs do not included baked HTML\n'
+          'navigation. Instead a single `nav.json` file is\n'
+          'created and the appropriate navigation is generated\n'
+          'client-side by parsing that and building HTML.\n'
+          '\tThis dramatically reduces the generated size of\n'
+          'the HTML since a large fraction of each static page\n'
+          'is just redundant navigation links.\n'
+          '\tIn this mode, the browser will do a XHR for\n'
+          'nav.json which means that to preview docs locallly,\n'
+          'you will need to enable requesting file:// links in\n'
+          'your browser or run a little local server like\n'
+          '`python -m  SimpleHTTPServer`.'},
+        defaultsTo: 'live-nav',
+        callback: (genMode) {
+          dartdoc.mode = (genMode == 'static' ? MODE_STATIC : MODE_LIVE_NAV);
+        });
+
+  argParser.addFlag('generate-app-cache',
+      help: 'Generates the App Cache manifest file, enabling\n'
+        'offline doc viewing.',
+        defaultsTo: false, negatable: false,
+        callback: (generate) => dartdoc.generateAppCache = generate);
+
+  argParser.addFlag('omit-generation-time',
+      help: 'Omits generation timestamp from output.',
+      defaultsTo: false, negatable: false,
+      callback: (genTimestamp) => dartdoc.omitGenerationTime = genTimestamp);
+
+  argParser.addFlag('verbose', abbr: 'v',
+      help: 'Print verbose information during generation.',
+      defaultsTo: false, negatable: false,
+      callback: (verb) => dartdoc.verbose = verb);
+
+  argParser.addFlag('include-api',
+      help: 'Include the used API libraries in the generated\n'
+        'documentation. If the --link-api option is used,\n'
+        'this option is ignored.',
+      defaultsTo: false, negatable: false,
+      callback: (incApi) => dartdoc.includeApi = incApi);
+
+  argParser.addFlag('link-api',
+      help: 'Link to the online language API in the generated\n'
+        'documentation. The option overrides inclusion\n'
+        'through --include-api or --include-lib.',
+      defaultsTo: false, negatable: false,
+      callback: (linkApi) => dartdoc.linkToApi = linkApi);
+
+  argParser.addFlag('enable-diagnostic-colors', negatable: false);
+
+  argParser.addOption('out',
+      help: 'Generates files into directory specified. If\n'
+        'omitted the files are generated into ./docs/',
+      callback: (outDir) {
+        if(outDir != null) {
+          dartdoc.outputDir = new Path.fromNative(outDir);
+        }
+      });
+
+  argParser.addOption('include-lib',
+      help: 'Use this option to explicitly specify which\n'
+        'libraries to include in the documentation. If\n'
+        'omitted, all used libraries are included by\n'
+        'default. Specify a comma-separated list of\n'
+        'library names, or call this option multiple times.',
+      callback: (incLibs) {
+        if(!incLibs.isEmpty()) {
+          List<String> allLibs = new List<String>();
+          for(final lst in incLibs) {
+            var someLibs = lst.split(',');
+            for(final lib in someLibs) {
+              allLibs.add(lib);
+            }
+          }
+          dartdoc.excludedLibraries = allLibs;
+        }
+      }, allowMultiple: true);
+
+  argParser.addOption('exclude-lib',
+      help: 'Use this option to explicitly specify which\n'
+        'libraries to exclude from the documentation. If\n'
+        'omitted, no libraries are excluded. Specify a\n'
+        'comma-separated list of library names, or call\n'
+        'this option multiple times.',
+      callback: (excLibs) {
+        if(!excLibs.isEmpty()) {
+          List<String> allLibs = new List<String>();
+          for(final lst in excLibs) {
+            var someLibs = lst.split(',');
+            for(final lib in someLibs) {
+              allLibs.add(lib);
+            }
+          }
+          dartdoc.excludedLibraries = allLibs;
+        }
+      }, allowMultiple: true);
 
   final libPath = scriptDir.append('../../../');
   dartdoc.dartdocPath = libPath.append('pkg/dartdoc');
 
   if (args.isEmpty()) {
     print('No arguments provided.');
-    printUsage();
+    print(USAGE);
+    print(argParser.getUsage());
     return;
   }
 
   final entrypoints = <Path>[];
-
-  var i = 0;
-  while (i < args.length) {
-    final arg = args[i];
-    if (!arg.startsWith('--')) {
-      // The remaining arguments must be entry points.
-      break;
+  try {
+    final option = argParser.parse(args);
+    for(final arg in option.rest) {
+      entrypoints.add(new Path.fromNative(arg));
     }
-
-    switch (arg) {
-      case '--no-code':
-        dartdoc.includeSource = false;
-        break;
-
-      case '--mode=static':
-        dartdoc.mode = MODE_STATIC;
-        break;
-
-      case '--mode=live-nav':
-        dartdoc.mode = MODE_LIVE_NAV;
-        break;
-
-      case '--generate-app-cache':
-      case '--generate-app-cache=true':
-        dartdoc.generateAppCache = true;
-        break;
-
-      case '--omit-generation-time':
-        dartdoc.omitGenerationTime = true;
-        break;
-      case '--verbose':
-        dartdoc.verbose = true;
-        break;
-      case '--include-api':
-        dartdoc.includeApi = true;
-        break;
-      case '--link-api':
-        dartdoc.linkToApi = true;
-        break;
-
-      // Hack to accept, but not use, colors option.
-      // This allows shared bash script to run dartdoc.
-      case '--enable-diagnostic-colors':
-        break;
-
-      default:
-        if (arg.startsWith('--out=')) {
-          dartdoc.outputDir =
-              new Path.fromNative(arg.substring('--out='.length));
-        } else if (arg.startsWith('--include-lib=')) {
-          dartdoc.includedLibraries =
-              arg.substring('--include-lib='.length).split(',');
-        } else if (arg.startsWith('--exclude-lib=')) {
-          dartdoc.excludedLibraries =
-              arg.substring('--exclude-lib='.length).split(',');
-        } else {
-          print('Unknown option: $arg');
-          printUsage();
-          return;
-        }
-        break;
-    }
-    i++;
-  }
-  while (i < args.length) {
-    final arg = args[i];
-    entrypoints.add(new Path.fromNative(arg));
-    i++;
+  } on FormatException catch (e) {
+    print(e.message);
+    print(USAGE);
+    print(argParser.getUsage());
+    return;
   }
 
   if (entrypoints.isEmpty()) {
     print('No entrypoints provided.');
-    printUsage();
+    print(argParser.getUsage());
     return;
   }
 
@@ -128,57 +186,4 @@ main() {
     print('Documented ${dartdoc.totalLibraries} libraries, '
           '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} members.');
   });
-}
-
-void printUsage() {
-  print('''
-Usage dartdoc [options] <entrypoint(s)>
-[options] include
- --no-code                   Do not include source code in the documentation.
-
- --mode=static               Generates completely static HTML containing
-                             everything you need to browse the docs. The only
-                             client side behavior is trivial stuff like syntax
-                             highlighting code.
-
- --mode=live-nav             (default) Generated docs do not include baked HTML
-                             navigation. Instead, a single `nav.json` file is
-                             created and the appropriate navigation is generated
-                             client-side by parsing that and building HTML.
-                                This dramatically reduces the generated size of
-                             the HTML since a large fraction of each static page
-                             is just redundant navigation links.
-                                In this mode, the browser will do a XHR for
-                             nav.json which means that to preview docs locally,
-                             you will need to enable requesting file:// links in
-                             your browser or run a little local server like
-                             `python -m SimpleHTTPServer`.
-
- --generate-app-cache        Generates the App Cache manifest file, enabling
-                             offline doc viewing.
-
- --out=<dir>                 Generates files into directory <dir>. If omitted
-                             the files are generated into ./docs/
-
- --link-api                  Link to the online language API in the generated
-                             documentation. The option overrides inclusion
-                             through --include-api or --include-lib.
-
- --include-api               Include the used API libraries in the generated
-                             documentation.  If the --link-api option is used,
-                             this option is ignored.
-
- --include-lib=<libs>        Use this option to explicitly specify which
-                             libraries to include in the documentation. If
-                             omitted, all used libraries are included by
-                             default. <libs> is comma-separated list of library
-                             names.
-
- --exclude-lib=<libs>        Use this option to explicitly specify which
-                             libraries to exclude from the documentation. If
-                             omitted, no libraries are excluded. <libs> is
-                             comma-separated list of library names.
-
- --verbose                   Print verbose information during generation.
-''');
 }
