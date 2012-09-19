@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+const bool REMOVE_ASSERTS = false;
+
 class ElementAst {
   final Node ast;
   final TreeElements treeElements;
 
   ElementAst(this.ast, this.treeElements);
 
-  factory ElementAst.rewrite(ast, treeElements) {
-    final rewriter = new FunctionBodyRewriter(treeElements);
+  factory ElementAst.rewrite(compiler, ast, treeElements) {
+    final rewriter = new FunctionBodyRewriter(compiler, treeElements);
     return new ElementAst(rewriter.visit(ast), rewriter.cloneTreeElements);
   }
 
@@ -60,10 +62,25 @@ class VariableListAst extends ElementAst {
 }
 
 class FunctionBodyRewriter extends CloningVisitor {
-  FunctionBodyRewriter(originalTreeElements) : super(originalTreeElements);
+  final Compiler compiler;
+
+  FunctionBodyRewriter(this.compiler, originalTreeElements)
+      : super(originalTreeElements);
 
   visitFunctionExpression(FunctionExpression node) {
-    shouldOmit(Statement statement) => statement is EmptyStatement;
+    shouldOmit(Statement statement) {
+      if (statement is EmptyStatement) return true;
+      if (statement is ExpressionStatement) {
+        Send send = statement.expression.asSend();
+        if (send !== null) {
+          Element element = originalTreeElements[send];
+          if (REMOVE_ASSERTS && element === compiler.assertMethod) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
 
     rewriteBody(Statement body) {
       if (body is !Block) return visit(body);
@@ -264,7 +281,7 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst.rewrite(parse(element), treeElements);
+      var elementAst = new ElementAst.rewrite(compiler, parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
