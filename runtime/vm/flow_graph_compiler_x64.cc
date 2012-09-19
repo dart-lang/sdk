@@ -920,32 +920,6 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
-void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
-  Label smi_to_double, double_op, call_method;
-  __ movq(RAX, Address(RSP, 0));
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(ZERO, &smi_to_double);
-  __ CompareClassId(RAX, kDoubleCid);
-  __ j(NOT_EQUAL, &call_method);
-  __ movsd(XMM1, FieldAddress(RAX, Double::value_offset()));
-  __ Bind(&double_op);
-  __ sqrtsd(XMM0, XMM1);
-  AssemblerMacros::TryAllocate(assembler_,
-                               double_class_,
-                               &call_method,
-                               Assembler::kNearJump,
-                               RAX);  // Result register.
-  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
-  __ Drop(1);
-  __ jmp(done);
-  __ Bind(&smi_to_double);
-  __ SmiUntag(RAX);
-  __ cvtsi2sd(XMM1, RAX);
-  __ jmp(&double_op);
-  __ Bind(&call_method);
-}
-
-
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
   if (TryIntrinsify()) {

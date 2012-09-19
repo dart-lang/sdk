@@ -240,7 +240,6 @@ class EmbeddedArray<T, 0> {
   M(BinarySmiOp)                                                               \
   M(BinaryMintOp)                                                              \
   M(UnarySmiOp)                                                                \
-  M(NumberNegate)                                                              \
   M(CheckStackOverflow)                                                        \
   M(DoubleToDouble)                                                            \
   M(SmiToDouble)                                                               \
@@ -3247,37 +3246,6 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
-};
-
-
-// Handles non-Smi NEGATE operations
-class NumberNegateInstr : public TemplateDefinition<1> {
- public:
-  NumberNegateInstr(InstanceCallInstr* instance_call, Value* value)
-      : instance_call_(instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  const ICData* ic_data() const { return instance_call()->ic_data(); }
-
-  DECLARE_INSTRUCTION(NumberNegate)
-  virtual RawAbstractType* CompileType() const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
-
- private:
-  InstanceCallInstr* instance_call_;
-
-  DISALLOW_COPY_AND_ASSIGN(NumberNegateInstr);
 };
 
 

@@ -1170,12 +1170,6 @@ RawAbstractType* UnarySmiOpInstr::CompileType() const {
 }
 
 
-RawAbstractType* NumberNegateInstr::CompileType() const {
-  // Implemented only for doubles.
-  return Type::Double();
-}
-
-
 RawAbstractType* DoubleToDoubleInstr::CompileType() const {
   return Type::Double();
 }
