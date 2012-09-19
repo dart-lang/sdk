@@ -1059,7 +1059,10 @@ Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
-Language/14_Types/*: Skip # ~3 failures
+# Language/14_Types/*: Skip # ~3 failures
+Language/14_Types/4_Interface_Types_A01_t01: Fail # BUG
+Language/14_Types/4_Interface_Types_A02_t01: Fail # BUG
+Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
 Language/15_Reference/*: Skip # Not clear how many failures
 LibTest/core/*: Skip # ~4 failures
 LibTest/isolate/*: Skip # ~5 failures
