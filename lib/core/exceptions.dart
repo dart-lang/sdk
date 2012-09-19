@@ -6,9 +6,10 @@
 
 /**
  * Interface implemented by all core library exceptions.
+ * Defaults to an implementation that only carries a simple message.
  */
 interface Exception default ExceptionImplementation {
-  const Exception([var msg]);
+  const Exception([var message]);
 }
 
 

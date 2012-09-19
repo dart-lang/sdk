@@ -5,8 +5,7 @@
 /**
  * A simple [Stopwatch] interface to measure elapsed time.
  */
-interface Stopwatch default StopwatchImplementation {
-
+abstract class Stopwatch {
   /**
    * Creates a [Stopwatch] in stopped state with a zero elapsed count.
    *
@@ -15,7 +14,7 @@ interface Stopwatch default StopwatchImplementation {
    *
    *     Stopwatch stopwatch = new Stopwatch()..start();
    */
-  Stopwatch();
+  factory Stopwatch() => new StopwatchImplementation();
 
   /**
    * Starts the [Stopwatch]. The [elapsed] count is increasing monotonically.

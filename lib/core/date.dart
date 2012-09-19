@@ -13,7 +13,7 @@
  *
  * Also see [Stopwatch] for means to measure time-spans.
  */
-interface Date extends Comparable, Hashable default DateImplementation {
+abstract class Date implements Comparable, Hashable {
   // Weekday constants that are returned by [weekday] method:
   static const int MON = 1;
   static const int TUE = 2;
@@ -45,27 +45,30 @@ interface Date extends Comparable, Hashable default DateImplementation {
    * [month] and [day] are one-based. For example
    * [:new Date(1938, 1, 10)] represents the 10th of January 1938.
    */
-  // TODO(floitsch): the spec allows default values in interfaces, but our
-  // tools don't yet. Eventually we want to have default values here.
-  Date(int year,
-       [int month = 1,
-        int day = 1,
-        int hour = 0,
-        int minute = 0,
-        int second = 0,
-        int millisecond = 0,
-        bool isUtc = false]);
+  factory Date(int year,
+               [int month = 1,
+                int day = 1,
+                int hour = 0,
+                int minute = 0,
+                int second = 0,
+                int millisecond = 0,
+                bool isUtc = false]) {
+    return new DateImplementation(year, month, day,
+                                  hour, minute, second,
+                                  millisecond, isUtc);
+  }
 
   /**
    * Constructs a new [Date] instance with current date time value in the
    * local time zone.
    */
-  Date.now();
+  factory Date.now() => new DateImplementation.now();
 
   /**
    * Constructs a new [Date] instance based on [formattedString].
    */
-  Date.fromString(String formattedString);
+  factory Date.fromString(String formattedString)
+      => new DateImplementation.fromString(formattedString);
 
   /**
    * Constructs a new [Date] instance with the given [millisecondsSinceEpoch].
@@ -77,7 +80,12 @@ interface Date extends Comparable, Hashable default DateImplementation {
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
-  Date.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch, [bool isUtc]);
+  // TODO(lrn): Have two constructors instead of taking an optional bool.
+  factory Date.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
+                                          [bool isUtc = false]) {
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        millisecondsSinceEpoch, isUtc);
+  }
 
   /**
    * Returns true if [this] occurs at the same time as [other]. The
