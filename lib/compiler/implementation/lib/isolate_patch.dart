@@ -94,7 +94,7 @@ void _fillStatics(context) native @"""
 """;
 
 ReceivePort _lazyPort;
-patch ReceivePort get port() {
+patch ReceivePort get port {
   if (_lazyPort === null) {
     _lazyPort = new ReceivePort();
   }
