@@ -138,6 +138,7 @@ def GetBuildInfo():
       system == 'linux' and platform.system() != 'Linux'):
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
+    sys.exit(1)
   return BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                    shard_index, total_shards, is_buildbot, test_set)
 
@@ -342,6 +343,18 @@ def ClobberBuilder(mode):
 def GetShouldClobber():
   return os.environ.get(BUILDER_CLOBBER) == "1"
 
+def GetHasHardCodedCheckedMode(build_info):
+  # TODO(ricow): We currently run checked mode tests on chrome on linux and
+  # on the slow (all) IE windows bots. This is a hack and we should use the
+  # normal sharding and checked splitting functionality when we get more
+  # vms for testing this.
+  if (build_info.system == 'linux' and build_info.runtime == 'chrome'):
+    return True
+  if (build_info.system == 'win7' and build_info.runtime == 'ie' and
+      build_info.test_set == 'all'):
+    return True
+  return False
+
 def main():
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
@@ -381,13 +394,8 @@ def main():
                         build_info.system, test_flags,
                         build_info.is_buildbot, build_info.test_set)
 
-  # TODO(ricow): We currently have only one browser runtime that runs checked
-  # mode test where this is not reflected by the name, namely dart2js on chrome
-  # linux. We should eliminate this (by splitting this onto two builders -
-  # potentially on the same vm).
-  # When this is fixed we should simply pass build_info to TestCompiler.
-  if (status == 0 and build_info.system == 'linux' and
-      build_info.runtime == 'chrome'):
+  # See comment in GetHasHardCodedCheckedMode, this is a hack.
+  if (status == 0 and GetHasHardCodedCheckedMode(build_info)):
     status = TestCompiler(build_info.runtime, build_info.mode,
                           build_info.system,
                           test_flags  + ['--checked'],
