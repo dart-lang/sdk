@@ -13,7 +13,6 @@
 #import('io.dart');
 #import('command_help.dart');
 #import('command_install.dart');
-#import('command_list.dart');
 #import('command_update.dart');
 #import('command_version.dart');
 #import('entrypoint.dart');
@@ -36,7 +35,6 @@ Version get pubVersion => new Version(0, 0, 0);
  */
 Map<String, PubCommand> get pubCommands => {
   'help': new HelpCommand(),
-  'list': new ListCommand(),
   'install': new InstallCommand(),
   'update': new UpdateCommand(),
   'version': new VersionCommand()
