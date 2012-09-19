@@ -4,7 +4,8 @@
 
 class JSSyntaxRegExp implements RegExp {
   external const JSSyntaxRegExp(String pattern,
-                                [bool multiLine, bool ignoreCase]);
+                                {bool multiLine: false,
+                                 bool ignoreCase: false});
   external Match firstMatch(String str);
   external Iterable<Match> allMatches(String str);
   external bool hasMatch(String str);

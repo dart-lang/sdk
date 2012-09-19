@@ -160,16 +160,16 @@ class DateImplementation implements Date {
   }
 
   external DateImplementation(int year,
-                              [int month,
-                               int day,
-                               int hour,
-                               int minute,
-                               int second,
-                               int millisecond,
-                               bool isUtc]);
+                              [int month = 1,
+                               int day = 1,
+                               int hour = 0,
+                               int minute = 0,
+                               int second = 0,
+                               int millisecond = 0,
+                               bool isUtc = false]);
   external DateImplementation.now();
   external static int _brokenDownDateToMillisecondsSinceEpoch(
-      int years, int month, int day, int hour, int minute, int second,
+      int year, int month, int day, int hour, int minute, int second,
       int millisecond, bool isUtc);
   external String get timeZoneName;
   external Duration get timeZoneOffset;

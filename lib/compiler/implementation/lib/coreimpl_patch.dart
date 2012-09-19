@@ -73,7 +73,7 @@ patch class ListImplementation<E> {
 // TODO(ager): Split out into date_patch.dart and allow #source
 // in patch files?
 patch class DateImplementation {
-  patch DateImplementation(int years,
+  patch DateImplementation(int year,
                            [int month = 1,
                             int day = 1,
                             int hour = 0,
@@ -83,7 +83,7 @@ patch class DateImplementation {
                             bool isUtc = false])
       : this.isUtc = checkNull(isUtc),
         millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
-            years, month, day, hour, minute, second, millisecond, isUtc) {
+            year, month, day, hour, minute, second, millisecond, isUtc) {
     Primitives.lazyAsJsDate(this);
   }
 
@@ -94,10 +94,10 @@ patch class DateImplementation {
   }
 
   patch static int _brokenDownDateToMillisecondsSinceEpoch(
-      int years, int month, int day, int hour, int minute, int second,
+      int year, int month, int day, int hour, int minute, int second,
       int millisecond, bool isUtc) {
     return Primitives.valueFromDecomposedDate(
-        years, month, day, hour, minute, second, millisecond, isUtc);
+        year, month, day, hour, minute, second, millisecond, isUtc);
   }
 
   patch String get timeZoneName {

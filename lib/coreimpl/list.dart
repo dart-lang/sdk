@@ -27,5 +27,5 @@ class ListImplementation<E> {
     return _from(other);
   }
 
-  external static _from(Iterable<E> other);
+  external static List _from(Iterable other);
 }

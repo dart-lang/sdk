@@ -94,7 +94,8 @@ interface RegExp extends Pattern default JSSyntaxRegExp {
    * Constructs a regular expression. The default implementation of a
    * [RegExp] sets [multiLine] and [ignoreCase] to false.
    */
-  const RegExp(String pattern, {bool multiLine, bool ignoreCase});
+  const RegExp(String pattern, {bool multiLine: false,
+                                bool ignoreCase: false});
 
   /**
    * Searches for the first match of the regular expression
