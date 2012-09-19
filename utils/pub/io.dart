@@ -384,7 +384,7 @@ Future<InputStream> httpGet(uri) {
     if (response.statusCode >= 400) {
       client.shutdown();
       completer.completeException(
-          new HttpException(response.statusCode, response.reasonPhrase));
+          new PubHttpException(response.statusCode, response.reasonPhrase));
       return;
     }
 
@@ -655,11 +655,11 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 /**
  * Exception thrown when an HTTP operation fails.
  */
-class HttpException implements Exception {
+class PubHttpException implements Exception {
   final int statusCode;
   final String reason;
 
-  const HttpException(this.statusCode, this.reason);
+  const PubHttpException(this.statusCode, this.reason);
 }
 
 /**

@@ -39,7 +39,7 @@ class HostedSource extends Source {
       var doc = JSON.parse(body);
       return doc['versions'].map((version) => new Version.parse(version));
     }).transformException((ex) {
-      if (ex is HttpException && ex.statusCode == 404) {
+      if (ex is PubHttpException && ex.statusCode == 404) {
         throw 'Could not find package "${parsed.first}" on ${parsed.last}.';
       }
 
