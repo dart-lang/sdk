@@ -22,7 +22,24 @@ class HtmlEnhancedConfiguration extends Configuration {
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
 
+  void _installErrorHandler() {
+    if (_onErrorClosure == null) {
+      _onErrorClosure =
+          (e) => handleExternalError(e, '(DOM callback has errors)');
+      // Listen for uncaught errors.
+      window.on.error.add(_onErrorClosure);
+    }
+  }
+
+  void _uninstallErrorHandler() {
+    if (_onErrorClosure != null) {
+      window.on.error.remove(_onErrorClosure);
+      _onErrorClosure = null;
+    }
+  }
+
   void onInit() {
+    _installErrorHandler();
     //initialize and load CSS
     final String _CSSID = '_unittestcss_';
 
@@ -34,9 +51,6 @@ class HtmlEnhancedConfiguration extends Configuration {
     }
 
     cssElement.innerHTML = _htmlTestCSS;
-
-    _onErrorClosure =
-        (e) => handleExternalError(e, '(DOM callback has errors)');
   }
 
   void onStart() {
@@ -49,7 +63,7 @@ class HtmlEnhancedConfiguration extends Configuration {
 
   void onDone(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    window.on.error.remove(_onErrorClosure);
+    _uninstallErrorHandler();
 
     _showInteractiveResultsInPage(passed, failed, errors, results,
         _isLayoutTest, uncaughtError);
