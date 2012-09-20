@@ -35,10 +35,12 @@ DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
 DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-DEFINE_FLAG(bool, cp, true,
+DEFINE_FLAG(bool, constant_propagation, true,
     "Do conditional constant propagation/unreachable code elimination.");
-DEFINE_FLAG(bool, cse, true, "Do common subexpression elimination.");
-DEFINE_FLAG(bool, licm, true, "Do loop invariant code motion.");
+DEFINE_FLAG(bool, common_subexpression_elimination, true,
+    "Do common subexpression elimination.");
+DEFINE_FLAG(bool, loop_invariant_code_motion, true,
+    "Do loop invariant code motion.");
 DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
@@ -200,10 +202,19 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         flow_graph->ComputeUseLists();
         optimizer.SelectRepresentations();
 
-        if (FLAG_cp || FLAG_cse) flow_graph->ComputeUseLists();
-        if (FLAG_cp) ConstantPropagator::Optimize(flow_graph);
-        if (FLAG_cse) DominatorBasedCSE::Optimize(flow_graph);
-        if (FLAG_licm) LICM::Optimize(flow_graph);
+        if (FLAG_constant_propagation ||
+            FLAG_common_subexpression_elimination) {
+          flow_graph->ComputeUseLists();
+        }
+        if (FLAG_constant_propagation) {
+          ConstantPropagator::Optimize(flow_graph);
+        }
+        if (FLAG_common_subexpression_elimination) {
+          DominatorBasedCSE::Optimize(flow_graph);
+        }
+        if (FLAG_loop_invariant_code_motion) {
+          LICM::Optimize(flow_graph);
+        }
 
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
