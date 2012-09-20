@@ -16,6 +16,19 @@ add$1(var receiver, var value) {
   return UNINTERCEPTED(receiver.add(value));
 }
 
+removeAt$1(var receiver, var index) {
+  if (isJsArray(receiver)) {
+    if (index is !int) throw new IllegalArgumentException(index);
+    if (index < 0 || index >= receiver.length) {
+      throw new IndexOutOfRangeException(index);
+    }
+    checkGrowable(receiver, 'removeAt');
+    return JS("Object", @'#.splice(#, 1)[0]', receiver, index);
+
+  }
+  return UNINTERCEPTED(receiver.removeAt(index));
+}
+
 removeLast(var receiver) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
