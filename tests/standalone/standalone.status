@@ -50,7 +50,6 @@ package/*: Skip # Do not run those in Dartium.
 [ $compiler == dart2js ]
 medium_integer_test: Fail, OK # cannot resolve type Mint
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
-io/web_socket_test: Fail # Bug 5316
 
 [ $compiler == dart2js && $runtime == d8 ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
