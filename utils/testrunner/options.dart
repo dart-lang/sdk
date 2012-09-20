@@ -23,8 +23,11 @@ ArgParser getOptionParser() {
   parser.addFlag('checked', defaultsTo: false,
       help: 'Run tests in checked mode.');
 
-  parser.addFlag('layout', defaultsTo: false,
-      help: 'Run layout tests.');
+  parser.addFlag('layout-text', defaultsTo: false,
+      help: 'Run text layout tests.');
+
+  parser.addFlag('layout-pixel', defaultsTo: false,
+      help: 'Run pixel layout tests.');
 
   parser.addOption('timeout', abbr: 't',
       help: 'Timeout in seconds', defaultsTo: '60');
@@ -137,8 +140,8 @@ ArgParser getOptionParser() {
         'messages for a single test.',
       defaultsTo: false);
 
-  parser.addFlag('generate-renders',
-      help: 'Generate .render files for layout tests.',
+  parser.addFlag('regenerate',
+      help: 'Regenerate layout test expectation files.',
       defaultsTo: false);
 
   parser.addOption('unittest',  help: '#import path for unit test library.');
@@ -246,7 +249,8 @@ bool isSane(ArgResults config) {
     print('--include and --exclude are mutually exclusive.');
     return false;
   }
-  if (config['layout'] && config['runtime'] == 'vm') {
+  if ((config['layout-text'] || config['layout-pixel']) &&
+      config['runtime'] == 'vm') {
     print('Layout tests must use --runtime values of "drt-dart" or "drt-js"');
     return false;
   }

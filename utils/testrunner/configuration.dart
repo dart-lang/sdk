@@ -14,6 +14,8 @@ class Configuration {
   final bool runIsolated;
   final bool verbose;
   final bool immediateOutput;
+  final bool layoutText;
+  final bool layoutPixel;
   final bool produceSummary;
   final bool includeTime;
   final bool listFiles;
@@ -34,7 +36,7 @@ class Configuration {
   final String outputStream;
   final String logStream;
   final String tempDir;
-  final bool generateRenders;
+  final bool regenerate;
   String dart2jsPath;
   String drtPath;
   String dartPath;
@@ -46,6 +48,8 @@ class Configuration {
     runInBrowser = (options['runtime'] != 'vm'),
     verbose = (options['log'] != 'none' && !options['list-groups']),
     immediateOutput = options['immediate'],
+    layoutText = options['layout-text'],
+    layoutPixel = options['layout-pixel'],
     produceSummary = options['summary'],
     includeTime = options['time'],
     listFiles = options['list-files'],
@@ -57,17 +61,17 @@ class Configuration {
     errorFormat = options['error-format'],
     includeFilter = options['include'],
     excludeFilter = options['exclude'],
-    timeout = parseInt(options['timeout']),
+    timeout = int.parse(options['timeout']),
     runtime = options['runtime'],
     checkedMode = options['checked'],
     keepTests = (options['keep-files'] &&
             !(options['list-groups'] || options['list-tests'])),
     stopOnFailure = options['stop-on-failure'],
-    maxTasks = parseInt(options['tasks']),
+    maxTasks = int.parse(options['tasks']),
     outputStream = options['out'],
     logStream = options['log'],
     tempDir = options['tempdir'],
-    generateRenders = options['generate-renders'] {
+    regenerate = options['regenerate'] {
     filtering = (includeFilter.length > 0 || excludeFilter.length > 0);
     var dartsdk = options['dartsdk'];
     var pathSep = Platform.pathSeparator;

@@ -20,85 +20,93 @@ class DartWrapTask extends PipelineTask {
     // Get the destination file.
     var destFile = expandMacros(_tempDartFileTemplate, testfile);
 
-    var p = new Path(sourceName);
-    if (isLayoutRenderTest(sourceName) || config.generateRenders) {
-      makeLayoutTestWrapper(sourceName, destFile, p.filenameWithoutExtension);
-      exitHandler(0);
-      return;
+    if (config.layoutText || config.layoutPixel) {
+      makeLayoutTestWrappers(sourceName, destFile, runnerDirectory);
+    } else {
+      makeNonLayoutTestWrapper(sourceName, destFile, runnerDirectory);
+    }
+    exitHandler(0);
+  }
+
+  void makeLayoutTestWrappers(String sourceName,
+                              String destFile,
+                              String libDirectory) {
+
+    // Get the name of the directory that has the expectation files
+    // (by stripping .dart suffix from test file path).
+    // Create it if it does not exist.
+    var expectedDirectory = sourceName.substring(0, sourceName.length - 5);
+    if (config.regenerate) {
+      var d = new Directory(expectedDirectory);
+      if (!d.existsSync()) {
+        d.createSync();
+      }
     }
 
-    // Working buffer for the Dart wrapper.
-    StringBuffer sbuf = new StringBuffer();
+    // Create the child file that runs single tests in DRT.
+    var childFile =
+        '${destFile.substring(0, destFile.length - 5)}-child.dart';
+        createFile(childFile, layoutTestWrapper(sourceName, libDirectory));
 
-    // Add the common header stuff.
-    sbuf.add(directives(p.filenameWithoutExtension,
-                        config.unittestPath,
-                        sourceName));
+        // Create the controller file that invokes DRT for each test.
+        createFile(destFile,
+            layoutTestControllerWrapper(sourceName, childFile,
+                                        expectedDirectory, libDirectory));
+  }
 
-    // Add the test configuration and determine the action function.
+  void makeNonLayoutTestWrapper(String sourceName,
+                                String destFile,
+                                String libDirectory) {
+    var extraImports;
+    var onDone;
+    var tprint;
     var action;
+    if (config.runInBrowser) {
+      extraImports = "#import('dart:html');";
+      onDone = "window.postMessage('done', '*')";
+      tprint = "query('#console').addText('###\$msg\\n')";
+    } else {
+      extraImports = "#import('dart:io');";
+      onDone = "exit(e)";
+      tprint = "print('###\$msg')";
+    }
     if (config.listTests) {
       action = 'listTests';
-      sbuf.add(barebonesConfig());
-      sbuf.add(listTestsFunction);
-      sbuf.add(formatListMessageFunction(config.listFormat));
     } else if (config.listGroups) {
-      sbuf.add(barebonesConfig());
-      sbuf.add(listGroupsFunction);
-      sbuf.add(formatListMessageFunction(config.listFormat));
       action = 'listGroups';
+    } else if (config.runIsolated) {
+      action = 'runIsolateTests';
     } else {
-
-      if (config.runInBrowser) {
-        sbuf.add(browserTestPrintFunction);
-        sbuf.add(unblockDRTFunction);
-      } else {
-        sbuf.add(nonBrowserTestPrintFunction);
-        sbuf.add(stubUnblockDRTFunction);
-      }
-
-      if (config.runIsolated) {
-        sbuf.add(runIsolateTestsFunction);
-        action = 'runIsolateTests';
-      } else {
-        sbuf.add(runTestsFunction);
-        action = 'runTests';
-      }
-
-      sbuf.add(config.includeTime ? elapsedFunction : stubElapsedFunction);
-      sbuf.add(config.produceSummary ?
-          printSummaryFunction : stubPrintSummaryFunction);
-
-      if (config.immediateOutput) {
-        sbuf.add(printTestResultFunction);
-        sbuf.add(stubPrintAllTestResultsFunction);
-      } else {
-        sbuf.add(stubPrintTestResultFunction);
-        sbuf.add(printAllTestResultsFunction);
-      }
-
-      sbuf.add(dumpTestResultFunction);
-      sbuf.add(formatMessageFunction(config.passFormat,
-                                     config.failFormat,
-                                     config.errorFormat));
-      sbuf.add(testConfig());
+      action = 'null';
     }
+    var wrapper = """
+#library('layout_test');
+$extraImports
+#import('${config.unittestPath}', prefix:'unittest');
+#import('$sourceName', prefix: 'test');
+#source('$libDirectory/standard_test_runner.dart');
 
-    // Add the filter, if applicable.
-    if (config.filtering) {
-      if (config.includeFilter.length > 0) {
-        sbuf.add(filterTestFunction(config.includeFilter, 'true'));
-      } else {
-        sbuf.add(filterTestFunction(config.excludeFilter, 'false'));
-      }
-    }
-
-    // Add the common trailer stuff.
-    sbuf.add(dartMain(sourceName, action, config.filtering));
-
+main() {
+  action = null;
+  immediate = ${config.immediateOutput};
+  includeTime = ${config.includeTime};
+  passFormat = '${config.passFormat}';
+  failFormat = '${config.failFormat}';
+  errorFormat = '${config.errorFormat}';
+  listFormat = '${config.listFormat}';
+  includeFilters = ${config.includeFilter};
+  excludeFilters = ${config.excludeFilter};
+  regenerate = ${config.regenerate};
+  testfile = '$sourceName';
+  summarize = ${config.produceSummary};
+  notifyDone = (e) => $onDone;
+  tprint = (msg) => $tprint;
+  action = $action;
+  runTests(test.main);
+}
+""";
     // Save the Dart file.
-    createFile(destFile, sbuf.toString());
-    exitHandler(0);
+    createFile(destFile, wrapper);
   }
 
   void cleanup(Path testfile, List stdout, List stderr,
@@ -106,381 +114,51 @@ class DartWrapTask extends PipelineTask {
     deleteFiles([_tempDartFileTemplate], testfile, logging, keepFiles, stdout);
   }
 
-  void makeLayoutTestWrapper(String sourceName, String destFile,
-                             String libraryName) {
-    StringBuffer sbuf = new StringBuffer();
-    var cfg = config.unittestPath.
-        replaceAll('unittest.dart', 'html_layout_config.dart');
-    sbuf.add("""
-#library('$libraryName');
+  String layoutTestWrapper(String sourceName, String libDirectory) => """
+#library('layout_test');
 #import('dart:math');
 #import('dart:isolate');
 #import('dart:html');
+#import('dart:uri');
 #import('${config.unittestPath}', prefix:'unittest');
-#import('$cfg', prefix:'unittest');
 #import('$sourceName', prefix: 'test');
-""");
-    // Add the filter, if applicable.
-    if (config.filtering) {
-      if (config.includeFilter.length > 0) {
-        sbuf.add(filterTestFunction(config.includeFilter, 'true'));
-      } else {
-        sbuf.add(filterTestFunction(config.excludeFilter, 'false'));
-      }
-    }
-    sbuf.add("""
+#source('$libDirectory/layout_test_runner.dart');
+
 main() {
-unittest.groupSep = '###';
-unittest.useHtmlLayoutConfiguration();
-unittest.group('', test.main);
-${config.filtering ? 'unittest.filterTests(filterTest);' : ''}
-if (window.location.search == '') unittest.runTests();
-}  
-""");
-    // Save the Dart file.
-    createFile(destFile, sbuf.toString());
-  }
-
-  String directives(String library, String unittest, String sourceName) {
-    return """
-#library('$library');
-#import('dart:math');
-#import('dart:isolate');
-#import('$unittest', prefix:'unittest');
-#import('$sourceName', prefix: 'test');
-""";
-  }
-
-  // The core skeleton for a config. Most of the guts is in the
-  // parameter [body].
-  String configuration([String body = '']) {
-    return """
-class TestRunnerConfiguration extends unittest.Configuration {
-  get name => 'Test runner configuration';
-  get autoStart => false;
-  $body
-}
-""";
-  }
-
-  // A barebones config, used for listing tests, not running them.
-  String barebonesConfig() {
-    return configuration();
-  }
-
-  // A more complex config, used for running tests.
-  String testConfig() {
-    return configuration(""" 
-  void onTestResult(unittest.TestCase testCase) {
-    printResult('\$testFile ', testCase);
-  }
-
-  void onDone(int passed, int failed, int errors, 
-              List<unittest.TestCase> results,
-      String uncaughtError) {
-    var success = (passed > 0 && failed == 0 && errors == 0 && 
-        uncaughtError == null);
-    printResults(testFile, results);
-    printSummary(testFile, passed, failed, errors, uncaughtError);
-    unblockDRT();
-  }
-""");
-  }
-
-  // The main function, that creates the config, filters the tests if
-  // necessary, then performs the action (list/run/run-isolated).
-  String dartMain(String sourceName, String action, bool filter) {
-    return """
-var testFile = '$sourceName';
-main() {
-  unittest.groupSep = '###';
-  unittest.configure(new TestRunnerConfiguration());
-  unittest.group('', test.main);
-  ${filter ? 'unittest.filterTests(filterTest);' : ''}
-  $action();
-}
-""";
-  }
-
-  // For 'printing' when we are in the browser, we add text elements
-  // to a DOM element with id 'console'.
-  final String browserTestPrintFunction = """
-#import('dart:html');
-void tprint(msg) {
-var pre = query('#console');
-pre.addText('###\$msg\\n');
+  includeFilters = ${config.includeFilter};
+  excludeFilters = ${config.excludeFilter};
+  runTests(test.main);
 }
 """;
 
-  // For printing when not in the browser we can just use Dart's print().
-  final String nonBrowserTestPrintFunction = """
-void tprint(msg) {
-print('###\$msg');
-}
-""";
 
-  // A function to give us the elapsed time for a test.
-  final String elapsedFunction = """
-String elapsed(unittest.TestCase t) {
-  double duration = t.runningTime.inMilliseconds.toDouble();
-  duration /= 1000;
-  return '\${duration.toStringAsFixed(3)}s ';
-}
-""";
-
-  // A dummy version of the elapsed function for when the user
-  // doesn't want test times included.
-  final String stubElapsedFunction = """
-String elapsed(unittest.TestCase t) {
-  return '';
-}
-""";
-
-  // A function to print the results of a test.
-  final String dumpTestResultFunction = """
-void dumpTestResult(source, unittest.TestCase t) {
-  var groupName = '', testName = '';
-  var idx = t.description.lastIndexOf('###');
-  if (idx >= 0) {
-      groupName = t.description.substring(0, idx).replaceAll('###', ' ');
-      testName = t.description.substring(idx+3);
-  } else {
-      testName = t.description;
-  }
-  var stack = (t.stackTrace == null) ? '' : '\${t.stackTrace} ';
-  var message = (t.message.length > 0) ? '\$t.message ' : '';
-  var duration = elapsed(t);
-  tprint(formatMessage(source, '\$groupName ', '\$testName ', 
-      duration, t.result, message, stack));
-}
-""";
-
-  // A function to print the test summary.
-  final String printSummaryFunction = """
-void printSummary(String testFile, int passed, int failed, int errors,
-    String uncaughtError) { 
-  tprint('');
-  if (passed == 0 && failed == 0 && errors == 0) {
-    tprint('\$testFile: No tests found.');
-  } else if (failed == 0 && errors == 0 && uncaughtError == null) {
-    tprint('\$testFile: All \$passed tests passed.');
-  } else {
-    if (uncaughtError != null) {
-      tprint('\$testFile: Top-level uncaught error: \$uncaughtError');
-    }
-    tprint('\$testFile: \$passed PASSED, \$failed FAILED, \$errors ERRORS');
-  }
-}
-""";
-
-  final String stubPrintSummaryFunction = """
-void printSummary(String testFile, int passed, int failed, int errors,
-    String uncaughtError) {   
-}
-""";
-
-  // A function to print all test results.
-  final String printAllTestResultsFunction = """
-void printResults(testfile, List<unittest.TestCase> results) {
-  for (final testCase in results) {
-    dumpTestResult('\$testfile ', testCase);
-  }
-}
-""";
-
-  final String stubPrintAllTestResultsFunction = """
-void printResults(testfile, List<unittest.TestCase> results) {
-}
-""";
-
-  // A function to print a single test result.
-  final String printTestResultFunction = """
-void printResult(testfile, unittest.TestCase testCase) {
-  dumpTestResult('\$testfile ', testCase);
-}
-""";
-
-  final String stubPrintTestResultFunction = """
-void printResult(testfile, unittest.TestCase testCase) {
-}
-""";
-
-  final String unblockDRTFunction = """
-void unblockDRT() {
-  window.postMessage('done', '*');
-}
- """;
-
-  final String stubUnblockDRTFunction = """
-void unblockDRT() {
-}
-""";
-
-  // A simple format function for listing tests.
-  String formatListMessageFunction(String format) {
-    return """
-String formatMessage(filename, groupname, [ testname = '']) {
-  return '${format}'.
-      replaceAll('${Macros.testfile}', filename).
-      replaceAll('${Macros.testGroup}', groupname).
-      replaceAll('${Macros.testDescription}', testname);
-}
-""";
-  }
-
-  // A richer format function for test results.
-  String formatMessageFunction(
-      String passFormat, String failFormat, String errorFormat) {
-    return """
-String formatMessage(filename, groupname,
-    [ testname = '', testTime = '', result = '',
-      message = '', stack = '' ]) {
-  var format = '$errorFormat';
-  if (result == 'pass') format = '$passFormat';
-  else if (result == 'fail') format = '$failFormat';
-  return format.
-      replaceAll('${Macros.testTime}', testTime).
-      replaceAll('${Macros.testfile}', filename).
-      replaceAll('${Macros.testGroup}', groupname).
-      replaceAll('${Macros.testDescription}', testname).
-      replaceAll('${Macros.testMessage}', message).
-      replaceAll('${Macros.testStacktrace}', stack);
-}
-""";
-  }
-
-  // A function to list the test groups.
-  final String listGroupsFunction = """
-listGroups() {
-  List tests = unittest.testCases;
-  Map groups = {};
-  for (var t in tests) {
-    var groupName, testName = '';
-    var idx = t.description.lastIndexOf('###');
-    if (idx >= 0) {
-      groupName = t.description.substring(0, idx).replaceAll('###', ' ');
-      if (!groups.containsKey(groupName)) {
-        groups[groupName] = '';
-      }
-    }
-  }
-  for (var g in groups.getKeys()) {
-    var msg = formatMessage('\$testfile ', '\$g ');
-    print('###\$msg');
-  }
-}
-""";
-
-  // A function to list the tests.
-  final String listTestsFunction = """
-listTests() {
-  List tests = unittest.testCases;
-  for (var t in tests) {
-    var groupName, testName = '';
-    var idx = t.description.lastIndexOf('###');
-    if (idx >= 0) {
-      groupName = t.description.substring(0, idx).replaceAll('###', ' ');
-      testName = t.description.substring(idx+3);
-    } else {
-      groupName = '';
-      testName = t.description;
-    }
-    var msg = formatMessage('\$testfile ', '\$groupName ', '\$testName ');
-    print('###\$msg');
-  }
-}
-""";
-
-  // A function to filter the tests.
-  String filterTestFunction(List filters, String filterReturnValue) {
+  String layoutTestControllerWrapper(String sourceName, String childName,
+                                     String expectedDirectory,
+                                     String libDirectory) {
     StringBuffer sbuf = new StringBuffer();
-    sbuf.add('filterTest(t) {\n');
-    if (filters != null) {
-      sbuf.add('  var name = t.description.replaceAll("###", " ");\n');
-      for (var f in filters) {
-        sbuf.add('  if (name.indexOf("$f")>=0) return $filterReturnValue;\n');
-      }
-      sbuf.add('  return !$filterReturnValue;\n');
-    } else {
-      sbuf.add('  return true;\n');
-    }
-    sbuf.add('}\n');
-    return sbuf.toString();
-  }
+    var htmlFile = childName.replaceFirst('-child.dart', '.html');
+    // Add common prefix.
+    return """
+#library('layout_controller');
+#import('dart:uri');
+#import('dart:io');
+#import('dart:math');
+#source('$libDirectory/layout_test_controller.dart');
 
-  // Code to support running single tests in isolates.
-  final String runIsolateTestsFunction = """
-class TestRunnerChildConfiguration extends unittest.Configuration {
-  get name => 'Test runner child configuration';
-  get autoStart => false;
-
-  void onDone(int passed, int failed, int errors,
-              List<unittest.TestCase> results, String uncaughtError) {
-    unittest.TestCase test = results[0];
-    parentPort.send([test.result, test.runningTime.inMilliseconds,
-                     test.message, test.stackTrace]);
-  }
-}
-
-var parentPort;
-runChildTest() {
-  port.receive((testName, sendport) {
-    parentPort = sendport;
-    unittest.configure(new TestRunnerChildConfiguration());
-    unittest.groupSep = '###';
-    unittest.group('', test.main);
-    unittest.filterTests(testName);
-    unittest.runTests();    
-  });
-}
-
-var testNum;
-var failed;
-var errors;
-var passed;
-
-runParentTest() {
-  var tests = unittest.testCases;
-  tests[testNum].startTime = new Date.now();
-  SendPort childPort = spawnFunction(runChildTest);
-  childPort.call(tests[testNum].description).then((results) {
-    var result = results[0];
-    var duration = new Duration(milliseconds: results[1]);
-    var message = results[2];
-    var stack = results[3];  
-    if (result == 'pass') {
-      tests[testNum].pass();
-      ++passed;
-    } else if (result == 'fail') {
-      tests[testNum].fail(message, stack);
-      ++failed;
-    } else {
-      tests[testNum].error(message, stack);
-      ++errors;
-    }   
-    tests[testNum].runningTime = duration;
-    ++testNum;
-    if (testNum < tests.length) {
-      runParentTest();
-    } else {
-      unittest.config.onDone(passed, failed, errors, 
-          unittest.testCases, null);
-    }
-  });
-}
-
-runIsolateTests() {
-  testNum = 0;
-  passed = failed = errors = 0;
-  runParentTest();
+main() {
+  includeTime = ${config.includeTime};
+  passFormat = '${config.passFormat}';
+  failFormat = '${config.failFormat}';
+  errorFormat = '${config.errorFormat}';
+  listFormat = '${config.listFormat}';
+  drt = '${makePathAbsolute(config.drtPath)}';
+  regenerate = ${config.regenerate};
+  sourceDir = '$expectedDirectory';
+  testfile = '$sourceName';
+  summarize = ${config.produceSummary};
+  baseUrl = 'file://$htmlFile';
+  run${config.layoutText?'Text':'Pixel'}LayoutTest(0);
 }
 """;
-
-  // Code for running all tests in the normal (non-isolate) way.
-  final String runTestsFunction = """
-runTests() {
-  unittest.runTests();
-}
-""";
-
+  }
 }

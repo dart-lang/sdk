@@ -39,9 +39,36 @@ class HtmlWrapTask extends PipelineTask {
       }
       var p = new Path(testname);
       var runtime = config.runtime;
-      var isLayout = isLayoutRenderTest(testname) || config.generateRenders;
-      StringBuffer sbuf = new StringBuffer();
-      sbuf.add("""
+      var startDart = '';
+      if (runtime == 'drt-dart') {
+        startDart =
+            "if (navigator.webkitStartDart) navigator.webkitStartDart();";
+      }
+
+      var prefix = flattenPath(p.directoryPath.toString());
+      var suffix = (config.layoutPixel || config.layoutText) ? '-child': '';
+      var scriptElement;
+      if (runtime == 'drt-dart') {
+        scriptElement = "<script type='application/dart' "
+            "src='${prefix}_${p.filenameWithoutExtension}$suffix.dart'>";
+      } else {
+        scriptElement = "<script type='text/javascript' "
+            "src='${prefix}_${p.filenameWithoutExtension}$suffix.js'>";
+      }
+
+      var bodyElements = "";
+      var runAsText = "";
+
+      if (!config.layoutText && !config.layoutPixel) {
+        runAsText = "window.testRunner.dumpAsText();";
+        bodyElements = """
+  <h1>$testname</h1> 
+  <div id="container"></div>
+  <pre id='console'></pre>
+""";
+      }
+
+      var htmlContent = """
 <!DOCTYPE html>
 
 <html>
@@ -50,53 +77,30 @@ class HtmlWrapTask extends PipelineTask {
   <title>$testname</title>
   <link rel="stylesheet" href="${p.filenameWithoutExtension}.css">
   <script type='text/javascript'>
-// We check the search part of the URL for making sure we only do 
-// this in the parent if in layout tests.
-if (window.testRunner && window.location.search == '') {
+if (window.testRunner) {
   function handleMessage(m) {
     if (m.data == 'done') {
       window.testRunner.notifyDone();
     }
   }
   window.testRunner.waitUntilDone();
-  if (!$isLayout) {
-    window.testRunner.dumpAsText();
-  }
+  $runAsText
   window.addEventListener("message", handleMessage, false);
 }
-""");
-      if (runtime == 'drt-dart') {
-        sbuf.add("if (navigator.webkitStartDart) navigator.webkitStartDart();");
-      }
-      sbuf.add("""
+$startDart
   </script>
 </head>
 <body>
-""");
-      if (!isLayout) {
-        sbuf.add("""
-  <h1>$testname</h1> 
-  <div id="container"></div>
-  <pre id='console'></pre>
-""");
-      }
-      sbuf.add("<script type='");
-      var prefix = flattenPath(p.directoryPath.toString());
-      if (runtime == 'drt-dart') {
-        sbuf.add("application/dart' src='${prefix}_${p.filename}'>");
-      } else {
-        sbuf.add("text/javascript' "
-            "src='${prefix}_${p.filenameWithoutExtension}.js'>");
-      }
-      sbuf.add("""
+  $bodyElements
+  $scriptElement
   </script>
   <script
 src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js">
   </script>
 </body>
 </html>
-""");
-      createFile(htmlDestName, sbuf.toString());
+""";
+      createFile(htmlDestName, htmlContent);
     }
     var cssMaster = new File(cssSourceName);
     if (cssMaster.existsSync()) {

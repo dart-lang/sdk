@@ -49,45 +49,19 @@
  *
  *   drt-js - run Dart compiled to Javascript in DumpRenderTree.
  *
- * testrunner supports simple DOM render tests. These use expected values
- * for the text render output from DumpRenderTree. When running a test in DRT
- * testrunner will see if there is a file with a .render extension in the
- * same directory as the test file and with the same base file name. If so
- * it will do additional checks of the rendered layout.
+ * testrunner supports simple DOM render tests. These can use expected values
+ * for the render output from DumpRenderTree, either are textual DOM
+ * descriptions (`--layout-tests`) or pixel renderings (`--pixel-tests`).
+ * When running layout tests, testrunner will see if there is a file with
+ * a .png or a .txt extension in a directory with the same name as the
+ * test file (without extension) and with the test name as the file name.
+ * For example, if there is a test file foo_test.dart with tests 'test1'
+ * and 'test2', it will look for foo_test/test1.txt and foo_test/test2.txt
+ * for text render layout files. If these exist it will do additional checks
+ * of the rendered layout; if not, the test will fail.
  *
- * Here is a simple example test:
- *
- *     #library('sample');
- *     #import('dart:html');
- *     #import('pkg:unittest/unittest.dart');
- *
- *     main() {
- *       group('foo', () {
- *         test('test 1', () {
- *           document.body.nodes.add(new Element.html("<p>Test 1</p>"));
- *         });
- *         test('test 2', () {
- *           document.body.nodes.add(new Element.html("<p>Test 2</p>"));
- *         });
- *      });
- *    }
- *
- * And a sample matching .render file:
- *
- *     [foo test 1]
- *     RenderBlock {P} at (0,0) size 284x20
- *       RenderText {#text} at (0,0) size 38x19
- *         text run at (0,0) width 38: "Test 1"
- *     [foo test 2]
- *     RenderBlock {P} at (0,0) size 284x20
- *       RenderText {#text} at (0,0) size 38x19
- *         text run at (0,0) width 38: "Test 2"
- *
- * Note that the render content is only the content inside the <body> element,
- * not including the body element itself.
- *
- * Running testrunner with a `--generate-renders` flag will make it create
- * .render files for you.
+ * Layout file (re)generation can be done using `--regenerate`. This will
+ * create or update the layout files (and implicitly pass the tests).
  */
 
 // TODO - layout tests that use PNGs rather than DRT text render dumps.
@@ -200,7 +174,7 @@ List getPipelineTemplate(String runtime, bool checkedMode, bool keepTests) {
   }
 
   // Add the execution step.
-  if (runtime == 'vm') {
+  if (runtime == 'vm' || config.layoutPixel || config.layoutText) {
     if (checkedMode) {
       pipeline.add(new DartTask.checked(tempDartFile));
     } else {
