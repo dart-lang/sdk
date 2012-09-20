@@ -124,7 +124,7 @@ testForLoop() {
 }
 
 testEmptyList() {
-  testUnparse('var x=[];');
+  testUnparse('var x=[] ;');
 }
 
 testClosure() {
@@ -149,9 +149,9 @@ testPrefixIncrements() {
 }
 
 testConstModifier() {
-  testUnparse('foo([var a=const[]]){}');
+  testUnparse('foo([var a=const[] ]){}');
   testUnparse('foo([var a=const{}]){}');
-  testUnparse('foo(){var a=const[];var b=const{};}');
+  testUnparse('foo(){var a=const[] ;var b=const{};}');
   testUnparse('foo([var a=const[const{"a":const[1,2,3]}]]){}');
 }
 
