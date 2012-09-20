@@ -20,6 +20,7 @@ _js_custom_members = set([
     'IFrameElement.contentWindow',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
+    'TableElement.createTBody',
     'Window.document',
     'Window.top',
     'Window.location',

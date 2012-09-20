@@ -33093,6 +33093,9 @@ abstract class TableElement implements Element {
   /** @domName HTMLTableElement.insertRow */
   Element insertRow(int index);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _TableElementImpl extends _ElementImpl implements TableElement native "*HTMLTableElement" {
 
@@ -33126,8 +33129,6 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   _ElementImpl createCaption() native;
 
-  _ElementImpl createTBody() native;
-
   _ElementImpl createTFoot() native;
 
   _ElementImpl createTHead() native;
@@ -33141,6 +33142,18 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
   void deleteTHead() native;
 
   _ElementImpl insertRow(int index) native;
+
+
+  _ElementImpl createTBody() {
+    if (JS('bool', '!!#.createTBody', this)) {
+      return this._createTBody();
+    }
+    var tbody = new Element.tag('tbody');
+    this.elements.add(tbody);
+    return tbody;
+  }
+
+  _ElementImpl _createTBody() native 'createTBody';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
