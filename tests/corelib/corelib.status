@@ -6,6 +6,7 @@
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
+list_removeat_test: Skip  # Will fix(lrn).
 
 [ $compiler == dartc ]
 *vm_test: Skip
