@@ -2384,6 +2384,39 @@ void ConstantPropagator::Transform() {
     if (!reachable_->Contains(block->preorder_number())) {
       continue;
     }
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      // Remove phi inputs corresponding to unreachable predecessor blocks.
+      // Predecessors will be recomputed (in block id order) after removing
+      // unreachable code so we merely have to keep the phi inputs in order.
+      ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+      if (phis != NULL) {
+        intptr_t pred_count = join->PredecessorCount();
+        intptr_t live_count = 0;
+        for (intptr_t pred_idx = 0; pred_idx < pred_count; ++pred_idx) {
+          if (reachable_->Contains(
+                  join->PredecessorAt(pred_idx)->preorder_number())) {
+            if (live_count < pred_idx) {
+              for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+                PhiInstr* phi = (*phis)[phi_idx];
+                if (phi == NULL) continue;
+                phi->inputs_[live_count] = phi->inputs_[pred_idx];
+              }
+            }
+            ++live_count;
+          }
+        }
+        if (live_count < pred_count) {
+          for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+            PhiInstr* phi = (*phis)[phi_idx];
+            if (phi == NULL) continue;
+            phi->inputs_.TruncateTo(live_count);
+          }
+        }
+      }
+    }
+
     for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
       Definition* defn = i.Current()->AsDefinition();
       BranchInstr* branch = i.Current()->AsBranch();
@@ -2411,13 +2444,14 @@ void ConstantPropagator::Transform() {
           ASSERT(branch->comparison()->IsStrictCompare());
           ASSERT(if_false->parallel_move() == NULL);
           ASSERT(if_false->loop_info() == NULL);
-          join = new JoinEntryInstr(if_false->try_index());
+          join =
+              new JoinEntryInstr(if_false->block_id(), if_false->try_index());
           next = if_false->next();
         } else if (!reachable_->Contains(if_false->preorder_number())) {
           ASSERT(branch->comparison()->IsStrictCompare());
           ASSERT(if_true->parallel_move() == NULL);
           ASSERT(if_true->loop_info() == NULL);
-          join = new JoinEntryInstr(if_true->try_index());
+          join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
           next = if_true->next();
         }
 
@@ -2444,19 +2478,6 @@ void ConstantPropagator::Transform() {
   graph_->DiscoverBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
-
-  // Garbage collect phi inputs corresponding to unreachable predecessors.
-  // This is required because we assume that predecessor and phi indexes
-  // align.  Note that this does not necessarily eliminate all useless phis
-  // (e.g., it does not eliminate phis that were originally inserted solely
-  // due to an assignment on the now-unreachable path).
-  for (BlockIterator it = graph_->reverse_postorder_iterator();
-       !it.Done();
-       it.Advance()) {
-    JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) join->EliminateUnreachablePhiInputs();
-  }
-
   graph_->ComputeUseLists();
 }
 
