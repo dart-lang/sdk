@@ -41,15 +41,15 @@ public class DartParserCommentsHelper {
     }
 
     @Override
-    protected DartScanner createScanner(String sourceCode) {
+    protected DartScanner createScanner(String sourceCode, Source source, DartCompilerListener listener) {
       commentLocs = Lists.newArrayList();
-      return new CommentScanner(sourceCode);
+      return new CommentScanner(sourceCode, 0, source, listener);
     }
 
     private class CommentScanner extends DartScanner {
 
-      CommentScanner(String sourceCode) {
-        super(sourceCode);
+      CommentScanner(String sourceCode, int start, Source sourceReference, DartCompilerListener listener) {
+        super(sourceCode, start, sourceReference, listener);
       }
 
       @Override

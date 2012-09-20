@@ -666,6 +666,10 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());
   }
 
+//  public void test_string_raw_deprecated() {
+//    parseUnit("test.dart", "var s = @'abc${d}efg';", ParserErrorCode.DEPRECATED_RAW_STRING, 1, 9);
+//  }
+
   public void test_string_raw() {
     String expectedValue = "abc${d}efg";
     DartUnit unit = parseUnit("test.dart", "var s = r'" + expectedValue + "';");
