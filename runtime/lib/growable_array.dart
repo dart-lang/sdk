@@ -8,14 +8,16 @@ class GrowableObjectArray<T> implements List<T> {
         "GrowableObjectArray can only be allocated by the VM");
   }
 
-  E removeAt(int index) {
-    E result = this[index];
+  T removeAt(int index) {
+    if (index is! int) throw new IllegalArgumentException(index);
+    T result = this[index];
+    int newLength = this.length - 1;
     Arrays.copy(this,
                 index + 1,
                 this,
                 index,
-                this.length - index - 1);
-    this.length = this.length - 1;
+                newLength - index);
+    this.length = newLength;
     return result;
   }
   

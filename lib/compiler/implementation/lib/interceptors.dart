@@ -24,7 +24,6 @@ removeAt$1(var receiver, var index) {
     }
     checkGrowable(receiver, 'removeAt');
     return JS("Object", @'#.splice(#, 1)[0]', receiver, index);
-
   }
   return UNINTERCEPTED(receiver.removeAt(index));
 }

@@ -6,6 +6,9 @@ void main() {
   // Normal modifiable list.
   var l1 = [0, 1, 2, 3, 4];
 
+  bool checkedMode = false;
+  assert(checkedMode = true);
+
   // Index must be integer and in range.
   Expect.throws(() { l1.removeAt(-1); },
                 (e) => e is IndexOutOfRangeException,
@@ -13,11 +16,16 @@ void main() {
   Expect.throws(() { l1.removeAt(5); },
                 (e) => e is IndexOutOfRangeException,
                 "too large");
-  Expect.throws(() { l1.removeAt("1"); },
+  Expect.throws(() { l1.removeAt(null); },
                 (e) => e is IllegalArgumentException,
+                "too large");
+  Expect.throws(() { l1.removeAt("1"); },
+                (e) => (checkedMode ? e is TypeError
+                                    : e is IllegalArgumentException),
                 "string");
   Expect.throws(() { l1.removeAt(1.5); },
-                (e) => e is IllegalArgumentException,
+                (e) => (checkedMode ? e is TypeError
+                                    : e is IllegalArgumentException),
                 "double");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");
