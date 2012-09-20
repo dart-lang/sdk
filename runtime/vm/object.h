@@ -2146,12 +2146,15 @@ class Library : public Object {
   static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
+  static void InitScalarlistLibrary(Isolate* isolate);
+  static void InitNativeWrappersLibrary(Isolate* isolate);
+
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();
-  static void InitNativeWrappersLibrary(Isolate* isolate);
+  static RawLibrary* ScalarlistLibrary();
   static RawLibrary* NativeWrappersLibrary();
 
   // Eagerly compile all classes and functions in the library.

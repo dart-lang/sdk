@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -385,6 +385,13 @@ class ObjectStore {
     mirrors_library_ = value.raw();
   }
 
+  RawLibrary* scalarlist_library() const {
+    return scalarlist_library_;
+  }
+  void set_scalarlist_library(const Library& value) {
+    scalarlist_library_ = value.raw();
+  }
+
   RawLibrary* builtin_library() const {
     return builtin_library_;
   }
@@ -518,6 +525,7 @@ class ObjectStore {
   RawLibrary* math_library_;
   RawLibrary* isolate_library_;
   RawLibrary* mirrors_library_;
+  RawLibrary* scalarlist_library_;
   RawLibrary* native_wrappers_library_;
   RawLibrary* builtin_library_;
   RawLibrary* root_library_;

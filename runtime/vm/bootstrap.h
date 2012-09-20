@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,6 +22,7 @@ class Bootstrap : public AllStatic {
   static RawScript* LoadMathScript(bool patch);
   static RawScript* LoadIsolateScript(bool patch);
   static RawScript* LoadMirrorsScript(bool patch);
+  static RawScript* LoadScalarlistScript(bool patch);
   static RawError* Compile(const Library& library, const Script& script);
   static void SetupNativeResolver();
 
@@ -38,6 +39,8 @@ class Bootstrap : public AllStatic {
   static const char isolate_patch_[];
   static const char mirrors_source_[];
   static const char mirrors_patch_[];
+  static const char scalarlist_source_[];
+  static const char scalarlist_patch_[];
 };
 
 }  // namespace dart

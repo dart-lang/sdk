@@ -687,110 +687,113 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<Int8Array>();
-  object_store->set_int8_array_class(cls);
-  name = Symbols::_Int8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint8Array>();
-  object_store->set_uint8_array_class(cls);
-  name = Symbols::_Uint8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Int16Array>();
-  object_store->set_int16_array_class(cls);
-  name = Symbols::_Int16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint16Array>();
-  object_store->set_uint16_array_class(cls);
-  name = Symbols::_Uint16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Int32Array>();
-  object_store->set_int32_array_class(cls);
-  name = Symbols::_Int32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint32Array>();
-  object_store->set_uint32_array_class(cls);
-  name = Symbols::_Uint32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Int64Array>();
-  object_store->set_int64_array_class(cls);
-  name = Symbols::_Int64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint64Array>();
-  object_store->set_uint64_array_class(cls);
-  name = Symbols::_Uint64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Float32Array>();
-  object_store->set_float32_array_class(cls);
-  name = Symbols::_Float32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Float64Array>();
-  object_store->set_float64_array_class(cls);
-  name = Symbols::_Float64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt8Array>();
-  object_store->set_external_int8_array_class(cls);
-  name = Symbols::_ExternalInt8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint8Array>();
-  object_store->set_external_uint8_array_class(cls);
-  name = Symbols::_ExternalUint8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt16Array>();
-  object_store->set_external_int16_array_class(cls);
-  name = Symbols::_ExternalInt16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint16Array>();
-  object_store->set_external_uint16_array_class(cls);
-  name = Symbols::_ExternalUint16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt32Array>();
-  object_store->set_external_int32_array_class(cls);
-  name = Symbols::_ExternalInt32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint32Array>();
-  object_store->set_external_uint32_array_class(cls);
-  name = Symbols::_ExternalUint32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt64Array>();
-  object_store->set_external_int64_array_class(cls);
-  name = Symbols::_ExternalInt64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint64Array>();
-  object_store->set_external_uint64_array_class(cls);
-  name = Symbols::_ExternalUint64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalFloat32Array>();
-  object_store->set_external_float32_array_class(cls);
-  name = Symbols::_ExternalFloat32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalFloat64Array>();
-  object_store->set_external_float64_array_class(cls);
-  name = Symbols::_ExternalFloat64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
   name = Symbols::_WeakProperty();
   RegisterPrivateClass(cls, name, core_lib);
+
+  Library::InitScalarlistLibrary(isolate);
+  Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
+
+  cls = Class::New<Int8Array>();
+  object_store->set_int8_array_class(cls);
+  name = Symbols::_Int8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint8Array>();
+  object_store->set_uint8_array_class(cls);
+  name = Symbols::_Uint8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Int16Array>();
+  object_store->set_int16_array_class(cls);
+  name = Symbols::_Int16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint16Array>();
+  object_store->set_uint16_array_class(cls);
+  name = Symbols::_Uint16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Int32Array>();
+  object_store->set_int32_array_class(cls);
+  name = Symbols::_Int32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint32Array>();
+  object_store->set_uint32_array_class(cls);
+  name = Symbols::_Uint32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Int64Array>();
+  object_store->set_int64_array_class(cls);
+  name = Symbols::_Int64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint64Array>();
+  object_store->set_uint64_array_class(cls);
+  name = Symbols::_Uint64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Float32Array>();
+  object_store->set_float32_array_class(cls);
+  name = Symbols::_Float32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Float64Array>();
+  object_store->set_float64_array_class(cls);
+  name = Symbols::_Float64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt8Array>();
+  object_store->set_external_int8_array_class(cls);
+  name = Symbols::_ExternalInt8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint8Array>();
+  object_store->set_external_uint8_array_class(cls);
+  name = Symbols::_ExternalUint8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt16Array>();
+  object_store->set_external_int16_array_class(cls);
+  name = Symbols::_ExternalInt16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint16Array>();
+  object_store->set_external_uint16_array_class(cls);
+  name = Symbols::_ExternalUint16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt32Array>();
+  object_store->set_external_int32_array_class(cls);
+  name = Symbols::_ExternalInt32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint32Array>();
+  object_store->set_external_uint32_array_class(cls);
+  name = Symbols::_ExternalUint32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt64Array>();
+  object_store->set_external_int64_array_class(cls);
+  name = Symbols::_ExternalInt64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint64Array>();
+  object_store->set_external_uint64_array_class(cls);
+  name = Symbols::_ExternalUint64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalFloat32Array>();
+  object_store->set_external_float32_array_class(cls);
+  name = Symbols::_ExternalFloat32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalFloat64Array>();
+  object_store->set_external_float64_array_class(cls);
+  name = Symbols::_ExternalFloat64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -944,6 +947,18 @@ RawError* Object::Init(Isolate* isolate) {
   }
   patch_script = Bootstrap::LoadMirrorsScript(true);
   error = mirrors_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& scalarlist_script = Script::Handle(
+      Bootstrap::LoadScalarlistScript(false));
+  ASSERT(!scalarlist_lib.IsNull());
+  error = Bootstrap::Compile(scalarlist_lib, scalarlist_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  patch_script = Bootstrap::LoadScalarlistScript(true);
+  error = scalarlist_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -6606,6 +6621,16 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
 }
 
 
+void Library::InitScalarlistLibrary(Isolate* isolate) {
+  const String& url = String::Handle(Symbols::New("dart:scalarlist"));
+  const Library& lib = Library::Handle(Library::New(url));
+  lib.Register();
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  lib.AddImport(core_impl_lib);
+  isolate->object_store()->set_scalarlist_library(lib);
+}
+
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
@@ -6731,6 +6756,11 @@ RawLibrary* Library::IsolateLibrary() {
 
 RawLibrary* Library::MirrorsLibrary() {
   return Isolate::Current()->object_store()->mirrors_library();
+}
+
+
+RawLibrary* Library::ScalarlistLibrary() {
+  return Isolate::Current()->object_store()->scalarlist_library();
 }
 
 

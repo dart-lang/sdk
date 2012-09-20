@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -68,6 +68,7 @@ ObjectStore::ObjectStore()
     math_library_(Library::null()),
     isolate_library_(Library::null()),
     mirrors_library_(Library::null()),
+    scalarlist_library_(Library::null()),
     native_wrappers_library_(Library::null()),
     builtin_library_(Library::null()),
     root_library_(Library::null()),

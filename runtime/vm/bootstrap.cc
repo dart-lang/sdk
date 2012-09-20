@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,6 +59,13 @@ RawScript* Bootstrap::LoadIsolateScript(bool patch)  {
 RawScript* Bootstrap::LoadMirrorsScript(bool patch)  {
   const char* url = patch ? "dart:mirrors-patch" : "dart:mirrors";
   const char* source = patch ? mirrors_patch_ : mirrors_source_;
+  return LoadScript(url, source, patch);
+}
+
+
+RawScript* Bootstrap::LoadScalarlistScript(bool patch) {
+  const char* url = patch ? "dart:scalarlist_patch" : "dart:scalarlist";
+  const char* source = patch ? scalarlist_patch_ : scalarlist_source_;
   return LoadScript(url, source, patch);
 }
 

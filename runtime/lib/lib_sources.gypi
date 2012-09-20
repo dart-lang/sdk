@@ -6,8 +6,6 @@
 
 {
   'sources': [
-    'byte_array.cc',
-    'byte_array.dart',
     'double.cc',
     'double.dart',
     'double_patch.dart',

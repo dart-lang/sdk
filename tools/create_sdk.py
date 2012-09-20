@@ -34,6 +34,7 @@
 # ......mirrors/
 # ......uri/
 # ......utf/
+# ......scalarlist/
 # ....pkg/
 # ......args/
 # ......compiler/
@@ -226,7 +227,8 @@ def Main(argv):
   #
 
   for library in ['_internal', 'html', 'core', 'coreimpl',
-                  'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf']:
+                  'crypto', 'isolate', 'json', 'math', 'mirrors',
+                  'scalarlist', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 

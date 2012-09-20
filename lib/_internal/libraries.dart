@@ -69,6 +69,12 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       documented: false,
       platforms: VM_PLATFORM),
 
+  "scalarlist": const LibraryInfo(
+      "scalarlist/scalarlist.dart",
+      category: "Server",
+      dart2jsPath: "compiler/implementation/lib/scalarlist.dart",
+      dart2jsPatchPath: "compiler/implementation/lib/scalarlist_patch.dart"),
+
   "uri": const LibraryInfo(
       "uri/uri.dart"),
 

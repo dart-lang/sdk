@@ -17,10 +17,12 @@ static bool CompareNames(const char* test_name, const char* name) {
     return true;
   }
   if ((name[0] == '_') && (test_name[0] == '_')) {
-    // Check if the private class is member of corelib and matches the
-    // test_class_name.
+    // Check if the private class is member of core, coreimpl or
+    // scalarlist and matches the test_class_name.
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
     const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    const Library& scalarlist_lib =
+        Library::Handle(Library::ScalarlistLibrary());
     String& test_str = String::Handle(String::New(test_name));
     String& test_str_with_key = String::Handle();
     test_str_with_key =
@@ -30,6 +32,11 @@ static bool CompareNames(const char* test_name, const char* name) {
     }
     test_str_with_key =
         String::Concat(test_str, String::Handle(core_impl_lib.private_key()));
+    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
+      return true;
+    }
+    test_str_with_key =
+        String::Concat(test_str, String::Handle(scalarlist_lib.private_key()));
     if (strcmp(test_str_with_key.ToCString(), name) == 0) {
       return true;
     }
@@ -57,13 +64,15 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.Owner());
   const char* class_name = String::Handle(function_class.Name()).ToCString();
-  // Only core and math library methods can be intrinsified.
+  // Only core, math and scalarlist library methods can be intrinsified.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   const Library& math_lib = Library::Handle(Library::MathLibrary());
+  const Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
   if ((function_class.library() != core_lib.raw()) &&
       (function_class.library() != core_impl_lib.raw()) &&
-      (function_class.library() != math_lib.raw())) {
+      (function_class.library() != math_lib.raw()) &&
+      (function_class.library() != scalarlist_lib.raw())) {
     return false;
   }
 #define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \

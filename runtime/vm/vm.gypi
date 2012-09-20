@@ -15,6 +15,8 @@
     'mirrors_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/mirrors_patch_gen.cc',
     'isolate_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.cc',
     'isolate_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_patch_gen.cc',
+    'scalarlist_cc_file': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_gen.cc',
+    'scalarlist_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_patch_gen.cc',
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
@@ -72,12 +74,15 @@
         'generate_isolate_patch_cc_file',
         'generate_mirrors_cc_file',
         'generate_mirrors_patch_cc_file',
+        'generate_scalarlist_cc_file',
+        'generate_scalarlist_patch_cc_file',
       ],
       'includes': [
         '../lib/lib_sources.gypi',
         '../lib/lib_impl_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/mirrors_sources.gypi',
+        '../lib/scalarlist_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -92,6 +97,8 @@
         '<(isolate_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
+        '<(scalarlist_cc_file)',
+        '<(scalarlist_patch_cc_file)',
       ],
       'include_dirs': [
         '..',
@@ -105,6 +112,7 @@
         '../lib/lib_impl_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/mirrors_sources.gypi',
+        '../lib/scalarlist_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocorelib.cc',
@@ -490,6 +498,82 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(isolate_patch_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_scalarlist_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the shared library sources.
+        '../../lib/scalarlist/scalarlist_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_scalarlist_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(scalarlist_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(scalarlist_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::scalarlist_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(scalarlist_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_scalarlist_patch_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/scalarlist_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_scalarlist_patch_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(scalarlist_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(scalarlist_patch_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::scalarlist_patch_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(scalarlist_patch_cc_file)'' file.'
         },
       ]
     },
