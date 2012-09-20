@@ -369,6 +369,7 @@ Future<InputStream> httpGet(uri) {
   connection.onError = (e) {
     // Show a friendly error if the URL couldn't be resolved.
     if (e is SocketIOException &&
+        e.osError != null &&
         (e.osError.errorCode == 8 ||
          e.osError.errorCode == -2 ||
          e.osError.errorCode == -5 ||
