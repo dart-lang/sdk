@@ -105,9 +105,6 @@ compile_time_constant_checked3_test/06: Fail, OK
 assert_lexical_scope_test: Fail, OK # test issue 5276
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
-bad_constructor_test/04: Fail # Constructor name clashes with other member
-bad_constructor_test/05: Fail # Constructor name clashes with other member
-bad_constructor_test/06: Fail # Constructor name clashes with other member
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -208,6 +205,14 @@ type_parameter_test/02: Fail, OK
 type_parameter_test/03: Fail, OK
 type_parameter_test/04: Fail, OK
 type_variable_scope2_test: Fail, OK
+
+# test issue 5333
+named_constructor_test: Fail, OK
+naming_test: Fail, OK
+
+# test issue 5337
+bad_constructor_test/05: Fail, OK
+
 
 
 #

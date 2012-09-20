@@ -150,7 +150,6 @@ public enum ResolverErrorCode implements ErrorCode {
       "Map literal element type must match declaration '%s' when type checks are on."),
   MEMBER_WITH_NAME_OF_CLASS("Class member should not have the same name as the enclosing class"),
   CONSTRUCTOR_WITH_NAME_OF_MEMBER(
-      ErrorSeverity.WARNING,
       "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
   METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
