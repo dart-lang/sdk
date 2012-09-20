@@ -4,6 +4,9 @@
 //
 // Dart test program for testing native byte arrays.
 
+// Library tag to be able to run in html test framework.
+#library("ByteArrayTest.dart");
+
 #import('dart:scalarlist');
 
 void testCreateByteArray() {
