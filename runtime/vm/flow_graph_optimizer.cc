@@ -1081,11 +1081,21 @@ PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
 }
 
 
-static bool IsSmiPhi(PhiInstr* phi) {
+static bool IsDefinitelySmiPhi(PhiInstr* phi) {
   for (intptr_t i = 0; i < phi->InputCount(); i++) {
-    Value* input = phi->InputAt(i);
-    if ((input->definition() != phi) &&
-        (input->ResultCid() != kSmiCid)) {
+    const intptr_t cid = phi->InputAt(i)->ResultCid();
+    if (cid != kSmiCid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static bool IsPossiblySmiPhi(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    const intptr_t cid = phi->InputAt(i)->ResultCid();
+    if ((cid != kSmiCid) && (cid != kDynamicCid)) {
       return false;
     }
   }
@@ -1094,17 +1104,40 @@ static bool IsSmiPhi(PhiInstr* phi) {
 
 
 void SminessPropagator::ProcessPhis() {
+  // First optimistically mark all possible smi-phis: phi is possibly a smi if
+  // its operands are either smis or phis in the worklist.
+  for (intptr_t i = 0; i < worklist_.length(); i++) {
+    PhiInstr* phi = worklist_[i];
+    ASSERT(phi->GetPropagatedCid() == kDynamicCid);
+    phi->SetPropagatedCid(kSmiCid);
+
+    // Append all phis that use this phi and can potentially be smi to the
+    // end of worklist.
+    for (Value* use = phi->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      PhiInstr* phi_use = use->definition()->AsPhi();
+      if ((phi_use != NULL) &&
+          (phi_use->GetPropagatedCid() == kDynamicCid) &&
+          IsPossiblySmiPhi(phi_use)) {
+        AddToWorklist(phi_use);
+      }
+    }
+  }
+
+  // Now unmark phis that are not definitely smi: that is have only
+  // smi operands.
   while (!worklist_.is_empty()) {
     PhiInstr* phi = RemoveLastFromWorklist();
-    if (IsSmiPhi(phi)) {
-      ASSERT(phi->GetPropagatedCid() != kSmiCid);
-      phi->SetPropagatedCid(kSmiCid);
+    if (!IsDefinitelySmiPhi(phi)) {
+      // Phi result is not a smi. Propagate this fact to phis that depend on it.
+      phi->SetPropagatedCid(kDynamicCid);
       for (Value* use = phi->input_use_list();
            use != NULL;
            use = use->next_use()) {
-        if (use->definition()->IsPhi() &&
-            (use->definition()->GetPropagatedCid() != kSmiCid)) {
-          AddToWorklist(use->definition()->AsPhi());
+        PhiInstr* phi_use = use->definition()->AsPhi();
+        if ((phi_use != NULL) && (phi_use->GetPropagatedCid() == kSmiCid)) {
+          AddToWorklist(phi_use);
         }
       }
     }
