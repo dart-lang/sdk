@@ -37,12 +37,17 @@ static void CheckedModeHandler(bool value) {
   FLAG_enable_type_checks = value;
 }
 
+// --enable-checked-mode and --checked both enable checked mode which is
+// equivalent to setting --enable-asserts and --enable-type-checks.
 DEFINE_FLAG_HANDLER(CheckedModeHandler,
                     enable_checked_mode,
                     "Enable checked mode.");
 
-#if defined(DEBUG)
+DEFINE_FLAG_HANDLER(CheckedModeHandler,
+                    checked,
+                    "Enable checked mode.");
 
+#if defined(DEBUG)
 class TraceParser : public ValueObject {
  public:
   TraceParser(intptr_t token_pos, const Script& script, const char* msg) {
@@ -2827,7 +2832,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
           (follower == Token::kGET) ||  // Getter following a type.
           (follower == Token::kSET) ||  // Setter following a type.
           (follower == Token::kOPERATOR) ||  // Operator following a type.
-          (Token::IsIdentifier(follower))  ||  // Member name following a type.
+          (Token::IsIdentifier(follower)) ||  // Member name following a type.
           ((follower == Token::kPERIOD) &&    // Qualified class name of type,
            (LookaheadToken(3) != Token::kLPAREN))) {  // but not a named constr.
         ASSERT(is_top_level_);

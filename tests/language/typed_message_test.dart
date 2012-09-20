@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing isolate communication with
 // typed objects.
-// VMOptions=--enable_type_checks --enable_asserts
+// VMOptions=--checked
 
 #library("TypedMessageTest");
 #import("dart:isolate");
