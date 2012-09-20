@@ -172,10 +172,7 @@ class FutureImpl<T> implements Future<T> {
   Future transform(Function transformation) {
     final completer = new Completer();
 
-    handleException((e) {
-      completer.completeException(e, stackTrace);
-      return true;
-    });
+    _forwardException(this, completer);
 
     then((v) {
       var transformed = null;
@@ -193,10 +190,8 @@ class FutureImpl<T> implements Future<T> {
 
   Future chain(Function transformation) {
     final completer = new Completer();
-    handleException((e) {
-      completer.completeException(e, this.stackTrace);
-      return true;
-    });
+
+    _forwardException(this, completer);
     then((v) {
       var future = null;
       try {
@@ -205,11 +200,8 @@ class FutureImpl<T> implements Future<T> {
         completer.completeException(ex, stackTrace);
         return;
       }
-      future.handleException((e) {
-        completer.completeException(e, future.stackTrace);
-        return true;
-      });
-      future.then((b) => completer.complete(b));
+
+      _forward(future, completer);
     });
     return completer.future;
   }
@@ -219,7 +211,15 @@ class FutureImpl<T> implements Future<T> {
 
     handleException((ex) {
       try {
-        completer.complete(transformation(ex));
+        final result = transformation(ex);
+
+        // If the transformation itself returns a future, then we will
+        // complete to what that completes to.
+        if (result is Future) {
+          _forward(result, completer);
+        } else {
+          completer.complete(result);
+        }
       } catch (innerException, stackTrace) {
         completer.completeException(innerException, stackTrace);
       }
@@ -229,6 +229,24 @@ class FutureImpl<T> implements Future<T> {
     then(completer.complete);
 
     return completer.future;
+  }
+
+  /**
+   * Forwards the success or error completion from [future] to [completer].
+   */
+  _forward(Future future, Completer completer) {
+    _forwardException(future, completer);
+    future.then(completer.complete);
+  }
+
+  /**
+   * Forwards the exception completion from [future] to [completer].
+   */
+  _forwardException(Future future, Completer completer) {
+    future.handleException((e) {
+      completer.completeException(e, future.stackTrace);
+      return true;
+    });
   }
 }
 

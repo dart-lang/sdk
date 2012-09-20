@@ -132,7 +132,9 @@ abstract class Future<T> {
    * exception occurs, then [transformation] will be called with the exception
    * value. If [transformation] itself throws an exception, then the returned
    * future completes with that exception. Otherwise, the future will complete
-   * with the value returned by [transformation].
+   * with the value returned by [transformation]. If the returned value is
+   * itself a future, then the future returned by [transformException] will
+   * complete with the value that that future completes to.
    */
   Future transformException(transformation(Object exception));
 }
