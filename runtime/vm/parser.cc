@@ -7991,12 +7991,20 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
       if (!resolved_obj.IsNull()) {
         if (!first_lib_url.IsNull()) {
           // Found duplicate definition.
-          ErrorMsg(ident_pos,
-                   "ambiguous reference: "
-                   "'%s' is defined in library '%s' and also in '%s'",
-                   name.ToCString(),
-                   first_lib_url.ToCString(),
-                   String::Handle(lib.url()).ToCString());
+          if (first_lib_url.raw() == lib.url()) {
+            ErrorMsg(ident_pos,
+                     "ambiguous reference: "
+                     "'%s' as library '%s' is imported multiple times",
+                     name.ToCString(),
+                     first_lib_url.ToCString());
+          } else {
+            ErrorMsg(ident_pos,
+                     "ambiguous reference: "
+                     "'%s' is defined in library '%s' and also in '%s'",
+                     name.ToCString(),
+                     first_lib_url.ToCString(),
+                     String::Handle(lib.url()).ToCString());
+          }
         } else {
           first_lib_url = lib.url();
           obj = resolved_obj.raw();
