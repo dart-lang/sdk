@@ -24,11 +24,11 @@ intl/test/find_default_locale_standalone_test: skip
 # Skip browser-specific Intl tests on VM
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: skip
+intl/test/date_time_format_http_request_test: skip
 
-# Skip tests that use dart:io on dartc. Issue 5143
-[ $compiler == dartc ]
-intl/test/date_time_format_file_even_test: skip
-intl/test/date_time_format_file_odd_test: skip
+# Skip http request tests on Windows temporarily
+[ $system == windows]
+int/test/date_time_format_http_request_test: skip
 dartdoc/test/dartdoc_test: Fail, OK # dart2js issue 5332
 
 # Skip intl_message tests that use mirrors on dart2js until it's been implemented there.
