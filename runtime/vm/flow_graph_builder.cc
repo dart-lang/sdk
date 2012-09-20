@@ -37,7 +37,6 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
         ? parsed_function.function().num_fixed_parameters()
         : 0),
     num_stack_locals_(parsed_function.num_stack_locals()),
-    last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -161,8 +160,7 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     exit_ = true_exit;
     temp_index_ = true_fragment.temp_index();
   } else {
-    JoinEntryInstr* join =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    JoinEntryInstr* join = new JoinEntryInstr(owner()->try_index());
     true_exit->Goto(join);
     false_exit->Goto(join);
     exit_ = join;
@@ -190,8 +188,7 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   if (body_exit == NULL) {
     Append(test_fragment);
   } else {
-    JoinEntryInstr* join =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    JoinEntryInstr* join = new JoinEntryInstr(owner()->try_index());
     join->set_next(test_fragment.entry());
     Goto(join);
     body_exit->Goto(join);
@@ -302,8 +299,7 @@ void TestGraphVisitor::ConnectBranchesTo(
     JoinEntryInstr* join) const {
   ASSERT(!branches.is_empty());
   for (intptr_t i = 0; i < branches.length(); i++) {
-    TargetEntryInstr* target =
-        new TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    TargetEntryInstr* target = new TargetEntryInstr(owner()->try_index());
     *(branches[i]) = target;
     target->Goto(join);
   }
@@ -325,14 +321,12 @@ BlockEntryInstr* TestGraphVisitor::CreateSuccessorFor(
   ASSERT(!branches.is_empty());
 
   if (branches.length() == 1) {
-    TargetEntryInstr* target =
-        new TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    TargetEntryInstr* target = new TargetEntryInstr(owner()->try_index());
     *(branches[0]) = target;
     return target;
   }
 
-  JoinEntryInstr* join =
-      new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+  JoinEntryInstr* join = new JoinEntryInstr(owner()->try_index());
   ConnectBranchesTo(branches, join);
   return join;
 }
@@ -1103,13 +1097,11 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     // allocate JoinNode here and use it as statement start.
     statement_start = node->label()->join_for_continue();
     if (statement_start == NULL) {
-      statement_start =
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+      statement_start = new JoinEntryInstr(owner()->try_index());
       node->label()->set_join_for_continue(statement_start);
     }
   } else {
-    statement_start =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    statement_start = new JoinEntryInstr(owner()->try_index());
   }
   node->statements()->Visit(&for_case_statements);
   Instruction* statement_exit =
@@ -1155,8 +1147,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
       exit_instruction = statement_exit;
     } else {
       if (statement_exit != NULL) {
-        JoinEntryInstr* join = new JoinEntryInstr(owner()->AllocateBlockId(),
-                                                  owner()->try_index());
+        JoinEntryInstr* join = new JoinEntryInstr(owner()->try_index());
         statement_exit->Goto(join);
         next_target->Goto(join);
         exit_instruction = join;
@@ -1240,17 +1231,13 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   ASSERT(is_open());
 
   // Tie do-while loop (test is after the body).
-  JoinEntryInstr* body_entry_join =
-      new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+  JoinEntryInstr* body_entry_join = new JoinEntryInstr(owner()->try_index());
   Goto(body_entry_join);
   Instruction* body_exit = AppendFragment(body_entry_join, for_body);
 
   JoinEntryInstr* join = node->label()->join_for_continue();
   if ((body_exit != NULL) || (join != NULL)) {
-    if (join == NULL) {
-      join =
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
-    }
+    if (join == NULL) join = new JoinEntryInstr(owner()->try_index());
     join->set_next(for_test.entry());
     if (body_exit != NULL) {
       body_exit->Goto(join);
@@ -1317,8 +1304,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   // 'loop_increment_end' is NULL only if there is no join for continue and the
   // body is not open, i.e., no backward branch exists.
   if (loop_increment_end != NULL) {
-    JoinEntryInstr* loop_start =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    JoinEntryInstr* loop_start = new JoinEntryInstr(owner()->try_index());
     Goto(loop_start);
     loop_increment_end->Goto(loop_start);
     exit_ = loop_start;
@@ -1326,8 +1312,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
   if (node->condition() == NULL) {
     // Endless loop, no test.
-    JoinEntryInstr* body_entry =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    JoinEntryInstr* body_entry = new JoinEntryInstr(owner()->try_index());
     AppendFragment(body_entry, for_body);
     Goto(body_entry);
     if (node->label()->join_for_break() != NULL) {
@@ -1395,13 +1380,13 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   if (node->kind() == Token::kBREAK) {
     if (node->label()->join_for_break() == NULL) {
       node->label()->set_join_for_break(
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index()));
+          new JoinEntryInstr(owner()->try_index()));
     }
     jump_target = node->label()->join_for_break();
   } else {
     if (node->label()->join_for_continue() == NULL) {
       node->label()->set_join_for_continue(
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index()));
+          new JoinEntryInstr(owner()->try_index()));
     }
     jump_target = node->label()->join_for_continue();
   }
@@ -2488,14 +2473,12 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   node->try_block()->Visit(&for_try_block);
 
   if (for_try_block.is_open()) {
-    JoinEntryInstr* after_try =
-        new JoinEntryInstr(owner()->AllocateBlockId(), old_try_index);
+    JoinEntryInstr* after_try = new JoinEntryInstr(old_try_index);
     for_try_block.Goto(after_try);
     for_try_block.exit_ = after_try;
   }
 
-  JoinEntryInstr* try_entry =
-      new JoinEntryInstr(owner()->AllocateBlockId(), try_index);
+  JoinEntryInstr* try_entry = new JoinEntryInstr(try_index);
 
   Goto(try_entry);
   AppendFragment(try_entry, for_try_block);
@@ -2512,9 +2495,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
     catch_block->Visit(&for_catch_block);
-    TargetEntryInstr* catch_entry =
-        new TargetEntryInstr(owner()->AllocateBlockId(), old_try_index);
-    catch_entry->set_catch_try_index(try_index);
+    TargetEntryInstr* catch_entry = new TargetEntryInstr(old_try_index,
+                                                         try_index);
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     AppendFragment(catch_entry, for_catch_block);
@@ -2584,8 +2566,7 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   }
   BuildLoadContext(node->context_var());
 
-  JoinEntryInstr* finally_entry =
-      new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+  JoinEntryInstr* finally_entry = new JoinEntryInstr(owner()->try_index());
   EffectGraphVisitor for_finally_block(owner(), temp_index());
   node->finally_block()->Visit(&for_finally_block);
 
@@ -2594,8 +2575,7 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   }
 
   if (for_finally_block.is_open()) {
-    JoinEntryInstr* after_finally =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    JoinEntryInstr* after_finally = new JoinEntryInstr(owner()->try_index());
     for_finally_block.Goto(after_finally);
     for_finally_block.exit_ = after_finally;
   }
@@ -2617,9 +2597,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
   if (InInliningContext()) exits_ = new ZoneGrowableArray<ReturnInstr*>();
   // Compilation can be nested, preserve the computation-id.
   const Function& function = parsed_function().function();
-  TargetEntryInstr* normal_entry =
-      new TargetEntryInstr(AllocateBlockId(),
-                           CatchClauseNode::kInvalidTryIndex);
+  TargetEntryInstr* normal_entry = new TargetEntryInstr(
+      CatchClauseNode::kInvalidTryIndex);
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
   if (InInliningContext()) {

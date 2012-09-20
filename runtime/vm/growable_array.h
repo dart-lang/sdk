@@ -73,6 +73,14 @@ class BaseGrowableArray : public B {
     length_ = 0;
   }
 
+  void RemoveFirst() {
+    ASSERT(length_ > 0);
+    length_--;
+    for (int i = 0; i < length_; i++) {
+      data_[i] = data_[i + 1];
+    }
+  }
+
   void InsertAt(intptr_t idx, const T& value) {
     Resize(length() + 1);
     for (intptr_t i = length_ - 2; i >= idx; i--) {

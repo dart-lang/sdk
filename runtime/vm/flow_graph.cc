@@ -51,6 +51,7 @@ void FlowGraph::DiscoverBlocks() {
   // Number blocks in reverse postorder.
   intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
+    postorder_[i]->set_block_id(block_count - i - 1);
     reverse_postorder_.Add(postorder_[block_count - i - 1]);
   }
   // Link instructions backwards for optimized compilation.
