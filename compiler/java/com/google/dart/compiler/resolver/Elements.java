@@ -682,7 +682,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   /**
    * @return <code>true</code> if given {@link Source} represents library with given name.
    */
-  private static boolean isLibrarySource(Source source, String name) {
+  public static boolean isLibrarySource(Source source, String name) {
     if (source instanceof DartSource) {
       DartSource dartSource = (DartSource) source;
       LibrarySource library = dartSource.getLibrary();
