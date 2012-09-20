@@ -60,8 +60,8 @@ static RawInteger* IntegerBitOperation(Token::Kind kind,
         UNIMPLEMENTED();
     }
   } else {
-    Bigint& op1 = Bigint::Handle(Bigint::AsBigint(op1_int));
-    Bigint& op2 = Bigint::Handle(Bigint::AsBigint(op2_int));
+    Bigint& op1 = Bigint::Handle(op1_int.AsBigint());
+    Bigint& op2 = Bigint::Handle(op2_int.AsBigint());
     switch (kind) {
       case Token::kBIT_AND:
         return BigintOperations::BitAnd(op1, op2);
@@ -106,7 +106,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_AND, left, right));
-  return Integer::AsInteger(result);
+  return result.AsInteger();
 }
 
 
@@ -121,7 +121,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_OR, left, right));
-  return Integer::AsInteger(result);
+  return result.AsInteger();
 }
 
 
@@ -136,7 +136,7 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
   }
   Integer& result = Integer::Handle(
       IntegerBitOperation(Token::kBIT_XOR, left, right));
-  return Integer::AsInteger(result);
+  return result.AsInteger();
 }
 
 
@@ -149,7 +149,7 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
     OS::Print("Integer_addFromInteger %s + %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return Integer::BinaryOp(Token::kADD, left_int, right_int);
+  return left_int.BinaryOp(Token::kADD, right_int);
 }
 
 
@@ -162,7 +162,7 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
     OS::Print("Integer_subFromInteger %s - %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return Integer::BinaryOp(Token::kSUB, left_int, right_int);
+  return left_int.BinaryOp(Token::kSUB, right_int);
 }
 
 
@@ -175,7 +175,7 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
     OS::Print("Integer_mulFromInteger %s * %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return Integer::BinaryOp(Token::kMUL, left_int, right_int);
+  return left_int.BinaryOp(Token::kMUL, right_int);
 }
 
 
@@ -185,7 +185,7 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
   ASSERT(!right_int.IsZero());
-  return Integer::BinaryOp(Token::kTRUNCDIV, left_int, right_int);
+  return left_int.BinaryOp(Token::kTRUNCDIV, right_int);
 }
 
 
@@ -202,7 +202,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
     // Should have been caught before calling into runtime.
     UNIMPLEMENTED();
   }
-  return Integer::BinaryOp(Token::kMOD, left_int, right_int);
+  return left_int.BinaryOp(Token::kMOD, right_int);
 }
 
 
@@ -260,7 +260,7 @@ static RawInteger* SmiShiftOperation(Token::Kind kind,
         if ((cnt + right_value) >= Smi::kBits) {
           if ((cnt + right_value) >= Mint::kBits) {
             return BigintOperations::ShiftLeft(
-                Bigint::Handle(Bigint::AsBigint(left)), right_value);
+                Bigint::Handle(left.AsBigint()), right_value);
           } else {
             int64_t left_64 = left_value;
             return Integer::New(left_64 << right_value);
@@ -337,7 +337,7 @@ DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   ASSERT(CheckInteger(value));
   Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHR, value, amount));
-  return Integer::AsInteger(result);
+  return result.AsInteger();
 }
 
 
@@ -353,7 +353,7 @@ DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
   }
   Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHL, value, amount));
-  return Integer::AsInteger(result);
+  return result.AsInteger();
 }
 
 
@@ -386,7 +386,7 @@ DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
   const Bigint& result = Bigint::Handle(BigintOperations::BitNot(value));
   ASSERT(CheckInteger(value));
   ASSERT(CheckInteger(result));
-  return Integer::AsInteger(result);
+  return result.AsInteger();
 }
 
 }  // namespace dart

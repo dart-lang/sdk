@@ -2213,9 +2213,8 @@ void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
         case Token::kTRUNCDIV:
         case Token::kMOD: {
           const Object& result =
-              Integer::ZoneHandle(Integer::BinaryOp(instr->op_kind(),
-                                                    Smi::Cast(left),
-                                                    Smi::Cast(right)));
+              Integer::ZoneHandle(Smi::Cast(left).BinaryOp(instr->op_kind(),
+                                                           Smi::Cast(right)));
           SetValue(instr, result);
           break;
         }

@@ -8758,21 +8758,20 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-// Return the most compact presentation of an integer.
-RawInteger* Integer::AsInteger(const Integer& value) {
-  if (value.IsSmi()) return value.raw();
-  if (value.IsMint()) {
+RawInteger* Integer::AsInteger() const {
+  if (IsSmi()) return raw();
+  if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= value.raw();
+    mint ^= raw();
     if (Smi::IsValid64(mint.value())) {
       return Smi::New(mint.value());
     } else {
-      return value.raw();
+      return raw();
     }
   }
-  ASSERT(value.IsBigint());
+  ASSERT(IsBigint());
   Bigint& big_value = Bigint::Handle();
-  big_value ^= value.raw();
+  big_value ^= raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
   } else if (BigintOperations::FitsIntoMint(big_value)) {
@@ -8784,18 +8783,17 @@ RawInteger* Integer::AsInteger(const Integer& value) {
 
 
 RawInteger* Integer::BinaryOp(Token::Kind operation,
-                              const Integer& left,
-                              const Integer& right) {
+                              const Integer& other) const {
   // In 32-bit mode, the result of any operation between two Smis will fit in a
   // 32-bit signed result, except the product of two Smis, which will be 64-bit.
   // In 64-bit mode, the result of any operation between two Smis will fit in a
   // 64-bit signed result, except the product of two Smis (unless the Smis are
   // 32-bit or less).
-  if (left.IsSmi() && right.IsSmi()) {
+  if (IsSmi() && other.IsSmi()) {
     Smi& left_smi = Smi::Handle();
     Smi& right_smi = Smi::Handle();
-    left_smi ^= left.raw();
-    right_smi ^= right.raw();
+    left_smi ^= raw();
+    right_smi ^= other.raw();
     const intptr_t left_value = left_smi.Value();
     const intptr_t right_value = right_smi.Value();
     switch (operation) {
@@ -8839,10 +8837,10 @@ RawInteger* Integer::BinaryOp(Token::Kind operation,
   // In 32-bit mode, the result of any operation between two 63-bit signed
   // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
   // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
-  if ((Smi::kBits < 32) && !left.IsBigint() && !right.IsBigint()) {
-    const int64_t left_value = left.AsInt64Value();
+  if ((Smi::kBits < 32) && !IsBigint() && !other.IsBigint()) {
+    const int64_t left_value = AsInt64Value();
     if (Utils::IsInt(63, left_value)) {
-      const int64_t right_value = right.AsInt64Value();
+      const int64_t right_value = other.AsInt64Value();
       if (Utils::IsInt(63, right_value)) {
         switch (operation) {
         case Token::kADD:
@@ -8875,11 +8873,11 @@ RawInteger* Integer::BinaryOp(Token::Kind operation,
       }
     }
   }
-  const Bigint& left_big = Bigint::Handle(Bigint::AsBigint(left));
-  const Bigint& right_big = Bigint::Handle(Bigint::AsBigint(right));
+  const Bigint& left_big = Bigint::Handle(AsBigint());
+  const Bigint& right_big = Bigint::Handle(other.AsBigint());
   const Bigint& result =
-      Bigint::Handle(Bigint::BinaryOp(operation, left_big, right_big));
-  return Integer::Handle(AsInteger(result)).raw();
+      Bigint::Handle(left_big.BinaryOp(operation, right_big));
+  return Integer::Handle(result.AsInteger()).raw();
 }
 
 
@@ -9185,41 +9183,38 @@ const char* Double::ToCString() const {
 }
 
 
-// Returns value in form of a RawBigint.
-RawBigint* Bigint::AsBigint(const Integer& value) {
-  ASSERT(!value.IsNull());
-  if (value.IsSmi()) {
+RawBigint* Integer::AsBigint() const {
+  ASSERT(!IsNull());
+  if (IsSmi()) {
     Smi& smi = Smi::Handle();
-    smi ^= value.raw();
+    smi ^= raw();
     return BigintOperations::NewFromSmi(smi);
-  } else if (value.IsMint()) {
+  } else if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= value.raw();
+    mint ^= raw();
     return BigintOperations::NewFromInt64(mint.value());
   } else {
-    ASSERT(value.IsBigint());
+    ASSERT(IsBigint());
     Bigint& big = Bigint::Handle();
-    big ^= value.raw();
+    big ^= raw();
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     return big.raw();
   }
 }
 
 
-RawBigint* Bigint::BinaryOp(Token::Kind operation,
-                            const Bigint& left,
-                            const Bigint& right) {
+RawBigint* Bigint::BinaryOp(Token::Kind operation, const Bigint& other) const {
   switch (operation) {
     case Token::kADD:
-      return BigintOperations::Add(left, right);
+      return BigintOperations::Add(*this, other);
     case Token::kSUB:
-      return BigintOperations::Subtract(left, right);
+      return BigintOperations::Subtract(*this, other);
     case Token::kMUL:
-      return BigintOperations::Multiply(left, right);
+      return BigintOperations::Multiply(*this, other);
     case Token::kTRUNCDIV:
-      return BigintOperations::Divide(left, right);
+      return BigintOperations::Divide(*this, other);
     case Token::kMOD:
-      return BigintOperations::Modulo(left, right);
+      return BigintOperations::Modulo(*this, other);
     default:
       UNIMPLEMENTED();
       return Bigint::null();

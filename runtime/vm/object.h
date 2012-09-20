@@ -3263,10 +3263,12 @@ class Integer : public Number {
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
 
-  static RawInteger* AsInteger(const Integer& value);
-  static RawInteger* BinaryOp(Token::Kind operation,
-                              const Integer& left,
-                              const Integer& right);
+  // Return the most compact presentation of an integer.
+  RawInteger* AsInteger() const;
+  // Return an integer in the form of a RawBigint.
+  RawBigint* AsBigint() const;
+
+  RawInteger* BinaryOp(Token::Kind operation, const Integer& other) const;
 
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
@@ -3409,10 +3411,7 @@ class Bigint : public Integer {
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
-  static RawBigint* AsBigint(const Integer& value);
-  static RawBigint* BinaryOp(Token::Kind operation,
-                             const Bigint& left,
-                             const Bigint& right);
+  RawBigint* BinaryOp(Token::Kind operation, const Bigint& other) const;
 
  private:
   Chunk GetChunkAt(intptr_t i) const {
