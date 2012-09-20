@@ -99,7 +99,7 @@ class FunctionBodyRewriter extends CloningVisitor {
 
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
-  final bool cutDeclarationTypes;
+  final bool forceCutDeclarationTypes;
   // TODO(antonm): make available from command-line options.
   final bool outputAst = false;
 
@@ -172,7 +172,7 @@ class DartBackend extends Backend {
     return true;
   }
 
-  DartBackend(Compiler compiler, this.cutDeclarationTypes)
+  DartBackend(Compiler compiler, this.forceCutDeclarationTypes)
       : tasks = <CompilerTask>[],
         super(compiler);
 
@@ -320,7 +320,7 @@ class DartBackend extends Backend {
     // Create renames.
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
-    bool shouldCutDeclarationTypes = cutDeclarationTypes
+    bool shouldCutDeclarationTypes = forceCutDeclarationTypes
         || (compiler.enableMinification
             && isSafeToRemoveTypeDeclarations(classMembers));
     renamePlaceholders(
