@@ -105,6 +105,23 @@ public class SyntaxTest extends AbstractParserTest {
         "}"));
   }
 
+//  public void test_cascade2() {
+//    DartUnit unit = parseUnit("cascade.dart", Joiner.on("\n").join(
+//        "class A {",
+//        "  B b;",
+//        "}",
+//        "",
+//        "class B {",
+//        "  void m() {}",
+//        "}",
+//        "",
+//        "main() {",
+//        "  A a;",
+//        "  a..b.m()..b.m();",
+//        "}"));
+//    assertNotNull(unit);
+//  }
+
   public void test_assertStatement() {
     DartUnit unit = parseUnit("function.dart", Joiner.on("\n").join(
         "main() {",

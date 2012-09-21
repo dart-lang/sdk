@@ -69,10 +69,10 @@ LibTest/core/double/remainder_A01_t03: fail # http://dartbug.com/5179
 
 Language/07_Classes/07_Classes_A03_t01: Fail, OK # 'default' is no longer supported
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # the default constructor invokes a non-existent zero argument constructor
-Language/07_Classes/07_Classes_A02_t01: Fail # Issue 5419
+Language/07_Classes/07_Classes_A02_t01: Fail # co19 issue 221
 Language/07_Classes/07_Classes_A02_t31: Fail, OK # constant constructors are not required to have a body
 Language/07_Classes/07_Classes_A02_t32: Fail, OK # constant constructors are not required to have a body
-Language/07_Classes/07_Classes_A02_t34: Fail # Issue 5419
+Language/07_Classes/07_Classes_A02_t34: Fail # co19 issue 221
 Language/07_Classes/07_Classes_A09_t01: Fail, OK # warning expected if instance member has the same name as a static member
 Language/07_Classes/2_Getters_A01_t05: Fail # No issue: waiting to remove old getter syntax
 Language/07_Classes/3_Setters_A04_t02: Fail, OK # getter and method with the same name

@@ -1374,7 +1374,18 @@ public class DartParser extends CompletionHooksParserBase {
 
         // The next token may be a type specification or parameterized constructor: either a method or field.
         boolean isVoidType = peek(0) == Token.VOID;
-        DartTypeNode type = isVoidType ? parseVoidType() : parseTypeAnnotation();
+        DartTypeNode type;
+        if (isVoidType) {
+          type = parseVoidType();
+        } else {
+          int nameIndex = skipTypeName(0);
+          if (nameIndex < 0 || (peek(nameIndex) != Token.IDENTIFIER && peek(nameIndex) != Token.AS)) {
+            // There was no type name.
+            type = null;
+          } else {
+            type = parseTypeAnnotation();
+          }
+        }
         if (peek(1) == Token.SEMICOLON
             || peek(1) == Token.COMMA
             || peek(1) == Token.ASSIGN) {
@@ -1384,6 +1395,8 @@ public class DartParser extends CompletionHooksParserBase {
           member = parseFieldDeclaration(modifiers, type);
           if (isVoidType) {
             reportError(type, ParserErrorCode.VOID_FIELD);
+          } else if (!modifiers.isFinal() && type == null) {
+            reportError(position(), ParserErrorCode.INVALID_FIELD_DECLARATION);
           }
           expectStatmentTerminator();
         } else {
@@ -2256,6 +2269,7 @@ public class DartParser extends CompletionHooksParserBase {
    * expression
    *     : assignableExpression assignmentOperator expression
    *     | conditionalExpression cascadeSection*
+   *     | throwExpression
    *     ;
    *
    * assignableExpression
@@ -2791,30 +2805,35 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
-   * Return the offset of the first token after a type name, or {@code -1} if the token at the given
-   * offset is not the start of a type name.
-   * 
-   * @param offset the offset of the first token of the type name
-   * @return the offset of the first token after a type name
+   * Instances of the class {@code DepthCounter} represent the number of less than tokens that have
+   * not yet been matched.
    */
-  private int skipTypeArguments(int offset) {
-    if (peek(offset) != Token.LT) {
-      return -1;
+  private static class DepthCounter {
+    /**
+     * The number of less than tokens that have not yet been matched.
+     */
+    private int count = 0;
+
+    /**
+     * Increment the number of less than tokens that have not yet been matched by the given amount
+     * (or decrement the count if the argument is negative).
+     * 
+     * @param value the amount by which the count should be changed
+     * @return the count after it has been modified
+     */
+    public int add(int value) {
+      count += value;
+      return count;
     }
-    offset = skipTypeName(offset + 1);
-    if (offset < 0) {
-      return offset;
+
+    /**
+     * Return the number of less than tokens that have not yet been matched.
+     * 
+     * @return the number of less than tokens that have not yet been matched
+     */
+    public int getCount() {
+      return count;
     }
-    while (peek(offset) == Token.COMMA) {
-      offset = skipTypeName(offset + 1);
-      if (offset < 0) {
-        return offset;
-      }
-    }
-    if (peek(offset) != Token.GT) {
-      return -1;
-    }
-    return offset + 1;
   }
 
   /**
@@ -2825,15 +2844,68 @@ public class DartParser extends CompletionHooksParserBase {
    * @return the offset of the first token after a type name
    */
   private int skipTypeName(int offset) {
+    return skipTypeName(offset, new DepthCounter());
+  }
+
+  /**
+   * Return the offset of the first token after a type name, or {@code -1} if the token at the given
+   * offset is not the start of a type name.
+   * 
+   * @param offset the offset of the first token of the type name
+   * @param depth the number of less-thans that have been encountered since the outer-most type name
+   * @return the offset of the first token after a type name
+   */
+  private int skipTypeArguments(int offset, DepthCounter depth) {
+    if (peek(offset) != Token.LT) {
+      return -1;
+    }
+    int oldDepth = depth.add(1);
+    offset = skipTypeName(offset + 1, depth);
+    if (offset < 0) {
+      return offset;
+    }
+    while (peek(offset) == Token.COMMA) {
+      offset = skipTypeName(offset + 1, depth);
+      if (offset < 0) {
+        return offset;
+      }
+    }
+    if (depth.getCount() < oldDepth) {
+      // We already passed the closing '>' for this list of type arguments
+      return offset;
+    }
+    if (peek(offset) == Token.GT) {
+      depth.add(-1);
+      return offset + 1;
+    } else if (peek(offset) == Token.SAR) {
+      depth.add(-2);
+      return offset + 1;
+    }
+    return -1;
+  }
+
+  /**
+   * Return the offset of the first token after a type name, or {@code -1} if the token at the given
+   * offset is not the start of a type name.
+   * 
+   * @param offset the offset of the first token of the type name
+   * @param depth the number of less-thans that have been encountered since the outer-most type name
+   * @return the offset of the first token after a type name
+   */
+  private int skipTypeName(int offset, DepthCounter depth) {
     if (peek(offset) != Token.IDENTIFIER) {
       return -1;
     }
     offset++;
-    if (peek(offset) == Token.PERIOD && peek(offset + 1) == Token.IDENTIFIER) {
-      offset += 2;
+    if (peek(offset) == Token.PERIOD) {
+      offset++;
+      if (peek(offset) == Token.IDENTIFIER) {
+        // We tolerate a missing identifier in order to recover better
+        offset++;
+      }
     }
     if (peek(offset) == Token.LT) {
-      offset = skipTypeArguments(offset);
+      offset = skipTypeArguments(offset, depth);
     }
     return offset;
   }
