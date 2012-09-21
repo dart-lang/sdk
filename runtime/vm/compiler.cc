@@ -46,6 +46,7 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
+DEFINE_FLAG(bool, range_analysis, false, "Enable range analysis");
 DECLARE_FLAG(bool, print_flow_graph);
 
 
@@ -216,11 +217,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
           LICM::Optimize(flow_graph);
         }
 
-        // We have to perform range analysis after LICM because it
-        // optimistically moves CheckSmi through phis into loop preheaders
-        // making some phis smi.
-        flow_graph->ComputeUseLists();
-        optimizer.InferSmiRanges();
+        if (FLAG_range_analysis) {
+          // We have to perform range analysis after LICM because it
+          // optimistically moves CheckSmi through phis into loop preheaders
+          // making some phis smi.
+          flow_graph->ComputeUseLists();
+          optimizer.InferSmiRanges();
+        }
 
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
