@@ -138,8 +138,8 @@ public enum ResolverErrorCode implements ErrorCode {
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
-  IS_AN_INSTANCE_FIELD("%s.%s is an instance field, not a static method"),
-  IS_AN_INSTANCE_METHOD("%s.%s is an instance method, not a static method"),
+  IS_AN_INSTANCE_FIELD(ErrorSeverity.WARNING, "%s.%s is an instance field, not a static method"),
+  IS_AN_INSTANCE_METHOD(ErrorSeverity.WARNING, "%s.%s is an instance method, not a static method"),
   // TODO(zundel): error message needs JUnit test (requires development mode checks)
   LIST_LITERAL_ELEMENT_TYPE(
       "List literal element type must match declaration '%s' when type checks are on."),

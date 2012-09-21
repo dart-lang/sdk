@@ -163,8 +163,6 @@ Language/10_Expressions/05_Strings_A02_t46: Fail # Issue 5296
 Language/10_Expressions/05_Strings_A02_t47: Fail, OK # no longer an error
 Language/10_Expressions/05_Strings_A02_t48: Fail # Issue 5296
 Language/10_Expressions/05_Strings_A02_t49: Fail, OK # no longer an error
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # Issue 5293
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # Issue 5293
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Issue 5294
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
 Language/10_Expressions/16_Assignment_A04_t05: Fail # Issue 5295

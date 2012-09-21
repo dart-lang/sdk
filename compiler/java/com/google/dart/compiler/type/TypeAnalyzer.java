@@ -3140,6 +3140,32 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
           }
+          // set super-elements for FieldElement
+          Elements.setOverridden(field, ImmutableSet.copyOf(overridden));
+          // set super-elements for getter/setter
+          if (node.getAccessor() != null) {
+            Set<Element> superGetters = Sets.newHashSet();
+            Set<Element> superSetters = Sets.newHashSet();
+            for (Element superElement : overridden) {
+              if (superElement instanceof FieldElement) {
+                FieldElement superField = (FieldElement) superElement;
+                if (superField.getGetter() != null) {
+                  superGetters.add(superField.getGetter());
+                } else if (superField.getSetter() != null) {
+                  superSetters.add(superField.getSetter());
+                } else {
+                  superGetters.add(superField);
+                  superSetters.add(superField);
+                }
+              }
+            }
+            if (node.getAccessor().getModifiers().isGetter()) {
+              Elements.setOverridden(node.getAccessor().getElement(), superGetters);
+            }
+            if (node.getAccessor().getModifiers().isSetter()) {
+              Elements.setOverridden(node.getAccessor().getElement(), superSetters);
+            }
+          }
         }
         return null;
       }
@@ -3176,32 +3202,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                     break;
                 }
               }
-            }
-          }
-          // set super-elements for FieldElement
-          Elements.setOverridden(field, ImmutableSet.copyOf(overridden));
-          // set super-elements for getter/setter
-          if (node.getAccessor() != null) {
-            Set<Element> superGetters = Sets.newHashSet();
-            Set<Element> superSetters = Sets.newHashSet();
-            for (Element superElement : overridden) {
-              if (superElement instanceof FieldElement) {
-                FieldElement superField = (FieldElement) superElement;
-                if (superField.getGetter() != null) {
-                  superGetters.add(superField.getGetter());
-                } else if (superField.getSetter() != null) {
-                  superSetters.add(superField.getSetter());
-                } else {
-                  superGetters.add(superField);
-                  superSetters.add(superField);
-                }
-              }
-            }
-            if (node.getAccessor().getModifiers().isGetter()) {
-              Elements.setOverridden(node.getAccessor().getElement(), superGetters);
-            }
-            if (node.getAccessor().getModifiers().isSetter()) {
-              Elements.setOverridden(node.getAccessor().getElement(), superSetters);
             }
           }
         }
