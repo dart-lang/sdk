@@ -30,6 +30,10 @@ intl/test/date_time_format_http_request_test: skip
 [ $system == windows]
 intl/test/date_time_format_http_request_test: skip
 
+# Skip http request tests on Dartium, because we can't skip it on incremental builds
+[ $runtime == dartium ]
+intl/test/date_time_format_http_request_test: skip
+
 # Skip intl_message tests that use mirrors on dart2js until it's been implemented there.
 [ $compiler == dart2js ]
 intl/test/intl_message_test: skip
