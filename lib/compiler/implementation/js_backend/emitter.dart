@@ -547,9 +547,12 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       SourceString helper = compiler.backend.getCheckedModeHelper(type);
       Element helperElement = compiler.findHelper(helper);
       String helperName = namer.isolateAccess(helperElement);
-      String additionalArgument = namer.operatorIs(type.element);
+      String additionalArgument = '';
+      if (helperElement.computeSignature(compiler).parameterCount != 1) {
+        additionalArgument = ", '${namer.operatorIs(type.element)}'";
+      }
       return " set\$$fieldName: function(v) { "
-          "this.$fieldName = $helperName(v, '$additionalArgument'); }";
+          "this.$fieldName = $helperName(v$additionalArgument); }";
     }
   }
 

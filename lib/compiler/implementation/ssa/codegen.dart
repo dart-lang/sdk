@@ -2462,8 +2462,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);
       arguments.add(pop());
-      String additionalArgument = backend.namer.operatorIs(element);
-      arguments.add(new js.LiteralString("'$additionalArgument'"));
+      if (helperElement.computeSignature(compiler).parameterCount != 1) {
+        String additionalArgument = backend.namer.operatorIs(element);
+        arguments.add(new js.LiteralString("'$additionalArgument'"));
+      }
       String helperName = backend.namer.isolateAccess(helperElement);
       push(new js.Call(new js.VariableUse(helperName), arguments));
     } else {
