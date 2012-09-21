@@ -4,12 +4,12 @@
 
 class A<T> {
   final int x;
-  const A.x() : x = 42;
-  A();
+  const A.named() : x = 42;
+  A() : x = null;
 }
 
 main() {
-  Expect.equals(42, (const A<int>.x()).x);
-  Expect.equals(42, (new A<int>.x()).x);
+  Expect.equals(42, (const A<int>.named()).x);
+  Expect.equals(42, (new A<int>.named()).x);
   const A<int>(); /// 01: compile-time error
 }
