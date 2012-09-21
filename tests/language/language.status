@@ -271,7 +271,6 @@ string_escape1_negative_test: Skip
 import_core_prefix_test: Fail # Issue 5345
 getter_no_setter2_test/01: Fail, Pass # Test works only for minified output.
 metadata_test: Fail
-prefix_new_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail
