@@ -57,13 +57,8 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-[ $compiler == dart2js && $host_unchecked ]
-metadata_test: Fail # Metadata on type parameters not supported.
-
-[ $compiler == dart2js && $host_checked ]
-metadata_test: Crash # Metadata on type parameters not supported.
-
 [ $compiler == dart2js ]
+metadata_test: Fail # Metadata on type parameters not supported.
 savannah_test: Fail #I Issue 5268
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
