@@ -232,9 +232,6 @@ prefix_new_test: Fail
 [ $runtime == dartium ]
 import_core_no_prefix_test: Fail # Issue 4607
 
-[ $compiler == none && $runtime == vm ]
-import_core_no_prefix_test: Fail # Issue 4607
-
 [ $runtime == vm ]
 first_class_types_test: Fail # Issue 3902
 call_nonexistent_static_test/01: Fail # Issues 3094

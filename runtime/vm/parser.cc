@@ -4219,6 +4219,13 @@ void Parser::ParseLibraryDefinition() {
     ParseLibraryNameObsoleteSyntax();
     ParseLibraryImportObsoleteSyntax();
     ParseLibraryIncludeObsoleteSyntax();
+    // Core lib has not been explicitly imported, so we implicitly
+    // import it here.
+    if (!library_.ImportsCorelib()) {
+      Library& core_lib = Library::Handle(Library::CoreLibrary());
+      ASSERT(!core_lib.IsNull());
+      library_.AddImport(core_lib);
+    }
     return;
   }
 
@@ -4239,6 +4246,13 @@ void Parser::ParseLibraryDefinition() {
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
+  }
+  // Core lib has not been explicitly imported, so we implicitly
+  // import it here.
+  if (!library_.ImportsCorelib()) {
+    Library& core_lib = Library::Handle(Library::CoreLibrary());
+    ASSERT(!core_lib.IsNull());
+    library_.AddImport(core_lib);
   }
   while (IsLiteral("part")) {
     ParseLibraryPart();

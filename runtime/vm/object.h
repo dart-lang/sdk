@@ -2106,6 +2106,7 @@ class Library : public Object {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* ImportAt(intptr_t index) const;
   RawLibraryPrefix* ImportPrefixAt(intptr_t index) const;
+  bool ImportsCorelib() const;
 
   RawFunction* LookupFunctionInSource(const String& script_url,
                                       intptr_t line_number) const;
@@ -2136,6 +2137,10 @@ class Library : public Object {
   }
   void set_debuggable(bool value) const {
     raw_ptr()->debuggable_ = value;
+  }
+
+  bool IsCoreLibrary() const {
+    return raw() == CoreLibrary();
   }
 
   static RawLibrary* LookupLibrary(const String& url);

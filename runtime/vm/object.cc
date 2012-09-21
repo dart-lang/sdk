@@ -6487,6 +6487,32 @@ RawLibraryPrefix* Library::ImportPrefixAt(intptr_t index) const {
 }
 
 
+bool Library::ImportsCorelib() const {
+  Isolate* isolate = Isolate::Current();
+  Library& imported = Library::Handle(isolate);
+  intptr_t count = num_imports();
+  for (int i = 0; i < count; i++) {
+    imported = ImportAt(i);
+    if (imported.IsCoreLibrary()) {
+      return true;
+    }
+  }
+  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate);
+  LibraryPrefixIterator it(*this);
+  while (it.HasNext()) {
+    prefix = it.GetNext();
+    count = prefix.num_libs();
+    for (int i = 0; i < count; i++) {
+      imported = prefix.GetLibrary(i);
+      if (imported.IsCoreLibrary()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 void Library::AddImport(const Library& library) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
@@ -6558,7 +6584,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
 
 
 RawLibrary* Library::New(const String& url) {
-  return NewLibraryHelper(url, true);
+  return NewLibraryHelper(url, false);
 }
 
 
@@ -6592,7 +6618,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 
 void Library::InitMathLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:math"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   lib.AddImport(core_impl_lib);
@@ -6602,7 +6628,7 @@ void Library::InitMathLibrary(Isolate* isolate) {
 
 void Library::InitIsolateLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:isolate"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   isolate->object_store()->set_isolate_library(lib);
 }
@@ -6610,7 +6636,7 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
 
 void Library::InitMirrorsLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:mirrors"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   lib.AddImport(isolate_lib);
@@ -6623,7 +6649,7 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
 
 void Library::InitScalarlistLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:scalarlist"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   lib.AddImport(core_impl_lib);

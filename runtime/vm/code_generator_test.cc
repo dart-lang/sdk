@@ -268,6 +268,9 @@ static Library& MakeTestLibrary(const char* url) {
   const String& lib_url = String::ZoneHandle(Symbols::New(url));
   Library& lib = Library::ZoneHandle(Library::New(lib_url));
   lib.Register();
+  Library& core_lib = Library::Handle(Library::CoreLibrary());
+  ASSERT(!core_lib.IsNull());
+  lib.AddImport(core_lib);
   return lib;
 }
 
