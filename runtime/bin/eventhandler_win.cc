@@ -846,7 +846,7 @@ DWORD EventHandlerImplementation::GetTimeout() {
 
 void EventHandlerImplementation::SendData(intptr_t id,
                                           Dart_Port dart_port,
-                                          intptr_t data) {
+                                          int64_t data) {
   InterruptMessage* msg = new InterruptMessage;
   msg->id = id;
   msg->dart_port = dart_port;
