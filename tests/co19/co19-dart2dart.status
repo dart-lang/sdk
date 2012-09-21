@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax

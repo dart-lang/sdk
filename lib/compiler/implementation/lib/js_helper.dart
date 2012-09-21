@@ -353,6 +353,18 @@ class ListIterator<T> implements Iterator<T> {
 }
 
 class Primitives {
+  static int hashCodeSeed = 0;
+
+  static int objectHashCode(object) {
+    int hash = JS('var', r'#.$identityHash', object);
+    if (hash === null) {
+      // TOOD(ahe): We should probably randomize this somehow.
+      hash = ++hashCodeSeed;
+      JS('void', r'#.$identityHash = #', object, hash);
+    }
+    return hash;
+  }
+
   /**
    * This is the low-level method that is used to implement
    * [print]. It is possible to override this function from JavaScript

@@ -70,6 +70,8 @@ void processNativeClassesInLibrary(Enqueuer world,
         const SourceString('defineProperty')));
     world.registerStaticUse(compiler.findHelper(
         const SourceString('toStringForNativeObject')));
+    world.registerStaticUse(compiler.findHelper(
+        const SourceString('hashCodeForNativeObject')));
   }
 }
 

@@ -159,6 +159,8 @@ String toStringForNativeObject(var obj) {
   return 'Instance of $name';
 }
 
+String hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
+
 /**
  * Sets a JavaScript property on an object.
  */

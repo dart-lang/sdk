@@ -13,17 +13,11 @@ patch void print(var obj) {
   }
 }
 
-
 // Patch for Object implementation.
 patch class Object {
-  patch int hashCode() {
-    throw new RuntimeError("Unimplemented: Object.hashCode");
-    return -1;
-  }
+  patch int hashCode() => Primitives.objectHashCode(this);
 
-  patch String toString() {
-    return Primitives.objectToString(this);
-  }
+  patch String toString() => Primitives.objectToString(this);
 
   patch void noSuchMethod(String name, List args) {
     throw new NoSuchMethodError(this, name, args);
