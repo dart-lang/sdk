@@ -335,3 +335,6 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
