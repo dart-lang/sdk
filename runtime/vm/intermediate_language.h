@@ -25,6 +25,7 @@ class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
+class Range;
 
 
 // TODO(srdjan): Add _ByteArrayBase, get:length.
@@ -79,6 +80,8 @@ class Value : public ZoneAllocated {
 
   void AddToInputUseList();
   void AddToEnvUseList();
+
+  void RemoveFromInputUseList();
 
   Value* Copy() { return new Value(definition_); }
 
@@ -252,6 +255,7 @@ class EmbeddedArray<T, 0> {
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
   M(CheckArrayBound)                                                           \
+  M(Constraint)                                                                \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -723,6 +727,10 @@ class BlockEntryInstr : public Instruction {
     loop_info_ = loop_info;
   }
 
+  virtual BlockEntryInstr* GetBlock() const {
+    return const_cast<BlockEntryInstr*>(this);
+  }
+
  protected:
   explicit BlockEntryInstr(intptr_t try_index)
       : try_index_(try_index),
@@ -929,6 +937,34 @@ class JoinEntryInstr : public BlockEntryInstr {
 };
 
 
+class PhiIterator : public ValueObject {
+ public:
+  explicit PhiIterator(JoinEntryInstr* join)
+      : phis_(join->phis()), index_(-1) {
+    if (!Done()) Advance();  // Advance to the first smi.
+  }
+
+  void Advance() {
+    ASSERT(!Done());
+    do {
+      index_++;
+    } while (!Done() && (Current() == NULL));
+  }
+
+  bool Done() const {
+    return (phis_ == NULL) || (index_ >= phis_->length());
+  }
+
+  PhiInstr* Current() const {
+    return (*phis_)[index_];
+  }
+
+ private:
+  ZoneGrowableArray<PhiInstr*>* phis_;
+  intptr_t index_;
+};
+
+
 class TargetEntryInstr : public BlockEntryInstr {
  public:
   explicit TargetEntryInstr(intptr_t try_index)
@@ -1078,10 +1114,17 @@ class Definition : public Instruction {
   //    - unknown sentinel
   Object& constant_value() const { return constant_value_; }
 
+  virtual bool InferRange();
+
+  Range* range() const { return range_; }
+
   // Definitions can be canonicalized only into definitions to ensure
   // this check statically we override base Canonicalize with a Canonicalize
   // returning Definition (return type is covariant).
   virtual Definition* Canonicalize();
+
+ protected:
+  Range* range_;
 
  private:
   intptr_t temp_index_;
@@ -1106,7 +1149,8 @@ class PhiInstr : public Definition {
     : block_(block),
       inputs_(num_inputs),
       is_alive_(false),
-      representation_(kTagged) {
+      representation_(kTagged),
+      has_inputs_without_range_(true) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1165,6 +1209,8 @@ class PhiInstr : public Definition {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
+  virtual bool InferRange();
+
  private:
   friend class JoinEntryInstr;  // Direct access to inputs_ array.
 
@@ -1172,6 +1218,10 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   bool is_alive_;
   Representation representation_;
+
+  // Used to determine an interation of a range analysis after all phi inputs
+  // were initialized to apply widening.
+  bool has_inputs_without_range_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -1530,9 +1580,253 @@ class TemplateDefinition : public Definition {
 };
 
 
+class RangeBoundary : public ValueObject {
+ public:
+  enum Kind { kUnknown, kSymbol, kConstant };
+
+  RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) { }
+
+  static RangeBoundary FromConstant(intptr_t val) {
+    return RangeBoundary(kConstant, val, 0);
+  }
+
+  static RangeBoundary FromDefinition(Definition* defn, intptr_t offs = 0) {
+    return RangeBoundary(kSymbol, reinterpret_cast<intptr_t>(defn), offs);
+  }
+
+  static RangeBoundary MinSmi() {
+    return FromConstant(Smi::kMinValue);
+  }
+
+  static RangeBoundary MaxSmi() {
+    return FromConstant(Smi::kMaxValue);
+  }
+
+  static RangeBoundary OverflowedMinSmi() {
+    return FromConstant(Smi::kMinValue - 1);
+  }
+
+  static RangeBoundary OverflowedMaxSmi() {
+    return FromConstant(Smi::kMaxValue + 1);
+  }
+
+  static RangeBoundary Min(RangeBoundary a, RangeBoundary b) {
+    const intptr_t min_a = a.LowerBound().value();
+    const intptr_t min_b = b.LowerBound().value();
+
+    return RangeBoundary::FromConstant(Utils::Minimum(min_a, min_b));
+  }
+
+  static RangeBoundary Max(RangeBoundary a, RangeBoundary b) {
+    const intptr_t max_a = a.UpperBound().value();
+    const intptr_t max_b = b.UpperBound().value();
+
+    return RangeBoundary::FromConstant(Utils::Maximum(max_a, max_b));
+  }
+
+  bool Overflowed() const {
+    return !Smi::IsValid(value());
+  }
+
+  RangeBoundary Clamp() const {
+    if (IsConstant()) {
+      if (value() < Smi::kMinValue) return MinSmi();
+      if (value() > Smi::kMaxValue) return MaxSmi();
+    }
+    return *this;
+  }
+
+  bool Equals(const RangeBoundary& other) const {
+    return (kind_ == other.kind_) && (value_ == other.value_);
+  }
+
+  bool IsUnknown() const { return kind_ == kUnknown; }
+  bool IsConstant() const { return kind_ == kConstant; }
+  bool IsSymbol() const { return kind_ == kSymbol; }
+
+  intptr_t value() const {
+    ASSERT(IsConstant());
+    return value_;
+  }
+
+  Definition* symbol() const {
+    ASSERT(IsSymbol());
+    return reinterpret_cast<Definition*>(value_);
+  }
+
+  RangeBoundary LowerBound() const;
+  RangeBoundary UpperBound() const;
+
+  static RangeBoundary WidenMin(const RangeBoundary& old_min,
+                                const RangeBoundary& new_min) {
+    if (new_min.LowerBound().value() < old_min.LowerBound().value()) {
+      return MinSmi();
+    }
+    return new_min;
+  }
+
+  static RangeBoundary WidenMax(const RangeBoundary& old_max,
+                                const RangeBoundary& new_max) {
+    if (new_max.UpperBound().value() > old_max.UpperBound().value()) {
+      return MaxSmi();
+    }
+    return new_max;
+  }
+
+  void PrintTo(BufferFormatter* f) const;
+
+  static RangeBoundary Add(const RangeBoundary& a,
+                           const RangeBoundary& b,
+                           const RangeBoundary& overflow) {
+    ASSERT(a.IsConstant() && b.IsConstant());
+
+    intptr_t result = a.value() + b.value();
+    if (!Smi::IsValid(result)) {
+      return overflow;
+    }
+    return RangeBoundary::FromConstant(result);
+  }
+
+  static RangeBoundary Sub(const RangeBoundary& a,
+                           const RangeBoundary& b,
+                           const RangeBoundary& overflow) {
+    ASSERT(a.IsConstant() && b.IsConstant());
+
+    intptr_t result = a.value() - b.value();
+    if (!Smi::IsValid(result)) {
+      return overflow;
+    }
+    return RangeBoundary::FromConstant(result);
+  }
+
+ private:
+  RangeBoundary(Kind kind, intptr_t value, intptr_t offset)
+      : kind_(kind), value_(value), offset_(offset) { }
+
+  Kind kind_;
+  intptr_t value_;
+  intptr_t offset_;
+};
+
+
+class Range : public ZoneAllocated {
+ public:
+  Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) { }
+
+  static Range* Unknown() {
+    return new Range(RangeBoundary::MinSmi(), RangeBoundary::MaxSmi());
+  }
+
+  void PrintTo(BufferFormatter* f) const;
+
+  const RangeBoundary& min() { return min_; }
+  const RangeBoundary& max() { return max_; }
+
+  bool Equals(Range* other) {
+    return min_.Equals(other->min_) && max_.Equals(other->max_);
+  }
+
+  static bool Update(Range** range_slot,
+                     const RangeBoundary& min,
+                     const RangeBoundary& max) {
+    if (*range_slot == NULL) {
+      *range_slot = new Range(min, max);
+      return true;
+    }
+
+    Range* range = *range_slot;
+    if (range->min_.Equals(min) && range->max_.Equals(max)) {
+      return false;
+    }
+
+    range->min_ = min;
+    range->max_ = max;
+
+    return true;
+  }
+
+  static RangeBoundary ConstantMin(Range* range) {
+    if (range == NULL) return RangeBoundary::MinSmi();
+    return range->min().LowerBound();
+  }
+
+  static RangeBoundary ConstantMax(Range* range) {
+    if (range == NULL) return RangeBoundary::MaxSmi();
+    return range->max().UpperBound();
+  }
+
+ private:
+  RangeBoundary min_;
+  RangeBoundary max_;
+};
+
+
+class ConstraintInstr : public TemplateDefinition<2> {
+ public:
+  ConstraintInstr(Value* value, Range* constraint)
+      : constraint_(constraint) {
+    inputs_[0] = value;
+    inputs_[1] = NULL;  // Dependency.
+  }
+
+  DECLARE_INSTRUCTION(Constraint)
+
+  virtual RawAbstractType* CompileType() const {
+    return Type::SmiType();
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kSmiCid; }
+
+  virtual bool AttributesEqual(Definition* other) const {
+    UNREACHABLE();
+    return false;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  Value* value() const { return inputs_[0]; }
+  Range* constraint() const { return constraint_; }
+
+  virtual bool InferRange();
+
+  void AddDependency(Definition* defn) {
+    Value* val = new Value(defn);
+    val->set_use_index(1);
+    val->set_instruction(this);
+    val->AddToInputUseList();
+    set_dependency(val);
+  }
+
+  void RemoveDependency() {
+    if (dependency() != NULL) {
+      dependency()->RemoveFromInputUseList();
+      set_dependency(NULL);
+    }
+  }
+
+ private:
+  Value* dependency() {
+    return inputs_[1];
+  }
+
+  void set_dependency(Value* value) {
+    inputs_[1] = value;
+  }
+
+  Range* constraint_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstraintInstr);
+};
+
+
 class ConstantInstr : public TemplateDefinition<0> {
  public:
-  explicit ConstantInstr(const Object& value) : value_(value) { }
+  explicit ConstantInstr(const Object& value)
+      : value_(value) { }
 
   DECLARE_INSTRUCTION(Constant)
   virtual RawAbstractType* CompileType() const;
@@ -1549,6 +1843,8 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool InferRange();
 
  private:
   const Object& value_;
@@ -1855,7 +2151,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
 class ComparisonInstr : public TemplateDefinition<2> {
  public:
-  ComparisonInstr(Token::Kind kind, Value* left, Value* right) : kind_(kind) {
+  ComparisonInstr(Token::Kind kind, Value* left, Value* right)
+      : kind_(kind) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -3151,7 +3448,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
                    Value* left,
                    Value* right)
       : op_kind_(op_kind),
-        instance_call_(instance_call) {
+        instance_call_(instance_call),
+        overflow_(true) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -3181,9 +3479,18 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual intptr_t ResultCid() const;
 
+  void set_overflow(bool overflow) {
+    overflow_ = overflow;
+  }
+
+  void PrintTo(BufferFormatter* f) const;
+
+  virtual bool InferRange();
+
  private:
   const Token::Kind op_kind_;
   InstanceCallInstr* instance_call_;
+  bool overflow_;
 
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
 };

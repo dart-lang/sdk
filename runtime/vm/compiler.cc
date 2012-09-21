@@ -216,6 +216,12 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
           LICM::Optimize(flow_graph);
         }
 
+        // We have to perform range analysis after LICM because it
+        // optimistically moves CheckSmi through phis into loop preheaders
+        // making some phis smi.
+        flow_graph->ComputeUseLists();
+        optimizer.InferSmiRanges();
+
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
         allocator.AllocateRegisters();

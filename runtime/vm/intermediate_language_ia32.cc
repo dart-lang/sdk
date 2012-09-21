@@ -1478,13 +1478,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   ASSERT(left == result);
   Label* deopt = NULL;
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
-      // Can't deoptimize. Arguments are already checked for smi.
-      break;
-    default:
+  if (CanDeoptimize()) {
       deopt  = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                       kDeoptBinarySmiOp);
   }
@@ -1497,18 +1491,18 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (op_kind()) {
       case Token::kADD:
         __ addl(left, Immediate(imm));
-        __ j(OVERFLOW, deopt);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       case Token::kSUB: {
         __ subl(left, Immediate(imm));
-        __ j(OVERFLOW, deopt);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
         __ imull(left, Immediate(value));
-        __ j(OVERFLOW, deopt);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
       case Token::kBIT_AND: {
@@ -1559,18 +1553,18 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kADD: {
       __ addl(left, right);
-      __ j(OVERFLOW, deopt);
+      if (deopt != NULL) __ j(OVERFLOW, deopt);
       break;
     }
     case Token::kSUB: {
       __ subl(left, right);
-      __ j(OVERFLOW, deopt);
+      if (deopt != NULL) __ j(OVERFLOW, deopt);
       break;
     }
     case Token::kMUL: {
       __ SmiUntag(left);
       __ imull(left, right);
-      __ j(OVERFLOW, deopt);
+      if (deopt != NULL) __ j(OVERFLOW, deopt);
       break;
     }
     case Token::kBIT_AND: {
