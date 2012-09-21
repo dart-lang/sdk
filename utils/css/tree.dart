@@ -126,7 +126,7 @@ class SimpleSelectorSequence extends ASTNode {
 
   visit(TreeVisitor visitor) => visitor.visitSimpleSelectorSequence(this);
 
-  String toString() => _combinatorToString() + _selector.toString();
+  String toString() => "${_combinatorToString()}${_selector.toString()}";
 }
 
 /* All other selectors (element, #id, .class, attribute, pseudo, negation,
@@ -336,7 +336,7 @@ class RuleSet extends TopLevelProduction {
   visit(TreeVisitor visitor) => visitor.visitRuleSet(this);
 
   String toString() =>
-      "\n${_selectorGroup.toString()} {\n" +
+      "\n${_selectorGroup.toString()} {\n"
         "${_declarationGroup.toString()}}\n";
 }
 
@@ -1265,7 +1265,7 @@ class TreePrinter implements TreeVisitor {
   }
 
   void visitIdentifier(Identifier node) {
-    output.heading('Identifier(' + output.toValue(node.name) + ")", node.span);
+    output.heading('Identifier(${output.toValue(node.name)})', node.span);
   }
 
   void visitWildcard(Wildcard node) {
