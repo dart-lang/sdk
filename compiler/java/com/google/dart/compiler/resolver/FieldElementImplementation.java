@@ -4,12 +4,15 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
+
+import java.util.Set;
 
 class FieldElementImplementation extends AbstractNodeElement implements FieldElement, FieldNodeElement {
   private final EnclosingElement holder;
@@ -20,6 +23,7 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
   private MethodNodeElement getter;
   private MethodNodeElement setter;
   private Type constantType;
+  private Set<Element> overridden = ImmutableSet.of();
 
   FieldElementImplementation(DartNode node,
       SourceInfo nameLocation,
@@ -112,5 +116,13 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
   @Override
   public void setConstantType(Type type) {
     constantType = type;
+  }
+
+  public void setOverridden(Set<Element> overridden) {
+    this.overridden = overridden;
+  }
+  
+  public Set<Element> getOverridden() {
+    return overridden;
   }
 }

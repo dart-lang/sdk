@@ -22,7 +22,7 @@ public interface MethodElement extends Element, EnclosingElement {
   Type getReturnType();
 
   FunctionType getFunctionType();
-  
+
   /**
    * @return {@link Element}s overridden by this {@link MethodElement}.
    */

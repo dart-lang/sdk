@@ -198,8 +198,13 @@ public class Elements {
     ((AbstractNodeElement) element).setType(type);
   }
 
-  public static void setOverridden(MethodElement methodElement, Set<Element> overridden) {
-    ((MethodElementImplementation) methodElement).setOverridden(overridden);
+  public static void setOverridden(Element element, Set<Element> overridden) {
+    if (element instanceof MethodElementImplementation) {
+      ((MethodElementImplementation) element).setOverridden(overridden);
+    }
+    if (element instanceof FieldElementImplementation) {
+      ((FieldElementImplementation) element).setOverridden(overridden);
+    }
   }
 
 static FieldElementImplementation fieldFromNode(DartField node,

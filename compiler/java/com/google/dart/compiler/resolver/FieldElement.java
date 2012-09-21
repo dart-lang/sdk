@@ -6,6 +6,8 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.type.Type;
 
+import java.util.Set;
+
 public interface FieldElement extends Element {
   boolean isStatic();
 
@@ -19,4 +21,9 @@ public interface FieldElement extends Element {
    * @return the inferred {@link Type} of this constant, may be <code>null</code> if not set yet.
    */
   Type getConstantType();
+
+  /**
+   * @return {@link Element}s overridden by this {@link MethodElement}.
+   */
+  Set<Element> getOverridden();
 }

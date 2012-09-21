@@ -3036,6 +3036,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         for (InterfaceType supertype : supertypes) {
           supertypeElements.add(supertype.getElement());
         }
+        Set<String> artificialNames = Sets.newHashSet();
         for (ClassElement interfaceElement : supertypeElements) {
           for (Element member : interfaceElement.getMembers()) {
             String name = member.getName();
@@ -3045,6 +3046,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
             superMembers.put(name, member);
+            if (member instanceof FieldElement
+                && !((FieldElement) member).getModifiers().isAbstractField()) {
+              artificialNames.add("setter " + name);
+              superMembers.put("setter " + name, member);
+            }
           }
         }
 
@@ -3072,6 +3078,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           supertype = supertype.getElement().getSupertype();
         }
+        
+        // Remove artificial "setter " members.
+        for (String name : artificialNames) {
+          superMembers.removeAll(name);
+        }
 
         // All remaining methods are unimplemented.
         for (String name : superMembers.keys()) {
@@ -3096,8 +3107,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
       public Void visitField(DartField node) {
         if (superMembers != null) {
           FieldElement field = node.getElement();
+          // prepare overridden elements
           String name = field.getName();
-          Collection<Element> overridden = superMembers.removeAll(name);
+          Set<Element> overridden = Sets.newHashSet();
+          if (node.getAccessor() != null) {
+            if (node.getAccessor().getModifiers().isSetter()) {
+              overridden.addAll(superMembers.removeAll("setter " + name));
+            } else {
+              overridden.addAll(superMembers.removeAll(name));
+            }
+          } else {
+            overridden.addAll(superMembers.removeAll(name));
+          }
+          // check override
           for (Element superElement : overridden) {
             if (!(field.isStatic() && superElement.getModifiers().isStatic())) {
               if (canOverride(node.getName(), field.getModifiers(), superElement)
@@ -3154,6 +3176,32 @@ public class TypeAnalyzer implements DartCompilationPhase {
                     break;
                 }
               }
+            }
+          }
+          // set super-elements for FieldElement
+          Elements.setOverridden(field, ImmutableSet.copyOf(overridden));
+          // set super-elements for getter/setter
+          if (node.getAccessor() != null) {
+            Set<Element> superGetters = Sets.newHashSet();
+            Set<Element> superSetters = Sets.newHashSet();
+            for (Element superElement : overridden) {
+              if (superElement instanceof FieldElement) {
+                FieldElement superField = (FieldElement) superElement;
+                if (superField.getGetter() != null) {
+                  superGetters.add(superField.getGetter());
+                } else if (superField.getSetter() != null) {
+                  superSetters.add(superField.getSetter());
+                } else {
+                  superGetters.add(superField);
+                  superSetters.add(superField);
+                }
+              }
+            }
+            if (node.getAccessor().getModifiers().isGetter()) {
+              Elements.setOverridden(node.getAccessor().getElement(), superGetters);
+            }
+            if (node.getAccessor().getModifiers().isSetter()) {
+              Elements.setOverridden(node.getAccessor().getElement(), superSetters);
             }
           }
         }

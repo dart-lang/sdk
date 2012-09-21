@@ -7,6 +7,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -60,6 +61,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -4990,6 +4992,79 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         result.getErrors(),
         errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 4, 9, 5));
+  }
+
+  public void test_getOverridden_method() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() => 1;",
+        "}",
+        "class B extends A {",
+        "  foo() => 2;",
+        "}",
+        "");
+    DartMethodDefinition node = findNode(DartMethodDefinition.class, "foo() => 2");
+    Set<Element> superElements = node.getElement().getOverridden();
+    assertClassMembers(superElements, "method A.foo");
+  }
+
+  public void test_getOverridden_field_withGetterSetter() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var foo;",
+        "}",
+        "class B extends A {",
+        "  get foo => 0;",
+        "  set foo(x) {}",
+        "}",
+        "");
+    // getter
+    {
+      DartMethodDefinition node = findNode(DartMethodDefinition.class, "get foo");
+      Set<Element> superElements = node.getElement().getOverridden();
+      assertClassMembers(superElements, "field A.foo");
+    }
+    // setter
+    {
+      DartMethodDefinition node = findNode(DartMethodDefinition.class, "set foo");
+      Set<Element> superElements = node.getElement().getOverridden();
+      assertClassMembers(superElements, "field A.foo");
+    }
+  }
+  
+  public void test_getOverridden_getterSetter_withField() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get foo => 0;",
+        "  set foo(x) {}",
+        "}",
+        "class B extends A {",
+        "  var foo = 42;",
+        "}",
+        "");
+    DartField node = findNode(DartField.class, "foo = 42");
+    Set<Element> superElements = node.getElement().getOverridden();
+    assertClassMembers(superElements, "field A.foo");
+  }
+
+  private static void assertClassMembers(Set<Element> superElements, String... expectedNames) {
+    Set<String> superNames = Sets.newHashSet();
+    for (Element element : superElements) {
+      String name = element.getEnclosingElement().getName() + "." + element.getName();
+      if (element instanceof FieldElement) {
+        superNames.add("field " + name);
+      }
+      if (element instanceof MethodElement) {
+        superNames.add("method " + name);
+      }
+    }
+    for (String name : expectedNames) {
+      assertTrue(name, superNames.remove(name));
+    }
+    assertTrue(superNames.toString(), superNames.isEmpty());
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
