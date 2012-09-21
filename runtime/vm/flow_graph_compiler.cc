@@ -76,38 +76,61 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   DeoptInfoBuilder builder(compiler->object_table(), incoming_arg_count);
 
   intptr_t slot_ix = 0;
-  Environment* env = deoptimization_env_;
-  while (env != NULL) {
-    const Function& function = env->function();
-    const intptr_t fixed_parameter_count = env->fixed_parameter_count();
+  Environment* inner = deoptimization_env_;
 
-    if (slot_ix == 0) {
-      // For the innermost environment call the virtual return builder.
-      BuildReturnAddress(&builder, function, slot_ix++);
-    } else {
-      // For any outer environment the deopt id is that of the call instruction
-      // which is recorded in the outer environment.
-      builder.AddReturnAddressAfter(function, env->deopt_id(), slot_ix++);
+  // For the innermost environment, call the virtual return builder.
+  BuildReturnAddress(&builder, inner->function(), slot_ix++);
+
+  // For the innermost environment, set outgoing arguments and the locals.
+  for (intptr_t i = inner->Length() - 1;
+       i >= inner->fixed_parameter_count();
+       i--) {
+    builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
+  }
+
+  // PC marker and caller FP.
+  builder.AddPcMarker(inner->function(), slot_ix++);
+  builder.AddCallerFp(slot_ix++);
+
+  while (inner->outer() != NULL) {
+    // Write the frame for an outer environment.
+    const Environment* current = inner->outer();
+
+    // For any outer environment the deopt id is that of the call instruction
+    // which is recorded in the outer environment.
+    builder.AddReturnAddressAfter(current->function(),
+                                  current->deopt_id(),
+                                  slot_ix++);
+
+    // The values of outgoing arguments can be changed from the inlined call so
+    // we must read them from the inner environment.
+    for (intptr_t i = inner->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
     }
 
-    for (intptr_t i = env->Length() - 1; i >= fixed_parameter_count; i--) {
-      builder.AddCopy(env->LocationAt(i), *env->ValueAt(i), slot_ix++);
+    // Set the locals, not including the outgoing arguments.
+    ASSERT(current->Length() > inner->fixed_parameter_count());
+    for (intptr_t i = current->Length() - inner->fixed_parameter_count() - 1;
+         i >= current->fixed_parameter_count();
+         i--) {
+      builder.AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
     }
 
     // PC marker and caller FP.
-    builder.AddPcMarker(function, slot_ix++);
+    builder.AddPcMarker(current->function(), slot_ix++);
     builder.AddCallerFp(slot_ix++);
 
-    // On the outermost environment set caller PC and incoming arguments.
-    if (env->outer() == NULL) {
-      builder.AddCallerPc(slot_ix++);
-      for (intptr_t i = fixed_parameter_count - 1; i >= 0; i--) {
-        builder.AddCopy(env->LocationAt(i), *env->ValueAt(i), slot_ix++);
-      }
-    }
-
     // Iterate on the outer environment.
-    env = env->outer();
+    inner = inner->outer();
+  }
+  ASSERT(inner != NULL);  // The inner pointer is now the outermost environment.
+
+  // For the outermost environment, set caller PC.
+  builder.AddCallerPc(slot_ix++);
+
+  // For the outermost environment, set the incoming arguments.
+  for (intptr_t i = inner->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
   }
 
   const DeoptInfo& deopt_info = DeoptInfo::Handle(builder.CreateDeoptInfo());
