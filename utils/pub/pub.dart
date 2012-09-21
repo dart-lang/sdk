@@ -81,7 +81,7 @@ main() {
     cacheDir = Platform.environment['PUB_CACHE'];
   } else if (Platform.operatingSystem == 'windows') {
     var appData = Platform.environment['APPDATA'];
-    cacheDir = join(appData, 'Pub', 'Package Cache');
+    cacheDir = join(appData, 'Pub', 'Cache');
   } else {
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }

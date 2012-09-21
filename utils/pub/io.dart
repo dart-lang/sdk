@@ -511,16 +511,16 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 
 /**
  * Wraps [input] to provide a timeout. If [input] completes before
- * [milliSeconds] have passed, then the return value completes in the same way.
- * However, if [milliSeconds] pass before [input] has completed, it completes
+ * [milliseconds] have passed, then the return value completes in the same way.
+ * However, if [milliseconds] pass before [input] has completed, it completes
  * with a [TimeoutException] with [message].
  *
  * Note that timing out will not cancel the asynchronous operation behind
  * [input].
  */
-Future timeout(Future input, int milliSeconds, String message) {
+Future timeout(Future input, int milliseconds, String message) {
   var completer = new Completer();
-  var timer = new Timer(milliSeconds, (_) {
+  var timer = new Timer(milliseconds, (_) {
     if (completer.future.isComplete) return;
     completer.completeException(new TimeoutException(message));
   });
@@ -628,7 +628,8 @@ Future<bool> extractTarGz(InputStream stream, destination) {
 
 Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   // Find 7zip.
-  var scriptDir = new Path(new Options().script).directoryPath;
+  var scriptPath = new File(new Options().script).fullPathSync();
+  var scriptDir = new Path.fromNative(scriptPath).directoryPath;
 
   // Note: This line of code gets munged by create_sdk.py to be the correct
   // relative path to 7zip in the SDK.
@@ -638,19 +639,48 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 
   // 7zip can't unarchive from gzip -> tar -> destination all in one step so
   // we spawn it twice and pipe them together.
-  var completer = new Completer<int>();
-  var gzipProcess = Process.start(command, ["e", "-si", "-tgzip", '-so']);
+  var completer = new Completer<bool>();
+  var gzipProcess = Process.start(command, ['e', '-si', '-tgzip', '-so']);
+
+  // TODO(rnystrom): Even though we are quoting the destination directory here,
+  // 7zip still seems to barf if there is a space in the path. For now we'll
+  // just avoid spaces.
   var tarProcess = Process.start(command,
-      ["e", "-si", "-ttar", '-o"$destination"']);
+      ['x', '-si', '-ttar', '-o"$destination"']);
 
-  stream.pipe(gzipProcess.stdin);
-  gzipProcess.stdout.pipe(tarProcess.stdin);
+  // 7zip writes to stderr even when things are going OK, so we'll capture it
+  // here and only print it if the exit code is bad.
+  var errorStream = new ListOutputStream();
 
-  tarProcess.onExit = completer.complete;
+  // Wait for the process to be fully started before writing to its
+  // stdin stream.
+  gzipProcess.onStart = () {
+    stream.pipe(gzipProcess.stdin);
+    gzipProcess.stderr.pipe(errorStream, close: false);
+  };
+
+  tarProcess.onStart = () {
+    gzipProcess.stdout.pipe(tarProcess.stdin);
+    tarProcess.stderr.pipe(errorStream, close: false);
+
+    // TODO(rnystrom): For some mysterious reason, the extract hangs if you
+    // don't do this. Look into why.
+    tarProcess.stdout.pipe(new ListOutputStream());
+  };
+
+  tarProcess.onExit = (exitCode) {
+    if (exitCode != 0) {
+      printError(new String.fromCharCodes(errorStream.read()));
+      completer.completeException('Could not extract archive to $destination.');
+    } else {
+      completer.complete(true);
+    }
+  };
+
+  tarProcess.onError = completer.completeException;
   gzipProcess.onError = completer.completeException;
-  gzipProcess.onError = completer.completeException;
 
-  return completer.future.transform((exitCode) => exitCode == 0);
+  return completer.future;
 }
 
 /**

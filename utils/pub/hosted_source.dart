@@ -4,8 +4,10 @@
 
 #library('hosted_source');
 
+#import('dart:io', prefix: 'io');
 #import('dart:json');
 #import('dart:uri');
+
 #import('io.dart');
 #import('package.dart');
 #import('pubspec.dart');
@@ -70,9 +72,19 @@ class HostedSource extends Source {
     var url = parsedDescription.last;
 
     var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
+
     return Futures.wait([httpGet(fullUrl), ensureDir(destPath)]).chain((args) {
       return timeout(extractTarGz(args[0], args[1]), HTTP_TIMEOUT,
           'Timed out while fetching URL "$fullUrl".');
+    }).transformException((ex) {
+      // If the install failed, delete the directory. Prevents leaving a ghost
+      // directory in the system cache which would later make pub think the
+      // install succeeded.
+      // TODO(rnystrom): Use deleteDir() here when transformException() supports
+      // returning a future. Also remove dart:io import then.
+      new io.Directory(destPath).deleteRecursivelySync();
+
+      throw ex;
     });
   }
 
