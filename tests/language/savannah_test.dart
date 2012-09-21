@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test using an identity hash.
 
-abstract class BigGame {
+abstract class BigGame extends Hashable {
   final String name;
 }
 
