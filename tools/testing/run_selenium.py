@@ -242,7 +242,7 @@ def report_results(mode, source):
       #TODO(efortuna): Access these elements in a nicer way using DOM parser.
       index = source.find('<body>')
       index += len('<body>')
-      end_index = source.find('<script')
+      end_index = source.find('</body')
       print unicode(source[index : end_index]).encode("utf-8")
       return 1
 

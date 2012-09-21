@@ -19,25 +19,41 @@ class HtmlConfiguration extends Configuration {
 
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
+  EventListener _onMessageClosure;
 
-  void _installErrorHandler() {
+  void _installHandlers() {
     if (_onErrorClosure == null) {
       _onErrorClosure =
           (e) => handleExternalError(e, '(DOM callback has errors)');
       // Listen for uncaught errors.
       window.on.error.add(_onErrorClosure);
     }
+    if (_onMessageClosure == null) {
+      _onMessageClosure = (e) => processMessage(e);
+      // Listen for errors from JS.
+      window.on.message.add(_onMessageClosure);
+    }
   }
 
-  void _uninstallErrorHandler() {
+  void _uninstallHandlers() {
     if (_onErrorClosure != null) {
       window.on.error.remove(_onErrorClosure);
       _onErrorClosure = null;
     }
+    if (_onMessageClosure != null) {
+      window.on.message.remove(_onMessageClosure);
+      _onMessageClosure = null;
+    }
+  }
+
+  void processMessage(e) {
+    if ('unittest-suite-external-error' == e.data) {
+      handleExternalError('<unknown>', '(external error detected)');
+    }
   }
 
   void onInit() {
-    _installErrorHandler();
+    _installHandlers();
   }
 
   void onStart() {
@@ -48,7 +64,7 @@ class HtmlConfiguration extends Configuration {
 
   void onDone(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    _uninstallErrorHandler();
+    _uninstallHandlers();
     _showResultsInPage(passed, failed, errors, results, _isLayoutTest,
         uncaughtError);
     window.postMessage('unittest-suite-done', '*');

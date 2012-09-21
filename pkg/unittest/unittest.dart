@@ -317,7 +317,9 @@ class _SpreadArgsHelper {
   _init(Function callback, Function shouldCallBack, Function isDone,
        [expectedCalls = 0]) {
     ensureInitialized();
-    assert(_currentTest < _tests.length);
+    assert(_currentTest >= 0 &&
+           _currentTest < _tests.length &&
+           _tests[_currentTest] != null);
     _callback = callback;
     _shouldCallBack = shouldCallBack;
     _isDone = isDone;

@@ -71,6 +71,7 @@ window.addEventListener("DOMContentLoaded", onLoad, false);
 window.addEventListener("error", function(e) {
   // needed for dartium compilation errors.
   showErrorAndExit(e && e.message);
+  window.postMessage('unittest-suite-external-error', '*');
 }, false);
 
 document.addEventListener('readystatechange', function () {
