@@ -33,7 +33,7 @@ intl/test/date_time_format_http_request_test: skip
 
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
-[ $runtime == dartium ]
+[ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: skip
 
 # Skip intl_message tests that use mirrors on dart2js until it's been 
