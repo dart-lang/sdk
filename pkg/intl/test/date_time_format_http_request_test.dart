@@ -15,7 +15,7 @@
 // VM, and in arguments, $dartDir will be replaced by the current Dart
 // root directory.
 // ExtraCommand=dart
-// ExtraCommandArgs=pkg/intl/test/start_web_server.dart
+// ExtraCommandArgs=$dartDir/pkg/intl/test/start_web_server.dart
 #library('date_time_format_http_request_test');
 
 #import('../lib/date_format.dart');
