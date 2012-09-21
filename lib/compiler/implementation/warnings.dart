@@ -153,6 +153,8 @@ class MessageKind {
       'not a compile-time constant');
   static const CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
       'cycle in the compile-time constant computation');
+  static const CONSTRUCTOR_IS_NOT_CONST = const MessageKind(
+      'constructor is not a const constructor');
 
   static const KEY_NOT_A_STRING_LITERAL = const MessageKind(
       'map-literal key not a string literal');

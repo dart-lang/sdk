@@ -2604,10 +2604,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
+  // TODO(ngeoffray): have this context at the call site.
   final bool inConstContext;
 
-  ConstructorResolver(Compiler compiler, this.resolver,
-                      [bool this.inConstContext = false])
+  ConstructorResolver(Compiler compiler,
+                      this.resolver,
+                      this.inConstContext)
       : super(compiler);
 
   visitNode(Node node) {
@@ -2627,6 +2629,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     }
   }
 
+  // TODO(ngeoffray): method named lookup should not report errors.
   FunctionElement lookupConstructor(ClassElement cls,
                                     Node diagnosticNode,
                                     SourceString constructorName) {
@@ -2642,6 +2645,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                           new SourceString(fullConstructorName),
                                           MessageKind.CANNOT_FIND_CONSTRUCTOR,
                                           [fullConstructorName]);
+    } else if (inConstContext &&
+               (result.modifiers == null || !result.modifiers.isConst())) {
+      error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
     return result;
   }

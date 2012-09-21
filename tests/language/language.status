@@ -348,7 +348,6 @@ function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 implicit_scope_test: Fail
 instanceof3_test: Fail
-library_prefixes_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
 # DartVM problem.

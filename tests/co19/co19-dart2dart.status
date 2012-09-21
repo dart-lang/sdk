@@ -7,6 +7,7 @@ Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
 Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
+Language/07_Classes/6_Constructors_A03_t03: Fail # Issue 5349
 Language/06_Functions/06_Functions_A01_t03: Fail # TRIAGE!
 # TODO(antonm): adjust suppressions to drop Pass expectations which
 # are currently due to runtime suppressions.
@@ -49,9 +50,7 @@ Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Pass
 Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Pass
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # inherited from dart2js
 Language/07_Classes/6_Constructors/2_Factories_A05_t02: Pass
-Language/07_Classes/6_Constructors_A03_t03: Fail # http://code.google.com/p/dart/issues/detail?id=5290
 Language/08_Interfaces/*: Skip # ~30 failures, interfaces are going away, let's not waste time
-Language/09_Generics/09_Generics_A04_t03: Fail # http://code.google.com/p/dart/issues/detail?id=5290
 Language/09_Generics/09_Generics_A04_t04: Fail # inherited from dart2js
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
 Language/10_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js

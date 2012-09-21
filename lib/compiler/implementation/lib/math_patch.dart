@@ -49,7 +49,7 @@ patch class Random {
 
 class _Random implements Random {
   // The Dart2JS implementation of Random doesn't use a seed.
-  _Random();
+  const _Random();
 
   int nextInt(int max) {
     if (max < 0) throw new IllegalArgumentException("negative max: $max");

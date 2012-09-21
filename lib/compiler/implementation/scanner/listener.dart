@@ -1468,12 +1468,8 @@ class NodeListener extends ElementListener {
   }
 
   void handleConstExpression(Token token, bool named) {
-    NodeList arguments = popNode();
-    if (named) {
-      Identifier name = popNode();
-    }
-    TypeAnnotation type = popNode();
-    pushNode(new NewExpression(token, new Send(null, type, arguments)));
+    // [token] carries the 'const' information.
+    handleNewExpression(token, named);
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {

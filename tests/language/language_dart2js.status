@@ -208,9 +208,6 @@ abstract_syntax_test/01: Fail # Negative language test.
 abstract_syntax_test/02: Fail # Negative language test.
 assign_top_method_negative_test: Fail # Negative language test.
 class_extends_negative_test: Fail # Negative language test.
-const_constructor_syntax_test/01: Fail # Negative language test.
-const_constructor_syntax_test/02: Fail # Negative language test.
-const_constructor_syntax_test/03: Fail # Negative language test.
 const_constructor_syntax_test/04: Fail # Negative language test.
 const_field_negative_test: Fail # Negative language test.
 const_init4_negative_test: Fail # Negative language test.
