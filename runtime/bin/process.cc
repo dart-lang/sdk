@@ -9,6 +9,9 @@
 #include "include/dart_api.h"
 
 
+static const int kProcessIdNativeField = 0;
+
+
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,
                                  Dart_Handle status_handle,
@@ -138,7 +141,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     Socket::SetSocketIdNativeField(out_handle, out);
     Socket::SetSocketIdNativeField(err_handle, err);
     Socket::SetSocketIdNativeField(exit_handle, exit_event);
-    DartUtils::SetIntegerField(process, "_pid", pid);
+    Process::SetProcessIdNativeField(process, pid);
   } else {
     DartUtils::SetIntegerField(
         status_handle, "_errorCode", error_code);
@@ -154,9 +157,23 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t pid = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  Dart_Handle process = Dart_GetNativeArgument(args, 1);
+  intptr_t pid = -1;
+  Process::GetProcessIdNativeField(process, &pid);
   int signal = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   bool success = Process::Kill(pid, signal);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
   Dart_ExitScope();
+}
+
+
+Dart_Handle Process::GetProcessIdNativeField(Dart_Handle process,
+                                             intptr_t* pid) {
+  return Dart_GetNativeInstanceField(process, kProcessIdNativeField, pid);
+}
+
+
+Dart_Handle Process::SetProcessIdNativeField(Dart_Handle process,
+                                             intptr_t pid) {
+  return Dart_SetNativeInstanceField(process, kProcessIdNativeField, pid);
 }

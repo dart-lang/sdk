@@ -10,7 +10,7 @@ class _ProcessStartStatus {
 }
 
 
-class _Process extends Process {
+class _Process extends NativeFieldWrapperClass1 implements Process {
   static Future<ProcessResult> run(String path,
                                    List<String> arguments,
                                    [ProcessOptions options]) {
@@ -227,22 +227,22 @@ class _Process extends Process {
       throw new IllegalArgumentException(
           "Argument 'signal' must be a ProcessSignal");
     }
-    if (_closed && _pid === null) {
-      _reportError(new ProcessException("Process closed"));
+    if (!_started) {
+      var e = new ProcessException("Cannot kill process that is not started");
+      _reportError(e);
       return;
     }
     if (_ended) {
       return;
     }
-    // TODO(ager): Make the actual kill operation asynchronous.
-    if (_kill(_pid, signal._signalNumber)) {
+    if (_kill(this, signal._signalNumber)) {
       return;
     }
     _reportError(new ProcessException("Could not kill process"));
     return;
   }
 
-  bool _kill(int pid, int signal) native "Process_Kill";
+  bool _kill(Process p, int signal) native "Process_Kill";
 
   void close() {
     if (_closed) {
@@ -290,7 +290,6 @@ class _Process extends Process {
   _Socket _out;
   _Socket _err;
   Socket _exitHandler;
-  int _pid;
   bool _closed;
   bool _ended;
   bool _started;
