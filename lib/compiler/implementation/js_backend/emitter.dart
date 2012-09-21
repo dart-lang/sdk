@@ -351,7 +351,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
    */
   void addParameterStub(FunctionElement member,
                         Selector selector,
-                        DefineMemberFunction defineInstanceMember) {
+                        DefineMemberFunction defineInstanceMember,
+                        Set<String> alreadyGenerated) {
     FunctionSignature parameters = member.computeSignature(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -371,6 +372,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     String invocationName =
         namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                            selector);
+    if (alreadyGenerated.contains(invocationName)) return;
+    alreadyGenerated.add(invocationName);
     CodeBuffer buffer = new CodeBuffer();
     buffer.add('function(');
 
@@ -474,9 +477,15 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     // stub arguments and the real method may be different.
     Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
     if (selectors == null) return;
+    // Keep a cache of which stubs have already been generated, to
+    // avoid duplicates. Note that even if selectors are
+    // canonicalized, we would still need this cache: a typed selector
+    // on A and a typed selector on B could yield the same stub.
+    Set<String> generatedStubNames = new Set<String>();
     for (Selector selector in selectors) {
       if (!selector.applies(member, compiler)) continue;
-      addParameterStub(member, selector, defineInstanceMember);
+      addParameterStub(
+          member, selector, defineInstanceMember, generatedStubNames);
     }
   }
 
