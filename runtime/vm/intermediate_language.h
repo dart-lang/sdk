@@ -1781,7 +1781,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
   virtual intptr_t ResultCid() const { return kSmiCid; }
 
-  virtual bool AttributesEqual(Definition* other) const {
+  virtual bool AttributesEqual(Instruction* other) const {
     UNREACHABLE();
     return false;
   }
