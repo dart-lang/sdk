@@ -268,6 +268,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+import_core_prefix_test: Fail # Issue 5345
 getter_no_setter2_test/01: Fail, Pass # Test works only for minified output.
 metadata_test: Fail
 prefix_new_test: Fail
