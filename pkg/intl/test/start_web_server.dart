@@ -13,7 +13,7 @@
 
 main() {
   var thisDir = new File(new Options().script).directorySync();
-  var serverPath = "{$thisDir.path}pkg/intl/test/web_server.dart";
+  var serverPath = "${thisDir.path}/web_server.dart";
   // TODO(alanknight): This uses nohup and & to stop the child process from
   // stopping when we exit. This won't work on Windows.
   var p = Process.start(
