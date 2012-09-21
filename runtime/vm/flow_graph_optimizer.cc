@@ -1303,7 +1303,10 @@ void RangeAnalysis::CollectSmiValues() {
       Instruction* current = instr_it.Current();
       Definition* defn = current->AsDefinition();
       if (defn != NULL) {
-        if (defn->GetPropagatedCid() == kSmiCid) smi_values_.Add(defn);
+        if ((defn->GetPropagatedCid() == kSmiCid) &&
+            (defn->ssa_temp_index() != -1)) {
+          smi_values_.Add(defn);
+        }
       } else if (current->IsCheckSmi()) {
         smi_checks_.Add(current->AsCheckSmi());
       }
