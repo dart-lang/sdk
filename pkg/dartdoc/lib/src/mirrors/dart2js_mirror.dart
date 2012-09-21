@@ -492,7 +492,13 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
    */
   String get simpleName {
     if (_library.libraryTag !== null) {
-      return _library.libraryTag.argument.dartString.slowToString();
+      // TODO(ahe): Remove StringNode check when old syntax is removed.
+      StringNode name = _library.libraryTag.name.asStringNode();
+      if (name !== null) {
+        return name.dartString.slowToString();
+      } else {
+        return _library.libraryTag.name.toString();
+      }
     } else {
       // Use the file name as script name.
       String path = _library.uri.path;

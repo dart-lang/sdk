@@ -26,7 +26,7 @@ class PatchParserTask extends leg.CompilerTask {
     CompilationUnitElement compilationUnit =
         new CompilationUnitElement(script, library);
     library.addCompilationUnit(compilationUnit);
-    LinkBuilder<tree.ScriptTag> imports = new LinkBuilder<tree.ScriptTag>();
+    LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
     compiler.withCurrentElement(compilationUnit, () {
       // This patches the elements of the patch library into [library].
       // Injected elements are added directly under the compilation unit.
@@ -36,14 +36,14 @@ class PatchParserTask extends leg.CompilerTask {
     // After scanning declarations, we handle the import tags in the patch.
     // TODO(lrn): These imports end up in the original library and are in
     // scope for the original methods too. This should be fixed.
-    for (tree.ScriptTag tag in imports.toLink()) {
+    for (tree.LibraryTag tag in imports.toLink()) {
       compiler.scanner.importLibraryFromTag(tag, compilationUnit);
     }
   }
 
   void scanLibraryElements(
         CompilationUnitElement compilationUnit,
-        LinkBuilder<tree.ScriptTag> imports) {
+        LinkBuilder<tree.LibraryTag> imports) {
     measure(() {
       // TODO(lrn): Possibly recursively handle #source directives in patch.
       leg.Script script = compilationUnit.script;
@@ -59,17 +59,19 @@ class PatchParserTask extends leg.CompilerTask {
   }
 
   tree.ClassNode parsePatchClassNode(PartialClassElement element) {
-    // Parse [PartialClassElement] using a "patch"-aware parser instead
-    // of calling its [parseNode] method.
-    if (element.cachedNode != null) return element.cachedNode;
-    PatchMemberListener listener =
-        new PatchMemberListener(compiler, element);
-    Parser parser = new PatchClassElementParser(listener);
-    Token token = parser.parseTopLevelDeclaration(element.beginToken);
-    assert(token === element.endToken.next);
-    element.cachedNode = listener.popNode();
-    assert(listener.nodes.isEmpty());
-    return element.cachedNode;
+    return measure(() => compiler.withCurrentElement(element, () {
+      // Parse [PartialClassElement] using a "patch"-aware parser instead
+      // of calling its [parseNode] method.
+      if (element.cachedNode != null) return element.cachedNode;
+      PatchMemberListener listener =
+          new PatchMemberListener(compiler, element);
+      Parser parser = new PatchClassElementParser(listener);
+      Token token = parser.parseTopLevelDeclaration(element.beginToken);
+      assert(token === element.endToken.next);
+      element.cachedNode = listener.popNode();
+      assert(listener.nodes.isEmpty());
+      return element.cachedNode;
+    }));
   }
 }
 
@@ -155,7 +157,7 @@ class PatchClassElementParser extends PatchParser {
  * Extension of [ElementListener] for parsing patch files.
  */
 class PatchElementListener extends ElementListener implements PatchListener {
-  final LinkBuilder<tree.ScriptTag> imports;
+  final LinkBuilder<tree.LibraryTag> imports;
   bool isMemberPatch = false;
   bool isClassPatch = false;
 
@@ -192,10 +194,10 @@ class PatchElementListener extends ElementListener implements PatchListener {
     * Allow script tags (import only, the parser rejects the rest for now) in
     * patch files. The import tags will be added to the library.
     */
-  bool allowScriptTags() => true;
+  bool allowLibraryTags() => true;
 
-  void addScriptTag(tree.ScriptTag tag) {
-    super.addScriptTag(tag);
+  void addLibraryTag(tree.LibraryTag tag) {
+    super.addLibraryTag(tag);
     imports.addLast(tag);
   }
 

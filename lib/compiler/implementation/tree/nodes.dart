@@ -1593,6 +1593,130 @@ class ScriptTag extends Node {
   Token getBeginToken() => beginToken;
 
   Token getEndToken() => endToken;
+
+  LibraryTag toLibraryTag() {
+    if (isImport()) {
+      Identifier prefixNode;
+      if (prefix !== null) {
+        SourceString source = prefix.dartString.source;
+        Token token = new StringToken.fromSource(IDENTIFIER_INFO, source,
+                                                 prefix.token.charOffset);
+        token.next = prefix.token.next;
+        prefixNode = new Identifier(token);
+      }
+      return new Import(tag.token, argument, prefixNode, null);
+    } else if (isLibrary()) {
+      return new LibraryName(tag.token, argument);
+    } else if (isSource()) {
+      return new Part(tag.token, argument);
+    } else {
+      throw 'Unknown script tag ${tag.token.slowToString()}';
+    }
+  }
+}
+
+class LibraryTag extends Node {
+  bool get isLibraryName => false;
+  bool get isImport => false;
+  bool get isExport => false;
+  bool get isPart => false;
+}
+
+class LibraryName extends LibraryTag {
+  final Expression name;
+
+  final Token libraryKeyword;
+
+  LibraryName(this.libraryKeyword, this.name);
+
+  bool get isLibraryName => true;
+
+  LibraryName asLibraryName() => this;
+
+  accept(Visitor visitor) => visitor.visitLibraryName(this);
+
+  visitChildren(Visitor visitor) => name.accept(visitor);
+
+  Token getBeginToken() => libraryKeyword;
+
+  Token getEndToken() => name.getEndToken().next;
+}
+
+class Import extends LibraryTag {
+  final LiteralString uri;
+  final Identifier prefix;
+  final NodeList combinators;
+
+  final Token importKeyword;
+
+  Import(this.importKeyword, this.uri, this.prefix, this.combinators);
+
+  bool get isImport => true;
+
+  Import asImport() => this;
+
+  accept(Visitor visitor) => visitor.visitImport(this);
+
+  visitChildren(Visitor visitor) {
+    uri.accept(visitor);
+    if (prefix !== null) prefix.accept(visitor);
+    if (combinators !== null) combinators.accept(visitor);
+  }
+
+  Token getBeginToken() => importKeyword;
+
+  Token getEndToken() {
+    if (combinators !== null) return combinators.getEndToken().next;
+    if (prefix !== null) return prefix.getEndToken().next;
+    return uri.getEndToken().next;
+  }
+}
+
+class Export extends LibraryTag {
+  final LiteralString uri;
+  final NodeList combinators;
+
+  final Token exportKeyword;
+
+  Export(this.exportKeyword, this.uri, this.combinators);
+
+  bool get isExport => true;
+
+  Export asExport() => this;
+
+  accept(Visitor visitor) => visitor.visitExport(this);
+
+  visitChildren(Visitor visitor) {
+    uri.accept(visitor);
+    if (combinators !== null) combinators.accept(visitor);
+  }
+
+  Token getBeginToken() => exportKeyword;
+
+  Token getEndToken() {
+    if (combinators !== null) return combinators.getEndToken().next;
+    return uri.getEndToken().next;
+  }
+}
+
+class Part extends LibraryTag {
+  final LiteralString uri;
+
+  final Token partKeyword;
+
+  Part(this.partKeyword, this.uri);
+
+  bool get isPart => true;
+
+  Part asPart() => this;
+
+  accept(Visitor visitor) => visitor.visitPart(this);
+
+  visitChildren(Visitor visitor) => uri.accept(visitor);
+
+  Token getBeginToken() => partKeyword;
+
+  Token getEndToken() => uri.getEndToken().next;
 }
 
 class Typedef extends Node {

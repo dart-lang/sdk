@@ -10,7 +10,7 @@ class ScannerTask extends CompilerTask {
     var compilationUnit = library.entryCompilationUnit;
     compiler.log("scanning library ${compilationUnit.script.name}");
     scan(compilationUnit);
-    processScriptTags(library);
+    processLibraryTags(library);
   }
 
   void scan(CompilationUnitElement compilationUnit) {
@@ -19,7 +19,7 @@ class ScannerTask extends CompilerTask {
     });
   }
 
-  void processScriptTags(LibraryElement library) {
+  void processLibraryTags(LibraryElement library) {
     int tagState = TagState.NO_TAG_SEEN;
 
     /**
@@ -27,7 +27,7 @@ class ScannerTask extends CompilerTask {
      * [tagState]. Otherwise return the new value for [tagState]
      * (transition function for state machine).
      */
-    int checkTag(int value, ScriptTag tag) {
+    int checkTag(int value, LibraryTag tag) {
       if (tagState > value) {
         compiler.reportError(tag, 'out of order');
         return tagState;
@@ -35,30 +35,28 @@ class ScannerTask extends CompilerTask {
       return TagState.NEXT[value];
     }
 
-    LinkBuilder<ScriptTag> imports = new LinkBuilder<ScriptTag>();
+    LinkBuilder<Import> imports = new LinkBuilder<Import>();
     Uri base = library.entryCompilationUnit.script.uri;
-    for (ScriptTag tag in library.tags.reverse()) {
-      StringNode argument = tag.argument;
-      // TODO(lrn): Support interpolations here. We need access to the
-      // special constants that can be inserted into script tag strings.
-      Uri resolved = base.resolve(argument.dartString.slowToString());
-      if (tag.isImport()) {
+    for (LibraryTag tag in library.tags.reverse()) {
+      if (tag.isImport) {
         tagState = checkTag(TagState.IMPORT, tag);
         // It is not safe to import other libraries at this point as
         // another library could then observe the current library
         // before it fully declares all the members that are sourced
         // in.
         imports.addLast(tag);
-      } else if (tag.isLibrary()) {
+      } else if (tag.isLibraryName) {
         tagState = checkTag(TagState.LIBRARY, tag);
         if (library.libraryTag !== null) {
           compiler.cancel("duplicated library declaration", node: tag);
         } else {
           library.libraryTag = tag;
         }
-      } else if (tag.isSource()) {
+      } else if (tag.isPart) {
+        StringNode uri = tag.uri;
+        Uri resolved = base.resolve(uri.dartString.slowToString());
         tagState = checkTag(TagState.SOURCE, tag);
-        importSourceFromTag(tag, resolved, library);
+        loadPart(tag, resolved, library);
       } else {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
@@ -76,17 +74,17 @@ class ScannerTask extends CompilerTask {
       compiler.importCoreLibrary(library);
     }
 
-    for (ScriptTag tag in imports.toLink()) {
+    for (Import tag in imports.toLink()) {
       importLibraryFromTag(tag, library.entryCompilationUnit);
     }
   }
 
   /**
-   * Handle a source tag in the scope of [library]. The [path] given is used as
+   * Handle a part tag in the scope of [library]. The [path] given is used as
    * is, any resolution should be done beforehand.
    */
-  void importSourceFromTag(ScriptTag tag, Uri path, LibraryElement library) {
-    Script sourceScript = compiler.readScript(path, tag);
+  void loadPart(Part part, Uri path, LibraryElement library) {
+    Script sourceScript = compiler.readScript(path, part);
     CompilationUnitElement unit =
         new CompilationUnitElement(sourceScript, library);
     compiler.withCurrentElement(unit, () => compiler.scanner.scan(unit));
@@ -97,12 +95,11 @@ class ScannerTask extends CompilerTask {
    * current library.
    * Returns the resolved library [Uri].
    */
-  Uri importLibraryFromTag(ScriptTag tag,
+  Uri importLibraryFromTag(Import tag,
                            CompilationUnitElement compilationUnit) {
     Uri base = compilationUnit.script.uri;
-    StringNode argument = tag.argument;
-    Uri resolved = base.resolve(argument.dartString.slowToString());
-    LibraryElement importedLibrary = loadLibrary(resolved, argument, resolved);
+    Uri resolved = base.resolve(tag.uri.dartString.slowToString());
+    LibraryElement importedLibrary = loadLibrary(resolved, tag.uri, resolved);
     importLibrary(compilationUnit.getLibrary(),
                   importedLibrary,
                   tag,
@@ -136,16 +133,15 @@ class ScannerTask extends CompilerTask {
   }
 
   void importLibrary(LibraryElement library, LibraryElement imported,
-                     ScriptTag tag, [CompilationUnitElement compilationUnit]) {
+                     Import tag, [CompilationUnitElement compilationUnit]) {
     if (!imported.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
-        compiler.reportError(tag === null ? null : tag.argument,
+        compiler.reportError(tag === null ? null : tag.uri,
                              'no #library tag found in ${imported.uri}');
       });
     }
     if (tag !== null && tag.prefix !== null) {
-      SourceString prefix =
-          new SourceString(tag.prefix.dartString.slowToString());
+      SourceString prefix = tag.prefix.source;
       Element e = library.find(prefix);
       if (e === null) {
         if (compilationUnit === null) {

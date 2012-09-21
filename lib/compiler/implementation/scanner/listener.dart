@@ -47,11 +47,23 @@ class Listener {
                            Token endToken) {
   }
 
+  void beginCombinators(Token token) {
+  }
+
+  void endCombinators(int count) {
+  }
+
   void beginDoWhileStatement(Token token) {
   }
 
   void endDoWhileStatement(Token doKeyword, Token whileKeyword,
                            Token endToken) {
+  }
+
+  void beginExport(Token token) {
+  }
+
+  void endExport(Token exportKeyword, Token semicolon) {
   }
 
   void beginExpressionStatement(Token token) {
@@ -137,10 +149,28 @@ class Listener {
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
   }
 
+  void beginHide(Token hideKeyword) {
+  }
+
+  void endHide(Token hideKeyword) {
+  }
+
+  void beginIdentifierList(Token token) {
+  }
+
+  void endIdentifierList(int count) {
+  }
+
   void beginIfStatement(Token token) {
   }
 
   void endIfStatement(Token ifToken, Token elseToken) {
+  }
+
+  void beginImport(Token importKeyword) {
+  }
+
+  void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
   }
 
   void beginInitializedIdentifier(Token token) {
@@ -178,6 +208,12 @@ class Listener {
   }
 
   void endLabeledStatement(int labelCount) {
+  }
+
+  void beginLibraryName(Token token) {
+  }
+
+  void endLibraryName(Token libraryKeyword, Token semicolon) {
   }
 
   void beginLiteralMapEntry(Token token) {
@@ -231,6 +267,12 @@ class Listener {
   }
 
   void endSend(Token token) {
+  }
+
+  void beginShow(Token showKeyword) {
+  }
+
+  void endShow(Token showKeyword) {
   }
 
   void beginSwitchStatement(Token token) {
@@ -569,29 +611,75 @@ class ElementListener extends Listener {
     return node;
   }
 
-  bool allowScriptTags() {
-    // Script tags are only allowed in the library file itself, not in
-    // sourced files.
+  bool allowLibraryTags() {
+    // Library tags are only allowed in the library file itself, not
+    // in sourced files.
     LibraryElement library = compilationUnitElement.getLibrary();
-    return library.entryCompilationUnit == compilationUnitElement;
+    return compilationUnitElement.localMembers.isEmpty()
+      && library.entryCompilationUnit == compilationUnitElement;
+  }
+
+  void endLibraryName(Token libraryKeyword, Token semicolon) {
+    Expression name = popNode();
+    addLibraryTag(new LibraryName(libraryKeyword, name));
+  }
+
+  void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
+    NodeList combinators = popNode();
+    Identifier prefix;
+    if (asKeyword !== null) {
+      prefix = popNode();
+    }
+    LiteralString uri = popLiteralString();
+    addLibraryTag(new Import(importKeyword, uri, prefix, combinators));
+  }
+
+  void endExport(Token exportKeyword, Token semicolon) {
+    NodeList combinators = popNode();
+    LiteralString uri = popNode();
+    addLibraryTag(new Export(exportKeyword, uri, combinators));
+  }
+
+  void endCombinators(int count) {
+    if (0 == count) {
+      pushNode(null);
+    } else {
+      pushNode(makeNodeList(count, null, null, " "));
+    }
+  }
+
+  void endHide(Token hideKeyword) {
+    recoverableError('hide is not implemented', token: hideKeyword);
+    // TODO(ahe): Do not ignore.
+  }
+
+  void endShow(Token showKeyword) {
+    recoverableError('show is not implemented', token: showKeyword);
+    // TODO(ahe): Do not ignore.
+  }
+
+  void endIdentifierList(int count) {
+    pushNode(makeNodeList(count, null, null, " "));
   }
 
   void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
-    StringNode prefix = null;
+    LiteralString prefix = null;
     Identifier argumentName = null;
     if (hasPrefix) {
       prefix = popLiteralString();
       argumentName = popNode();
     }
-    StringNode firstArgument = popLiteralString();
+    LiteralString firstArgument = popLiteralString();
     Identifier tag = popNode();
-    if (!allowScriptTags()) {
-      // Only allow script tags in the entry compilation unit.
-      listener.cancel("script tags not allowed here", node: tag);
-    }
     ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
                                         prefix, beginToken, endToken);
-    addScriptTag(scriptTag);
+    if (const SourceString('import') == tag.source ||
+        const SourceString('source') == tag.source ||
+        const SourceString('library') == tag.source) {
+      addScriptTag(scriptTag);
+    } else {
+      recoverableError('unknown tag: ${tag.source.slowToString()}', node: tag);
+    }
   }
 
   void endMetadata(Token beginToken, Token endToken) {
@@ -721,7 +809,7 @@ class ElementListener extends Listener {
 
   void handleQualified(Token period) {
     Identifier last = popNode();
-    Identifier first = popNode();
+    Expression first = popNode();
     pushNode(new Send(first, last));
   }
 
@@ -853,6 +941,14 @@ class ElementListener extends Listener {
   }
 
   void addScriptTag(ScriptTag tag) {
+    // TODO(ahe): Remove this method.
+    addLibraryTag(tag.toLibraryTag());
+  }
+
+  void addLibraryTag(LibraryTag tag) {
+    if (!allowLibraryTags()) {
+      recoverableError('library tags not allowed here', node: tag);
+    }
     compilationUnitElement.getLibrary().addTag(tag, listener);
   }
 
