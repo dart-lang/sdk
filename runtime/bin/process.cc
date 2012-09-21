@@ -4,8 +4,10 @@
 
 #include "bin/dartutils.h"
 #include "bin/process.h"
+#include "bin/socket.h"
 
 #include "include/dart_api.h"
+
 
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,
@@ -132,13 +134,10 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                                   &exit_event,
       os_error_message, kMaxChildOsErrorMessageLength);
   if (error_code == 0) {
-    DartUtils::SetIntegerField(in_handle, DartUtils::kIdFieldName, in);
-    DartUtils::SetIntegerField(
-        out_handle, DartUtils::kIdFieldName, out);
-    DartUtils::SetIntegerField(
-        err_handle, DartUtils::kIdFieldName, err);
-    DartUtils::SetIntegerField(
-        exit_handle, DartUtils::kIdFieldName, exit_event);
+    Socket::SetSocketIdNativeField(in_handle, in);
+    Socket::SetSocketIdNativeField(out_handle, out);
+    Socket::SetSocketIdNativeField(err_handle, err);
+    Socket::SetSocketIdNativeField(exit_handle, exit_event);
     DartUtils::SetIntegerField(process, "_pid", pid);
   } else {
     DartUtils::SetIntegerField(

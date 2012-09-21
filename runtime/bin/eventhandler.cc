@@ -4,11 +4,14 @@
 
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
+#include "bin/socket.h"
 
 #include "include/dart_api.h"
 
 
-static const intptr_t kNativeEventHandlerFieldIndex = 0;
+static const int kNativeEventHandlerFieldIndex = 0;
+static const intptr_t kTimerId = -1;
+static const intptr_t kInvalidId = -2;
 
 /*
  * Returns the reference of the EventHandler stored in the native field.
@@ -59,7 +62,13 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle handle = Dart_GetNativeArgument(args, 0);
   EventHandler* event_handler = GetEventHandler(handle);
-  intptr_t id = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  Dart_Handle sender = Dart_GetNativeArgument(args, 1);
+  intptr_t id = kInvalidId;
+  if (Dart_IsNull(sender)) {
+    id = kTimerId;
+  } else {
+    Socket::GetSocketIdNativeField(sender, &id);
+  }
   handle = Dart_GetNativeArgument(args, 2);
   Dart_Port dart_port =
       DartUtils::GetIntegerField(handle, DartUtils::kIdFieldName);

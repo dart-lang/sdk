@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _SocketBase {
+class _SocketBase extends NativeFieldWrapperClass1 {
   // Bit flags used when communicating between the eventhandler and
   // dart code. The EVENT flags are used to indicate events of
   // interest when sending a message from dart code to the
@@ -37,7 +37,7 @@ class _SocketBase {
     _handlerMap = new List(_LAST_EVENT + 1);
     _handlerMask = 0;
     _canActivateHandlers = true;
-    _id = -1;
+    _closed = true;
     _EventHandler._start();
     _hashCode = _nextHashCode;
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
@@ -48,7 +48,7 @@ class _SocketBase {
     _canActivateHandlers = false;
     for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
       if (((event_mask & (1 << i)) != 0)) {
-        if ((i == _CLOSE_EVENT) && this is _Socket && _id >= 0) {
+        if ((i == _CLOSE_EVENT) && this is _Socket && !_closed) {
           _closedRead = true;
           if (_closedWrite) _close();
         }
@@ -104,7 +104,7 @@ class _SocketBase {
   }
 
   void _activateHandlers() {
-    if (_canActivateHandlers && (_id >= 0)) {
+    if (_canActivateHandlers && !_closed) {
       if (_handlerMask == 0) {
         if (_handler != null) {
           _handler.close();
@@ -132,7 +132,7 @@ class _SocketBase {
   }
 
   void close([bool halfClose = false]) {
-    if (_id >= 0) {
+    if (!_closed) {
       if (halfClose) {
         _closeWrite();
       } else {
@@ -147,7 +147,7 @@ class _SocketBase {
   }
 
   void _closeWrite() {
-    if (_id >= 0) {
+    if (!_closed) {
       if (_closedRead) {
         _close();
       } else {
@@ -158,7 +158,7 @@ class _SocketBase {
   }
 
   void _closeRead() {
-    if (_id >= 0) {
+    if (!_closed) {
       if (_closedWrite) {
         _close();
       } else {
@@ -169,11 +169,11 @@ class _SocketBase {
   }
 
   void _close() {
-    if (_id >= 0) {
+    if (!_closed) {
       _sendToEventHandler(1 << _CLOSE_COMMAND);
       _handler.close();
       _handler = null;
-      _id = -1;
+      _closed = true;
     }
   }
 
@@ -182,8 +182,8 @@ class _SocketBase {
       _handler = new ReceivePort();
       _handler.receive((var message, ignored) { _multiplex(message); });
     }
-    assert(_id >= 0);
-    _EventHandler._sendData(_id, _handler, data);
+    assert(!_closed);
+    _EventHandler._sendData(this, _handler, data);
   }
 
   bool _reportError(error, String message) {
@@ -230,8 +230,8 @@ class _SocketBase {
   abstract bool _isListenSocket();
   abstract bool _isPipe();
 
-  // Socket id is set from native. -1 indicates that the socket was closed.
-  int _id;
+  // Is this socket closed.
+  bool _closed;
 
   // Dedicated ReceivePort for socket events.
   ReceivePort _handler;
@@ -269,6 +269,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
       socket.close();
       throw new SocketIOException("Failed to create server socket", result);
     }
+    socket._closed = false;
     assert(result);
     if (port != 0) {
       socket._port = port;
@@ -290,12 +291,13 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   }
 
   void _connectionHandler() {
-    if (_id >= 0) {
+    if (!_closed) {
       _Socket socket = new _Socket._internal();
       var result = _accept(socket);
       if (result is OSError) {
         _reportError(result, "Accept failed");
       } else if (result) {
+        socket._closed = false;
         _clientConnectionHandler(socket);
       } else {
         // Temporary failure accepting the connection. Ignoring
@@ -333,6 +335,7 @@ class _Socket extends _SocketBase implements Socket {
           socket.close();
           socket._reportError(result, "Connection failed");
         } else {
+          socket._closed = false;
           socket._activateHandlers();
         }
       }
@@ -345,7 +348,7 @@ class _Socket extends _SocketBase implements Socket {
   _Socket._internalWriteOnly() : _pipe = true { super._closedRead = true; }
 
   int available() {
-    if (_id >= 0) {
+    if (!_closed) {
       var result = _available();
       if (result is OSError) {
         _reportError(result, "Available failed");
@@ -361,7 +364,7 @@ class _Socket extends _SocketBase implements Socket {
   _available() native "Socket_Available";
 
   int readList(List<int> buffer, int offset, int bytes) {
-    if (_id >= 0) {
+    if (!_closed) {
       if (bytes == 0) {
         return 0;
       }
@@ -385,11 +388,10 @@ class _Socket extends _SocketBase implements Socket {
         SocketIOException("Error: readList failed - invalid socket handle");
   }
 
-  _readList(List<int> buffer, int offset, int bytes)
-      native "Socket_ReadList";
+  _readList(List<int> buffer, int offset, int bytes) native "Socket_ReadList";
 
   int writeList(List<int> buffer, int offset, int bytes) {
-    if (_id >= 0) {
+    if (!_closed) {
       if (bytes == 0) {
         return 0;
       }

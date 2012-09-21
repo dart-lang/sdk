@@ -149,6 +149,11 @@ class _Process extends Process {
     }
     _started = true;
 
+    _in._closed = false;
+    _out._closed = false;
+    _err._closed = false;
+    _exitHandler._closed = false;
+
     // Make sure to activate socket handlers now that the file
     // descriptors have been set.
     _in._activateHandlers();
