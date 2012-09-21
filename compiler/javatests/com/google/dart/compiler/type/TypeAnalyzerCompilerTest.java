@@ -1383,6 +1383,44 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.NOT_A_TYPE, 3, 17, 1));
   }
 
+  public void test_constInstanceCreation_noSuchType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const NoSuchType();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE_CONST, 3, 9, 10));
+  }
+  
+  public void test_constInstanceCreation_noSuchConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  const A.noSuchName();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR, 4, 11, 10));
+  }
+  
+  public void test_constInstanceCreation_notType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var notType;",
+        "main() {",
+        "  const notType();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NOT_A_TYPE, 4, 9, 7));
+  }
+
   /**
    * Test for variants of {@link DartMethodDefinition} return types.
    */
@@ -4417,10 +4455,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}"));
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 7, 19),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 7, 19));
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
   }
   
   /**

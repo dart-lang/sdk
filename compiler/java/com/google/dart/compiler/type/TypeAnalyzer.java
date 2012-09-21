@@ -2168,7 +2168,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           List<Type> arguments = ifaceType.getArguments();
           ftype = (FunctionType) ftype.subst(arguments, substParams);
-          checkDeprecated(getConstructorNameNode(node), constructorElement);
+          checkDeprecated(ASTNodes.getConstructorNameNode(node), constructorElement);
           checkInvocation(node, node, constructorElement.getName(), ftype);
         }
       }
@@ -2947,27 +2947,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       visited.add(current);
       // check type of "current" function type alias
       return hasFunctionTypeAliasReference(visited, target, current);
-    }
-
-    /**
-     * @return the {@link DartIdentifier} corresponding to the name of constructor.
-     */
-    public static DartIdentifier getConstructorNameNode(DartNewExpression node) {
-      DartNode constructor = node.getConstructor();
-      return getConstructorNameNode(constructor);
-    }
-
-    /**
-     * @return the {@link DartIdentifier} corresponding to the name of constructor.
-     */
-    public static DartIdentifier getConstructorNameNode(DartNode constructor) {
-      if (constructor instanceof DartPropertyAccess) {
-        return ((DartPropertyAccess) constructor).getName();
-      } else if (constructor instanceof DartTypeNode) {
-        return getConstructorNameNode(((DartTypeNode) constructor).getIdentifier());
-      } else {
-        return (DartIdentifier) constructor;
-      }
     }
 
     @Override

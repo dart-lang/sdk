@@ -1371,7 +1371,7 @@ public class ResolverTest extends ResolverTestCase {
         "main() {",
         " const A();",
         "}"),
-        errEx(TypeErrorCode.NO_SUCH_TYPE_CONST, 3, 8, 1));
+        errEx(ResolverErrorCode.NO_SUCH_TYPE_CONST, 3, 8, 1));
   }
 
   public void testNoGetterOrSetter() {

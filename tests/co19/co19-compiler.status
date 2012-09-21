@@ -108,7 +108,6 @@ Language/07_Classes/07_Classes_A03_t10: Fail, OK
 
 
 Language/07_Classes/7_Static_Methods_A01_t03: Fail, OK # this should be a warning, not an error
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # Issue 5240
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail, OK # this should be a warning, not an error
 Language/10_Expressions/30_Type_Cast_A01_t04: Fail, OK # the expected error is not specified
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail, OK # part directive with invalid URI
@@ -230,13 +229,6 @@ Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # language chan
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail # language change 1031
 Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # language change 1031
 Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t03: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t04: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t06: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t01: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t03: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t04: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail # language change 1031
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
@@ -617,12 +609,6 @@ Language/10_Expressions/16_Assignment_A08_t03: Fail, OK
 Language/10_Expressions/22_Shift_A01_t11: Fail, OK
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t03: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t04: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t03: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t06: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t04: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t01: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail, OK
@@ -630,7 +616,6 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t03: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail, OK
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail, OK
 Language/10_Expressions/16_Assignment_A04_t03: Fail, OK
 Language/10_Expressions/16_Assignment_A01_t05: Fail, OK

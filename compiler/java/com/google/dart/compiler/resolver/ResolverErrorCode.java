@@ -156,8 +156,10 @@ public enum ResolverErrorCode implements ErrorCode {
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR(
       ErrorSeverity.WARNING, "New expression does not resolve to a constructor"),
+  NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR("New expression does not resolve to a const constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
+  NO_SUCH_TYPE_CONST("no such type \"%s\" in constant constructor"),
   NOT_A_CLASS("\"%s\" is not a class"),
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
   // TODO(zundel): error message needs JUnit test (reachable code?)

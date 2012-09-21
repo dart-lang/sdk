@@ -1566,7 +1566,7 @@ public class Resolver {
         // Only 'new' expressions can have a type in a property access.
         @Override
         public Element visitTypeNode(DartTypeNode type) {
-          TypeErrorCode errorCode = x.isConst() ? TypeErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
+          ErrorCode errorCode = x.isConst() ? ResolverErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
           return recordType(type, resolveType(type, inStaticContext(currentMethod),
                                               inFactoryContext(currentMethod),
                                               errorCode,
@@ -2123,9 +2123,12 @@ public class Resolver {
       }
     }
 
-    private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
+    private ConstructorElement checkIsConstructor(DartNewExpression node, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        onError(source.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode errorCode = node.isConst()
+            ? ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR
+            : ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
+        onError(ASTNodes.getConstructorNameNode(node), errorCode);
         return null;
       }
       return (ConstructorElement) element;

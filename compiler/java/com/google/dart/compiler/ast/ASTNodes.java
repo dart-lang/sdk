@@ -1362,4 +1362,25 @@ public class ASTNodes {
     return false;
   }
 
+  /**
+   * @return the {@link DartIdentifier} corresponding to the name of constructor.
+   */
+  public static DartIdentifier getConstructorNameNode(DartNewExpression node) {
+    DartNode constructor = node.getConstructor();
+    return getConstructorNameNode(constructor);
+  }
+
+  /**
+   * @return the {@link DartIdentifier} corresponding to the name of constructor.
+   */
+  private static DartIdentifier getConstructorNameNode(DartNode constructor) {
+    if (constructor instanceof DartPropertyAccess) {
+      return ((DartPropertyAccess) constructor).getName();
+    } else if (constructor instanceof DartTypeNode) {
+      return getConstructorNameNode(((DartTypeNode) constructor).getIdentifier());
+    } else {
+      return (DartIdentifier) constructor;
+    }
+  }
+
 }
