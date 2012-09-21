@@ -28,7 +28,7 @@ intl/test/date_time_format_http_request_test: skip
 
 # Skip http request tests on Windows temporarily
 [ $system == windows]
-int/test/date_time_format_http_request_test: skip
+intl/test/date_time_format_http_request_test: skip
 
 # Skip intl_message tests that use mirrors on dart2js until it's been implemented there.
 [ $compiler == dart2js ]
