@@ -53,8 +53,7 @@ const int LT_LT_EQ_TOKEN = EQ_EQ_TOKEN + 1;
 const int LT_LT_TOKEN = LT_LT_EQ_TOKEN + 1;
 const int GT_EQ_TOKEN = LT_LT_TOKEN + 1;
 const int GT_GT_EQ_TOKEN = GT_EQ_TOKEN + 1;
-const int GT_GT_GT_EQ_TOKEN = GT_GT_EQ_TOKEN + 1;
-const int INDEX_EQ_TOKEN = GT_GT_GT_EQ_TOKEN + 1;
+const int INDEX_EQ_TOKEN = GT_GT_EQ_TOKEN + 1;
 const int INDEX_TOKEN = INDEX_EQ_TOKEN + 1;
 const int BANG_EQ_EQ_TOKEN = INDEX_TOKEN + 1;
 const int BANG_EQ_TOKEN = BANG_EQ_EQ_TOKEN + 1;
@@ -75,7 +74,6 @@ const int CARET_EQ_TOKEN = GT_GT_TOKEN + 1;
 const int IS_TOKEN = CARET_EQ_TOKEN + 1;
 const int AS_TOKEN = IS_TOKEN + 1;
 const int COMMENT_TOKEN = AS_TOKEN + 1;
-const int GT_GT_GT_TOKEN = COMMENT_TOKEN + 1;
 const int STRING_INTERPOLATION_IDENTIFIER_TOKEN = COMMENT_TOKEN + 1;
 
 // TODO(ahe): Get rid of this.
@@ -270,7 +268,6 @@ bool isUserDefinableOperator(String value) {
     (value === '+') ||
     (value === '-') ||
     (value === '<<') ||
-    (value === '>>>') ||
     (value === '>>') ||
     (value === '>=') ||
     (value === '>') ||
@@ -355,9 +352,6 @@ const PrecedenceInfo EQ_INFO =
 const PrecedenceInfo GT_GT_EQ_INFO =
   const PrecedenceInfo(const SourceString('>>='),
                        ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN);
-const PrecedenceInfo GT_GT_GT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('>>>='),
-                       ASSIGNMENT_PRECEDENCE, GT_GT_GT_EQ_TOKEN);
 const PrecedenceInfo LT_LT_EQ_INFO =
   const PrecedenceInfo(const SourceString('<<='),
                        ASSIGNMENT_PRECEDENCE, LT_LT_EQ_TOKEN);
@@ -423,8 +417,6 @@ const PrecedenceInfo LT_INFO =
   const PrecedenceInfo(const SourceString('<'), 10, LT_TOKEN);
 
 // Shift operators.
-const PrecedenceInfo GT_GT_GT_INFO =
-  const PrecedenceInfo(const SourceString('>>>'), 11, GT_GT_GT_TOKEN);
 const PrecedenceInfo GT_GT_INFO =
   const PrecedenceInfo(const SourceString('>>'), 11, GT_GT_TOKEN);
 const PrecedenceInfo LT_LT_INFO =

@@ -431,15 +431,6 @@ class AbstractScanner<T extends SourceString> implements Scanner {
       if ($EQ === next) {
         appendPrecedenceToken(GT_GT_EQ_INFO);
         return advance();
-      } else if ($GT === next) {
-        next = advance();
-        if (next === $EQ) {
-          appendPrecedenceToken(GT_GT_GT_EQ_INFO);
-          return advance();
-        } else {
-          appendGtGtGt(GT_GT_GT_INFO, ">>>");
-          return next;
-        }
       } else {
         appendGtGt(GT_GT_INFO, ">>");
         return next;
