@@ -11354,6 +11354,9 @@ abstract class Document extends HtmlElement {
   /** @domName Document.head */
   abstract HeadElement get head;
 
+  /** @domName Document.implementation */
+  abstract DOMImplementation get implementation;
+
   /** @domName Document.lastModified */
   abstract String get lastModified;
 
@@ -12116,6 +12119,8 @@ class _DocumentImpl extends _NodeImpl implements Document
   String get domain native "Document_domain_Getter";
 
   HeadElement get head native "Document_head_Getter";
+
+  DOMImplementation get implementation native "Document_implementation_Getter";
 
   String get lastModified native "Document_lastModified_Getter";
 

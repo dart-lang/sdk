@@ -129,7 +129,6 @@ _removed_html_members = set([
 #    "Document.get:preferredStylesheetSet",
     "Document.get:links",
     "Document.set:domain",
-    "Document.get:implementation",
     "Document.createAttributeNS",
     "Document.get:inputEncoding",
     "Document.get:height",
