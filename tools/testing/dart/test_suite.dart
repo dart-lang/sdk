@@ -687,6 +687,7 @@ class StandardTestSuite implements TestSuite {
         if (extraCommand == 'dart') {
           extraCommand = new Options().executable;
         }
+        args= args.map((arg)=>arg.replaceAll(@"$dartDir", dartDir.toString()));
         commands.add(new Command(extraCommand, args));
       }
 

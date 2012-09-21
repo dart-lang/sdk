@@ -12,11 +12,13 @@
 #import("dart:isolate");
 
 main() {
+  var thisDir = new File(new Options().script).directorySync();
+  var serverPath = "{$thisDir.path}pkg/intl/test/web_server.dart";
   // TODO(alanknight): This uses nohup and & to stop the child process from
   // stopping when we exit. This won't work on Windows.
   var p = Process.start(
       "nohup",
-      [new Options().executable, "pkg/intl/test/web_server.dart", "&"]);
+      [new Options().executable, serverPath, "&"]);
   p.onExit = (p) => print("Exited abnormally with exit code: $p");
   // Give the other process a moment to fully start, and give us a meaningful
   // exit code if there's an abnormal exit, before we finish.
