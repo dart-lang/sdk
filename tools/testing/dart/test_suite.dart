@@ -950,28 +950,28 @@ class StandardTestSuite implements TestSuite {
    *   executing the copy command printed by the test script.
    */
   Map readOptionsFromFile(Path filePath) {
-    RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
-    RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
-    RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
-    RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
+    RegExp testOptionsRegExp = const RegExp(r"// VMOptions=(.*)");
+    RegExp dartOptionsRegExp = const RegExp(r"// DartOptions=(.*)");
+    RegExp otherScriptsRegExp = const RegExp(r"// OtherScripts=(.*)");
+    RegExp multiTestRegExp = const RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp staticTypeRegExp =
-        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type warning");
+        const RegExp(r"/// ([0-9][0-9]:){0,1}\s*static type warning");
     RegExp compileTimeRegExp =
-        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
-    RegExp staticCleanRegExp = const RegExp(@"// @static-clean");
-    RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
-    RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
+        const RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
+    RegExp staticCleanRegExp = const RegExp(r"// @static-clean");
+    RegExp leadingHashRegExp = const RegExp(r"^#", multiLine: true);
+    RegExp isolateStubsRegExp = const RegExp(r"// IsolateStubs=(.*)");
     RegExp domImportRegExp =
-        const RegExp(@"^#import.*(dart:(dom|html)|html\.dart).*\)",
+        const RegExp(r"^#import.*(dart:(dom|html)|html\.dart).*\)",
                      multiLine: true);
     RegExp libraryDefinitionRegExp =
-        const RegExp(@"^#library\(", multiLine: true);
+        const RegExp(r"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
-        const RegExp(@"^#(source|import|resource)\(", multiLine: true);
+        const RegExp(r"^#(source|import|resource)\(", multiLine: true);
     RegExp extraCommandRegExp =
-        const RegExp(@"// ExtraCommand=(.*)", multiLine: true);
+        const RegExp(r"// ExtraCommand=(.*)", multiLine: true);
     RegExp extraArgsRegExp =
-        const RegExp(@"// ExtraCommandArgs=(.*)", multiLine: true);
+        const RegExp(r"// ExtraCommandArgs=(.*)", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts

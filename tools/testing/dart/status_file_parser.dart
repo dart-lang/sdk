@@ -8,24 +8,24 @@
 #import("status_expression.dart");
 
 /** Possible outcomes of running a test. */
-final CRASH = "crash";
-final TIMEOUT = "timeout";
-final FAIL = "fail";
-final PASS = "pass";
+const CRASH = "crash";
+const TIMEOUT = "timeout";
+const FAIL = "fail";
+const PASS = "pass";
 /**
  * An indication to skip the test.  The caller is responsible for skipping it.
  */
-final SKIP = "skip";
-final OK = "ok";
+const SKIP = "skip";
+const OK = "ok";
 /**
  * An indication that a test is slow and we should allow extra time for
  * completion.
  */
-final SLOW = "slow";
+const SLOW = "slow";
 
-final RegExp StripComment = const RegExp("^[^#]*");
-final RegExp HeaderPattern = const RegExp(@"^\[([^\]]+)\]");
-final RegExp RulePattern = const RegExp(@"\s*([^: ]*)\s*:(.*)");
+const RegExp StripComment = const RegExp("^[^#]*");
+const RegExp HeaderPattern = const RegExp(r"^\[([^\]]+)\]");
+const RegExp RulePattern = const RegExp(r"\s*([^: ]*)\s*:(.*)");
 
 // TODO(whesse): Implement configuration_info library that contains data
 // structures for test configuration, including Section.
