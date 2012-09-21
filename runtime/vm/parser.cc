@@ -1522,7 +1522,9 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   // Omit the implicit super() if there is no super class (i.e.
   // we're not compiling class Object), or if the super class is an
   // artificially generated "wrapper class" that has no constructor.
-  if (super_class.IsNull() || (super_class.num_native_fields() > 0)) {
+  if (super_class.IsNull() ||
+      (super_class.num_native_fields() > 0 &&
+       Class::Handle(super_class.SuperClass()).IsObjectClass())) {
     return;
   }
   String& ctor_name = String::Handle(super_class.Name());
