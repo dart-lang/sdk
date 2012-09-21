@@ -16,6 +16,11 @@ patch void print(var obj) {
 
 // Patch for Object implementation.
 patch class Object {
+  patch int hashCode() {
+    throw new RuntimeError("Unimplemented: Object.hashCode");
+    return -1;
+  }
+
   patch String toString() {
     return Primitives.objectToString(this);
   }

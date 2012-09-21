@@ -10,6 +10,8 @@ class Object {
 
   bool operator ==(other) => identical(this, other);
 
+  external int hashCode();
+
   external String toString();
 
   external void noSuchMethod(String name, List args);

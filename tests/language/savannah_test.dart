@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test using an identity hash.
 
-interface BigGame extends Hashable {
+abstract class BigGame {
   final String name;
 }
 
+// Giraffe overrides hashCode and provides its own identity hash.
 class Giraffe implements BigGame {
   final String name;
   final int identityHash_;
@@ -27,6 +28,7 @@ class Giraffe implements BigGame {
   }
 }
 
+// Zebra relies on the system provided identity hash.
 class Zebra implements BigGame {
   final String name;
   Zebra(this.name) {}
@@ -37,44 +39,38 @@ class SavannahTest  {
 
   static void testMain() {
     Map<BigGame, String> savannah = new Map<BigGame, String>();
+
     Giraffe giraffe1 = new Giraffe("Tony");
     Giraffe giraffe2 = new Giraffe("Rose");
     savannah[giraffe1] = giraffe1.name;
     savannah[giraffe2] = giraffe2.name;
+    print("giraffe1 hash: ${giraffe1.hashCode()}");
+    print("giraffe2 hash: ${giraffe2.hashCode()}");
 
     var count = savannah.length;
     print("getCount is $count");
     Expect.equals(2, count);
+
     print("giraffe1: ${savannah[giraffe1]}");
     print("giraffe2: ${savannah[giraffe2]}");
     Expect.equals("Tony", savannah[giraffe1]);
     Expect.equals("Rose", savannah[giraffe2]);
 
-    bool caught = false;
-    Zebra zebra1 = new Zebra("Paul");
-    Zebra zebra2 = new Zebra("Joe");
-    try {
-      savannah[zebra1] = zebra1.name;
-      savannah[zebra2] = zebra2.name;
-    } on NoSuchMethodError catch (e) {
-      print("Caught: $e");
-      caught = true;
-    }
-    Expect.equals(true, caught);
+    Zebra zebra1 = new Zebra("Paolo");
+    Zebra zebra2 = new Zebra("Zeeta");
+    savannah[zebra1] = zebra1.name;
+    savannah[zebra2] = zebra2.name;
+    print("zebra1 hash: ${zebra1.hashCode()}");
+    print("zebra2 hash: ${zebra2.hashCode()}");
 
     count = savannah.length;
     print("getCount is $count");
-    Expect.equals(2, count);
+    Expect.equals(4, count);
 
-    caught = false;
-    try {
-      print("zebra1: ${savannah[zebra1]}");
-      print("zebra2: ${savannah[zebra2]}");
-    } on NoSuchMethodError catch (e) {
-      print("Caught: $e");
-      caught = true;
-    }
-    Expect.equals(true, caught);
+    print("zebra1: ${savannah[zebra1]}");
+    print("zebra2: ${savannah[zebra2]}");
+    Expect.equals("Paolo", savannah[zebra1]);
+    Expect.equals("Zeeta", savannah[zebra2]);
   }
 
 }
