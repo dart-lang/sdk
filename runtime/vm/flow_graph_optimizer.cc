@@ -266,22 +266,16 @@ static bool HasOneDouble(const ICData& ic_data) {
 
 
 static bool ShouldSpecializeForDouble(const ICData& ic_data) {
-  if (ic_data.NumberOfChecks() != 1) return false;
-  if (ic_data.num_args_tested() != 2) return false;
+  // Unboxed double operation can't handle case of two smis.
+  if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+    return false;
+  }
 
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
-  ASSERT(class_ids.length() == 2);
-
-  const bool seen_double =
-      (class_ids[0] == kDoubleCid) || (class_ids[1] == kDoubleCid);
-
-  const bool seen_only_smi_or_double =
-      ((class_ids[0] == kDoubleCid) || (class_ids[0] == kSmiCid)) &&
-      ((class_ids[1] == kDoubleCid) || (class_ids[1] == kSmiCid));
-
-  return seen_double && seen_only_smi_or_double;
+  // Check that it have seen only smis and doubles.
+  GrowableArray<intptr_t> class_ids(2);
+  class_ids.Add(kSmiCid);
+  class_ids.Add(kDoubleCid);
+  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
 }
 
 
