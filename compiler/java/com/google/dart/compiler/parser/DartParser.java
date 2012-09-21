@@ -1755,14 +1755,15 @@ public class DartParser extends CompletionHooksParserBase {
     if (!corelibParse) {
       reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
     }
+    DartExpression body = null;
     if (match(Token.STRING)) {
-      parseStringWithPasting();
+      body = parseStringWithPasting();
     }
     if (match(Token.LBRACE) || match(Token.ARROW)) {
       return done(parseFunctionStatementBody(!modifiers.isExternal(), true));
     } else {
       expect(Token.SEMICOLON);
-      return done(new DartNativeBlock());
+      return done(new DartNativeBlock(body));
     }
   }
 
@@ -2703,11 +2704,14 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     // Synthesize a single String literal
+    List<DartStringLiteral> stringParts = new ArrayList<DartStringLiteral>();
     StringBuilder builder = new StringBuilder();
     for (DartExpression expr : expressions) {
-      builder.append(((DartStringLiteral)expr).getValue());
+      DartStringLiteral stringPart = (DartStringLiteral)expr;
+      stringParts.add(stringPart);
+      builder.append(stringPart.getValue());
     }
-    return done(DartStringLiteral.get(builder.toString()));
+    return done(DartStringLiteral.get(builder.toString(), stringParts));
   }
 
   private DartExpression parseString() {
