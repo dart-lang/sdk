@@ -76,6 +76,7 @@
           'ANDROID',
           'USE_STLPORT=1',
           '_STLP_USE_PTR_SPECIALIZATIONS=1',
+          '_STLP_NO_CSTD_FUNCTION_IMPORTS=1',
           'HAVE_OFF64_T',
           'HAVE_SYS_UIO_H',
         ],
