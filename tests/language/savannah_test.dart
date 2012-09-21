@@ -4,7 +4,7 @@
 // Dart test using an identity hash.
 
 abstract class BigGame extends Hashable {
-  final String name;
+  String get name;
 }
 
 // Giraffe overrides hashCode and provides its own identity hash.
