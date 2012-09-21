@@ -109,7 +109,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
     }
 
     // Set the locals, not including the outgoing arguments.
-    ASSERT(current->Length() > inner->fixed_parameter_count());
+    ASSERT(current->Length() >= inner->fixed_parameter_count());
     for (intptr_t i = current->Length() - inner->fixed_parameter_count() - 1;
          i >= current->fixed_parameter_count();
          i--) {
