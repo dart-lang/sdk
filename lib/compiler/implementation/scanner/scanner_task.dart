@@ -175,7 +175,7 @@ class ScannerTask extends CompilerTask {
     } else {
       imported.forEachExport((Element element) {
         compiler.withCurrentElement(element, () {
-          library.addToScope(element, compiler);
+          library.addImport(element, compiler);
         });
       });
     }

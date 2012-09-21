@@ -365,10 +365,12 @@ class Element implements Hashable, Spannable {
  *   [: element == null :].
  */
 class ErroneousElement extends Element {
-  final Message errorMessage;
+  final MessageKind messageKind;
+  final List messageArguments;
   final SourceString targetName;
 
-  ErroneousElement(this.errorMessage, this.targetName, Element enclosing)
+  ErroneousElement(this.messageKind, this.messageArguments,
+                   this.targetName, Element enclosing)
       : super(const SourceString('erroneous element'), null, enclosing);
 
   isErroneous() => true;
@@ -386,9 +388,9 @@ class ErroneousElement extends Element {
 
 class ErroneousFunctionElement extends ErroneousElement
                                implements FunctionElement {
-  ErroneousFunctionElement(Message errorMessage, SourceString targetName,
-                           Element enclosing)
-      : super(errorMessage, targetName, enclosing);
+  ErroneousFunctionElement(MessageKind messageKind, List messageArguments,
+                           SourceString targetName, Element enclosing)
+      : super(messageKind, messageArguments, targetName, enclosing);
 
   get type => unsupported();
   get cachedNode => unsupported();
@@ -538,8 +540,17 @@ class LibraryElement extends ScopeContainerElement {
   bool canUseNative = false;
   LibraryElement patch = null;
 
+  /**
+   * Map for elements imported through import declarations.
+   *
+   * Addition to the map is performed by [addImport]. Lookup is done trough
+   * [find].
+   */
+  final Map<SourceString, Element> importScope;
+
   LibraryElement(Script script, [Uri uri])
     : this.uri = ((uri === null) ? script.uri : uri),
+      importScope = new Map<SourceString, Element>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElement(script, this);
   }
@@ -555,11 +566,39 @@ class LibraryElement extends ScopeContainerElement {
     tags = tags.prepend(tag);
   }
 
-  /** Look up a top-level element in this library. The element could
-    * potentially have been imported from another library. Returns
-    * null if no such element exist. */
+  /**
+   * Adds [element] to the import scope of this library.
+   *
+   * If an element by the same name is already in the imported scope, an
+   * [ErroneousElement] will be put in the imported scope, allowing for the
+   * detection of ambiguous uses of imported names.
+   */
+  void addImport(Element element, DiagnosticListener listener) {
+    Element existing = importScope.putIfAbsent(element.name, () => element);
+    if (existing !== element && existing !== null) {
+      if (!existing.isErroneous()) {
+        // TODO(johnniwinther): Provide access to both the new and existing
+        // elements.
+        importScope[element.name] = new ErroneousElement(
+            MessageKind.DUPLICATE_IMPORT,
+            [element.name], element.name, this);
+      }
+    }
+  }
+
+
+  /**
+   * Look up a top-level element in this library. The element could
+   * potentially have been imported from another library. Returns
+   * null if no such element exist and an [ErroneousElement] if multiple
+   * elements have been imported.
+   */
   Element find(SourceString elementName) {
-    return localScope[elementName];
+    Element result = localScope[elementName];
+    if (result === null) {
+      result = importScope[elementName];
+    }
+    return result;
   }
 
   /** Look up a top-level element in this library, but only look for

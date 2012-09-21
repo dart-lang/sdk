@@ -2946,13 +2946,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node.send];
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
-      Message message = error.errorMessage;
-      if (message.kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(node.send,
                                   getTargetName(error, 'constructor'),
                                   node.send.arguments);
-      } else if (message.kind == MessageKind.CANNOT_RESOLVE) {
-        generateRuntimeError(node.send, message.message);
+      } else if (error.messageKind == MessageKind.CANNOT_RESOLVE) {
+        Message message = error.messageKind.message(error.messageArguments);
+        generateRuntimeError(node.send, message.toString());
       } else {
         compiler.internalError('unexpected unresolved constructor call',
                                node: node);

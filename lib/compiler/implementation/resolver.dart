@@ -904,6 +904,9 @@ class TypeResolver {
     DartType type;
     if (element === null) {
       onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+    } else if (element.isErroneous()) {
+      ErroneousElement error = element;
+      onFailure(node, error.messageKind, error.messageArguments);
     } else if (!element.impliesType()) {
       onFailure(node, MessageKind.NOT_A_TYPE, [node.typeName]);
     } else {
@@ -1051,9 +1054,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                                  SourceString name,
                                                  MessageKind kind,
                                                  List<Node> arguments) {
-    ResolutionWarning warning = new ResolutionWarning(kind, arguments);
+    return warnOnErroneousElement(node,
+        new ErroneousElement(kind, arguments, name, enclosingElement));
+  }
+
+  ErroneousElement warnOnErroneousElement(Node node,
+                                          ErroneousElement erroneousElement) {
+    ResolutionWarning warning =
+        new ResolutionWarning(erroneousElement.messageKind,
+                              erroneousElement.messageArguments);
     compiler.reportWarning(node, warning);
-    return new ErroneousElement(warning.message, name, enclosingElement);
+    return erroneousElement;
   }
 
   Element visitIdentifier(Identifier node) {
@@ -1076,6 +1087,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                                   MessageKind.CANNOT_RESOLVE,
                                                   [node]);
         }
+      } else if (element.isErroneous()) {
+        element = warnOnErroneousElement(node, element);
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           // TODO(ahe): Improve error message. Need UX input.
@@ -2624,7 +2637,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else {
       ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
       compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousFunctionElement(warning.message, targetName,
+      return new ErroneousFunctionElement(kind, arguments, targetName,
                                           enclosing);
     }
   }

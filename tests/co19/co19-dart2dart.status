@@ -113,7 +113,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # TRIAGE
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TRIAGE
 Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TRIAGE
 Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # TRIAGE
