@@ -5,3 +5,8 @@
 #library('util');
 #import('util_implementation.dart');
 #source('link.dart');
+
+/**
+ * Tagging interface for classes from which source spans can be generated.
+ */
+abstract class Spannable {}

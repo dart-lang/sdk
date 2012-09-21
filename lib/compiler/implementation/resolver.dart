@@ -10,18 +10,34 @@ abstract class TreeElements {
 }
 
 class TreeElementMapping implements TreeElements {
+  final Element currentElement;
   final Map<Node, Element> map;
   final Map<Node, Selector> selectors;
   final Map<TypeAnnotation, DartType> types;
   final Set<Element> checkedParameters;
 
-  TreeElementMapping()
+  TreeElementMapping([Element this.currentElement])
       : map = new LinkedHashMap<Node, Element>(),
         selectors = new LinkedHashMap<Node, Selector>(),
         types = new LinkedHashMap<TypeAnnotation, DartType>(),
         checkedParameters = new Set<Element>();
 
-  operator []=(Node node, Element element) => map[node] = element;
+  operator []=(Node node, Element element) {
+    assert(invariant(node, () {
+      if (node is FunctionExpression && node.modifiers != null) {
+        return !node.modifiers.isExternal();
+      }
+      return true;
+    }));
+    assert(invariant(node, () {
+      if (!element.isErroneous() && currentElement != null && element.isPatch) {
+        return currentElement.getImplementationLibrary().isPatch;
+      }
+      return true;
+    }));
+
+    map[node] = element;
+  }
   operator [](Node node) => map[node];
   void remove(Node node) { map.remove(node); }
 
@@ -111,6 +127,7 @@ class ResolverTask extends CompilerTask {
   }
 
   TreeElements resolveMethodElement(FunctionElement element) {
+    assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
       bool isConstructor = element.kind === ElementKind.GENERATIVE_CONSTRUCTOR;
       TreeElements elements =
@@ -973,7 +990,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION;
 
   ResolverVisitor(Compiler compiler, Element element)
-    : this.mapping  = new TreeElementMapping(),
+    : this.mapping  = new TreeElementMapping(element),
       this.enclosingElement = element,
       // When the element is a field, we are actually resolving its
       // initial value, which should not have access to instance
@@ -1544,7 +1561,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else if (Elements.isStaticOrTopLevel(target)) {
       // TODO(kasperl): It seems like we're not supposed to register
       // the use of classes. Wouldn't it be simpler if we just did?
-      if (!target.isClass()) world.registerStaticUse(target);
+      if (!target.isClass()) {
+        // [target] might be the implementation element and only declaration
+        // elements may be registered.
+        world.registerStaticUse(target.declaration);
+      }
     }
 
     var interceptor =
@@ -1621,14 +1642,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // parameters. We cannot do this rigth now because of the
       // List constructor.
     }
-    world.registerStaticUse(constructor);
+    // [constructor] might be the implementation element and only declaration
+    // elements may be registered.
+    world.registerStaticUse(constructor.declaration);
     compiler.withCurrentElement(constructor, () {
       FunctionExpression tree = constructor.parseNode(compiler);
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
     });
-    world.registerStaticUse(constructor.defaultImplementation);
+    // [constructor.defaultImplementation] might be the implementation element
+    // and only declaration elements may be registered.
+    world.registerStaticUse(constructor.defaultImplementation.declaration);
     ClassElement cls = constructor.defaultImplementation.getEnclosingClass();
-    world.registerInstantiatedClass(cls);
+    // [cls] might be the implementation element and only declaration elements
+    // may be registered.
+    world.registerInstantiatedClass(cls.declaration);
     cls.forEachInstanceField(
         includeBackendMembers: false,
         includeSuperMembers: true,
@@ -2712,7 +2739,7 @@ class VariableScope extends Scope {
     throw "Cannot add element to VariableScope";
   }
 
-  Element lookup(SourceString name) => parent.lookup(name);
+  Element localLookup(SourceString name) => null;
 
   String toString() => '$element > $parent';
 }

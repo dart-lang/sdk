@@ -107,7 +107,7 @@ class ElementKind {
   toString() => id;
 }
 
-class Element implements Hashable {
+class Element implements Hashable, Spannable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
@@ -171,6 +171,55 @@ class Element implements Hashable {
   /** See [ErroneousElement] for documentation. */
   bool isErroneous() => false;
 
+  /**
+   * Is [:true:] if this element has a corresponding patch.
+   *
+   * If [:true:] this element has a non-null [patch] field.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isPatched => false;
+
+  /**
+   * Is [:true:] if this element is a patch.
+   *
+   * If [:true:] this element has a non-null [origin] field.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isPatch => false;
+
+
+  /**
+   * Is [:true:] if this element defines the implementation for the entity of
+   * this element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isImplementation => implementation === this;
+
+  /**
+   * Is [:true:] if this element introduces the entity of this element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isDeclaration => declaration === this;
+
+  /**
+   * Returns the element which defines the implementation for the entity of this
+   * element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  Element get implementation => this;
+
+  /**
+   * Returns the element which introduces the entity of this element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  Element get declaration => this;
+
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
@@ -228,6 +277,8 @@ class Element implements Hashable {
     }
     return element;
   }
+
+  LibraryElement getImplementationLibrary() => getLibrary();
 
   ClassElement getEnclosingClass() {
     for (Element e = this; e !== null; e = e.enclosingElement) {
@@ -294,8 +345,6 @@ class Element implements Hashable {
   Element cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
-
-  bool get isPatched => false;
 }
 
 /**
@@ -345,8 +394,10 @@ class ErroneousFunctionElement extends ErroneousElement
   get cachedNode => unsupported();
   get functionSignature => unsupported();
   get patch => unsupported();
+  get origin => unsupported();
   get defaultImplementation => unsupported();
   bool get isPatched => unsupported();
+  bool get isPatch => unsupported();
   setPatch(patch) => unsupported();
   computeSignature(compiler) => unsupported();
   requiredParameterCount(compiler) => unsupported();
@@ -980,14 +1031,15 @@ class FunctionElement extends Element {
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    type = compiler.computeFunctionType(this, computeSignature(compiler));
+    type = compiler.computeFunctionType(declaration,
+                                        computeSignature(compiler));
     return type;
   }
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
     if (patch === null) {
-      if (modifiers.isExternal()) {
+      if (modifiers != null && modifiers.isExternal()) {
         listener.cancel("Compiling external function with no implementation.",
                         element: this);
       }
@@ -1001,24 +1053,26 @@ class FunctionElement extends Element {
 
   FunctionElement asFunctionElement() => this;
 
-  FunctionElement cloneTo(Element enclosing, DiagnosticListener listener) {
-    FunctionElement result = new FunctionElement.tooMuchOverloading(
-        name, cachedNode, kind, modifiers, enclosing, functionSignature);
-    result.defaultImplementation = defaultImplementation;
-    result.type = type;
-    return result;
+  String toString() {
+    if (isPatch) {
+      return 'patch ${super.toString()}';
+    } else if (isPatched) {
+      return 'origin ${super.toString()}';
+    } else {
+      return super.toString();
+    }
   }
 
   Scope buildScope() {
-    Scope result = new MethodScope(enclosingElement.buildScope(), this);
+    Scope result =
+        new MethodScope(enclosingElement.buildScope(), this);
     if (enclosingElement.isClass()) {
-      ClassScope clsScope = result.parent;
+      Scope clsScope = result.parent;
       clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
     }
     return result;
   }
 }
-
 
 class ConstructorBodyElement extends FunctionElement {
   FunctionElement constructor;
@@ -1154,6 +1208,12 @@ class ClassElement extends ScopeContainerElement
   }
 
   bool get isPatched => patch != null;
+
+  /**
+   * Return [:true:] if this element is the [:Object:] class for the [compiler].
+   */
+  bool isObject(Compiler compiler) =>
+      declaration === compiler.objectClass;
 
   Link<DartType> get typeVariables => type.arguments;
 

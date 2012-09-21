@@ -507,8 +507,14 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         : namer.getName(member);
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [member] must be a declaration element.
+   */
   void addInstanceMember(Element member,
                          DefineMemberFunction defineInstanceMember) {
+    assert(invariant(member, member.isDeclaration));
     // TODO(floitsch): we don't need to deal with members of
     // uninstantiated classes, that have been overwritten by subclasses.
 
@@ -556,7 +562,13 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     }
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [classElement] must be a declaration element.
+   */
   List<String> emitClassFields(ClassElement classElement, CodeBuffer buffer) {
+    assert(invariant(classElement, classElement.isDeclaration));
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
     bool isInstantiated =
@@ -566,6 +578,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     bool isFirstField = true;
     void addField(ClassElement enclosingClass, Element member) {
       assert(!member.isNative());
+      assert(invariant(classElement, member.isDeclaration));
 
       LibraryElement library = member.getLibrary();
       SourceString name = member.name;
@@ -630,9 +643,15 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     return checkedSetters;
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [classElement] must be a declaration element.
+   */
   void emitInstanceMembers(ClassElement classElement,
                            CodeBuffer buffer,
                            bool needsLeadingComma) {
+    assert(invariant(classElement, classElement.isDeclaration));
     bool needsComma = needsLeadingComma;
     void defineInstanceMember(String name, CodeBuffer memberBuffer) {
       if (needsComma) buffer.add(',');
@@ -644,6 +663,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
     classElement.forEachMember(includeBackendMembers: true,
                                f: (ClassElement enclosing, Element member) {
+      assert(invariant(classElement, member.isDeclaration));
       if (member.isInstanceMember()) {
         addInstanceMember(member, defineInstanceMember);
       }
@@ -672,7 +692,13 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     }
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [classElement] must be a declaration element.
+   */
   void generateClass(ClassElement classElement, CodeBuffer buffer) {
+    assert(invariant(classElement, classElement.isDeclaration));
     if (classElement.isNative()) {
       nativeEmitter.generateNativeClass(classElement);
       return;
@@ -868,8 +894,14 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     }
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [member] must be a declaration element.
+   */
   void emitDynamicFunctionGetter(FunctionElement member,
                                  DefineMemberFunction defineInstanceMember) {
+    assert(invariant(member, member.isDeclaration));
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
     // 'foo' and somewhere in the code there is a dynamic property get of
@@ -952,24 +984,31 @@ $classesCollector.$mangledName = {'':
     defineInstanceMember(getterName, getterBuffer);
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [member] must be a declaration element.
+   */
   void emitCallStubForGetter(Element member,
                              Set<Selector> selectors,
                              DefineMemberFunction defineInstanceMember) {
+    assert(invariant(member, member.isDeclaration));
+    LibraryElement memberLibrary = member.getLibrary();
     String getter;
     if (member.isGetter()) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      String name = namer.instanceFieldName(member.getLibrary(), member.name);
+      String name = namer.instanceFieldName(memberLibrary, member.name);
       getter = "this.$name";
     }
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
         String invocationName =
-            namer.instanceMethodInvocationName(member.getLibrary(), member.name,
+            namer.instanceMethodInvocationName(memberLibrary, member.name,
                                                selector);
         SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
         String closureCallName =
-            namer.instanceMethodInvocationName(member.getLibrary(), callName,
+            namer.instanceMethodInvocationName(memberLibrary, callName,
                                                selector);
         List<String> arguments = <String>[];
         for (int i = 0; i < selector.argumentCount; i++) {
@@ -1061,8 +1100,14 @@ $classesCollector.$mangledName = {'':
 ''');
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [member] must be a declaration element.
+   */
   void emitExtraAccessors(Element member,
                           DefineMemberFunction defineInstanceMember) {
+    assert(invariant(member, member.isDeclaration));
     if (member.isGetter() || member.isField()) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors !== null && !selectors.isEmpty()) {

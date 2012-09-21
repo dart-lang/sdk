@@ -2,9 +2,119 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * TODO(johnniwinther): The terminology and invariants described below will not
+ * hold until CL 10905305 has been committed.
+ *
+ * This library contains the infrastructure to parse and integrate patch files.
+ *
+ * Three types of elements can be patched: [LibraryElement], [ClassElement],
+ * [FunctionElement]. Patches are introduced in patch libraries which are loaded
+ * together with the corresponding origin library. Which libraries that are
+ * patched is determined by the [dart2jsPatchPath] field of [LibraryInfo] found
+ * in [:lib/_internal/libraries.dart:].
+ *
+ * Patch libraries are parsed like regular library and thus provided with their
+ * own elements. These elements which are distinct from the elements from the
+ * patched library and the relation between patched and patch elements is
+ * established through the [:patch:] and [:origin:] fields found on
+ * [LibraryElement], [ClassElement] and [FunctionElement]. The [:patch:] fields
+ * are set on the patched elements to point to their corresponding patch
+ * element, and the [:origin:] elements are set on the patch elements to point
+ * their corresponding patched elements.
+ *
+ * The fields [Element.isPatched] and [Element.isPatch] can be used to determine
+ * whether the [:patch:] or [:origin:] field, respectively, has been set on an
+ * element, regardless of whether the element is one of the three patchable
+ * element types or not.
+ *
+ * ## Variants of Classes and Functions ##
+ *
+ * With patches there are four variants of classes and function:
+ *
+ * Regular: A class or function which is not declared in a patch library and
+ *   which has no corresponding patch.
+ * Origin: A class or function which is not declared in a patch library and
+ *   which has a corresponding patch. Origin functions must use the [:external:]
+ *   modifier and can have no body. Origin classes and functions are also
+ *   called 'patched'.
+ * Patch: A class or function which is declared in a patch library and which
+ *   has a corresponding origin. Both patch classes and patch functions must use
+ *   the [:patch:] modifier.
+ * Injected: A class or function (or even field) which is declared in a
+ *   patch library and which has no corresponding origin. An injected element
+ *   cannot use the [:patch:] modifier. Injected elements are never visible from
+ *   outside the patch library in which they have been declared. For this
+ *   reason, injected elements are often declared private and therefore called
+ *   also called 'patch private'.
+ *
+ * Examples of the variants is shown in the code below:
+ *
+ *     // In the origin library:
+ *     class RegularClass { // A regular class.
+ *       void regularMethod() {} // A regular method.
+ *     }
+ *     class PatchedClass { // An origin class.
+ *       int regularField; // A regular field.
+ *       void regularMethod() {} // A regular method.
+ *       external void patchedMethod(); // An origin method.
+ *     }
+ *
+ *     // In the patch library:
+ *     class _GhostClass { // A ghost class.
+ *       void _ghostMethod() {} // A ghost method.
+ *     }
+ *     patch class PatchedClass { // A patch class.
+ *       int _ghostField; { // A ghost field.
+ *       patch void patchedMethod() {} // A patch method.
+ *     }
+ *
+ *
+ * ## Declaration and Implementation ##
+ *
+ * With patches we have two views on elements: as the 'declaration' which
+ * introduces the entity and defines its interface, and as the 'implementation'
+ * which defines the actual implementation of the entity.
+ *
+ * Every element has a 'declaration' and an 'implementation' element. For
+ * regular and ghost elements these are the same. For origin elements the
+ * declaration is the element itself and the implementation is the patch element
+ * found through its [:patch:] field. For patch elements the implementation is
+ * the element itself and the declaration is the origin element found through
+ * its [:origin:] field. The declaration and implementation of any element is
+ * conveniently available through the [Element.declaration] and
+ * [Element.implementation] getters.
+ *
+ * Most patch-related invariants enforced through-out the compiler are defined
+ * in terms of 'declaration' and 'implementation', and tested through the
+ * predicate getters [Element.isDeclaration] and [Element.isImplementation].
+ * Patch invariants are stated both in comments and as assertions.
+ *
+ *
+ * ## General invariant guidelines ##
+ *
+ * For [LibraryElement] we always use declarations. This means the
+ * [Element.getLibrary] method will only return library declarations. Patch
+ * library implementations are only accessed through calls to
+ * [Element.getImplementationLibrary] which is used to setup the correct
+ * [Element.enclosingElement] relation between patch/ghost elements and the
+ * patch library.
+ *
+ * For [ClassElement] and [FunctionElement] we use declarations for determining
+ * identity and implementations for work based on the AST nodes, such as
+ * resolution, type-checking, type inference, building SSA graphs, etc.
+ * - Worklist only contain declaration elements.
+ * - Most maps and sets use declarations exclusively, and their individual
+ *   invariants are stated in the field comments.
+ * - [TreeElements] only map to patch elements from inside a patch library.
+ * - Builders shift between declaration and implementation depending on usages.
+ * - Compile-time constants use constructor implementation exclusively.
+ * - Work on function parameters is performed on the declaration of the function
+ *   element.
+ */
 #library("patchparser");
-#import("dart:uri");
 
+#import("dart:uri");
 #import("tree/tree.dart", prefix: "tree");
 #import("leg.dart", prefix: 'leg');  // CompilerTask, Compiler.
 #import("apiimpl.dart");

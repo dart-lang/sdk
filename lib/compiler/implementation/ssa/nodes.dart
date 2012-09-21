@@ -739,7 +739,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 }
 
 
-class HInstruction implements Hashable {
+class HInstruction implements Hashable, Spannable {
   Element sourceElement;
   SourceFileLocation sourcePosition;
 
@@ -2367,7 +2367,10 @@ class HThrow extends HControlFlow {
 
 class HStatic extends HInstruction {
   final Element element;
-  HStatic(this.element) : super(<HInstruction>[]) { assert(element !== null); }
+  HStatic(this.element) : super(<HInstruction>[]) {
+    assert(element !== null);
+    assert(invariant(this, element.isDeclaration));
+  }
 
   void prepareGvn(HTypeMap types) {
     if (!element.isAssignable()) {

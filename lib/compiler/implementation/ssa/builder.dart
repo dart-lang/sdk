@@ -167,7 +167,7 @@ class SsaBuilderTask extends CompilerTask {
 
   HGraph build(WorkItem work) {
     return measure(() {
-      Element element = work.element;
+      Element element = work.element.implementation;
       HInstruction.idCounter = 0;
       ConstantSystem constantSystem = compiler.backend.constantSystem;
       SsaBuilder builder = new SsaBuilder(constantSystem, this, work);
@@ -179,21 +179,21 @@ class SsaBuilderTask extends CompilerTask {
                  kind === ElementKind.FUNCTION ||
                  kind === ElementKind.GETTER ||
                  kind === ElementKind.SETTER) {
-        graph = builder.buildMethod(work.element);
+        graph = builder.buildMethod(element);
       } else if (kind === ElementKind.FIELD) {
-        graph = builder.buildLazyInitializer(work.element);
+        graph = builder.buildLazyInitializer(element);
       }
       assert(graph.isValid());
       if (kind !== ElementKind.FIELD) {
-        bool inLoop = functionsCalledInLoop.contains(element);
+        bool inLoop = functionsCalledInLoop.contains(element.declaration);
         if (!inLoop) {
           Selector selector = selectorsCalledInLoop[element.name];
           inLoop = selector !== null && selector.applies(element, compiler);
         }
         graph.calledInLoop = inLoop;
 
-        // If there is an estimate of the parameter types assume these types when
-        // compiling.
+        // If there is an estimate of the parameter types assume these types
+        // when compiling.
         OptionalParameterTypes defaultValueTypes = null;
         FunctionSignature signature = element.computeSignature(compiler);
         if (signature.optionalParameterCount > 0) {
@@ -208,7 +208,8 @@ class SsaBuilderTask extends CompilerTask {
           });
         }
         HTypeList parameterTypes =
-            backend.optimisticParameterTypes(element, defaultValueTypes);
+            backend.optimisticParameterTypes(element.declaration,
+                                             defaultValueTypes);
         if (!parameterTypes.allUnknown) {
           int i = 0;
           signature.forEachParameter((Element param) {
@@ -241,7 +242,7 @@ class SsaBuilderTask extends CompilerTask {
   HGraph compileConstructor(SsaBuilder builder, WorkItem work) {
     // The body of the constructor will be generated in a separate function.
     final ClassElement classElement = work.element.getEnclosingClass();
-    return builder.buildFactory(classElement, work.element);
+    return builder.buildFactory(classElement, work.element.implementation);
   }
 }
 
@@ -352,8 +353,14 @@ class LocalsHandler {
     updateLocal(boxElement, newBox);
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [function] must be an implementation element.
+   */
   void startFunction(FunctionElement function,
                      FunctionExpression node) {
+    assert(invariant(node, function.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
             node, builder.elements);
@@ -897,8 +904,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     methodInterceptionEnabled = true;
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [functionElement] must be an implementation element.
+   */
   HGraph buildMethod(FunctionElement functionElement) {
+    assert(invariant(functionElement, functionElement.isImplementation));
     FunctionExpression function = functionElement.parseNode(compiler);
+    assert(function !== null);
+    assert(function.modifiers === null || !function.modifiers.isExternal());
+    assert(elements[function] !== null);
     openFunction(functionElement, function);
     function.body.accept(this);
     return closeFunction();
@@ -928,10 +944,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
     assert(constructor.isGenerativeConstructor());
+    assert(invariant(constructor, constructor.isImplementation));
     if (constructor is SynthesizedConstructorElement) return null;
     FunctionExpression node = constructor.parseNode(compiler);
-    // If we know the body doesn't have any code, we don't generate
-    // it.
+    // If we know the body doesn't have any code, we don't generate it.
     if (node.body.asBlock() !== null) {
       NodeList statements = node.body.asBlock().statements;
       if (statements.isEmpty()) return null;
@@ -952,19 +968,29 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     if (bodyElement === null) {
       bodyElement = new ConstructorBodyElement(constructor);
+      // [:resolveMethodElement:] require the passed element to be a
+      // declaration.
       TreeElements treeElements =
-          compiler.resolver.resolveMethodElement(constructor);
-      compiler.enqueuer.codegen.addToWorkList(bodyElement, treeElements);
+          compiler.resolver.resolveMethodElement(constructor.declaration);
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
+      compiler.enqueuer.codegen.addToWorkList(bodyElement.declaration,
+                                              treeElements);
     }
     assert(bodyElement.isGenerativeConstructorBody());
     return bodyElement;
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [function] must be an implementation element.
+   */
   InliningState enterInlinedMethod(PartialFunctionElement function,
                                    Selector selector,
                                    Link<Node> arguments) {
+    assert(invariant(function, function.isImplementation));
+
     // Once we start to compile the arguments we must be sure that we don't
     // abort.
     List<HInstruction> compiledArguments = new List<HInstruction>();
@@ -985,6 +1011,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     localsHandler.updateLocal(returnElement,
                               graph.addConstantNull(constantSystem));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
+    assert(elements !== null);
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
     signature.forEachParameter((Element parameter) {
@@ -1008,9 +1035,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     stack = state.oldStack;
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   */
   bool tryInlineMethod(Element element,
                        Selector selector,
                        Link<Node> arguments) {
+    // Ensure that [element] is an implementation element.
+    element = element.implementation;
     // TODO(floitsch): we should be able to inline inside lazy initializers.
     if (!currentElement.isFunction()) return false;
     // TODO(floitsch): we should be able to inline getters, setters and
@@ -1023,7 +1055,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
     // functions and would thus clobber our local variables.
-    if (work.element == element) return false;
+    // Use [:element.declaration:] since [work.element] is always a declaration.
+    if (work.element == element.declaration) return false;
     for (int i = 0; i < inliningStack.length; i++) {
       if (inliningStack[i].function == element) return false;
     }
@@ -1051,11 +1084,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return true;
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [constructor] and [constructors] must all be implementation
+   * elements.
+   */
   void inlineSuperOrRedirect(FunctionElement constructor,
                              Selector selector,
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues) {
+    assert(invariant(constructor, constructor.isImplementation));
     constructors.addLast(constructor);
 
     List<HInstruction> compiledArguments = new List<HInstruction>();
@@ -1099,10 +1139,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * The constructors of the inlined initializers is added to [constructors]
    * with sub constructors having a lower index than super constructors.
+   *
+   * Invariant: The [constructor] and elements in [constructors] must all be
+   * implementation elements.
    */
   void buildInitializers(FunctionElement constructor,
                          List<FunctionElement> constructors,
                          Map<Element, HInstruction> fieldValues) {
+    assert(invariant(constructor, constructor.isImplementation));
     FunctionExpression functionNode = constructor.parseNode(compiler);
 
     bool foundSuperOrRedirect = false;
@@ -1140,7 +1184,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // the class is not Object.
       ClassElement enclosingClass = constructor.getEnclosingClass();
       ClassElement superClass = enclosingClass.superclass;
-      if (enclosingClass != compiler.objectClass) {
+      if (!enclosingClass.isObject(compiler)) {
         assert(superClass !== null);
         assert(superClass.resolutionState == STATE_DONE);
         Selector selector =
@@ -1149,7 +1193,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (target === null) {
           compiler.internalError("no default constructor available");
         }
-        inlineSuperOrRedirect(target,
+        inlineSuperOrRedirect(target.implementation,
                               selector,
                               const EmptyLink<Node>(),
                               constructors,
@@ -1161,9 +1205,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   /**
    * Run through the fields of [cls] and add their potential
    * initializers.
+   *
+   * Invariant: [classElement] must be a declaration element.
    */
   void buildFieldInitializers(ClassElement classElement,
                               Map<Element, HInstruction> fieldValues) {
+    assert(invariant(classElement, classElement.isDeclaration));
     classElement.forEachInstanceField(
         includeBackendMembers: true,
         includeSuperMembers: false,
@@ -1195,9 +1242,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *    to, starting from the current constructor.
    *  - Call the the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
+   *
+   * Invariants: [classElement] must be a declaration element, and
+   * [functionElement] must be an implementation element.
    */
   HGraph buildFactory(ClassElement classElement,
                       FunctionElement functionElement) {
+    assert(invariant(classElement, classElement.isDeclaration));
+    assert(invariant(functionElement, functionElement.isImplementation));
     FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
@@ -1255,18 +1307,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Generate calls to the constructor bodies.
     for (int index = constructors.length - 1; index >= 0; index--) {
       FunctionElement constructor = constructors[index];
+      assert(invariant(functionElement, constructor.isImplementation));
       ConstructorBodyElement body = getConstructorBody(constructor);
       if (body === null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
-      int arity = body.functionSignature.parameterCount;
-      body.functionSignature.forEachParameter((parameter) {
+      FunctionSignature functionSignature = body.computeSignature(compiler);
+      int arity = functionSignature.parameterCount;
+      functionSignature.forEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
       // TODO(ahe): The constructor name is statically resolved. See
       // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
       // way to do this?
-      SourceString name = new SourceString(backend.namer.getName(body));
+      SourceString name =
+          new SourceString(backend.namer.getName(body.declaration));
       // TODO(kasperl): This seems fishy. We shouldn't be inventing all
       // these selectors. Maybe the resolver can do more of the work
       // for us here?
@@ -1324,8 +1379,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     localsHandler.updateLocal(checkResultElement, check);
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [functionElement] must be the implementation element.
+   */
   void openFunction(FunctionElement functionElement,
                     FunctionExpression node) {
+    assert(invariant(functionElement, functionElement.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
@@ -2060,7 +2121,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (element.isField() && compiler.isLazilyInitialized(element)) {
         push(new HLazyStatic(element));
       } else {
-        push(new HStatic(element));
+        // TODO(5346): Try to avoid the need for calling [declaration] before
+        // creating an [HStatic].
+        push(new HStatic(element.declaration));
         if (element.isGetter()) {
           push(new HInvokeStatic(<HInstruction>[pop()]));
         }
@@ -2069,7 +2132,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction receiver = generateInstanceSendReceiver(send);
       generateInstanceGetterWithCompiledReceiver(send, receiver);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      push(new HStatic(element));
+      // TODO(5346): Try to avoid the need for calling [declaration] before
+      // creating an [HStatic].
+      push(new HStatic(element.declaration));
       // TODO(ahe): This should be registered in codegen.
       compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
     } else if (Elements.isErroneousElement(element)) {
@@ -2289,11 +2354,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   /**
    * Returns true if the arguments were compatible with the function signature.
+   *
+   * Invariant: [element] must be an implementation element.
    */
   bool addStaticSendArgumentsToList(Selector selector,
                                     Link<Node> arguments,
                                     FunctionElement element,
                                     List<HInstruction> list) {
+    assert(invariant(element, element.isImplementation));
+
     HInstruction compileArgument(Node argument) {
       visit(argument);
       return pop();
@@ -2520,7 +2589,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           node: closure);
     }
     FunctionElement function = element;
-    FunctionSignature params = function.computeSignature(compiler);
+    // TODO(johnniwinther): Try to eliminate the need to distinguish declaration
+    // and implementation signatures. Currently it is need because the
+    // signatures have different elements for parameters.
+    FunctionSignature params
+        = function.implementation.computeSignature(compiler);
     if (params.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',
@@ -2587,15 +2660,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (element === null) return generateSuperNoSuchMethodSend(node);
-    HInstruction target = new HStatic(element);
+    // TODO(5346): Try to avoid the need for calling [declaration] before
+    // creating an [HStatic].
+    HInstruction target = new HStatic(element.declaration);
     HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
     if (node.isPropertyAccess) {
       push(new HInvokeSuper(inputs));
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
+      // TODO(5347): Try to avoid the need for calling [implementation] before
+      // calling [addStaticSendArgumentsToList].
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                    element, inputs);
+                                                    element.implementation,
+                                                    inputs);
       if (!succeeded) {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
@@ -2733,12 +2811,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     FunctionElement functionElement = constructor;
     constructor = functionElement.defaultImplementation;
-    HInstruction target = new HStatic(constructor);
+    // TODO(5346): Try to avoid the need for calling [declaration] before
+    // creating an [HStatic].
+    HInstruction target = new HStatic(constructor.declaration);
     add(target);
     var inputs = <HInstruction>[];
     inputs.add(target);
+    // TODO(5347): Try to avoid the need for calling [implementation] before
+    // calling [addStaticSendArgumentsToList].
     bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                  constructor, inputs);
+                                                  constructor.implementation,
+                                                  inputs);
     if (!succeeded) {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
@@ -2782,13 +2865,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     compiler.ensure(!element.isGenerativeConstructor());
     if (element.isFunction()) {
-      if (tryInlineMethod(element, selector, node.arguments)) return;
+      if (tryInlineMethod(element, selector, node.arguments)) {
+        return;
+      }
 
       HInstruction target = new HStatic(element);
       add(target);
       var inputs = <HInstruction>[target];
+      // TODO(5347): Try to avoid the need for calling [implementation] before
+      // calling [addStaticSendArgumentsToList].
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                    element, inputs);
+                                                    element.implementation,
+                                                    inputs);
       if (!succeeded) {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
@@ -3994,6 +4082,11 @@ class InlineWeeder extends AbstractVisitor {
 }
 
 class InliningState {
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [function] must be an implementation element.
+   */
   final PartialFunctionElement function;
   final Element oldReturnElement;
   final TreeElements oldElements;
@@ -4002,7 +4095,9 @@ class InliningState {
   InliningState(this.function,
                 this.oldReturnElement,
                 this.oldElements,
-                this.oldStack);
+                this.oldStack) {
+    assert(function.isImplementation);
+  }
 }
 
 class SsaBranch {

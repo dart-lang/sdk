@@ -9,9 +9,9 @@ class EnqueueTask extends CompilerTask {
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
-    : codegen = new Enqueuer(compiler,
+    : codegen = new Enqueuer('codegen enqueuer', compiler,
                              compiler.backend.createItemCompilationContext),
-      resolution = new Enqueuer(compiler,
+      resolution = new Enqueuer('resolution enqueuer', compiler,
                                 compiler.backend.createItemCompilationContext),
       super(compiler) {
     codegen.task = this;
@@ -49,19 +49,27 @@ class RecompilationQueue {
 }
 
 class Enqueuer {
+  final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final Function itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName;
   final Set<ClassElement> seenClasses;
   final Universe universe;
   final Queue<WorkItem> queue;
+
+  /**
+   * Map from declaration elements to the [TreeElements] object holding the
+   * resolution mapping for the element implementation.
+   *
+   * Invariant: Key elements are declaration elements.
+   */
   final Map<Element, TreeElements> resolvedElements;
   final RecompilationQueue recompilationCandidates;
 
   bool queueIsClosed = false;
   EnqueueTask task;
 
-  Enqueuer(this.compiler,
+  Enqueuer(this.name, this.compiler,
            ItemCompilationContext itemCompilationContextCreator())
     : this.itemCompilationContextCreator = itemCompilationContextCreator,
       instanceMembersByName = new Map<String, Link<Element>>(),
@@ -81,13 +89,26 @@ class Enqueuer {
       element = cls.methodElement;
     }
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
-    return compiler.enqueuer.resolution.resolvedElements[owner];
+    return compiler.enqueuer.resolution.resolvedElements[owner.declaration];
   }
 
-  String lookupCode(Element element) =>
-      universe.generatedCode[element].toString();
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  String lookupCode(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    return universe.generatedCode[element].toString();
+  }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
   void addToWorkList(Element element, [TreeElements elements]) {
+    assert(invariant(element, element.isDeclaration));
     if (element.isForeign()) return;
     if (compiler.phase == Compiler.PHASE_RECOMPILING) return;
     if (queueIsClosed) {
@@ -121,7 +142,13 @@ class Enqueuer {
     }
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be an declaration element.
+   */
   void eagerRecompile(Element element) {
+    assert(invariant(element, element.isDeclaration));
     universe.generatedCode.remove(element);
     universe.generatedBailoutCode.remove(element);
     addToWorkList(element);
@@ -130,7 +157,7 @@ class Enqueuer {
   void registerRecompilationCandidate(Element element,
                                       [TreeElements elements]) {
     if (queueIsClosed) {
-      compiler.internalErrorOnElement(element, "Work list is closed.");
+      compiler.internalErrorOnElement(element, "$name work list is closed.");
     }
     recompilationCandidates.add(element, elements);
   }
@@ -164,7 +191,11 @@ class Enqueuer {
     cls.localMembers.forEach(processInstantiatedClassMember);
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   */
   void processInstantiatedClassMember(Element member) {
+    assert(invariant(member, member.isDeclaration));
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] !== null) return;
     if (!member.isInstanceMember()) return;
@@ -300,8 +331,15 @@ class Enqueuer {
     });
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
   void registerStaticUse(Element element) {
-    if (element !== null) addToWorkList(element);
+    if (element == null) return;
+    assert(invariant(element, element.isDeclaration));
+    addToWorkList(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -357,4 +395,6 @@ class Enqueuer {
       f(queue.removeLast()); // TODO(kasperl): Why isn't this removeFirst?
     }
   }
+
+  String toString() => 'Enqueuer($name)';
 }

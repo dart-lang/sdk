@@ -16,7 +16,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Fun buildJavaScriptFunction(FunctionElement element,
                                  List<js.Parameter> parameters,
                                  js.Block body) {
-    FunctionExpression expression = element.cachedNode;
+    FunctionExpression expression =
+        element.implementation.parseNode(backend.compiler);
     js.Fun result = new js.Fun(parameters, body);
     // TODO(johnniwinther): remove the 'element.patch' hack.
     Element sourceElement = element.patch == null ? element : element.patch;
@@ -73,7 +74,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
       });
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
-      parameterNames.forEach((element, name) {
+      // Use [work.element] to ensure that the parameter element come from
+      // the declaration.
+      work.element.computeSignature(compiler).forEachParameter((element) {
         compiler.enqueuer.codegen.addToWorkList(element);
       });
       List<js.Parameter> parameters = <js.Parameter>[];
@@ -156,7 +159,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   Map<Element, String> getParameterNames(WorkItem work) {
     Map<Element, String> parameterNames = new LinkedHashMap<Element, String>();
-    FunctionElement function = work.element;
+    FunctionElement function = work.element.implementation;
 
     // The dom/html libraries have inline JS code that reference
     // parameter names directly. Long-term such code will be rejected.

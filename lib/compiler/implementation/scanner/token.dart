@@ -84,7 +84,7 @@ const int UNKNOWN_TOKEN = 1024;
 /**
  * A token that doubles as a linked list.
  */
-class Token {
+class Token implements Spannable {
   /**
    * The precedence info for this token. [info] determines the kind and the
    * precedence level of this token.
