@@ -55,6 +55,11 @@ static intptr_t ToInstructionStart(intptr_t pos) {
 }
 
 
+static intptr_t ToInstructionEnd(intptr_t pos) {
+  return (pos | 1);
+}
+
+
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   : flow_graph_(flow_graph),
     block_order_(flow_graph.reverse_postorder()),
@@ -304,7 +309,9 @@ void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
 
 
 void LiveRange::AddSafepoint(intptr_t pos, LocationSummary* locs) {
-  SafepointPosition* safepoint = new SafepointPosition(pos, locs);
+  ASSERT(IsInstructionStartPosition(pos));
+  SafepointPosition* safepoint =
+      new SafepointPosition(ToInstructionEnd(pos), locs);
 
   if (first_safepoint_ == NULL) {
     ASSERT(last_safepoint_ == NULL);
