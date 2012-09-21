@@ -6,16 +6,16 @@
 class Dart2jsTask extends RunProcessTask {
   final String _jsFileTemplate;
 
-  Dart2jsTask.checked(String dartFileTemplate, this._jsFileTemplate) {
-    init(config.dart2jsPath,
-        ['--enable_checked_mode', '--out=$_jsFileTemplate', dartFileTemplate],
-        config.timeout);
-  }
+  Dart2jsTask.checked(String dartFileTemplate, jsFileTemplate) :
+    super(config.dart2jsPath,
+        ['--enable_checked_mode', '--out=$jsFileTemplate', dartFileTemplate],
+        config.timeout),
+    _jsFileTemplate = jsFileTemplate;
 
-  Dart2jsTask(String dartFileTemplate, this._jsFileTemplate) {
-    init(config.dart2jsPath, ['--out=$_jsFileTemplate', dartFileTemplate],
-         config.timeout);
-  }
+  Dart2jsTask(String dartFileTemplate, jsFileTemplate) :
+    super(config.dart2jsPath, ['--out=$jsFileTemplate', dartFileTemplate],
+         config.timeout),
+    _jsFileTemplate = jsFileTemplate;
 
   void cleanup(Path testfile, List stdout, List stderr,
                bool logging, bool keepFiles) {

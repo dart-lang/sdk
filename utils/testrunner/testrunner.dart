@@ -71,12 +71,11 @@
 #import('dart:math');
 #import('../../pkg/args/lib/args.dart');
 
+#source('client_server_task.dart');
 #source('configuration.dart');
-#source('dart_task.dart');
 #source('dart_wrap_task.dart');
 #source('dart2js_task.dart');
 #source('delete_task.dart');
-#source('drt_task.dart');
 #source('html_wrap_task.dart');
 #source('macros.dart');
 #source('options.dart');
@@ -174,15 +173,26 @@ List getPipelineTemplate(String runtime, bool checkedMode, bool keepTests) {
   }
 
   // Add the execution step.
+  var command;
+  var flags;
+  var task;
   if (runtime == 'vm' || config.layoutPixel || config.layoutText) {
+    command = config.dartPath;
     if (checkedMode) {
-      pipeline.add(new DartTask.checked(tempDartFile));
+      flags = ['--enable_asserts', '--enable_type_checks', tempDartFile];
     } else {
-      pipeline.add(new DartTask(tempDartFile));
+      flags = [tempDartFile];
     }
   } else {
-    pipeline.add(new DrtTask(Macros.fullFilePath, tempHTMLFile));
+    command = config.drtPath;
+    flags = ['--no-timeout', tempHTMLFile];
   }
+  if (config.runServer) {
+    task = new RunClientServerTask(command, flags, config.timeout);
+  } else {
+    task = new RunProcessTask(command, flags, config.timeout);
+  }
+  pipeline.add(task);
   return pipeline;
 }
 

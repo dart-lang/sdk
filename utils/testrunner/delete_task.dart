@@ -8,7 +8,7 @@ class DeleteTask extends PipelineTask {
 
   DeleteTask(this._filenameTemplate);
 
-  void execute(Path testfile, List stdout, List stderr, bool logging,
+  execute(Path testfile, List stdout, List stderr, bool logging,
               Function exitHandler) {
     var fname = expandMacros(_filenameTemplate, testfile);
     deleteFile(fname);

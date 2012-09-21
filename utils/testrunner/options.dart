@@ -144,6 +144,14 @@ ArgParser getOptionParser() {
       help: 'Regenerate layout test expectation files.',
       defaultsTo: false);
 
+  parser.addFlag('server', help: 'Run an HTTP server.', defaultsTo: false);
+
+  parser.addOption('port', help: 'Port to use for HTTP server',
+      defaultsTo: '80');
+
+  parser.addOption('root',
+      help: 'Root directory for HTTP server for static files');
+
   parser.addOption('unittest',  help: '#import path for unit test library.');
 
   return parser;

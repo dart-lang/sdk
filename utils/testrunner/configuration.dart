@@ -41,6 +41,9 @@ class Configuration {
   String drtPath;
   String dartPath;
   bool filtering;
+  bool runServer;
+  String port;
+  String staticRoot;
 
   Configuration(ArgParser parser, ArgResults options) :
     unittestPath = makePathAbsolute(options['unittest']),
@@ -71,7 +74,10 @@ class Configuration {
     outputStream = options['out'],
     logStream = options['log'],
     tempDir = options['tempdir'],
-    regenerate = options['regenerate'] {
+    regenerate = options['regenerate'],
+    runServer = options['server'],
+    port = options['port'],
+    staticRoot = options['root'] {
     filtering = (includeFilter.length > 0 || excludeFilter.length > 0);
     var dartsdk = options['dartsdk'];
     var pathSep = Platform.pathSeparator;

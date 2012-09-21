@@ -12,7 +12,7 @@ class DartWrapTask extends PipelineTask {
 
   DartWrapTask(this._sourceFileTemplate, this._tempDartFileTemplate);
 
-  void execute(Path testfile, List stdout, List stderr, bool logging,
+  execute(Path testfile, List stdout, List stderr, bool logging,
               Function exitHandler) {
     // Get the source test file and canonicalize the path.
     var sourceName = makePathAbsolute(
@@ -80,7 +80,7 @@ class DartWrapTask extends PipelineTask {
       action = 'null';
     }
     var wrapper = """
-#library('layout_test');
+#library('standard_test');
 $extraImports
 #import('${config.unittestPath}', prefix:'unittest');
 #import('$sourceName', prefix: 'test');

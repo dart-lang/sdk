@@ -16,7 +16,7 @@ class HtmlWrapTask extends PipelineTask {
       this._htmlDestFileTemplate, this._cssSourceFileTemplate,
       this._cssDestFileTemplate);
 
-  void execute(Path testfile, List stdout, List stderr, bool logging,
+  execute(Path testfile, List stdout, List stderr, bool logging,
               Function exitHandler) {
     var testname = expandMacros(_testFileTemplate, testfile);
 
