@@ -26,6 +26,7 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/Isolates.dart');
 #source('$AUXILIARY_DIR/Measurement.dart');
 #source('$AUXILIARY_DIR/Serialization.dart');
+#source('$AUXILIARY_DIR/dartium_MutationObserverSupported.dart');
 #source('$AUXILIARY_DIR/_Testing.dart');
 #source('$AUXILIARY_DIR/_ListIterators.dart');
 #source('$AUXILIARY_DIR/_Lists.dart');

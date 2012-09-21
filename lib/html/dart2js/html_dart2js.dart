@@ -40655,32 +40655,117 @@ class _MeasurementRequest<T> {
   _MeasurementRequest(this.computeValue, this.completer);
 }
 
-const _MEASUREMENT_MESSAGE = "DART-MEASURE";
-List<_MeasurementRequest> _pendingRequests;
-List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
-bool _nextMeasurementFrameScheduled = false;
-bool _firstMeasurementRequest = true;
+typedef void _MeasurementCallback();
 
-void _maybeScheduleMeasurementFrame() {
-  if (_nextMeasurementFrameScheduled) return;
 
-  _nextMeasurementFrameScheduled = true;
-  // postMessage gives us a way to receive a callback after the current
-  // event listener has unwound but before the browser has repainted.
-  if (_firstMeasurementRequest) {
-    // Messages from other windows do not cause a security risk as
-    // all we care about is that _onCompleteMeasurementRequests is called
-    // after the current event loop is unwound and calling the function is
-    // a noop when zero requests are pending.
-    window.on.message.add((e) => _completeMeasurementFutures());
-    _firstMeasurementRequest = false;
+/**
+ * This class attempts to invoke a callback as soon as the current event stack
+ * unwinds, but before the browser repaints.
+ */
+abstract class _MeasurementScheduler {
+  bool _nextMeasurementFrameScheduled = false;
+  _MeasurementCallback _callback;
+
+  _MeasurementScheduler(this._callback);
+
+  /**
+   * Creates the best possible measurement scheduler for the current platform.
+   */
+  factory _MeasurementScheduler.best(_MeasurementCallback callback) {
+    if (_isMutationObserverSupported()) {
+      return new _MutationObserverScheduler(callback);
+    }
+    return new _PostMessageScheduler(callback);
   }
 
-  // TODO(jacobr): other mechanisms such as setImmediate and
-  // requestAnimationFrame may work better of platforms that support them.
-  // The key is we need a way to execute code immediately after the current
-  // event listener queue unwinds.
-  window.postMessage(_MEASUREMENT_MESSAGE, "*");
+  /**
+   * Schedules a measurement callback if one has not been scheduled already.
+   */
+  void maybeSchedule() {
+    if (this._nextMeasurementFrameScheduled) {
+      return;
+    }
+    this._nextMeasurementFrameScheduled = true;
+    this._schedule();
+  }
+
+  /**
+   * Does the actual scheduling of the callback.
+   */
+  void _schedule();
+
+  /**
+   * Handles the measurement callback and forwards it if necessary.
+   */
+  void _onCallback() {
+    // Ignore spurious messages.
+    if (!_nextMeasurementFrameScheduled) {
+      return;
+    }
+    _nextMeasurementFrameScheduled = false;
+    this._callback();
+  }
+}
+
+/**
+ * Scheduler which uses window.postMessage to schedule events.
+ */
+class _PostMessageScheduler extends _MeasurementScheduler {
+  const _MEASUREMENT_MESSAGE = "DART-MEASURE";
+
+  _PostMessageScheduler(_MeasurementCallback callback): super(callback) {
+      // Messages from other windows do not cause a security risk as
+      // all we care about is that _handleMessage is called
+      // after the current event loop is unwound and calling the function is
+      // a noop when zero requests are pending.
+      window.on.message.add(this._handleMessage);
+  }
+
+  void _schedule() {
+    window.postMessage(_MEASUREMENT_MESSAGE, "*");
+  }
+
+  _handleMessage(e) {
+    this._onCallback();
+  }
+}
+
+/**
+ * Scheduler which uses a MutationObserver to schedule events.
+ */
+class _MutationObserverScheduler extends _MeasurementScheduler {
+  MutationObserver _observer;
+  Element _dummy;
+
+  _MutationObserverScheduler(_MeasurementCallback callback): super(callback) {
+    // Mutation events get fired as soon as the current event stack is unwound
+    // so we just make a dummy event and listen for that.
+    _observer = new MutationObserver(this._handleMutation);
+    _dummy = new DivElement();
+    _observer.observe(_dummy, {}, attributes: true);
+  }
+
+  void _schedule() {
+    // Toggle it to trigger the mutation event.
+    _dummy.hidden = !_dummy.hidden;
+  }
+
+  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
+    this._onCallback();
+  }
+}
+
+
+List<_MeasurementRequest> _pendingRequests;
+List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
+_MeasurementScheduler _measurementScheduler = null;
+
+void _maybeScheduleMeasurementFrame() {
+  if (_measurementScheduler == null) {
+    _measurementScheduler =
+      new _MeasurementScheduler.best(_completeMeasurementFutures);
+  }
+  _measurementScheduler.maybeSchedule();
 }
 
 /**
@@ -40720,12 +40805,6 @@ Future _createMeasurementFuture(ComputeValue computeValue,
  * so that the the browser is guaranteed to avoid multiple layouts.
  */
 void _completeMeasurementFutures() {
-  if (_nextMeasurementFrameScheduled == false) {
-    // Ignore spurious call to this function.
-    return;
-  }
-
-  _nextMeasurementFrameScheduled = false;
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
@@ -41695,6 +41774,17 @@ class _LocationWrapper implements Location {
   static _replace(p, url) native 'p.replace(url);';
   static _toString(p) native 'return p.toString();';
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Checks to see if the mutation observer API is supported on the current
+ * platform.
+ */
+bool _isMutationObserverSupported() native '''
+  return !!( window.MutationObserver || window.WebKitMutationObserver);
+''';
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

@@ -8,7 +8,6 @@ event_test: Skip  # Issue 1996
 webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
-measurement_test: Pass, Fail  # Issue 1940
 
 [ $runtime == drt ]
 xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
@@ -92,7 +91,6 @@ indexeddb_4_test: Fail
 js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
-measurement_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
 serialized_script_value_test: Fail
@@ -168,7 +166,6 @@ xhr_test: Fail
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
-measurement_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
 unknownelement_test: Fail # Issue 4189
 

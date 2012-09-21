@@ -12,16 +12,14 @@ main() {
 
   test('measurement is async but before setTimout 0', () {
     final element = document.body;
-    bool timeout0 = false;
     bool fnComplete = false;
-    bool animationFrame = false;
+    bool timeout0 = false;
     window.setTimeout(() { timeout0 = true; }, 0);
     final computedStyle = element.computedStyle;
     computedStyle.then(expectAsync1((style) {
       expect(style.getPropertyValue('left'), equals('auto'));
       expect(fnComplete);
       expect(timeout0, isFalse);
-      expect(animationFrame, isFalse);
     }));
     Expect.isFalse(computedStyle.isComplete);
     fnComplete = true;
