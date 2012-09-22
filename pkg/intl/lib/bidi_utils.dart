@@ -72,9 +72,9 @@ num _RTL_DETECTION_THRESHOLD = 0.40;
  * standard. They are simplified for performance and small code size.
  */
 const String _LTR_CHARS =
-    @'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0300-\u0590'
-    @'\u0800-\u1FFF\u2C00-\uFB1C\uFDFE-\uFE6F\uFEFD-\uFFFF';
-const String _RTL_CHARS = @'\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC';
+    r'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0300-\u0590'
+    r'\u0800-\u1FFF\u2C00-\uFB1C\uFDFE-\uFE6F\uFEFD-\uFFFF';
+const String _RTL_CHARS = r'\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC';
 
 /**
  * Returns the input [text] with spaces instead of HTML tags or HTML escapes,
@@ -91,7 +91,7 @@ String stripHtmlIfNeeded(String text) {
   // The regular expression is simplified for an HTML tag (opening or 
   // closing) or an HTML escape. We might want to skip over such expressions
   // when estimating the text directionality.
-  return text.replaceAll(const RegExp(@'<[^>]*>|&[^;]+;'), ' ');
+  return text.replaceAll(const RegExp(r'<[^>]*>|&[^;]+;'), ' ');
 }
 
 /**
@@ -137,7 +137,7 @@ bool endsWithRtl(String text, [isHtml=false]) {
  * If [isHtml] is true, the text is HTML or HTML-escaped.
  */
 bool hasAnyLtr(String text, [isHtml=false]) {
-  return const RegExp(@'[' '$_LTR_CHARS' @']').hasMatch(
+  return const RegExp(r'[' '$_LTR_CHARS' r']').hasMatch(
       isHtml? stripHtmlIfNeeded(text) : text);
 }
 
@@ -146,7 +146,7 @@ bool hasAnyLtr(String text, [isHtml=false]) {
  * If [isHtml] is true, the text is HTML or HTML-escaped.
  */
 bool hasAnyRtl(String text, [isHtml=false]) {
-  return const RegExp(@'[' '$_RTL_CHARS' @']').hasMatch(
+  return const RegExp(r'[' '$_RTL_CHARS' r']').hasMatch(
       isHtml? stripHtmlIfNeeded(text) : text);
 }
 
@@ -175,9 +175,9 @@ bool hasAnyRtl(String text, [isHtml=false]) {
  * (Egypt), is ignored.
  */
 bool isRtlLanguage(String languageString) {
-  return const RegExp(@'^(ar|dv|he|iw|fa|nqo|ps|sd|ug|ur|yi|.*[-_]'
-      @'(Arab|Hebr|Thaa|Nkoo|Tfng))(?!.*[-_](Latn|Cyrl)($|-|_))'
-      @'($|-|_)', ignoreCase : true).hasMatch(languageString);
+  return const RegExp(r'^(ar|dv|he|iw|fa|nqo|ps|sd|ug|ur|yi|.*[-_]'
+      r'(Arab|Hebr|Thaa|Nkoo|Tfng))(?!.*[-_](Latn|Cyrl)($|-|_))'
+      r'($|-|_)', ignoreCase : true).hasMatch(languageString);
 }
 
 /**
@@ -254,7 +254,7 @@ String _enforceInHtmlHelper(String html, String direction) {
 String guardBracketInHtml(String str, [bool isRtlContext]) {
   var useRtl = isRtlContext == null ? hasAnyRtl(str) : isRtlContext;
   RegExp matchingBrackets = 
-      const RegExp(@'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(&lt;.*?(&gt;)+)');
+      const RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(&lt;.*?(&gt;)+)');
   return _guardBracketHelper(str, matchingBrackets,
       '<span dir=${useRtl? "rtl" : "ltr"}>', '</span>');
 }
@@ -271,7 +271,7 @@ String guardBracketInText(String str, [bool isRtlContext]) {
   var useRtl = isRtlContext == null ? hasAnyRtl(str) : isRtlContext;
   var mark = useRtl ? RLM : LRM;
   return _guardBracketHelper(str,
-      const RegExp(@'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(<.*?>+)'), mark, mark);
+      const RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(<.*?>+)'), mark, mark);
 }
 
 /**
@@ -315,17 +315,17 @@ TextDirection estimateDirectionOfText(String text, [bool isHtml=false]) {
   var hasWeaklyLtr = false;
   // Split a string into 'words' for directionality estimation based on
   // relative word counts.
-  for (String token in text.split(const RegExp(@'\s+'))) {
+  for (String token in text.split(const RegExp(r'\s+'))) {
     if (startsWithRtl(token)) {
       rtlCount++;
       total++;
-    } else if (const RegExp(@'^http://').hasMatch(token)) {
+    } else if (const RegExp(r'^http://').hasMatch(token)) {
       // Checked if token looks like something that must always be LTR even in
       // RTL text, such as a URL.
       hasWeaklyLtr = true;
     } else if (hasAnyLtr(token)) {
       total++;
-    } else if (const RegExp(@'\d').hasMatch(token)) {
+    } else if (const RegExp(r'\d').hasMatch(token)) {
       // Checked if token contains any numerals.
       hasWeaklyLtr = true;
     }
