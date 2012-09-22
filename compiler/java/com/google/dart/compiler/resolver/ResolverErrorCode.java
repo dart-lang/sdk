@@ -113,8 +113,8 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test, (reachable code?)
   EXTRA_TYPE_ARGUMENT("Type variables may not have type arguments"),
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
-  FIELD_DOES_NOT_HAVE_A_GETTER("Field does not have a getter"),
-  FIELD_DOES_NOT_HAVE_A_SETTER("Field does not have a setter"),
+  FIELD_DOES_NOT_HAVE_A_GETTER(ErrorSeverity.WARNING, "Field does not have a getter"),
+  FIELD_DOES_NOT_HAVE_A_SETTER(ErrorSeverity.WARNING, "Field does not have a setter"),
   FIELD_GETTER_SETTER_SAME_STATIC("Field's getter and setter should be both static or not static"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
   FORMAL_PARAMETER_NAME_EXPECTED("Formal parameter name expected"),

@@ -5033,7 +5033,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertClassMembers(superElements, "field A.foo");
     }
   }
-  
+
   public void test_getOverridden_getterSetter_withField() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5065,6 +5065,56 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertTrue(name, superNames.remove(name));
     }
     assertTrue(superNames.toString(), superNames.isEmpty());
+  }
+
+  public void test_fieldAccess_declared_noGetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static set f(x) {}",
+        "}",
+        "main() {",
+        "  print(A.f);",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 6, 11, 1));
+  }
+  
+  public void test_fieldAccess_notDeclared() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  print(A.f);",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 1));
+  }
+  
+  public void test_fieldAssign_declared_noSetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static get f() => 0;",
+        "}",
+        "main() {",
+        "  A.f = 0;",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 6, 5, 1));
+  }
+  
+  public void test_fieldAssign_notDeclared() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A.f = 0;",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 1));
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {

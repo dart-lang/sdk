@@ -1342,6 +1342,7 @@ public class Resolver {
               break;
 
             case NONE:
+              x.getName().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
               onError(x.getName(), TypeErrorCode.CANNOT_BE_RESOLVED,
                   x.getPropertyName());
               break;

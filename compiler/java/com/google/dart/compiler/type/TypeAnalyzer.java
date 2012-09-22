@@ -2252,6 +2252,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (element != null) {
         return element.getType();
       }
+      if (node.getName().isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
+        return dynamicType;
+      }
       DartNode qualifier = node.getQualifier();
       Type receiver = nonVoidTypeOf(qualifier);
       // convert into InterfaceType
