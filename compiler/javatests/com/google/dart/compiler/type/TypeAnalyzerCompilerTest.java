@@ -214,6 +214,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1, 27),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 9, 1, 17));
   }
+  
+  /**
+   * Type parameters should not conflict with formal parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5302
+   */
+  public void test_functionTypeAlias_typePaarameter_scope() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef f<f>(f);",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
 
   /**
    * It is a compile-time error if initializer list contains an initializer for a variable that

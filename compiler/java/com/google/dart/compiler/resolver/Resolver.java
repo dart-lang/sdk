@@ -244,21 +244,24 @@ public class Resolver {
       getContext().pushFunctionAliasScope(alias);
       resolveFunctionAlias(alias);
 
-      List<DartParameter> parameters = alias.getParameters();
-      for (DartParameter parameter : parameters) {
-        assert parameter.getElement() != null;
-        if (parameter.getQualifier() instanceof DartThisExpression) {
-          onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
-        } else {
-          if (parameter.getModifiers().isNamed()
-              && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
-            onError(parameter.getName(),
-                ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+      getContext().pushScope("<parameters>");
+      try {
+        List<DartParameter> parameters = alias.getParameters();
+        for (DartParameter parameter : parameters) {
+          assert parameter.getElement() != null;
+          if (parameter.getQualifier() instanceof DartThisExpression) {
+            onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
+          } else {
+            if (parameter.getModifiers().isNamed()
+                && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
+              onError(parameter.getName(),
+                  ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+            }
+            getContext().declare(parameter.getElement(), ResolverErrorCode.DUPLICATE_PARAMETER);
           }
-          getContext().declare(
-              parameter.getElement(),
-              ResolverErrorCode.DUPLICATE_PARAMETER);
         }
+      } finally {
+        getContext().popScope();
       }
 
       getContext().popScope();

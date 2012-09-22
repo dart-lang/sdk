@@ -145,8 +145,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail, OK # invalid directiv
 Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail, OK # invalid directive syntax
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail, OK # script tag after comments
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Issue 5302
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # Issue 5302
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # Issue 5289
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
