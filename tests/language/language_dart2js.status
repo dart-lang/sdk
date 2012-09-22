@@ -329,3 +329,4 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
+typed_message_test: Fail # http://dartbug.com/5383
