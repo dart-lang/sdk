@@ -3049,10 +3049,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
             superMembers.put(name, member);
-            if (member instanceof FieldElement
-                && !((FieldElement) member).getModifiers().isAbstractField()) {
-              artificialNames.add("setter " + name);
-              superMembers.put("setter " + name, member);
+            if (member instanceof FieldElement) {
+              FieldElement field = (FieldElement) member;
+              if (!field.getModifiers().isAbstractField()) {
+                artificialNames.add("setter " + name);
+                superMembers.put("setter " + name, member);
+              } else if (field.getSetter() != null && !name.startsWith("setter ")) {
+                superMembers.put("setter " + name, member);
+              }
             }
           }
         }
@@ -3075,8 +3079,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
         while (supertype != null) {
           ClassElement superclass = supertype.getElement();
           for (Element member : superclass.getMembers()) {
+            String name = member.getName();
             if (!member.getModifiers().isAbstract()) {
-              superMembers.removeAll(member.getName());
+              superMembers.removeAll(name);
+            }
+            if (member instanceof FieldElement) {
+              FieldElement field = (FieldElement) member;
+              if (field.getSetter() != null) {
+                superMembers.removeAll("setter " + name);
+              }
             }
           }
           supertype = supertype.getElement().getSupertype();
@@ -3115,10 +3126,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Set<Element> overridden = Sets.newHashSet();
           if (node.getAccessor() != null) {
             if (node.getAccessor().getModifiers().isSetter()) {
-              overridden.addAll(superMembers.removeAll("setter " + name));
-            } else {
-              overridden.addAll(superMembers.removeAll(name));
+              if (!name.startsWith("setter ")) {
+                name = "setter " + name;
+              }
             }
+            overridden.addAll(superMembers.removeAll(name));
           } else {
             overridden.addAll(superMembers.removeAll(name));
           }

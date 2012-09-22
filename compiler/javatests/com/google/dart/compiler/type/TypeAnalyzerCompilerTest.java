@@ -775,6 +775,70 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * There was bug that implementing setter still caused warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5327
+   */
+  public void test_warnAbstract_whenInstantiate_implementSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "interface I {",
+        "  set foo(x);",
+        "}",
+        "class A implements I {",
+        "  set foo(x) {}",
+        "}",
+        "main() {",
+        "  new A();",
+        "}");
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
+   * When both getter and setter were abstract and only getter implemented, we should report error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5327
+   */
+  public void test_warnAbstract_whenInstantiate_implementsOnlyGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "interface I {",
+        "  get foo();",
+        "  set foo(x);",
+        "}",
+        "class A implements I {",
+        "  get foo() => 0;",
+        "}",
+        "main() {",
+        "  new A();",
+        "}");
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 7, 1));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5327
+   */
+  public void test_warnAbstract_whenInstantiate_implementsSetter_inSuperClass() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "interface I {",
+        "  get foo();",
+        "  set foo(x);",
+        "}",
+        "class A implements I {",
+        "  abstract get foo();",
+        "  set foo(x) {}",
+        "}",
+        "class B extends A {",
+        "  get foo() => 0;",
+        "}",
+        "main() {",
+        "  new B();",
+        "}");
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
    * Factory constructor can instantiate any class and return it non-abstract class instance, Even
    * thought this is an abstract class, there should be no warnings for the invocation of the
    * factory constructor.
@@ -5006,7 +5070,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 4, 9, 5));
   }
-
+  
   public void test_getOverridden_method() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
