@@ -1520,20 +1520,32 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {
-    target.sourcePosition = sourceFileLocationForToken(node.getBeginToken());
+    target.sourcePosition = sourceFileLocationForBeginToken(node);
     return target;
   }
 
-  SourceFileLocation sourceFileLocationForToken(Token token) {
+  SourceFileLocation sourceFileLocationForBeginToken(Node node) =>
+      sourceFileLocationForToken(node, node.getBeginToken());
+
+  SourceFileLocation sourceFileLocationForEndToken(Node node) =>
+      sourceFileLocationForToken(node, node.getEndToken());
+
+  SourceFileLocation sourceFileLocationForToken(Node node, Token token) {
     Element element = sourceElementStack.last();
     // TODO(johnniwinther): remove the 'element.patch' hack.
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
       if (functionElement.patch != null) element = functionElement.patch;
     }
-    SourceFile sourceFile = element.getCompilationUnit().script.file;
-    return new SourceFileLocation(sourceFile, token);
-  }
+    Script script = element.getCompilationUnit().script;
+    SourceFile sourceFile = script.file;
+    SourceFileLocation location = new SourceFileLocation(sourceFile, token);
+    if (!location.isValid()) {
+      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
+          [token.charOffset, sourceFile.filename, sourceFile.text.length]);
+    }
+    return location;
+}
 
   void visit(Node node) {
     if (node !== null) node.accept(this);
@@ -1733,8 +1745,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapExpressionGraph(updateGraph),
             conditionBlock.loopInformation.target,
             conditionBlock.loopInformation.labels,
-            sourceFileLocationForToken(loop.getBeginToken()),
-            sourceFileLocationForToken(loop.getEndToken()));
+            sourceFileLocationForBeginToken(loop),
+            sourceFileLocationForEndToken(loop));
 
     startBlock.setBlockFlow(info, current);
     loopInfo.loopBlockInformation = info;
@@ -1862,8 +1874,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             null,
             loopEntryBlock.loopInformation.target,
             loopEntryBlock.loopInformation.labels,
-            sourceFileLocationForToken(node.getBeginToken()),
-            sourceFileLocationForToken(node.getEndToken()));
+            sourceFileLocationForBeginToken(node),
+            sourceFileLocationForEndToken(node));
     loopEntryBlock.setBlockFlow(loopBlockInfo, current);
     loopInfo.loopBlockInformation = loopBlockInfo;
   }

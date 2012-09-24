@@ -256,6 +256,11 @@ class MessageKind {
   static const VOID_NOT_ALLOWED = const MessageKind(
       'type void is only allowed in a return type.');
 
+  static const INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
+Invalid offset (#{1}) in source map.
+File: #{2}
+Length: #{3}''');
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

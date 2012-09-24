@@ -155,7 +155,7 @@ class SourceFileLocation {
   int line;
 
   SourceFileLocation(this.sourceFile, this.token) {
-    assert(token.charOffset < sourceFile.text.length);
+    assert(isValid());
   }
 
   String getSourceUrl() => sourceFile.filename;
@@ -171,4 +171,6 @@ class SourceFileLocation {
     if (token.isIdentifier()) return token.slowToString();
     return null;
   }
+
+  bool isValid() => token.charOffset < sourceFile.text.length;
 }
