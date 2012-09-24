@@ -228,6 +228,7 @@ bad_constructor_test/05: Fail, OK
 [ $compiler == none && $runtime == drt ]
 gc_test: Skip # Issue 1487
 prefix_new_test: Fail
+import_combinators_test: Fail
 
 
 [ $runtime == dartium ]
