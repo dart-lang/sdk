@@ -179,6 +179,8 @@ class HtmlEnhancedConfiguration extends Configuration {
           var groupTestPassedCount = testsInGroup.filter(
               (TestCase t) => t.result == 'pass').length;
           groupPassFail = groupTotalTestCount == groupTestPassedCount;
+          var passFailClass = "unittest-group-status unittest-group-"
+              "status-${groupPassFail ? 'pass' : 'fail'}";
 
           te.elements.add(new Element.html("""
             <div>
@@ -186,8 +188,7 @@ class HtmlEnhancedConfiguration extends Configuration {
                    class='unittest-group ${safeGroup} test${safeGroup}'>
                 <div ${_isIE ? "style='display:inline-block' ": ""}
                      class='unittest-row-status'>
-                  <div class='unittest-group-status unittest-group-status-
-                              ${groupPassFail ? 'pass' : 'fail'}'></div>
+                  <div class='$passFailClass'></div>
                 </div>
                 <div ${_isIE ? "style='display:inline-block' ": ""}>
                     ${test_.currentGroup}</div>
@@ -196,7 +197,8 @@ class HtmlEnhancedConfiguration extends Configuration {
               </div>
             </div>"""));
 
-          var grp = te.query('#${safeGroup}');
+          // 'safeGroup' could be empty
+          var grp = (safeGroup == '') ? null : te.query('#${safeGroup}');
           if (grp != null){
             grp.on.click.add((_){
               var row = document.query('.unittest-row-${safeGroup}');
