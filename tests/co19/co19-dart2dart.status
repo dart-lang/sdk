@@ -3,13 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
-Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
 Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
 Language/07_Classes/6_Constructors_A03_t03: Fail # Issue 5349
-Language/06_Functions/06_Functions_A01_t03: Fail # TRIAGE!
+Language/06_Functions/06_Functions_A01_t03: Fail # inherited from dart2js
 # TODO(antonm): adjust suppressions to drop Pass expectations which
 # are currently due to runtime suppressions.
 Language/07_Classes/07_Classes_A03_t07: Pass
@@ -110,14 +109,14 @@ Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A01_t01: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Pass
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
