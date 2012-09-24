@@ -20,7 +20,7 @@ class GrowableObjectArray<T> implements List<T> {
     this.length = newLength;
     return result;
   }
-  
+
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
@@ -139,9 +139,6 @@ class GrowableObjectArray<T> implements List<T> {
 
   T removeLast() {
     var len = length - 1;
-    if (len < 0) {
-      throw new IndexOutOfRangeException(-1);
-    }
     var elem = this[len];
     this[len] = null;
     _setLength(len);
@@ -149,9 +146,6 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   T last() {
-    if (length === 0) {
-      throw new IndexOutOfRangeException(-1);
-    }
     return this[length - 1];
   }
 
