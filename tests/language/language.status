@@ -229,7 +229,10 @@ bad_constructor_test/05: Fail, OK
 gc_test: Skip # Issue 1487
 prefix_new_test: Fail
 
+
 [ $runtime == dartium ]
+import_combinators_test: Fail
+
 
 [ $runtime == vm ]
 first_class_types_test: Fail # Issue 3902
