@@ -206,9 +206,14 @@ bool _initialized = false;
 
 String _uncaughtErrorMessage = null;
 
-const _PASS  = 'pass';
-const _FAIL  = 'fail';
-const _ERROR = 'error';
+/** Test case result strings. */
+// TODO(gram) we should change these constants to use a different string
+// (so that writing 'FAIL' in the middle of a test doesn't
+// imply that the test fails). We can't do it without also changing
+// the testrunner and test.dart though.
+const PASS  = 'pass';
+const FAIL  = 'fail';
+const ERROR = 'error';
 
 /** If set, then all other test cases will be ignored. */
 TestCase _soloTest;
@@ -796,9 +801,9 @@ _completeTests() {
 
   for (TestCase t in _tests) {
     switch (t.result) {
-      case _PASS:  testsPassed_++; break;
-      case _FAIL:  testsFailed_++; break;
-      case _ERROR: testsErrors_++; break;
+      case PASS:  testsPassed_++; break;
+      case FAIL:  testsFailed_++; break;
+      case ERROR: testsErrors_++; break;
     }
   }
   _config.onDone(testsPassed_, testsFailed_, testsErrors_, _tests,

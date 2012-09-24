@@ -40,7 +40,7 @@ class TestCase {
   String message = '';
 
   /**
-   * One of [_PASS], [_FAIL], [_ERROR], or [null] if the test hasn't run yet.
+   * One of [PASS], [FAIL], [ERROR], or [null] if the test hasn't run yet.
    */
   String result;
 
@@ -98,19 +98,19 @@ class TestCase {
   }
 
   void pass() {
-    result = _PASS;
+    result = PASS;
     _complete();
   }
 
   void fail(String messageText, String stack) {
     if (result != null) {
-      if (result == _PASS) {
+      if (result == PASS) {
         error('Test failed after initially passing: $messageText', stack);
-      } else if (result == _FAIL) {
+      } else if (result == FAIL) {
         error('Test failed more than once: $messageText', stack);
       }
     } else {
-      result = _FAIL;
+      result = FAIL;
       message = messageText;
       stackTrace = stack;
       _complete();
@@ -118,7 +118,7 @@ class TestCase {
   }
 
   void error(String messageText, String stack) {
-    result = _ERROR;
+    result = ERROR;
     message = messageText;
     stackTrace = stack;
     _complete();
