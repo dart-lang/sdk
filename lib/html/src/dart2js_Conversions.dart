@@ -394,4 +394,4 @@ bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
 bool _isJavaScriptSimpleObject(value) =>
     JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
 bool _isImmutableJavaScriptArray(value) =>
-    JS('bool', @'!!(#.immutable$list)', value);
+    JS('bool', r'!!(#.immutable$list)', value);

@@ -31,7 +31,7 @@ class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
 }
 
 // Support for Send/ReceivePortSync.
-int _getNewIsolateId() native @'''
+int _getNewIsolateId() native r'''
   if (!window.$dart$isolate$counter) {
     window.$dart$isolate$counter = 1;
   }
@@ -40,7 +40,7 @@ int _getNewIsolateId() native @'''
 
 // Fast path to invoke JS send port.
 _callPortSync(int id, message) {
-  return JS('var', @'ReceivePortSync.dispatchCall(#, #)', id, message);
+  return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
 // TODO(vsm): Plumb this properly.
@@ -41545,7 +41545,7 @@ bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
 bool _isJavaScriptSimpleObject(value) =>
     JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
 bool _isImmutableJavaScriptArray(value) =>
-    JS('bool', @'!!(#.immutable$list)', value);
+    JS('bool', r'!!(#.immutable$list)', value);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
